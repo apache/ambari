@@ -32,6 +32,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -50,7 +51,7 @@ public class TargetClusterService extends BaseService {
    * @param targetName    target id
    * @return target instance representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{targetName}")
   @Produces("text/plain")
   public Response getTargetCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -67,7 +68,7 @@ public class TargetClusterService extends BaseService {
    * @param ui      uri info
    * @return target collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getTargetClusters(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET, createTargetClusterResource(null));
@@ -82,7 +83,7 @@ public class TargetClusterService extends BaseService {
    * @param targetName target id
    * @return information regarding the created target
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{targetName}")
   @Produces("text/plain")
   public Response createTargetCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -100,7 +101,7 @@ public class TargetClusterService extends BaseService {
    * @param targetName target id
    * @return information regarding the updated target
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{targetName}")
   @Produces("text/plain")
   public Response updateTargetCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -118,7 +119,7 @@ public class TargetClusterService extends BaseService {
    * @param targetName target id
    * @return information regarding the deleted target
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{targetName}")
   @Produces("text/plain")
   public Response deleteTargetCluster(@Context HttpHeaders headers, @Context UriInfo ui,

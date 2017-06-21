@@ -29,6 +29,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -58,7 +59,7 @@ public class OperatingSystemService extends BaseService {
    * @param headers http headers
    * @param ui      uri info
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getOperatingSystems(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
@@ -73,7 +74,7 @@ public class OperatingSystemService extends BaseService {
    * @param osType  os type
    * @return information regarding the specified operating system
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{osType}")
   @Produces("text/plain")
   public Response getOperatingSystem(@Context HttpHeaders headers, @Context UriInfo ui, @PathParam("osType") String osType) {

@@ -34,6 +34,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -44,7 +45,7 @@ import com.google.gson.JsonObject;
 @Path("/version_definitions/")
 public class VersionDefinitionService extends BaseService {
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces(MediaType.TEXT_PLAIN)
   public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -52,7 +53,7 @@ public class VersionDefinitionService extends BaseService {
       createResource(null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{versionId}")
   @Produces(MediaType.TEXT_PLAIN)
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -75,9 +76,7 @@ public class VersionDefinitionService extends BaseService {
     return new OperatingSystemService(mapIds);
   }
 
-
-
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces(MediaType.TEXT_PLAIN)
   public Response createVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
@@ -91,7 +90,7 @@ public class VersionDefinitionService extends BaseService {
    * @param headers  the headers
    * @param ui       the URI info
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Consumes({MediaType.TEXT_XML})
   @Produces(MediaType.TEXT_PLAIN)
   public Response createVersionByXml(String body, @Context HttpHeaders headers,

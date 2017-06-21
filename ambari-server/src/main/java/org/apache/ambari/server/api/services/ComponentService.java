@@ -38,6 +38,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -78,7 +79,7 @@ public class ComponentService extends BaseService {
    * @param componentName component id
    * @return a component resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{componentName}")
   @Produces("text/plain")
   public Response getComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -99,7 +100,7 @@ public class ComponentService extends BaseService {
    * @param ui      uri info
    * @return component collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @QueryParam("format") String format) {
@@ -122,7 +123,7 @@ public class ComponentService extends BaseService {
    *
    * @return status code only, 201 if successful
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -141,7 +142,7 @@ public class ComponentService extends BaseService {
    *
    * @return information regarding the created component
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{componentName}")
   @Produces("text/plain")
   public Response createComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -162,7 +163,7 @@ public class ComponentService extends BaseService {
    *
    * @return information regarding the updated component
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{componentName}")
   @Produces("text/plain")
   public Response updateComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -182,7 +183,7 @@ public class ComponentService extends BaseService {
    *
    * @return information regarding the updated component
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updateComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -199,7 +200,7 @@ public class ComponentService extends BaseService {
    * @param componentName cluster id
    * @return information regarding the deleted cluster
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{componentName}")
   @Produces("text/plain")
   public Response deleteComponent(@Context HttpHeaders headers, @Context UriInfo ui,

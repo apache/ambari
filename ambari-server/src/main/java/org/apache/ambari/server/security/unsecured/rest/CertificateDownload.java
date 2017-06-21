@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.security.unsecured.rest;
 
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.security.CertificateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +39,10 @@ public class CertificateDownload {
     certMan = instance;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces({MediaType.TEXT_PLAIN})
   public String downloadSrvrCrt() {
     return certMan.getServerCert();
   }
-
 
 }

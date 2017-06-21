@@ -34,6 +34,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -91,7 +92,6 @@ public class ViewInstanceService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, null));
   }
 
-
   /**
    * Handles URL: /views/{viewName}/versions/{version}/instances/{instanceID}
    * Get a specific instance.
@@ -119,7 +119,6 @@ public class ViewInstanceService extends BaseService {
                              @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, instanceName));
   }
-
 
   /**
    * Handles: POST /views/{viewName}/versions/{version}/instances/{instanceId}
@@ -163,7 +162,7 @@ public class ViewInstanceService extends BaseService {
    *
    * @return information regarding the created instances
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
@@ -212,7 +211,7 @@ public class ViewInstanceService extends BaseService {
    *
    * @return information regarding the updated instance
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
