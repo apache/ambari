@@ -26,24 +26,24 @@ import org.apache.ambari.server.orm.entities.MpackEntity;
  */
 public class MpackRequest {
 
-  private String mpackId;
+  private Long mpackId;
   private String mpackName;
   private String mpackVersion;
-  private String mpackUrl;
-  private String registryId;
+  private String mpackUri;
+  private Long registryId;
 
-  public MpackRequest(String mpackId) {
+  public MpackRequest(Long mpackId) {
     this.setMpackId(mpackId);
   }
 
   public MpackRequest() {
   }
 
-  public String getMpackId() {
+  public Long getMpackId() {
     return mpackId;
   }
 
-  public void setMpackId(String mpackId) {
+  public void setMpackId(Long mpackId) {
     this.mpackId = mpackId;
   }
 
@@ -63,20 +63,80 @@ public class MpackRequest {
     this.mpackVersion = mpackVersion;
   }
 
-  public String getMpackUrl() {
-    return mpackUrl;
+  public String getMpackUri() {
+    return mpackUri;
   }
 
-  public void setMpackUrl(String mpackUrl) {
-    this.mpackUrl = mpackUrl;
+  public void setMpackUri(String mpackUri) {
+    this.mpackUri = mpackUri;
   }
 
-  public String getRegistryId() {
+  public Long getRegistryId() {
     return registryId;
   }
 
-  public void setRegistryId(String registryId) {
+  public void setRegistryId(Long registryId) {
     this.registryId = registryId;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 1;
+    result = 31 + getMpackId().hashCode();
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof MpackRequest)) {
+      return false;
+    }
+    if (this == obj) {
+      return true;
+    }
+    MpackRequest mpackRequest = (MpackRequest) obj;
+
+    if (mpackId == null) {
+      if (mpackRequest.mpackId != null) {
+        return false;
+      }
+    } else if (!mpackId.equals(mpackRequest.mpackId)) {
+      return false;
+    }
+
+    if (mpackName == null) {
+      if (mpackRequest.mpackName != null) {
+        return false;
+      }
+    } else if (!mpackName.equals(mpackRequest.mpackName)) {
+      return false;
+    }
+
+    if (mpackUri == null) {
+      if (mpackRequest.mpackUri != null) {
+        return false;
+      }
+    } else if (!mpackUri.equals(mpackRequest.mpackUri)) {
+      return false;
+    }
+
+    if (registryId == null) {
+      if (mpackRequest.registryId != null) {
+        return false;
+      }
+    } else if (!registryId.equals(mpackRequest.registryId)) {
+      return false;
+    }
+
+    if (mpackVersion == null) {
+      if (mpackRequest.mpackVersion != null) {
+        return false;
+      }
+    } else if (!mpackVersion.equals(mpackRequest.mpackVersion)) {
+      return false;
+    }
+
+    return true;
   }
 
 }

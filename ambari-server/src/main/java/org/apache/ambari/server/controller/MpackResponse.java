@@ -27,13 +27,13 @@ public class MpackResponse {
   private Long mpackId;
   private String mpackVersion;
   private String mpackName;
-  private String mpackUrl;
-  private String registryId;
+  private String mpackUri;
+  private Long registryId;
 
   public MpackResponse(Mpacks mpacks) {
     this.mpackId = mpacks.getMpackId();
     this.mpackVersion = mpacks.getVersion();
-    this.mpackUrl = mpacks.getMpacksUrl();
+    this.mpackUri = mpacks.getMpacksUri();
     this.mpackName = mpacks.getName();
     this.registryId = mpacks.getRegistryId();
   }
@@ -42,8 +42,8 @@ public class MpackResponse {
     return mpackVersion;
   }
 
-  public String getMpackUrl() {
-    return mpackUrl;
+  public String getMpackUri() {
+    return mpackUri;
   }
 
   public Long getMpackId() {
@@ -54,7 +54,7 @@ public class MpackResponse {
     return mpackName;
   }
 
-  public String getRegistryId() {
+  public Long getRegistryId() {
     return registryId;
   }
 
@@ -66,11 +66,11 @@ public class MpackResponse {
     this.mpackName = mpackName;
   }
 
-  public void setMpackUrl(String mpackUrl) {
-    this.mpackUrl = mpackUrl;
+  public void setMpackUri(String mpackUri) {
+    this.mpackUri = mpackUri;
   }
 
-  public void setRegistryId(String registryId) {
+  public void setRegistryId(Long registryId) {
     this.registryId = registryId;
   }
 
