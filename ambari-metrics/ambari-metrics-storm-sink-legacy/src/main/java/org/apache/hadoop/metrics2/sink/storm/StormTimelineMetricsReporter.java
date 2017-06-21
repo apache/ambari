@@ -57,6 +57,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private int timeoutSeconds;
   private boolean hostInMemoryAggregationEnabled;
   private int hostInMemoryAggregationPort;
+  private String hostInMemoryAggregationProtocol;
 
   public StormTimelineMetricsReporter() {
 
@@ -108,6 +109,11 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   }
 
   @Override
+  protected String getHostInMemoryAggregationProtocol() {
+    return hostInMemoryAggregationProtocol;
+  }
+
+  @Override
   public void prepare(Map conf) {
     LOG.info("Preparing Storm Metrics Reporter");
     try {
@@ -144,11 +150,15 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
         setInstanceId = Boolean.getBoolean(cf.get(SET_INSTANCE_ID_PROPERTY).toString());
         instanceId = cf.get(INSTANCE_ID_PROPERTY).toString();
       }
-      hostInMemoryAggregationEnabled = Boolean.valueOf(cf.get(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY).toString());
-      hostInMemoryAggregationPort = Integer.valueOf(cf.get(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY).toString());
+      hostInMemoryAggregationEnabled = Boolean.valueOf(cf.get(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY) != null ?
+        cf.get(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY).toString() : "false");
+      hostInMemoryAggregationPort = Integer.valueOf(cf.get(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY) != null ?
+        cf.get(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY).toString() : "61888");
+      hostInMemoryAggregationProtocol = cf.get(HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY) != null ?
+        cf.get(HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY).toString() : "http";
 
       collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
-      if (protocol.contains("https")) {
+      if (protocol.contains("https") || hostInMemoryAggregationProtocol.contains("https")) {
         String trustStorePath = cf.get(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
         String trustStoreType = cf.get(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
         String trustStorePwd = cf.get(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();

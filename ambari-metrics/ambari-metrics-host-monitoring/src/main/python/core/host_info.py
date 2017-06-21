@@ -265,7 +265,6 @@ class HostInfo():
 
     skip_disk_patterns = self.__config.get_disk_metrics_skip_pattern()
     logger.debug('skip_disk_patterns: %s' % skip_disk_patterns)
-    print skip_disk_patterns
     if not skip_disk_patterns or skip_disk_patterns == 'None':
       io_counters = psutil.disk_io_counters()
       print io_counters

@@ -77,6 +77,9 @@ resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 *.sink.timeline.port={{metric_collector_port}}
 *.sink.timeline.host_in_memory_aggregation = {{host_in_memory_aggregation}}
 *.sink.timeline.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+*.sink.timeline.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
 
 # HTTPS properties
 *.sink.timeline.truststore.path = {{metric_truststore_path}}

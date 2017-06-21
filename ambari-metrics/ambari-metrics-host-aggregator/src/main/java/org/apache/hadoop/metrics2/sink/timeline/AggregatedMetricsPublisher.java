@@ -100,4 +100,9 @@ public class AggregatedMetricsPublisher extends AbstractMetricPublisher {
     protected String getPostUrl() {
         return BASE_POST_URL + AGGREGATED_POST_PREFIX;
     }
+
+    @Override
+    protected String getHostInMemoryAggregationProtocol() {
+        return "http";
+    }
 }

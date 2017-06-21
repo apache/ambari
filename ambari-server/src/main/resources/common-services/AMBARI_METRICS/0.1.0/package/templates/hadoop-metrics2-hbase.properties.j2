@@ -60,6 +60,9 @@ rpc.protocol={{metric_collector_protocol}}
 *.sink.timeline.slave.host.name={{hostname}}
 *.host_in_memory_aggregation = {{host_in_memory_aggregation}}
 *.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+*.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
 
 hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period={{metrics_collection_period}}

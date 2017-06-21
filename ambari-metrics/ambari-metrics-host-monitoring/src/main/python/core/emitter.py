@@ -45,17 +45,19 @@ class Emitter(threading.Thread):
     self.application_metric_map = application_metric_map
     self.collector_port = config.get_server_port()
     self.all_metrics_collector_hosts = config.get_metrics_collector_hosts_as_list()
-    self.is_server_https_enabled = config.is_server_https_enabled()
+    self.is_collector_https_enabled = config.is_collector_https_enabled()
+    self.collector_protocol = "https" if self.is_collector_https_enabled else "http"
     self.set_instanceid = config.is_set_instanceid()
     self.instanceid = config.get_instanceid()
     self.is_inmemory_aggregation_enabled = config.is_inmemory_aggregation_enabled()
 
     if self.is_inmemory_aggregation_enabled:
-      self.collector_port = config.get_inmemory_aggregation_port()
-      self.all_metrics_collector_hosts = ['localhost']
-      self.is_server_https_enabled = False
+      self.inmemory_aggregation_port = config.get_inmemory_aggregation_port()
+      self.inmemory_aggregation_protocol = config.get_inmemory_aggregation_protocol()
+      if self.inmemory_aggregation_protocol == "https":
+        self.ca_certs = config.get_ca_certs()
 
-    if self.is_server_https_enabled:
+    if self.is_collector_https_enabled:
       self.ca_certs = config.get_ca_certs()
 
     # TimedRoundRobinSet
@@ -91,22 +93,26 @@ class Emitter(threading.Thread):
 
   def push_metrics(self, data):
     success = False
-    while self.active_collector_hosts.get_actual_size() > 0:
+    if self.is_inmemory_aggregation_enabled:
+      success = self.try_with_collector(self.inmemory_aggregation_protocol, "localhost", self.inmemory_aggregation_port, data)
+      if not success:
+        logger.warning("Failed to submit metrics to local aggregator. Trying to post them to collector...")
+    while not success and self.active_collector_hosts.get_actual_size() > 0:
       collector_host = self.get_collector_host_shard()
-      success = self.try_with_collector_host(collector_host, data)
-      if success:
-        break
+      success = self.try_with_collector(self.collector_protocol, collector_host, self.collector_port, data)
     pass
 
     if not success:
       logger.info('No valid collectors found...')
       for collector_host in self.active_collector_hosts:
-        success = self.try_with_collector_host(collector_host, data)
+        success = self.try_with_collector(self.collector_protocol, collector_host, self.ollector_port, data)
+        if success:
+          break
       pass
 
-  def try_with_collector_host(self, collector_host, data):
+  def try_with_collector(self, collector_protocol, collector_host, collector_port, data):
     headers = {"Content-Type" : "application/json", "Accept" : "*/*"}
-    connection = self.get_connection(collector_host)
+    connection = self.get_connection(collector_protocol, collector_host, collector_port)
     logger.debug("message to send: %s" % data)
     retry_count = 0
     while retry_count < self.MAX_RETRY_COUNT:
@@ -126,16 +132,16 @@ class Emitter(threading.Thread):
       logger.warn("Metric collector host {0} was blacklisted.".format(collector_host))
       return False
 
-  def get_connection(self, collector_host):
+  def get_connection(self, protocol, host, port):
     timeout = int(self.send_interval - 10)
-    if self.is_server_https_enabled:
-      connection = CachedHTTPSConnection(collector_host,
-                                         self.collector_port,
+    if protocol == "https":
+      connection = CachedHTTPSConnection(host,
+                                         port,
                                          timeout=timeout,
                                          ca_certs=self.ca_certs)
     else:
-      connection = CachedHTTPConnection(collector_host,
-                                        self.collector_port,
+      connection = CachedHTTPConnection(host,
+                                        port,
                                         timeout=timeout)
     return connection
 

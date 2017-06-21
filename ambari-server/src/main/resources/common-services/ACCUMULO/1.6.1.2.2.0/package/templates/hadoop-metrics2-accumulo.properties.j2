@@ -18,6 +18,9 @@
 
 *.host_in_memory_aggregation = {{host_in_memory_aggregation}}
 *.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+*.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
 
 {% if has_metric_collector %}
 

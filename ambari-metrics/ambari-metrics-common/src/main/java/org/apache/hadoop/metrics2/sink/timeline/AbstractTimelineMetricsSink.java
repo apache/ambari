@@ -80,6 +80,7 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String SSL_KEYSTORE_PASSWORD_PROPERTY = "truststore.password";
   public static final String HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY = "host_in_memory_aggregation";
   public static final String HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY = "host_in_memory_aggregation_port";
+  public static final String HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY = "host_in_memory_aggregation_protocol";
   public static final String COLLECTOR_LIVE_NODES_PATH = "/ws/v1/timeline/metrics/livenodes";
   public static final String INSTANCE_ID_PROPERTY = "instanceId";
   public static final String SET_INSTANCE_ID_PROPERTY = "set.instanceId";
@@ -245,7 +246,11 @@ public abstract class AbstractTimelineMetricsSink {
   protected boolean emitMetrics(TimelineMetrics metrics) {
     String connectUrl;
     if (isHostInMemoryAggregationEnabled()) {
-      connectUrl = constructTimelineMetricUri("http", "localhost", String.valueOf(getHostInMemoryAggregationPort()));
+      String hostname = "localhost";
+      if (getHostInMemoryAggregationProtocol().equalsIgnoreCase("https")) {
+        hostname = getHostname();
+      }
+      connectUrl = constructTimelineMetricUri(getHostInMemoryAggregationProtocol(), hostname, String.valueOf(getHostInMemoryAggregationPort()));
     } else {
       String collectorHost  = getCurrentCollectorHost();
       connectUrl = getCollectorUri(collectorHost);
@@ -582,4 +587,10 @@ public abstract class AbstractTimelineMetricsSink {
    * @return
    */
   abstract protected int getHostInMemoryAggregationPort();
+
+  /**
+   * In memory aggregation protocol
+   * @return
+   */
+  abstract protected String getHostInMemoryAggregationProtocol();
 }

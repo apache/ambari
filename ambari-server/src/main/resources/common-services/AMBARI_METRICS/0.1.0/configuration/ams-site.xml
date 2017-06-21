@@ -798,4 +798,9 @@
     <value>61888</value>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation.http.policy</name>
+    <value>HTTP_ONLY</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

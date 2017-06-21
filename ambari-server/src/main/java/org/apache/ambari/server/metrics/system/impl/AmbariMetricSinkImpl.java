@@ -309,6 +309,11 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
     return 0;
   }
 
+  @Override
+  protected String getHostInMemoryAggregationProtocol() {
+    return "http";
+  }
+
   private List<TimelineMetric> getFilteredMetricList(List<SingleMetric> metrics) {
     final List<TimelineMetric> metricList = new ArrayList<>();
     for (SingleMetric metric : metrics) {
