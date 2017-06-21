@@ -63,6 +63,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private String instanceId;
   private boolean hostInMemoryAggregationEnabled;
   private int hostInMemoryAggregationPort;
+  private String hostInMemoryAggregationProtocol;
 
   @Override
   protected String getCollectorUri(String host) {
@@ -110,6 +111,11 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   @Override
+  protected String getHostInMemoryAggregationProtocol() {
+    return hostInMemoryAggregationProtocol;
+  }
+
+  @Override
   public void prepare(Map map, Object o, TopologyContext topologyContext, IErrorReporter iErrorReporter) {
     LOG.info("Preparing Storm Metrics Sink");
     try {
@@ -138,12 +144,13 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
     instanceId = configuration.getProperty(INSTANCE_ID_PROPERTY, null);
     setInstanceId = Boolean.valueOf(configuration.getProperty(SET_INSTANCE_ID_PROPERTY, "false"));
-    hostInMemoryAggregationEnabled = Boolean.valueOf(configuration.getProperty(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY));
-    hostInMemoryAggregationPort = Integer.valueOf(configuration.getProperty(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY));
+    hostInMemoryAggregationEnabled = Boolean.valueOf(configuration.getProperty(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY, "false"));
+    hostInMemoryAggregationPort = Integer.valueOf(configuration.getProperty(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY, "61888"));
+    hostInMemoryAggregationProtocol = configuration.getProperty(HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY, "http");
     // Initialize the collector write strategy
     super.init();
 
-    if (protocol.contains("https")) {
+    if (protocol.contains("https") || hostInMemoryAggregationProtocol.contains("https")) {
       String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
       String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
       String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();

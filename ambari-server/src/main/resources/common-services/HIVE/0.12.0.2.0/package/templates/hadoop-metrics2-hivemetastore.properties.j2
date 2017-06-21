@@ -53,6 +53,8 @@
   hivemetastore.sink.timeline.protocol={{metric_collector_protocol}}
   hivemetastore.sink.timeline.host_in_memory_aggregation = {{host_in_memory_aggregation}}
   hivemetastore.sink.timeline.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
-
+  {% if is_aggregation_https_enabled %}
+    hivemetastore.sink.timeline.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+  {% endif %}
 
 {% endif %}
