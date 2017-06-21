@@ -26,6 +26,11 @@
             <transfer operation="delete" delete-key="shiro_ini_content" />
             <transfer operation="delete" delete-key="log4j_properties_content" />
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0__set_zeppelin.server.ssl.port">
+            <type>zeppelin-config</type>
+            <set key="zeppelin.server.ssl.port" value="9995"/>
+          </definition>
         </changes>
       </component>
     </service>
@@ -55,6 +60,11 @@
             <type>ranger-hive-audit</type>
             <set key="ranger.plugin.hive.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-hive-audit" if-key="xasecure.audit.destination.solr" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes">
+            <type>ranger-hive-security</type>
+            <set key="ranger.plugin.hive.urlauth.filesystem.schemes" value="hdfs:,file:,wasb:,adl:"
+              if-type="ranger-hive-security" if-key="ranger.plugin.hive.service.name" if-key-state="present"/>
           </definition>
         </changes>
       </component>

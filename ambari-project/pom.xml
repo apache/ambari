@@ -33,6 +33,7 @@
     <jetty.version>8.1.19.v20160209</jetty.version>
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
     <swagger.version>1.5.10</swagger.version>
+    <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
     <slf4j.version>1.7.20</slf4j.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
@@ -525,7 +526,7 @@
       <dependency>
         <groupId>com.github.kongchen</groupId>
         <artifactId>swagger-maven-plugin</artifactId>
-        <version>3.1.4</version>
+        <version>${swagger.maven.plugin.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -574,6 +575,26 @@
               <version>1.0.0.0-SNAPSHOT</version>
             </dependency>
           </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>com.github.kongchen</groupId>
+          <artifactId>swagger-maven-plugin</artifactId>
+          <version>${swagger.maven.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>properties-maven-plugin</artifactId>
+          <version>1.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>2.20</version>
         </plugin>
       </plugins>
     </pluginManagement>

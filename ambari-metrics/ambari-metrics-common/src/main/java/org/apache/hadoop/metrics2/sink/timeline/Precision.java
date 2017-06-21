@@ -35,7 +35,7 @@ public enum Precision {
   }
 
   public static Precision getPrecision(String precision) throws PrecisionFormatException {
-    if (precision == null ) {
+    if (precision == null || precision.isEmpty()) {
       return null;
     }
     try {
