@@ -62,4 +62,79 @@ public class Packlet {
     this.sourceDir = sourceDir;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((type == null) ? 0 : type.hashCode());
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + ((version == null) ? 0 : version.hashCode());
+    result = prime * result + ((sourceDir == null) ? 0 : sourceDir.hashCode());
+    return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    Packlet other = (Packlet) obj;
+
+    if (type != other.type) {
+      return false;
+    }
+
+    if (name == null) {
+      if (other.name != null) {
+        return false;
+      }
+    } else if (!name.equals(other.name)) {
+      return false;
+    }
+
+    if (version == null) {
+      if (other.version != null) {
+        return false;
+      }
+    } else if (!version.equals(other.version)) {
+      return false;
+    }
+
+    if (sourceDir == null) {
+      if (other.sourceDir != null) {
+        return false;
+      }
+    } else if (!sourceDir.equals(other.sourceDir)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append('{');
+    sb.append("type=").append(type).append(", ");
+    sb.append("name=").append(name).append(", ");
+    sb.append("version=").append(version).append(", ");
+    sb.append("source directory=").append(sourceDir).append(", ");
+    sb.append('}');
+    return sb.toString();
+  }
+
 }

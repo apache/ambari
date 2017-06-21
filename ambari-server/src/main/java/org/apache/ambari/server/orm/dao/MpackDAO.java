@@ -39,7 +39,7 @@ public class MpackDAO {
    * JPA entity manager
    */
   @Inject
-  private Provider<EntityManager> m_entityManagerProvider;
+  Provider<EntityManager> m_entityManagerProvider;
 
   /**
    * DAO utilities for dealing mostly with {@link TypedQuery} results.

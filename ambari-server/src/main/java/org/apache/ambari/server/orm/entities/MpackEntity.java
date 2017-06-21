@@ -61,7 +61,7 @@ public class MpackEntity {
   private String mpackVersion;
 
   @Column(name = "mpack_uri", nullable = false)
-  private String mpackUrl;
+  private String mpackUri;
 
   public Long getMpackId() {
     return mpackId;
@@ -79,8 +79,8 @@ public class MpackEntity {
     return mpackVersion;
   }
 
-  public String getMpackUrl() {
-    return mpackUrl;
+  public String getMpackUri() {
+    return mpackUri;
   }
 
   public void setMpackId(Long mpackId) {
@@ -99,8 +99,8 @@ public class MpackEntity {
     this.mpackVersion = mpackVersion;
   }
 
-  public void setMpackUrl(String mpackUrl) {
-    this.mpackUrl = mpackUrl;
+  public void setMpackUri(String mpackUri) {
+    this.mpackUri = mpackUri;
   }
 
   public MpackEntity() {
@@ -121,6 +121,8 @@ public class MpackEntity {
     EqualsBuilder equalsBuilder = new EqualsBuilder();
 
     equalsBuilder.append(mpackId, that.mpackId);
+    equalsBuilder.append(mpackName, that.mpackName);
+    equalsBuilder.append(mpackVersion, that.mpackVersion);
     return equalsBuilder.isEquals();
   }
 
@@ -135,7 +137,7 @@ public class MpackEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(mpackId);
+    return Objects.hash(mpackId, mpackName, mpackVersion);
   }
 
   /**
@@ -150,7 +152,7 @@ public class MpackEntity {
     }
     buffer.append(", mpackName=").append(mpackName);
     buffer.append(", mpackVersion=").append(mpackVersion);
-    buffer.append(", mpackUrl=").append(mpackUrl);
+    buffer.append(", mpackUri=").append(mpackUri);
     buffer.append("}");
     return buffer.toString();
   }

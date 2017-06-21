@@ -61,7 +61,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   public static final String REGISTRY_ID = "MpackInfo/registry_id";
   public static final String MPACK_NAME = "MpackInfo/mpack_name";
   public static final String MPACK_VERSION = "MpackInfo/mpack_version";
-  public static final String MPACK_URL = "MpackInfo/mpack_url";
+  public static final String MPACK_URI = "MpackInfo/mpack_uri";
   public static final String PACKLETS = "MpackInfo/packlets";
 
 
@@ -87,7 +87,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     PROPERTY_IDS.add(REGISTRY_ID);
     PROPERTY_IDS.add(MPACK_NAME);
     PROPERTY_IDS.add(MPACK_VERSION);
-    PROPERTY_IDS.add(MPACK_URL);
+    PROPERTY_IDS.add(MPACK_URI);
     PROPERTY_IDS.add(PACKLETS);
 
     // keys
@@ -112,7 +112,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     try {
       MpackRequest mpackRequest = getRequest(request);
       if (mpackRequest == null)
-        throw new BodyParseException("Please provide " + MPACK_NAME + " ," + MPACK_VERSION + " ," + MPACK_URL);
+        throw new BodyParseException("Please provide " + MPACK_NAME + " ," + MPACK_VERSION + " ," + MPACK_URI);
       MpackResponse response = getManagementController().registerMpack(mpackRequest);
       if (response != null) {
         notifyCreate(Resource.Type.Mpack, request);
@@ -121,7 +121,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(REGISTRY_ID, response.getRegistryId());
         resource.setProperty(MPACK_NAME, response.getMpackName());
         resource.setProperty(MPACK_VERSION, response.getMpackVersion());
-        resource.setProperty(MPACK_URL, response.getMpackUrl());
+        resource.setProperty(MPACK_URI, response.getMpackUri());
 
         associatedResources.add(resource);
         return getRequestStatus(null, associatedResources);
@@ -139,17 +139,17 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     Set<Map<String, Object>> properties = request.getProperties();
     for (Map propertyMap : properties) {
       //Mpack Download url is either given in the request body or is fetched using the registry id
-      if (!propertyMap.containsKey(MPACK_URL) && !propertyMap.containsKey(REGISTRY_ID))
+      if (!propertyMap.containsKey(MPACK_URI) && !propertyMap.containsKey(REGISTRY_ID))
         return null;
       //Fetch Mpack Download Url using the given registry id
-      else if (!propertyMap.containsKey(MPACK_URL)) {
-        mpackRequest.setRegistryId((String) propertyMap.get(REGISTRY_ID));
+      else if (!propertyMap.containsKey(MPACK_URI)) {
+        mpackRequest.setRegistryId((Long) propertyMap.get(REGISTRY_ID));
         mpackRequest.setMpackName((String) propertyMap.get(MPACK_NAME));
         mpackRequest.setMpackVersion((String) propertyMap.get(MPACK_VERSION));
       }
-      //Directle download the mpack using the given url
+      //Directly download the mpack using the given url
       else
-        mpackRequest.setMpackUrl((String) propertyMap.get(MPACK_URL));
+        mpackRequest.setMpackUri((String) propertyMap.get(MPACK_URI));
     }
     return mpackRequest;
 
@@ -173,7 +173,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(MPACK_ID, entity.getMpackId());
         resource.setProperty(MPACK_NAME, entity.getMpackName());
         resource.setProperty(MPACK_VERSION, entity.getMpackVersion());
-        resource.setProperty(MPACK_URL, entity.getMpackUrl());
+        resource.setProperty(MPACK_URI, entity.getMpackUri());
         resource.setProperty(REGISTRY_ID, entity.getRegistryId());
         results.add(resource);
       }
@@ -188,7 +188,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
           resource.setProperty(MPACK_ID, entity.getMpackId());
           resource.setProperty(MPACK_NAME, entity.getMpackName());
           resource.setProperty(MPACK_VERSION, entity.getMpackVersion());
-          resource.setProperty(MPACK_URL, entity.getMpackUrl());
+          resource.setProperty(MPACK_URI, entity.getMpackUri());
           resource.setProperty(REGISTRY_ID, entity.getRegistryId());
 
           ArrayList<Packlet> packletArrayList = getManagementController().getPacklets(entity.getMpackId());

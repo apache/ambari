@@ -18,6 +18,27 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.Packlet;
+import org.apache.ambari.server.state.Mpacks;
+import org.apache.ambari.server.controller.MpackRequest;
+import org.apache.ambari.server.controller.MpackResponse;
+import org.apache.ambari.server.mpack.MpackManager;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -42,6 +63,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import javax.persistence.EntityManager;
 
@@ -56,25 +79,10 @@ import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.state.AutoDeployInfo;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.PropertyDependencyInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.MetricSource;
@@ -565,6 +573,30 @@ public class AmbariMetaInfoTest {
     ServiceInfo si = metaInfo.getService(STACK_NAME_HDP, STACK_VERSION_HDP,
         SERVICE_NAME_HDFS);
     assertNotNull(si);
+  }
+
+  @Test
+  public void testRegisterMpacks() throws Exception{
+    MpackManager mm = metaInfo.getMpackManager();
+    MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
+    Mpacks mpacks = new Mpacks();
+    mpacks.setMpackId((long)100);
+    mpacks.setPacklets(new ArrayList<Packlet>());
+    mpacks.setPrerequisites(new HashMap<String, String>());
+    mpacks.setRegistryId(new Long(100));
+    mpacks.setVersion("3.0");
+    mpacks.setMpacksUri("abc.tar.gz");
+    mpacks.setDescription("Test mpacks");
+    mpacks.setName("testMpack");
+    MpackResponse mpackResponse = new MpackResponse(mpacks);
+    expect(mm.registerMpack(mpackRequest)).andReturn(mpackResponse);
+    replay(mm);
+    assertEquals(mpackResponse,metaInfo.registerMpack(mpackRequest));
+  }
+
+  @Test
+  public void testGetPacklets() throws Exception{
+
   }
 
   @Test
@@ -2106,6 +2138,7 @@ public class AmbariMetaInfoTest {
     Properties properties = new Properties();
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"/var/lib/ambari-server/resources/mpacks-v2");
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
@@ -2179,6 +2212,12 @@ public class AmbariMetaInfoTest {
       f = c.getDeclaredField("stackManagerFactory");
       f.setAccessible(true);
       f.set(this, stackManagerFactory);
+
+      // MpackManagerFactory
+      MpackManagerFactory mpackManagerFactory = injector.getInstance(MpackManagerFactory.class);
+      f = c.getDeclaredField("mpackManagerFactory");
+      f.setAccessible(true);
+      f.set(this, mpackManagerFactory);
 
       //AlertDefinitionDAO
       alertDefinitionDAO = createNiceMock(AlertDefinitionDAO.class);

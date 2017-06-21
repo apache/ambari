@@ -29,7 +29,7 @@ public class Mpacks {
 
     private Long mpackId;
 
-    private String registryId;
+    private Long registryId;
 
     @SerializedName("name")
     private String name;
@@ -46,7 +46,7 @@ public class Mpacks {
     @SerializedName("packlets")
     private ArrayList<Packlet> packlets;
 
-    private String mpacksUrl;
+    private String mpacksUri;
 
     public Long getMpackId() {
         return mpackId;
@@ -56,20 +56,20 @@ public class Mpacks {
         this.mpackId = mpackId;
     }
 
-    public String getRegistryId() {
+    public Long getRegistryId() {
         return registryId;
     }
 
-    public void setRegistryId(String registryId) {
+    public void setRegistryId(Long registryId) {
         this.registryId = registryId;
     }
 
-    public String getMpacksUrl() {
-        return mpacksUrl;
+    public String getMpacksUri() {
+        return mpacksUri;
     }
 
-    public void setMpacksUrl(String mpacksUrl) {
-        this.mpacksUrl = mpacksUrl;
+    public void setMpacksUri(String mpacksUri) {
+        this.mpacksUri = mpacksUri;
     }
 
     public String getName() {
@@ -110,5 +110,128 @@ public class Mpacks {
 
     public void setPacklets(ArrayList<Packlet> packlets) {
         this.packlets = packlets;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((mpackId == null) ? 0 : mpackId.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((version == null) ? 0 : version.hashCode());
+        result = prime * result + ((registryId == null) ? 0 : registryId.hashCode());
+        result = prime * result + ((description == null) ? 0 : description.hashCode());
+        result = prime * result + ((prerequisites == null) ? 0 : prerequisites.hashCode());
+        result = prime * result + ((packlets == null) ? 0 : packlets.hashCode());
+        result = prime * result + ((mpacksUri == null) ? 0 : mpacksUri.hashCode());
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null) {
+            return false;
+        }
+
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Mpacks other = (Mpacks) obj;
+
+        if (name != other.name) {
+            return false;
+        }
+
+        if (version == null) {
+            if (other.version != null) {
+                return false;
+            }
+        } else if (!version.equals(other.version)) {
+            return false;
+        }
+
+        if (description == null) {
+            if (other.description != null) {
+                return false;
+            }
+        } else if (!description.equals(other.description)) {
+            return false;
+        }
+
+        if (mpackId == null) {
+            if (other.mpackId != null) {
+                return false;
+            }
+        } else if (!mpackId.equals(other.mpackId)) {
+            return false;
+        }
+
+        if (registryId == null) {
+            if (other.registryId != null) {
+                return false;
+            }
+        } else if (!registryId.equals(other.registryId)) {
+            return false;
+        }
+
+        if (registryId == null) {
+            if (other.registryId != null) {
+                return false;
+            }
+        } else if (!registryId.equals(other.registryId)) {
+            return false;
+        }
+
+        if (registryId == null) {
+            if (other.registryId != null) {
+                return false;
+            }
+        } else if (!registryId.equals(other.registryId)) {
+            return false;
+        }
+
+        if (prerequisites == null) {
+            if (other.prerequisites != null) {
+                return false;
+            }
+        } else if (!prerequisites.equals(other.prerequisites)) {
+            return false;
+        }
+
+        if (packlets == null) {
+            if (other.packlets != null) {
+                return false;
+            }
+        } else if (!packlets.equals(other.packlets)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        sb.append("name=").append(name).append(", ");
+        sb.append("mpackId=").append(mpackId).append(", ");
+        sb.append("version=").append(version).append(", ");
+        sb.append("registryId=").append(registryId).append(", ");
+        sb.append("description=").append(description).append(", ");
+        sb.append("prereq=").append(prerequisites.toString()).append(", ");
+        sb.append("packlets=").append(packlets.toString()).append(", ");
+        sb.append('}');
+        return sb.toString();
     }
 }

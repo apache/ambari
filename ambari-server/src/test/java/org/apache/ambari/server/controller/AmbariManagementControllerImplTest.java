@@ -24,6 +24,30 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERS
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.Mpacks;
+import org.apache.ambari.server.state.Packlet;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -71,39 +95,17 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -2396,5 +2398,47 @@ public class AmbariManagementControllerImplTest {
     verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
   }
 
+  @Test
+  public void testRegisterMpacks() throws Exception{
+    MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
+    Mpacks mpacks = new Mpacks();
+    mpacks.setMpackId((long)100);
+    mpacks.setPacklets(new ArrayList<Packlet>());
+    mpacks.setPrerequisites(new HashMap<String, String>());
+    mpacks.setRegistryId(new Long(100));
+    mpacks.setVersion("3.0");
+    mpacks.setMpacksUri("abc.tar.gz");
+    mpacks.setDescription("Test mpacks");
+    mpacks.setName("testMpack");
+    MpackResponse mpackResponse = new MpackResponse(mpacks);
+    Injector injector = createNiceMock(Injector.class);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(ambariMetaInfo.registerMpack(mpackRequest)).andReturn(mpackResponse);
+    replay(ambariMetaInfo,injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+    Assert.assertEquals(mpackResponse,controller.registerMpack(mpackRequest));
+  }
+
+  @Test
+  public void testGetPacklets() throws Exception {
+    Long mpackId = new Long(100);
+    ArrayList<Packlet> packletArrayList = new ArrayList<>();
+    Packlet samplePacklet = new Packlet();
+    Injector injector = createNiceMock(Injector.class);
+    samplePacklet.setType("service");
+    samplePacklet.setVersion("3.0.0");
+    samplePacklet.setName("NIFI");
+    samplePacklet.setSourceDir("/abc/nifi.tar.gz");
+    packletArrayList.add(samplePacklet);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(ambariMetaInfo.getPacklets(mpackId)).andReturn(packletArrayList).atLeastOnce();
+    replay(ambariMetaInfo,injector);
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+
+    Assert.assertEquals(packletArrayList,controller.getPacklets(mpackId));
+
+  }
 
 }
