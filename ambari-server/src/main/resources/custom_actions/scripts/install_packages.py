@@ -36,6 +36,7 @@ from resource_management.libraries.functions.stack_select import get_stack_versi
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.repo_version_history \
     import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
+from resource_management.core.resources.system import Link
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.functions.repository_util import create_repo_files, CommandRepository
@@ -197,6 +198,11 @@ class InstallPackages(Script):
     if not (target_stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, target_stack_version)):
       Logger.info("Configuration symlinks are not needed for {0}".format(stack_version))
       return
+
+    # After upgrading hdf-select package from HDF-2.X to HDF-3.Y, we need to create this symlink
+    if self.stack_name.upper() == "HDF" \
+            and not os.path.exists("/usr/bin/conf-select") and os.path.exists("/usr/bin/hdfconf-select"):
+      Link("/usr/bin/conf-select", to = "/usr/bin/hdfconf-select")
 
     for package_name, directories in conf_select.get_package_dirs().iteritems():
       conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
