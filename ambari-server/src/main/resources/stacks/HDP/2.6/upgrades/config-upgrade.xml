@@ -26,6 +26,11 @@
             <transfer operation="delete" delete-key="shiro_ini_content" />
             <transfer operation="delete" delete-key="log4j_properties_content" />
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0__set_zeppelin.server.ssl.port">
+            <type>zeppelin-config</type>
+            <set key="zeppelin.server.ssl.port" value="9995"/>
+          </definition>
         </changes>
       </component>
     </service>
