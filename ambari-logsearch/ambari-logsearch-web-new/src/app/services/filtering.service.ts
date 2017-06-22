@@ -17,6 +17,7 @@
  */
 
 import {Injectable} from '@angular/core';
+import {Subject} from 'rxjs/Subject';
 import * as moment from 'moment-timezone';
 
 @Injectable()
@@ -26,67 +27,110 @@ export class FilteringService {
   }
 
   // TODO implement loading of real options data
-  readonly filters = {
+  filters = {
     clusters: {
       label: 'filter.clusters',
       options: [
         {
           label: 'filter.all',
-          value: 'ALL'
+          value: ''
         },
         {
-          label: 'c0',
-          value: 'c0'
+          label: 'cl0',
+          value: 'cl0'
         },
         {
-          label: 'c1',
-          value: 'c1'
+          label: 'cl1',
+          value: 'cl1'
+        },
+        {
+          label: 'cl2',
+          value: 'cl2'
+        },
+        {
+          label: 'cl3',
+          value: 'cl3'
+        },
+        {
+          label: 'cl4',
+          value: 'cl4'
         }
       ],
       selectedValue: '',
-      selectedLabel: ''
+      selectedLabel: '',
+      paramName: 'clusters',
     },
     text: {
       label: 'filter.message',
-      value: ''
+      selectedValue: ''
     },
     timeRange: {
       options: [
         {
           label: 'filter.timeRange.1hr',
-          value: '1HR'
+          value: {
+            type: 'LAST',
+            unit: 'h',
+            interval: 1
+          }
         },
         {
           label: 'filter.timeRange.24hr',
-          value: '24HR'
+          value: {
+            type: 'LAST',
+            unit: 'h',
+            interval: 24
+          }
         },
         {
           label: 'filter.timeRange.today',
-          value: 'TODAY'
+          value: {
+            type: 'CURRENT',
+            unit: 'd'
+          }
         },
         {
           label: 'filter.timeRange.yesterday',
-          value: 'YESTERDAY'
+          value: {
+            type: 'PAST',
+            unit: 'd'
+          }
         },
         {
           label: 'filter.timeRange.7d',
-          value: '7D'
+          value: {
+            type: 'LAST',
+            unit: 'd',
+            interval: 7
+          }
         },
         {
           label: 'filter.timeRange.30d',
-          value: '30d'
+          value: {
+            type: 'LAST',
+            unit: 'd',
+            interval: 30
+          }
         },
         {
           label: 'filter.timeRange.thisMonth',
-          value: 'THIS_MONTH'
+          value: {
+            type: 'CURRENT',
+            unit: 'M'
+          }
         },
         {
           label: 'filter.timeRange.lastMonth',
-          value: 'LAST_MONTH'
+          value: {
+            type: 'PAST',
+            unit: 'M'
+          }
         },
         {
           label: 'filter.timeRange.custom',
-          value: 'CUSTOM'
+          value: {
+            type: 'CUSTOM'
+          }
         }
       ],
       selectedValue: '',
@@ -94,8 +138,9 @@ export class FilteringService {
     },
     timeZone: {
       options: moment.tz.names().map(zone => {
+        // TODO map labels according to actual design requirements
         return {
-          label: zone,
+          label: `${zone} (${moment.tz(zone).format('Z')})`,
           value: zone
         };
       }),
@@ -107,20 +152,24 @@ export class FilteringService {
       iconClass: 'fa fa-cubes',
       options: [
         {
-          label: 'DataNode',
-          value: 'DATANODE'
+          label: 'filter.all',
+          value: ''
         },
         {
-          label: 'NameNode',
-          value: 'NAMENODE'
+          label: 'ambari_agent',
+          value: 'ambari_agent'
         },
         {
-          label: 'ZooKeeper Server',
-          value: 'ZOOKEEPER_SERVER'
+          label: 'ams_collector',
+          value: 'ams_collector'
         },
         {
-          label: 'Metrics Collector',
-          value: 'METRICS_COLLECTOR'
+          label: 'zookeeper_server',
+          value: 'zookeeper_server'
+        },
+        {
+          label: 'zookeeper_client',
+          value: 'zookeeper_client'
         }
       ],
       selectedValue: '',
@@ -130,6 +179,10 @@ export class FilteringService {
       label: 'filter.levels',
       iconClass: 'fa fa-sort-amount-asc',
       options: [
+        {
+          label: 'filter.all',
+          value: ''
+        },
         {
           label: 'levels.fatal',
           value: 'FATAL'
@@ -163,5 +216,53 @@ export class FilteringService {
       selectedLabel: ''
     }
   };
+
+  readonly valueGetters = {
+    end_time: value => {
+      let time;
+      if (value) {
+        switch (value.type) {
+          case 'LAST':
+            time = moment();
+            break;
+          case 'CURRENT':
+            // TODO consider user's timezone
+            time = moment().endOf(value.unit);
+            break;
+          case 'PAST':
+            // TODO consider user's timezone
+            time = moment().startOf(value.unit).millisecond(-1);
+            break;
+          default:
+            break;
+        }
+      }
+      return time ? time.toISOString() : '';
+    },
+    start_time: (value, current) => {
+      let time;
+      if (value) {
+        const endTime = moment(moment(current).valueOf());
+        switch (value.type) {
+          case 'LAST':
+            time = endTime.subtract(value.interval, value.unit);
+            break;
+          case 'CURRENT':
+            // TODO consider user's timezone
+            time = moment().startOf(value.unit);
+            break;
+          case 'PAST':
+            // TODO consider user's timezone
+            time = endTime.startOf(value.unit);
+            break;
+          default:
+            break;
+        }
+      }
+      return time ? time.toISOString() : '';
+    }
+  };
+
+  filteringSubject = new Subject();
 
 }

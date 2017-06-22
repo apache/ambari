@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http; //www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,30 +16,23 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {QueryParams} from '@app/classes/queries/query-params.class';
 
-.filter-input-container {
-  .flex-vertical-align;
-  justify-content: flex-start;
-
-  .btn-success {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  filter-dropdown {
-    border: @input-border;
-
-    &:not(:last-child) {
-      border-right-width: 0;
-    }
-
-    &:first-child {
-      border-radius: @button-border-radius 0 0 @button-border-radius;
-    }
-
-    &:last-child {
-      border-radius: 0 @button-border-radius @button-border-radius 0;
-    }
-  }
+export class AuditLogsQueryParams extends QueryParams {
+  startIndex?: string = '0';
+  page?: string = '0';
+  pageSize?: string = '25';
+  sortBy?: string;
+  sortType?: string;
+  start_time?: string;
+  end_time?: string;
+  clusters?: string;
+  iMessage?: string;
+  eMessage?: string;
+  mustBe?: string;
+  mustNot?: string;
+  includeQuery?: string;
+  excludeQuery?: string;
+  from?: string;
+  to?: string;
 }

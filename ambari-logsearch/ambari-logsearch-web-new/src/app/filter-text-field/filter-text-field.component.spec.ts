@@ -21,6 +21,7 @@ import {Http} from '@angular/http';
 import {FormsModule} from '@angular/forms';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {FilteringService} from '@app/services/filtering.service';
 
 import {FilterTextFieldComponent} from './filter-text-field.component';
 
@@ -43,6 +44,7 @@ describe('FilterTextFieldComponent', () => {
           deps: [Http]
         })
       ],
+      providers: [FilteringService],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })
     .compileComponents();

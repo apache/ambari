@@ -22,6 +22,7 @@ import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {ComponentActionsService} from '@app/services/component-actions.service';
+import {FilteringService} from '@app/services/filtering.service';
 
 import {MenuButtonComponent} from './menu-button.component';
 
@@ -42,7 +43,10 @@ describe('MenuButtonComponent', () => {
         useFactory: HttpLoaderFactory,
         deps: [Http]
       })],
-      providers: [ComponentActionsService],
+      providers: [
+        ComponentActionsService,
+        FilteringService
+      ],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();

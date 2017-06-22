@@ -18,6 +18,7 @@
 
 import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
 import {ComponentActionsService} from '@app/services/component-actions.service';
+import {FilteringService} from '@app/services/filtering.service';
 import * as $ from 'jquery';
 
 @Component({
@@ -27,7 +28,7 @@ import * as $ from 'jquery';
 })
 export class MenuButtonComponent implements AfterViewInit {
 
-  constructor(private actions: ComponentActionsService) {
+  constructor(private actions: ComponentActionsService, private filtering: FilteringService) {
   }
 
   ngAfterViewInit() {
@@ -44,6 +45,9 @@ export class MenuButtonComponent implements AfterViewInit {
 
   @Input()
   isFilter: boolean;
+
+  @Input()
+  filterInstance?: any;
 
   @Input()
   iconClass: string;
@@ -86,5 +90,13 @@ export class MenuButtonComponent implements AfterViewInit {
       event.stopPropagation();
     }
   }
+
+  setSelectedValue(options: any): void {
+    if (this.filterInstance.selectedValue !== options.value) {
+      this.filterInstance.selectedValue = options.value;
+      this.filterInstance.selectedLabel = options.label;
+      this.filtering.filteringSubject.next(null);
+    }
+  };
 
 }

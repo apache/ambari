@@ -16,6 +16,7 @@
  */
 
 import {Component, OnInit, Input} from '@angular/core';
+import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
   selector: 'filter-dropdown',
@@ -24,7 +25,8 @@ import {Component, OnInit, Input} from '@angular/core';
 })
 export class FilterDropdownComponent implements OnInit {
 
-  constructor() { }
+  constructor(private filtering: FilteringService) {
+  }
 
   ngOnInit() {
     this.filterInstance.selectedValue = this.filterInstance.options[0].value;
@@ -38,8 +40,11 @@ export class FilterDropdownComponent implements OnInit {
   options: any[];
 
   setSelectedValue(options: any): void {
-    this.filterInstance.selectedValue = options.value;
-    this.filterInstance.selectedLabel = options.label;
+    if (this.filterInstance.selectedValue !== options.value) {
+      this.filterInstance.selectedValue = options.value;
+      this.filterInstance.selectedLabel = options.label;
+      this.filtering.filteringSubject.next(null);
+    }
   };
 
 }

@@ -15,10 +15,10 @@
   limitations under the License.
 -->
 
-<accordion-panel *ngFor="let log of logs; let i = index" [toggleId]="'details-' + i" class="col-md-12">
+<accordion-panel *ngFor="let log of logs | async; let i = index" [toggleId]="'details-' + i" class="col-md-12">
   <ng-template>
-    <div [ngClass]="'hexagon ' + log.level"></div>
-    <div [ngClass]="'col-md-1 log-status ' + log.level">{{log.level}}</div>
+    <div [ngClass]="'hexagon ' + log.className"></div>
+    <div [ngClass]="'col-md-1 log-status ' + log.className">{{log.level}}</div>
     <div class="col-md-3">
       <div class="log-type">{{log.type}}</div>
       <time class="log-time">{{log.time}}</time>
@@ -29,7 +29,7 @@
         <span class="action-icon fa fa-external-link"></span>
         <span class="action-icon fa fa-bullseye"></span>
       </div>
-      <div class="log-content" [innerHTML]="log.content"></div>
+      <div class="log-content">{{log.message}}</div>
     </div>
   </ng-template>
 </accordion-panel>

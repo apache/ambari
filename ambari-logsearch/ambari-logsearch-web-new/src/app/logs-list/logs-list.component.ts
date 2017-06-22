@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, Input} from '@angular/core';
+import 'rxjs/add/operator/map';
+import {HttpClientService} from '@app/services/http-client.service';
+import {ServiceLogsService} from '@app/services/storage/service-logs.service';
+import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
   selector: 'logs-list',
@@ -24,56 +28,69 @@ import {Component, OnInit} from '@angular/core';
 })
 export class LogsListComponent implements OnInit {
 
-  constructor() {
+  constructor(private httpClient: HttpClientService, private serviceLogsStorage: ServiceLogsService, private filtering: FilteringService) {
+    this.filtering.filteringSubject.subscribe(this.loadLogs.bind(this));
   }
 
   ngOnInit() {
+    this.loadLogs();
   }
 
-  // TODO implement loading logs from API
-  private readonly logs = [
-    {
-      level: 'fatal',
-      type: 'ambari_agent',
-      time: '2017/01/31 18:00:00',
-      content: 'Something went wrong.<br>Please restart ambari-agent.<br>See log file for details.'
-    },
-    {
-      level: 'error',
-      type: 'ambari_agent',
-      time: '2017/01/31 18:00:00',
-      content: 'Something went wrong.<br>Please restart ambari-agent.<br>See log file for details.'
-    },
-    {
-      level: 'warn',
-      type: 'ambari_agent',
-      time: '2017/01/31 18:00:00',
-      content: 'Something went wrong.<br>Please restart ambari-agent.<br>See log file for details.'
-    },
-    {
-      level: 'info',
-      type: 'ambari_agent',
-      time: '2017/01/31 18:00:00',
-      content: 'Something went wrong.<br>Please restart ambari-agent.<br>See log file for details.'
-    },
-    {
-      level: 'debug',
-      type: 'ambari_agent',
-      time: '2017/01/31 18:00:00',
-      content: 'Something went wrong.<br>Please restart ambari-agent.<br>See log file for details.'
-    },
-    {
-      level: 'trace',
-      type: 'ambari_agent',
-      time: '2017/01/31 18:00:00',
-      content: 'Something went wrong.<br>Please restart ambari-agent.<br>See log file for details.'
-    },
-    {
-      level: 'unknown',
-      type: 'ambari_agent',
-      time: '2017/01/31 18:00:00',
-      content: 'Something went wrong.<br>Please restart ambari-agent.<br>See log file for details.'
-    }
-  ];
+  @Input()
+  private logsArrayId: string;
+
+  private readonly usedFilters = {
+    clusters: ['clusters'],
+    text: ['iMessage'],
+    timeRange: ['end_time', 'start_time'],
+    components: ['component_name'],
+    levels: ['level']
+  };
+
+  private logs = this.serviceLogsStorage.getInstances().map(logs => {
+    return logs.map(log => {
+      return {
+        type: log.type,
+        level: log.level,
+        className: log.level.toLowerCase(),
+        message: log.log_message,
+        time: new Date(log.logtime).toLocaleDateString() + ' ' + new Date(log.logtime).toLocaleTimeString() // TODO use moment with custom time zone
+      }
+    });
+  });
+
+  private loadLogs(): void {
+    this.httpClient.get(this.logsArrayId, this.getParams()).subscribe(response => {
+      this.serviceLogsStorage.clear();
+      const logs = response.json().logList;
+      this.serviceLogsStorage.addInstances(logs);
+    });
+  }
+
+  private getParams(): any {
+    let params = {};
+    Object.keys(this.usedFilters).forEach(key => {
+      const inputFilter = this.filtering.filters[key],
+        inputValue = inputFilter.selectedValue,
+        paramNames = this.usedFilters[key];
+      paramNames.forEach(paramName => {
+        let value;
+        const valueGetter = this.filtering.valueGetters[paramName];
+        if (valueGetter) {
+          if (paramName === 'start_time') {
+            value = valueGetter(inputValue, params['end_time']);
+          } else {
+            value = valueGetter(inputValue);
+          }
+        } else {
+          value = inputValue;
+        }
+        if (value) {
+          params[paramName] = value;
+        }
+      });
+    }, this);
+    return params;
+  }
 
 }

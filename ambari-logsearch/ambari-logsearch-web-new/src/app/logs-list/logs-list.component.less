@@ -19,7 +19,9 @@
 
 :host {
   display: block;
-  margin-top: @block-margin-top;
+  overflow: hidden;
+  padding-top: @block-margin-top;
+  background-color: @main-background-color; // TODO implement actual color
 
   .hexagon {
     // TODO get rid of magic numbers, base on actual design
@@ -102,6 +104,7 @@
       overflow: hidden;
       max-height: @default-line-height * 2em;
       padding-right: 65px;
+      white-space: pre-wrap;
     }
 
     .log-actions {

@@ -22,6 +22,6 @@ export interface ServiceLog extends Log {
   path: string;
   host: string;
   level: string;
-  logtime: string;
+  logtime: number;
   ip: string;
 }

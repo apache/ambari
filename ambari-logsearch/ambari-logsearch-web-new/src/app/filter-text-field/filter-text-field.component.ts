@@ -16,6 +16,7 @@
  */
 
 import {Component, OnInit, Input} from '@angular/core';
+import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
   selector: 'filter-text-field',
@@ -24,12 +25,17 @@ import {Component, OnInit, Input} from '@angular/core';
 })
 export class FilterTextFieldComponent implements OnInit {
 
-  constructor() { }
+  constructor(private filtering: FilteringService) {
+  }
 
   ngOnInit() {
   }
 
   @Input()
   filterInstance: any;
+
+  onValueChange() {
+    this.filtering.filteringSubject.next(null);
+  }
 
 }

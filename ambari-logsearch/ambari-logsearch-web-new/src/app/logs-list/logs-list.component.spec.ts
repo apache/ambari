@@ -17,16 +17,44 @@
 
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {StoreModule} from '@ngrx/store';
+import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
+import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {HttpClientService} from '@app/services/http-client.service';
+import {FilteringService} from '@app/services/filtering.service';
 
 import {LogsListComponent} from './logs-list.component';
 
 describe('LogsListComponent', () => {
   let component: LogsListComponent;
   let fixture: ComponentFixture<LogsListComponent>;
+  const httpClient = {
+    get: () => {
+      return {
+        subscribe: () => {
+        }
+      };
+    }
+  };
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [LogsListComponent],
+      imports: [
+        StoreModule.provideStore({
+          auditLogs,
+          serviceLogs
+        })
+      ],
+      providers: [
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
+        AuditLogsService,
+        ServiceLogsService,
+        FilteringService
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })
     .compileComponents();

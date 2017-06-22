@@ -20,7 +20,8 @@ import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
 
 @Component({
   selector: 'ul.dropdown-menu',
-  templateUrl: './dropdown-list.component.html'
+  templateUrl: './dropdown-list.component.html',
+  styleUrls: ['./dropdown-list.component.less']
 })
 export class DropdownListComponent implements OnInit {
 

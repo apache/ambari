@@ -21,6 +21,8 @@ import {Observable} from 'rxjs/Observable';
 import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response} from '@angular/http';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params.class';
+import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params.class';
 
 @Injectable()
 export class HttpClientService extends Http {
@@ -31,9 +33,18 @@ export class HttpClientService extends Http {
 
   private readonly apiPrefix = 'api/v1/';
 
-  private readonly urls = {
-    status: 'status',
-    auditLogs: 'audit/logs'
+  private readonly endPoints = {
+    status: {
+      url: 'status'
+    },
+    auditLogs: {
+      url: 'audit/logs',
+      params: opts => new AuditLogsQueryParams(opts)
+    },
+    serviceLogs: {
+      url: 'service/logs',
+      params: opts => new ServiceLogsQueryParams(opts)
+    }
   };
 
   private readonly unauthorizedStatuses = [401, 403, 419];
@@ -41,21 +52,28 @@ export class HttpClientService extends Http {
   isAuthorized: boolean;
 
   generateUrlString(url: string): string {
-    const presetUrl = this.urls[url];
-    return presetUrl ? (this.apiPrefix + this.urls[url]) : url;
+    const preset = this.endPoints[url];
+    return preset ? `${this.apiPrefix}${preset.url}` : url;
   }
 
-  generateUrl(url: string | Request): string | Request {
-    if (typeof url === 'string') {
-      return this.generateUrlString(url);
+  generateUrl(request: string | Request): string | Request {
+    if (typeof request === 'string') {
+      return this.generateUrlString(request);
     }
-    if (url instanceof Request) {
-      url.url = this.generateUrlString(url.url);
-      return url;
+    if (request instanceof Request) {
+      request.url = this.generateUrlString(request.url);
+      return request;
     }
   }
 
-  handleError(request: Observable<Response>) {
+  generateOptions(url: string, params: {[key: string]: string}): RequestOptionsArgs {
+    const preset = this.endPoints[url];
+    return {
+      params: preset && preset.params ? preset.params(params) : params
+    };
+  }
+
+  handleError(request: Observable<Response>): void {
     request.subscribe(null, (error: any) => {
       if (this.unauthorizedStatuses.indexOf(error.status) > -1) {
         this.isAuthorized = false;
@@ -63,38 +81,14 @@ export class HttpClientService extends Http {
     });
   }
 
-  request(url: string | Request, options?: RequestOptionsArgs):Observable<Response> {
+  request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
     let req = super.request(this.generateUrl(url), options);
     this.handleError(req);
     return req;
   }
 
-  get(url: string, options?: RequestOptionsArgs):Observable<Response> {
-    return super.get(this.generateUrlString(url), options);
-  }
-
-  post(url: string, body: any, options?: RequestOptionsArgs):Observable<Response> {
-    return super.post(this.generateUrlString(url), body, options);
-  }
-
-  put(url: string, body: any, options?: RequestOptionsArgs):Observable<Response> {
-    return super.put(this.generateUrlString(url), body, options);
-  }
-
-  delete(url: string, options?: RequestOptionsArgs):Observable<Response> {
-    return super.delete(this.generateUrlString(url), options);
-  }
-
-  patch(url: string, body: any, options?: RequestOptionsArgs):Observable<Response> {
-    return super.patch(this.generateUrlString(url), body, options);
-  }
-
-  head(url: string, options?: RequestOptionsArgs):Observable<Response> {
-    return super.head(this.generateUrlString(url), options);
-  }
-
-  options(url: string, options?: RequestOptionsArgs):Observable<Response> {
-    return super.options(this.generateUrlString(url), options);
+  get(url, params?: {[key: string]: string}): Observable<Response> {
+    return super.get(this.generateUrlString(url), this.generateOptions(url, params));
   }
 
 }

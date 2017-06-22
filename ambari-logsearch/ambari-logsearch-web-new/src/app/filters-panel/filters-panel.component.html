@@ -20,17 +20,19 @@
   <filter-text-field [filterInstance]="filtering.filters.text"></filter-text-field>
   <filter-dropdown [filterInstance]="filtering.filters.timeRange"></filter-dropdown>
   <filter-dropdown [filterInstance]="filtering.filters.timeZone"></filter-dropdown>
-  <button class="btn btn-success" type="button">
+  <!--button class="btn btn-success" type="button">
     <span class="fa fa-search"></span>
-  </button>
+  </button-->
 </div>
 <div class="default-flex col-md-4">
-  <menu-button [label]="filtering.filters.components.label" [iconClass]="filtering.filters.components.iconClass"
-               [subItems]="filtering.filters.components.options" [isFilter]="true"></menu-button>
-  <menu-button [label]="filtering.filters.levels.label" [iconClass]="filtering.filters.levels.iconClass"
-               [subItems]="filtering.filters.levels.options" [isFilter]="true"></menu-button>
-  <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
   <a href="#">
     <span class="fa fa-search-minus"></span> {{'filter.excluded' | translate}}
   </a>
+  <menu-button [label]="filtering.filters.components.label" [iconClass]="filtering.filters.components.iconClass"
+               [subItems]="filtering.filters.components.options" [isFilter]="true"
+               [filterInstance]="filtering.filters.components"></menu-button>
+  <menu-button [label]="filtering.filters.levels.label" [iconClass]="filtering.filters.levels.iconClass"
+               [subItems]="filtering.filters.levels.options" [isFilter]="true"
+               [filterInstance]="filtering.filters.levels"></menu-button>
+  <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
 </div>

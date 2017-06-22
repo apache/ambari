@@ -22,5 +22,6 @@
   <br>
   <a *ngIf="label" (mousedown)="onMouseDown($event)" [ngClass]="labelClass" (mouseup)="onMouseUp($event)"
      (click)="$event.stopPropagation()">{{label | translate}}</a>
-  <ul class="dropdown-menu" [isFilter]="isFilter" *ngIf="hasSubItems" [items]="subItems"></ul>
+  <ul class="dropdown-menu" [isFilter]="isFilter" *ngIf="hasSubItems" [items]="subItems"
+      (selectedItemChange)="setSelectedValue($event)"></ul>
 </div>

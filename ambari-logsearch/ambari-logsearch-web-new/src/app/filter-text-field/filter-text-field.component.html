@@ -17,5 +17,5 @@
 
 <div class="input-group">
   <span class="input-group-addon">{{filterInstance.label | translate}}</span>
-  <input type="text" class="form-control" [(ngModel)]="filterInstance.value">
+  <input type="text" class="form-control" [(ngModel)]="filterInstance.selectedValue" (change)="onValueChange()"> <!-- TODO use ngModelChange with debounce -->
 </div>

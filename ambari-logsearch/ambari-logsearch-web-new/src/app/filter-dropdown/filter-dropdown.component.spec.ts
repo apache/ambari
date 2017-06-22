@@ -20,6 +20,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {FilteringService} from '@app/services/filtering.service';
 
 import {FilterDropdownComponent} from './filter-dropdown.component';
 
@@ -39,6 +40,7 @@ describe('FilterDropdownComponent', () => {
         useFactory: HttpLoaderFactory,
         deps: [Http]
       })],
+      providers: [FilteringService],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();

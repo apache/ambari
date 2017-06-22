@@ -32,6 +32,6 @@ export interface Log {
   event_md5: string;
   event_dur_ms: number;
   _ttl_: string;
-  _expire_at_: string;
+  _expire_at_: number;
   _router_field_?: number;
 }

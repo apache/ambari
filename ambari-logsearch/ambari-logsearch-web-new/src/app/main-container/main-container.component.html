@@ -17,4 +17,4 @@
 
 <login-form *ngIf="!httpClient.isAuthorized"></login-form>
 <filters-panel *ngIf="httpClient.isAuthorized" class="row"></filters-panel>
-<logs-list *ngIf="httpClient.isAuthorized"></logs-list>
+<logs-list *ngIf="httpClient.isAuthorized" [logsArrayId]="'serviceLogs'"></logs-list>
