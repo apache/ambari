@@ -17,51 +17,13 @@
 }}
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
-  <div class="col-md-3 quick-links-wrapper">
-    {{#view App.QuickLinksView contentBinding="view.service"}}
-      {{#if view.showQuickLinks}}
-        <ul class="nav nav-pills move">
-          <li class="dropdown quick-links-dropdown">
-            <a class="dropdown-toggle" id="quick-links-dropdown-btn" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              {{#if view.isLoaded}}
-                {{#if view.quickLinksArray}}
-                  <!--there are multiple masters eg, HBase multiple masters or HDFS HA enabled-->
-                  {{#each quickLinks in view.quickLinksArray}}
-                    <li class="dropdown-submenu">
-                      <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
-                      <ul class="dropdown-menu">
-                        {{#each quickLinks}}
-                          <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
-                        {{/each}}
-                      </ul>
-                    </li>
-                  {{/each}}
-                {{else}}
-                  {{#if view.quickLinks}}
-                    {{#each view.quickLinks}}
-                      <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
-                    {{/each}}
-                  {{else}}
-                    <div class="alert alert-danger"><small>{{t quick.links.error.quicklinks.unavailable.label}}</small></div>
-                  {{/if}}
-                {{/if}}
-              {{else}}
-                {{view App.SpinnerView}}
-              {{/if}}
-           </ul>
-          </li>
-        </ul>
-      {{/if}}
-    {{/view}}
-  </div>
 
 {{#isAuthorized "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.START_STOP, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA"}}
 <div class="service-button">
   {{#if view.isMaintenanceActive}}
     <div class="btn-group display-inline-block">
       <button class="btn btn-default dropdown-toggle" id="service-actions-dropdown-btn" data-toggle="dropdown" href="#">
-        {{t services.service.actions.serviceActions}}
+        {{t common.actions}}
         <span class="caret"></span>
       </button>
       <ul class="pull-right dropdown-menu">

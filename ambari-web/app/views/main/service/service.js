@@ -113,7 +113,6 @@ App.MainDashboardServiceHealthView = Em.View.extend({
 });
 
 App.ComponentLiveTextView = Em.View.extend({
-  classNameBindings: ['color:service-summary-component-red-dead:service-summary-component-green-live'],
   liveComponents: null,
   totalComponents: null,
   color: function () {
@@ -173,15 +172,21 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
 });
 
 App.MainDashboardServiceView.reopenClass({
-  formattedHeap: function (i18nKey, heapUsedKey, heapMaxKey) {
+  formattedHeapPercent: function (i18nKey, heapUsedKey, heapMaxKey) {
     return Em.computed(heapUsedKey, heapMaxKey, function () {
       var memUsed = Em.get(this, heapUsedKey);
       var memMax = Em.get(this, heapMaxKey);
       var percent = memMax > 0 ? 100 * memUsed / memMax : 0;
+      return Em.I18n.t(i18nKey).format(percent.toFixed(1));
+    });
+  },
+  formattedHeap: function (i18nKey, heapUsedKey, heapMaxKey) {
+    return Em.computed(heapUsedKey, heapMaxKey, function () {
+      var memUsed = Em.get(this, heapUsedKey);
+      var memMax = Em.get(this, heapMaxKey);
       return Em.I18n.t(i18nKey).format(
         numberUtils.bytesToSize(memUsed, 1, 'parseFloat'),
-        numberUtils.bytesToSize(memMax, 1, 'parseFloat'),
-        percent.toFixed(1));
+        numberUtils.bytesToSize(memMax, 1, 'parseFloat'));
     });
   }
 });

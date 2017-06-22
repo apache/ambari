@@ -251,7 +251,7 @@ describe('App.GaugeWidgetView', function () {
         view.set('value', test.data.value);
         view.set('content.properties.warning_threshold', test.data.warningThreshold);
         view.set('content.properties.error_threshold', test.data.criticalThreshold);
-        expect(chartView.get('contentColor')).to.eql(test.result);
+        expect(chartView.get('palette').color(0)).to.eql(test.result);
       });
     });
   });

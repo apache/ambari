@@ -39,6 +39,11 @@ App.QuickLinksView = Em.View.extend({
   showQuickLinks: false,
 
   /**
+   * @type {boolean}
+   */
+  showNoLinks: false,
+
+  /**
    * @type {string}
    */
   quickLinksErrorMessage: '',
@@ -211,6 +216,9 @@ App.QuickLinksView = Em.View.extend({
         this.set('requiredSiteNames', this.get('requiredSiteNames').pushObjects(sites).uniq());
         this.setQuickLinks();
       }
+    } else {
+      this.set('showNoLinks', true);
+
     }
   },
 
@@ -260,7 +268,11 @@ App.QuickLinksView = Em.View.extend({
     // no need to set quicklinks if
     // 1)current service does not have quick links configured
     // 2)No host component present for the configured quicklinks
-    this.set('showQuickLinks', hasQuickLinks && hasHosts);
+    if(hasQuickLinks && hasHosts) {
+      this.set('showQuickLinks', true);
+    } else {
+      this.set('showNoLinks', true);
+    }
 
     var isMultipleComponentsInLinks = componentNames.uniq().length > 1;
 

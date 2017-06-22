@@ -24,7 +24,8 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   serviceName: 'YARN',
 
   nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.yarn.nodes.heapUsed', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
-  
+  nodeHeapPercent: App.MainDashboardServiceView.formattedHeapPercent('dashboard.services.yarn.nodes.heapUsedPercent', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
+
   nodeManagerComponent: Em.Object.create({
     componentName: 'NODEMANAGER'
   }),
