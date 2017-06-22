@@ -19,14 +19,20 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {HttpModule} from '@angular/http';
+import {HttpModule, Http} from '@angular/http';
 import {InMemoryWebApiModule} from 'angular-in-memory-web-api';
 import {mockApiDataService} from './mock-api-data.service'
 import {AlertModule} from 'ngx-bootstrap';
+import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {HttpClientService} from './http-client.service';
 
 import {AppComponent} from './app.component';
 import {LoginFormComponent} from './login-form/login-form.component';
+
+export function HttpLoaderFactory(http: Http) {
+  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+}
 
 @NgModule({
   declarations: [
@@ -37,8 +43,17 @@ import {LoginFormComponent} from './login-form/login-form.component';
     BrowserModule,
     FormsModule,
     HttpModule,
-    InMemoryWebApiModule.forRoot(mockApiDataService),
-    AlertModule.forRoot()
+    InMemoryWebApiModule.forRoot(mockApiDataService, {
+      passThruUnknownUrl: true
+    }),
+    AlertModule.forRoot(),
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [Http]
+      }
+    })
   ],
   providers: [HttpClientService],
   bootstrap: [AppComponent],

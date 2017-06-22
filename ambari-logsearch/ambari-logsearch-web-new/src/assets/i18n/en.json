@@ -1,0 +1,8 @@
+{
+  "common.title": "Ambari Log Search",
+
+  "authorization.name": "Username",
+  "authorization.password": "Password",
+  "authorization.signIn": "Sign In",
+  "authorization.error": "<strong>Error!</strong> Invalid User credentials.<br>Please try again."
+}

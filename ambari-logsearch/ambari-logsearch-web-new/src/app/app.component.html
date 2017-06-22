@@ -15,7 +15,5 @@
   limitations under the License.
 -->
 
-<h1>
-  {{title}}
-</h1>
+<h1>{{'common.title' | translate}}</h1>
 <login-form *ngIf="!httpClient.isAuthorized"></login-form>

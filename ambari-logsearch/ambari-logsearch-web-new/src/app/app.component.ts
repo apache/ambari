@@ -17,6 +17,7 @@
  */
 
 import {Component} from '@angular/core';
+import {TranslateService} from '@ngx-translate/core';
 import {HttpClientService} from './http-client.service';
 
 @Component({
@@ -27,12 +28,12 @@ import {HttpClientService} from './http-client.service';
 
 export class AppComponent {
 
-  constructor(private httpClient: HttpClientService) {
+  constructor(private httpClient: HttpClientService, private translate: TranslateService) {
+    translate.setDefaultLang('en');
+    translate.use('en');
   }
 
   ngOnInit() {
     this.httpClient.get('status');
   }
-
-  title = 'Ambari Log Search';
 }
