@@ -39,10 +39,16 @@ export class TopMenuComponent implements OnInit {
       action: 'undo',
       subItems: [
         {
-          title: 'Item 1'
+          title: 'Apply \'Last week\' filter'
         },
         {
-          title: 'Item 2'
+          title: 'Clear all filters'
+        },
+        {
+          title: 'Apply \'HDFS\' filter'
+        },
+        {
+          title: 'Apply \'Errors\' filter'
         }
       ]
     },
@@ -52,10 +58,13 @@ export class TopMenuComponent implements OnInit {
       action: 'redo',
       subItems: [
         {
-          title: 'Item 1'
+          title: 'Apply \'Warnings\' filter'
         },
         {
-          title: 'Item 2'
+          title: 'Switch to graph mode'
+        },
+        {
+          title: 'Apply \'Custom Date\' filter'
         }
       ]
     },
@@ -70,16 +79,27 @@ export class TopMenuComponent implements OnInit {
       action: 'openHistory',
       subItems: [
         {
-          title: 'Item 1'
+          title: 'Apply \'Custom Date\' filter'
         },
         {
-          title: 'Item 2'
+          title: 'Switch to graph mode'
+        },
+        {
+          title: 'Apply \'Warnings\' filter'
+        },
+        {
+          title: 'Apply \'Last week\' filter'
+        },
+        {
+          title: 'Clear all filters'
+        },
+        {
+          title: 'Apply \'HDFS\' filter'
+        },
+        {
+          title: 'Apply \'Errors\' filter'
         }
       ]
-    },
-    {
-      iconClassNames: ['fa', 'fa-bell'],
-      action: 'openAlerts'
     },
     {
       iconClassNames: ['fa', 'fa-user'],

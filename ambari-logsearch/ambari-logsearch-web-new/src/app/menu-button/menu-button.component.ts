@@ -56,18 +56,22 @@ export class MenuButtonComponent implements AfterViewInit {
 
   private readonly longClickInterval = 1000;
 
-  onMouseDown() {
-    this.clickStartTime = (new Date()).getTime();
+  onMouseDown(event: MouseEvent): void {
+    if (event.button === 0) {
+      this.clickStartTime = (new Date()).getTime();
+    }
   }
 
-  onMouseUp(event: Event) {
-    const clickEndTime = (new Date()).getTime();
-    if (this.hasSubItems && clickEndTime - this.clickStartTime >= this.longClickInterval) {
-      this.dropdown.nativeElement.classList.add('open');
-    } else {
-      this.actions[this.action]();
+  onMouseUp(event: MouseEvent): void {
+    if (event.button === 0) {
+      const clickEndTime = (new Date()).getTime();
+      if (this.hasSubItems && clickEndTime - this.clickStartTime >= this.longClickInterval) {
+        this.dropdown.nativeElement.classList.add('open');
+      } else {
+        this.actions[this.action]();
+      }
+      event.stopPropagation();
     }
-    event.stopPropagation();
   }
 
 }
