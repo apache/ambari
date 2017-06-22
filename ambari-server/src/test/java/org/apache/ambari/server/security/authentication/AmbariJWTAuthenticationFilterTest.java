@@ -18,8 +18,12 @@
 
 package org.apache.ambari.server.security.authentication;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -28,24 +32,31 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.AmbariEntryPoint;
-import org.apache.ambari.server.security.authorization.PermissionHelper;
+import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -58,6 +69,14 @@ public class AmbariJWTAuthenticationFilterTest extends EasyMockSupport {
   private static RSAPublicKey publicKey;
   private static RSAPrivateKey privateKey;
 
+  private AmbariAuthenticationEventHandler eventHandler;
+
+  private AmbariEntryPoint entryPoint;
+
+  private Configuration configuration;
+
+  private Users users;
+
   @BeforeClass
   public static void generateKeyPair() throws NoSuchAlgorithmException {
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -67,11 +86,9 @@ public class AmbariJWTAuthenticationFilterTest extends EasyMockSupport {
     privateKey = (RSAPrivateKey) keyPair.getPrivate();
   }
 
-  @Test
-  public void testDoFilterSuccess() throws Exception {
-    SignedJWT token = getSignedToken("foobar");
-
-    AmbariEntryPoint entryPoint = createMock(AmbariEntryPoint.class);
+  @Before
+  public void setUp() {
+    SecurityContextHolder.getContext().setAuthentication(null);
 
     JwtAuthenticationProperties properties = createMock(JwtAuthenticationProperties.class);
     expect(properties.getAuthenticationProviderUrl()).andReturn("some url").once();
@@ -80,95 +97,114 @@ public class AmbariJWTAuthenticationFilterTest extends EasyMockSupport {
     expect(properties.getCookieName()).andReturn("chocolate chip").once();
     expect(properties.getOriginalUrlQueryParam()).andReturn("question").once();
 
-    Configuration configuration = createMock(Configuration.class);
+    users = createMock(Users.class);
+    eventHandler = createMock(AmbariAuthenticationEventHandler.class);
+    entryPoint = createMock(AmbariEntryPoint.class);
+    configuration = createMock(Configuration.class);
+
     expect(configuration.getJwtProperties()).andReturn(properties).once();
+  }
 
-    UserEntity userEntity = createMock(UserEntity.class);
-    expect(userEntity.getAuthenticationEntities()).andReturn(Collections.<UserAuthenticationEntity>emptyList()).once();
 
-    Users users = createMock(Users.class);
-    expect(users.getUserEntity("test-user")).andReturn(userEntity).once();
+  @Test (expected = IllegalArgumentException.class)
+  public void ensureNonNullEventHandler() {
+    new AmbariJWTAuthenticationFilter(entryPoint, configuration, users, null);
+  }
 
-    AuditLogger auditLogger = createMock(AuditLogger.class);
-    expect(auditLogger.isEnabled()).andReturn(false).times(2);
+  @Test
+  public void testDoFilterSuccessful() throws Exception {
+    Capture<? extends AmbariAuthenticationFilter> captureFilter = newCapture(CaptureType.ALL);
 
-    PermissionHelper permissionHelper = createMock(PermissionHelper.class);
+    SignedJWT token = getSignedToken();
+
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    HttpServletResponse response = createMock(HttpServletResponse.class);
+    FilterChain filterChain = createMock(FilterChain.class);
 
     Cookie cookie = createMock(Cookie.class);
     expect(cookie.getName()).andReturn("chocolate chip").once();
     expect(cookie.getValue()).andReturn(token.serialize()).once();
 
+    expect(request.getCookies()).andReturn(new Cookie[]{cookie}).once();
 
-    HttpServletRequest servletRequest = createMock(HttpServletRequest.class);
-    expect(servletRequest.getCookies()).andReturn(new Cookie[]{cookie}).once();
+    UserAuthenticationEntity userAuthenticationEntity = createMock(UserAuthenticationEntity.class);
+    expect(userAuthenticationEntity.getAuthenticationType()).andReturn(UserAuthenticationType.JWT).anyTimes();
 
-    HttpServletResponse servletResponse = createMock(HttpServletResponse.class);
+    UserEntity userEntity = createMock(UserEntity.class);
+    expect(userEntity.getAuthenticationEntities()).andReturn(Collections.singletonList(userAuthenticationEntity)).once();
 
-    FilterChain filterChain = createMock(FilterChain.class);
-    filterChain.doFilter(servletRequest, servletResponse);
+    expect(users.getUserEntity("test-user")).andReturn(userEntity).once();
+    expect(users.getUserAuthorities(userEntity)).andReturn(Collections.<AmbariGrantedAuthority>emptyList()).once();
+    expect(users.getUser(userEntity)).andReturn(createMock(User.class)).once();
+
+    eventHandler.beforeAttemptAuthentication(capture(captureFilter), eq(request), eq(response));
+    expectLastCall().once();
+    eventHandler.onSuccessfulAuthentication(capture(captureFilter), eq(request), eq(response), anyObject(Authentication.class));
+    expectLastCall().once();
+
+    filterChain.doFilter(request, response);
     expectLastCall().once();
 
     replayAll();
 
-    AmbariJWTAuthenticationFilter filter = new AmbariJWTAuthenticationFilter(entryPoint, configuration, users, auditLogger, permissionHelper);
-    filter.doFilter(servletRequest, servletResponse, filterChain);
-
+    // WHEN
+    AmbariJWTAuthenticationFilter filter = new AmbariJWTAuthenticationFilter(entryPoint, configuration, users, eventHandler);
+    filter.doFilter(request, response, filterChain);
+    // THEN
     verifyAll();
+
+    List<? extends AmbariAuthenticationFilter> capturedFilters = captureFilter.getValues();
+    for(AmbariAuthenticationFilter capturedFiltered : capturedFilters) {
+      Assert.assertSame(filter, capturedFiltered);
+    }
   }
 
+
   @Test
-  public void testDoFilterFailure() throws Exception {
-    AmbariEntryPoint entryPoint = createMock(AmbariEntryPoint.class);
+  public void testDoFilterUnsuccessful() throws Exception {
+    Capture<? extends AmbariAuthenticationFilter> captureFilter = newCapture(CaptureType.ALL);
 
-    JwtAuthenticationProperties properties = createMock(JwtAuthenticationProperties.class);
-    expect(properties.getAuthenticationProviderUrl()).andReturn("some url").once();
-    expect(properties.getPublicKey()).andReturn(publicKey).once();
-    expect(properties.getAudiences()).andReturn(Collections.singletonList("foobar")).once();
-    expect(properties.getCookieName()).andReturn("chocolate chip").once();
-    expect(properties.getOriginalUrlQueryParam()).andReturn("question").once();
-
-    Configuration configuration = createMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(properties).once();
-
-    Users users = createMock(Users.class);
-
-    AuditLogger auditLogger = createMock(AuditLogger.class);
-    expect(auditLogger.isEnabled()).andReturn(false).times(2);
-
-    PermissionHelper permissionHelper = createMock(PermissionHelper.class);
+    SignedJWT token = getSignedToken();
+    // GIVEN
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    HttpServletResponse response = createMock(HttpServletResponse.class);
+    FilterChain filterChain = createMock(FilterChain.class);
 
     Cookie cookie = createMock(Cookie.class);
     expect(cookie.getName()).andReturn("chocolate chip").once();
-    expect(cookie.getValue()).andReturn("invalid token").once();
+    expect(cookie.getValue()).andReturn(token.serialize()).once();
 
+    expect(request.getCookies()).andReturn(new Cookie[]{cookie}).once();
 
-    HttpServletRequest servletRequest = createMock(HttpServletRequest.class);
-    expect(servletRequest.getCookies()).andReturn(new Cookie[]{cookie}).once();
+    expect(users.getUserEntity("test-user")).andReturn(null).once();
 
-    HttpServletResponse servletResponse = createMock(HttpServletResponse.class);
+    eventHandler.beforeAttemptAuthentication(capture(captureFilter), eq(request), eq(response));
+    expectLastCall().once();
+    eventHandler.onUnsuccessfulAuthentication(capture(captureFilter), eq(request), eq(response), anyObject(AmbariAuthenticationException.class));
+    expectLastCall().once();
 
-    FilterChain filterChain = createMock(FilterChain.class);
-    filterChain.doFilter(servletRequest, servletResponse);
+    entryPoint.commence(eq(request), eq(response), anyObject(AmbariAuthenticationException.class));
     expectLastCall().once();
 
     replayAll();
-
-    AmbariJWTAuthenticationFilter filter = new AmbariJWTAuthenticationFilter(entryPoint, configuration, users, auditLogger, permissionHelper);
-    filter.doFilter(servletRequest, servletResponse, filterChain);
-
+    // WHEN
+    AmbariJWTAuthenticationFilter filter = new AmbariJWTAuthenticationFilter(entryPoint, configuration, users, eventHandler);
+    filter.doFilter(request, response, filterChain);
+    // THEN
     verifyAll();
+
+    List<? extends AmbariAuthenticationFilter> capturedFilters = captureFilter.getValues();
+    for (AmbariAuthenticationFilter capturedFiltered : capturedFilters) {
+      Assert.assertSame(filter, capturedFiltered);
+    }
   }
 
-
-  private SignedJWT getSignedToken(String audience) throws JOSEException {
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTimeInMillis(System.currentTimeMillis());
-    calendar.add(Calendar.DATE, 1); //add one day
-    return getSignedToken(calendar.getTime(), audience);
-  }
-
-  private SignedJWT getSignedToken(Date expirationTime, String audience) throws JOSEException {
+  private SignedJWT getSignedToken() throws JOSEException {
     RSASSASigner signer = new RSASSASigner(privateKey);
+
+    Calendar expirationTime = Calendar.getInstance();
+    expirationTime.setTimeInMillis(System.currentTimeMillis());
+    expirationTime.add(Calendar.DATE, 1); //add one day
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeInMillis(System.currentTimeMillis());
@@ -177,9 +213,9 @@ public class AmbariJWTAuthenticationFilterTest extends EasyMockSupport {
     claimsSet.setIssuer("unit-test");
     claimsSet.setIssueTime(calendar.getTime());
 
-    claimsSet.setExpirationTime(expirationTime);
+    claimsSet.setExpirationTime(expirationTime.getTime());
 
-    claimsSet.setAudience(audience);
+    claimsSet.setAudience("foobar");
 
     SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claimsSet);
     signedJWT.sign(signer);

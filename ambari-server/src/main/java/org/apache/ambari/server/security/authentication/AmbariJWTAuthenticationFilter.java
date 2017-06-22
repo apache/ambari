@@ -27,15 +27,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
-import org.apache.ambari.server.utils.RequestUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -51,14 +45,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 public class AmbariJWTAuthenticationFilter extends JwtAuthenticationFilter implements AmbariAuthenticationFilter {
 
   /**
-   * Audit logger
+   * Ambari authentication event handler
    */
-  private AuditLogger auditLogger;
-
-  /**
-   * PermissionHelper to help create audit entries
-   */
-  private PermissionHelper permissionHelper;
+  private final AmbariAuthenticationEventHandler eventHandler;
 
 
   /**
@@ -67,17 +56,19 @@ public class AmbariJWTAuthenticationFilter extends JwtAuthenticationFilter imple
    * @param ambariEntryPoint the Spring entry point
    * @param configuration    the Ambari configuration
    * @param users            the Ambari users object
-   * @param auditLogger      an Audit Logger
-   * @param permissionHelper a permission helper
+   * @param eventHandler     the Ambari authentication event handler
    */
   public AmbariJWTAuthenticationFilter(AuthenticationEntryPoint ambariEntryPoint,
                                        Configuration configuration,
                                        Users users,
-                                       AuditLogger auditLogger,
-                                       PermissionHelper permissionHelper) {
+                                       AmbariAuthenticationEventHandler eventHandler) {
     super(configuration, ambariEntryPoint, users);
-    this.auditLogger = auditLogger;
-    this.permissionHelper = permissionHelper;
+
+    if(eventHandler == null) {
+      throw new IllegalArgumentException("The AmbariAuthenticationEventHandler must not be null");
+    }
+
+    this.eventHandler = eventHandler;
   }
 
   /**
@@ -91,16 +82,9 @@ public class AmbariJWTAuthenticationFilter extends JwtAuthenticationFilter imple
    */
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
-    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
-    if (auditLogger.isEnabled() && shouldApply(httpServletRequest) && (AuthorizationHelper.getAuthenticatedName() == null)) {
-      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(httpServletRequest))
-          .withTimestamp(System.currentTimeMillis())
-          .withReasonOfFailure("Authentication required")
-          .withUserName(null)
-          .build();
-      auditLogger.log(loginFailedAuditEvent);
+    if (eventHandler != null) {
+      eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
     }
 
     super.doFilter(servletRequest, servletResponse, chain);
@@ -108,32 +92,23 @@ public class AmbariJWTAuthenticationFilter extends JwtAuthenticationFilter imple
 
   @Override
   protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException {
-    if (auditLogger.isEnabled()) {
-      AuditEvent loginSucceededAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(request))
-          .withUserName(authResult.getName())
-          .withTimestamp(System.currentTimeMillis())
-          .withRoles(permissionHelper.getPermissionLabels(authResult))
-          .build();
-      auditLogger.log(loginSucceededAuditEvent);
+    if (eventHandler != null) {
+      eventHandler.onSuccessfulAuthentication(this, request, response, authResult);
     }
   }
 
   @Override
   protected void onUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
-    if (auditLogger.isEnabled()) {
-      String username = null;
-      if (authException instanceof UserNotFoundException) {
-        username = ((UserNotFoundException) authException).getUsername();
+    if (eventHandler != null) {
+      AmbariAuthenticationException cause;
+
+      if (authException instanceof AmbariAuthenticationException) {
+        cause = (AmbariAuthenticationException) authException;
+      } else {
+        cause = new AmbariAuthenticationException(null, authException.getMessage(), authException);
       }
 
-      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(request))
-          .withTimestamp(System.currentTimeMillis())
-          .withReasonOfFailure(authException.getLocalizedMessage())
-          .withUserName(username)
-          .build();
-      auditLogger.log(loginFailedAuditEvent);
+      eventHandler.onUnsuccessfulAuthentication(this, request, response, cause);
     }
   }
 }

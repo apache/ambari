@@ -98,6 +98,7 @@ import org.apache.ambari.server.security.AmbariServerSecurityHeaderFilter;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandlerImpl;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
 import org.apache.ambari.server.security.authorization.AmbariPamAuthenticationProvider;
@@ -327,6 +328,7 @@ public class AmbariServer {
 
       factory.registerSingleton("guiceInjector", injector);
       factory.registerSingleton("ambariConfiguration", injector.getInstance(Configuration.class));
+      factory.registerSingleton("ambariAuthenticationEventHandler", injector.getInstance(AmbariAuthenticationEventHandlerImpl.class));
       factory.registerSingleton("ambariUsers", injector.getInstance(Users.class));
       factory.registerSingleton("passwordEncoder",
         injector.getInstance(PasswordEncoder.class));

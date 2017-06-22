@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.OptimisticLockException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.hooks.HookContextFactory;
@@ -70,6 +71,11 @@ import com.google.inject.persist.Transactional;
 public class Users {
 
   private static final Logger LOG = LoggerFactory.getLogger(Users.class);
+
+  /**
+   * The maximum number of retries when handling OptimisticLockExceptions
+   */
+  private static final int MAX_RETRIES = 10;
 
   @Inject
   private Provider<EntityManager> entityManagerProvider;
@@ -238,9 +244,17 @@ public class Users {
    * @param active     true if active; false if not active
    * @throws AmbariException if user does not exist
    */
-  public synchronized void setUserActive(UserEntity userEntity, boolean active) throws AmbariException {
-    userEntity.setActive(active);
-    userDAO.merge(userEntity);
+  public synchronized void setUserActive(UserEntity userEntity, final boolean active) throws AmbariException {
+    if(userEntity != null) {
+      Command command = new Command() {
+        @Override
+        public void perform(UserEntity userEntity) {
+          userEntity.setActive(active);
+        }
+      };
+
+      safelyUpdateUserEntity(userEntity, command, MAX_RETRIES);
+    }
   }
 
   /**
@@ -1252,13 +1266,148 @@ public class Users {
   }
 
   /**
+   * Increments the named user's consecutive authentication failure count by <code>1</code>.
+   * <p>
+   * This operation is safe when concurrent authentication attempts by the same username are made
+   * due to {@link UserEntity#version} and optimistic locking.
+   *
+   * @param username the user's username
+   * @return the updated number of consecutive authentication failures; or null if the user does not exist
+   */
+  public Integer incrementConsecutiveAuthenticationFailures(String username) {
+    return incrementConsecutiveAuthenticationFailures(getUserEntity(username));
+  }
+
+  /**
+   * Increments the named user's consecutive authentication failure count by <code>1</code>.
+   * <p>
+   * This operation is safe when concurrent authentication attempts by the same username are made
+   * due to {@link UserEntity#version} and optimistic locking.
+   *
+   * @param userEntity the user
+   * @return the updated number of consecutive authentication failures; or null if the user does not exist
+   */
+  public Integer incrementConsecutiveAuthenticationFailures(UserEntity userEntity) {
+    if (userEntity != null) {
+      Command command = new Command() {
+        @Override
+        public void perform(UserEntity userEntity) {
+          userEntity.incrementConsecutiveFailures();
+        }
+      };
+
+      userEntity = safelyUpdateUserEntity(userEntity, command, MAX_RETRIES);
+    }
+
+    return (userEntity == null) ? null : userEntity.getConsecutiveFailures();
+  }
+
+  /**
+   * Resets the named user's consecutive authentication failure count to <code>0</code>.
+   * <p>
+   * This operation is safe when concurrent authentication attempts by the same username are made
+   * due to {@link UserEntity#version} and optimistic locking.
+   *
+   * @param username the user's username
+   */
+  public void clearConsecutiveAuthenticationFailures(String username) {
+    clearConsecutiveAuthenticationFailures(getUserEntity(username));
+  }
+
+  /**
+   * Resets the named user's consecutive authentication failure count to <code>0</code>.
+   * <p>
+   * This operation is safe when concurrent authentication attempts by the same username are made
+   * due to {@link UserEntity#version} and optimistic locking.
+   *
+   * @param userEntity the user
+   */
+  public void clearConsecutiveAuthenticationFailures(UserEntity userEntity) {
+    if (userEntity != null) {
+      if (userEntity.getConsecutiveFailures() != 0) {
+        Command command = new Command() {
+          @Override
+          public void perform(UserEntity userEntity) {
+            userEntity.setConsecutiveFailures(0);
+          }
+        };
+
+        safelyUpdateUserEntity(userEntity, command, MAX_RETRIES);
+      }
+    }
+  }
+
+  /***
+   * Attempts to update the specified {@link UserEntity} while handling {@link OptimisticLockException}s
+   * by obtaining the latest version of the {@link UserEntity} and retrying the operation.
+   *
+   * If the maximum number of retries is exceeded, then the operation will fail by rethrowing the last
+   * exception encountered.
+   *
+   *
+   * @param userEntity the user entity
+   * @param command  a command to perform on the user entity object that changes it state thus needing
+   *                 to be persisted
+   */
+  private UserEntity safelyUpdateUserEntity(UserEntity userEntity, Command command, int maxRetries) {
+    int retriesLeft = maxRetries;
+
+    do {
+      try {
+        command.perform(userEntity);
+        userDAO.merge(userEntity);
+
+        // The merge was a success, break out of this loop and return
+        return userEntity;
+      } catch (Throwable t) {
+        Throwable cause = t;
+
+        do {
+          if (cause instanceof OptimisticLockException) {
+            // An OptimisticLockException was caught, refresh the entity and retry.
+            Integer userID = userEntity.getUserId();
+
+            // Find the userEntity record to make sure the object is managed by JPA.  The passed-in
+            // object may be detached, therefore calling reset on it will fail.
+            userEntity = userDAO.findByPK(userID);
+
+            if (userEntity == null) {
+              LOG.warn("Failed to find user with user id of {}.  The user may have been removed. Aborting.", userID);
+              return null;  // return since this user is no longer available.
+            }
+
+            retriesLeft--;
+
+            // The the number of attempts has been exhausted, re-throw the exception
+            if (retriesLeft == 0) {
+              LOG.error("Failed to update the user's ({}) consecutive failures value due to an OptimisticLockException.  Aborting.",
+                  userEntity.getUserName());
+              throw t;
+            } else {
+              LOG.warn("Failed to update the user's ({}) consecutive failures value due to an OptimisticLockException.  {} retries left, retrying...",
+                  userEntity.getUserName(), retriesLeft);
+            }
+
+            break;
+          } else {
+            // Get the cause to see if it is an OptimisticLockException
+            cause = cause.getCause();
+          }
+        } while ((cause != null) && (cause != t)); // We are out of causes
+      }
+    } while (retriesLeft > 0); // We are out of retries
+
+    return userEntity;
+  }
+
+  /**
    * Validator is an interface to be implemented by authentication type specific validators to ensure
    * new user authentication records meet the specific requirements for the relative authentication
    * type.
    */
   private interface Validator {
     /**
-     * Valudate the authentication type specific key meets the requirments for the relative user
+     * Validate the authentication type specific key meets the requirements for the relative user
      * authentication type.
      *
      * @param userEntity the user
@@ -1266,5 +1415,15 @@ public class Users {
      * @throws AmbariException
      */
     void validate(UserEntity userEntity, String key) throws AmbariException;
+  }
+
+  /**
+   * Command is an interface used to perform operations on a {@link UserEntity} while safely updating
+   * a {@link UserEntity} object.
+   *
+   * @see #safelyUpdateUserEntity(UserEntity, Command, int)
+   */
+  private interface Command {
+    void perform(UserEntity userEntity);
   }
 }

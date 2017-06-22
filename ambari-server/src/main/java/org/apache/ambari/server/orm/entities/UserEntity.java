@@ -42,6 +42,7 @@ import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -84,6 +85,10 @@ public class UserEntity {
 
   @Column(name = "local_username")
   private String localUsername;
+
+  @Version
+  @Column(name = "version")
+  private Long version;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private Set<MemberEntity> memberEntities = new HashSet<>();
@@ -214,6 +219,31 @@ public class UserEntity {
     this.createTime = createTime;
   }
 
+  /**
+   * Returns the version number of the relevant data stored in the database.
+   * <p>
+   * This is used to help ensure that collisions updatin the relevant data in the database are
+   * handled properly via Optimistic locking.
+   *
+   * @return a version number
+   */
+  public Long getVersion() {
+    return version;
+  }
+
+  /**
+   * Sets the version number of the relevant data stored in the database.
+   * <p>
+   * This is used to help ensure that collisions updatin the relevant data in the database are
+   * handled properly via Optimistic locking.  It is recommended that this value is <b>not</b>
+   * manually updated, else issues may occur when persisting the data.
+   *
+   * @param version a version number
+   */
+  public void setVersion(Long version) {
+    this.version = version;
+  }
+
   public Set<MemberEntity> getMemberEntities() {
     return memberEntities;
   }
@@ -297,6 +327,7 @@ public class UserEntity {
       equalsBuilder.append(consecutiveFailures, that.consecutiveFailures);
       equalsBuilder.append(active, that.active);
       equalsBuilder.append(createTime, that.createTime);
+      equalsBuilder.append(version, that.version);
       return equalsBuilder.isEquals();
     }
   }
@@ -311,6 +342,7 @@ public class UserEntity {
     hashCodeBuilder.append(consecutiveFailures);
     hashCodeBuilder.append(active);
     hashCodeBuilder.append(createTime);
+    hashCodeBuilder.append(version);
     return hashCodeBuilder.toHashCode();
   }
 }

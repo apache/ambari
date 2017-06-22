@@ -263,6 +263,7 @@ CREATE TABLE users (
   display_name VARCHAR(255) NOT NULL,
   local_username VARCHAR(255) NOT NULL,
   create_time TIMESTAMP DEFAULT NOW(),
+  version NUMERIC(19) NOT NULL DEFAULT 0,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
   CONSTRAINT UNQ_users_0 UNIQUE (user_name));

@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.DirContextOperations;
@@ -71,7 +72,7 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
       return Collections.emptyList();
     }
     if(!user.getActive()){
-      throw new InvalidUsernamePasswordCombinationException();
+      throw new InvalidUsernamePasswordCombinationException(username);
     }
 
     Collection<PrivilegeEntity> privilegeEntities = users.getUserPrivileges(user);

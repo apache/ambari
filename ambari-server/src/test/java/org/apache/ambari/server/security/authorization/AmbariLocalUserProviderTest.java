@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;

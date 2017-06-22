@@ -24,6 +24,7 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -93,7 +94,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
                 "connecting to LDAP server) are invalid.", e);
           }
         }
-        throw new InvalidUsernamePasswordCombinationException(e);
+        throw new InvalidUsernamePasswordCombinationException(username, e);
       } catch (IncorrectResultSizeDataAccessException multipleUsersFound) {
         String message = configuration.isLdapAlternateUserSearchEnabled() ?
           String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username) :
@@ -204,7 +205,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
     // lookup is case insensitive, so no need for string comparison
     if (userEntity == null) {
       LOG.info("user not found ('{}')", userName);
-      throw new InvalidUsernamePasswordCombinationException();
+      throw new InvalidUsernamePasswordCombinationException(userName);
     }
 
     if (!userEntity.getActive()) {
@@ -221,7 +222,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
       LOG.debug("Failed to find LDAP authentication entry for {})", userName);
     }
 
-    throw new InvalidUsernamePasswordCombinationException();
+    throw new InvalidUsernamePasswordCombinationException(userName);
   }
 
 }

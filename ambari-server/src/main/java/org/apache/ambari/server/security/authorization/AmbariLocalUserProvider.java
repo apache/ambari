@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -66,17 +67,17 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
 
     if (userEntity == null) {
       LOG.info("user not found");
-      throw new InvalidUsernamePasswordCombinationException();
+      throw new InvalidUsernamePasswordCombinationException(userName);
     }
 
     if (!userEntity.getActive()) {
       LOG.debug("User account is disabled");
-      throw new InvalidUsernamePasswordCombinationException();
+      throw new InvalidUsernamePasswordCombinationException(userName);
     }
 
     if (authentication.getCredentials() == null) {
       LOG.debug("Authentication failed: no credentials provided");
-      throw new InvalidUsernamePasswordCombinationException();
+      throw new InvalidUsernamePasswordCombinationException(userName);
     }
 
     List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
@@ -98,7 +99,7 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
 
     // The user was not authenticated, fail
     LOG.debug("Authentication failed: password does not match stored value");
-    throw new InvalidUsernamePasswordCombinationException();
+    throw new InvalidUsernamePasswordCombinationException(userName);
   }
 
   @Override

@@ -16,19 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.security.authorization;
+package org.apache.ambari.server.security.authentication;
 
-import org.springframework.security.core.AuthenticationException;
-
-public class InvalidUsernamePasswordCombinationException extends AuthenticationException {
+public class InvalidUsernamePasswordCombinationException extends AmbariAuthenticationException {
 
   public static final String MESSAGE = "Unable to sign in. Invalid username/password combination.";
 
-  public InvalidUsernamePasswordCombinationException() {
-    super(MESSAGE);
+  public InvalidUsernamePasswordCombinationException(String username) {
+    super(username, MESSAGE);
   }
 
-  public InvalidUsernamePasswordCombinationException(Throwable t) {
-    super(MESSAGE, t);
+  public InvalidUsernamePasswordCombinationException(String username, Throwable t) {
+    super(username, MESSAGE, t);
   }
 }

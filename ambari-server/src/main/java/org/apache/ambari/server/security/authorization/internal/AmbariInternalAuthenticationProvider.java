@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.security.authorization.internal;
 
-import org.apache.ambari.server.security.authorization.InvalidUsernamePasswordCombinationException;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;

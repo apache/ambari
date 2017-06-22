@@ -18,17 +18,26 @@
 
 package org.apache.ambari.server.security.authentication;
 
-/**
- * AuthenticationUserNotFoundException is an AuthenticationException implementation to be thrown
- * when the user specified in an authentication attempt is not found in the Ambari user database.
- */
-public class UserNotFoundException extends AmbariAuthenticationException {
+import org.springframework.security.core.AuthenticationException;
 
-  public UserNotFoundException(String username, String message) {
-    super(username, message);
+/**
+ * AmbariAuthenticationException is an AuthenticationException implementation to be thrown
+ * when the user fails to authenticate with Ambari.
+ */
+public class AmbariAuthenticationException extends AuthenticationException {
+  private final String username;
+
+  public AmbariAuthenticationException(String username, String message) {
+    super(message);
+    this.username = username;
   }
 
-  public UserNotFoundException(String username, String message, Throwable throwable) {
-    super(username, message, throwable);
+  public AmbariAuthenticationException(String username, String message, Throwable throwable) {
+    super(message, throwable);
+    this.username = username;
+  }
+
+  public String getUsername() {
+    return username;
   }
 }

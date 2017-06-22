@@ -73,7 +73,7 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
   private List<String> audiences = null;
   private String cookieName = "hadoop-jwt";
 
-  private boolean ignoreFailure = true;
+  private boolean ignoreFailure = false;
   private AuthenticationEntryPoint entryPoint;
   private Users users;
 
