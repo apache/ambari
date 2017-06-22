@@ -115,6 +115,9 @@ var WorkflowGenerator= Ember.Object.extend({
       if (jobHandler){
 
         jobHandler.setContext(this.workflowContext);
+        if(/\s/g.test(node.name)) {
+          this.workflowContext.addError({node : node, message : "Action name cannot contain white space."});
+        }
         if (!self.ignoreErrors && !node.get("domain")){
             this.workflowContext.addError({node : node, message : "Action Properties are empty"});
         }else{

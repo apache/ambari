@@ -21,6 +21,7 @@ export default Ember.Service.extend({
   tabsInfo : {},
   workInProgress : {},
   userInfo : Ember.inject.service('user-info'),
+  userName : null,
   setLastActiveTab(tabId){
     this.get("userInfo").getUserData().then(function(data){
        localStorage.setItem(data+"-lastActiveTab", tabId);
@@ -38,6 +39,7 @@ export default Ember.Service.extend({
   restoreTabs(){
       var deferred = Ember.RSVP.defer();
       this.get("userInfo").getUserData().then(function(data){
+        this.set("userName", data);
         var tabs = localStorage.getItem(data+'-tabsInfo');
         deferred.resolve(JSON.parse(tabs));
       }.bind(this)).catch(function(e){
@@ -87,5 +89,8 @@ export default Ember.Service.extend({
     }.bind(this)).catch(function(e){
       console.error(e);
     });
+  },
+  getUserName(){
+   return this.get("userName");
   }
 });

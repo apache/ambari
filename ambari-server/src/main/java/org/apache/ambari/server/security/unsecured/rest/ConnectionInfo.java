@@ -25,12 +25,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-
 
 @Path("/connection_info")
 public class ConnectionInfo {
@@ -38,14 +38,13 @@ public class ConnectionInfo {
     private static HashMap<String,String> response= new HashMap<>();
     private static Configuration conf;
 
-
     @Inject
     public static void init(Configuration instance){
         conf = instance;
         response.put(Configuration.SRVR_TWO_WAY_SSL.getKey(),String.valueOf(conf.isTwoWaySsl()));
     }
 
-    @GET
+    @GET @ApiIgnore // until documented
     @Produces({MediaType.APPLICATION_JSON})
     public Map<String,String> connectionType() {
         return response;

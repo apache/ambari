@@ -32,6 +32,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.alert.AlertTarget;
@@ -43,7 +44,7 @@ import org.apache.ambari.server.state.alert.AlertTarget;
 @Path("/alert_targets/")
 public class AlertTargetService extends BaseService {
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getTargets(@Context HttpHeaders headers,
       @Context UriInfo ui) {
@@ -51,7 +52,7 @@ public class AlertTargetService extends BaseService {
         createAlertTargetResource(null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{targetId}")
   public Response getTargets(@Context HttpHeaders headers,
@@ -60,7 +61,7 @@ public class AlertTargetService extends BaseService {
         createAlertTargetResource(targetId));
   }
 
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createTarget(String body, @Context HttpHeaders headers,
       @Context UriInfo ui) {
@@ -68,7 +69,7 @@ public class AlertTargetService extends BaseService {
         createAlertTargetResource(null));
   }
 
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{targetId}")
   public Response updateGroup(String body, @Context HttpHeaders headers,
@@ -77,7 +78,7 @@ public class AlertTargetService extends BaseService {
         createAlertTargetResource(targetId));
   }
 
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{targetId}")
   public Response deleteTarget(String body, @Context HttpHeaders headers,

@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -71,7 +72,7 @@ public class HostKerberosIdentityService extends BaseService {
    * @param format     output format
    * @return a component resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{kerberosIdentityID}")
   @Produces("text/plain")
   public Response getKerberosIdentity(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -96,7 +97,7 @@ public class HostKerberosIdentityService extends BaseService {
    * @param ui      uri info
    * @return component collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getKerberosIdentities(String body, @Context HttpHeaders headers, @Context UriInfo ui, @QueryParam("format") String format) {
     return getKerberosIdentity(body, headers, ui, null, format);

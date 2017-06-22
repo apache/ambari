@@ -29,6 +29,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ComponentsResponse;
 import org.apache.ambari.server.agent.HeartBeat;
@@ -81,7 +82,7 @@ public class AgentResource {
    * @throws Exception
    */
   @Path("register/{hostName}")
-  @POST
+  @POST @ApiIgnore // until documented
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON})
   public RegistrationResponse register(Register message,
@@ -116,7 +117,7 @@ public class AgentResource {
    * @throws Exception
    */
   @Path("heartbeat/{hostName}")
-  @POST
+  @POST @ApiIgnore // until documented
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON})
   public HeartBeatResponse heartbeat(HeartBeat message)
@@ -150,7 +151,7 @@ public class AgentResource {
    * @throws Exception
    */
   @Path("components/{clusterName}")
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces({MediaType.APPLICATION_JSON})
   public ComponentsResponse components(
       @PathParam("clusterName") String clusterName) {

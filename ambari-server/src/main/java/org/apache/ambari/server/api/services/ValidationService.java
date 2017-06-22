@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -50,7 +51,7 @@ public class ValidationService extends BaseService {
    * @param stackVersion stack version
    * @return validation items if any
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces(MediaType.TEXT_PLAIN)
   public Response getValidation(String body, @Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {

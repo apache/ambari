@@ -30,6 +30,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -74,7 +75,7 @@ public class TaskService extends BaseService {
    *
    * @return a task resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{taskId}")
   @Produces("text/plain")
   public Response getTask(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -93,7 +94,7 @@ public class TaskService extends BaseService {
    *
    * @return task collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,

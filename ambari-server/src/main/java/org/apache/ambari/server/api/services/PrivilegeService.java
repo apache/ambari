@@ -30,8 +30,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-
 
 /**
  * Service responsible for privilege requests.
@@ -48,7 +48,7 @@ public abstract class PrivilegeService extends BaseService {
    *
    * @return privilege instance representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{privilegeId}")
   @Produces("text/plain")
   public Response getPrivilege(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -66,7 +66,7 @@ public abstract class PrivilegeService extends BaseService {
    *
    * @return privilege collection representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getPrivileges(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createPrivilegeResource(null));
@@ -82,7 +82,7 @@ public abstract class PrivilegeService extends BaseService {
    *
    * @return information regarding the created privilege
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createPrivilege(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -99,7 +99,7 @@ public abstract class PrivilegeService extends BaseService {
    *
    * @return information regarding the updated privilege
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{privilegeId}")
   @Produces("text/plain")
   public Response updatePrivilege(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -118,7 +118,7 @@ public abstract class PrivilegeService extends BaseService {
    *
    * @return information regarding the updated privileges
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updatePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.PUT, createPrivilegeResource(null));
@@ -134,7 +134,7 @@ public abstract class PrivilegeService extends BaseService {
    *
    * @return information regarding the deleted privileges
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Produces("text/plain")
   public Response deletePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -151,7 +151,7 @@ public abstract class PrivilegeService extends BaseService {
    *
    * @return information regarding the deleted privilege
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{privilegeId}")
   @Produces("text/plain")
   public Response deletePrivilege(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -159,7 +159,6 @@ public abstract class PrivilegeService extends BaseService {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE, createPrivilegeResource(privilegeId));
   }
-
 
   // ----- PrivilegeService --------------------------------------------------
 

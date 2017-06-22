@@ -35,6 +35,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.bootstrap.BSHostStatus;
 import org.apache.ambari.server.bootstrap.BSResponse;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
@@ -64,7 +65,7 @@ public class BootStrapResource {
    * @response.representation.408.doc Request Timed out
    * @throws Exception
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public BSResponse bootStrap(SshHostInfo sshInfo, @Context UriInfo uriInfo) {
@@ -85,7 +86,7 @@ public class BootStrapResource {
    * @response.representation.408.doc Request Timed out
    * @throws Exception
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("/{requestId}")
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public BootStrapStatus getBootStrapStatus(@PathParam("requestId")
@@ -96,13 +97,12 @@ public class BootStrapResource {
     return status;
   }
 
-
   /**
    * Gets a list of bootstrapped hosts.
    *
    * @param uriInfo the host info, with no SSL key information
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("/hosts")
   @Produces(MediaType.APPLICATION_JSON)
   public List<BSHostStatus> getBootStrapHosts(@Context UriInfo uriInfo) {
@@ -118,7 +118,7 @@ public class BootStrapResource {
    *
    * @param info  the host info, with no SSL key information required
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("/hosts")
   @Produces(MediaType.APPLICATION_JSON)
   public List<BSHostStatus> getBootStrapHosts(SshHostInfo info, @Context UriInfo uriInfo) {

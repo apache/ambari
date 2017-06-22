@@ -25,5 +25,8 @@ export default ViewerConfig.extend({
 
   listDirectoryUrl(pathParams) {
     return   Ember.ENV.FILE_API_URL+`/fileops/listdir?${pathParams}`;
+  },
+  createDirectoryUrl() {
+    return Ember.ENV.FILE_API_URL+`/fileops/mkdir`;
   }
 });

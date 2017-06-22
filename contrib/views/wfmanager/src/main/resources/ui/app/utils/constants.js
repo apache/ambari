@@ -45,11 +45,12 @@ export default Ember.Object.create({
     {name : "map-reduce",supportsSchema : false, currentVersion:''},
     {name : "sub-workflow",supportsSchema : false, currentVersion:''},
     {name : "distcp",supportsSchema : true, currentVersion:''},
+    {name : "fs",supportsSchema : true, currentVersion:''},
     {name : "ssh",supportsSchema : false, currentVersion:''},
     {name : "email",supportsSchema : true, currentVersion:''}
   ]),
   sparkMasterList :Ember.A([{value:'yarn-cluster',displayName:'Yarn Cluster'},
-                            {value:'yarn-client',displayName:'Yarn Client'},
+                            /*{value:'yarn-client',displayName:'Yarn Client'},*/
                             {value:'local',displayName:'Local'}]),
   timezoneList : Ember.A([
     {displayName:'UTC',gmtOffset:0, value:'UTC'},

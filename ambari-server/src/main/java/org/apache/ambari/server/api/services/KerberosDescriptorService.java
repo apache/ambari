@@ -13,6 +13,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -45,13 +46,13 @@ public class KerberosDescriptorService extends BaseService {
    * @param ui      uri info
    * @return a collection of kerberos descriptors
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getKerberosDescriptors(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET, createKerberosDescriptorResource(null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{kerberosDescriptorName}")
   @Produces("text/plain")
   public Response getKerberosDescriptor(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -59,7 +60,7 @@ public class KerberosDescriptorService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.GET, createKerberosDescriptorResource(kerberosDescriptorName));
   }
 
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{kerberosDescriptorName}")
   @Produces("text/plain")
   public Response createKerberosDescriptor(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -76,7 +77,7 @@ public class KerberosDescriptorService extends BaseService {
    * @param kerberosDescriptorName kerebros descriptor name
    * @return information regarding the deleted kerberos descriptor
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{kerberosDescriptorName}")
   @Produces("text/plain")
   public Response deleteKerberosDescriptor(@Context HttpHeaders headers, @Context UriInfo ui,

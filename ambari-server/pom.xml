@@ -438,6 +438,7 @@
               <swaggerDirectory>${swagger.generated.resources.dir}</swaggerDirectory>
             </apiSource>
           </apiSources>
+          <skipSwaggerGeneration>${swagger.skip}</skipSwaggerGeneration>
         </configuration>
         <executions>
           <execution>
