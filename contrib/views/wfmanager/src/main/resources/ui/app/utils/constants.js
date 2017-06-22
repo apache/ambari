@@ -50,7 +50,7 @@ export default Ember.Object.create({
     {name : "email",supportsSchema : true, currentVersion:''}
   ]),
   sparkMasterList :Ember.A([{value:'yarn-cluster',displayName:'Yarn Cluster'},
-                            {value:'yarn-client',displayName:'Yarn Client'},
+                            /*{value:'yarn-client',displayName:'Yarn Client'},*/
                             {value:'local',displayName:'Local'}]),
   timezoneList : Ember.A([
     {displayName:'UTC',gmtOffset:0, value:'UTC'},
