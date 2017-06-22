@@ -45,6 +45,7 @@ export default Ember.Object.create({
     {name : "map-reduce",supportsSchema : false, currentVersion:''},
     {name : "sub-workflow",supportsSchema : false, currentVersion:''},
     {name : "distcp",supportsSchema : true, currentVersion:''},
+    {name : "fs",supportsSchema : true, currentVersion:''},
     {name : "ssh",supportsSchema : false, currentVersion:''},
     {name : "email",supportsSchema : true, currentVersion:''}
   ]),
