@@ -17,7 +17,7 @@ Instructions to setup ambari-scom
 ======
 
 
-###Setup the HadoopMonitoring database
+### Setup the HadoopMonitoring database
 
 
 1. Setup SQLServer for mixed mode authentication (the metrics2 sink and Ambari metrics provider will connect through SQLServer authentication).
@@ -26,7 +26,7 @@ Instructions to setup ambari-scom
 4. Run the DDL script from the ambari-scom project to create the HadoopMoitoring database.  The script should be available as **db/MonitoringDatabase.sql** in the ambari-scom project folder.
 5. Download the SqlServer JDBC driver jar **(sqljdbc4.jar)** from [here](http://msdn.microsoft.com/en-us/data/aa937724.aspx).
 
-###Install Hadoop and SQLServerSink
+### Install Hadoop and SQLServerSink
 
 
 1. Follow the hadoop install instructions [here](http://docs.hortonworks.com/HDPDocuments/HDP1/HDP-Win-1.3.0/index.html), making sure you download the 1.3 MSI.
@@ -62,7 +62,7 @@ For example, '-classpath C:\ambari-scom\target\ambari-scom-1.0.jar;C:\hadoop\sql
    The table should not be empty.
 
 
-###Run AmbariServer
+### Run AmbariServer
 
 
 1. Edit the **ambari.properties** file from the ambari-scom project (ambari-scom/config/ambari.properties or unzip target/ambari-scom-1.0-conf.zip to desired location).  Add the following properties ...
@@ -85,7 +85,7 @@ For example, '-classpath C:\ambari-scom\target\ambari-scom-1.0.jar;C:\hadoop\sql
         java -server -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 -Xms512m -Xmx2048m -cp "c:\ambari-scom\conf;c:\hadoop\sqljdbc4.jar;c:\ambari-scom\target\ambari-scom-1.0.jar;c:\ambari-scom\target\lib\*" org.apache.ambari.scom.AmbariServer
 
 
-###Test the API
+### Test the API
 
 
 1. From a browser access the API...

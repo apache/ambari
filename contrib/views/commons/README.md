@@ -76,7 +76,7 @@ public class FileBrowserService {
 ```
 
 
-####Also, look into the various ember addons that are included in `src/main/resources/ui`.
+#### Also, look into the various ember addons that are included in `src/main/resources/ui`.
 Currently we have:
 
 * hdfs-directory-viewer

@@ -33,32 +33,32 @@ Report any issues via the [Ambari JIRA](https://issues.apache.org/jira/browse/AM
 
 ## Build
 
-####Ambari-SCOM and Metrics Sink
+#### Ambari-SCOM and Metrics Sink
 
-######Requirements
+###### Requirements
 * JDK 1.6
 * Maven 3.0
     
-######Maven modules
+###### Maven modules
 * ambari-scom-project (Parent POM for all modules)
   * ambari-scom (ambari MSI and SQL Server provider)
   * metrics-sink (Metrics SQL Server sink)       
   
-######Maven build goals
+###### Maven build goals
  * Clean : mvn clean
  * Compile : mvn compile
  * Run tests : mvn test 
  * Create JAR : mvn package
  * Install JAR in M2 cache : mvn install     
     
-######Tests options
+###### Tests options
   * -DskipTests to skip tests when running the following Maven goals:
     'package', 'install', 'deploy' or 'verify'
   * -Dtest=\<TESTCLASSNAME>,\<TESTCLASSNAME#METHODNAME>,....
   * -Dtest.exclude=\<TESTCLASSNAME>
   * -Dtest.exclude.pattern=\*\*/\<TESTCLASSNAME1>.java,\*\*/\<TESTCLASSNAME2>.java
 
-####Management Pack
+#### Management Pack
 
 See [Building the Management Pack](management-pack/Hadoop_MP/BUILDING.md) for more information.
 

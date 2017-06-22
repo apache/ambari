@@ -21,9 +21,9 @@ limitations under the License.
 mvn clean compile package
 
 #Deploy
-##Copy to remote
+## Copy to remote
 copy target/logsearch-portal.tar.gz to host machine
-##Setup environment
+## Setup environment
 ```bash
 mkdir /opt/logsearch
 cd /opt/logsearch

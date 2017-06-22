@@ -17,7 +17,7 @@ Ambari Logsearch Appender is a log4j base appender that write logs in json forma
     	  <version>${version}</version>
     	</dependency>
 ```
-####Dependent dependency 
+#### Dependent dependency 
 ```xml   
 		 <dependency>
 		  <groupId>log4j</groupId>
