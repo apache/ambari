@@ -24,7 +24,7 @@ Package
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
@@ -110,7 +110,7 @@ The view.xml file is the only required file for a view archive.  The view.xml is
 The configuration in this case defines a view named WEATHER that has a multiple instances.  You can see that the view includes a required parameter called **'cities'** and an optional parameter called **'units'**.  The view also contains an entry for a managed resource named **'city'**.  Because the resource is managed by Ambari, it is accessible as a sub-resource of the view instance through the Ambari REST API.
 
 
-#####WEB-INF/web.xml
+##### WEB-INF/web.xml
 The web.xml is the deployment descriptor used to deploy the view as a web app.  The Java EE standards apply for the descriptor.  We can see that for this example a single servlet named **WeatherServlet** is mapped to the context path **'/ui'**.
 
       <servlet>
@@ -122,7 +122,7 @@ The web.xml is the deployment descriptor used to deploy the view as a web app.  
         <url-pattern>/ui</url-pattern>
       </servlet-mapping>
 
-#####WeatherServlet.java
+##### WeatherServlet.java
 
 The servlet WeatherServlet will be deployed as part of the view and mapped as described in the web.xml.
 
@@ -166,7 +166,7 @@ The doGet() method of the servlet accesses the view context and the CityResource
         }
       }
 
-#####CityResource.java
+##### CityResource.java
 
  The CityResource class is a JavaBean that contains the attributes of a city resource for the Weather view.
 
@@ -188,7 +188,7 @@ The doGet() method of the servlet accesses the view context and the CityResource
         ...
       }
 
-#####CityResourceProvider.java
+##### CityResourceProvider.java
 
 The CityResourceProvider class is an implementation of the ResourceProvider interface that provides access to city resources for the Ambari API framework.
 
@@ -214,7 +214,7 @@ The CityResourceProvider class is an implementation of the ResourceProvider inte
         ...
       }
 
-#####CityService.java
+##### CityService.java
 
 The CityService uses JAX-RS annotations to define the actions to get the city resources.  Note that the injected ViewResourceHandler is used to pass control to the API framework.
 

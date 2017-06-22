@@ -24,7 +24,7 @@ Package
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
@@ -43,7 +43,7 @@ The view.xml file is the only required file for a view archive.  The view.xml is
 The configuration in this case defines a view named PHONE_LIST that has a multiple instances.  Each view instance will have its own data persisted to the Ambari database.
 
 
-#####WEB-INF/web.xml
+##### WEB-INF/web.xml
 The web.xml is the deployment descriptor used to deploy the view as a web app.  The Java EE standards apply for the descriptor.  We can see that for this example a single servlet is mapped to the root context path.
 
         <servlet>
@@ -55,7 +55,7 @@ The web.xml is the deployment descriptor used to deploy the view as a web app.  
           <url-pattern>/</url-pattern>
         </servlet-mapping>
         
-#####PhoneListServlet.java
+##### PhoneListServlet.java
 
 The servlet PhoneListServlet will be deployed as part of the view and mapped as described in the web.xml.
 
@@ -237,7 +237,7 @@ Use the view API to add new numbers to the phone list.  Click on any name in the
 
 ![image](phone_2.png)
 
-#####Different Instance
+##### Different Instance
 Each instance of the Phone List view has its own data so you can maintain separate lists.  Access the UI for a different view instance and you will see a different phone list…
 
 
@@ -249,7 +249,7 @@ We can look at the Ambari database and see that the view instance data is being 
 
 ![image](phone_4.png)
 
-#####New Instance
+##### New Instance
 Notice that the two instances above were defined in the view.xml for the Phone List view.  We can also create new instances through the API.  For example, if you POST the following…
 
 

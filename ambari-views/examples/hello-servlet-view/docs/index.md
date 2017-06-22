@@ -24,7 +24,7 @@ Package
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
@@ -59,7 +59,7 @@ The view.xml file is the only required file for a view archive.  The view.xml is
 The configuration in this case defines a view named HELLO_SERVLET that has a multiple instances.  You can see that the view includes an optional parameter called name.  Each view instance may assign a property value to the name parameter.  In this case the view instances TOM and JERRY both assign a name value, while the instance USER does not.
 
 
-#####WEB-INF/web.xml
+##### WEB-INF/web.xml
 The web.xml is the deployment descriptor used to deploy the view as a web app.  The Java EE standards apply for the descriptor.  We can see that for this example a single servlet is mapped to the root context path.
 
       <servlet>
@@ -71,7 +71,7 @@ The web.xml is the deployment descriptor used to deploy the view as a web app.  
         <url-pattern>/</url-pattern>
       </servlet-mapping>
 
-#####HelloServlet.java
+##### HelloServlet.java
 
 The servlet HelloServlet will be deployed as part of the view and mapped as described in the web.xml.
 

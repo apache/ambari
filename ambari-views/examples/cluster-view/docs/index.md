@@ -27,13 +27,13 @@ Package
 All views are packaged as a view archive. The view archive contains the configuration
 file and various optional components of the view.
 
-###view.xml
+### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
 Note the following in the view.xml for the CLUSTER view:
 
-#####cluster-config
+##### cluster-config
 
 Some of the parameter elements in the view.xml are created with a cluster-config element.
 
@@ -48,7 +48,7 @@ Some of the parameter elements in the view.xml are created with a cluster-config
 Including a cluster-config element means that the value for the parameter's property will be acquired from cluster configuration if the view instance is associated with a cluster.  
 In this example, if an instance of this view is associated with a cluster then the value returned for the 'hdfs_user' property will come from the cluster's 'hadoop-env/hdfs_user' configuration. 
 
-#####auto-instance
+##### auto-instance
 
 The view.xml contains an auto-instance element.
 

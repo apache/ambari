@@ -46,23 +46,23 @@ Report any issues via the [Ambari JIRA](https://issues.apache.org/jira/browse/AM
 
 ## Build
 
-####Examples
+#### Examples
 
-######Requirements
+###### Requirements
 * JDK 1.6
 * Maven 3.0
 
-######Maven modules
+###### Maven modules
 * ambari-views (ambari view interfaces)
 
-######Maven build goals
+###### Maven build goals
  * Clean : mvn clean
  * Compile : mvn compile
  * Run tests : mvn test
  * Create JARS : mvn package
  * Install JARS in M2 cache : mvn install
 
-######Tests options
+###### Tests options
   * -DskipTests to skip tests when running the following Maven goals:
     'package', 'install', 'deploy' or 'verify'
   * -Dtest=\<TESTCLASSNAME>,\<TESTCLASSNAME#METHODNAME>,....

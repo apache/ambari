@@ -24,7 +24,7 @@ Package
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
@@ -45,7 +45,7 @@ The configuration in this case defines a view named CALCULATOR that has a single
 
 
 
-#####CalculatorResource.java
+##### CalculatorResource.java
 
 The CalculatorResource class defines the calculator resource for the view.  It uses JAX-RS annotations to define the actions that can be performed on the resource.
 

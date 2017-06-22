@@ -26,7 +26,7 @@ Package
 All views are packaged as a view archive. The view archive contains the configuration
 file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 The view.xml for this example defines two required parameters for configuring a view instance: what.is.the.question and i.do.not.know. The view also

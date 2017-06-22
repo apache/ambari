@@ -24,7 +24,7 @@ Package
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
@@ -40,7 +40,7 @@ The view.xml file is the only required file for a view archive.  The view.xml is
 The configuration in this case defines a view named HELLO_WORLD that has a single instance named INSTANCE_1.
 
 
-#####index.html
+##### index.html
 
 The index.html is the static web content being exposed by this view.
 

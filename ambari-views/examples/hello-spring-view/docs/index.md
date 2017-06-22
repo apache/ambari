@@ -24,7 +24,7 @@ Package
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
@@ -40,7 +40,7 @@ The view.xml file is the only required file for a view archive.  The view.xml is
 The configuration in this case defines a view named HELLO_SPRING that has a single instance.
 
 
-#####HelloController.java
+##### HelloController.java
 
 The HelloController class is the controller for the Spring MVC app.
 
@@ -60,7 +60,7 @@ For this app, the controller saves a customized greeting to a model attribute.
 
 
 
-#####WEB-INF/web.xml
+##### WEB-INF/web.xml
 The web.xml is the deployment descriptor used to deploy the view as a web app.  The Java EE standards apply for the descriptor.  We can see that for this example a single servlet is mapped to the root context path.  The class for the servlet is the Spring DispatcherServlet.
 
         <servlet>
@@ -74,7 +74,7 @@ The web.xml is the deployment descriptor used to deploy the view as a web app.  
         </servlet-mapping>
       </web-app>
 
-#####WEB-INF/hello-spring.xml
+##### WEB-INF/hello-spring.xml
 
 This hello-spring.xml file contains the bean configuration.
 
@@ -90,7 +90,7 @@ In the above servlet.xml file, we have defined a tag <context:component-scan> . 
 Note that in the HelloController class we return the bean name "hello" which will resolve to the view /WEB-INF/jsp/hello.jsp.
 
 
-#####WEB-INF/jsp/hello.jsp
+##### WEB-INF/jsp/hello.jsp
 
 The Spring MVC app view for this example will display the customized greeting message saved in the HelloController class.
 

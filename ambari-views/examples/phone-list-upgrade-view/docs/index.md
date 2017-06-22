@@ -45,7 +45,7 @@ In order to support data migration, view should implement the ViewDataMigrator i
 NOTE: Data migration for instances of same data-versions (including those which does not define data-version) IS supported
 and in fact just copies all data - the class defined in the data-migrator-class in view.xml WILL NOT be instantiated.
 
-#####view.xml
+##### view.xml
 
 View can define the data version and ViewDataMigrator implementation in the view.xml.
 
@@ -60,7 +60,7 @@ View can define the data version and ViewDataMigrator implementation in the view
 If data-version is not defined, 0 is implied.
 
 
-#####DataMigrator.java
+##### DataMigrator.java
 
 To support migrations between different data versions, view should implement ViewDataMigrator interface.
 Views framework calls beforeMigration() method to check if view is ready to migrate data.

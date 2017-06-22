@@ -24,7 +24,7 @@ Package
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view.
 
-#####view.xml
+##### view.xml
 
 The view.xml file is the only required file for a view archive.  The view.xml is the configuration that describes the view and view instances for Ambari.
 
@@ -55,7 +55,7 @@ The configuration in this case defines a view named RESTRICTED that has a single
 
 
 
-#####UnrestrictedResource.java
+##### UnrestrictedResource.java
 
 The UnrestrictedResource class defines a simple resource for the view.  It uses JAX-RS annotations to define the actions that can be performed on the resource.
 
@@ -71,7 +71,7 @@ For example ...
 
      http://<server>:8080/api/v1/views/RESTRICTED/versions/1.0.0/instances/INSTANCE_1/resources/unrestricted
 
-#####RestrictedResource.java
+##### RestrictedResource.java
 
 The RestrictedResource class defines a simple resource for the view.  It uses JAX-RS annotations to define the actions that can be performed on the resource.
 
