@@ -19,7 +19,6 @@
     "eonasdan-bootstrap-datetimepicker": "~4.17.37",
     "code-prettify": "*",
     "abdmob/x2js": "~1.2.0",
-    "bootstrap-treeview": "~1.2.0",
     "datatables": "~1.10.11",
     "vkBeautify": "https://github.com/vkiryukhin/vkBeautify.git",
     "cytoscape": "~2.7.7",
