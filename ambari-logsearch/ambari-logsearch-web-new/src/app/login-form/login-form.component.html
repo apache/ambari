@@ -15,7 +15,19 @@
   limitations under the License.
 -->
 
-<h1>
-  {{title}}
-</h1>
-<login-form *ngIf="!httpClient.isAuthorized"></login-form>
+<div class="well col-md-4 col-md-offset-4 col-sm-offset-4">
+  <div class="alert alert-danger" *ngIf="isLoginAlertDisplayed">
+    <strong>Error!</strong> Invalid User credentials.<br>Please try again.
+  </div>
+  <form #loginForm="ngForm" (ngSubmit)="login()">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input class="form-control" type="text" id="username" name="username" required [(ngModel)]="username">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input class="form-control" type="password" id="password" name="password" required [(ngModel)]="password">
+    </div>
+    <button class="btn btn-success" [disabled]="!loginForm.form.valid || isRequestInProgress">Sign In</button>
+  </form>
+</div>

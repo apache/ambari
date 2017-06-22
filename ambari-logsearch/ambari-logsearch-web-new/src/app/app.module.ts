@@ -17,18 +17,21 @@
  */
 
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
+import {NgModule, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {HttpModule} from '@angular/http';
 import {InMemoryWebApiModule} from 'angular-in-memory-web-api';
 import {mockApiDataService} from './mock-api-data.service'
 import {AlertModule} from 'ngx-bootstrap';
+import {HttpClientService} from './http-client.service';
 
 import {AppComponent} from './app.component';
+import {LoginFormComponent} from './login-form/login-form.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    LoginFormComponent
   ],
   imports: [
     BrowserModule,
@@ -37,8 +40,9 @@ import {AppComponent} from './app.component';
     InMemoryWebApiModule.forRoot(mockApiDataService),
     AlertModule.forRoot()
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [HttpClientService],
+  bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {
 }

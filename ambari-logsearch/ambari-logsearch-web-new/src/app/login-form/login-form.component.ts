@@ -16,23 +16,44 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {HttpClientService} from './http-client.service';
+import {Component, OnInit} from '@angular/core';
+import 'rxjs/add/operator/finally';
+import {HttpClientService} from '../http-client.service';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.less']
+  selector: 'login-form',
+  templateUrl: './login-form.component.html'
 })
-
-export class AppComponent {
+export class LoginFormComponent implements OnInit {
 
   constructor(private httpClient: HttpClientService) {
   }
 
   ngOnInit() {
-    this.httpClient.get('status');
   }
 
-  title = 'Ambari Log Search';
+  username: string;
+
+  password: string;
+
+  isLoginAlertDisplayed: boolean;
+
+  isRequestInProgress: boolean;
+
+  login() {
+    this.isRequestInProgress = true;
+    this.httpClient.post('login', {
+      username: this.username,
+      password: this.password
+    }).finally(() => {
+      this.isRequestInProgress = false;
+    }).subscribe(() => {
+      this.isLoginAlertDisplayed = false;
+      this.httpClient.isAuthorized = true;
+    }, () => {
+      this.isLoginAlertDisplayed = true;
+      this.httpClient.isAuthorized = false;
+    });
+  }
+
 }

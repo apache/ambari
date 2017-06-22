@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { AmbariLogsearchWebNewPage } from './app.po';
+import {AmbariLogsearchWebNewPage} from './app.po';
 
 describe('ambari-logsearch-web-new App', () => {
   let page: AmbariLogsearchWebNewPage;
@@ -25,8 +25,8 @@ describe('ambari-logsearch-web-new App', () => {
     page = new AmbariLogsearchWebNewPage();
   });
 
-  it('should display message saying app works', () => {
+  it('should display title', () => {
     page.navigateTo();
-    expect(page.getParagraphText()).toEqual('app works!');
+    expect(page.getParagraphText()).toEqual('Ambari Log Search');
   });
 });
