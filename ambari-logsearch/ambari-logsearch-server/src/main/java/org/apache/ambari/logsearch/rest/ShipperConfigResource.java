@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.Valid;
 import javax.validation.executable.ValidateOnExecution;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -40,11 +41,13 @@ import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.springframework.context.annotation.Scope;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_LOG_LEVEL_FILTER_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SERVICE_NAMES_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SHIPPER_CONFIG_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.SET_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.TEST_SHIPPER_CONFIG_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.UPDATE_LOG_LEVEL_FILTER_OD;
 
 @Api(value = "shipper", description = "Shipper config operations")
@@ -91,6 +94,15 @@ public class ShipperConfigResource {
   public Response setShipperConfig(@Valid LSServerInputConfig request, @PathParam("clusterName") String clusterName,
       @PathParam("serviceName") String serviceName) {
     return shipperConfigManager.setInputConfig(clusterName, serviceName, request);
+  }
+
+  @POST
+  @Path("/input/{clusterName}/test")
+  @Produces({"application/json"})
+  @ApiOperation(TEST_SHIPPER_CONFIG_OD)
+  public Map<String, Object> testShipperConfig(@FormParam("shipper_config") String shipperConfig, @FormParam("log_id") String logId,
+      @FormParam("test_entry") String testEntry, @PathParam("clusterName") String clusterName) {
+    return shipperConfigManager.testShipperConfig(shipperConfig, logId, testEntry, clusterName);
   }
 
   @GET

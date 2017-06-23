@@ -19,7 +19,7 @@
 
 package org.apache.ambari.logfeeder.filter;
 
-import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -139,8 +139,7 @@ public class FilterGrok extends Filter {
     InputStreamReader grokPatternsReader = null;
     LOG.info("Loading pattern file " + GROK_PATTERN_FILE);
     try {
-      BufferedInputStream fileInputStream =
-          (BufferedInputStream) this.getClass().getClassLoader().getResourceAsStream(GROK_PATTERN_FILE);
+      InputStream fileInputStream = getClass().getClassLoader().getResourceAsStream(GROK_PATTERN_FILE);
       if (fileInputStream == null) {
         LOG.fatal("Couldn't load grok-patterns file " + GROK_PATTERN_FILE + ". Things will not work");
         return false;

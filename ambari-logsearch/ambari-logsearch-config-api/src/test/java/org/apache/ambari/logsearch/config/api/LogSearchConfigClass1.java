@@ -53,6 +53,11 @@ public class LogSearchConfigClass1 implements LogSearchConfig {
   }
 
   @Override
+  public String getGlobalConfigs(String clusterName) {
+    return null;
+  }
+
+  @Override
   public InputConfig getInputConfig(String clusterName, String serviceName) {
     return null;
   }
