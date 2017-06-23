@@ -17,14 +17,14 @@
 }}
 
 {{#each clientComponent in view.clientsObj}}
-  <div class="row">
-    <div {{bindAttr class=":col-md-6 :summary-label clientComponent.summaryLabelClassName"}}>
+  <div class="row col-md-3">
+    <div {{bindAttr class=":summary-value :main-info clientComponent.summaryValueClassName"}}>
+      <span class="green-live">{{clientComponent.installedCount}}</span>  {{t common.installed}}
+    </div>
+    <div {{bindAttr class=":summary-label clientComponent.summaryLabelClassName"}}>
       <a {{action filterHosts clientComponent}} href="javascript:void(null)" >
         {{clientComponent.displayNamePluralized}}
       </a>
-    </div>
-    <div {{bindAttr class=":col-md-6 :summary-value clientComponent.summaryValueClassName"}}>
-      <span class="green-live">{{clientComponent.installedCount}}</span> {{clientComponent.displayNamePluralized}} {{t common.installed}}
     </div>
   </div>
 {{/each}}
