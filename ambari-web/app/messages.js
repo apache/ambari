@@ -3270,7 +3270,7 @@ Em.I18n.translations = {
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',
   'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code',
 
-  'wizard.inProgress': '{0} in Progress',
+  'wizard.inProgress': '{0} in Progress | Initiated by {1}',
 
   'alerts.instance.fullLogPopup.header': 'Instance Response',
   'admin.addHawqStandby.button.enable': 'Add HAWQ Standby Master',
