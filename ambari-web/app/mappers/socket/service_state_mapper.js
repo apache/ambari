@@ -17,28 +17,22 @@
 
 var App = require('app');
 
-App.socketEventsMapper = App.QuickDataMapper.create({
+App.serviceStateMapper = App.QuickDataMapper.create({
 
-  /**
-   * @param {object} event
-   */
-  applyAlertDefinitionSummaryEvents: function(event) {
-    const data = {
-      alerts_summary_grouped: []
-    };
-    for (let name in event.summaries) {
-      data.alerts_summary_grouped.push(event.summaries[name]);
-    }
-    App.alertDefinitionSummaryMapper.map(data);
+  config: {
+    passiveState: 'maintenance_state',
+    workStatus: 'state'
   },
 
   /**
    * @param {object} event
    */
-  applyHostComponentStatusEvents: function (event) {
-    const hostComponent = App.HostComponent.find(event.componentName + '_' + event.hostName);
-    if (hostComponent.get('isLoaded')) {
-      hostComponent.set('workStatus', event.currentState);
+  map: function(event) {
+    //TODO event should have properties named in CamelCase format
+    this.updatePropertiesByConfig(App.Service.find(event.service_name), event, this.config);
+    const cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', event.service_name);
+    if (event.state && cachedService) {
+      cachedService.ServiceInfo.state = event.state;
     }
   }
 });

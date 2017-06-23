@@ -18,11 +18,11 @@
 
 var App = require('app');
 
-require('mappers/socket_events_mapper');
+require('mappers/socket/host_component_status_mapper');
 
-describe('App.socketEventsMapper', function () {
+describe('App.hostComponentStatusMapper', function () {
 
-  describe('#applyHostComponentStatusEvents', function() {
+  describe('#map', function() {
     var hc = Em.Object.create({
       workStatus: 'INSTALLED',
       isLoaded: true
@@ -40,35 +40,8 @@ describe('App.socketEventsMapper', function () {
         hostName: 'host1',
         currentState: 'STARTED'
       };
-      App.socketEventsMapper.applyHostComponentStatusEvents(event);
+      App.hostComponentStatusMapper.map(event);
       expect(hc.get('workStatus')).to.be.equal('STARTED');
-    });
-  });
-
-  describe('#applyAlertDefinitionSummaryEvents', function() {
-    beforeEach(function() {
-      sinon.stub(App.alertDefinitionSummaryMapper, 'map');
-    });
-    afterEach(function() {
-      App.alertDefinitionSummaryMapper.map.restore();
-    });
-
-    it('App.alertDefinitionSummaryMapper.map should be called', function() {
-      const event = {
-        summaries: {
-          d1: {
-            definition_name: 'd1'
-          }
-        }
-      };
-      App.socketEventsMapper.applyAlertDefinitionSummaryEvents(event);
-      expect(App.alertDefinitionSummaryMapper.map.calledWith({
-        alerts_summary_grouped: [
-          {
-            definition_name: 'd1'
-          }
-        ]
-      })).to.be.true;
     });
   });
 });

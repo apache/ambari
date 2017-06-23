@@ -186,14 +186,13 @@ App.UpdateController = Em.Controller.extend({
    * Start polling, when <code>isWorking</code> become true
    */
   updateAll: function () {
-    var socket = App.socketEventsMapper;
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
-      App.StompClient.subscribe('/events/hostcomponents', socket.applyHostComponentStatusEvents.bind(socket));
-      App.StompClient.subscribe('/events/alerts', socket.applyAlertDefinitionSummaryEvents.bind(socket));
+      App.StompClient.subscribe('/events/hostcomponents', App.hostComponentStatusMapper.map.bind(App.hostComponentStatusMapper));
+      App.StompClient.subscribe('/events/alerts', App.alertSummaryMapper.map.bind(App.alertSummaryMapper));
       App.StompClient.subscribe('/events/topologies', App.topologyMapper.map.bind(App.topologyMapper));
       App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
+      App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
 
-      App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHost', 'isWorking');
       App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
       App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services|hosts).*');
@@ -212,6 +211,7 @@ App.UpdateController = Em.Controller.extend({
       App.StompClient.unsubscribe('/events/alerts');
       App.StompClient.unsubscribe('/events/topologies');
       App.StompClient.unsubscribe('/events/configs');
+      App.StompClient.unsubscribe('/events/services');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
