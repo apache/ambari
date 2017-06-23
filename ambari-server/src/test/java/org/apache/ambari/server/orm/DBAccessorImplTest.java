@@ -19,6 +19,8 @@
 package org.apache.ambari.server.orm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.matchers.JUnitMatchers.containsString;
 
 import java.io.ByteArrayInputStream;
@@ -32,6 +34,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -86,6 +89,18 @@ public class DBAccessorImplTest {
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("name", String.class, 20000, null, true));
     columns.add(new DBColumnInfo("time", Long.class, null, null, true));
+
+    dbAccessor.createTable(tableName, columns, "id");
+  }
+
+  private void createMyTable(String tableName, String...columnNames) throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    List<DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    for (String column: columnNames){
+      columns.add(new DBColumnInfo(column, String.class, 20000, null, true));
+    }
 
     dbAccessor.createTable(tableName, columns, "id");
   }
@@ -576,5 +591,52 @@ public class DBAccessorImplTest {
     rs.close();
 
     assertEquals("'foo'", columnDefaultVal);
+   }
+
+  @Test
+  public void testMoveColumnToAnotherTable() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    String sourceTableName = getFreeTableName();
+    String targetTableName = getFreeTableName();
+    int testRowAmount = 10;
+
+    createMyTable(sourceTableName, "col1", "col2");
+    createMyTable(targetTableName, "col1");
+
+    for (Integer i=0; i < testRowAmount; i++){
+      dbAccessor.insertRow(sourceTableName,
+        new String[] {"id", "col1", "col2"},
+        new String[]{i.toString(), String.format("'source,1,%s'", i), String.format("'source,2,%s'", i)}, false);
+
+      dbAccessor.insertRow(targetTableName,
+        new String[] {"id", "col1"},
+        new String[]{i.toString(), String.format("'target,1,%s'", i)}, false);
+    }
+
+    DBColumnInfo sourceColumn = new DBColumnInfo("col2", String.class, null, null, false);
+    DBColumnInfo targetColumn = new DBColumnInfo("col2", String.class, null, null, false);
+
+    dbAccessor.moveColumnToAnotherTable(sourceTableName, sourceColumn, "id",
+      targetTableName, targetColumn, "id", "initial");
+
+    Statement statement = dbAccessor.getConnection().createStatement();
+    ResultSet resultSet =  statement.executeQuery("SELECT col2 FROM " + targetTableName + " ORDER BY col2");
+
+    assertNotNull(resultSet);
+
+    List<String> response = new LinkedList<>();
+
+    while (resultSet.next()){
+      response.add(resultSet.getString(1));
+    }
+
+    assertEquals(testRowAmount, response.toArray().length);
+
+    int i = 0;
+    for(String row: response){
+      assertEquals(String.format("source,2,%s", i), row);
+      i++;
+    }
+
    }
 }

@@ -62,6 +62,16 @@ public interface DbmsHelper {
                                  String... columnNames);
 
   /**
+   * Generating update SQL statement for {@link DBAccessor#executePreparedUpdate}
+   *
+   * @param tableName name of the table
+   * @param setColumnName column name, value of which need to be set
+   * @param conditionColumnName column name for the condition
+   * @return
+   */
+  String getColumnUpdateStatementWhereColumnIsNull(String tableName, String setColumnName, String conditionColumnName);
+
+  /**
    * Gets DROP INDEX statement
    *
    * @param indexName
