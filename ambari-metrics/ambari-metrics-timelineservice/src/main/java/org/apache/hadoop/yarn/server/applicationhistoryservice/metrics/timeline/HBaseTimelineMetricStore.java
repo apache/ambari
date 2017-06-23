@@ -396,7 +396,11 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
           throws SQLException, IOException {
 
     Map<String, Set<String>> hostedApps = metricMetadataManager.getHostedAppsCache();
-    Map<String, Set<String>> instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    Map<String, Set<String>> instanceHosts = new HashMap<>();
+    if (configuration.getTimelineMetricsMultipleClusterSupport()) {
+      instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    }
+
     Map<String, Map<String, Set<String>>> instanceAppHosts = new HashMap<>();
 
     if (MapUtils.isEmpty(instanceHosts)) {

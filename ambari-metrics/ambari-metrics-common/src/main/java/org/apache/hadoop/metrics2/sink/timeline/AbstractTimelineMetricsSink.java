@@ -288,16 +288,18 @@ public abstract class AbstractTimelineMetricsSink {
 
   protected boolean emitMetrics(TimelineMetrics metrics) {
     String collectorHost = getCurrentCollectorHost();
-    String connectUrl = getCollectorUri(collectorHost);
-    String jsonData = null;
-    LOG.debug("EmitMetrics connectUrl = "  + connectUrl);
-    try {
-      jsonData = mapper.writeValueAsString(metrics);
-    } catch (IOException e) {
-      LOG.error("Unable to parse metrics", e);
-    }
-    if (jsonData != null) {
-      return emitMetricsJson(connectUrl, jsonData);
+    if (collectorHost != null) {
+      String connectUrl = getCollectorUri(collectorHost);
+      String jsonData = null;
+      LOG.debug("EmitMetrics connectUrl = "  + connectUrl);
+      try {
+        jsonData = mapper.writeValueAsString(metrics);
+      } catch (IOException e) {
+        LOG.error("Unable to parse metrics", e);
+      }
+      if (jsonData != null) {
+        return emitMetricsJson(connectUrl, jsonData);
+      }
     }
     return false;
   }
