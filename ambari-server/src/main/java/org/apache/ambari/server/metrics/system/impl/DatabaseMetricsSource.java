@@ -59,7 +59,7 @@ public class DatabaseMetricsSource extends AbstractMetricsSource {
     super.init(metricsConfig, sink);
     configuration = metricsConfig;
     initializeFilterSets();
-    LOG.info("DatabaseMetricsSource initialized.");
+    LOG.info("Initialized Ambari DB Metrics Source...");
   }
 
   /**
@@ -83,11 +83,11 @@ public class DatabaseMetricsSource extends AbstractMetricsSource {
 
   @Override
   public void start() {
-    LOG.info("Starting Database Metrics source...");
     ThreadFactory threadFactory = new ThreadFactoryBuilder()
       .setNameFormat("DatabaseMetricsSource-%d")
       .build();
     executor = Executors.newSingleThreadExecutor(threadFactory);
+    LOG.info("Started Ambari DB Metrics source...");
   }
 
   /**

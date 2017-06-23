@@ -61,9 +61,12 @@ public class MetricsServiceImpl implements MetricsService {
         Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(new Runnable() {
           @Override
           public void run() {
-            LOG.info("Checking for metrics sink initialization");
             if (!sink.isInitialized()) {
+              LOG.info("Attempting to initialize metrics sink");
               initializeMetricsSink();
+              if (sink.isInitialized()) {
+                LOG.info("Metric sink initialization successful");
+              }
             }
           }
         }, 5, 5, TimeUnit.MINUTES);
