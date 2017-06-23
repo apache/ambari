@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "validations": [],
-  "parameters": {
-    "ganglia.server.hostname": "c6401.ambari.apache.org",
-    "ganglia.additional.clusters": "App1:8881,App2:8882",
-    "yarn.rm.webapp.url":"c6402.ambari.apache.org:8088"
-  }
-}
