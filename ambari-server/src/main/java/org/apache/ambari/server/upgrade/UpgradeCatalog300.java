@@ -76,6 +76,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String CLUSTER_CONFIG_MAPPING_TABLE = "clusterconfigmapping";
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
+  protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
 
   @Inject
   DaoUtils daoUtils;
@@ -112,7 +113,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getSourceVersion() {
-    return "2.5.0";
+    return "2.5.2";
   }
 
   /**
@@ -181,7 +182,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   protected void addServiceComponentColumn() throws SQLException {
-    dbAccessor.addColumn(UpgradeCatalog250.COMPONENT_TABLE,
+    dbAccessor.addColumn(COMPONENT_TABLE,
         new DBColumnInfo("repo_state", String.class, 255,
             RepositoryVersionState.NOT_REQUIRED.name(), false));
   }

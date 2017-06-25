@@ -179,7 +179,7 @@ public class UpgradeCatalog300Test {
 
     // component table
     Capture<DBAccessor.DBColumnInfo> componentStateColumn = newCapture();
-    dbAccessor.addColumn(eq(UpgradeCatalog250.COMPONENT_TABLE), capture(componentStateColumn));
+    dbAccessor.addColumn(eq(UpgradeCatalog300.COMPONENT_TABLE), capture(componentStateColumn));
 
     replay(dbAccessor, configuration);
 
