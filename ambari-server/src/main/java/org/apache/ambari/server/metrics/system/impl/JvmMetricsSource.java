@@ -60,20 +60,24 @@ public class JvmMetricsSource extends AbstractMetricsSource {
     registerAll(JVM_PREFIX + ".threads", new ThreadStatesGaugeSet(), registry);
     registry.register(JVM_PREFIX + ".file.open.descriptor.ratio", new FileDescriptorRatioGauge());
     interval = Integer.parseInt(configuration.getProperty("interval", "10"));
-    LOG.info("JVM Metrics source initialized.");
+    LOG.info("Initialized JVM Metrics source...");
   }
 
   @Override
   public void start() {
-    LOG.info("Starting JVM Metrics source...");
     try {
       executor.scheduleWithFixedDelay(new Runnable() {
         @Override
         public void run() {
-          sink.publish(getMetrics());
-          LOG.debug("********* Published JVM metrics to sink **********");
+          try {
+            LOG.debug("Publishing JVM metrics to sink");
+            sink.publish(getMetrics());
+          } catch (Exception e) {
+            LOG.debug("Error in publishing JVM metrics to sink.");
+          }
         }
       }, interval, interval, TimeUnit.SECONDS);
+      LOG.info("Started JVM Metrics source...");
     } catch (Exception e) {
       LOG.info("Throwing exception when starting metric source", e);
     }

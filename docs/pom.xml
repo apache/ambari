@@ -246,6 +246,18 @@
             </organization>
         </developer>
         <developer>
+            <id>benyoka</id>
+            <name>Balazs Bence Sari</name>
+            <email>benyoka@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>berndf</id>
             <name>Bernd Fondermann</name>
             <email>berndf@apache.org</email>

@@ -51,6 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterDescriptorImpl;
@@ -169,6 +170,31 @@ public class ConfigHandler implements InputConfigMonitor {
   @Override
   public void removeInputs(String serviceName) {
     inputManager.removeInputsForService(serviceName);
+  }
+
+  public Input getTestInput(InputConfig inputConfig, String logId) {
+    for (InputDescriptor inputDescriptor : inputConfig.getInput()) {
+      if (inputDescriptor.getType().equals(logId)) {
+        inputConfigList.add(inputDescriptor);
+        break;
+      }
+    }
+    if (inputConfigList.isEmpty()) {
+      throw new IllegalArgumentException("Log Id " + logId + " was not found in shipper configuriaton");
+    }
+    
+    for (FilterDescriptor filterDescriptor : inputConfig.getFilter()) {
+      if ("grok".equals(filterDescriptor.getFilter())) {
+        // Thus ensure that the log entry passed will be parsed immediately
+        ((FilterGrokDescriptor)filterDescriptor).setMultilinePattern(null);
+      }
+      filterConfigList.add(filterDescriptor);
+    }
+    loadInputs("test");
+    loadFilters("test");
+    List<Input> inputList = inputManager.getInputList("test");
+    
+    return inputList != null && inputList.size() == 1 ? inputList.get(0) : null;
   }
 
   @SuppressWarnings("unchecked")

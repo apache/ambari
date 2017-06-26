@@ -261,9 +261,14 @@ public class LogSearchConfigZK implements LogSearchConfig {
   }
 
   @Override
-  public InputConfig getInputConfig(String clusterName, String serviceName) {
+  public String getGlobalConfigs(String clusterName) {
     String globalConfigNodePath = String.format("%s/%s/global", root, clusterName);
-    String globalConfigData = new String(cache.getCurrentData(globalConfigNodePath).getData());
+    return new String(cache.getCurrentData(globalConfigNodePath).getData());
+  }
+
+  @Override
+  public InputConfig getInputConfig(String clusterName, String serviceName) {
+    String globalConfigData = getGlobalConfigs(clusterName);
     JsonArray globalConfigs = (JsonArray) new JsonParser().parse(globalConfigData);
     InputAdapter.setGlobalConfigs(globalConfigs);
     

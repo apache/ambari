@@ -290,6 +290,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES =
     "timeline.metrics.precision.table.hbase.hstore.blockingStoreFiles";
 
+  public static final String TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS =
+    "timeline.metrics.support.multiple.clusters";
+
   public static final String HOST_APP_ID = "HOST";
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";
@@ -438,6 +441,13 @@ public class TimelineMetricConfiguration {
       return Integer.parseInt(metricsConf.get(WATCHER_MAX_FAILURES, "3"));
     }
     return 3;
+  }
+
+  public boolean getTimelineMetricsMultipleClusterSupport() {
+    if (metricsConf != null) {
+      return Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS, "false"));
+    }
+    return false;
   }
 
   public String getTimelineServiceRpcAddress() {

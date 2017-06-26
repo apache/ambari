@@ -66,6 +66,14 @@ public interface LogSearchConfig extends Closeable {
   boolean inputConfigExists(String clusterName, String serviceName) throws Exception;
 
   /**
+   * Returns the global configurations of a cluster. Will be used only in SERVER mode.
+   * 
+   * @param clusterName The name of the cluster where the service is looked for.
+   * @return The global configurations of the cluster if it exists, null otherwise.
+   */
+  String getGlobalConfigs(String clusterName);
+
+  /**
    * Returns the input configuration of a service in a cluster. Will be used only in SERVER mode.
    * 
    * @param clusterName The name of the cluster where the service is looked for.

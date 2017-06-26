@@ -36,7 +36,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class MetrcisManagerTest {
+public class MetricsManagerTest {
 
   private MetricsManager manager;
   private LogFeederAMSClient mockClient;
@@ -44,7 +44,7 @@ public class MetrcisManagerTest {
   
   @BeforeClass
   public static void loadProperties() throws Exception {
-    LogFeederUtil.loadProperties("logfeeder.properties", null);
+    LogFeederUtil.loadProperties("logfeeder.properties");
   }
   
   @Before

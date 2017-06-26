@@ -19,14 +19,19 @@
 
 package org.apache.ambari.logfeeder;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.ConfigHandler;
+import org.apache.ambari.logfeeder.common.LogEntryParseTester;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
 import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZK;
+import org.apache.commons.io.FileUtils;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.input.InputManager;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
@@ -35,7 +40,10 @@ import org.apache.ambari.logfeeder.metrics.MetricsManager;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.SSLUtil;
 import com.google.common.collect.Maps;
+import com.google.gson.GsonBuilder;
+
 import org.apache.hadoop.util.ShutdownHookManager;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 public class LogFeeder {
@@ -44,6 +52,8 @@ public class LogFeeder {
   private static final int LOGFEEDER_SHUTDOWN_HOOK_PRIORITY = 30;
   private static final int CHECKPOINT_CLEAN_INTERVAL_MS = 24 * 60 * 60 * 60 * 1000; // 24 hours
 
+  private final LogFeederCommandLine cli;
+  
   private ConfigHandler configHandler = new ConfigHandler();
   private LogSearchConfig config;
   
@@ -54,7 +64,9 @@ public class LogFeeder {
   private boolean isLogfeederCompleted = false;
   private Thread statLoggerThread = null;
 
-  private LogFeeder() {}
+  private LogFeeder(LogFeederCommandLine cli) {
+    this.cli = cli;
+  }
 
   public void run() {
     try {
@@ -165,15 +177,40 @@ public class LogFeeder {
     }
   }
 
-  public static void main(String[] args) {
+  public void test() {
     try {
-      LogFeederUtil.loadProperties("logfeeder.properties", args);
-    } catch (Throwable t) {
-      LOG.warn("Could not load logfeeder properites");
-      System.exit(1);
+      LogManager.shutdown();
+      String testLogEntry = cli.getTestLogEntry();
+      String testShipperConfig = FileUtils.readFileToString(new File(cli.getTestShipperConfig()), Charset.defaultCharset());
+      List<String> testGlobalConfigs = new ArrayList<>();
+      for (String testGlobalConfigFile : cli.getTestGlobalConfigs().split(",")) {
+        testGlobalConfigs.add(FileUtils.readFileToString(new File(testGlobalConfigFile), Charset.defaultCharset()));
+      }
+      String testLogId = cli.getTestLogId();
+      Map<String, Object> result = new LogEntryParseTester(testLogEntry, testShipperConfig, testGlobalConfigs, testLogId).parse();
+      String parsedLogEntry = new GsonBuilder().setPrettyPrinting().create().toJson(result);
+      System.out.println("The result of the parsing is:\n" + parsedLogEntry);
+    } catch (Exception e) {
+      System.out.println("Exception occurred, could not test if log entry is parseable");
+      e.printStackTrace(System.out);
     }
-
-    LogFeeder logFeeder = new LogFeeder();
-    logFeeder.run();
+  }
+  
+  public static void main(String[] args) {
+    LogFeederCommandLine cli = new LogFeederCommandLine(args);
+    
+    LogFeeder logFeeder = new LogFeeder(cli);
+    
+    if (cli.isMonitor()) {
+      try {
+        LogFeederUtil.loadProperties("logfeeder.properties");
+      } catch (Throwable t) {
+        LOG.warn("Could not load logfeeder properites");
+        System.exit(1);
+      }
+      logFeeder.run();
+    } else if (cli.isTest()) {
+      logFeeder.test();
+    }
   }
 }

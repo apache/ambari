@@ -61,7 +61,7 @@ public class LogConfigHandlerTest {
   
   @BeforeClass
   public static void init() throws Exception {
-    LogFeederUtil.loadProperties("logfeeder.properties", null);
+    LogFeederUtil.loadProperties("logfeeder.properties");
     
     LogSearchConfig config = strictMock(LogSearchConfig.class);
     config.createLogLevelFilter(anyString(), anyString(), anyObject(LogLevelFilter.class));
