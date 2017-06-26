@@ -377,6 +377,25 @@ class Master(Script):
                                                     params.hive_server_interactive_hosts + \
                                                     ':' + params.hive_server_port
 
+        if params.spark_thrift_server_hosts:
+          interpreter['properties']['spark.driver'] = 'org.apache.hive.jdbc.HiveDriver'
+          interpreter['properties']['spark.user'] = 'hive'
+          interpreter['properties']['spark.password'] = ''
+          interpreter['properties']['spark.proxy.user.property'] = 'hive.server2.proxy.user'
+          interpreter['properties']['spark.url'] = 'jdbc:hive2://' + \
+              params.spark_thrift_server_hosts + ':' + params.spark_hive_thrift_port + '/'
+          if params.spark_hive_principal:
+            interpreter['properties']['spark.url'] += ';principal=' + params.spark_hive_principal
+
+        if params.spark2_thrift_server_hosts:
+          interpreter['properties']['spark2.driver'] = 'org.apache.hive.jdbc.HiveDriver'
+          interpreter['properties']['spark2.user'] = 'hive'
+          interpreter['properties']['spark2.password'] = ''
+          interpreter['properties']['spark2.proxy.user.property'] = 'hive.server2.proxy.user'
+          interpreter['properties']['spark2.url'] = 'jdbc:hive2://' + \
+              params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
+          if params.spark_hive_principal:
+            interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
