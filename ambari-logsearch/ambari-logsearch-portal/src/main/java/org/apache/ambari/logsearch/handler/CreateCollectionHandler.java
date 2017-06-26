@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
@@ -32,8 +31,6 @@ import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,8 +170,7 @@ public class CreateCollectionHandler implements SolrZkRequestHandler<Boolean> {
   private void updateMaximumNumberOfShardsPerCore(Collection<Slice> slices, SolrPropsConfig solrPropsConfig) throws IOException {
     String baseUrl = getRandomBaseUrl(slices);
     if (baseUrl != null) {
-      SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient();
-      HttpClientUtil.configureClient(httpClient, new ModifiableSolrParams((SolrParams) null));
+      CloseableHttpClient httpClient = HttpClientUtil.createClient(null);
       HttpGet request = new HttpGet(baseUrl + String.format(MODIFY_COLLECTION_QUERY,
         solrPropsConfig.getCollection(), MAX_SHARDS_PER_NODE, calculateMaxShardsPerNode(solrPropsConfig)));
       HttpResponse response = httpClient.execute(request);

@@ -22,11 +22,9 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.conf.SolrUserPropsConfig;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -40,8 +38,6 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.JavaBinCodec;
 import org.apache.solr.common.util.NamedList;
 import org.codehaus.jettison.json.JSONObject;
@@ -70,18 +66,18 @@ public class SolrSchemaFieldDao {
 
   @Inject
   private AuditSolrDao auditSolrDao;
-
+  
   @Inject
   private SolrUserPropsConfig solrUserConfigPropsConfig;
-
+  
   private int retryCount;
   private int skipCount;
-
+  
   private Map<String, String> serviceSchemaFieldNameMap = new HashMap<>();
   private Map<String, String> serviceSchemaFieldTypeMap = new HashMap<>();
   private Map<String, String> auditSchemaFieldNameMap = new HashMap<>();
   private Map<String, String> auditSchemaFieldTypeMap = new HashMap<>();
-
+  
   @Scheduled(fixedDelay = RETRY_SECOND * 1000)
   public void populateAllSchemaFields() {
     if (skipCount > 0) {
@@ -111,7 +107,7 @@ public class SolrSchemaFieldDao {
         schemaRequest.setMethod(SolrRequest.METHOD.GET);
         schemaRequest.setPath("/schema");
         schemaResponse = schemaRequest.process(solrClient);
-
+        
         LOG.debug("populateSchemaFields() collection=" + solrClient.getDefaultCollection() + ", luke=" + lukeResponses +
             ", schema= " + schemaResponse);
       } catch (SolrException | SolrServerException | IOException e) {
@@ -131,37 +127,26 @@ public class SolrSchemaFieldDao {
       }
     }
   }
-
+  
   private static final String LUKE_REQUEST_URL_SUFFIX = "admin/luke?numTerms=0&wt=javabin&version=2";
-
+  
   @SuppressWarnings("unchecked")
   private List<LukeResponse> getLukeResponsesForCores(CloudSolrClient solrClient) {
     ZkStateReader zkStateReader = solrClient.getZkStateReader();
     Collection<Slice> activeSlices = zkStateReader.getClusterState().getActiveSlices(solrClient.getDefaultCollection());
-
+    
     List<LukeResponse> lukeResponses = new ArrayList<>();
     for (Slice slice : activeSlices) {
       for (Replica replica : slice.getReplicas()) {
-        HttpEntity httpEntity = null;
-        try(SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient()) {
-          HttpClientUtil.configureClient(httpClient, new ModifiableSolrParams((SolrParams) null));
+        try (CloseableHttpClient httpClient = HttpClientUtil.createClient(null)) {
           HttpGet request = new HttpGet(replica.getCoreUrl() + LUKE_REQUEST_URL_SUFFIX);
           HttpResponse response = httpClient.execute(request);
-          httpEntity = response.getEntity();
-          NamedList<Object> lukeData = (NamedList<Object>) new JavaBinCodec(null, null).unmarshal(httpEntity.getContent());
+          NamedList<Object> lukeData = (NamedList<Object>) new JavaBinCodec(null, null).unmarshal(response.getEntity().getContent());
           LukeResponse lukeResponse = new LukeResponse();
           lukeResponse.setResponse(lukeData);
           lukeResponses.add(lukeResponse);
         } catch (IOException e) {
           LOG.error("Exception during getting luke responses", e);
-        } finally {
-          if (httpEntity != null) {
-            try {
-              EntityUtils.consume(httpEntity);
-            } catch (IOException e) {
-              LOG.error("Error during consuming http entity...", e);
-            }
-          }
         }
       }
     }
@@ -173,7 +158,7 @@ public class SolrSchemaFieldDao {
     try {
       HashMap<String, String> _schemaFieldNameMap = new HashMap<>();
       HashMap<String, String> _schemaFieldTypeMap = new HashMap<>();
-
+      
       for (LukeResponse lukeResponse : lukeResponses) {
         for (Entry<String, FieldInfo> e : lukeResponse.getFieldInfo().entrySet()) {
           String name = e.getKey();
@@ -184,7 +169,7 @@ public class SolrSchemaFieldDao {
           }
         }
       }
-
+      
       List<FieldTypeDefinition> fieldTypes = schemaResponse.getSchemaRepresentation().getFieldTypes();
       for (FieldTypeDefinition fieldType : fieldTypes) {
         Map<String, Object> fieldAttributes = fieldType.getAttributes();
@@ -192,7 +177,7 @@ public class SolrSchemaFieldDao {
         String fieldTypeJson = new JSONObject(fieldAttributes).toString();
         _schemaFieldTypeMap.put(name, fieldTypeJson);
       }
-
+      
       List<Map<String, Object>> fields = schemaResponse.getSchemaRepresentation().getFields();
       for (Map<String, Object> field : fields) {
         String name = (String) field.get("name");
@@ -202,11 +187,11 @@ public class SolrSchemaFieldDao {
           _schemaFieldNameMap.put(name, type);
         }
       }
-
+      
       if (_schemaFieldNameMap.isEmpty() || _schemaFieldTypeMap.isEmpty()) {
         return;
       }
-
+      
       synchronized (this) {
         schemaFieldNameMap.clear();
         schemaFieldNameMap.putAll(_schemaFieldNameMap);
