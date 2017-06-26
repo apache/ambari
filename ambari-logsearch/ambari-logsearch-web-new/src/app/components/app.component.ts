@@ -16,18 +16,28 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
+import {TranslateService} from '@ngx-translate/core';
 import {HttpClientService} from '@app/services/http-client.service';
 
 @Component({
-  selector: 'main-container',
-  templateUrl: './main-container.component.html'
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.less']
 })
-export class MainContainerComponent implements OnInit {
 
-  constructor(private httpClient: HttpClientService) {}
+export class AppComponent {
 
-  ngOnInit() {
+  constructor(private httpClient: HttpClientService, private translate: TranslateService) {
+    translate.setDefaultLang('en');
+    translate.use('en');
   }
 
+  ngOnInit() {
+    this.httpClient.get('status');
+  }
+
+  get isAuthorized() {
+    return this.httpClient.isAuthorized;
+  }
 }

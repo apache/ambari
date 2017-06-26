@@ -39,17 +39,17 @@ import {NodesService, nodes} from '@app/services/storage/nodes.service';
 import {UserConfigsService, userConfigs} from '@app/services/storage/user-configs.service';
 import {FiltersService, filters} from '@app/services/storage/filters.service';
 
-import {AppComponent} from '@app/app.component';
-import {LoginFormComponent} from '@app/login-form/login-form.component';
-import {TopMenuComponent} from '@app/top-menu/top-menu.component';
-import {MenuButtonComponent} from '@app/menu-button/menu-button.component';
-import {MainContainerComponent} from '@app/main-container/main-container.component';
-import {FiltersPanelComponent} from '@app/filters-panel/filters-panel.component';
-import {FilterDropdownComponent} from '@app/filter-dropdown/filter-dropdown.component';
-import {DropdownListComponent} from '@app/dropdown-list/dropdown-list.component';
-import {FilterTextFieldComponent} from '@app/filter-text-field/filter-text-field.component';
-import {AccordionPanelComponent} from '@app/accordion-panel/accordion-panel.component';
-import {LogsListComponent} from '@app/logs-list/logs-list.component';
+import {AppComponent} from '@app/components/app.component';
+import {LoginFormComponent} from '@app/components/login-form/login-form.component';
+import {TopMenuComponent} from '@app/components/top-menu/top-menu.component';
+import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
+import {MainContainerComponent} from '@app/components/main-container/main-container.component';
+import {FiltersPanelComponent} from '@app/components/filters-panel/filters-panel.component';
+import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dropdown.component';
+import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {FilterTextFieldComponent} from '@app/components/filter-text-field/filter-text-field.component';
+import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
+import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 
 export function HttpLoaderFactory(http: Http) {
   // adding 'static' parameter to step over mock data request

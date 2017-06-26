@@ -30,9 +30,9 @@ export class AccordionPanelComponent implements OnInit {
   }
 
   @Input()
-  private toggleId: string;
+  toggleId: string;
 
   @ContentChild(TemplateRef)
-  private template;
+  template;
 
 }

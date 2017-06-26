@@ -17,19 +17,21 @@
  */
 
 import {Component, OnInit} from '@angular/core';
-import {FilteringService} from '@app/services/filtering.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 @Component({
-  selector: 'filters-panel',
-  templateUrl: './filters-panel.component.html',
-  styleUrls: ['./filters-panel.component.less']
+  selector: 'main-container',
+  templateUrl: './main-container.component.html'
 })
-export class FiltersPanelComponent implements OnInit {
+export class MainContainerComponent implements OnInit {
 
-  constructor(private filtering: FilteringService) {
-  }
+  constructor(private httpClient: HttpClientService) {}
 
   ngOnInit() {
+  }
+
+  get isAuthorized() {
+    return this.httpClient.isAuthorized;
   }
 
 }

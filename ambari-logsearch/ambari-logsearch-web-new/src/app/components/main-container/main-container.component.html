@@ -15,6 +15,6 @@
   limitations under the License.
 -->
 
-<login-form *ngIf="!httpClient.isAuthorized"></login-form>
-<filters-panel *ngIf="httpClient.isAuthorized" class="row"></filters-panel>
-<logs-list *ngIf="httpClient.isAuthorized" [logsArrayId]="'serviceLogs'"></logs-list>
+<login-form *ngIf="!isAuthorized"></login-form>
+<filters-panel *ngIf="isAuthorized" class="row"></filters-panel>
+<logs-list *ngIf="isAuthorized" [logsArrayId]="'serviceLogs'"></logs-list>

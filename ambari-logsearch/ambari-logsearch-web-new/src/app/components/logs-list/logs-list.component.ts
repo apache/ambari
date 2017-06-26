@@ -47,7 +47,7 @@ export class LogsListComponent implements OnInit {
     levels: ['level']
   };
 
-  private logs = this.serviceLogsStorage.getInstances().map(logs => {
+  logs = this.serviceLogsStorage.getInstances().map(logs => {
     return logs.map(log => {
       return {
         type: log.type,

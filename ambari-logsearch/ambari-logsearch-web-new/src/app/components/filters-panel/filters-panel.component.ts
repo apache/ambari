@@ -16,24 +16,24 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {HttpClientService} from '@app/services/http-client.service';
+import {Component, OnInit} from '@angular/core';
+import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.less']
+  selector: 'filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.less']
 })
+export class FiltersPanelComponent implements OnInit {
 
-export class AppComponent {
-
-  constructor(private httpClient: HttpClientService, private translate: TranslateService) {
-    translate.setDefaultLang('en');
-    translate.use('en');
+  constructor(private filtering: FilteringService) {
   }
 
   ngOnInit() {
-    this.httpClient.get('status');
   }
+
+  get filters() {
+    return this.filtering.filters;
+  }
+
 }
