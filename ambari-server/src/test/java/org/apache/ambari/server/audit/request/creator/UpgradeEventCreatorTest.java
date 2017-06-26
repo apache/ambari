@@ -40,7 +40,7 @@ public class UpgradeEventCreatorTest extends AuditEventCreatorTestBase{
     UpgradeEventCreator creator = new UpgradeEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(UpgradeResourceProvider.UPGRADE_VERSION, "1.9");
+    properties.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION, "1.9");
     properties.put(UpgradeResourceProvider.UPGRADE_TYPE, "ROLLING");
     properties.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "mycluster");
 

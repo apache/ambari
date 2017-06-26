@@ -141,7 +141,9 @@ import com.google.inject.persist.Transactional;
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
 
   public static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
-  public static final String UPGRADE_VERSION = "Upgrade/repository_version";
+  public static final String UPGRADE_REPO_ID = "Upgrade/repository_id";
+  public static final String UPGRADE_REPO_NAME = "Upgrade/repository_name";
+  public static final String UPGRADE_REPO_VERSION = "Upgrade/repository_version";
   public static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
   public static final String UPGRADE_PACK = "Upgrade/pack";
   public static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
@@ -277,7 +279,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   static {
     // properties
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
-    PROPERTY_IDS.add(UPGRADE_VERSION);
+    PROPERTY_IDS.add(UPGRADE_REPO_ID);
+    PROPERTY_IDS.add(UPGRADE_REPO_NAME);
+    PROPERTY_IDS.add(UPGRADE_REPO_VERSION);
     PROPERTY_IDS.add(UPGRADE_TYPE);
     PROPERTY_IDS.add(UPGRADE_PACK);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
@@ -370,11 +374,31 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
 
-        // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
-        final String version = (String) requestMap.get(UPGRADE_VERSION);
+        // use a combination of the supplied information to find the target
+        // repository
+        final Long repositoryId = (Long) requestMap.get(UPGRADE_REPO_ID);
+        final String repositoryName = (String) requestMap.get(UPGRADE_REPO_NAME);
+        final String repositoryVersion = (String) requestMap.get(UPGRADE_REPO_VERSION);
+        RepositoryVersionEntity repositoryVersionEntity = null;
+
+        if (null != repositoryId) {
+          repositoryVersionEntity = s_repoVersionDAO.findByPK(repositoryId);
+        } else {
+          if (StringUtils.isNotBlank(repositoryName)) {
+            repositoryVersionEntity = s_repoVersionDAO.findByStackNameAndVersion(repositoryName,
+                repositoryVersion);
+          } else {
+            repositoryVersionEntity = s_repoVersionDAO.findByVersion(repositoryVersion);
+          }
+        }
+
+        if (null == repositoryVersionEntity) {
+          throw new AmbariException(
+              "Unable to find repository by any combination of id, name, or version");
+        }
 
         final UpgradeContext upgradeContext = s_upgradeContextFactory.create(cluster, upgradeType,
-            direction, version, requestMap);
+            direction, repositoryVersionEntity.getVersion(), requestMap);
 
         UpgradePack upgradePack = validateRequest(upgradeContext);
         upgradeContext.setUpgradePack(upgradePack);
@@ -626,7 +650,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
      */
     String preferredUpgradePackName = (String) requestMap.get(UPGRADE_PACK);
 
-    String version = (String) requestMap.get(UPGRADE_VERSION);
+    String version = (String) requestMap.get(UPGRADE_REPO_VERSION);
     String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
 
     UpgradePack pack = s_upgradeHelper.suggestUpgradePack(cluster.getClusterName(),
@@ -1945,7 +1969,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
 
       String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
-      String version = (String) requestMap.get(UPGRADE_VERSION);
+      String version = (String) requestMap.get(UPGRADE_REPO_VERSION);
       String direction = (String) requestMap.get(UPGRADE_DIRECTION);
 
       if (StringUtils.isBlank(clusterName)) {
@@ -1953,7 +1977,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
 
       if (StringUtils.isBlank(version)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_VERSION));
+        throw new AmbariException(String.format("%s is required", UPGRADE_REPO_VERSION));
       }
 
       if (StringUtils.isBlank(direction)) {
@@ -1977,7 +2001,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
       UpgradeType upgradeType = upgradeContext.getType();
 
-      String version = (String) requestMap.get(UPGRADE_VERSION);
+      String version = (String) requestMap.get(UPGRADE_REPO_VERSION);
       boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
       boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
       String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;

@@ -271,6 +271,11 @@ public class UpgradeContext {
         RepositoryVersionEntity targetRepositoryVersion = m_repoVersionDAO.findByStackNameAndVersion(
             sourceStackId.getStackName(), m_version);
 
+        // !!! temporary workaround to get upgrades across stacks to start
+        if (null == targetRepositoryVersion) {
+          targetRepositoryVersion = m_repoVersionDAO.findByVersion(m_version);
+        }
+
         // !!! TODO check the repo_version for patch-ness and restrict the
         // context to those services that require it. Consult the version
         // definition and add the service names to supportedServices
