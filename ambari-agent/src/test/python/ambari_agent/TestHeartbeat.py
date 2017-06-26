@@ -26,6 +26,7 @@ import StringIO
 import sys
 import multiprocessing
 from ambari_agent.RecoveryManager import RecoveryManager
+from ambari_agent.StatusCommandsExecutor import SingleProcessStatusCommandsExecutor
 
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
@@ -230,6 +231,45 @@ class TestHeartbeat(TestCase):
     args, kwargs = register_mock.call_args_list[0]
     self.assertFalse(args[2])
     self.assertFalse(args[1])
+
+  @patch("subprocess.Popen")
+  @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
+  @patch.object(HostInfoLinux, 'register')
+  def test_status_commands_does_not_stack_up(self, register_mock, Popen_mock):
+    config = AmbariConfig.AmbariConfig()
+    config.set('agent', 'prefix', 'tmp')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+
+    dummy_controller.statusCommandsExecutor = SingleProcessStatusCommandsExecutor(config, actionQueue)
+
+    statusCommands = [{
+        "serviceName" : 'HDFS',
+        "commandType" : "STATUS_COMMAND",
+        "clusterName" : "c1",
+        "componentName" : "DATANODE",
+        "role" : "DATANODE",
+        'configurations':{'cluster-env' : {}}
+      },
+      {
+        "serviceName" : 'HDFS',
+        "commandType" : "STATUS_COMMAND",
+        "clusterName" : "c1",
+        "componentName" : "NAMENODE",
+        "role" : "NAMENODE",
+        'configurations':{'cluster-env' : {}}
+      }
+    ]
+
+    # add commands ten times
+    for i in range(10):
+      actionQueue.put_status(statusCommands)
+
+    # status commands should not stack up. Size should be 2 not 20.
+    self.assertEquals(len(dummy_controller.statusCommandsExecutor.statusCommandQueue.queue), 2)
 
 
   @patch("subprocess.Popen")
