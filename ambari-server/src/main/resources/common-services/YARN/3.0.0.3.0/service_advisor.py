@@ -351,12 +351,21 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
           putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.hierarchy', 'delete', 'true')
           putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.mount', 'delete', 'true')
           putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.mount-path', 'delete', 'true')
-    # recommend hadoop.registry.rm.enabled based on SLIDER in services
+    # recommend hadoop.registry.rm.enabled based on SLIDER and ZOOKEEPER in services
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if "SLIDER" in servicesList:
+    if "SLIDER" in servicesList and "ZOOKEEPER" in servicesList:
       putYarnProperty('hadoop.registry.rm.enabled', 'true')
     else:
       putYarnProperty('hadoop.registry.rm.enabled', 'false')
+    # recommend enabling RM and NM recovery if ZOOKEEPER in services
+    if "ZOOKEEPER" in servicesList:
+      putYarnProperty('yarn.resourcemanager.recovery.enabled', 'true')
+      putYarnProperty('yarn.nodemanager.recovery.enabled', 'true')
+    else:
+      putYarnProperty('yarn.resourcemanager.recovery.enabled', 'false')
+      putYarnProperty('yarn.nodemanager.recovery.enabled', 'false')
+      # recommend disabling RM HA if ZOOKEEPER is not in services
+      putYarnProperty('yarn.resourcemanager.ha.enabled', 'false')
 
   def recommendYARNConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
@@ -1795,6 +1804,7 @@ class YARNValidator(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
     self.validators = [("yarn-site", self.validateYARNSiteConfigurationsFromHDP206),
+                       ("yarn-site", self.validateYARNSiteConfigurationsFromHDP22),
                        ("yarn-site", self.validateYARNSiteConfigurationsFromHDP25),
                        ("yarn-site" , self.validateYARNSiteConfigurationsFromHDP26),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP206),
@@ -1835,6 +1845,45 @@ class YARNValidator(service_advisor.ServiceAdvisor):
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.nodemanager.linux-container-executor.group', "item": self.validatorEqualsPropertyItem(properties, "yarn.nodemanager.linux-container-executor.group", clusterEnv, "user_group")},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+    return self.toConfigurationValidationProblems(validationItems, "yarn-site")
+
+  def validateYARNSiteConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+    """
+    This was copied from HDP 2.2; validate yarn-site
+    :return: A list of configuration validation problems.
+    """
+    yarn_site = properties
+    validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    zk_hosts = self.getHostsForComponent(services, "ZOOKEEPER", "ZOOKEEPER_SERVER")
+    if len(zk_hosts) == 0:
+      # ZOOKEEPER_SERVER isn't assigned to at least one host
+      if 'yarn.resourcemanager.recovery.enabled' in yarn_site and \
+              'true' == yarn_site['yarn.resourcemanager.recovery.enabled']:
+        validationItems.append({"config-name": "yarn.resourcemanager.recovery.enabled",
+                                "item": self.getWarnItem(
+                                  "YARN resource manager recovery can only be enabled if ZOOKEEPER is installed.")})
+      if 'yarn.nodemanager.recovery.enabled' in yarn_site and \
+              'true' == yarn_site['yarn.nodemanager.recovery.enabled']:
+        validationItems.append({"config-name": "yarn.nodemanager.recovery.enabled",
+                                "item": self.getWarnItem(
+                                  "YARN node manager recovery can only be enabled if ZOOKEEPER is installed.")})
+
+    if len(zk_hosts) < 3:
+      if 'yarn.resourcemanager.ha.enabled' in yarn_site and \
+              'true' == yarn_site['yarn.resourcemanager.ha.enabled']:
+        validationItems.append({"config-name": "yarn.resourcemanager.ha.enabled",
+                                "item": self.getWarnItem(
+                                  "You must have at least 3 ZooKeeper Servers in your cluster to enable ResourceManager HA.")})
+
+    if 'ZOOKEEPER' not in servicesList or 'SLIDER' not in servicesList:
+      if 'hadoop.registry.rm.enabled' in yarn_site and \
+              'true' == yarn_site['hadoop.registry.rm.enabled']:
+        validationItems.append({"config-name": "hadoop.registry.rm.enabled",
+                                "item": self.getWarnItem(
+                                  "HADOOP resource manager registry can only be enabled if ZOOKEEPER and SLIDER are installed.")})
+
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateYARNSiteConfigurationsFromHDP25(self, properties, recommendedDefaults, configurations, services, hosts):

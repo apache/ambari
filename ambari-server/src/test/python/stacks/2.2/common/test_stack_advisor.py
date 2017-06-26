@@ -906,13 +906,117 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
-          "hadoop.registry.rm.enabled": "true"
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "false",
+          "yarn.nodemanager.recovery.enabled": "false",
+          "yarn.resourcemanager.ha.enabled": "false"
         }
       }
     }
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
+
+  def test_recommendYARNConfigurationsWithZKAndSlider(self):
+    configurations = {}
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "ZOOKEEPER"
+        },
+        },
+      {
+        "StackServices": {
+          "service_name": "YARN"
+        },
+        },
+      {
+        "StackServices": {
+          "service_name": "SLIDER"
+        },
+        }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500",
+          'service_check.queue.name': 'default'
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.scheduler.maximum-allocation-vcores": "4",
+          "yarn.scheduler.minimum-allocation-vcores": "1",
+          "yarn.nodemanager.resource.cpu-vcores": "4",
+          "hadoop.registry.rm.enabled": "true",
+          "yarn.resourcemanager.recovery.enabled": "true",
+          "yarn.nodemanager.recovery.enabled": "true"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendYARNConfigurationsWithZK(self):
+    configurations = {}
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "ZOOKEEPER"
+        },
+        },
+      {
+        "StackServices": {
+          "service_name": "YARN"
+        },
+        }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500",
+          'service_check.queue.name': 'default'
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.scheduler.maximum-allocation-vcores": "4",
+          "yarn.scheduler.minimum-allocation-vcores": "1",
+          "yarn.nodemanager.resource.cpu-vcores": "4",
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "true",
+          "yarn.nodemanager.recovery.enabled": "true"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+
 
   def test_recommendSPARKConfigurations(self):
     configurations = {}
@@ -979,7 +1083,10 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1280",
           "yarn.nodemanager.resource.cpu-vcores": "2",
-          "hadoop.registry.rm.enabled": "false"
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "false",
+          "yarn.nodemanager.recovery.enabled": "false",
+          "yarn.resourcemanager.ha.enabled": "false"
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -1806,7 +1913,10 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1792",
           "yarn.nodemanager.resource.cpu-vcores": "1",
-          "hadoop.registry.rm.enabled": "false"
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "false",
+          "yarn.nodemanager.recovery.enabled": "false",
+          "yarn.resourcemanager.ha.enabled": "false"
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -2070,7 +2180,10 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1280",
           "yarn.nodemanager.resource.cpu-vcores": "1",
-          "hadoop.registry.rm.enabled": "false"
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "false",
+          "yarn.nodemanager.recovery.enabled": "false",
+          "yarn.resourcemanager.ha.enabled": "false"
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -2285,7 +2398,10 @@ class TestHDP22StackAdvisor(TestCase):
                 "yarn.scheduler.minimum-allocation-vcores": "1",
                 "yarn.scheduler.maximum-allocation-mb": "1280",
                 "yarn.nodemanager.resource.cpu-vcores": "1",
-                "hadoop.registry.rm.enabled": "false"
+                "hadoop.registry.rm.enabled": "false",
+                "yarn.resourcemanager.recovery.enabled": "false",
+                "yarn.nodemanager.recovery.enabled": "false",
+                "yarn.resourcemanager.ha.enabled": "false"
             },
             "property_attributes": {
                 'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -3844,6 +3960,9 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-mb": "33792",
           "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
           "hadoop.registry.rm.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "false",
+          "yarn.nodemanager.recovery.enabled": "false",
+          "yarn.resourcemanager.ha.enabled": "false",
           "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
           "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
           "yarn.nodemanager.local-dirs": "/hadoop/yarn/local,/dev/shm/hadoop/yarn/local,/vagrant/hadoop/yarn/local",
@@ -3903,6 +4022,9 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-mb": "33792",
           "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
           "hadoop.registry.rm.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "false",
+          "yarn.nodemanager.recovery.enabled": "false",
+          "yarn.resourcemanager.ha.enabled": "false",
           "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
           "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
           "yarn.nodemanager.local-dirs": "/hadoop/yarn/local,/dev/shm/hadoop/yarn/local,/vagrant/hadoop/yarn/local",
