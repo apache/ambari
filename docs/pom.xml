@@ -234,6 +234,18 @@
             </organization>
         </developer>
         <developer>
+            <id>amagyar</id>
+            <name>Attila Magyar</name>
+            <email>amagyar@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>avijayan</id>
             <name>Aravindan Vijayan</name>
             <email>avijayan@apache.org</email>
