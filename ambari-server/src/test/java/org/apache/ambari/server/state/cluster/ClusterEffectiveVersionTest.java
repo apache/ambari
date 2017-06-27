@@ -142,18 +142,21 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
 
     Cluster clusterSpy = Mockito.spy(m_cluster);
 
+    RepositoryVersionEntity repoVersion2300 = createNiceMock(RepositoryVersionEntity.class);
+    RepositoryVersionEntity repoVersion2400 = createNiceMock(RepositoryVersionEntity.class);
+
+    EasyMock.expect(repoVersion2300.getVersion()).andReturn("2.3.0.0-1234").anyTimes();
+    EasyMock.expect(repoVersion2400.getVersion()).andReturn("2.4.0.0-1234").anyTimes();
+
     UpgradeEntity upgradeEntity = createNiceMock(UpgradeEntity.class);
     EasyMock.expect(upgradeEntity.getId()).andReturn(1L).atLeastOnce();
     EasyMock.expect(upgradeEntity.getUpgradeType()).andReturn(UpgradeType.ROLLING).atLeastOnce();
-    EasyMock.expect(upgradeEntity.getFromVersion()).andReturn("2.3.0.0-1234").anyTimes();
-    EasyMock.expect(upgradeEntity.getToVersion()).andReturn("2.4.0.0-1234").atLeastOnce();
-
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    EasyMock.expect(repositoryVersionEntity.getVersion()).andReturn("2.4.0.0-1234").atLeastOnce();
+    EasyMock.expect(upgradeEntity.getFromRepositoryVersion()).andReturn(repoVersion2300).anyTimes();
+    EasyMock.expect(upgradeEntity.getToRepositoryVersion()).andReturn(repoVersion2400).atLeastOnce();
 
     ClusterVersionEntity clusterVersionUpgradingTo = createNiceMock(ClusterVersionEntity.class);
     EasyMock.expect(clusterVersionUpgradingTo.getRepositoryVersion()).andReturn(
-        repositoryVersionEntity).atLeastOnce();
+        repoVersion2400).atLeastOnce();
 
     List<ClusterVersionEntity> clusterVersionEntities = Lists.newArrayList(clusterVersionUpgradingTo);
     EasyMock.expect(m_clusterEntity.getClusterVersionEntities()).andReturn(clusterVersionEntities).atLeastOnce();
@@ -183,20 +186,24 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
 
     Cluster clusterSpy = Mockito.spy(m_cluster);
 
+    RepositoryVersionEntity repoVersion2300 = createNiceMock(RepositoryVersionEntity.class);
+    RepositoryVersionEntity repoVersion2400 = createNiceMock(RepositoryVersionEntity.class);
+
+    EasyMock.expect(repoVersion2300.getVersion()).andReturn("2.3.0.0-1234").anyTimes();
+    EasyMock.expect(repoVersion2400.getVersion()).andReturn("2.4.0.0-1234").anyTimes();
+
     // from/to are switched on downgrade
     UpgradeEntity upgradeEntity = createNiceMock(UpgradeEntity.class);
     EasyMock.expect(upgradeEntity.getId()).andReturn(1L).atLeastOnce();
     EasyMock.expect(upgradeEntity.getUpgradeType()).andReturn(UpgradeType.NON_ROLLING).atLeastOnce();
-    EasyMock.expect(upgradeEntity.getToVersion()).andReturn("2.3.0.0-1234").atLeastOnce();
-    EasyMock.expect(upgradeEntity.getFromVersion()).andReturn("2.4.0.0-1234").anyTimes();
-    EasyMock.expect(upgradeEntity.getDirection()).andReturn(Direction.DOWNGRADE).atLeastOnce();
 
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    EasyMock.expect(repositoryVersionEntity.getVersion()).andReturn("2.3.0.0-1234").atLeastOnce();
+    EasyMock.expect(upgradeEntity.getFromRepositoryVersion()).andReturn(repoVersion2400).anyTimes();
+    EasyMock.expect(upgradeEntity.getToRepositoryVersion()).andReturn(repoVersion2300).atLeastOnce();
+    EasyMock.expect(upgradeEntity.getDirection()).andReturn(Direction.DOWNGRADE).atLeastOnce();
 
     ClusterVersionEntity clusterVersionUpgradingTo = createNiceMock(ClusterVersionEntity.class);
     EasyMock.expect(clusterVersionUpgradingTo.getRepositoryVersion()).andReturn(
-        repositoryVersionEntity).atLeastOnce();
+        repoVersion2300).atLeastOnce();
 
     List<ClusterVersionEntity> clusterVersionEntities = Lists.newArrayList(clusterVersionUpgradingTo);
     EasyMock.expect(m_clusterEntity.getClusterVersionEntities()).andReturn(clusterVersionEntities).atLeastOnce();

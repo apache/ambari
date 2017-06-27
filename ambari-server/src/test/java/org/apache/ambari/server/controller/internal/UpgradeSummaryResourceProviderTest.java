@@ -169,7 +169,7 @@ public class UpgradeSummaryResourceProviderTest {
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
@@ -280,8 +280,16 @@ public class UpgradeSummaryResourceProviderTest {
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
-    upgrade.setFromVersion("2.2.0.0");
-    upgrade.setToVersion("2.2.0.1");
+
+    RepositoryVersionEntity repositoryVersion2200 = injector.getInstance(
+        RepositoryVersionDAO.class).findByStackNameAndVersion("HDP", "2.2.0.0-1234");
+
+    RepositoryVersionEntity repositoryVersion2201 = injector.getInstance(
+        RepositoryVersionDAO.class).findByStackNameAndVersion("HDP", "2.2.0.1-1234");
+
+    upgrade.setFromRepositoryVersion(repositoryVersion2200);
+    upgrade.setToRepositoryVersion(repositoryVersion2201);
+
     upgradeDAO.create(upgrade);
 
     // Resource used to make assertions.

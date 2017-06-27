@@ -32,7 +32,6 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
@@ -105,38 +104,21 @@ public class UpgradeContext {
   private UpgradePack m_upgradePack;
 
   /**
-   * The version being upgrade to or downgraded to.
+   * The source of the upgrade/downgrade.
    */
-  private final String m_version;
+  private final RepositoryVersionEntity m_fromRepositoryVersion;
 
   /**
-   * The original "current" stack of the cluster before the upgrade started.
-   * This is the same regardless of whether the current direction is
-   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
+   * The target of the upgrade/downgrade.
    */
-  private StackId m_originalStackId;
+  private final RepositoryVersionEntity m_toRepositoryVersion;
 
-  /**
-   * The stack currently used to start/restart services during an upgrade.This is the same
-   * During a {@link UpgradeType#ROLLING} upgrade, this is always the {@link this.m_targetStackId},
-   * During a {@link UpgradeType#NON_ROLLING} upgrade, this is initially the {@link this.m_sourceStackId} while
-   * stopping services, and then changes to the {@link this.m_targetStackId} when starting services.
-   */
-  private StackId m_effectiveStackId;
-
-  /**
-   * The target upgrade stack before the upgrade started. This is the same
-   * regardless of whether the current direction is {@link Direction#UPGRADE} or
-   * {@link Direction#DOWNGRADE}.
-   */
-  private StackId m_targetStackId;
 
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
   private List<ServiceComponentHost> m_unhealthy = new ArrayList<>();
   private Map<String, String> m_serviceNames = new HashMap<>();
   private Map<String, String> m_componentNames = new HashMap<>();
-  private String m_downgradeFromVersion = null;
 
   /**
    * {@code true} if slave/client component failures should be automatically
@@ -176,11 +158,6 @@ public class UpgradeContext {
   private RoleGraphFactory m_roleGraphFactory;
 
   /**
-   * Used to lookup the reposotory version given a stack name and version.
-   */
-  final private RepositoryVersionDAO m_repoVersionDAO;
-
-  /**
    * Used for serializing the upgrade type.
    */
   @Inject
@@ -197,24 +174,19 @@ public class UpgradeContext {
    *          the direction for the upgrade
    * @param upgradeRequestMap
    *          the original map of paramters used to create the upgrade
-   *
-   * @param repoVersionDAO
-   *          the repository version DAO.
    */
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster, @Assisted UpgradeType type,
-      @Assisted Direction direction, @Assisted String version,
-      @Assisted Map<String, Object> upgradeRequestMap,
-      RepositoryVersionDAO repoVersionDAO) {
-    m_repoVersionDAO = repoVersionDAO;
+      @Assisted Direction direction,
+      @Assisted("fromRepositoryVersion") RepositoryVersionEntity fromRepositoryVersion,
+      @Assisted("toRepositoryVersion") RepositoryVersionEntity toRepositoryVersion,
+      @Assisted Map<String, Object> upgradeRequestMap) {
     m_cluster = cluster;
     m_type = type;
     m_direction = direction;
-    m_version = version;
+    m_fromRepositoryVersion = fromRepositoryVersion;
+    m_toRepositoryVersion = toRepositoryVersion;
     m_upgradeRequestMap = upgradeRequestMap;
-
-    // sets the original/target stacks - requires direction and cluster
-    setSourceAndTargetStacks();
   }
 
   /**
@@ -224,85 +196,27 @@ public class UpgradeContext {
    *          the cluster that the upgrade is for
    * @param upgradeEntity
    *          the upgrade entity
-   * @param repoVersionDAO
-   *          the repository version DAO.
    */
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster, @Assisted UpgradeEntity upgradeEntity,
-      RepositoryVersionDAO repoVersionDAO) {
-    m_repoVersionDAO = repoVersionDAO;
+      AmbariMetaInfo ambariMetaInfo) {
 
+    m_metaInfo = ambariMetaInfo;
     m_cluster = cluster;
     m_type = upgradeEntity.getUpgradeType();
     m_direction = upgradeEntity.getDirection();
 
-    m_version = upgradeEntity.getToVersion();
+    m_fromRepositoryVersion = upgradeEntity.getFromRepositoryVersion();
+    m_toRepositoryVersion = upgradeEntity.getToRepositoryVersion();
 
-    // sets the original/target stacks - requires direction and cluster
-    setSourceAndTargetStacks();
-
-    if (m_direction == Direction.DOWNGRADE) {
-      m_downgradeFromVersion = upgradeEntity.getFromVersion();
-    }
+    String upgradePackage = upgradeEntity.getUpgradePackage();
+    StackId stackId = getOriginalStackId();
+    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(stackId.getStackName(), stackId.getStackVersion());
+    m_upgradePack = packs.get(upgradePackage);
 
     // since this constructor is initialized from an entity, then this map is
     // not present
     m_upgradeRequestMap = Collections.emptyMap();
-  }
-
-  /**
-   * Sets the source and target stack IDs. This will also set the effective
-   * stack ID based on the already-set {@link UpgradeType} and
-   * {@link Direction}.
-   *
-   * @see #getEffectiveStackId()
-   */
-  private void setSourceAndTargetStacks() {
-    StackId sourceStackId = null;
-
-    // taret stack will not always be what it is today - tagging as experimental
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-    StackId targetStackId = null;
-
-    switch (m_direction) {
-      case UPGRADE:
-        sourceStackId = m_cluster.getCurrentStackVersion();
-
-        RepositoryVersionEntity targetRepositoryVersion = m_repoVersionDAO.findByStackNameAndVersion(
-            sourceStackId.getStackName(), m_version);
-
-        // !!! temporary workaround to get upgrades across stacks to start
-        if (null == targetRepositoryVersion) {
-          targetRepositoryVersion = m_repoVersionDAO.findByVersion(m_version);
-        }
-
-        // !!! TODO check the repo_version for patch-ness and restrict the
-        // context to those services that require it. Consult the version
-        // definition and add the service names to supportedServices
-        targetStackId = targetRepositoryVersion.getStackId();
-        break;
-      case DOWNGRADE:
-        sourceStackId = m_cluster.getCurrentStackVersion();
-        targetStackId = m_cluster.getDesiredStackVersion();
-        break;
-    }
-
-    m_originalStackId = sourceStackId;
-
-    switch (m_type) {
-      case ROLLING:
-      case HOST_ORDERED:
-        m_effectiveStackId = targetStackId;
-        break;
-      case NON_ROLLING:
-        m_effectiveStackId = (m_direction.isUpgrade()) ? sourceStackId : targetStackId;
-        break;
-      default:
-        m_effectiveStackId = targetStackId;
-        break;
-    }
-
-    m_targetStackId = targetStackId;
   }
 
   /**
@@ -347,8 +261,15 @@ public class UpgradeContext {
   /**
    * @return the target version for the upgrade
    */
-  public String getVersion() {
-    return m_version;
+  public RepositoryVersionEntity getTargetRepositoryVersion() {
+    return m_toRepositoryVersion;
+  }
+
+  /**
+   * @return the source version for the upgrade
+   */
+  public RepositoryVersionEntity getSourceRepositoryVersion() {
+    return m_fromRepositoryVersion;
   }
 
   /**
@@ -404,48 +325,44 @@ public class UpgradeContext {
   }
 
   /**
-   * @return the originalStackId
+   * Gets the target stack of the upgrade based on the target repository which
+   * finalization will set.
+   *
+   * @return the target stack (never {@code null}).
    */
-  public StackId getOriginalStackId() {
-    return m_originalStackId;
+  public StackId getTargetStackId() {
+    return m_toRepositoryVersion.getStackId();
   }
 
   /**
-   * @param originalStackId
-   *          the originalStackId to set
+   * Gets the current stack of the components participating in the upgrade.
+   *
+   * @return the source stack (never {@code null}).
    */
-  public void setOriginalStackId(StackId originalStackId) {
-    m_originalStackId = originalStackId;
+  public StackId getSourceStackId() {
+    return m_fromRepositoryVersion.getStackId();
+  }
+
+  /**
+   * @return the originalStackId
+   */
+  public StackId getOriginalStackId() {
+    if (m_direction == Direction.UPGRADE) {
+      return m_fromRepositoryVersion.getStackId();
+    } else {
+      return m_toRepositoryVersion.getStackId();
+    }
   }
 
   /**
    * @return the effectiveStackId that is currently in use.
    */
   public StackId getEffectiveStackId() {
-    return m_effectiveStackId;
-  }
+    if (m_type == UpgradeType.NON_ROLLING && m_direction == Direction.UPGRADE) {
+      return m_fromRepositoryVersion.getStackId();
+    }
 
-  /**
-   * @param effectiveStackId the effectiveStackId to set
-   */
-  public void setEffectiveStackId(StackId effectiveStackId) {
-    m_effectiveStackId = effectiveStackId;
-  }
-
-
-  /**
-   * @return the targetStackId
-   */
-  public StackId getTargetStackId() {
-    return m_targetStackId;
-  }
-
-  /**
-   * @param targetStackId
-   *          the targetStackId to set
-   */
-  public void setTargetStackId(StackId targetStackId) {
-    m_targetStackId = targetStackId;
+    return m_toRepositoryVersion.getStackId();
   }
 
   /**
@@ -487,24 +404,6 @@ public class UpgradeContext {
   public void setComponentDisplay(String service, String component, String displayName) {
     String key = service + ":" + component;
     m_componentNames.put(key, displayName);
-  }
-
-  /**
-   * This method returns the non-finalized version we are downgrading from.
-   *
-   * @return version cluster is downgrading from
-   */
-  public String getDowngradeFromVersion() {
-    return m_downgradeFromVersion;
-  }
-
-  /**
-   * Set the HDP stack version we are downgrading from.
-   *
-   * @param downgradeFromVersion
-   */
-  public void setDowngradeFromVersion(String downgradeFromVersion) {
-    m_downgradeFromVersion = downgradeFromVersion;
   }
 
   /**
@@ -627,11 +526,7 @@ public class UpgradeContext {
    * following properties are already set:
    * <ul>
    * <li>{@link #COMMAND_PARAM_CLUSTER_NAME}
-   * <li>{@link #COMMAND_PARAM_VERSION}
    * <li>{@link #COMMAND_PARAM_DIRECTION}
-   * <li>{@link #COMMAND_PARAM_ORIGINAL_STACK}
-   * <li>{@link #COMMAND_PARAM_TARGET_STACK}
-   * <li>{@link #COMMAND_DOWNGRADE_FROM_VERSION}
    * <li>{@link #COMMAND_PARAM_UPGRADE_TYPE}
    * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
    * order to have the commands contain the correct configurations. Otherwise,
@@ -647,11 +542,7 @@ public class UpgradeContext {
     Map<String, String> parameters = new HashMap<>();
 
     parameters.put(COMMAND_PARAM_CLUSTER_NAME, m_cluster.getClusterName());
-    parameters.put(COMMAND_PARAM_VERSION, getVersion());
     parameters.put(COMMAND_PARAM_DIRECTION, getDirection().name().toLowerCase());
-    parameters.put(COMMAND_PARAM_ORIGINAL_STACK, getOriginalStackId().getStackId());
-    parameters.put(COMMAND_PARAM_TARGET_STACK, getTargetStackId().getStackId());
-    parameters.put(COMMAND_DOWNGRADE_FROM_VERSION, getDowngradeFromVersion());
 
     if (null != getType()) {
       // use the serialized attributes of the enum to convert it to a string,

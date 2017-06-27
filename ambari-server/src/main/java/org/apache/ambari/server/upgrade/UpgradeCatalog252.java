@@ -33,6 +33,10 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   static final String CLUSTERCONFIG_TABLE = "clusterconfig";
   static final String SERVICE_DELETED_COLUMN = "service_deleted";
 
+  private static final String UPGRADE_TABLE = "upgrade";
+  private static final String UPGRADE_TABLE_FROM_REPO_COLUMN = "from_repo_version_id";
+  private static final String UPGRADE_TABLE_TO_REPO_COLUMN = "to_repo_version_id";
+
   /**
    * Constructor.
    *
@@ -65,6 +69,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     addServiceDeletedColumnToClusterConfigTable();
+    addRepositoryColumnsToUpgradeTable();
   }
 
   /**
@@ -90,5 +95,33 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   private void addServiceDeletedColumnToClusterConfigTable() throws SQLException {
     dbAccessor.addColumn(CLUSTERCONFIG_TABLE,
         new DBColumnInfo(SERVICE_DELETED_COLUMN, Short.class, null, 0, false));
+  }
+
+  /**
+   * Changes the following columns to {@value #UPGRADE_TABLE}:
+   * <ul>
+   * <li>{@value #UPGRADE_TABLE_FROM_REPO_COLUMN}
+   * <li>{@value #UPGRADE_TABLE_TO_REPO_COLUMN}
+   * <li>Removes {@code to_version}
+   * <li>Removes {@code from_version}
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  private void addRepositoryColumnsToUpgradeTable() throws SQLException {
+    dbAccessor.dropColumn(UPGRADE_TABLE, "to_version");
+    dbAccessor.dropColumn(UPGRADE_TABLE, "from_version");
+
+    dbAccessor.addColumn(UPGRADE_TABLE,
+        new DBColumnInfo(UPGRADE_TABLE_FROM_REPO_COLUMN, Long.class, null, null, false));
+
+    dbAccessor.addFKConstraint(UPGRADE_TABLE, "FK_upgrade_from_repo_id",
+        UPGRADE_TABLE_FROM_REPO_COLUMN, "repo_version", "repo_version_id", false);
+
+    dbAccessor.addColumn(UPGRADE_TABLE,
+        new DBColumnInfo(UPGRADE_TABLE_TO_REPO_COLUMN, Long.class, null, null, false));
+
+    dbAccessor.addFKConstraint(UPGRADE_TABLE, "FK_upgrade_to_repo_id",
+        UPGRADE_TABLE_FROM_REPO_COLUMN, "repo_version", "repo_version_id", false);
   }
 }

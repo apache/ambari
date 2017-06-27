@@ -332,8 +332,6 @@ public class AmbariCustomCommandExecutionHelper {
     StackInfo stackInfo = ambariMetaInfo.getStack
        (stackId.getStackName(), stackId.getStackVersion());
 
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
     if(ci != null){
@@ -478,10 +476,6 @@ public class AmbariCustomCommandExecutionHelper {
       commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
       commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-
-      if (effectiveClusterVersion != null) {
-       commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
-      }
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {

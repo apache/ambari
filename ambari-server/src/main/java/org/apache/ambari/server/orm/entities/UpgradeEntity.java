@@ -60,7 +60,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
   @NamedQuery(name = "UpgradeEntity.findUpgrade",
       query = "SELECT u FROM UpgradeEntity u WHERE u.upgradeId = :upgradeId"),
   @NamedQuery(name = "UpgradeEntity.findUpgradeByRequestId",
-      query = "SELECT u FROM UpgradeEntity u WHERE u.requestId = :requestId"),  
+      query = "SELECT u FROM UpgradeEntity u WHERE u.requestId = :requestId"),
   @NamedQuery(name = "UpgradeEntity.findLatestForClusterInDirection",
       query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY r.startTime DESC, u.upgradeId DESC"),
   @NamedQuery(name = "UpgradeEntity.findLatestForCluster",
@@ -91,11 +91,17 @@ public class UpgradeEntity {
   @JoinColumn(name = "request_id", nullable = false, insertable = true, updatable = false)
   private RequestEntity requestEntity = null;
 
-  @Column(name="from_version", nullable = false)
-  private String fromVersion = null;
+  @JoinColumn(
+      name = "from_repo_version_id",
+      referencedColumnName = "repo_version_id",
+      nullable = false)
+  private RepositoryVersionEntity fromRepositoryVersion;
 
-  @Column(name="to_version", nullable = false)
-  private String toVersion = null;
+  @JoinColumn(
+      name = "to_repo_version_id",
+      referencedColumnName = "repo_version_id",
+      nullable = false)
+  private RepositoryVersionEntity toRepositoryVersion;
 
   @Column(name="direction", nullable = false)
   @Enumerated(value = EnumType.STRING)
@@ -189,29 +195,31 @@ public class UpgradeEntity {
   /**
    * @return the "from" version
    */
-  public String getFromVersion() {
-    return fromVersion;
+  public RepositoryVersionEntity getFromRepositoryVersion() {
+    return fromRepositoryVersion;
   }
 
   /**
-   * @param version the "from" version
+   * @param repositoryVersion
+   *          the "from" version
    */
-  public void setFromVersion(String version) {
-    fromVersion = version;
+  public void setFromRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
+    fromRepositoryVersion = repositoryVersion;
   }
 
   /**
    * @return the "to" version
    */
-  public String getToVersion() {
-    return toVersion;
+  public RepositoryVersionEntity getToRepositoryVersion() {
+    return toRepositoryVersion;
   }
 
   /**
-   * @param version the "to" version
+   * @param repositoryVersion
+   *          the "to" version
    */
-  public void setToVersion(String version) {
-    toVersion = version;
+  public void setToRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
+    toRepositoryVersion = repositoryVersion;
   }
 
   /**
@@ -356,10 +364,10 @@ public class UpgradeEntity {
     if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) {
       return false;
     }
-    if (fromVersion != null ? !fromVersion.equals(that.fromVersion) : that.fromVersion != null) {
+    if (fromRepositoryVersion != null ? !fromRepositoryVersion.equals(that.fromRepositoryVersion) : that.fromRepositoryVersion != null) {
       return false;
     }
-    if (toVersion != null ? !toVersion.equals(that.toVersion) : that.toVersion != null) {
+    if (toRepositoryVersion != null ? !toRepositoryVersion.equals(that.toRepositoryVersion) : that.toRepositoryVersion != null) {
       return false;
     }
     if (direction != null ? !direction.equals(that.direction) : that.direction != null) {
@@ -383,8 +391,8 @@ public class UpgradeEntity {
     int result = upgradeId != null ? upgradeId.hashCode() : 0;
     result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
     result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
-    result = 31 * result + (fromVersion != null ? fromVersion.hashCode() : 0);
-    result = 31 * result + (toVersion != null ? toVersion.hashCode() : 0);
+    result = 31 * result + (fromRepositoryVersion != null ? fromRepositoryVersion.hashCode() : 0);
+    result = 31 * result + (toRepositoryVersion != null ? toRepositoryVersion.hashCode() : 0);
     result = 31 * result + (direction != null ? direction.hashCode() : 0);
     result = 31 * result + (suspended != null ? suspended.hashCode() : 0);
     result = 31 * result + (upgradeType != null ? upgradeType.hashCode() : 0);

@@ -26,7 +26,9 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -179,6 +181,11 @@ public class ExecutionCommandWrapper {
             }
         }
       }
+
+      ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+      executionCommand.getCommandParams().put(KeyNames.VERSION,
+          effectiveClusterVersion.getRepositoryVersion().getVersion());
+
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs

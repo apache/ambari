@@ -145,6 +145,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.collections.CollectionUtils;
@@ -1038,23 +1039,17 @@ public class ClusterImpl implements Cluster {
     Long upgradeId = upgradeEntity.getId();
     String effectiveVersion = upgradeEffectiveVersionCache.get(upgradeId);
     if (null == effectiveVersion) {
-      switch (upgradeEntity.getUpgradeType()) {
-        case NON_ROLLING:
-          if (upgradeEntity.getDirection() == Direction.UPGRADE) {
-            boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
-            effectiveVersion = pastChangingStack ? upgradeEntity.getToVersion()
-                : upgradeEntity.getFromVersion();
-          } else {
-            // Should be the lower value during a Downgrade.
-            effectiveVersion = upgradeEntity.getToVersion();
-          }
-          break;
-        case ROLLING:
-        default:
-          // Version will be higher on upgrade and lower on downgrade
-          // directions.
-          effectiveVersion = upgradeEntity.getToVersion();
-          break;
+      if(upgradeEntity.getUpgradeType() != UpgradeType.ROLLING){
+        effectiveVersion = upgradeEntity.getToRepositoryVersion().getVersion();
+      } else {
+        if (upgradeEntity.getDirection() == Direction.UPGRADE) {
+          boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
+          effectiveVersion = pastChangingStack ? upgradeEntity.getToRepositoryVersion().getVersion()
+              : upgradeEntity.getFromRepositoryVersion().getVersion();
+        } else {
+          // Should be the lower value during a Downgrade.
+          effectiveVersion = upgradeEntity.getToRepositoryVersion().getVersion();
+        }
       }
 
       // cache for later use
@@ -1062,7 +1057,8 @@ public class ClusterImpl implements Cluster {
     }
 
     if (effectiveVersion == null) {
-      throw new AmbariException("Unable to determine which version to use during Stack Upgrade, effectiveVersion is null.");
+      throw new AmbariException(
+          "Unable to determine which version to use during Stack Upgrade, effectiveVersion is null.");
     }
 
     // Find the first cluster version whose repo matches the expected version.

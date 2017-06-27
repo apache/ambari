@@ -81,6 +81,8 @@ public class RetryUpgradeActionServiceTest {
   Long upgradeRequestId = 1L;
   Long stageId = 1L;
 
+  RepositoryVersionEntity repoVersion2200;
+
   @Before
   public void before() throws NoSuchFieldException, IllegalAccessException {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -241,12 +243,12 @@ public class RetryUpgradeActionServiceTest {
     clusters.addCluster(clusterName, stack220);
     cluster = clusters.getCluster("c1");
 
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("Initial Version");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity220);
-    repoVersionEntity.setVersion("2.2.0.0");
-    repoVersionDAO.create(repoVersionEntity);
+    repoVersion2200 = new RepositoryVersionEntity();
+    repoVersion2200.setDisplayName("Initial Version");
+    repoVersion2200.setOperatingSystems("");
+    repoVersion2200.setStack(stackEntity220);
+    repoVersion2200.setVersion("2.2.0.0");
+    repoVersionDAO.create(repoVersion2200);
 
     helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
 
@@ -259,12 +261,12 @@ public class RetryUpgradeActionServiceTest {
    * @throws AmbariException
    */
   private void prepareUpgrade() throws AmbariException {
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("Version to Upgrade To");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity220);
-    repoVersionEntity.setVersion("2.2.0.1");
-    repoVersionDAO.create(repoVersionEntity);
+    RepositoryVersionEntity repoVersion2201 = new RepositoryVersionEntity();
+    repoVersion2201.setDisplayName("Version to Upgrade To");
+    repoVersion2201.setOperatingSystems("");
+    repoVersion2201.setStack(stackEntity220);
+    repoVersion2201.setVersion("2.2.0.1");
+    repoVersionDAO.create(repoVersion2201);
 
     helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
 
@@ -291,8 +293,8 @@ public class RetryUpgradeActionServiceTest {
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
-    upgrade.setFromVersion("2.2.0.0");
-    upgrade.setToVersion("2.2.0.1");
+    upgrade.setFromRepositoryVersion(repoVersion2200);
+    upgrade.setToRepositoryVersion(repoVersion2201);
     upgradeDAO.create(upgrade);
 
     cluster.setUpgradeEntity(upgrade);

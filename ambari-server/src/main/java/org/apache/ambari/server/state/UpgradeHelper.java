@@ -211,6 +211,9 @@ public class UpgradeHelper {
     }
 
     RepositoryVersionEntity versionEntity = s_repoVersionDAO.get().findByStackNameAndVersion(stack.getStackName(), repoVersion);
+    if (null == versionEntity) {
+      versionEntity = s_repoVersionDAO.get().findByVersion(repoVersion);
+    }
 
     if (versionEntity == null) {
       throw new AmbariException(String.format("Repository version %s was not found", repoVersion));
@@ -406,7 +409,7 @@ public class UpgradeHelper {
               case ROLLING:
                 if (!hostsType.hosts.isEmpty() && hostsType.master != null && hostsType.secondary != null) {
                   // The order is important, first do the standby, then the active namenode.
-                  LinkedHashSet<String> order = new LinkedHashSet<String>();
+                  LinkedHashSet<String> order = new LinkedHashSet<>();
 
                   order.add(hostsType.secondary);
                   order.add(hostsType.master);
@@ -428,17 +431,17 @@ public class UpgradeHelper {
                   // So need to make 2 stages, and add different parameters to each one.
 
                   HostsType ht1 = new HostsType();
-                  LinkedHashSet<String> h1Hosts = new LinkedHashSet<String>();
+                  LinkedHashSet<String> h1Hosts = new LinkedHashSet<>();
                   h1Hosts.add(hostsType.master);
                   ht1.hosts = h1Hosts;
-                  Map<String, String> h1Params = new HashMap<String, String>();
+                  Map<String, String> h1Params = new HashMap<>();
                   h1Params.put("desired_namenode_role", "active");
 
                   HostsType ht2 = new HostsType();
-                  LinkedHashSet<String> h2Hosts = new LinkedHashSet<String>();
+                  LinkedHashSet<String> h2Hosts = new LinkedHashSet<>();
                   h2Hosts.add(hostsType.secondary);
                   ht2.hosts = h2Hosts;
-                  Map<String, String> h2Params = new HashMap<String, String>();
+                  Map<String, String> h2Params = new HashMap<>();
                   h2Params.put("desired_namenode_role", "standby");
 
 
@@ -538,7 +541,7 @@ public class UpgradeHelper {
   private String tokenReplace(UpgradeContext ctx, String source, String service, String component) {
     Cluster cluster = ctx.getCluster();
     MasterHostResolver mhr = ctx.getResolver();
-    String version = ctx.getVersion();
+    String version = ctx.getTargetRepositoryVersion().getVersion();
 
     String result = source;
 
@@ -722,17 +725,19 @@ public class UpgradeHelper {
    * the upgrade state individually, we wrap this method inside of a transaction
    * to prevent 1000's of transactions from being opened and committed.
    *
+   * @param stackId
+   *          the desired stack ID for the upgrade
    * @param version
    *          desired version (like 2.2.1.0-1234) for upgrade
    * @param targetServices
    *          targets for upgrade
    * @param targetStack
-   *          the target stack for the components.  Express and Rolling upgrades determine
-   *          the "correct" stack differently, so the component's desired stack id is not
-   *          a reliable indicator.
+   *          the target stack for the components. Express and Rolling upgrades
+   *          determine the "correct" stack differently, so the component's
+   *          desired stack id is not a reliable indicator.
    */
   @Transactional
-  public void putComponentsToUpgradingState(String version,
+  public void putComponentsToUpgradingState(StackId stackId, String version,
       Map<Service, Set<ServiceComponent>> targetServices, StackId targetStack) throws AmbariException {
 
     for (Map.Entry<Service, Set<ServiceComponent>> entry: targetServices.entrySet()) {
@@ -768,6 +773,8 @@ public class UpgradeHelper {
             serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
           }
         }
+
+        serviceComponent.setDesiredStackVersion(stackId);
         serviceComponent.setDesiredVersion(desiredVersion);
 
       }
