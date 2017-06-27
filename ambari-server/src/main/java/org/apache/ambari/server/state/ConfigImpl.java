@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -133,7 +134,7 @@ public class ConfigImpl implements Config {
     version = cluster.getNextConfigVersion(type);
 
     // tag is nullable from factory but not in the DB, so ensure we generate something
-    tag = StringUtils.isBlank(tag) ? GENERATED_TAG_PREFIX + version : tag;
+    tag = StringUtils.isBlank(tag) ? UUID.randomUUID().toString() : tag;
     this.tag = tag;
 
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());

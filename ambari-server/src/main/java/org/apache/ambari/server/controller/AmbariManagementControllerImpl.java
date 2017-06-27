@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.persistence.RollbackException;
@@ -346,6 +347,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private Cache<ClusterRequest, ClusterResponse> clusterUpdateCache =
       CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+  private Cache<ConfigGroupRequest, ConfigGroupResponse> configGroupUpdateCache =
+          CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
@@ -1632,6 +1635,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cluster = clusters.getClusterById(request.getClusterId());
     }
 
+    List<ConfigurationRequest> desiredConfigs = request.getDesiredConfig();
+    if (desiredConfigs != null) {
+      for (ConfigurationRequest configurationRequest : desiredConfigs) {
+        if (StringUtils.isEmpty(configurationRequest.getVersionTag())) {
+          configurationRequest.setVersionTag(UUID.randomUUID().toString());
+        }
+      }
+    }
+
     // Ensure the user has access to update this cluster
     AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
 
@@ -1640,7 +1652,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       new LinkedList<>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
 
-    if (request.getDesiredConfig() != null && request.getServiceConfigVersionRequest() != null) {
+    if (desiredConfigs != null && request.getServiceConfigVersionRequest() != null) {
       String msg = "Unable to set desired configs and rollback at same time, request = " + request;
       LOG.error(msg);
       throw new IllegalArgumentException(msg);
@@ -1661,8 +1673,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     //check if desired configs are available in request and they were changed
     boolean isConfigurationCreationNeeded = false;
-    if (request.getDesiredConfig() != null) {
-      for (ConfigurationRequest desiredConfig : request.getDesiredConfig()) {
+    if (desiredConfigs != null) {
+      for (ConfigurationRequest desiredConfig : desiredConfigs) {
         Map<String, String> requestConfigProperties = desiredConfig.getProperties();
         Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
 
@@ -1739,7 +1751,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // set or create configuration mapping (and optionally create the map of properties)
     if (isConfigurationCreationNeeded) {
-      List<ConfigurationRequest> desiredConfigs = request.getDesiredConfig();
 
       if (!desiredConfigs.isEmpty()) {
         Set<Config> configs = new HashSet<>();
@@ -2070,6 +2081,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public ClusterResponse getClusterUpdateResults(ClusterRequest clusterRequest) {
     return clusterUpdateCache.getIfPresent(clusterRequest);
+  }
+
+  @Override
+  public ConfigGroupResponse getConfigGroupUpdateResults(ConfigGroupRequest configGroupRequest) {
+    return configGroupUpdateCache.getIfPresent(configGroupRequest);
+  }
+
+  @Override
+  public void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse) {
+    configGroupUpdateCache.put(configGroupRequest, configGroupResponse);
   }
 
   @Override
