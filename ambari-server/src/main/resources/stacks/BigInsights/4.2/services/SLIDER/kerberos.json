@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "name": "SLIDER",
+      "components": [
+        {
+          "name": "SLIDER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

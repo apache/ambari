@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration supports_do_not_extend="true">
+  <property>
+    <name>ambari_metrics_user</name>
+    <display-name>Ambari Metrics User</display-name>
+    <value>ams</value>
+    <property-type>USER</property-type>
+    <description>Ambari Metrics User Name.</description>
+  </property>
+  <property>
+    <name>metrics_collector_log_dir</name>
+    <value>/var/log/ambari-metrics-collector</value>
+    <display-name>Metrics Collector log dir</display-name>
+    <description>Collector log directory.</description>
+  </property>
+  <property>
+    <name>metrics_collector_pid_dir</name>
+    <value>/var/run/ambari-metrics-collector</value>
+    <display-name>Metrics Collector pid dir</display-name>
+    <description>Collector pid directory.</description>
+  </property>
+  <property>
+    <name>metrics_monitor_pid_dir</name>
+    <value>/var/run/ambari-metrics-monitor</value>
+    <display-name>Metrics Monitor pid dir</display-name>
+    <description>Monitor pid directory.</description>
+  </property>
+  <property>
+    <name>metrics_monitor_log_dir</name>
+    <value>/var/log/ambari-metrics-monitor</value>
+    <display-name>Metrics Monitor log dir</display-name>
+    <description>Monitor log directory.</description>
+  </property>
+  <property>
+    <name>metrics_collector_heapsize</name>
+    <value>512</value>
+    <description>Metrics Collector Heap Size</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+  </property>
+  <property>
+    <name>content</name>
+    <value>
+# Set environment variables here.
+
+# The java implementation to use. Java 1.6 required.
+export JAVA_HOME={{java64_home}}
+
+# Collector Log directory for log4j
+export AMS_COLLECTOR_LOG_DIR={{ams_collector_log_dir}}
+
+# Monitor Log directory for outfile
+export AMS_MONITOR_LOG_DIR={{ams_monitor_log_dir}}
+
+# Collector pid directory
+export AMS_COLLECTOR_PID_DIR={{ams_collector_pid_dir}}
+
+# Monitor pid directory
+export AMS_MONITOR_PID_DIR={{ams_monitor_pid_dir}}
+
+# AMS HBase pid directory
+export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
+
+# AMS Collector heapsize
+export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}
+
+# HBase normalizer enabled
+export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}
+
+# HBase compaction policy enabled
+export AMS_HBASE_FIFO_COMPACTION_ENABLED={{ams_hbase_fifo_compaction_enabled}}
+
+# AMS Collector options
+export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native"
+{% if security_enabled %}
+export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config={{ams_collector_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}"
+{% endif %}
+
+# AMS Collector GC options
+export AMS_COLLECTOR_GC_OPTS="-XX:+UseConcMarkSweepGC -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{ams_collector_log_dir}}/collector-gc.log-`date +'%Y%m%d%H%M'`"
+export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS"
+
+    </value>
+  </property>
+
+</configuration>

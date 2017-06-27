@@ -21,7 +21,9 @@
   <target>2.6.*.*</target>
   <target-stack>HDP-2.6</target-stack>
   <type>NON_ROLLING</type>
+  <!-- TODO
   <downgrade-allowed>false</downgrade-allowed>
+  -->
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
     <check>org.apache.ambari.server.checks.JavaVersionCheck</check>
@@ -151,7 +153,7 @@
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack" service="" component="">
+      <execute-stage title="Update Target Stack">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
         </task>
       </execute-stage>
@@ -228,7 +230,6 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="ZOOKEEPER">
-        <service-check>false</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -264,7 +265,8 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
-        <task xsi:type="execute" hosts="all" summary="Wait for NameNode to leave Safemode">
+        <task xsi:type="execute" hosts="all">
+          <summary>Wait for NameNode to leave Safemode</summary>
           <script>scripts/namenode.py</script>
           <function>wait_for_safemode_off</function>
         </task>
@@ -348,11 +350,13 @@
       </service>
     </group>
 
-    <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
+    <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
+        <service>ZOOKEEPER</service>
         <service>HDFS</service>
+        <service>KAFKA</service>
         <service>YARN</service>
         <service>MAPREDUCE2</service>
         <service>HBASE</service>
@@ -421,7 +425,8 @@
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Upgrade Oozie Database">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+        <task xsi:type="execute" hosts="any">
+          <summary>Upgrading the database and creating a new sharelib</summary>
           <script>scripts/oozie_server_upgrade.py</script>
           <function>upgrade_oozie_database_and_sharelib</function>
         </task>
@@ -485,22 +490,6 @@
       </priority>
     </group>
 
-    <!--
-    Invoke "hdp-select set all" to change any components we may have missed
-    that are installed on the hosts but not known by Ambari.
-    -->
-    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-
-      <execute-stage title="Update stack to {{version}}">
-        <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
-          <function>actionexecute</function>
-        </task>
-      </execute-stage>
-    </group>
-
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
       
@@ -537,7 +526,7 @@
         </task>
       </execute-stage>
 
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>
