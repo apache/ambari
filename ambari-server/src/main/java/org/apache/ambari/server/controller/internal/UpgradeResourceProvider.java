@@ -1427,7 +1427,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       requestParams.put(KeyNames.COMMAND_RETRY_ENABLED, Boolean.TRUE.toString().toLowerCase());
     }
 
-    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
+    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, jsons);
 
     request.addStages(Collections.singletonList(stage));
   }
@@ -1480,7 +1480,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setStageId(Long.valueOf(stageId));
 
     Map<String, String> requestParams = getNewParameterMap(request, context);
-    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
+    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, jsons);
 
     request.addStages(Collections.singletonList(stage));
   }
