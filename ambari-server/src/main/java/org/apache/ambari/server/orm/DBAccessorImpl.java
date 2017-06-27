@@ -1411,7 +1411,10 @@ public class DBAccessorImpl implements DBAccessor {
   public void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
               String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, Object initialValue) throws SQLException {
 
-    if (this.tableHasColumn(sourceTableName, sourceIDFieldName)) {
+    if (tableHasColumn(sourceTableName, sourceIDFieldName) &&
+      tableHasColumn(sourceTableName, sourceColumn.getName()) &&
+      tableHasColumn(targetTableName, targetIDFieldName)
+    ) {
 
       final String moveSQL = dbmsHelper.getCopyColumnToAnotherTableStatement(sourceTableName, sourceColumn.getName(),
         sourceIDFieldName, targetTableName, targetColumn.getName(),targetIDFieldName);
