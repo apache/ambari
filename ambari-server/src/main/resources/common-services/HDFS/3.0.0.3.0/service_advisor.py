@@ -138,6 +138,7 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
     # Due to the existing stack inheritance, make it clear where each calculation came from.
     recommender = HDFSRecommender()
     recommender.recommendConfigurationsFromHDP206(configurations, clusterData, services, hosts)
+    recommender.recommendConfigurationsFromHDP22(configurations, clusterData, services, hosts)
     recommender.recommendConfigurationsFromHDP23(configurations, clusterData, services, hosts)
     recommender.recommendConfigurationsFromHDP26(configurations, clusterData, services, hosts)
 
@@ -252,6 +253,58 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
 
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
+
+  def recommendConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+    """
+    Recommend configurations for this service based on HDP 2.2
+    """
+    putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
+    putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    keyserverHostsString = None
+    keyserverPortString = None
+    if "hadoop-env" in services["configurations"] and "keyserver_host" in services["configurations"]["hadoop-env"]["properties"] and "keyserver_port" in services["configurations"]["hadoop-env"]["properties"]:
+      keyserverHostsString = services["configurations"]["hadoop-env"]["properties"]["keyserver_host"]
+      keyserverPortString = services["configurations"]["hadoop-env"]["properties"]["keyserver_port"]
+
+    # Irrespective of what hadoop-env has, if Ranger-KMS is installed, we use its values.
+    rangerKMSServerHosts = self.getHostsWithComponent("RANGER_KMS", "RANGER_KMS_SERVER", services, hosts)
+    if rangerKMSServerHosts is not None and len(rangerKMSServerHosts) > 0:
+      rangerKMSServerHostsArray = []
+      for rangeKMSServerHost in rangerKMSServerHosts:
+        rangerKMSServerHostsArray.append(rangeKMSServerHost["Hosts"]["host_name"])
+      keyserverHostsString = ";".join(rangerKMSServerHostsArray)
+      if "kms-env" in services["configurations"] and "kms_port" in services["configurations"]["kms-env"]["properties"]:
+        keyserverPortString = services["configurations"]["kms-env"]["properties"]["kms_port"]
+
+    if keyserverHostsString is not None and len(keyserverHostsString.strip()) > 0:
+      urlScheme = "http"
+      if "ranger-kms-site" in services["configurations"] and \
+          "ranger.service.https.attrib.ssl.enabled" in services["configurations"]["ranger-kms-site"]["properties"] and \
+          services["configurations"]["ranger-kms-site"]["properties"]["ranger.service.https.attrib.ssl.enabled"].lower() == "true":
+        urlScheme = "https"
+
+      if keyserverPortString is None or len(keyserverPortString.strip()) < 1:
+        keyserverPortString = ":9292"
+      else:
+        keyserverPortString = ":" + keyserverPortString.strip()
+
+      kmsPath = "kms://" + urlScheme + "@" + keyserverHostsString.strip() + keyserverPortString + "/kms"
+      putCoreSiteProperty("hadoop.security.key.provider.path", kmsPath)
+      putHdfsSiteProperty("dfs.encryption.key.provider.uri", kmsPath)
+
+    putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
+    putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
+    if not "RANGER_KMS" in servicesList:
+      putCoreSitePropertyAttribute('hadoop.security.key.provider.path','delete','true')
+      putHdfsSitePropertyAttribute('dfs.encryption.key.provider.uri','delete','true')
+
+    if "ranger-env" in services["configurations"] and "ranger-hdfs-plugin-properties" in services["configurations"] and \
+      "ranger-hdfs-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putHdfsRangerPluginProperty = self.putProperty(configurations, "ranger-hdfs-plugin-properties", services)
+      rangerEnvHdfsPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hdfs-plugin-enabled"]
+      putHdfsRangerPluginProperty("ranger-hdfs-plugin-enabled", rangerEnvHdfsPluginProperty)
 
   def recommendConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
     """
