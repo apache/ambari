@@ -639,4 +639,33 @@ public class DBAccessorImplTest {
     }
 
    }
+
+  @Test
+  public void testMoveNonexistentColumnIsNoop() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    String sourceTableName = getFreeTableName();
+    String targetTableName = getFreeTableName();
+    int testRowAmount = 10;
+
+    createMyTable(sourceTableName, "col1");
+    createMyTable(targetTableName, "col1", "col2");
+
+    for (Integer i=0; i < testRowAmount; i++){
+      dbAccessor.insertRow(sourceTableName,
+        new String[] {"id", "col1"},
+        new String[]{i.toString(), String.format("'source,1,%s'", i)}, false);
+
+      dbAccessor.insertRow(targetTableName,
+        new String[] {"id", "col1", "col2"},
+        new String[]{i.toString(), String.format("'target,1,%s'", i), String.format("'target,2,%s'", i)}, false);
+    }
+
+    DBColumnInfo sourceColumn = new DBColumnInfo("col2", String.class, null, null, false);
+    DBColumnInfo targetColumn = new DBColumnInfo("col2", String.class, null, null, false);
+
+    dbAccessor.moveColumnToAnotherTable(sourceTableName, sourceColumn, "id",
+      targetTableName, targetColumn, "id", "initial");
+
+    // should not result in exception due to unknown column in source table
+  }
 }
