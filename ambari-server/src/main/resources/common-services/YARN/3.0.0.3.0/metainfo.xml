@@ -73,32 +73,8 @@
             <timeout>1200</timeout>
           </commandScript>
 
+          <!-- TODO HDP 3.0, add later after UI is fixed,
           <dependencies>
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>false</enabled>
-              </auto-deploy>
-              <conditions>
-                <condition xsi:type="propertyExists">
-                  <configType>yarn-site</configType>
-                  <property>yarn.resourcemanager.recovery.enabled</property>
-                  <value>true</value>
-                </condition>
-                <condition xsi:type="propertyExists">
-                  <configType>yarn-site</configType>
-                  <property>yarn.resourcemanager.ha.enabled</property>
-                  <value>true</value>
-                </condition>
-                <condition xsi:type="propertyExists">
-                  <configType>yarn-site</configType>
-                  <property>hadoop.registry.rm.enabled</property>
-                  <value>true</value>
-                </condition>
-              </conditions>
-            </dependency>
-            <!-- TODO HDP 3.0, add later after UI is fixed,
             <dependency>
               <name>TEZ/TEZ_CLIENT</name>
               <scope>host</scope>
@@ -106,8 +82,8 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
-            -->
           </dependencies>
+          -->
 
           <logs>
             <log>
@@ -169,23 +145,6 @@
               <logId>yarn_nodemanager</logId>
             </log>
           </logs>
-
-          <dependencies>
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>false</enabled>
-              </auto-deploy>
-              <conditions>
-                <condition xsi:type="propertyExists">
-                  <configType>yarn-site</configType>
-                  <property>yarn.nodemanager.recovery.enabled</property>
-                  <value>true</value>
-                </condition>
-              </conditions>
-            </dependency>
-          </dependencies>
         </component>
 
         <component>
@@ -255,6 +214,7 @@
       <requiredServices>
         <service>HDFS</service>
         <service>MAPREDUCE2</service>
+        <service>ZOOKEEPER</service>
       </requiredServices>
 
       <themes>

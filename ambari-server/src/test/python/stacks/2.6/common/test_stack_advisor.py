@@ -1153,9 +1153,6 @@ class TestHDP26StackAdvisor(TestCase):
       'yarn-site': {
         'properties': {
           'hadoop.registry.rm.enabled': 'false',
-          'yarn.resourcemanager.recovery.enabled': 'false',
-          'yarn.nodemanager.recovery.enabled': 'false',
-          'yarn.resourcemanager.ha.enabled': 'false',
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes': '',
           'yarn.scheduler.minimum-allocation-vcores': '1',
           'yarn.scheduler.maximum-allocation-vcores': '4',
@@ -1332,9 +1329,6 @@ class TestHDP26StackAdvisor(TestCase):
       'yarn-site': {
         'properties': {
           'hadoop.registry.rm.enabled': 'false',
-          'yarn.resourcemanager.recovery.enabled': 'false',
-          'yarn.nodemanager.recovery.enabled': 'false',
-          'yarn.resourcemanager.ha.enabled': 'false',
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes': '',
           'yarn.authorization-provider': 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer',
           'yarn.acl.enable': 'true',
@@ -1442,9 +1436,6 @@ class TestHDP26StackAdvisor(TestCase):
       'yarn-site': {
         'properties': {
           'hadoop.registry.rm.enabled': 'false',
-          'yarn.resourcemanager.recovery.enabled': 'false',
-          'yarn.nodemanager.recovery.enabled': 'false',
-          'yarn.resourcemanager.ha.enabled': 'false',
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes': '',
           'yarn.authorization-provider': 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer',
           'yarn.acl.enable': 'true',
