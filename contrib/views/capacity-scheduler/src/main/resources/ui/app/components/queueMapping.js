@@ -112,8 +112,8 @@
 
    addCustomQueueMappings: function(csValues, selectedLeafQName){
      var that = this;
-       csValues = csValues.trim() || '',
-       userOrGroupNames = csValues.split(',') || [],
+     csValues = csValues.trim() || '';
+     var userOrGroupNames = csValues.split(',') || [],
        mappingPattern = this.get('selectedMapping');
 
      userOrGroupNames.forEach(function(ugname){

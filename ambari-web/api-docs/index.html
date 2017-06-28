@@ -170,7 +170,7 @@
             if (u.length) {
               var p = $("#" + u.attr("data-endpoint")),
                 g = u.offset().top;
-              v = (g + p.outerHeight(), 100);
+              var v = (g + p.outerHeight(), 100);
               i() < s - v && c(u)
             }
           }

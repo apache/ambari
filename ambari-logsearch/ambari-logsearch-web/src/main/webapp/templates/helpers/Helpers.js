@@ -187,7 +187,7 @@
 	Handlebars.registerHelper('customPermString', function(permsString,kclass) {
 		if(permsString == "--")
 			return permsString;
-		permArr = permsString.split(',');
+		var permArr = permsString.split(',');
 		//return permArr.join(', ');
 		var cl = _.isObject(kclass) ? 'label label-info' : kclass;
 		var tempArr = [];

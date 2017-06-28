@@ -70,10 +70,10 @@ function handleLogin() {
       '</div>'].join(''));
   $(document.body).append(popupDialog);
 
-  popup = popupDialog.find('.scopes').empty();
+  var popup = popupDialog.find('.scopes').empty();
   for (i = 0; i < scopes.length; i++) {
     scope = scopes[i];
-    str = '<span data-toggle-scope="' + scope.scope + '" class="scope">' + scope.scope + '</span>';
+    var str = '<span data-toggle-scope="' + scope.scope + '" class="scope">' + scope.scope + '</span>';
     popup.append(str);
   }
 
@@ -139,7 +139,7 @@ function handleLogin() {
     }
     var scopes = [];
     var o = $('.scopes').find('.active');
-    for (k = 0; k < o.length; k++) {
+    for (var k = 0; k < o.length; k++) {
       var scope = $(o[k]).attr('data-toggle-scope');
       if (scopes.indexOf(scope) === -1)
         scopes.push(scope);
@@ -166,7 +166,7 @@ function handleLogin() {
 }
 
 function handleLogout() {
-  for (key in window.authorizations.authz) {
+  for (var key in window.authorizations.authz) {
     window.authorizations.remove(key)
   }
   window.enabledScopes = null;

@@ -45,7 +45,7 @@ App.XmldiffViewerComponent = Ember.Component.extend({
   showXmlDiffView: function() {
     this.$("#xmldiffViewerDialog").modal('show');
     var config = this.get('diffConfig'),
-      basetxt = difflib.stringAsLines(config.baseXML);
+      basetxt = difflib.stringAsLines(config.baseXML),
       newtxt = difflib.stringAsLines(config.newXML),
       sm = new difflib.SequenceMatcher(basetxt, newtxt),
       opcodes = sm.get_opcodes(),
