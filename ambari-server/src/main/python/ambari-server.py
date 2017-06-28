@@ -482,6 +482,8 @@ def init_setup_parser_options(parser):
 
   other_group.add_option('-j', '--java-home', default=None,
                          help="Use specified java_home.  Must be valid on all hosts")
+  other_group.add_option('--stack-java-home', dest="stack_java_home", default=None,
+                    help="Use specified java_home for stack services.  Must be valid on all hosts")
   other_group.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
   other_group.add_option('--postgresschema', default=None, help="Postgres database schema name",
                          dest="postgres_schema")

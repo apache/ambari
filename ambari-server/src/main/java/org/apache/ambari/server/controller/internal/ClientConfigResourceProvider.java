@@ -23,11 +23,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STA
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
@@ -363,11 +359,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         osFamily = clusters.getHost(hostName).getOsFamily();
 
         TreeMap<String, String> hostLevelParams = new TreeMap<>();
+        StageUtils.useStackJdkIfExists(hostLevelParams, configs);
         hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
-        hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
-        hostLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
-        hostLevelParams.put(JDK_NAME, managementController.getJDKName());
-        hostLevelParams.put(JCE_NAME, managementController.getJCEName());
         hostLevelParams.put(STACK_NAME, stackId.getStackName());
         hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
         hostLevelParams.put(DB_NAME, managementController.getServerDB());

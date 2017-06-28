@@ -245,6 +245,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private static final String PASSWORD = "password";
+
   public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
   public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
 
@@ -2473,6 +2474,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceName)) {
       commandParams.put(ExecutionCommand.KeyNames.REFRESH_TOPOLOGY, "True");
     }
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
     String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, component, host);
     if (LOG.isDebugEnabled()) {

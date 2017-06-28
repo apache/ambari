@@ -60,7 +60,9 @@ user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 # shared configs
-java64_home = config['hostLevelParams']['java_home']
+java_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+java64_home = ambari_java_home if ambari_java_home is not None else java_home
 java_exec = format("{java64_home}/bin/java")
 zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts_list.sort()

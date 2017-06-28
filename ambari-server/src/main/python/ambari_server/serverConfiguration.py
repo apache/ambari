@@ -87,6 +87,12 @@ JCE_NAME_PROPERTY = "jce.name"
 JDK_DOWNLOAD_SUPPORTED_PROPERTY = "jdk.download.supported"
 JCE_DOWNLOAD_SUPPORTED_PROPERTY = "jce.download.supported"
 
+# Stack JDK
+STACK_JAVA_HOME_PROPERTY = "stack.java.home"
+STACK_JDK_NAME_PROPERTY = "stack.jdk.name"
+STACK_JCE_NAME_PROPERTY = "stack.jce.name"
+STACK_JAVA_VERSION = "stack.java.version"
+
 
 #TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
 # has workaround for now, as we don't need dbms name if persistence_type=local
