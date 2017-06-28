@@ -155,7 +155,7 @@ public class UpgradeSummaryResourceProviderTest {
     repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack(stackEntity);
-    repoVersionEntity.setVersion("2.2.0.0");
+    repoVersionEntity.setVersion("2.2.0.0-1234");
     repoVersionDAO.create(repoVersionEntity);
 
     clusters = injector.getInstance(Clusters.class);
@@ -164,7 +164,7 @@ public class UpgradeSummaryResourceProviderTest {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster("c1");
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId, "2.2.0.1-1234");
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
 
     clusters.addHost("h1");
@@ -183,11 +183,11 @@ public class UpgradeSummaryResourceProviderTest {
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0");
+    sch.setVersion("2.2.0.0-1234");
 
     component = service.addServiceComponent("ZOOKEEPER_CLIENT");
     sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0");
+    sch.setVersion("2.2.0.0-1234");
   }
 
   /**

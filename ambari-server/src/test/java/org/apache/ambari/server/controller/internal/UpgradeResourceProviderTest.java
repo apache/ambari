@@ -642,7 +642,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_ID, repoVersionEntity2111.getId());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_ID, String.valueOf(repoVersionEntity2111.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
@@ -710,10 +710,10 @@ public class UpgradeResourceProviderTest {
 
     // fix the properties and try again
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION, "2.1.1.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     Map<String, String> requestInfoProperties = new HashMap<>();
@@ -726,8 +726,8 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity entity = upgradeDao.findUpgrade(Long.parseLong(id));
     assertNotNull(entity);
-    assertEquals("2.1.1.0", entity.getFromRepositoryVersion().getVersion());
-    assertEquals("2.2.0.0", entity.getToRepositoryVersion().getVersion());
+    assertEquals("2.1.1.1", entity.getFromRepositoryVersion().getVersion());
+    assertEquals("2.1.1.0", entity.getToRepositoryVersion().getVersion());
     assertEquals(Direction.DOWNGRADE, entity.getDirection());
 
     StageDAO dao = injector.getInstance(StageDAO.class);
@@ -1201,10 +1201,6 @@ public class UpgradeResourceProviderTest {
 
     EasyMock.expectLastCall().once();
 
-    EasyMock.replay(configHelper, cluster, fooConfig, barConfig, bazConfig);
-
-    UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
-
     Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     UpgradePack upgradePack = upgradePacks.get("upgrade_to_new_stack");
 
@@ -1215,6 +1211,10 @@ public class UpgradeResourceProviderTest {
     expect(context.getSourceRepositoryVersion()).andReturn(repoVersionEntity2111).atLeastOnce();
     expect(context.getTargetRepositoryVersion()).andReturn(repoVersionEntity2200).atLeastOnce();
     expect(context.getUpgradePack()).andReturn(upgradePack).atLeastOnce();
+
+    EasyMock.replay(configHelper, cluster, fooConfig, barConfig, bazConfig, context);
+
+    UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
 
     upgradeResourceProvider.applyStackAndProcessConfigurations(context);
 

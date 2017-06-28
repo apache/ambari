@@ -183,8 +183,10 @@ public class ExecutionCommandWrapper {
       }
 
       ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-      executionCommand.getCommandParams().put(KeyNames.VERSION,
-          effectiveClusterVersion.getRepositoryVersion().getVersion());
+      if (null != effectiveClusterVersion) {
+        executionCommand.getCommandParams().put(KeyNames.VERSION,
+            effectiveClusterVersion.getRepositoryVersion().getVersion());
+      }
 
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,

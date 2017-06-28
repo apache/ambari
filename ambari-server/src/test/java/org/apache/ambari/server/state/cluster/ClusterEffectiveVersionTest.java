@@ -199,7 +199,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
 
     EasyMock.expect(upgradeEntity.getFromRepositoryVersion()).andReturn(repoVersion2400).anyTimes();
     EasyMock.expect(upgradeEntity.getToRepositoryVersion()).andReturn(repoVersion2300).atLeastOnce();
-    EasyMock.expect(upgradeEntity.getDirection()).andReturn(Direction.DOWNGRADE).atLeastOnce();
+    EasyMock.expect(upgradeEntity.getDirection()).andReturn(Direction.DOWNGRADE).anyTimes();
 
     ClusterVersionEntity clusterVersionUpgradingTo = createNiceMock(ClusterVersionEntity.class);
     EasyMock.expect(clusterVersionUpgradingTo.getRepositoryVersion()).andReturn(

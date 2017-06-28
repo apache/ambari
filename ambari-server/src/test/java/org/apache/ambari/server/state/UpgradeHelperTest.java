@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state;
 
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -40,6 +41,7 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -53,6 +55,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stack.StackManagerMock;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -74,7 +77,9 @@ import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -291,12 +296,8 @@ public class UpgradeHelperTest {
     Cluster cluster = makeCluster();
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING,
-        repositoryVersion2210, m_masterHostResolver, false);
-
-    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
-    context.setScope(UpgradeScope.PARTIAL);
-
-    replay(context);
+        repositoryVersion2210, Collections.singleton("ZOOKEEPER"), m_masterHostResolver,
+        UpgradeScope.PARTIAL, true);
 
     List<Grouping> groupings = upgrade.getGroups(Direction.UPGRADE);
     assertEquals(8, groupings.size());
@@ -351,12 +352,9 @@ public class UpgradeHelperTest {
     Cluster cluster = makeCluster();
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING,
-        repositoryVersion2210, m_masterHostResolver, false);
+        repositoryVersion2210, Collections.singleton("ZOOKEEPER"), m_masterHostResolver,
+        UpgradeScope.COMPLETE, true);
 
-    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
-    context.setScope(UpgradeScope.COMPLETE);
-
-    replay(context);
 
     List<Grouping> groupings = upgrade.getGroups(Direction.UPGRADE);
     assertEquals(8, groupings.size());
@@ -1739,11 +1737,9 @@ public class UpgradeHelperTest {
 
     // get an upgrade
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING,
-        repositoryVersion2210, m_masterHostResolver, false);
+        repositoryVersion2210, Collections.singleton("ZOOKEEPER"), m_masterHostResolver,
+        UpgradeScope.COMPLETE, true);
 
-    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
-    context.setScope(UpgradeScope.COMPLETE);
-    replay(context);
 
     List<Grouping> groupings = upgradePack.getGroups(Direction.UPGRADE);
     assertEquals(2, groupings.size());
@@ -2164,7 +2160,6 @@ public class UpgradeHelperTest {
     context = getMockUpgradeContext(c, Direction.DOWNGRADE, UpgradeType.HOST_ORDERED,
         repositoryVersion2110, resolver, true);
 
-    context.setResolver(resolver);
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
@@ -2241,20 +2236,8 @@ public class UpgradeHelperTest {
    * @return
    */
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
-      UpgradeType type) {
-    return getMockUpgradeContext(cluster, direction, type, repositoryVersion2210);
-  }
-
-  /**
-   * @param cluster
-   * @param direction
-   * @param type
-   * @return
-   */
-  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
       UpgradeType type, RepositoryVersionEntity repositoryVersion) {
-    return getMockUpgradeContext(cluster, direction, type, repositoryVersion, m_masterHostResolver,
-        true);
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion, m_masterHostResolver, true);
   }
 
   /**
@@ -2268,6 +2251,21 @@ public class UpgradeHelperTest {
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
       UpgradeType type, RepositoryVersionEntity repositoryVersion, MasterHostResolver resolver,
       boolean replay) {
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion,
+        new HashSet<String>(), resolver, UpgradeScope.COMPLETE, true);
+  }
+
+  /**
+   * @param cluster
+   * @param direction
+   * @param type
+   * @param repositoryType
+   * @param services
+   * @return
+   */
+  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
+      UpgradeType type, RepositoryVersionEntity repositoryVersion, final Set<String> services,
+      MasterHostResolver resolver, final UpgradeScope scope, boolean replay) {
     RepositoryVersionEntity sourceRepositoryVersion = cluster.getAllClusterVersions().iterator().next().getRepositoryVersion();
 
     UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
@@ -2276,12 +2274,95 @@ public class UpgradeHelperTest {
     expect(context.getDirection()).andReturn(direction).anyTimes();
     expect(context.getSourceRepositoryVersion()).andReturn(sourceRepositoryVersion).anyTimes();
     expect(context.getTargetRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
+    expect(context.getEffectiveStackId()).andReturn(repositoryVersion.getStackId()).anyTimes();
+    expect(context.getTargetStackId()).andReturn(repositoryVersion.getStackId()).anyTimes();
     expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(context.getHostRoleCommandFactory()).andStubReturn(injector.getInstance(HostRoleCommandFactory.class));
+    expect(context.getRoleGraphFactory()).andStubReturn(injector.getInstance(RoleGraphFactory.class));
 
     // only set this if supplied
     if (null != resolver) {
       expect(context.getResolver()).andReturn(resolver).anyTimes();
     }
+
+    final Capture<UpgradeScope> isScopedCapture = EasyMock.newCapture();
+    expect(context.isScoped(EasyMock.capture(isScopedCapture))).andStubAnswer(
+        new IAnswer<Boolean>() {
+          @Override
+          public Boolean answer() throws Throwable {
+            UpgradeScope capturedScope = isScopedCapture.getValue();
+            if (capturedScope == UpgradeScope.ANY) {
+              return true;
+            }
+
+            return scope.isScoped(capturedScope);
+          }
+        });
+
+    final Capture<String> serviceNameSupported = EasyMock.newCapture();
+    expect(context.isServiceSupported(EasyMock.capture(serviceNameSupported))).andAnswer(
+        new IAnswer<Boolean>() {
+          @Override
+          public Boolean answer() {
+            if (services.isEmpty()) {
+              return true;
+            }
+
+            return services.contains(serviceNameSupported.getValue());
+          }
+        }).anyTimes();
+
+    final Map<String, String> serviceNames = new HashMap<>();
+    final Capture<String> serviceDisplayNameArg1 = EasyMock.newCapture();
+    final Capture<String> serviceDisplayNameArg2 = EasyMock.newCapture();
+
+    context.setServiceDisplay(EasyMock.capture(serviceDisplayNameArg1),
+        EasyMock.capture(serviceDisplayNameArg2));
+    expectLastCall().andAnswer(new IAnswer<Object>() {
+      @Override
+      public Object answer() {
+        serviceNames.put(serviceDisplayNameArg1.getValue(), serviceDisplayNameArg2.getValue());
+        return null;
+      }
+    }).anyTimes();
+
+    final Map<String, String> componentNames = new HashMap<>();
+    final Capture<String> componentDisplayNameArg1 = EasyMock.newCapture();
+    final Capture<String> componentDisplayNameArg2 = EasyMock.newCapture();
+    final Capture<String> componentDisplayNameArg3 = EasyMock.newCapture();
+
+    context.setComponentDisplay(EasyMock.capture(componentDisplayNameArg1),
+        EasyMock.capture(componentDisplayNameArg2), EasyMock.capture(componentDisplayNameArg3));
+
+    expectLastCall().andAnswer(new IAnswer<Object>() {
+      @Override
+      public Object answer() {
+        componentNames.put(
+            componentDisplayNameArg1.getValue() + ":" + componentDisplayNameArg2.getValue(),
+            componentDisplayNameArg3.getValue());
+        return null;
+      }
+    }).anyTimes();
+
+    final Capture<String> getServiceDisplayArgument1 = EasyMock.newCapture();
+    expect(context.getServiceDisplay(EasyMock.capture(getServiceDisplayArgument1))).andAnswer(
+        new IAnswer<String>() {
+          @Override
+          public String answer() {
+            return serviceNames.get(getServiceDisplayArgument1.getValue());
+          }
+        }).anyTimes();
+
+    final Capture<String> getComponentDisplayArgument1 = EasyMock.newCapture();
+    final Capture<String> getComponentDisplayArgument2 = EasyMock.newCapture();
+    expect(context.getComponentDisplay(EasyMock.capture(getComponentDisplayArgument1),
+        EasyMock.capture(getComponentDisplayArgument2))).andAnswer(new IAnswer<String>() {
+          @Override
+          public String answer() {
+            return componentNames.get(getComponentDisplayArgument1.getValue() + ":"
+                + getComponentDisplayArgument2.getValue());
+          }
+        }).anyTimes();
 
     if (replay) {
       replay(context);

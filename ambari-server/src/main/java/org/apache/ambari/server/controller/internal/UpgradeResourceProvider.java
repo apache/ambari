@@ -375,14 +375,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         // use a combination of the supplied information to find the target
         // repository
-        final Long repositoryId = (Long) requestMap.get(UPGRADE_REPO_ID);
+        final String repositoryId = (String) requestMap.get(UPGRADE_REPO_ID);
         final String repositoryName = (String) requestMap.get(UPGRADE_REPO_NAME);
         final String repositoryVersion = (String) requestMap.get(UPGRADE_REPO_VERSION);
 
         RepositoryVersionEntity toRepositoryVersion = null;
 
         if (null != repositoryId) {
-          toRepositoryVersion = s_repoVersionDAO.findByPK(repositoryId);
+          toRepositoryVersion = s_repoVersionDAO.findByPK(Long.valueOf(repositoryId));
         } else {
           if (StringUtils.isNotBlank(repositoryName)) {
             toRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(repositoryName,
@@ -665,6 +665,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Direction direction = upgradeContext.getDirection();
     Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
     UpgradeType upgradeType = upgradeContext.getType();
+    RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion();
 
     /**
      * For the unit tests tests, there are multiple upgrade packs for the same type, so
@@ -672,7 +673,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
      */
     String preferredUpgradePackName = (String) requestMap.get(UPGRADE_PACK);
 
-    String version = (String) requestMap.get(UPGRADE_REPO_VERSION);
+    String version = targetRepositoryVersion.getVersion();
     String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
 
     UpgradePack pack = s_upgradeHelper.suggestUpgradePack(cluster.getClusterName(),
@@ -1967,6 +1968,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
 
       String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
+      String versionId = (String) requestMap.get(UPGRADE_REPO_ID);
       String version = (String) requestMap.get(UPGRADE_REPO_VERSION);
       String direction = (String) requestMap.get(UPGRADE_DIRECTION);
 
@@ -1974,8 +1976,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
       }
 
-      if (StringUtils.isBlank(version)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_REPO_VERSION));
+      if (StringUtils.isBlank(versionId) && StringUtils.isBlank(version)) {
+        throw new AmbariException(
+            String.format("Either %s or %s is required", UPGRADE_REPO_ID, UPGRADE_REPO_VERSION));
       }
 
       if (StringUtils.isBlank(direction)) {

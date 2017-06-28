@@ -36,7 +36,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +98,6 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
   private CommandReport updateDesiredStack(Cluster cluster, UpgradeContext context)
       throws AmbariException, InterruptedException {
 
-    UpgradePack upgradePack = context.getUpgradePack();
     Direction direction = context.getDirection();
     RepositoryVersionEntity fromRepositoryVersion = context.getSourceRepositoryVersion();
     RepositoryVersionEntity toRepositoryVersion = context.getTargetRepositoryVersion();
@@ -110,12 +108,12 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
 
     try {
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
-      out.append(String.format("%s %s from %s-%s to %s-%s using %s\n",
+      out.append(String.format("%s %s from %s-%s to %s-%s\n",
           direction.getVerb(true), clusterName,
           fromRepositoryVersion.getStackId().getStackName(),
           fromRepositoryVersion.getVersion(),
           toRepositoryVersion.getStackId().getStackName(),
-          toRepositoryVersion.getVersion(), upgradePack.getName()));
+          toRepositoryVersion.getVersion()));
 
       out.append(String.format(
           "Checking if can update the desired stack to %s. The cluster's current stack is %s\n",
