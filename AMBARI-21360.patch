@@ -1,0 +1,45 @@
+diff --git a/ambari-admin/src/main/resources/ui/admin-web/app/scripts/controllers/ambariViews/ViewsListCtrl.js b/ambari-admin/src/main/resources/ui/admin-web/app/scripts/controllers/ambariViews/ViewsListCtrl.js
+index c41e5d4..4e7bae3 100644
+--- a/ambari-admin/src/main/resources/ui/admin-web/app/scripts/controllers/ambariViews/ViewsListCtrl.js
++++ b/ambari-admin/src/main/resources/ui/admin-web/app/scripts/controllers/ambariViews/ViewsListCtrl.js
+@@ -132,6 +132,26 @@ angular.module('ambariAdminConsole')
+     }
+   };
+ 
++  $scope.deleteInstance = function(instance) {
++      ConfirmationModal.show(
++        $t('common.delete', {
++          term: $t('views.viewInstance')
++        }),
++        $t('common.deleteConfirmation', {
++          instanceType: $t('views.viewInstance'),
++          instanceName: instance.ViewInstanceInfo.label
++        })
++      ).then(function() {
++        View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
++          .then(function() {
++            loadViews();
++          })
++          .catch(function(data) {
++            Alert.error($t('views.alerts.cannotDeleteInstance'), data.data.message);
++          });
++      });
++    };
++
+   $scope.reloadViews = function () {
+     loadViews();
+   };
+diff --git a/ambari-admin/src/main/resources/ui/admin-web/app/views/ambariViews/listTable.html b/ambari-admin/src/main/resources/ui/admin-web/app/views/ambariViews/listTable.html
+index 59c322f..91b9a93 100644
+--- a/ambari-admin/src/main/resources/ui/admin-web/app/views/ambariViews/listTable.html
++++ b/ambari-admin/src/main/resources/ui/admin-web/app/views/ambariViews/listTable.html
+@@ -81,6 +81,9 @@
+                     <td class="col-sm-1">
+                         <a class="instance-link ng-scope ng-binding" href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/clone"><i class="fa fa-copy"></i></a>
+                     </td>
++                    <td class="col-sm-1">
++                        <a class="instance-link ng-scope ng-binding" href ng-click="deleteInstance(instance)"><i class="fa fa-trash-o"></i></a>
++                    </td>
+                 </tr>
+                 </tbody>
+                 <tfoot>
