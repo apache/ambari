@@ -1,4 +1,18 @@
 {
+    "localComponents": [
+        "APP_TIMELINE_SERVER",
+        "TEZ_CLIENT",
+        "DATANODE",
+        "HDFS_CLIENT",
+        "ZOOKEEPER_SERVER",
+        "RESOURCEMANAGER",
+        "MAPREDUCE2_CLIENT",
+        "YARN_CLIENT",
+        "HISTORYSERVER",
+        "ZOOKEEPER_CLIENT",
+        "NAMENODE"
+    ],
+
     "configuration_attributes": {
         "storm-site": {},
         "hdfs-site": {
