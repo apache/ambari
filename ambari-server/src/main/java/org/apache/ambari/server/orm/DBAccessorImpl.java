@@ -204,6 +204,27 @@ public class DBAccessorImpl implements DBAccessor {
     return objectName;
   }
 
+  /**
+   * Setting arguments for prepared statement
+   *
+   * @param preparedStatement {@link PreparedStatement} object
+   * @param arguments array of arguments
+   *
+   * @throws SQLException
+   */
+  private void setArgumentsForPreparedStatement(PreparedStatement preparedStatement, Object[] arguments) throws SQLException{
+    for (int i = 0; i < arguments.length; i++) {
+      if (arguments[i] instanceof byte[]) {
+        byte[] binaryData = (byte[]) arguments[i];
+
+        // JDBC drivers supports only this function signature
+        preparedStatement.setBinaryStream(i+1, new ByteArrayInputStream(binaryData), binaryData.length);
+      } else {
+        preparedStatement.setObject(i+1, arguments[i]);
+      }
+    }
+  }
+
   @Override
   public boolean tableExists(String tableName) throws SQLException {
     boolean result = false;
@@ -878,16 +899,8 @@ public class DBAccessorImpl implements DBAccessor {
     LOG.info("Executing prepared query: {}", query);
 
     PreparedStatement preparedStatement = getConnection().prepareStatement(query);
+    setArgumentsForPreparedStatement(preparedStatement, arguments);
 
-      for (int i = 0; i < arguments.length; i++) {
-        if (arguments[i] instanceof byte[]) {
-          byte[] binaryData = (byte[]) arguments[i];
-          // JDBC drivers supports only this function signature
-          preparedStatement.setBinaryStream(i+1, new ByteArrayInputStream(binaryData), binaryData.length);
-        } else {
-          preparedStatement.setObject(i+1, arguments[i]);
-        }
-      }
     try {
         preparedStatement.execute();
     } catch (SQLException e) {
@@ -908,7 +921,7 @@ public class DBAccessorImpl implements DBAccessor {
    {@inheritDoc}
    */
   public void executePreparedUpdate(String query, Object...arguments) throws SQLException {
-    executePreparedQuery(query, false, arguments);
+    executePreparedUpdate(query, false, arguments);
   }
 
   /**
@@ -918,16 +931,8 @@ public class DBAccessorImpl implements DBAccessor {
     LOG.info("Executing prepared query: {}", query);
 
     PreparedStatement preparedStatement = getConnection().prepareStatement(query);
+    setArgumentsForPreparedStatement(preparedStatement, arguments);
 
-    for (int i = 0; i <= arguments.length; i++) {
-      if (arguments[i] instanceof byte[]) {
-        byte[] binaryData = (byte[]) arguments[i];
-        // JDBC drivers supports only this function signature
-        preparedStatement.setBinaryStream(i+1, new ByteArrayInputStream(binaryData), binaryData.length);
-      } else {
-        preparedStatement.setObject(i+1, arguments[i]);
-      }
-    }
     try {
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
