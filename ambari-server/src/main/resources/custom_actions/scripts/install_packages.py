@@ -69,6 +69,7 @@ class InstallPackages(Script):
     signal.signal(signal.SIGINT, self.abort_handler)
 
     self.repository_version_id = None
+    self.ignore_package_dependencies = 'ignore_package_dependencies' in config['roleParams'] and config['roleParams']['ignore_package_dependencies']
 
     base_urls = []
     # Select dict that contains parameters
@@ -393,7 +394,9 @@ class InstallPackages(Script):
           if package_version_string and (package_version_string in package):
             Package(package, action="remove")
 
-    if not verifyDependencies():
+    if self.ignore_package_dependencies:
+      Logger.info("Ignoring package dependencies")
+    elif not verifyDependencies():
       ret_code = 1
       Logger.logger.error("Failure while verifying dependencies")
       Logger.logger.error("*******************************************************************************")

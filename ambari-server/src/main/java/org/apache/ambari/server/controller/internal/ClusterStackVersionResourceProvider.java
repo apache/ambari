@@ -38,6 +38,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -103,6 +104,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
   protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID  = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
   protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
+  protected static final String CLUSTER_STACK_VERSION_IGNORE_PACKAGE_DEPENDENCIES = PropertyHelper.getPropertyId("ClusterStackVersions", KeyNames.IGNORE_PACKAGE_DEPENDENCIES);
 
   /**
    * Forces the {@link HostVersionEntity}s to a specific
@@ -140,7 +142,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
       CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
-      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR, CLUSTER_STACK_VERSION_FORCE);
+      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR, CLUSTER_STACK_VERSION_IGNORE_PACKAGE_DEPENDENCIES, CLUSTER_STACK_VERSION_FORCE);
 
   private static Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
       .put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)
@@ -492,6 +494,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       successFactor = Float.valueOf(successFactorProperty);
     }
 
+    Object ignorePackageDependenciesProperty = propertyMap.get(CLUSTER_STACK_VERSION_IGNORE_PACKAGE_DEPENDENCIES);
+    String ignorePackageDependencies = Boolean.valueOf(String.valueOf(ignorePackageDependenciesProperty)).toString();
+
     boolean hasStage = false;
 
     ArrayList<Stage> stages = new ArrayList<>(batchCount);
@@ -537,6 +542,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           ActionExecutionContext actionContext = getHostVersionInstallCommand(repoVersionEnt,
                   cluster, managementController, ami, stackId, serviceNames, perOsRepos, stage, host);
           if (null != actionContext) {
+            actionContext.getParameters().put(KeyNames.IGNORE_PACKAGE_DEPENDENCIES, ignorePackageDependencies);
             try {
               actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
               hasStage = true;
