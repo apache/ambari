@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>OOZIE</name>
-      <extends>common-services/OOZIE/4.3.0</extends>
+      <extends>common-services/OOZIE/4.2.0.2.5</extends>
       <version>4.3.0</version>
         
       <osSpecifics>
