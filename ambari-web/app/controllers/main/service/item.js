@@ -1388,8 +1388,10 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
               this._super();
             }
           });
-        self.set('deleteServiceProgressPopup', progressPopup);
-        self.deleteServiceCall(serviceNames);
+        App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+          self.set('deleteServiceProgressPopup', progressPopup);
+          self.deleteServiceCall(serviceNames);
+        });
         this._super();
       },
 

@@ -461,12 +461,4 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
       }
     }
   }
-
-  private static <T> Collection<T> nullToEmpty(Collection<T> collection) {
-    return collection == null ? Collections.<T>emptyList() : collection;
-  }
-
-  private static <K,V> Map<K,V> nullToEmpty(Map<K,V> collection) {
-    return collection == null ? Collections.<K,V>emptyMap() : collection;
-  }
 }

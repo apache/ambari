@@ -27,6 +27,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
@@ -231,6 +232,8 @@ public interface KerberosHelper {
                                          Set<String> hostFilter, Collection<String> identityFilter,
                                          RequestStageContainer requestStageContainer, Boolean manageIdentities)
       throws AmbariException, KerberosOperationException;
+
+  void deleteIdentity(Cluster cluster, Component component, List<String> identities) throws AmbariException, KerberosOperationException;
 
   /**
    * Updates the relevant configurations for the components specified in the service filter.
