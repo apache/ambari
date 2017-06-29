@@ -17,12 +17,10 @@
  */
 package org.apache.ambari.server.controller.jmx;
 
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.state.Host;
-
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.state.Host;
 
 /**
  * Provider of JMX host information.
