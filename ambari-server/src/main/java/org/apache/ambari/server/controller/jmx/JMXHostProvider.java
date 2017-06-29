@@ -18,6 +18,11 @@
 package org.apache.ambari.server.controller.jmx;
 
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.state.Host;
+
+import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.SystemException;
 
 import java.util.Set;
 
@@ -25,6 +30,8 @@ import java.util.Set;
  * Provider of JMX host information.
  */
 public interface JMXHostProvider {
+
+  String getPublicHostName(String clusterName, String hostName);
 
   /**
    * Get the JMX host names for the given cluster name and component name.
@@ -36,6 +43,14 @@ public interface JMXHostProvider {
    *
    */
   public Set<String> getHostNames(String clusterName, String componentName);
+
+  /**
+   * Get cluster host info given the host name
+   * @param clusterName
+   * @param hostName the host name
+   * @return the host info {@link Host}
+   */
+  Host getHost(String clusterName, String hostName);
 
   /**
    * Get the port for the specified cluster name and component.

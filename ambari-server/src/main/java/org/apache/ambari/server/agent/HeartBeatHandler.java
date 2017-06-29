@@ -617,8 +617,10 @@ public class HeartBeatHandler {
           clusterName, hostname);
 
       String hash = alertDefinitionHash.getHash(clusterName, hostname);
+      Host host = cluster.getHost(hostname);
+      String publicHostName = host == null? hostname : host.getPublicHostName();
       AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
-          hostname, hash, definitions);
+          hostname, publicHostName, hash, definitions);
 
       command.addConfigs(configHelper, cluster);
       commands.add(command);

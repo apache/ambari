@@ -2930,6 +2930,24 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public Host getHost(final String hostName) {
+    if (StringUtils.isEmpty(hostName)) {
+      return null;
+    }
+
+    Collection<Host> hosts = getHosts();
+    if(hosts != null) {
+      for (Host host : hosts) {
+        String hostString = host.getHostName();
+        if(hostName.equalsIgnoreCase(hostString)) {
+          return host;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Collection<Host> getHosts() {
     Map<String, Host> hosts;
 

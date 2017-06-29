@@ -65,6 +65,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -458,6 +459,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   @Override
+  public String getPublicHostName(String clusterName, String hostName) {
+    Host host = getHost(clusterName, hostName);
+    return host == null? hostName : host.getPublicHostName();
+  }
+
+  @Override
   public Set<String> getHostNames(String clusterName, String componentName) {
     Set<String> hosts = null;
     try {
@@ -469,6 +476,21 @@ public abstract class AbstractProviderModule implements ProviderModule,
     }
     return hosts;
   }
+
+  @Override
+  public Host getHost(String clusterName, String hostName) {
+    Host host = null;
+    try {
+      Cluster cluster = managementController.getClusters().getCluster(clusterName);
+      if(cluster != null) {
+        host = cluster.getHost(hostName);
+      }
+    } catch (Exception e) {
+      LOG.warn("Exception in getting host info for jmx metrics: ", e);
+    }
+    return host;
+  }
+
 
   @Override
   public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
@@ -527,12 +549,14 @@ public abstract class AbstractProviderModule implements ProviderModule,
               serviceConfigTypes.get(service)
           );
 
-          Map<String, String[]> componentPortsProperties = new HashMap<String, String[]>();
+          String publicHostName = getPublicHostName(clusterName, hostName);
+          Map<String, String[]> componentPortsProperties = new HashMap<>();
           componentPortsProperties.put(
               componentName,
               getPortProperties(service,
                   componentName,
                   hostName,
+                  publicHostName,
                   configProperties,
                   httpsEnabled
               )
@@ -552,7 +576,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
             }
           }
 
-          initRpcSuffixes(clusterName, componentName, configType, currVersion, hostName);
+          initRpcSuffixes(clusterName, componentName, configType, currVersion, hostName, publicHostName);
         }
       } catch (Exception e) {
         LOG.error("Exception initializing jmx port maps. ", e);
@@ -574,8 +598,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   /**
-   * Computes properties that contains proper port for {@code componentName} on {@code hostName}. Must contain custom logic
-   * for different configurations(like NAMENODE HA).
+   * Computes properties that contains proper port for {@code componentName} on {@code hostName}.
+   * Must contain custom logic for different configurations(like NAMENODE HA).
    * @param service service type
    * @param componentName component name
    * @param hostName host which contains requested component
@@ -583,16 +607,20 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * @param httpsEnabled indicates if https enabled for component
    * @return property name that contain port for {@code componentName} on {@code hostName}
    */
-  String[] getPortProperties(Service.Type service, String componentName, String hostName, Map<String, Object> properties, boolean httpsEnabled) {
+  String[] getPortProperties(Service.Type service, String componentName,
+    String hostName, String publicHostName, Map<String, Object> properties, boolean httpsEnabled) {
     componentName = httpsEnabled ? componentName + "-HTTPS" : componentName;
     if(componentName.startsWith("NAMENODE") && properties.containsKey("dfs.internal.nameservices")) {
       componentName += "-HA";
-      return getNamenodeHaProperty(properties, serviceDesiredProperties.get(service).get(componentName), hostName);
+      return getNamenodeHaProperty(
+        properties, serviceDesiredProperties.get(service).get(componentName), hostName, publicHostName);
     }
     return serviceDesiredProperties.get(service).get(componentName);
   }
 
-  private String[] getNamenodeHaProperty(Map<String, Object> properties, String pattern[], String hostName) {
+  private String[] getNamenodeHaProperty(Map<String, Object> properties, String pattern[],
+    String hostName, String publicHostName) {
+
     // iterate over nameservices and namenodes, to find out namenode http(s) property for concrete host
     for(String nameserviceId : ((String)properties.get("dfs.internal.nameservices")).split(",")) {
       if(properties.containsKey("dfs.ha.namenodes."+nameserviceId)) {
@@ -604,7 +632,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
           );
           if (properties.containsKey(propertyName)) {
             String propertyValue = (String)properties.get(propertyName);
-            if (propertyValue.split(":")[0].equals(hostName)) {
+            String propHostName = propertyValue.split(":")[0];
+            if (propHostName.equals(hostName) || propHostName.equals(publicHostName)) {
               return new String[] {propertyName};
             }
           }
@@ -1183,7 +1212,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   private void initRpcSuffixes(String clusterName, String componentName,
                                String config, String configVersion,
-                               String hostName)
+                               String hostName, String publicHostName)
                               throws Exception {
     if (jmxDesiredRpcSuffixProperties.containsKey(componentName)) {
       Map<String, Map<String, String>> componentToPortsMap;
@@ -1211,7 +1240,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
           keys = jmxDesiredRpcSuffixProperties.get(componentName);
           Map<String, String[]> stringMap = jmxDesiredRpcSuffixProperties.get(componentName);
           for (String tag: stringMap.keySet()) {
-            keys.put(tag, getNamenodeHaProperty(configProperties, stringMap.get(tag), hostName));
+            keys.put(tag, getNamenodeHaProperty(configProperties, stringMap.get(tag), hostName, publicHostName));
           }
         }
       }
