@@ -187,11 +187,12 @@ public class UpgradeHelperTest {
     final String upgradeToVersion = "2.2.0";
     final Direction upgradeDirection = Direction.UPGRADE;
     final UpgradeType upgradeType = UpgradeType.ROLLING;
+    final String stackName = "HDP";
 
     makeCluster();
     try {
       String preferredUpgradePackName = "upgrade_test";
-      UpgradePack up = m_upgradeHelper.suggestUpgradePack(clusterName, upgradeFromVersion, upgradeToVersion, upgradeDirection, upgradeType, preferredUpgradePackName);
+      UpgradePack up = m_upgradeHelper.suggestUpgradePack(clusterName, upgradeFromVersion, upgradeToVersion, upgradeDirection, upgradeType, stackName, preferredUpgradePackName);
       assertEquals(upgradeType, up.getType());
     } catch (AmbariException e){
       assertTrue(false);
@@ -1725,13 +1726,14 @@ public class UpgradeHelperTest {
     final String upgradeToVersion = "2.2.0";
     final Direction upgradeDirection = Direction.UPGRADE;
     final UpgradeType upgradeType = UpgradeType.ROLLING;
+    final String stackName = "HDP";
 
     Cluster cluster = makeCluster();
 
     // grab the right pack
     String preferredUpgradePackName = "upgrade_grouping_rolling";
     UpgradePack upgradePack = m_upgradeHelper.suggestUpgradePack(clusterName, upgradeFromVersion,
-        upgradeToVersion, upgradeDirection, upgradeType, preferredUpgradePackName);
+        upgradeToVersion, upgradeDirection, upgradeType, stackName, preferredUpgradePackName);
 
     assertEquals(upgradeType, upgradePack.getType());
 

@@ -656,14 +656,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Validates a singular API request.
    *
-   * @param requestMap
-   *          the map of properties
+   * @param upgradeContext details about the upgrade such as direction and type
    * @return the validated upgrade pack
    * @throws AmbariException
    */
   private UpgradePack validateRequest(UpgradeContext upgradeContext) throws AmbariException {
     Cluster cluster = upgradeContext.getCluster();
     Direction direction = upgradeContext.getDirection();
+    String targetStackName = upgradeContext.getTargetStackId().getStackName();
     Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
     UpgradeType upgradeType = upgradeContext.getType();
     RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion();
@@ -678,7 +678,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
 
     UpgradePack pack = s_upgradeHelper.suggestUpgradePack(cluster.getClusterName(),
-        versionForUpgradePack, version, direction, upgradeType, preferredUpgradePackName);
+        versionForUpgradePack, version, direction, upgradeType, targetStackName, preferredUpgradePackName);
 
     // the validator will throw an exception if the upgrade request is not valid
     UpgradeRequestValidator upgradeRequestValidator = buildValidator(upgradeType);

@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>FLUME</name>
-      <version>1.7.0</version>
+      <version>1.4.0</version>
       <extends>common-services/FLUME/1.4.0.2.0</extends>
       
       <osSpecifics>

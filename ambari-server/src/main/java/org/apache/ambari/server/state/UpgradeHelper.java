@@ -192,16 +192,17 @@ public class UpgradeHelper {
    * @param upgradeToVersion Target stack version
    * @param direction {@code Direction} of the upgrade
    * @param upgradeType The {@code UpgradeType}
+   * @param targetStackName The destination target stack name.
    * @param preferredUpgradePackName For unit test, need to prefer an upgrade pack since multiple matches can be found.
    * @return {@code UpgradeType} object
    * @throws AmbariException
    */
   public UpgradePack suggestUpgradePack(String clusterName, String upgradeFromVersion, String upgradeToVersion,
-    Direction direction, UpgradeType upgradeType, String preferredUpgradePackName) throws AmbariException {
+    Direction direction, UpgradeType upgradeType, String targetStackName, String preferredUpgradePackName) throws AmbariException {
 
     // Find upgrade packs based on current stack. This is where to upgrade from
     Cluster cluster = clusters.get().getCluster(clusterName);
-    StackId stack =  cluster.getCurrentStackVersion();
+    StackId currentStack =  cluster.getCurrentStackVersion();
 
     String repoVersion = upgradeToVersion;
 
@@ -210,21 +211,25 @@ public class UpgradeHelper {
       repoVersion = upgradeFromVersion;
     }
 
-    RepositoryVersionEntity versionEntity = s_repoVersionDAO.get().findByStackNameAndVersion(stack.getStackName(), repoVersion);
+    Map<String, UpgradePack> packs = m_ambariMetaInfo.get().getUpgradePacks(currentStack.getStackName(), currentStack.getStackVersion());
+    UpgradePack pack = null;
+
+    if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
+      pack = packs.get(preferredUpgradePackName);
+    }
+
+    RepositoryVersionEntity versionEntity = s_repoVersionDAO.get().findByStackNameAndVersion(targetStackName, repoVersion);
     if (null == versionEntity) {
       versionEntity = s_repoVersionDAO.get().findByVersion(repoVersion);
     }
 
     if (versionEntity == null) {
-      throw new AmbariException(String.format("Repository version %s was not found", repoVersion));
+      throw new AmbariException(String.format("Repository version %s was not found for target stack %s", repoVersion, targetStackName));
     }
 
-    Map<String, UpgradePack> packs = m_ambariMetaInfo.get().getUpgradePacks(stack.getStackName(), stack.getStackVersion());
-    UpgradePack pack = null;
-
-    if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
-      pack = packs.get(preferredUpgradePackName);
-    } else {
+    // Best-attempt at picking an upgrade pack assuming within the same stack whose target stack version matches.
+    // If multiple candidates are found, raise an exception.
+    if (null == pack) {
       String repoStackId = versionEntity.getStackId().getStackId();
       for (UpgradePack upgradePack : packs.values()) {
         if (null != upgradePack.getTargetStack() && upgradePack.getTargetStack().equals(repoStackId) &&
@@ -242,8 +247,8 @@ public class UpgradeHelper {
     }
 
     if (null == pack) {
-      throw new AmbariException(String.format("Unable to perform %s. Could not locate %s upgrade pack for version %s",
-          direction.getText(false), upgradeType.toString(), repoVersion));
+      throw new AmbariException(String.format("Unable to perform %s. Could not locate %s upgrade pack for stack %s and version %s",
+          direction.getText(false), upgradeType.toString(), targetStackName, repoVersion));
     }
 
    return pack;
