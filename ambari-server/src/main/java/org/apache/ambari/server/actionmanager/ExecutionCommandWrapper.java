@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,12 +30,17 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +66,12 @@ public class ExecutionCommandWrapper {
 
   @Inject
   private Gson gson;
+
+  /**
+   * Used for injecting hooks and common-services into the command.
+   */
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
 
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
@@ -182,12 +196,28 @@ public class ExecutionCommandWrapper {
         }
       }
 
+      Map<String,String> commandParams = executionCommand.getCommandParams();
+
       ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
       if (null != effectiveClusterVersion) {
-        executionCommand.getCommandParams().put(KeyNames.VERSION,
+        commandParams.put(KeyNames.VERSION,
             effectiveClusterVersion.getRepositoryVersion().getVersion());
       }
 
+      // add the stack and common-services folders to the command
+      StackId stackId = cluster.getDesiredStackVersion();
+      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+          stackId.getStackVersion());
+
+      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+
+      String serviceName = executionCommand.getServiceName();
+      if (!StringUtils.isEmpty(serviceName)) {
+        ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+            stackId.getStackVersion(), serviceName);
+
+        commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+      }
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs

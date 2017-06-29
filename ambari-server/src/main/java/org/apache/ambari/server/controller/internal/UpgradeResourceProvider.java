@@ -17,9 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,7 +92,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
@@ -1311,25 +1307,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, params);
-
-    // Because custom task may end up calling a script/function inside a
-    // service, it is necessary to set the
-    // service_package_folder and hooks_folder params.
-    AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
-    StackId stackId = context.getEffectiveStackId();
-
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
-
-    if (wrapper.getTasks() != null && wrapper.getTasks().size() > 0
-        && wrapper.getTasks().get(0).getService() != null) {
-      String serviceName = wrapper.getTasks().get(0).getService();
-      ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), serviceName);
-
-      params.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-    }
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "ru_execute_tasks", Collections.singletonList(filter), params);
