@@ -59,33 +59,6 @@ def _alter_repo(action, repo_string, repo_template):
                components = ubuntu_components, # ubuntu specific
     )
 
-    if action == "create":
-      #Attempt to clean cache against the given repo
-      repo_id=repo['repoId']
-      print "Clean cache against " + repo_id + "; file:" + repo['repoName']
-      current_repo_ids = []
-      current_repo_files = set() 
-      
-      if OSCheck.is_ubuntu_family():
-        current_repo_files.add("base")
-        current_repo_files.add(repo['repoName'])
-      elif OSCheck.is_suse_family():
-        current_repo_ids.append("base")
-        current_repo_ids.append(repo_id)
-      else:  
-        current_repo_ids.append(repo_id)
-      
-      Repository(repo_id,
-                 action = "clearcache",
-                 base_url = repo['baseUrl'],
-                 mirror_list = repo['mirrorsList'],
-                 repo_file_name = repo['repoName'],
-                 repo_template = repo_template,
-                 components = ubuntu_components,  # ubuntu specific
-                 use_repos=list(current_repo_files) if OSCheck.is_ubuntu_family() else current_repo_ids,
-                 skip_repos=["*"] if OSCheck.is_redhat_family() else []
-      )      
-
 def install_repos():
   import params
   if params.host_sys_prepped:
