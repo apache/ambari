@@ -1310,6 +1310,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   runPreUpgradeCheck: function(version) {
     var params = {
+      id: version.get('id'),
       value: version.get('repositoryVersion'),
       label: version.get('displayName'),
       type: version.get('upgradeType'),

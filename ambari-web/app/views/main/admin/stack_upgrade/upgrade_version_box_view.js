@@ -153,6 +153,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var statePropertiesMap = this.get('statePropertiesMap');
     var requestInProgressRepoId = this.get('controller.requestInProgressRepoId');
     var status = this.get('content.status');
+    var isVersionHigherThanCurrent = stringUtils.compareVersions(
+        this.get('content.repositoryVersion'),
+        Em.get(currentVersion, 'repository_version')
+      ) === 1;
     var element = Em.Object.create({
       status: status,
       isInstalling: function () {
@@ -172,7 +176,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
-      if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
+      if (Em.get(currentVersion, 'stack_name') !== this.get('content.stackVersionType') || isVersionHigherThanCurrent) {
         var isDisabled = this.isDisabledOnInstalled();
         element.set('isButtonGroup', true);
         if (status === 'OUT_OF_SYNC') {

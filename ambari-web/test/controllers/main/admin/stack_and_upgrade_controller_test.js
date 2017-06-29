@@ -391,6 +391,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#runPreUpgradeCheck()", function() {
     it("make ajax call", function() {
       controller.runPreUpgradeCheck(Em.Object.create({
+        id: 1,
         repositoryVersion: '2.2',
         displayName: 'HDP-2.2',
         upgradeType: 'ROLLING',
@@ -401,6 +402,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0]).to.exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
+        id: 1,
         value: '2.2',
         label: 'HDP-2.2',
         type: 'ROLLING',

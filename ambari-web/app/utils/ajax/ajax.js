@@ -1709,6 +1709,7 @@ var urls = {
         timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
+            "repository_id": data.id,
             "repository_version": data.value,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
