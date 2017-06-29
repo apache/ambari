@@ -170,6 +170,7 @@ klist_path_local = get_klist_path(default('/configurations/kerberos-env/executab
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 #hosts
 hostname = config["hostname"]
+public_hostname = config["public_hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
@@ -305,6 +306,9 @@ if dfs_ha_enabled:
   for nn_id in dfs_ha_namemodes_ids_list:
     nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
     if hostname.lower() in nn_host.lower():
+      namenode_id = nn_id
+      namenode_rpc = nn_host
+    elif public_hostname.lower() in nn_host.lower():
       namenode_id = nn_id
       namenode_rpc = nn_host
   # With HA enabled namenode_address is recomputed

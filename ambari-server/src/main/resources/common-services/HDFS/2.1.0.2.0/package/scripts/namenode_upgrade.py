@@ -47,7 +47,7 @@ def prepare_upgrade_check_for_previous_dir():
 
   if params.dfs_ha_enabled:
     namenode_ha = NamenodeHAState()
-    if namenode_ha.is_active(params.hostname):
+    if namenode_ha.is_active(params.hostname) or namenode_ha.is_active(params.public_hostname):
       Logger.info("NameNode High Availability is enabled and this is the Active NameNode.")
 
       problematic_previous_namenode_dirs = set()
