@@ -167,7 +167,7 @@
     <file>
       <fileMode>755</fileMode>
       <source>${basedir}/target/src/ambari-agent</source>
-      <outputDirectory>/usr/sbin</outputDirectory>
+      <outputDirectory>/var/lib/ambari-agent/bin</outputDirectory>
     </file>
     <file>
       <fileMode>700</fileMode>

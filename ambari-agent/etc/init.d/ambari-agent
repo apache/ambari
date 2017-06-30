@@ -36,26 +36,6 @@ else
   command_prefx="bash -c"
 fi
 
-case "$1" in
-  start)
-        $command_prefx "/usr/sbin/ambari-agent $@"
-        ;;
-  stop)
-        $command_prefx "/usr/sbin/ambari-agent $@"
-        ;;
-  status)
-        $command_prefx "/usr/sbin/ambari-agent $@"
-        ;;
-  restart)
-        $command_prefx "$0 stop"
-        $command_prefx "$0 start"
-        ;;
-  reset)
-        /usr/sbin/ambari-agent $@
-        ;;
-  *)
-        echo "Usage: $0 {start|stop|status|restart|reset <server_hostname>}"
-        exit 1
-esac
+$command_prefx "/var/lib/ambari-agent/bin/ambari-agent $@"
 
 exit $?

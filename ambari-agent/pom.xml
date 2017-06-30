@@ -272,17 +272,6 @@
               </sources>
             </mapping>
            <mapping>
-              <directory>/usr/sbin</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded> <!-- avoid managing /usr/sbin -->
-              <sources>
-                <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/sbin</location>
-                </source>
-              </sources>
-            </mapping>
-           <mapping>
               <directory>/usr/lib/ambari-agent</directory>
               <filemode>755</filemode>
               <username>root</username>
