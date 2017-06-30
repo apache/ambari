@@ -40,5 +40,10 @@ public enum ExperimentalFeature {
   /**
    * Used for code that is targeted for patch upgrades
    */
-  PATCH_UPGRADES
+  PATCH_UPGRADES,
+
+  /**
+   * Upgrades from one stack vendor (FOO-1.0) to another (BAR-5.5.0).
+   */
+  STACK_UPGRADES_BETWEEN_VENDORS
 }

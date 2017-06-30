@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
@@ -52,6 +55,12 @@ public class StackVersionListener {
    */
   private final static Logger LOG = LoggerFactory.getLogger(StackVersionListener.class);
   public static final String UNKNOWN_VERSION = State.UNKNOWN.toString();
+
+  /**
+   * Used to prevent multiple threads from trying to update the same host
+   * version simultaneously.
+   */
+  private Lock m_stackVersionLock = new ReentrantLock();
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
@@ -95,6 +104,8 @@ public class StackVersionListener {
       }
     }
 
+    m_stackVersionLock.lock();
+
     // Update host component version value if needed
     try {
       ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(
@@ -126,6 +137,8 @@ public class StackVersionListener {
       LOG.error(
           "Unable to propagate version for ServiceHostComponent on component: {}, host: {}. Error: {}",
           sch.getServiceComponentName(), sch.getHostName(), e.getMessage());
+    } finally {
+      m_stackVersionLock.unlock();
     }
   }
 
@@ -158,8 +171,9 @@ public class StackVersionListener {
     // was this version expected
     boolean newVersionMatchesDesired = StringUtils.equals(desiredVersion, newVersion);
 
-    // was the prior version UNKNOWN
-    boolean previousVersionIsUnknown = StringUtils.equalsIgnoreCase(UNKNOWN_VERSION, previousVersion);
+    // was the prior version UNKNOWN or null
+    boolean previousVersionIsUnknown = StringUtils.equalsIgnoreCase(UNKNOWN_VERSION,
+        previousVersion) || StringUtils.isBlank(previousVersion);
 
     boolean desiredVersionIsUnknown = StringUtils.equalsIgnoreCase(UNKNOWN_VERSION, desiredVersion);
 
@@ -193,16 +207,16 @@ public class StackVersionListener {
       if (newVersionMatchesDesired) {
         if (isUpgradeInProgressForThisComponent) {
           sch.setStackVersion(cluster.getDesiredStackVersion());
-          setUpgradeStateAndRecalculateHostVersions(cluster, sch, UpgradeState.COMPLETE);
+          setUpgradeStateIfChanged(cluster, sch, UpgradeState.COMPLETE);
         } else {
           // no upgrade in progress for this component, then this should always
           // be NONE
-          setUpgradeStateAndRecalculateHostVersions(cluster, sch, UpgradeState.NONE);
+          setUpgradeStateIfChanged(cluster, sch, UpgradeState.NONE);
         }
       } else {
         // if the versions don't match for any reason, regardless of upgrade
         // state, then VERSION_MISMATCH it
-        setUpgradeStateAndRecalculateHostVersions(cluster, sch, UpgradeState.VERSION_MISMATCH);
+        setUpgradeStateIfChanged(cluster, sch, UpgradeState.VERSION_MISMATCH);
       }
     }
   }
@@ -226,11 +240,15 @@ public class StackVersionListener {
   }
 
   /**
+   * Sets the upgrade state on the component if it has changed. This method will
+   * not trigger an sort of {@link ClusterVersionEntity} or
+   * {@link HostVersionEntity} recalculation.
+   *
    * @param sch
    * @param upgradeState
    * @throws AmbariException
    */
-  private void setUpgradeStateAndRecalculateHostVersions(Cluster cluster, ServiceComponentHost sch,
+  private void setUpgradeStateIfChanged(Cluster cluster, ServiceComponentHost sch,
       UpgradeState upgradeState) throws AmbariException {
 
     // don't need to recalculate anything here if the upgrade state is not changing
@@ -240,8 +258,6 @@ public class StackVersionListener {
 
     // if the upgrade state changes, then also recalculate host versions
     sch.setUpgradeState(upgradeState);
-
-    recalculateHostVersionAndClusterVersion(cluster, sch);
   }
 
   /**
