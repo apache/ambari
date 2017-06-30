@@ -17,13 +17,23 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {StoreModule} from '@ngrx/store';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 
 import {FilteringService} from './filtering.service';
 
 describe('FilteringService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FilteringService]
+      imports: [
+        StoreModule.provideStore({
+          appSettings
+        })
+      ],
+      providers: [
+        FilteringService,
+        AppSettingsService
+      ]
     });
   });
 

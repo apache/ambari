@@ -20,4 +20,4 @@
   {{filterInstance.selectedLabel | translate}} <span class="caret"></span>
 </button>
 <ul class="dropdown-menu" [items]="filterInstance.options" [isFilter]="true"
-    (selectedItemChange)="setSelectedValue($event)"></ul>
+    (selectedItemChange)="writeValue($event)"></ul>

@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+import * as moment from 'moment-timezone';
+
 export const mockData = {
   login: {},
   api: {
@@ -224,7 +226,7 @@ export const mockData = {
               path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
               host: 'h0',
               level: 'WARN',
-              logtime: 1497474000000,
+              logtime: moment().valueOf(),
               ip: '192.168.0.1',
               logfile_line_number: 8,
               type: 'ams_collector',
@@ -241,14 +243,14 @@ export const mockData = {
               event_md5: '1908755391',
               event_dur_ms: 200,
               _ttl_: "+5DAYS",
-              _expire_at_: 1497906000000,
+              _expire_at_: moment().add(5, 'd').valueOf(),
               _router_field_: 20
             },
             {
               path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
               host: 'h1',
               level: 'ERROR',
-              logtime: 1497387600000,
+              logtime: moment().subtract(2, 'd'),
               ip: '192.168.0.2',
               type: 'ams_collector',
               _version_: 14,
@@ -265,14 +267,14 @@ export const mockData = {
               event_md5: '1029384756',
               event_dur_ms: 700,
               _ttl_: "+5DAYS",
-              _expire_at_: 1497819600000,
+              _expire_at_: moment().add(3, 'd').valueOf(),
               _router_field_: 5
             },
             {
               path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
               host: 'h1',
               level: 'FATAL',
-              logtime: 1497042000000,
+              logtime: moment().subtract(10, 'd').valueOf(),
               ip: '192.168.0.3',
               type: 'ambari_agent',
               _version_: 14,
@@ -289,14 +291,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 100,
               _ttl_: "+5DAYS",
-              _expire_at_: 1497474000000,
+              _expire_at_: moment().subtract(5, 'd').valueOf(),
               _router_field_: 45
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-server.log',
               host: 'h1',
               level: 'INFO',
-              logtime: 1497956919700,
+              logtime: moment().subtract(25, 'h').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_server',
               _version_: 14,
@@ -313,14 +315,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: "+5DAYS",
-              _expire_at_: 1497956939700,
+              _expire_at_: moment().subtract(25, 'h').add(5, 'd').valueOf(),
               _router_field_: 55
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-server.log',
               host: 'h1',
               level: 'DEBUG',
-              logtime: 1497956919700,
+              logtime: moment().subtract(25, 'd').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_server',
               _version_: 14,
@@ -337,14 +339,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: "+5DAYS",
-              _expire_at_: 1497956939700,
+              _expire_at_: moment().subtract(20, 'd').valueOf(),
               _router_field_: 55
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-client.log',
               host: 'h1',
               level: 'TRACE',
-              logtime: 1497956919700,
+              logtime: moment().subtract(2, 'h').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_client',
               _version_: 14,
@@ -361,14 +363,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: "+5DAYS",
-              _expire_at_: 1497956939700,
+              _expire_at_: moment().subtract(2, 'h').add(5, 'd').valueOf(),
               _router_field_: 55
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-client.log',
               host: 'h1',
               level: 'UNKNOWN',
-              logtime: 1497956919700,
+              logtime: moment().subtract(31, 'd').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_client',
               _version_: 14,
@@ -385,7 +387,7 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: "+5DAYS",
-              _expire_at_: 1497956939700,
+              _expire_at_: moment().subtract(26, 'd').valueOf(),
               _router_field_: 55
             }
           ],

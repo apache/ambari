@@ -16,18 +16,12 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {Action, ActionReducer, Store} from '@ngrx/store';
-import {BarGraph} from '@app/models/bar-graph.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import * as moment from 'moment-timezone';
 
-@Injectable()
-export class BarGraphsService extends CollectionModelService {
-  constructor(store: Store<AppStore>) {
-    super('barGraphs', store);
-  }
+export interface AppSettings {
+  timeZone: string;
 }
 
-export const barGraphs: ActionReducer<BarGraph[]> = (state: BarGraph[] = [], action: Action) => {
-  return collectionReducer(state, action);
+export const defaultSettings: AppSettings = {
+  timeZone: moment.tz.guess()
 }

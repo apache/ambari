@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import {AppSettings} from '@app/models/app-settings.model';
 import {Observable} from 'rxjs/Observable';
 import {Store, Action} from '@ngrx/store';
 import {AuditLog} from '@app/models/audit-log.model';
@@ -29,10 +30,12 @@ import {Filter} from '@app/models/filter.model';
 export const storeActions = {
   ADD: 'ADD',
   DELETE: 'DELETE',
-  CLEAR: 'CLEAR'
+  CLEAR: 'CLEAR',
+  SET: 'SET'
 };
 
 export interface AppStore {
+  appSettings: AppSettings;
   auditLogs: AuditLog[];
   serviceLogs: ServiceLog[];
   barGraphs: BarGraph[];
@@ -44,17 +47,25 @@ export interface AppStore {
 
 export class ModelService {
 
-  constructor(private modelName: string, private store: Store<AppStore>) {}
+  constructor(modelName: string, store: Store<AppStore>) {
+    this.modelName = modelName;
+    this.store = store;
+  }
 
-  getInstances(): Observable<any> {
+  protected modelName: string;
+
+  protected store: Store<AppStore>;
+
+  getAll(): Observable<any> {
     return this.store.select(this.modelName);
   }
 
+}
+
+export class CollectionModelService extends ModelService {
+
   addInstance(instance: any): void {
-    this.store.dispatch({
-      type: storeActions.ADD,
-      payload: [instance]
-    });
+    this.addInstances([instance]);
   }
 
   addInstances(instances: any[]): void {
@@ -79,7 +90,24 @@ export class ModelService {
 
 }
 
-export function reducer(state: any, action: Action): any {
+export class ObjectModelService extends ModelService {
+
+  setParameter(key: string, value: any): void {
+    let payload = {};
+    payload[key] = value;
+    this.setParameters(payload);
+  }
+
+  setParameters(params: any): void {
+    this.store.dispatch({
+      type: storeActions.SET,
+      payload: params
+    });
+  }
+
+}
+
+export function collectionReducer(state: any, action: Action): any {
   switch (action.type) {
     case storeActions.ADD:
       return [...state, ...action.payload];
@@ -89,6 +117,15 @@ export function reducer(state: any, action: Action): any {
       });
     case storeActions.CLEAR:
       return [];
+    default:
+      return state;
+  }
+}
+
+export function objectReducer(state: any, action: Action): any {
+  switch (action.type) {
+    case storeActions.SET:
+      return Object.assign({}, state, action.payload);
     default:
       return state;
   }

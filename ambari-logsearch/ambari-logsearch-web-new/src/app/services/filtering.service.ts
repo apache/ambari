@@ -19,12 +19,16 @@
 import {Injectable} from '@angular/core';
 import {Subject} from 'rxjs/Subject';
 import * as moment from 'moment-timezone';
+import {AppSettingsService} from '@app/services/storage/app-settings.service';
 
 @Injectable()
 export class FilteringService {
 
-  constructor() {
+  constructor(private appSettings: AppSettingsService) {
+    this.appSettings.getAll().subscribe(settings => this.timeZone = settings.timeZone);
   }
+
+  timeZone: string;
 
   // TODO implement loading of real options data
   filters = {
@@ -57,7 +61,7 @@ export class FilteringService {
         }
       ],
       selectedValue: '',
-      selectedLabel: '',
+      selectedLabel: 'filter.all',
       paramName: 'clusters',
     },
     text: {
@@ -133,19 +137,23 @@ export class FilteringService {
           }
         }
       ],
-      selectedValue: '',
-      selectedLabel: ''
+      selectedValue: {
+        type: 'LAST',
+        unit: 'h',
+        interval: 1
+      },
+      selectedLabel: 'filter.timeRange.1hr'
     },
     timeZone: {
       options: moment.tz.names().map(zone => {
         // TODO map labels according to actual design requirements
         return {
-          label: `${zone} (${moment.tz(zone).format('Z')})`,
+          label: this.getTimeZoneLabel(zone),
           value: zone
         };
       }),
-      selectedValue: '',
-      selectedLabel: ''
+      selectedValue: moment.tz.guess(),
+      selectedLabel: this.getTimeZoneLabel(moment.tz.guess())
     },
     components: {
       label: 'filter.components',
@@ -173,7 +181,7 @@ export class FilteringService {
         }
       ],
       selectedValue: '',
-      selectedLabel: ''
+      selectedLabel: 'filter.all'
     },
     levels: {
       label: 'filter.levels',
@@ -213,7 +221,7 @@ export class FilteringService {
         }
       ],
       selectedValue: '',
-      selectedLabel: ''
+      selectedLabel: 'filter.all'
     }
   };
 
@@ -226,12 +234,10 @@ export class FilteringService {
             time = moment();
             break;
           case 'CURRENT':
-            // TODO consider user's timezone
-            time = moment().endOf(value.unit);
+            time = moment().tz(this.timeZone).endOf(value.unit);
             break;
           case 'PAST':
-            // TODO consider user's timezone
-            time = moment().startOf(value.unit).millisecond(-1);
+            time = moment().tz(this.timeZone).startOf(value.unit).millisecond(-1);
             break;
           default:
             break;
@@ -248,11 +254,9 @@ export class FilteringService {
             time = endTime.subtract(value.interval, value.unit);
             break;
           case 'CURRENT':
-            // TODO consider user's timezone
-            time = moment().startOf(value.unit);
+            time = moment().tz(this.timeZone).startOf(value.unit);
             break;
           case 'PAST':
-            // TODO consider user's timezone
             time = endTime.startOf(value.unit);
             break;
           default:
@@ -262,6 +266,21 @@ export class FilteringService {
       return time ? time.toISOString() : '';
     }
   };
+
+  getTimeZoneLabel(timeZone) {
+    return `${timeZone} (${moment.tz(timeZone).format('Z')})`;
+  }
+
+  valueHasChanged(currentValue: any, newValue: any): boolean {
+    if (newValue == null) {
+      return false;
+    }
+    if (typeof newValue === 'object') {
+      return JSON.stringify(currentValue) !== JSON.stringify(newValue);
+    } else {
+      return currentValue !== newValue;
+    }
+  }
 
   filteringSubject = new Subject();
 

@@ -17,7 +17,9 @@
  */
 
 import {Component, OnInit} from '@angular/core';
+import {FormControl, FormGroup} from '@angular/forms';
 import {FilteringService} from '@app/services/filtering.service';
+import {AppSettingsService} from '@app/services/storage/app-settings.service';
 
 @Component({
   selector: 'filters-panel',
@@ -26,7 +28,7 @@ import {FilteringService} from '@app/services/filtering.service';
 })
 export class FiltersPanelComponent implements OnInit {
 
-  constructor(private filtering: FilteringService) {
+  constructor(private filtering: FilteringService, private appSettings: AppSettingsService) {
   }
 
   ngOnInit() {
@@ -34,6 +36,18 @@ export class FiltersPanelComponent implements OnInit {
 
   get filters() {
     return this.filtering.filters;
+  }
+
+  private filtersFormItems = Object.keys(this.filters).reduce((currentObject, key) => {
+    let item = {};
+    item[key] = new FormControl();
+    return Object.assign(currentObject, item);
+  }, {});
+
+  filtersForm = new FormGroup(this.filtersFormItems);
+
+  setTimeZone(timeZone: string): void {
+    this.appSettings.setParameter('timeZone', timeZone);
   }
 
 }

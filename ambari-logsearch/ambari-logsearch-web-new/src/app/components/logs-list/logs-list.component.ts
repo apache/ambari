@@ -19,6 +19,7 @@ import {Component, OnInit, Input} from '@angular/core';
 import 'rxjs/add/operator/map';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
+import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
@@ -28,7 +29,7 @@ import {FilteringService} from '@app/services/filtering.service';
 })
 export class LogsListComponent implements OnInit {
 
-  constructor(private httpClient: HttpClientService, private serviceLogsStorage: ServiceLogsService, private filtering: FilteringService) {
+  constructor(private httpClient: HttpClientService, private serviceLogsStorage: ServiceLogsService, private appSettings: AppSettingsService, private filtering: FilteringService) {
     this.filtering.filteringSubject.subscribe(this.loadLogs.bind(this));
   }
 
@@ -39,6 +40,8 @@ export class LogsListComponent implements OnInit {
   @Input()
   private logsArrayId: string;
 
+  timeFormat: string = 'DD/MM/YYYY HH:mm:ss';
+
   private readonly usedFilters = {
     clusters: ['clusters'],
     text: ['iMessage'],
@@ -47,14 +50,14 @@ export class LogsListComponent implements OnInit {
     levels: ['level']
   };
 
-  logs = this.serviceLogsStorage.getInstances().map(logs => {
+  logs = this.serviceLogsStorage.getAll().map(logs => {
     return logs.map(log => {
       return {
         type: log.type,
         level: log.level,
         className: log.level.toLowerCase(),
         message: log.log_message,
-        time: new Date(log.logtime).toLocaleDateString() + ' ' + new Date(log.logtime).toLocaleTimeString() // TODO use moment with custom time zone
+        time: log.logtime
       }
     });
   });

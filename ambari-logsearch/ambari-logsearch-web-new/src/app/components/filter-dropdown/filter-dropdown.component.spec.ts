@@ -18,8 +18,11 @@
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {Http} from '@angular/http';
+import {FormControl, FormGroup} from '@angular/forms';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {StoreModule} from '@ngrx/store';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {FilteringService} from '@app/services/filtering.service';
 
 import {FilterDropdownComponent} from './filter-dropdown.component';
@@ -31,16 +34,43 @@ export function HttpLoaderFactory(http: Http) {
 describe('FilterDropdownComponent', () => {
   let component: FilterDropdownComponent;
   let fixture: ComponentFixture<FilterDropdownComponent>;
+  const filtering = {
+    filters: {
+      f: {
+        options: [
+          {
+            value: 'v0',
+            label: 'l0'
+          },
+          {
+            value: 'v1',
+            label: 'l1'
+          }
+        ]
+      }
+    }
+  };
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [FilterDropdownComponent],
-      imports: [TranslateModule.forRoot({
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [Http]
-      })],
-      providers: [FilteringService],
+      imports: [
+        StoreModule.provideStore({
+          appSettings
+        }),
+        TranslateModule.forRoot({
+          provide: TranslateLoader,
+          useFactory: HttpLoaderFactory,
+          deps: [Http]
+        })
+      ],
+      providers: [
+        AppSettingsService,
+        {
+          provide: FilteringService,
+          useValue: filtering
+        }
+      ],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
@@ -49,18 +79,10 @@ describe('FilterDropdownComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(FilterDropdownComponent);
     component = fixture.componentInstance;
-    component.filterInstance = {
-      options: [
-        {
-          value: 'v0',
-          label: 'l0'
-        },
-        {
-          value: 'v1',
-          label: 'l1'
-        }
-      ]
-    };
+    component.filterName = 'f';
+    component.form = new FormGroup({
+      f: new FormControl()
+    });
     fixture.detectChanges();
   });
 
@@ -68,30 +90,4 @@ describe('FilterDropdownComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('should take initial filter values from 1st item', () => {
-    it('selectedValue', () => {
-      expect(component.filterInstance.selectedValue).toEqual('v0');
-    });
-
-    it('selectedLabel', () => {
-      expect(component.filterInstance.selectedLabel).toEqual('l0');
-    });
-  });
-
-  describe('#setSelectedValue()', () => {
-    beforeEach(() => {
-      component.setSelectedValue({
-        value: 'v2',
-        label: 'l2'
-      });
-    });
-
-    it('selectedValue', () => {
-      expect(component.filterInstance.selectedValue).toEqual('v2');
-    });
-
-    it('selectedLabel', () => {
-      expect(component.filterInstance.selectedLabel).toEqual('l2');
-    });
-  });
 });

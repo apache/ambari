@@ -39,10 +39,10 @@ describe('MenuButtonComponent', () => {
       declarations: [MenuButtonComponent],
       imports: [
         TranslateModule.forRoot({
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [Http]
-      })],
+          provide: TranslateLoader,
+          useFactory: HttpLoaderFactory,
+          deps: [Http]
+        })],
       providers: [
         ComponentActionsService,
         FilteringService

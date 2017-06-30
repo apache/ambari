@@ -21,7 +21,7 @@
     <div [ngClass]="'col-md-1 log-status ' + log.className">{{log.level}}</div>
     <div class="col-md-3">
       <div class="log-type">{{log.type}}</div>
-      <time class="log-time">{{log.time}}</time>
+      <time class="log-time">{{log.time | amTz: filtering.timeZone | amDateFormat: timeFormat}}</time>
     </div>
     <div class="col-md-6 log-content-wrapper">
       <div class="collapse log-actions" [attr.id]="'details-' + i">

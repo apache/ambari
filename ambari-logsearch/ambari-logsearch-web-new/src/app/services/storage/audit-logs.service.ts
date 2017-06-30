@@ -16,19 +16,18 @@
  * limitations under the License.
  */
 
-
 import {Injectable} from '@angular/core';
 import {Action, ActionReducer, Store} from '@ngrx/store';
 import {AuditLog} from '@app/models/audit-log.model';
-import {AppStore, ModelService, reducer} from '@app/models/store.model';
+import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
 @Injectable()
-export class AuditLogsService extends ModelService {
+export class AuditLogsService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
     super('auditLogs', store);
   }
 }
 
 export const auditLogs: ActionReducer<AuditLog[]> = (state: AuditLog[] = [], action: Action) => {
-  return reducer(state, action);
+  return collectionReducer(state, action);
 }

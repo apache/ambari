@@ -18,19 +18,22 @@
 
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule, CUSTOM_ELEMENTS_SCHEMA, Injector} from '@angular/core';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HttpModule, Http, XHRBackend, BrowserXhr, ResponseOptions, XSRFStrategy} from '@angular/http';
 import {InMemoryBackendService} from 'angular-in-memory-web-api';
 import {AlertModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
+import {MomentModule} from 'angular2-moment';
+import {MomentTimezoneModule} from 'angular-moment-timezone';
 import {environment} from '../environments/environment';
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {BarGraphsService, barGraphs} from '@app/services/storage/bar-graphs.service';
@@ -48,6 +51,7 @@ import {FiltersPanelComponent} from '@app/components/filters-panel/filters-panel
 import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dropdown.component';
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 import {FilterTextFieldComponent} from '@app/components/filter-text-field/filter-text-field.component';
+import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 
@@ -82,12 +86,14 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     DropdownListComponent,
     FilterDropdownComponent,
     FilterTextFieldComponent,
+    FilterButtonComponent,
     AccordionPanelComponent,
     LogsListComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
+    ReactiveFormsModule,
     HttpModule,
     AlertModule.forRoot(),
     TranslateModule.forRoot({
@@ -98,6 +104,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       }
     }),
     StoreModule.provideStore({
+      appSettings,
       auditLogs,
       serviceLogs,
       barGraphs,
@@ -105,12 +112,15 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       nodes,
       userConfigs,
       filters
-    })
+    }),
+    MomentModule,
+    MomentTimezoneModule
   ],
   providers: [
     HttpClientService,
     ComponentActionsService,
     FilteringService,
+    AppSettingsService,
     AuditLogsService,
     ServiceLogsService,
     BarGraphsService,

@@ -20,15 +20,15 @@
 import {Injectable} from '@angular/core';
 import {Action, ActionReducer, Store} from '@ngrx/store';
 import {Filter} from '@app/models/filter.model';
-import {AppStore, ModelService, reducer} from '@app/models/store.model';
+import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
 @Injectable()
-export class FiltersService extends ModelService {
+export class FiltersService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
     super('filters', store);
   }
 }
 
 export const filters: ActionReducer<Filter[]> = (state: Filter[] = [], action: Action) => {
-  return reducer(state, action);
+  return collectionReducer(state, action);
 }

@@ -20,15 +20,15 @@
 import {Injectable} from '@angular/core';
 import {Action, ActionReducer, Store} from '@ngrx/store';
 import {Node} from '@app/models/node.model';
-import {AppStore, ModelService, reducer} from '@app/models/store.model';
+import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
 @Injectable()
-export class NodesService extends ModelService {
+export class NodesService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
     super('nodes', store);
   }
 }
 
 export const nodes: ActionReducer<Node[]> = (state: Node[] = [], action: Action) => {
-  return reducer(state, action);
+  return collectionReducer(state, action);
 }

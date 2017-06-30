@@ -15,24 +15,33 @@
   limitations under the License.
 -->
 
-<div class="form-inline filter-input-container col-md-8">
-  <filter-dropdown [filterInstance]="filters.clusters"></filter-dropdown>
-  <filter-text-field [filterInstance]="filters.text"></filter-text-field>
-  <filter-dropdown [filterInstance]="filters.timeRange"></filter-dropdown>
-  <filter-dropdown [filterInstance]="filters.timeZone"></filter-dropdown>
-  <!--button class="btn btn-success" type="button">
-    <span class="fa fa-search"></span>
-  </button-->
-</div>
-<div class="default-flex col-md-4">
-  <a href="#">
-    <span class="fa fa-search-minus"></span> {{'filter.excluded' | translate}}
-  </a>
-  <menu-button [label]="filters.components.label" [iconClass]="filters.components.iconClass"
-               [subItems]="filters.components.options" [isFilter]="true"
-               [filterInstance]="filters.components"></menu-button>
-  <menu-button [label]="filters.levels.label" [iconClass]="filters.levels.iconClass"
-               [subItems]="filters.levels.options" [isFilter]="true"
-               [filterInstance]="filters.levels"></menu-button>
-  <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
-</div>
+<form [formGroup]="filtersForm">
+  <div class="form-inline filter-input-container col-md-8">
+    <filter-dropdown [(ngModel)]="filters.clusters.selectedValue" [filterName]="'clusters'"
+                     formControlName="clusters" [form]="filtersForm"></filter-dropdown>
+    <filter-text-field [(ngModel)]="filters.text.selectedValue" [filterName]="'text'" formControlName="text"
+                       [form]="filtersForm"></filter-text-field>
+    <filter-dropdown [(ngModel)]="filters.timeRange.selectedValue" [filterName]="'timeRange'"
+                     formControlName="timeRange" [form]="filtersForm"></filter-dropdown>
+    <filter-dropdown [(ngModel)]="filters.timeZone.selectedValue" [filterName]="'timeZone'"
+                     formControlName="timeZone" [form]="filtersForm"
+                     [customOnChange]="setTimeZone"></filter-dropdown>
+    <!--button class="btn btn-success" type="button">
+      <span class="fa fa-search"></span>
+    </button-->
+  </div>
+  <div class="default-flex col-md-4">
+    <a href="#">
+      <span class="fa fa-search-minus"></span> {{'filter.excluded' | translate}}
+    </a>
+    <filter-button [(ngModel)]="filters.components.selectedValue" formControlName="components"
+                   [label]="filters.components.label" [iconClass]="filters.components.iconClass"
+                   [subItems]="filters.components.options" [filterName]="'components'"
+                   [form]="filtersForm"></filter-button>
+    <filter-button [(ngModel)]="filters.levels.selectedValue" formControlName="levels"
+                   [label]="filters.levels.label" [iconClass]="filters.levels.iconClass"
+                   [subItems]="filters.levels.options" [filterName]="'levels'"
+                   [form]="filtersForm"></filter-button>
+    <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
+  </div>
+</form>

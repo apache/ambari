@@ -18,8 +18,11 @@
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
+import {MomentModule} from 'angular2-moment';
+import {MomentTimezoneModule} from 'angular-moment-timezone';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 
@@ -43,8 +46,11 @@ describe('LogsListComponent', () => {
       imports: [
         StoreModule.provideStore({
           auditLogs,
-          serviceLogs
-        })
+          serviceLogs,
+          appSettings
+        }),
+        MomentModule,
+        MomentTimezoneModule
       ],
       providers: [
         {
@@ -53,6 +59,7 @@ describe('LogsListComponent', () => {
         },
         AuditLogsService,
         ServiceLogsService,
+        AppSettingsService,
         FilteringService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]

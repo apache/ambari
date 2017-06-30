@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {StoreModule} from '@ngrx/store';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {FilteringService} from '@app/services/filtering.service';
 
 import {FiltersPanelComponent} from './filters-panel.component';
@@ -36,13 +38,21 @@ describe('FiltersPanelComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [FiltersPanelComponent],
-      imports: [TranslateModule.forRoot({
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [Http]
-      })],
-      providers: [FilteringService],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+      imports: [
+        StoreModule.provideStore({
+          appSettings
+        }),
+        TranslateModule.forRoot({
+          provide: TranslateLoader,
+          useFactory: HttpLoaderFactory,
+          deps: [Http]
+        })
+      ],
+      providers: [
+        AppSettingsService,
+        FilteringService
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

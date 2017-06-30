@@ -18,16 +18,16 @@
 
 import {Injectable} from '@angular/core';
 import {Action, ActionReducer, Store} from '@ngrx/store';
-import {BarGraph} from '@app/models/bar-graph.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {AppSettings, defaultSettings} from '@app/models/app-settings.model';
+import {AppStore, ObjectModelService, objectReducer} from '@app/models/store.model';
 
 @Injectable()
-export class BarGraphsService extends CollectionModelService {
+export class AppSettingsService extends ObjectModelService {
   constructor(store: Store<AppStore>) {
-    super('barGraphs', store);
+    super('appSettings', store);
   }
 }
 
-export const barGraphs: ActionReducer<BarGraph[]> = (state: BarGraph[] = [], action: Action) => {
-  return collectionReducer(state, action);
+export const appSettings: ActionReducer<AppSettings> = (state: AppSettings = defaultSettings, action: Action) => {
+  return objectReducer(state, action);
 }

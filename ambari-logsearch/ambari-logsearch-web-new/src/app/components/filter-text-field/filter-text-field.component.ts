@@ -15,27 +15,74 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Input} from '@angular/core';
+import {Component, AfterViewInit, Input, forwardRef} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
+import 'rxjs/add/operator/debounceTime';
 import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
   selector: 'filter-text-field',
   templateUrl: './filter-text-field.component.html',
-  styleUrls: ['./filter-text-field.component.less']
+  styleUrls: ['./filter-text-field.component.less'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => FilterTextFieldComponent),
+      multi: true
+    }
+  ]
 })
-export class FilterTextFieldComponent implements OnInit {
+export class FilterTextFieldComponent implements AfterViewInit, ControlValueAccessor {
 
   constructor(private filtering: FilteringService) {
   }
 
-  ngOnInit() {
+  ngAfterViewInit() {
+    const callback = this.customOnChange ?
+      (value => this.customOnChange(value)) : (() => this.filtering.filteringSubject.next(null));
+    this.form.controls[this.filterName].valueChanges.debounceTime(this.debounceInterval).subscribe(callback);
   }
 
   @Input()
-  filterInstance: any;
+  filterName: string;
 
-  onValueChange() {
-    this.filtering.filteringSubject.next(null);
+  @Input()
+  customOnChange: (value: any) => void;
+
+  @Input()
+  form: FormGroup;
+
+  private onChange: (fn: any) => void;
+
+  private readonly debounceInterval = 1500;
+
+  get filterInstance(): any {
+    return this.filtering.filters[this.filterName];
+  }
+
+  get value(): any {
+    return this.filterInstance.selectedValue;
+  }
+
+  set value(newValue: any) {
+    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
+      this.filterInstance.selectedValue = newValue;
+      this.onChange(newValue);
+    }
+  }
+
+  writeValue(options: any) {
+    const value = options && options.value;
+    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, value)) {
+      this.filterInstance.selectedValue = value;
+    }
+  }
+
+  registerOnChange(callback: any): void {
+    this.onChange = callback;
+  }
+
+  registerOnTouched() {
   }
 
 }

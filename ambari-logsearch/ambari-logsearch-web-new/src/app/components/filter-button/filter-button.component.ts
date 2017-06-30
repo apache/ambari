@@ -1,12 +1,13 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http; //www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,25 +16,27 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, Input, forwardRef} from '@angular/core';
+import {Component, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
+import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
+import {MenuButtonComponent, menuButtonComponentOptions} from '@app/components/menu-button/menu-button.component';
 
-@Component({
-  selector: 'filter-dropdown',
-  templateUrl: './filter-dropdown.component.html',
-  styleUrls: ['./filter-dropdown.component.less'],
+@Component(Object.assign({
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => FilterDropdownComponent),
+      useExisting: forwardRef(() => FilterButtonComponent),
       multi: true
     }
   ]
-})
-export class FilterDropdownComponent implements AfterViewInit, ControlValueAccessor {
+}, menuButtonComponentOptions, {
+  selector: 'filter-button',
+}))
+export class FilterButtonComponent extends MenuButtonComponent implements ControlValueAccessor {
 
-  constructor(private filtering: FilteringService) {
+  constructor(protected actions: ComponentActionsService, private filtering: FilteringService) {
+    super(actions);
   }
 
   ngAfterViewInit() {
@@ -43,7 +46,7 @@ export class FilterDropdownComponent implements AfterViewInit, ControlValueAcces
   }
 
   @Input()
-  options: any[];
+  filterName: string;
 
   @Input()
   customOnChange: (value: any) => void;
@@ -51,10 +54,9 @@ export class FilterDropdownComponent implements AfterViewInit, ControlValueAcces
   @Input()
   form: FormGroup;
 
-  @Input()
-  filterName: string;
-
   private onChange: (fn: any) => void;
+
+  readonly isFilter = true;
 
   get filterInstance(): any {
     return this.filtering.filters[this.filterName];
