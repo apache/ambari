@@ -2593,7 +2593,7 @@ Em.I18n.translations = {
   'hosts.bulkOperation.deleteHosts.confirmation.body.msg3': 'To completely delete the hosts, first stop ambari-agent on them.',
   'hosts.bulkOperation.deleteHosts.confirmation.body.msg4': 'If the hosts were hosting a Zookeeper Server, the Zookeeper Service should be restarted. Go to the <i>Services</i> page.',
   'hosts.bulkOperation.deleteHosts.result.header':'Delete Hosts',
-  'hosts.bulkOperation.deleteHosts.result.body': 'The following hosts were deleted successfully:',
+  'hosts.bulkOperation.deleteHosts.result.body': 'The following hosts and host components were deleted successfully:',
   'hosts.bulkOperation.confirmation.delete.component.minimum.body': 'At least {0} {1} should be installed in the cluster.',
   'hosts.bulkOperation.confirmation.delete.component.nothingToDo.body': '{0} are neither installed on selected hosts nor in the states that can be deleted.',
   'hosts.bulkOperation.confirmation.delete.component.skip':'The following hosts are skipped as {0} on them are not in the states that can be deleted.',

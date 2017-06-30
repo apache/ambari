@@ -444,7 +444,7 @@ App.BulkOperationsController = Em.Controller.extend({
         templateName: require('templates/main/host/delete_hosts_result_popup'),
         message: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.message').format(undeletableHosts.length),
         undeletableHosts: undeletableHosts,
-        deletedHosts: deletedHosts,
+        deletedHosts: deletedHosts.sortProperty('deleted.key'),
         onToggleHost: function (host) {
           host.contexts[0].toggleProperty('isCollapsed');
         }
@@ -823,7 +823,7 @@ App.BulkOperationsController = Em.Controller.extend({
         templateName: require('templates/main/host/delete_hosts_result_popup'),
         message: Em.I18n.t('hosts.bulkOperation.delete.component.dryRun.message').format(undeletableHosts.length),
         undeletableHosts: undeletableHosts,
-        deletedHosts: deletedHosts,
+        deletedHosts: deletedHosts.sortProperty('deleted.key'),
         onToggleHost: function (host) {
           host.contexts[0].toggleProperty('isCollapsed');
         }
