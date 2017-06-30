@@ -68,9 +68,12 @@ else:
   hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_dir
   webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')
 
+  mariadb_redhat_support = default("/configurations/hive_env/mariadb_redhat_support", "false")
   process_name = 'mysqld'
   if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
     daemon_name = 'mysql'
+  elif OSCheck.is_redhat_family() and int(OSCheck.get_os_major_version()) >= 7 and mariadb_redhat_support.lower() == "true":
+    daemon_name = 'mariadb'
   else:
     daemon_name = 'mysqld'
 
