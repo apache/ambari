@@ -290,7 +290,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   showUpgradeHistoryRecord: function (event) {
     var record = event.context;
     var direction = App.format.normalizeName(record.get('direction'));
-    var toVersion = record.get('toVersion');
+    var toVersion = record.get('displayToVersion');
     var type = this.get('upgradeMethods').findProperty('type', record.get('upgradeType'));
     var displayName = type ? type.get('displayName') : record.get('upgradeType');
 
