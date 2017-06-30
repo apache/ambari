@@ -64,6 +64,7 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CleanupServerAction;
+import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.apache.ambari.server.serveraction.kerberos.ConfigureAmbariIdentitiesServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CreateKeytabFilesServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerAction;
@@ -130,7 +131,7 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class KerberosHelperImpl implements KerberosHelper {
 
-  private static final String BASE_LOG_DIR = "/tmp/ambari";
+  public static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private static final Logger LOG = LoggerFactory.getLogger(KerberosHelperImpl.class);
 
@@ -294,6 +295,34 @@ public class KerberosHelperImpl implements KerberosHelper {
       throws AmbariException, KerberosOperationException {
     return handle(cluster, getKerberosDetails(cluster, manageIdentities), serviceComponentFilter, hostFilter, identityFilter, null,
         requestStageContainer, new DeletePrincipalsAndKeytabsHandler());
+  }
+
+  /**
+   * Deletes the kerberos identities of the given component, even if the component is already deleted.
+   */
+  @Override
+  public void deleteIdentity(Cluster cluster, Component component, List<String> identities) throws AmbariException, KerberosOperationException {
+    if (identities.isEmpty()) {
+      return;
+    }
+    KerberosDetails kerberosDetails = getKerberosDetails(cluster, null);
+    validateKDCCredentials(kerberosDetails, cluster);
+    File dataDirectory = createTemporaryDirectory();
+    RoleCommandOrder roleCommandOrder = ambariManagementController.getRoleCommandOrder(cluster);
+    DeleteIdentityHandler handler = new DeleteIdentityHandler(customCommandExecutionHelper, configuration.getDefaultServerTaskTimeout(), stageFactory, ambariManagementController);
+    DeleteIdentityHandler.CommandParams commandParameters = new DeleteIdentityHandler.CommandParams(
+      component,
+      identities,
+      ambariManagementController.getAuthName(),
+      dataDirectory,
+      kerberosDetails.getDefaultRealm(),
+      kerberosDetails.getKdcType());
+    OrderedRequestStageContainer stageContainer = new OrderedRequestStageContainer(
+      roleGraphFactory,
+      roleCommandOrder,
+      new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager));
+    handler.addDeleteIdentityStages(cluster, stageContainer, commandParameters, kerberosDetails.manageIdentities());
+    stageContainer.getRequestStageContainer().persist();
   }
 
   @Override

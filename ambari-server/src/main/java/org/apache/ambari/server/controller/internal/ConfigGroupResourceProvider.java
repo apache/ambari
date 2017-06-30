@@ -96,6 +96,8 @@ public class ConfigGroupResourceProvider extends
     .getPropertyId("ConfigGroup", "hosts");
   public static final String CONFIGGROUP_CONFIGS_PROPERTY_ID =
     PropertyHelper.getPropertyId("ConfigGroup", "desired_configs");
+  public static final String CONFIGGROUP_VERSION_TAGS_PROPERTY_ID =
+    PropertyHelper.getPropertyId("ConfigGroup", "version_tags");
 
   private static Set<String> pkPropertyIds = new HashSet<>(Arrays
     .asList(new String[]{CONFIGGROUP_ID_PROPERTY_ID}));
@@ -217,9 +219,23 @@ public class ConfigGroupResourceProvider extends
 
     RequestStatus status = updateResources(requests);
 
+    Set<Resource> associatedResources = new HashSet<>();
+    for (ConfigGroupRequest configGroupRequest : requests) {
+      ConfigGroupResponse configGroupResponse = getManagementController().getConfigGroupUpdateResults(configGroupRequest);
+      Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
+
+      resource.setProperty(CONFIGGROUP_ID_PROPERTY_ID, configGroupResponse.getId());
+      resource.setProperty(CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, configGroupResponse.getClusterName());
+      resource.setProperty(CONFIGGROUP_NAME_PROPERTY_ID, configGroupResponse.getGroupName());
+      resource.setProperty(CONFIGGROUP_TAG_PROPERTY_ID, configGroupResponse.getTag());
+      resource.setProperty(CONFIGGROUP_VERSION_TAGS_PROPERTY_ID, configGroupResponse.getVersionTags());
+
+      associatedResources.add(resource);
+    }
+
     notifyUpdate(Resource.Type.ConfigGroup, request, predicate);
 
-    return status;
+    return getRequestStatus(null, associatedResources);
   }
 
   @Override
@@ -701,7 +717,18 @@ public class ConfigGroupResourceProvider extends
 
       if (serviceName != null) {
         cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
-          request.getServiceConfigVersionNote(), configGroup);
+                request.getServiceConfigVersionNote(), configGroup);
+
+        ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(configGroup.getId(), cluster.getClusterName(), configGroup.getName(),
+                request.getTag(), "", new HashSet<Map<String, Object>>(), new HashSet<Map<String, Object>>());
+        Set<Map<String, Object>> versionTags = new HashSet<Map<String, Object>>();
+        Map<String, Object> tagsMap = new HashMap<String, Object>();
+        for (Config config : configGroup.getConfigurations().values()) {
+          tagsMap.put(config.getType(), config.getTag());
+        }
+        versionTags.add(tagsMap);
+        configGroupResponse.setVersionTags(versionTags);
+        getManagementController().saveConfigGroupUpdate(request, configGroupResponse);
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());

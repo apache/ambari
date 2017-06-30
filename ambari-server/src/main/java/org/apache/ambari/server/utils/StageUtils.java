@@ -17,6 +17,15 @@
  */
 package org.apache.ambari.server.utils;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JDK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,6 +91,7 @@ public class StageUtils {
   protected static final String PORTS = "all_ping_ports";
   protected static final String RACKS = "all_racks";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
+
   private static Map<String, String> componentToClusterInfoKeyMap =
     new HashMap<>();
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
@@ -597,5 +607,49 @@ public class StageUtils {
         endOfRange.toString() :
         startOfRange + separator + endOfRange;
     return rangeItem;
+  }
+
+  /**
+   * Add ambari specific JDK details to command parameters.
+   */
+  public static void useAmbariJdkInCommandParams(Map<String, String> commandParams, Configuration configuration) {
+    if (StringUtils.isNotEmpty(configuration.getJavaHome()) && !configuration.getJavaHome().equals(configuration.getStackJavaHome())) {
+      commandParams.put(AMBARI_JAVA_HOME, configuration.getJavaHome());
+      commandParams.put(AMBARI_JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));
+      if (StringUtils.isNotEmpty(configuration.getJDKName())) { // if not custom jdk
+        commandParams.put(AMBARI_JDK_NAME, configuration.getJDKName());
+      }
+      if (StringUtils.isNotEmpty(configuration.getJCEName())) { // if not custom jdk
+        commandParams.put(AMBARI_JCE_NAME, configuration.getJCEName());
+      }
+    }
+  }
+
+  /**
+   * Fill hots level parameters with Jdk details, override them with the stack JDK data, in case of stack JAVA_HOME exists
+   */
+  public static void useStackJdkIfExists(Map<String, String> hostLevelParams, Configuration configuration) {
+    // set defaults first
+    hostLevelParams.put(JAVA_HOME, configuration.getJavaHome());
+    hostLevelParams.put(JDK_NAME, configuration.getJDKName());
+    hostLevelParams.put(JCE_NAME, configuration.getJCEName());
+    hostLevelParams.put(JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));
+    if (StringUtils.isNotEmpty(configuration.getStackJavaHome())
+      && !configuration.getStackJavaHome().equals(configuration.getJavaHome())) {
+      hostLevelParams.put(JAVA_HOME, configuration.getStackJavaHome());
+      if (StringUtils.isNotEmpty(configuration.getStackJavaVersion())) {
+        hostLevelParams.put(JAVA_VERSION, configuration.getStackJavaVersion());
+      }
+      if (StringUtils.isNotEmpty(configuration.getStackJDKName())) {
+        hostLevelParams.put(JDK_NAME, configuration.getStackJDKName());
+      } else {
+        hostLevelParams.put(JDK_NAME, null); // custom jdk for stack
+      }
+      if (StringUtils.isNotEmpty(configuration.getStackJCEName())) {
+        hostLevelParams.put(JCE_NAME, configuration.getStackJCEName());
+      } else {
+        hostLevelParams.put(JCE_NAME, null); // custom jdk for stack
+      }
+    }
   }
 }

@@ -275,13 +275,14 @@ define([
             );
           };
           var getYarnAppIdData = function(target) {
-            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
+            var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
-              + metricAggregator + '&appId=resourcemanager&startTime=' + + '&instanceId=' + target.templatedCluster + from +
+              + metricAggregator + '&appId=resourcemanager' + instanceId + '&startTime=' + from +
               '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );

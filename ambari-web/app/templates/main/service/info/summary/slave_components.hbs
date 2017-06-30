@@ -17,15 +17,15 @@
 }}
 
 {{#each slaveComponent in view.slavesObj}}
-  <div {{bindAttr class=":row :component slaveComponent.componentName"}}>
-    <div {{bindAttr class=":col-md-6 :summary-label slaveComponent.summaryLabelClassName"}}>
-      <a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
-    </div>
-    <div {{bindAttr class=":col-md-6 :summary-value slaveComponent.summaryValueClassName"}}>
+  <div {{bindAttr class=":row :component :col-md-3 slaveComponent.componentName"}}>
+    <div {{bindAttr class=":summary-value :main-info slaveComponent.summaryValueClassName"}}>
       {{#view App.ComponentLiveTextView liveComponentsBinding="slaveComponent.startedCount" totalComponentsBinding="slaveComponent.totalCount" tagName="span"}}
         {{view.liveComponents}}/{{view.totalComponents}}
       {{/view}}
-      {{slaveComponent.displayNamePluralized}} {{t dashboard.services.summary.slaves.live}}
+      {{t dashboard.services.summary.slaves.live}}
+    </div>
+    <div {{bindAttr class=":summary-label slaveComponent.summaryLabelClassName"}}>
+      <a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
     </div>
   </div>
 {{/each}}

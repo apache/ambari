@@ -1395,7 +1395,7 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     if len(leaf_queue_names) == 0:
       return None
     elif queue_name not in leaf_queue_names:
-      return self.getErrorItem("Queue is not exist or not corresponds to existing YARN leaf queue")
+      return self.getErrorItem("Queue does not exist or correspond to an existing YARN leaf queue")
 
     return None
 

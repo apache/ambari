@@ -63,8 +63,8 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.0</version>
             <configuration>
-              <source>1.7</source>
-              <target>1.7</target>
+              <source>${jdk.version}</source>
+              <target>${jdk.version}</target>
             </configuration>
           </plugin>
           <!-- Exec main class plugin -->
@@ -196,8 +196,8 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.0</version>
             <configuration>
-              <source>1.7</source>
-              <target>1.7</target>
+              <source>${jdk.version}</source>
+              <target>${jdk.version}</target>
             </configuration>
           </plugin>
           <!-- Exec main class plugin -->
@@ -337,8 +337,8 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.0</version>
             <configuration>
-              <source>1.7</source>
-              <target>1.7</target>
+              <source>${jdk.version}</source>
+              <target>${jdk.version}</target>
             </configuration>
           </plugin>
           <!-- Exec main class plugin -->
@@ -598,6 +598,33 @@
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-logsearch-config-zookeeper</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-logfeeder</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-json</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-server</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>

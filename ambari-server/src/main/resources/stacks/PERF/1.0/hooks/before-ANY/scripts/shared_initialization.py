@@ -40,17 +40,26 @@ def setup_users():
 
 def setup_java():
   """
+  Install jdk using specific params.
+  Install ambari jdk as well if the stack and ambari jdk are different.
+  """
+  import params
+  __setup_java(custom_java_home=params.java_home, custom_jdk_name=params.jdk_name)
+  if params.ambari_java_home and params.ambari_java_home != params.java_home:
+    __setup_java(custom_java_home=params.ambari_java_home, custom_jdk_name=params.ambari_jdk_name)
+
+def __setup_java(custom_java_home, custom_jdk_name):
+  """
   Installs jdk using specific params, that comes from ambari-server
   """
   import params
-
-  java_exec = format("{java_home}/bin/java")
+  java_exec = format("{custom_java_home}/bin/java")
 
   if not os.path.isfile(java_exec):
     if not params.jdk_name: # if custom jdk is used.
       raise Fail(format("Unable to access {java_exec}. Confirm you have copied jdk to this host."))
 
-    jdk_curl_target = format("{tmp_dir}/{jdk_name}")
+    jdk_curl_target = format("{tmp_dir}/{custom_jdk_name}")
     java_dir = os.path.dirname(params.java_home)
 
     Directory(params.artifact_dir,
@@ -58,8 +67,12 @@ def setup_java():
               )
 
     File(jdk_curl_target,
-         content = DownloadSource(format("{jdk_location}/{jdk_name}")),
+         content = DownloadSource(format("{jdk_location}/{custom_jdk_name}")),
          not_if = format("test -f {jdk_curl_target}")
+         )
+
+    File(jdk_curl_target,
+         mode = 0755,
          )
 
     tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
@@ -85,7 +98,7 @@ def setup_java():
     finally:
       Directory(tmp_java_dir, action="delete")
 
-    File(format("{java_home}/bin/java"),
+    File(format("{custom_java_home}/bin/java"),
          mode=0755,
          cd_access="a",
          )

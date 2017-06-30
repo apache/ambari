@@ -36,7 +36,7 @@
         "script_type": "PYTHON"
     }, 
     "taskId": 93, 
-    "public_hostname": "c6401.ambari.apache.org", 
+    "public_hostname": "c6402.ambari.apache.org",
     "configurations": {
         "mapred-site": {
             "mapreduce.jobhistory.address": "c6402.ambari.apache.org:10020", 

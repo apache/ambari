@@ -711,7 +711,7 @@ def setup_ranger_audit_solr():
         config_set = params.ranger_solr_config_set,
         config_set_dir = params.ranger_solr_conf,
         tmp_dir = params.tmp_dir,
-        java64_home = params.java_home,
+        java64_home = params.ambari_java_home,
         solrconfig_content = InlineTemplate(params.ranger_solr_config_content),
         jaas_file=params.solr_jaas_file,
         retry=30, interval=5
@@ -725,7 +725,7 @@ def setup_ranger_audit_solr():
         config_set = params.ranger_solr_config_set,
         config_set_dir = params.ranger_solr_conf,
         tmp_dir = params.tmp_dir,
-        java64_home = params.java_home,
+        java64_home = params.ambari_java_home,
         jaas_file=params.solr_jaas_file,
         retry=30, interval=5)
 
@@ -748,7 +748,7 @@ def setup_ranger_audit_solr():
       solr_znode = params.solr_znode,
       collection = params.ranger_solr_collection_name,
       config_set = params.ranger_solr_config_set,
-      java64_home = params.java_home,
+      java64_home = params.ambari_java_home,
       shards = params.ranger_solr_shards,
       replication_factor = int(params.replication_factor),
       jaas_file = params.solr_jaas_file)
@@ -774,14 +774,14 @@ def check_znode():
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.solr_znode,
-    java64_home=params.java_home)
+    java64_home=params.ambari_java_home)
 
 def secure_znode(znode, jaasFile):
   import params
   solr_cloud_util.secure_znode(config=params.config, zookeeper_quorum=params.zookeeper_quorum,
                                solr_znode=znode,
                                jaas_file=jaasFile,
-                               java64_home=params.java_home, sasl_users=[params.ranger_admin_jaas_principal])
+                               java64_home=params.ambari_java_home, sasl_users=[params.ranger_admin_jaas_principal])
 
 def get_ranger_plugin_principals(services_defaults_tuple_list):
   """

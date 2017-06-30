@@ -176,7 +176,7 @@ public abstract class Input extends ConfigItem implements Runnable {
    */
   abstract void start() throws Exception;
 
-  protected void outputLine(String line, InputMarker marker) {
+  public void outputLine(String line, InputMarker marker) {
     statMetric.value++;
     readBytesMetric.value += (line.length());
 

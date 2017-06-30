@@ -23,9 +23,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.annotations.Experimental;
@@ -814,7 +816,15 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public void resubmitTasks(List<Long> taskIds) {
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
+    Set<RequestEntity> requestEntities = new HashSet<>();
+    Set<StageEntity> stageEntities = new HashSet<>();
     for (HostRoleCommandEntity task : tasks) {
+      StageEntity stage = task.getStage();
+      stage.setStatus(HostRoleStatus.PENDING);
+      stageEntities.add(stage);
+      RequestEntity request = stage.getRequest();
+      request.setStatus(HostRoleStatus.IN_PROGRESS);
+      requestEntities.add(request);
       task.setStatus(HostRoleStatus.PENDING);
       // TODO HACK, shouldn't reset start time.
       // Because it expects -1, RetryActionMonitor.java also had to set it to -1.
@@ -822,6 +832,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       task.setEndTime(-1L);
 
       auditLog(task, task.getRequestId());
+    }
+
+    for (StageEntity stageEntity : stageEntities) {
+      stageDAO.merge(stageEntity);
+    }
+    for (RequestEntity requestEntity : requestEntities) {
+      requestDAO.merge(requestEntity);
     }
 
     // no need to merge if there's nothing to merge

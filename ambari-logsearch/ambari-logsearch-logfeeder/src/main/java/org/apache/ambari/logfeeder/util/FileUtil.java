@@ -21,7 +21,7 @@ package org.apache.ambari.logfeeder.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,24 +67,11 @@ public class FileUtil {
     }
     return file.toString();
   }
-
-  public static File getFileFromClasspath(String filename) {
-    URL fileCompleteUrl = Thread.currentThread().getContextClassLoader().getResource(filename);
-    LOG.debug("File Complete URI :" + fileCompleteUrl);
-    File file = null;
-    try {
-      file = new File(fileCompleteUrl.toURI());
-    } catch (Exception exception) {
-      LOG.debug(exception.getMessage(), exception.getCause());
-    }
-    return file;
-  }
-
-  public static HashMap<String, Object> readJsonFromFile(File jsonFile) {
+  
+  public static HashMap<String, Object> getJsonFileContentFromClassPath(String fileName) {
     ObjectMapper mapper = new ObjectMapper();
-    try {
-      HashMap<String, Object> jsonmap = mapper.readValue(jsonFile, new TypeReference<HashMap<String, Object>>() {});
-      return jsonmap;
+    try (InputStream inputStream = FileUtil.class.getClassLoader().getResourceAsStream(fileName)) {
+      return mapper.readValue(inputStream, new TypeReference<HashMap<String, Object>>() {});
     } catch (IOException e) {
       LOG.error(e, e.getCause());
     }

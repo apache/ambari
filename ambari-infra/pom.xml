@@ -30,7 +30,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <jdk.version>1.7</jdk.version>
+    <jdk.version>1.8</jdk.version>
     <solr.version>5.5.2</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>

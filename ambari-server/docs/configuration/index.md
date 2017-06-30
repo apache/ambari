@@ -142,9 +142,9 @@ The following are the properties which can be used to configure Ambari.
 | http.x-content-type-options | The value that will be used to set the `X-CONTENT-TYPE` HTTP response header. |`nosniff` | 
 | http.x-frame-options | The value that will be used to set the `X-Frame-Options` HTTP response header. |`DENY` | 
 | http.x-xss-protection | The value that will be used to set the `X-XSS-Protection` HTTP response header. |`1; mode=block` | 
-| java.home | The location of the JDK on the Ambari Agent hosts.<br/><br/>The following are examples of valid values:<ul><li>`/usr/jdk64/jdk1.7.0_45`</ul> | | 
-| jce.name | The name of the JCE policy ZIP file. <br/><br/>The following are examples of valid values:<ul><li>`UnlimitedJCEPolicyJDK7.zip`</ul> | | 
-| jdk.name | The name of the JDK installation binary.<br/><br/>The following are examples of valid values:<ul><li>`jdk-7u45-linux-x64.tar.gz`</ul> | | 
+| java.home | The location of the JDK on the Ambari Agent hosts. If stack.java.home exists, that is only used by Ambari Server (or you can find that as ambari_java_home in the commandParams on the agent side)<br/><br/>The following are examples of valid values:<ul><li>`/usr/jdk64/jdk1.8.0_112`</ul> | | 
+| jce.name | The name of the JCE policy ZIP file. If stack.jce.name exists, that is only used by Ambari Server (or you can find that as ambari_jce_name in the commandParams on the agent side)<br/><br/>The following are examples of valid values:<ul><li>`UnlimitedJCEPolicyJDK8.zip`</ul> | | 
+| jdk.name | The name of the JDK installation binary. If stack.jdk.name exists, that is only used by Ambari Server (or you can find that as ambari_jdk_name in the commandParams on the agent side)<br/><br/>The following are examples of valid values:<ul><li>`jdk-8u112-linux-x64.tar.gz`</ul> | | 
 | kdcserver.connection.check.timeout | The timeout, in milliseconds, to wait when communicating with a Kerberos Key Distribution Center. |`10000` | 
 | kerberos.check.jaas.configuration | Determines whether Kerberos-enabled Ambari deployments should use JAAS to validate login credentials. |`false` | 
 | kerberos.keytab.cache.dir | The location on the Ambari Server where Kerberos keytabs are cached. |`/var/lib/ambari-server/data/cache` | 
@@ -161,6 +161,7 @@ The following are the properties which can be used to configure Ambari.
 | metrics.retrieval-service.request.ttl | The number of seconds to wait between issuing JMX or REST metric requests to the same endpoint. This property is used to throttle requests to the same URL being made too close together<br/><br/> This property is related to `metrics.retrieval-service.request.ttl.enabled`. |`5` | 
 | metrics.retrieval-service.request.ttl.enabled | Enables throttling requests to the same endpoint within a fixed amount of time. This property will prevent Ambari from making new metric requests to update the cache for URLs which have been recently retrieved.<br/><br/> This property is related to `metrics.retrieval-service.request.ttl`. |`true` | 
 | mpacks.staging.path | The Ambari Management Pack staging directory on the Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/mpacks`</ul> | | 
+| notification.dispatch.alert.script.directory | The directory for scripts which are used by the alert notification dispatcher. |`/var/lib/ambari-server/resources/scripts` | 
 | packages.pre.installed | Determines whether Ambari Agent instances have already have the necessary stack software installed |`false` | 
 | pam.configuration | The PAM configuration file. | | 
 | property.mask.file | The path of the file which lists the properties that should be masked from the api that returns ambari.properties | | 
@@ -209,6 +210,7 @@ The following are the properties which can be used to configure Ambari.
 | server.ecCacheSize | The size of the cache which is used to hold current operations in memory until they complete. |`10000` | 
 | server.execution.scheduler.isClustered | Determines whether Quartz will use a clustered job scheduled when performing scheduled actions like rolling restarts. |`false` | 
 | server.execution.scheduler.maxDbConnections | The number of concurrent database connections that the Quartz job scheduler can use. |`5` | 
+| server.execution.scheduler.maxStatementsPerConnection | The maximum number of prepared statements cached per database connection. |`120` | 
 | server.execution.scheduler.maxThreads | The number of threads that the Quartz job scheduler will use when executing scheduled jobs. |`5` | 
 | server.execution.scheduler.misfire.toleration.minutes | The time, in minutes, that a scheduled job can be run after its missed scheduled execution time. |`480` | 
 | server.execution.scheduler.start.delay.seconds | The delay, in seconds, that a Quartz job must wait before it starts. |`120` | 
@@ -280,6 +282,10 @@ The following are the properties which can be used to configure Ambari.
 | ssl.trustStore.password | The password to use when setting the `javax.net.ssl.trustStorePassword` property | | 
 | ssl.trustStore.path | The location of the truststore to use when setting the `javax.net.ssl.trustStore` property. | | 
 | ssl.trustStore.type | The type of truststore used by the `javax.net.ssl.trustStoreType` property. | | 
+| stack.java.home | The location of the JDK on the Ambari Agent hosts for stack services.<br/><br/>The following are examples of valid values:<ul><li>`/usr/jdk64/jdk1.7.0_45`</ul> | | 
+| stack.java.version | JDK version of the stack, use in case of it differs from Ambari JDK version.<br/><br/>The following are examples of valid values:<ul><li>`1.7`</ul> | | 
+| stack.jce.name | The name of the JCE policy ZIP file for stack services.<br/><br/>The following are examples of valid values:<ul><li>`UnlimitedJCEPolicyJDK7.zip`</ul> | | 
+| stack.jdk.name | The name of the JDK installation binary for stack services.<br/><br/>The following are examples of valid values:<ul><li>`jdk-7u45-linux-x64.tar.gz`</ul> | | 
 | stack.upgrade.auto.retry.check.interval.secs | The amount of time to wait, in seconds, between checking for upgrade tasks to be retried. This value is only applicable if `stack.upgrade.auto.retry.timeout.mins` is positive.<br/><br/> This property is related to `stack.upgrade.auto.retry.timeout.mins`. |`20` | 
 | stack.upgrade.auto.retry.command.details.to.ignore | A comma-separate list of upgrade tasks details to skip when retrying failed commands automatically. |`"Execute HDFS Finalize"` | 
 | stack.upgrade.auto.retry.command.names.to.ignore | A comma-separate list of upgrade tasks names to skip when retrying failed commands automatically. |`"ComponentVersionCheckAction","FinalizeUpgradeAction"` | 
@@ -298,6 +304,7 @@ The following are the properties which can be used to configure Ambari.
 | views.ambari.request.connect.timeout.millis | The amount of time, in milliseconds, that a view will wait when trying to connect on HTTP(S) operations to the Ambari REST API. |`30000` | 
 | views.ambari.request.read.timeout.millis | The amount of time, in milliseconds, that a view will wait before terminating an HTTP(S) read request to the Ambari REST API. |`45000` | 
 | views.dir | The directory on the Ambari Server file system used for expanding Views and storing webapp work. |`/var/lib/ambari-server/resources/views` | 
+| views.directory.watcher.disable | Determines whether the view directory watcher service should be disabled. |`false` | 
 | views.http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header for Ambari View requests. |`no-store` | 
 | views.http.charset | The value that will be used to set the Character encoding to HTTP response header for Ambari View requests. |`utf-8` | 
 | views.http.pragma | The value that will be used to set the `PRAGMA` HTTP response header for Ambari View requests. |`no-cache` | 

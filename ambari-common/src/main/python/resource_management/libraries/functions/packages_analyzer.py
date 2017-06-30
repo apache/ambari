@@ -26,6 +26,7 @@ from threading import Thread
 import threading
 from ambari_commons import OSCheck, OSConst
 from ambari_commons import shell
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
 from resource_management.core import shell as rmf_shell
 from resource_management.core.exceptions import Fail
@@ -93,11 +94,11 @@ def allInstalledPackages(allInstalledPackages):
   """
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["sudo", "zypper", "--no-gpg-checks", "search", "--installed-only", "--details"],
+      [AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--installed-only", "--details"],
       allInstalledPackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
-      ["sudo", "yum", "list", "installed"],
+      [AMBARI_SUDO_BINARY, "yum", "list", "installed"],
       'Installed Packages',
       allInstalledPackages)
   elif OSCheck.is_ubuntu_family():
@@ -133,14 +134,14 @@ def get_available_packages_in_repos(repositories):
       available_packages_in_repos.append(package[0])
   elif OSCheck.is_suse_family():
     for repo in repo_ids:
-      _lookUpZypperPackages(["sudo", "zypper", "--no-gpg-checks", "search", "--details", "--repo", repo],
+      _lookUpZypperPackages([AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--details", "--repo", repo],
                             available_packages)
     available_packages_in_repos += [package[0] for package in available_packages]
   elif OSCheck.is_redhat_family():
     for repo in repo_ids:
-      _lookUpYumPackages(["sudo", "yum", "list", "available", "--disablerepo=*", "--enablerepo=" + repo],
+      _lookUpYumPackages([AMBARI_SUDO_BINARY, "yum", "list", "available", "--disablerepo=*", "--enablerepo=" + repo],
                          'Available Packages', available_packages)
-      _lookUpYumPackages(["sudo", "yum", "list", "installed", "--disablerepo=*", "--enablerepo=" + repo],
+      _lookUpYumPackages([AMBARI_SUDO_BINARY, "yum", "list", "installed", "--disablerepo=*", "--enablerepo=" + repo],
                          'Installed Packages', installed_packages)
     available_packages_in_repos += [package[0] for package in available_packages + installed_packages]
   return available_packages_in_repos
@@ -149,11 +150,11 @@ def get_available_packages_in_repos(repositories):
 def allAvailablePackages(allAvailablePackages):
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["sudo", "zypper", "--no-gpg-checks", "search", "--uninstalled-only", "--details"],
+      [AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--uninstalled-only", "--details"],
       allAvailablePackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
-      ["sudo", "yum", "list", "available"],
+      [AMBARI_SUDO_BINARY, "yum", "list", "available"],
       'Available Packages',
       allAvailablePackages)
   elif OSCheck.is_ubuntu_family():

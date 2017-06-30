@@ -74,7 +74,9 @@ logfeeder_pid_file = status_params.logfeeder_pid_file
 user_group = config['configurations']['cluster-env']['user_group']
 
 # shared configs
-java64_home = config['hostLevelParams']['java_home']
+java_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+java64_home = ambari_java_home if ambari_java_home is not None else java_home
 cluster_name = str(config['clusterName'])
 
 configurations = config['configurations'] # need reference inside logfeeder jinja templates

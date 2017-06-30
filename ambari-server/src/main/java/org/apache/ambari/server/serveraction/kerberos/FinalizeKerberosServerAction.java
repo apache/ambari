@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,6 @@ import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,29 +205,9 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
       processIdentities(requestSharedDataContext);
       requestSharedDataContext.remove(this.getClass().getName() + "_visited");
     }
-
-    // Make sure this is a relevant directory. We don't want to accidentally allow _ANY_ directory
-    // to be deleted.
-    if ((dataDirectoryPath != null) && dataDirectoryPath.contains("/" + DATA_DIRECTORY_PREFIX)) {
-      File dataDirectory = new File(dataDirectoryPath);
-      File dataDirectoryParent = dataDirectory.getParentFile();
-
-      // Make sure this directory has a parent and it is writeable, else we wont be able to
-      // delete the directory
-      if ((dataDirectoryParent != null) && dataDirectory.isDirectory() &&
-          dataDirectoryParent.isDirectory() && dataDirectoryParent.canWrite()) {
-        try {
-          FileUtils.deleteDirectory(dataDirectory);
-        } catch (IOException e) {
-          // We should log this exception, but don't let it fail the process since if we got to this
-          // KerberosServerAction it is expected that the the overall process was a success.
-          String message = String.format("The data directory (%s) was not deleted due to an error condition - {%s}",
-              dataDirectory.getAbsolutePath(), e.getMessage());
-          LOG.warn(message, e);
-        }
-      }
-    }
+    deleteDataDirectory(dataDirectoryPath);
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }
+
 }

@@ -17,15 +17,18 @@
 }}
 
 <div class="row">
-  <div class="col-md-6">
-    {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
-    {{view App.SummaryClientComponentsView clientsObjBinding="view.parentView.clientObj"}}
+  <div class="col-md-12 component-summary">
+    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
+    <div class="col-md-10">
+      {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
+      {{view App.SummaryClientComponentsView clientsObjBinding="view.parentView.clientObj"}}
+    </div>
   </div>
 </div>
 {{#each endpoint in hiveServerEndPoints}}
   {{#if endpoint.isVisible}}
     <div {{bindAttr class=":row :component endpoint.componentName"}}>
-      <div class="col-md-3 col-lg-3 summary-label">{{endpoint.label}}</div>
+      <div class="col-md-2 col-lg-3 summary-label" style="margin-top: 0px;">{{endpoint.label}}</div>
       <div class="col-md-9 col-lg-9 summary-value">
         {{#view view.summaryValueView titleBinding="endpoint.tooltipText" data-toggle="tooltip"}}
           {{endpoint.value}}
@@ -42,7 +45,7 @@
   <div class="col-md-6">
     {{#each link in view.viewLinks}}
       <div class="row">
-        <div class="col-md-6 summary-label">{{link.label}}</div>
+        <div class="col-md-6 summary-label" style="margin-top: 0px;">{{link.label}}</div>
         <div class="col-md-6 summary-value">
           <a href="#" target="_blank" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
         </div>

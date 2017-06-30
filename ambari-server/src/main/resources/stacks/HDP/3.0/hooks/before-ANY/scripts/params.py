@@ -65,6 +65,9 @@ version = default("/commandParams/version", None)
 if (upgrade_type is not None) and version:
   stack_version_formatted = format_stack_version(version)
 
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+ambari_jdk_name = default("/commandParams/ambari_jdk_name", None)
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
