@@ -53,6 +53,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.utils.SynchronousThreadPoolExecutor;
 import org.junit.After;
@@ -604,8 +605,16 @@ public class JMXPropertyProviderTest {
       this.unknownPort = unknownPort;
     }
 
+    @Override public String getPublicHostName(final String clusterName, final String hostName) {
+      return null;
+    }
+
     @Override
     public Set<String> getHostNames(String clusterName, String componentName) {
+      return null;
+    }
+
+    @Override public Host getHost(final String clusterName, final String hostName) {
       return null;
     }
 

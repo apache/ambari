@@ -683,6 +683,25 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
     else:
       self.logger.info("Not setting Hive Repo user for Ranger.")
 
+    security_enabled = self.isSecurityEnabled(services)
+    enable_atlas_hook = False
+
+    if 'hive-env' in configurations and 'hive.atlas.hook' in configurations['hive-env']['properties']:
+      enable_atlas_hook = configurations['hive-env']['properties']['hive.atlas.hook'].lower() == 'true'
+    elif 'hive-env' in services['configurations'] and 'hive.atlas.hook' in services['configurations']['hive-env']['properties']:
+      enable_atlas_hook = services['configurations']['hive-env']['properties']['hive.atlas.hook'].lower() == 'true'
+
+    if 'hive-atlas-application.properties' in services['configurations']:
+      putHiveAtlasHookProperty = self.putProperty(configurations, "hive-atlas-application.properties", services)
+      putHiveAtlasHookPropertyAttribute = self.putPropertyAttribute(configurations,"hive-atlas-application.properties")
+      if security_enabled and enable_atlas_hook:
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'required')
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'com.sun.security.auth.module.Krb5LoginModule')
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'true')
+      else:
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'delete', 'true')
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'delete', 'true')
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'delete', 'true')
 
   def getDBDriver(self, databaseType):
     driverDict = {

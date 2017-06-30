@@ -191,6 +191,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_SERVICE_RPC_ADDRESS =
     "timeline.metrics.service.rpc.address";
 
+  public static final String TIMELINE_SERVICE_DISABLE_CONTAINER_METRICS =
+    "timeline.metrics.service.container.metrics.disabled";
+
   public static final String CLUSTER_AGGREGATOR_APP_IDS =
     "timeline.metrics.service.cluster.aggregator.appIds";
 
@@ -506,5 +509,13 @@ public class TimelineMetricConfiguration {
     }
 
     return whitelist;
+  }
+
+  public boolean isContainerMetricsDisabled() {
+    try {
+      return metricsConf != null && Boolean.parseBoolean(metricsConf.get(TIMELINE_SERVICE_DISABLE_CONTAINER_METRICS, "false"));
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

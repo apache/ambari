@@ -872,5 +872,9 @@ public interface AmbariManagementController {
    */
   QuickLinkVisibilityController getQuicklinkVisibilityController();
 
+  ConfigGroupResponse getConfigGroupUpdateResults(ConfigGroupRequest configGroupRequest);
+
+  void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse);
+
 }
 

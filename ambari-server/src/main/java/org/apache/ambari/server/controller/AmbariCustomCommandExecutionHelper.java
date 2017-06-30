@@ -29,11 +29,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
@@ -508,7 +504,7 @@ public class AmbariCustomCommandExecutionHelper {
       if (isUpgradeSuspended) {
         cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
       }
-
+      StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
 
       execCmd.setCommandParams(commandParams);
@@ -815,6 +811,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
     commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
     execCmd.setCommandParams(commandParams);
 
@@ -1481,11 +1478,8 @@ public class AmbariCustomCommandExecutionHelper {
   Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException {
 
     TreeMap<String, String> hostLevelParams = new TreeMap<>();
+    StageUtils.useStackJdkIfExists(hostLevelParams, configs);
     hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
-    hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
-    hostLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
-    hostLevelParams.put(JDK_NAME, managementController.getJDKName());
-    hostLevelParams.put(JCE_NAME, managementController.getJCEName());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
     hostLevelParams.put(DB_NAME, managementController.getServerDB());

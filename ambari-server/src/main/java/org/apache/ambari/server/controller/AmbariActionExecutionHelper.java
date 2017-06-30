@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.SecretReference;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -418,6 +419,7 @@ public class AmbariActionExecutionHelper {
 
       commandParams.put(SCRIPT, actionName + ".py");
       commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
+      StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
         actionContext.getActionName()).getExecutionCommand();

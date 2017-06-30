@@ -108,6 +108,10 @@
                   <pattern>org.jboss</pattern>
                   <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jboss</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.apache.http</shadedPattern>
+                </relocation>
               </relocations>
             </configuration>
           </execution>

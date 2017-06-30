@@ -115,7 +115,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
 
     if params.dfs_ha_enabled and \
       params.dfs_ha_namenode_standby is not None and \
-      params.hostname == params.dfs_ha_namenode_standby:
+      (params.hostname == params.dfs_ha_namenode_standby or params.public_hostname == params.dfs_ha_namenode_standby):
         # if the current host is the standby NameNode in an HA deployment
         # run the bootstrap command, to start the NameNode in standby mode
         # this requires that the active NameNode is already up and running,
@@ -332,7 +332,7 @@ def format_namenode(force=None):
           )
   else:
     if params.dfs_ha_namenode_active is not None and \
-       params.hostname == params.dfs_ha_namenode_active:
+       (params.hostname == params.dfs_ha_namenode_active  or params.public_hostname == params.dfs_ha_namenode_active):
       # check and run the format command in the HA deployment scenario
       # only format the "active" namenode in an HA deployment
       if force:

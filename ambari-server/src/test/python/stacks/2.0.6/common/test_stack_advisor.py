@@ -534,7 +534,7 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = self.prepareHosts([])
     result = self.stackAdvisor.validateConfigurations(services, hosts)
     expectedItems = [
-      {'message': 'Queue is not exist or not corresponds to existing YARN leaf queue', 'level': 'ERROR'}
+      {'message': 'Queue does not exist or correspond to an existing YARN leaf queue', 'level': 'ERROR'}
     ]
     self.assertValidationResult(expectedItems, result)
     services["configurations"]["yarn-env"]["properties"]["service_check.queue.name"] = "ndfqueue"

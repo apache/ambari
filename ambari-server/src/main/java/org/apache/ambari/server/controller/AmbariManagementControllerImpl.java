@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.persistence.RollbackException;
@@ -181,6 +182,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
@@ -192,6 +194,7 @@ import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
@@ -241,6 +244,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private static final String PASSWORD = "password";
+
   public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
   public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
 
@@ -343,6 +347,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private Cache<ClusterRequest, ClusterResponse> clusterUpdateCache =
       CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+  private Cache<ConfigGroupRequest, ConfigGroupResponse> configGroupUpdateCache =
+          CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
@@ -1615,6 +1621,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cluster = clusters.getClusterById(request.getClusterId());
     }
 
+    List<ConfigurationRequest> desiredConfigs = request.getDesiredConfig();
+    if (desiredConfigs != null) {
+      for (ConfigurationRequest configurationRequest : desiredConfigs) {
+        if (StringUtils.isEmpty(configurationRequest.getVersionTag())) {
+          configurationRequest.setVersionTag(UUID.randomUUID().toString());
+        }
+      }
+    }
+
     // Ensure the user has access to update this cluster
     AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
 
@@ -1623,7 +1638,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       new LinkedList<>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
 
-    if (request.getDesiredConfig() != null && request.getServiceConfigVersionRequest() != null) {
+    if (desiredConfigs != null && request.getServiceConfigVersionRequest() != null) {
       String msg = "Unable to set desired configs and rollback at same time, request = " + request;
       LOG.error(msg);
       throw new IllegalArgumentException(msg);
@@ -1644,8 +1659,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     //check if desired configs are available in request and they were changed
     boolean isConfigurationCreationNeeded = false;
-    if (request.getDesiredConfig() != null) {
-      for (ConfigurationRequest desiredConfig : request.getDesiredConfig()) {
+    if (desiredConfigs != null) {
+      for (ConfigurationRequest desiredConfig : desiredConfigs) {
         Map<String, String> requestConfigProperties = desiredConfig.getProperties();
         Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
 
@@ -1722,7 +1737,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // set or create configuration mapping (and optionally create the map of properties)
     if (isConfigurationCreationNeeded) {
-      List<ConfigurationRequest> desiredConfigs = request.getDesiredConfig();
 
       if (!desiredConfigs.isEmpty()) {
         Set<Config> configs = new HashSet<>();
@@ -2053,6 +2067,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public ClusterResponse getClusterUpdateResults(ClusterRequest clusterRequest) {
     return clusterUpdateCache.getIfPresent(clusterRequest);
+  }
+
+  @Override
+  public ConfigGroupResponse getConfigGroupUpdateResults(ConfigGroupRequest configGroupRequest) {
+    return configGroupUpdateCache.getIfPresent(configGroupRequest);
+  }
+
+  @Override
+  public void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse) {
+    configGroupUpdateCache.put(configGroupRequest, configGroupResponse);
   }
 
   @Override
@@ -2435,6 +2459,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceName)) {
       commandParams.put(ExecutionCommand.KeyNames.REFRESH_TOPOLOGY, "True");
     }
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
     String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, component, host);
     if (LOG.isDebugEnabled()) {
@@ -3008,7 +3033,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             // START task should run configuration script.
             if (newState == State.INSTALLED && skipInstallTaskForComponent(requestProperties, cluster, scHost)) {
               LOG.info("Skipping create of INSTALL task for {} on {}.", scHost.getServiceComponentName(), scHost.getHostName());
-              scHost.setState(State.INSTALLED);
+              // set state to INSTALLING, then immediately send an ServiceComponentHostOpSucceededEvent to allow
+              // transitioning from INSTALLING --> INSTALLED.
+              scHost.setState(State.INSTALLING);
+              long now = System.currentTimeMillis();
+              try {
+                scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost.getServiceComponentName(), scHost.getHostName(), now));
+              } catch (InvalidStateTransitionException e) {
+                LOG.error("Error transitioning ServiceComponentHost state to INSTALLED", e);
+              }
             } else {
               // !!! can never be null
               RepositoryVersionEntity repoVersion = serviceComponent.getDesiredRepositoryVersion();
