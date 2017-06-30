@@ -523,7 +523,7 @@ describe('App.MainHostView', function () {
     it("App.db.setSelectedHosts should be called", function() {
       view.set('selectedHosts', []);
       view.updateCheckedFlags();
-      expect(App.db.setSelectedHosts.calledWith('ctrl1', [])).to.be.true;
+      expect(App.db.setSelectedHosts.calledWith([])).to.be.true;
     });
 
     it("addObserver should be called", function() {
@@ -620,7 +620,7 @@ describe('App.MainHostView', function () {
     });
 
     it("App.db.setSelectedHosts should be called", function() {
-      expect(App.db.setSelectedHosts.calledWith('ctrl1', [])).to.be.true;
+      expect(App.db.setSelectedHosts.calledWith([])).to.be.true;
     });
 
     it("filterSelected should be called", function() {

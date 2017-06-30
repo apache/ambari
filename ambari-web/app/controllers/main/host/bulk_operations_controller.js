@@ -450,13 +450,20 @@ App.BulkOperationsController = Em.Controller.extend({
         }
       }),
 
-      onPrimary: function () {
+      completeDelete() {
+        if (arg1 !== 'error') {
+          App.db.unselectHosts(arg2.hosts);
+        }
         location.reload();
+      },
+
+      onPrimary: function () {
+        this.completeDelete();
         this._super();
       },
 
       onClose: function () {
-        location.reload();
+        this.completeDelete();
         this._super();
       }
     });

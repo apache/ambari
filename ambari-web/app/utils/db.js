@@ -221,9 +221,15 @@ App.db.setSortingStatuses = function (name, sortingConditions) {
   App.db.set('app.tables.sortingConditions', name, sortingConditions);
 };
 
-App.db.setSelectedHosts = function (name, selectedHosts) {
-  App.db.set('app.tables.selectedItems', name, selectedHosts);
+App.db.setSelectedHosts = function (selectedHosts) {
+  App.db.set('app.tables.selectedItems', 'mainHostController', selectedHosts);
 };
+
+App.db.unselectHosts = function (hostsToUnselect = []) {
+  let selectedHosts = App.db.getSelectedHosts();
+  selectedHosts = selectedHosts.filter(host => hostsToUnselect.indexOf(host) === -1);
+  App.db.setSelectedHosts(selectedHosts);
+}
 
 App.db.setHosts = function (hostInfo) {
   App.db.set('Installer', 'hostInfo', hostInfo);
@@ -405,8 +411,8 @@ App.db.getSortingStatuses = function (name) {
   return name ? App.db.get('app.tables.sortingConditions', name): null;
 };
 
-App.db.getSelectedHosts = function (name) {
-  return App.db.get('app.tables.selectedItems', name) || [];
+App.db.getSelectedHosts = function () {
+  return App.db.get('app.tables.selectedItems', 'mainHostController') || [];
 };
 
 /**
