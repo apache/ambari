@@ -36,6 +36,11 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_TABLE = "upgrade";
   private static final String UPGRADE_TABLE_FROM_REPO_COLUMN = "from_repo_version_id";
   private static final String UPGRADE_TABLE_TO_REPO_COLUMN = "to_repo_version_id";
+  private static final String CLUSTERS_TABLE = "clusters";
+  private static final String SERVICE_COMPONENT_HISTORY_TABLE = "servicecomponent_history";
+  private static final String UPGRADE_GROUP_TABLE = "upgrade_group";
+  private static final String UPGRADE_ITEM_TABLE = "upgrade_item";
+  private static final String UPGRADE_ID_COLUMN = "upgrade_id";
 
   /**
    * Constructor.
@@ -109,6 +114,12 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   private void addRepositoryColumnsToUpgradeTable() throws SQLException {
+    dbAccessor.executeQuery(String.format("UPDATE %s SET %s = NULL", CLUSTERS_TABLE, UPGRADE_ID_COLUMN));
+    dbAccessor.executeQuery(String.format("DELETE FROM %s", SERVICE_COMPONENT_HISTORY_TABLE));
+    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_ITEM_TABLE));
+    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_GROUP_TABLE));
+    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_TABLE));
+
     dbAccessor.dropColumn(UPGRADE_TABLE, "to_version");
     dbAccessor.dropColumn(UPGRADE_TABLE, "from_version");
 
