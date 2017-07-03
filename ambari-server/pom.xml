@@ -51,6 +51,7 @@
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
     <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
+    <jdk.version>1.8</jdk.version>
   </properties>
   <build>
     <plugins>
@@ -111,6 +112,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
           <useIncrementalCompilation>false</useIncrementalCompilation>
           <compilerArgs>
             <arg>-Xlint:${xlint}</arg>
@@ -716,7 +719,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipSurefireTests}</skip>
-          <argLine>-Xmx1024m -XX:MaxPermSize=512m -Xms512m</argLine>
+          <argLine>-Xmx1024m -Xms512m</argLine>
 
           <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
           <groups>${testcase.groups}</groups>
