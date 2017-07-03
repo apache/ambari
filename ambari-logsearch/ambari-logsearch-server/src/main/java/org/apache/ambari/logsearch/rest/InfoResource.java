@@ -23,6 +23,7 @@ import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -48,6 +49,7 @@ public class InfoResource {
 
   @GET
   @Path("/auth")
+  @Produces({"application/json"})
   @ApiOperation(GET_AUTH_DETAILS_OD)
   public Map<String, Boolean> getAuthInfo() {
     return infoManager.getAuthMap();
@@ -55,6 +57,7 @@ public class InfoResource {
 
   @GET
   @Path("/properties")
+  @Produces({"application/json"})
   @ApiOperation(GET_ALL_PROPERTIES_INFO_OD)
   public Map<String, List<PropertyDescriptionData>> getPropertyDescriptions() {
     return infoManager.getPropertyDescriptions();
@@ -62,6 +65,7 @@ public class InfoResource {
 
   @GET
   @Path("/properties/{propertyFile}")
+  @Produces({"application/json"})
   @ApiOperation(GET_LOGSEARCH_PROPERTIES_INFO_OD)
   public List<PropertyDescriptionData> getPropertyFileDescription(@PathParam("propertyFile") String propertyFile) {
     return infoManager.getLogSearchPropertyDescriptions(propertyFile);
