@@ -51,7 +51,6 @@
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
     <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
-    <jdk.version>1.8</jdk.version>
   </properties>
   <build>
     <plugins>
@@ -112,8 +111,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
           <useIncrementalCompilation>false</useIncrementalCompilation>
           <compilerArgs>
             <arg>-Xlint:${xlint}</arg>
