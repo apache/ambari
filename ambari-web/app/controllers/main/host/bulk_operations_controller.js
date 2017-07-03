@@ -717,6 +717,7 @@ App.BulkOperationsController = Em.Controller.extend({
 
       didInsertElement: function() {
         this.set('expanded', hostsToDelete.length <= minShown);
+        this._super();
       },
 
       onPrimary: function() {
@@ -763,6 +764,8 @@ App.BulkOperationsController = Em.Controller.extend({
         name: 'host.host_component.delete_components',
         sender: self,
         data: {
+          hostNames,
+          componentName: operationData.componentName,
           data: JSON.stringify({
             RequestInfo: {
               query: 'HostRoles/host_name.in(' + hostNames.join(',') + ')&HostRoles/component_name.in(' + operationData.componentName + ')'
@@ -783,7 +786,7 @@ App.BulkOperationsController = Em.Controller.extend({
     var undeletableHosts = [];
     if (arg1 == "error") {
       var request = arg0;
-      var params = arg4;
+      let params = arg4;
       var response = JSON.parse(request.responseText);
       var host = Ember.Object.create({
         error: {
@@ -797,7 +800,7 @@ App.BulkOperationsController = Em.Controller.extend({
       undeletableHosts.push(host);
     } else {
       var data = arg0;
-      var params = arg2;
+      let params = arg2;
       if (data) {
         data.deleteResult.forEach(function (host) {
           if (host.deleted) {
@@ -812,12 +815,7 @@ App.BulkOperationsController = Em.Controller.extend({
           }
         });
       } else {
-        var host = {
-          deleted: {
-            key: params.hosts[0]
-          }
-        };
-        deletedHosts.push(host);
+        deletedHosts.pushObjects(params.hostNames.map(hostName => ({deleted: {key: `${hostName}/${params.componentName}`}})));
       }
     }
 
@@ -831,6 +829,7 @@ App.BulkOperationsController = Em.Controller.extend({
         message: Em.I18n.t('hosts.bulkOperation.delete.component.dryRun.message').format(undeletableHosts.length),
         undeletableHosts: undeletableHosts,
         deletedHosts: deletedHosts.sortProperty('deleted.key'),
+        deleteComponents: true,
         onToggleHost: function (host) {
           host.contexts[0].toggleProperty('isCollapsed');
         }
