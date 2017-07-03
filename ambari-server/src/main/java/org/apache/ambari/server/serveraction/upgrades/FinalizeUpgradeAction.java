@@ -346,7 +346,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       String clusterName = cluster.getClusterName();
 
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
-      StackId originalStackId = context.getOriginalStackId();
+      StackId sourceStackId = context.getSourceStackId();
       StackId targetStackId = context.getTargetStackId();
       RepositoryVersionEntity targetRepositoryVersion = context.getTargetRepositoryVersion();
 
@@ -356,42 +356,37 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
       RepositoryVersionEntity currentRepoVersion = currentClusterVersion.getRepositoryVersion();
       StackId currentRepoStackId = currentRepoVersion.getStackId();
-      if (!currentRepoStackId.equals(originalStackId)) {
+      if (!currentRepoStackId.equals(targetStackId)) {
         String msg = String.format(
-            "The stack of cluster %s's CURRENT repo version is %s, yet the original stack id from the Stack Upgrade has a different value of %s. %s",
-            clusterName, currentRepoStackId.getStackId(), originalStackId.getStackId(), PREVIOUS_UPGRADE_NOT_COMPLETED_MSG);
+            "The stack of %s's CURRENT repository version is %s, yet the target stack for this downgrade is %s. %s",
+            clusterName, currentRepoStackId.getStackId(), targetStackId.getStackId(),
+            PREVIOUS_UPGRADE_NOT_COMPLETED_MSG);
         out.append(msg);
         err.append(msg);
-        throw new AmbariException("The source target stack doesn't match the cluster's CURRENT repo version's stack.");
+        throw new AmbariException(
+            "The target stack of this downgrade doesn't match the cluster's current stack.");
       }
 
       // This was a cross-stack upgrade, meaning that configurations were created that now need to be removed.
-      if (!originalStackId.equals(targetStackId)) {
-        out.append(String.format("Will remove configs since the original stack %s differs from the target stack %s " +
-            "that Ambari just downgraded from.", originalStackId.getStackId(), targetStackId.getStackId()));
-        cluster.removeConfigurations(targetStackId);
-      }
+      if (!sourceStackId.equals(targetStackId)) {
+        out.append(String.format(
+            "Configurations created for stack %s will be removed since this downgrade is to stack %s.",
+            sourceStackId.getStackId(), targetStackId.getStackId()));
 
-      // !!! find and make sure the cluster_version EXCEPT current are set back
-      out.append(String.format("Searching for current version for %s\n",
-          clusterName));
+        out.append(System.lineSeparator());
+        cluster.removeConfigurations(sourceStackId);
+      }
 
       ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStateCurrent(clusterName);
       if (null == clusterVersion) {
         throw new AmbariException("Could not find current cluster version");
       }
 
-
       out.append(String.format(
-          "Comparing downgrade version %s %s to current cluster version %s %s\n", targetStackId,
-          targetRepositoryVersion.getVersion(), clusterVersion.getRepositoryVersion().getStackId(),
+          "Comparing downgrade target version %s-%s to current cluster version %s-%s\n",
+          targetStackId.getStackName(), targetRepositoryVersion.getVersion(),
+          clusterVersion.getRepositoryVersion().getStackId().getStackName(),
           clusterVersion.getRepositoryVersion().getVersion()));
-
-      if (!targetStackId.equals(clusterVersion.getRepositoryVersion().getStackId())) {
-        throw new AmbariException(
-            String.format("Downgrade stack %s is not the current cluster stack of %s",
-                targetStackId, clusterVersion.getRepositoryVersion().getStackId()));
-      }
 
       if (!StringUtils.equals(targetRepositoryVersion.getVersion(),
           clusterVersion.getRepositoryVersion().getVersion())) {
@@ -430,7 +425,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       Set<String> badHosts = new HashSet<>();
       for (String badVersion : badVersions) {
         List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(
-            clusterName, targetStackId, badVersion);
+            clusterName, sourceStackId, badVersion);
 
         for (HostVersionEntity hostVersion : hostVersions) {
           badHosts.add(hostVersion.getHostName());
@@ -439,8 +434,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         }
       }
 
-      out.append(String.format("Found %d hosts not matching downgrade version: %s %s\n",
-          badHosts.size(), targetStackId, targetRepositoryVersion.getVersion()));
+      out.append(String.format("Found %d hosts not matching downgrade version: %s-%s\n",
+          badHosts.size(), targetStackId.getStackName(), targetRepositoryVersion.getVersion()));
 
       for (String badHost : badHosts) {
         List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(badHost);
@@ -454,6 +449,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       // original value
       cluster.setDesiredStackVersion(currentClusterStackId);
       versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
+
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
 

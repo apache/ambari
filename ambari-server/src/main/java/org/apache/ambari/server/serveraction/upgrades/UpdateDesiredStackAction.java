@@ -107,20 +107,18 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
     StringBuilder err = new StringBuilder();
 
     try {
+      StackId clusterDesiredStackId = cluster.getDesiredStackVersion();
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
+      StackId targetStackId = toRepositoryVersion.getStackId();
+
       out.append(String.format("%s %s from %s-%s to %s-%s\n",
           direction.getVerb(true), clusterName,
           fromRepositoryVersion.getStackId().getStackName(),
           fromRepositoryVersion.getVersion(),
-          toRepositoryVersion.getStackId().getStackName(),
+          targetStackId.getStackName(),
           toRepositoryVersion.getVersion()));
 
-      out.append(String.format(
-          "Checking if can update the desired stack to %s. The cluster's current stack is %s\n",
-          toRepositoryVersion.getStackId(), currentClusterStackId.getStackId()));
-
       // Ensure that the target stack id exist
-      StackId targetStackId = toRepositoryVersion.getStackId();
       StackInfo desiredClusterStackInfo = ambariMetaInfo.getStack(targetStackId.getStackName(), targetStackId.getStackVersion());
       if (null == desiredClusterStackInfo) {
         String message = String.format("Invalid target stack of \n", targetStackId.getStackId());
@@ -130,11 +128,10 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
       }
 
       // Ensure that the current Stack Id coincides with the parameter that the user passed in.
-      StackId originalStackId = context.getOriginalStackId();
-      if (!currentClusterStackId.equals(originalStackId)) {
+      if (direction == Direction.DOWNGRADE && !currentClusterStackId.equals(targetStackId)) {
         String message = String.format(
-            "The current cluster stack of %s doesn't match the original upgrade stack of %s",
-            currentClusterStackId, originalStackId);
+            "The cluster's current stack of %s doesn't match %s which is target stack of this downgrade",
+            currentClusterStackId, targetStackId);
 
         err.append(message);
         out.append(message);
@@ -142,8 +139,10 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
       }
 
       // Check for a no-op
-      if (currentClusterStackId.equals(targetStackId)) {
-        String message = String.format("Success! The cluster's desired stack was already set to %s\n", targetStackId.getStackId());
+      if (clusterDesiredStackId.equals(targetStackId)) {
+        String message = String.format("The cluster's desired stack is already set to %s\n",
+            targetStackId.getStackId());
+
         out.append(message);
         return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", out.toString(), err.toString());
       }
@@ -152,7 +151,9 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
       // Also updates the desired stack version.
       UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(AmbariServer.getController());
       upgradeResourceProvider.applyStackAndProcessConfigurations(context);
-      String message = String.format("Success! Set cluster's %s desired stack to %s.\n", clusterName, targetStackId.getStackId());
+      String message = String.format("The cluster's desired stack was set to %s.\n",
+          targetStackId.getStackId());
+
       out.append(message);
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", out.toString(), err.toString());

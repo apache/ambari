@@ -226,7 +226,7 @@ public class HostOrderGrouping extends Grouping {
           // create task wrappers
           List<TaskWrapper> taskWrappers = new ArrayList<>();
           for (HostRoleCommand command : stageCommandsForHost) {
-            StackId stackId = upgradeContext.getEffectiveStackId();
+            StackId stackId = upgradeContext.getTargetStackId();
             String componentName = command.getRole().name();
 
             String serviceName = null;

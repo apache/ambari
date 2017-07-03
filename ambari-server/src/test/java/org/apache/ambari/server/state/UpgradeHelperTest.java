@@ -2274,7 +2274,6 @@ public class UpgradeHelperTest {
     expect(context.getDirection()).andReturn(direction).anyTimes();
     expect(context.getSourceRepositoryVersion()).andReturn(sourceRepositoryVersion).anyTimes();
     expect(context.getTargetRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
-    expect(context.getEffectiveStackId()).andReturn(repositoryVersion.getStackId()).anyTimes();
     expect(context.getTargetStackId()).andReturn(repositoryVersion.getStackId()).anyTimes();
     expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(context.getHostRoleCommandFactory()).andStubReturn(injector.getInstance(HostRoleCommandFactory.class));

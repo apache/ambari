@@ -19,7 +19,6 @@ package org.apache.ambari.server.state.cluster;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import javax.persistence.EntityManager;
 
@@ -38,6 +37,7 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
@@ -76,7 +77,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -91,6 +91,8 @@ import junit.framework.Assert;
 @RunWith(value = PowerMockRunner.class)
 @PrepareForTest({ ClusterImpl.class })
 public class ClusterEffectiveVersionTest extends EasyMockSupport {
+
+  private static final String CLUSTER_NAME = "c1";
 
   private Injector m_injector;
   private ClusterEntity m_clusterEntity;
@@ -145,8 +147,13 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     RepositoryVersionEntity repoVersion2300 = createNiceMock(RepositoryVersionEntity.class);
     RepositoryVersionEntity repoVersion2400 = createNiceMock(RepositoryVersionEntity.class);
 
+    StackId stackId23 = new StackId("HDP", "2.3");
+    StackId stackId24 = new StackId("HDP", "2.4");
+
     EasyMock.expect(repoVersion2300.getVersion()).andReturn("2.3.0.0-1234").anyTimes();
+    EasyMock.expect(repoVersion2300.getStackId()).andReturn(stackId23).anyTimes();
     EasyMock.expect(repoVersion2400.getVersion()).andReturn("2.4.0.0-1234").anyTimes();
+    EasyMock.expect(repoVersion2400.getStackId()).andReturn(stackId24).anyTimes();
 
     UpgradeEntity upgradeEntity = createNiceMock(UpgradeEntity.class);
     EasyMock.expect(upgradeEntity.getId()).andReturn(1L).atLeastOnce();
@@ -155,11 +162,13 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     EasyMock.expect(upgradeEntity.getToRepositoryVersion()).andReturn(repoVersion2400).atLeastOnce();
 
     ClusterVersionEntity clusterVersionUpgradingTo = createNiceMock(ClusterVersionEntity.class);
-    EasyMock.expect(clusterVersionUpgradingTo.getRepositoryVersion()).andReturn(
-        repoVersion2400).atLeastOnce();
+    EasyMock.expect(clusterVersionUpgradingTo.getId()).andReturn(1L).atLeastOnce();
 
-    List<ClusterVersionEntity> clusterVersionEntities = Lists.newArrayList(clusterVersionUpgradingTo);
-    EasyMock.expect(m_clusterEntity.getClusterVersionEntities()).andReturn(clusterVersionEntities).atLeastOnce();
+    ClusterVersionDAO clusterVersionDAO = m_injector.getInstance(ClusterVersionDAO.class);
+    EasyMock.expect(clusterVersionDAO.findByClusterAndStackAndVersion(CLUSTER_NAME, stackId24,
+        "2.4.0.0-1234")).andReturn(clusterVersionUpgradingTo).once();
+
+    EasyMock.expect(clusterVersionDAO.findByPK(1L)).andReturn(clusterVersionUpgradingTo).once();
 
     replayAll();
 
@@ -189,24 +198,29 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     RepositoryVersionEntity repoVersion2300 = createNiceMock(RepositoryVersionEntity.class);
     RepositoryVersionEntity repoVersion2400 = createNiceMock(RepositoryVersionEntity.class);
 
-    EasyMock.expect(repoVersion2300.getVersion()).andReturn("2.3.0.0-1234").anyTimes();
-    EasyMock.expect(repoVersion2400.getVersion()).andReturn("2.4.0.0-1234").anyTimes();
+    StackId stackId23 = new StackId("HDP", "2.3");
+    StackId stackId24 = new StackId("HDP", "2.4");
 
-    // from/to are switched on downgrade
+    EasyMock.expect(repoVersion2300.getVersion()).andReturn("2.3.0.0-1234").anyTimes();
+    EasyMock.expect(repoVersion2300.getStackId()).andReturn(stackId23).anyTimes();
+    EasyMock.expect(repoVersion2400.getVersion()).andReturn("2.4.0.0-1234").anyTimes();
+    EasyMock.expect(repoVersion2400.getStackId()).andReturn(stackId24).anyTimes();
+
     UpgradeEntity upgradeEntity = createNiceMock(UpgradeEntity.class);
     EasyMock.expect(upgradeEntity.getId()).andReturn(1L).atLeastOnce();
     EasyMock.expect(upgradeEntity.getUpgradeType()).andReturn(UpgradeType.NON_ROLLING).atLeastOnce();
-
+    EasyMock.expect(upgradeEntity.getDirection()).andReturn(Direction.DOWNGRADE).atLeastOnce();
     EasyMock.expect(upgradeEntity.getFromRepositoryVersion()).andReturn(repoVersion2400).anyTimes();
     EasyMock.expect(upgradeEntity.getToRepositoryVersion()).andReturn(repoVersion2300).atLeastOnce();
-    EasyMock.expect(upgradeEntity.getDirection()).andReturn(Direction.DOWNGRADE).anyTimes();
 
-    ClusterVersionEntity clusterVersionUpgradingTo = createNiceMock(ClusterVersionEntity.class);
-    EasyMock.expect(clusterVersionUpgradingTo.getRepositoryVersion()).andReturn(
-        repoVersion2300).atLeastOnce();
+    ClusterVersionEntity clusterVersionDowngradingTo = createNiceMock(ClusterVersionEntity.class);
+    EasyMock.expect(clusterVersionDowngradingTo.getId()).andReturn(1L).atLeastOnce();
 
-    List<ClusterVersionEntity> clusterVersionEntities = Lists.newArrayList(clusterVersionUpgradingTo);
-    EasyMock.expect(m_clusterEntity.getClusterVersionEntities()).andReturn(clusterVersionEntities).atLeastOnce();
+    ClusterVersionDAO clusterVersionDAO = m_injector.getInstance(ClusterVersionDAO.class);
+    EasyMock.expect(clusterVersionDAO.findByClusterAndStackAndVersion(CLUSTER_NAME, stackId23,
+        "2.3.0.0-1234")).andReturn(clusterVersionDowngradingTo).once();
+
+    EasyMock.expect(clusterVersionDAO.findByPK(1L)).andReturn(clusterVersionDowngradingTo).once();
 
     replayAll();
 
@@ -217,7 +231,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     Mockito.doReturn(currentClusterVersion).when(clusterSpy).getCurrentClusterVersion();
 
     ClusterVersionEntity effectiveVersion = clusterSpy.getEffectiveClusterVersion();
-    Assert.assertEquals(clusterVersionUpgradingTo, effectiveVersion);
+    Assert.assertEquals(clusterVersionDowngradingTo, effectiveVersion);
 
     verifyAll();
   }
@@ -236,7 +250,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     EasyMock.expect(stackEntity.getStackVersion()).andReturn("2.3").anyTimes();
 
     EasyMock.expect(m_clusterEntity.getClusterId()).andReturn(1L).anyTimes();
-    EasyMock.expect(m_clusterEntity.getClusterName()).andReturn("c1").anyTimes();
+    EasyMock.expect(m_clusterEntity.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
     EasyMock.expect(m_clusterEntity.getDesiredStack()).andReturn(stackEntity).anyTimes();
     EasyMock.expect(m_clusterEntity.getClusterServiceEntities()).andReturn(
         new ArrayList<ClusterServiceEntity>()).anyTimes();
@@ -306,6 +320,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       }
 
       binder.bind(ClusterDAO.class).toInstance(createNiceMock(ClusterDAO.class));
+      binder.bind(ClusterVersionDAO.class).toInstance(createNiceMock(ClusterVersionDAO.class));
     }
   }
 }

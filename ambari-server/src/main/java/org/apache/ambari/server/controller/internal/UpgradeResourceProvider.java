@@ -114,6 +114,7 @@ import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
@@ -868,16 +869,28 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     // !!! determine which stack to check for component isAdvertised
-    StackId componentStack = upgradeContext.getDirection() == Direction.UPGRADE ?
-        upgradeContext.getTargetStackId() : upgradeContext.getOriginalStackId();
+    StackId componentStack = upgradeContext.getTargetStackId();
 
     s_upgradeHelper.putComponentsToUpgradingState(repositoryVersion.getStackId(),
         repositoryVersion.getVersion(), targetComponents, componentStack);
+
+    // keep track of which stack to use when building commands - an express
+    // upgrade switches the stack half way through while other types move it in
+    // the beginning
+    StackId effectiveStackId = upgradeContext.getTargetStackId();
+    if(upgradeContext.getType() == UpgradeType.NON_ROLLING ) {
+      effectiveStackId = upgradeContext.getSourceStackId();
+    }
 
     for (UpgradeGroupHolder group : groups) {
       boolean skippable = group.skippable;
       boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       boolean allowRetry = group.allowRetry;
+
+      if (upgradeContext.getType() == UpgradeType.NON_ROLLING
+          && UpdateStackGrouping.class.equals(group.groupClass)) {
+        effectiveStackId = upgradeContext.getTargetStackId();
+      }
 
       List<UpgradeItemEntity> itemEntities = new ArrayList<>();
       for (StageWrapper wrapper : group.items) {
@@ -900,8 +913,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntities.add(itemEntity);
 
               injectVariables(configHelper, cluster, itemEntity);
-              makeServerSideStage(upgradeContext, req, itemEntity, (ServerSideActionTask) task,
-                  skippable, supportsAutoSkipOnFailure, allowRetry, pack, configUpgradePack);
+              makeServerSideStage(upgradeContext, req, effectiveStackId, itemEntity,
+                  (ServerSideActionTask) task, skippable, supportsAutoSkipOnFailure, allowRetry,
+                  pack, configUpgradePack);
             }
           }
         } else {
@@ -914,7 +928,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           injectVariables(configHelper, cluster, itemEntity);
 
           // upgrade items match a stage
-          createStage(upgradeContext, req, itemEntity, wrapper, skippable,
+          createStage(upgradeContext, req, effectiveStackId, itemEntity, wrapper, skippable,
               supportsAutoSkipOnFailure, allowRetry);
         }
       }
@@ -1248,25 +1262,49 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     return requestStages;
   }
 
+  /**
+   * Builds a stage's commands.
+   *
+   * @param context
+   *          the upgrade context (not {@code null}).
+   * @param request
+   *          the request to add the new stage to (not {@code null}).
+   * @param effectiveStackId
+   *          the stack ID to use when building the command. This will determine
+   *          things like stack tools and version information added to the
+   *          command (not {@code null}).
+   * @param entity
+   *          the upgrade entity to add the new items to (not {@code null}).
+   * @param wrapper
+   *          the encapsulation of a stage (not {@code null}).
+   * @param skippable
+   *          {@code true} if the stage is skippable.
+   * @param supportsAutoSkipOnFailure
+   *          {@code true} if a failure will skip the stage automatically.
+   * @param allowRetry
+   *          {@code true} if the stage can be retried on failure.
+   * @throws AmbariException
+   */
   private void createStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
-          throws AmbariException {
+      StackId effectiveStackId, UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry) throws AmbariException {
 
     switch (wrapper.getType()) {
       case CONFIGURE:
       case START:
       case STOP:
       case RESTART:
-        makeCommandStage(context, request, entity, wrapper, skippable, supportsAutoSkipOnFailure,
+        makeCommandStage(context, request, effectiveStackId, entity, wrapper, skippable,
+            supportsAutoSkipOnFailure,
             allowRetry);
         break;
       case RU_TASKS:
-        makeActionStage(context, request, entity, wrapper, skippable, supportsAutoSkipOnFailure,
+        makeActionStage(context, request, effectiveStackId, entity, wrapper, skippable,
+            supportsAutoSkipOnFailure,
             allowRetry);
         break;
       case SERVICE_CHECK:
-        makeServiceCheckStage(context, request, entity, wrapper, skippable,
+        makeServiceCheckStage(context, request, effectiveStackId, entity, wrapper, skippable,
             supportsAutoSkipOnFailure, allowRetry);
         break;
       default:
@@ -1290,9 +1328,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
-          throws AmbariException {
+      StackId effectiveStackId, UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry) throws AmbariException {
 
     if (0 == wrapper.getHosts().size()) {
       throw new AmbariException(
@@ -1343,7 +1380,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, effectiveStackId);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1374,18 +1411,28 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   /**
    * Used to create a stage for restart, start, or stop.
-   * @param context Upgrade Context
-   * @param request Container for stage
-   * @param entity Upgrade Item
-   * @param wrapper Stage
-   * @param skippable Whether the item can be skipped
-   * @param allowRetry Whether the item is allowed to be retried
+   *
+   * @param context
+   *          Upgrade Context
+   * @param request
+   *          Container for stage
+   * @param effectiveStackId
+   *          the stack ID to use when building the command. This will determine
+   *          things like stack tools and version information added to the
+   *          command (not {@code null}).
+   * @param entity
+   *          Upgrade Item
+   * @param wrapper
+   *          Stage
+   * @param skippable
+   *          Whether the item can be skipped
+   * @param allowRetry
+   *          Whether the item is allowed to be retried
    * @throws AmbariException
    */
   private void makeCommandStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
-          throws AmbariException {
+      StackId effectiveStackId, UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry) throws AmbariException {
 
     Cluster cluster = context.getCluster();
 
@@ -1425,7 +1472,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, effectiveStackId);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1457,9 +1504,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeServiceCheckStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
-          throws AmbariException {
+      StackId effectiveStackId, UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry) throws AmbariException {
 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
@@ -1486,7 +1532,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, effectiveStackId);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1511,20 +1557,31 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   /**
    * Creates a stage consisting of server side actions
-   * @param context upgrade context
-   * @param request upgrade request
-   * @param entity a single of upgrade
-   * @param task server-side task (if any)
-   * @param skippable if user can skip stage on failure
-   * @param allowRetry if user can retry running stage on failure
-   * @param configUpgradePack a runtime-generated config upgrade pack that
-   * contains all config change definitions from all stacks involved into
-   * upgrade
+   *
+   * @param context
+   *          upgrade context
+   * @param request
+   *          upgrade request
+   * @param effectiveStackId
+   *          the stack ID to use when building the command. This will determine
+   *          things like stack tools and version information added to the
+   *          command (not {@code null}).
+   * @param entity
+   *          a single of upgrade
+   * @param task
+   *          server-side task (if any)
+   * @param skippable
+   *          if user can skip stage on failure
+   * @param allowRetry
+   *          if user can retry running stage on failure
+   * @param configUpgradePack
+   *          a runtime-generated config upgrade pack that contains all config
+   *          change definitions from all stacks involved into upgrade
    * @throws AmbariException
    */
   private void makeServerSideStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, ServerSideActionTask task, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry,
+      StackId effectiveStackId, UpgradeItemEntity entity, ServerSideActionTask task,
+      boolean skippable, boolean supportsAutoSkipOnFailure, boolean allowRetry,
       UpgradePack upgradePack, ConfigUpgradePack configUpgradePack)
           throws AmbariException {
 
@@ -1616,7 +1673,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, effectiveStackId);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getCommandParamsForStage(),

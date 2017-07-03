@@ -337,11 +337,11 @@ public class ClusterImpl implements Cluster {
   private Map<String, String> m_clusterPropertyCache = new ConcurrentHashMap<>();
 
   /**
-   * A simple cache of the effective cluster version during an upgrade. Since
-   * calculation of this during an upgrade is not very quick or clean, it's good
-   * to cache it.
+   * A simple cache of the effective cluster version. This is mainly used during
+   * upgrades to prevent calculating the value repeatedly. calculation of this
+   * during an upgrade is not very quick or clean, it's good to cache it.
    */
-  private final Map<Long, String> upgradeEffectiveVersionCache = new ConcurrentHashMap<>();
+  private final Map<Long, Long> upgradeEffectiveVersionCache = new ConcurrentHashMap<>();
 
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity, Injector injector,
@@ -1018,7 +1018,6 @@ public class ClusterImpl implements Cluster {
     Collection<ClusterVersionEntity> clusterVersionEntities = getClusterEntity().getClusterVersionEntities();
     for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
       if (clusterVersionEntity.getState() == RepositoryVersionState.CURRENT) {
-        // TODO assuming there's only 1 current version, return 1st found, exception was expected in previous implementation
         return clusterVersionEntity;
       }
     }
@@ -1037,39 +1036,44 @@ public class ClusterImpl implements Cluster {
 
     // see if this is in the cache first, and only walk the upgrade if it's not
     Long upgradeId = upgradeEntity.getId();
-    String effectiveVersion = upgradeEffectiveVersionCache.get(upgradeId);
-    if (null == effectiveVersion) {
-      if(upgradeEntity.getUpgradeType() != UpgradeType.ROLLING){
-        effectiveVersion = upgradeEntity.getToRepositoryVersion().getVersion();
+    Long effectiveClusterVersionId = upgradeEffectiveVersionCache.get(upgradeId);
+    if (null == effectiveClusterVersionId) {
+      final ClusterVersionEntity effectiveClusterVersion;
+
+      if (upgradeEntity.getUpgradeType() != UpgradeType.NON_ROLLING) {
+        RepositoryVersionEntity repositoryVersion = upgradeEntity.getToRepositoryVersion();
+        effectiveClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
+            clusterName, repositoryVersion.getStackId(), repositoryVersion.getVersion());
       } else {
         if (upgradeEntity.getDirection() == Direction.UPGRADE) {
           boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
-          effectiveVersion = pastChangingStack ? upgradeEntity.getToRepositoryVersion().getVersion()
-              : upgradeEntity.getFromRepositoryVersion().getVersion();
+          RepositoryVersionEntity repositoryVersion = pastChangingStack
+              ? upgradeEntity.getToRepositoryVersion() : upgradeEntity.getFromRepositoryVersion();
+
+          effectiveClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
+              repositoryVersion.getStackId(), repositoryVersion.getVersion());
         } else {
           // Should be the lower value during a Downgrade.
-          effectiveVersion = upgradeEntity.getToRepositoryVersion().getVersion();
+          RepositoryVersionEntity repositoryVersion = upgradeEntity.getToRepositoryVersion();
+          effectiveClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
+              repositoryVersion.getStackId(), repositoryVersion.getVersion());
         }
       }
 
       // cache for later use
-      upgradeEffectiveVersionCache.put(upgradeId, effectiveVersion);
+      if (null != effectiveClusterVersion) {
+        effectiveClusterVersionId = effectiveClusterVersion.getId();
+        upgradeEffectiveVersionCache.put(upgradeId, effectiveClusterVersionId);
+      }
     }
 
-    if (effectiveVersion == null) {
+    if (effectiveClusterVersionId == null) {
       throw new AmbariException(
           "Unable to determine which version to use during Stack Upgrade, effectiveVersion is null.");
     }
 
-    // Find the first cluster version whose repo matches the expected version.
-    Collection<ClusterVersionEntity> clusterVersionEntities = getClusterEntity().getClusterVersionEntities();
-    for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
-      if (clusterVersionEntity.getRepositoryVersion().getVersion().equals(effectiveVersion)) {
-        return clusterVersionEntity;
-      }
-    }
-
-    return null;
+    // return cluster version which is "effective" given the upgrade state
+    return clusterVersionDAO.findByPK(effectiveClusterVersionId);
   }
 
   /**

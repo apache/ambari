@@ -88,10 +88,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -111,8 +107,6 @@ public class UpgradeActionTest {
 
   private static final StackId HDP_21_STACK = new StackId("HDP-2.1.1");
   private static final StackId HDP_22_STACK = new StackId("HDP-2.2.0");
-
-  private static final String HDP_211_CENTOS6_REPO_URL = "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.1.1.0-118";
 
   private Injector m_injector;
 
@@ -475,19 +469,15 @@ public class UpgradeActionTest {
     StackId targetStack = HDP_21_STACK;
     String sourceRepo = HDP_2_1_1_0;
     String targetRepo = HDP_2_1_1_1;
-    RepositoryVersionEntity sourceRepositoryVersion = repositoryVersion2110;
-    RepositoryVersionEntity targetRepositoryVersion = repositoryVersion2111;
+    RepositoryVersionEntity sourceRepositoryVersion = repositoryVersion2111;
+    RepositoryVersionEntity targetRepositoryVersion = repositoryVersion2110;
 
     makeDowngradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
     Cluster cluster = clusters.getCluster(clusterName);
-    createUpgrade(cluster, sourceRepositoryVersion, targetRepositoryVersion);
+    createUpgrade(cluster, "", Direction.DOWNGRADE, sourceRepositoryVersion,
+        targetRepositoryVersion);
 
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, sourceRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);
@@ -601,9 +591,6 @@ public class UpgradeActionTest {
     CommandReport report = finalizeUpgradeAction.execute(null);
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
-
-    // Verify the metainfo url
-    verifyBaseRepoURL(helper, cluster, host, "http://foo1");
   }
 
   /**
@@ -663,19 +650,6 @@ public class UpgradeActionTest {
     CommandReport report = finalizeUpgradeAction.execute(null);
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
-  }
-
-  private void verifyBaseRepoURL(AmbariCustomCommandExecutionHelper helper, Cluster cluster, Host host, String expectedRepoBaseURL) throws AmbariException {
-    String repoInfo = helper.getRepoInfo(cluster, host);
-    Gson gson = new Gson();
-    JsonElement element = gson.fromJson(repoInfo, JsonElement.class);
-    assertTrue(element.isJsonArray());
-    JsonArray list = JsonArray.class.cast(element);
-    assertEquals(1, list.size());
-
-    JsonObject o = list.get(0).getAsJsonObject();
-    assertTrue(o.has("baseUrl"));
-    assertEquals(expectedRepoBaseURL, o.get("baseUrl").getAsString());
   }
 
   @Test

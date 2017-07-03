@@ -210,8 +210,15 @@ public class UpgradeContext {
     m_toRepositoryVersion = upgradeEntity.getToRepositoryVersion();
 
     String upgradePackage = upgradeEntity.getUpgradePackage();
-    StackId stackId = getOriginalStackId();
-    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(stackId.getStackName(), stackId.getStackVersion());
+
+    StackId originalStackId = m_fromRepositoryVersion.getStackId();
+    if (m_direction == Direction.DOWNGRADE) {
+      originalStackId = m_toRepositoryVersion.getStackId();
+    }
+
+    Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(originalStackId.getStackName(),
+        originalStackId.getStackVersion());
+
     m_upgradePack = packs.get(upgradePackage);
 
     // since this constructor is initialized from an entity, then this map is
@@ -344,25 +351,19 @@ public class UpgradeContext {
   }
 
   /**
-   * @return the originalStackId
+   * Gets the original stack ID that the cluster was on. For an upgrade, this
+   * returns the source stack ID. For a downgrade, this will return the target
+   * stack ID.
+   *
+   * @return the original stack ID.
    */
   public StackId getOriginalStackId() {
-    if (m_direction == Direction.UPGRADE) {
-      return m_fromRepositoryVersion.getStackId();
-    } else {
-      return m_toRepositoryVersion.getStackId();
-    }
-  }
-
-  /**
-   * @return the effectiveStackId that is currently in use.
-   */
-  public StackId getEffectiveStackId() {
-    if (m_type == UpgradeType.NON_ROLLING && m_direction == Direction.UPGRADE) {
-      return m_fromRepositoryVersion.getStackId();
+    StackId originalStackId = getSourceStackId();
+    if (m_direction == Direction.DOWNGRADE) {
+      originalStackId = getTargetStackId();
     }
 
-    return m_toRepositoryVersion.getStackId();
+    return originalStackId;
   }
 
   /**

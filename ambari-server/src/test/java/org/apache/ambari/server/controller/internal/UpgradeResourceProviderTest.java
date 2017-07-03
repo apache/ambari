@@ -1676,17 +1676,12 @@ public class UpgradeResourceProviderTest {
   public void testTimeouts() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
-    StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version 3");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity);
-    repoVersionEntity.setVersion("2.2.2.3");
-    repoVersionDao.create(repoVersionEntity);
+    cluster.createClusterVersion(repoVersionEntity2111.getStackId(),
+        repoVersionEntity2111.getVersion(), "admin", RepositoryVersionState.INSTALLED);
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION, "2.2.2.3");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION, repoVersionEntity2111.getVersion());
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
