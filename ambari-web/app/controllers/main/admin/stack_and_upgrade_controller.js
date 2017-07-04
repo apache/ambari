@@ -1407,21 +1407,35 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   installRepoVersionConfirmation: function (repo) {
     var self = this;
-    return App.showConfirmationPopup(function () {
-        self.installRepoVersion(repo);
-      },
-      Em.I18n.t('admin.stackVersions.version.install.confirm').format(repo.get('displayName'))
-    );
+    return App.ModalPopup.show({
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      popupBody: Em.I18n.t('admin.stackVersions.version.install.confirm').format(repo.get('displayName')),
+      skipDependencyCheck: false,
+      bodyClass: Em.View.extend({
+        didInsertElement: function () {
+          App.tooltip($('[rel="skip-dep-check"]'), {
+            placement: "top",
+            title: Em.I18n.t('admin.stackVersions.version.install.skipDependencies.tooltip')
+          });
+        },
+        templateName: require('templates/common/modal_popups/install_repo_confirmation')
+      }),
+      onPrimary: function () {
+        self.installRepoVersion(repo, this.get('skipDependencyCheck'));
+        this._super();
+      }
+    });
   },
 
   /**
    * sends request to install repoVersion to the cluster
    * and create clusterStackVersion resourse
    * @param {Em.Object} repo
+   * @param {boolean} skipDependencyCheck
    * @return {$.ajax}
    * @method installRepoVersion
    */
-  installRepoVersion: function (repo) {
+  installRepoVersion: function (repo, skipDependencyCheck) {
     this.set('requestInProgress', true);
     this.set('requestInProgressRepoId', repo.get('id'));
 
@@ -1429,7 +1443,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       ClusterStackVersions: {
         stack: repo.get('stackVersionType'),
         version: repo.get('stackVersionNumber'),
-        repository_version: repo.get('repositoryVersion')
+        repository_version: repo.get('repositoryVersion'),
+        ignore_package_dependencies: skipDependencyCheck
       },
       id: repo.get('id')
     };

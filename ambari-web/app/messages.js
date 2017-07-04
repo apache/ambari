@@ -1702,6 +1702,8 @@ Em.I18n.translations = {
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
   'admin.stackVersions.editRepositories.validation.warning': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
   'admin.stackVersions.version.install.confirm': 'You are about to install packages for version <strong>{0}</strong> on all hosts.',
+  'admin.stackVersions.version.install.skipDependencies': 'Skip Dependency Check',
+  'admin.stackVersions.version.install.skipDependencies.tooltip': 'When selected, Ambari will not verify that all package dependencies have been satisfied after installing the new stack.',
   'admin.stackVersions.version.linkTooltip': 'Click to Edit Repositories',
   'admin.stackVersions.version.hostsTooltip': 'Click to List Hosts',
   'admin.stackVersions.version.emptyHostsTooltip': 'No Hosts to List',
