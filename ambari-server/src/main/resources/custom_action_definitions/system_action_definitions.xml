@@ -94,4 +94,14 @@
     <description>Perform remove old stack version action</description>
     <targetType>ANY</targetType>
   </actionDefinition>
+  <actionDefinition>
+    <actionName>force_remove_packages</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs>package_list</inputs>
+    <targetService/>
+    <targetComponent/>
+    <defaultTimeout>600</defaultTimeout>
+    <description>Remove packages specified by package_list, instructing the package manager to ignore dependencies.</description>
+    <targetType>ALL</targetType>
+  </actionDefinition>
 </actionDefinitions>

@@ -41,6 +41,7 @@ REMOVE_CMD = {
   False: ['/usr/bin/apt-get', '-y', '-q', 'remove'],
 }
 REPO_UPDATE_CMD = ['/usr/bin/apt-get', 'update','-qq']
+REMOVE_WITHOUT_DEPENDENCIES_CMD = ['/usr/bin/dpkg', '--remove', '--ignore-depends']
 
 APT_SOURCES_LIST_DIR = "/etc/apt/sources.list.d"
 
@@ -103,9 +104,12 @@ class AptProvider(PackageProvider):
     return self.install_package(name, use_repos, skip_repos, is_upgrade)
 
   @replace_underscores
-  def remove_package(self, name):
+  def remove_package(self, name, ignore_dependencies = False):
     if self._check_existence(name):
-      cmd = REMOVE_CMD[self.get_logoutput()] + [name]
+      if ignore_dependencies:
+        cmd = REMOVE_WITHOUT_DEPENDENCIES_CMD + [name, name] # have to specify name twice: one for --ignore-depends, one for --remove
+      else:
+        cmd = REMOVE_CMD[self.get_logoutput()] + [name]
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       self.checked_call_with_retries(cmd, sudo=True, logoutput=self.get_logoutput())
     else:

@@ -217,6 +217,21 @@ class TestPackageResource(TestCase):
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
   @patch.object(shell, "checked_call")
+  @patch.object(System, "os_family", new = 'redhat')
+  def test_action_remove_nodeps_rhel(self, shell_mock):
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
+    with Environment('/') as env:
+      Package("some_package",
+              action = "remove",
+              logoutput = False,
+              ignore_dependencies = True
+      )
+    shell_mock.assert_called_with(['/usr/bin/rpm', '-e', '--nodeps', 'some_package'], logoutput=False, sudo=True)
+
+  @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
+  @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
   def test_action_remove_suse(self, shell_mock):
     shell_mock.return_value = (0, '')
@@ -229,6 +244,32 @@ class TestPackageResource(TestCase):
               logoutput = False
       )
     shell_mock.assert_called_with(['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm', 'some_package'], logoutput=False, sudo=True)
+
+  @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
+  @patch.object(shell, "checked_call")
+  @patch.object(System, "os_family", new = 'suse')
+  def test_action_remove_nodeps_suse(self, shell_mock):
+    shell_mock.return_value = (0, '')
+    with Environment('/') as env:
+      Package("some_package",
+              action = "remove",
+              logoutput = False,
+              ignore_dependencies = True
+      )
+    shell_mock.assert_called_with(['/usr/bin/rpm', '-e', '--nodeps', 'some_package'], logoutput=False, sudo=True)
+
+  @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
+  @patch.object(shell, "checked_call")
+  @patch.object(System, "os_family", new = 'ubuntu')
+  def test_action_remove_nodeps_ubuntu(self, shell_mock):
+    shell_mock.return_value = (0, '')
+    with Environment('/') as env:
+      Package("some-package",
+              action = "remove",
+              logoutput = False,
+              ignore_dependencies = True
+      )
+    shell_mock.assert_called_with(['/usr/bin/dpkg', '--remove', '--ignore-depends', 'some-package', 'some-package'], logoutput=False, sudo=True)
 
   @patch.object(shell, "call", new = MagicMock(return_value=(1, None)))
   @patch.object(shell, "checked_call")

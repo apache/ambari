@@ -35,6 +35,8 @@ REMOVE_CMD = {
   False: ['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm'],
 }
 
+REMOVE_WITHOUT_DEPENDENCIES_CMD = ['/usr/bin/rpm', '-e', '--nodeps']
+
 REPO_UPDATE_CMD = ['/usr/bin/zypper', 'clean']
 
 LIST_ACTIVE_REPOS_CMD = ['/usr/bin/zypper', 'repos']
@@ -63,9 +65,12 @@ class ZypperProvider(PackageProvider):
   def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):
     return self.install_package(name, use_repos, skip_repos, is_upgrade)
   
-  def remove_package(self, name):
+  def remove_package(self, name, ignore_dependencies = False):
     if self._check_existence(name):
-      cmd = REMOVE_CMD[self.get_logoutput()] + [name]
+      if ignore_dependencies:
+        cmd = REMOVE_WITHOUT_DEPENDENCIES_CMD + [name]
+      else:
+        cmd = REMOVE_CMD[self.get_logoutput()] + [name]
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       self.checked_call_with_retries(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
