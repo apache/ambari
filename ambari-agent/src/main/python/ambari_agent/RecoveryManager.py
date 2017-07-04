@@ -97,7 +97,6 @@ class RecoveryManager:
     self.__cache_lock = threading.RLock()
     self.active_command_count = 0
     self.paused = False
-    self.recovery_timestamp = -1
     self.cluster_id = None
 
     if not os.path.exists(cache_dir):
@@ -110,7 +109,7 @@ class RecoveryManager:
 
     self.actions = {}
 
-    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start, "", -1)
+    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start, "")
 
     pass
 
@@ -560,8 +559,7 @@ class RecoveryManager:
       "maxCount" : 10,
       "windowInMinutes" : 60,
       "retryGap" : 0,
-      "components" : "a,b",
-      "recoveryTimestamp" : 1458150424380
+      "components" : "a,b"
       }
     """
 
@@ -573,7 +571,6 @@ class RecoveryManager:
     retry_gap = 5
     max_lifetime_count = 12
     enabled_components = ""
-    recovery_timestamp = -1 # Default value if recoveryTimestamp is not available.
 
 
     if dictionary and "recoveryConfig" in dictionary:
@@ -599,11 +596,8 @@ class RecoveryManager:
       if 'components' in config:
         enabled_components = config['components']
 
-      if 'recoveryTimestamp' in config:
-        recovery_timestamp = config['recoveryTimestamp']
-
     self.update_config(max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only,
-                       auto_install_start, enabled_components, recovery_timestamp)
+                       auto_install_start, enabled_components)
     pass
 
   """
@@ -617,10 +611,9 @@ class RecoveryManager:
   auto_start_only - True if AUTO_START recovery type was specified. False otherwise.
   auto_install_start - True if AUTO_INSTALL_START recovery type was specified. False otherwise.
   enabled_components - CSV of componenents enabled for auto start.
-  recovery_timestamp - Timestamp when the recovery values were last updated. -1 on start up.
   """
   def update_config(self, max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled,
-                    auto_start_only, auto_install_start, enabled_components, recovery_timestamp):
+                    auto_start_only, auto_install_start, enabled_components):
     """
     Update recovery configuration, recovery is disabled if configuration values
     are not correct
@@ -653,7 +646,6 @@ class RecoveryManager:
     self.auto_install_start = auto_install_start
     self.max_lifetime_count = max_lifetime_count
     self.enabled_components = []
-    self.recovery_timestamp = recovery_timestamp
 
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALL_FAILED, self.INSTALLED, self.STARTED]

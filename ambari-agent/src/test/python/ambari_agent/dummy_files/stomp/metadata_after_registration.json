@@ -38,14 +38,7 @@
       },
       "status_commands_to_run": [
         "STATUS"
-      ],
-      "recoveryConfig": {
-        "type" : "AUTO_INSTALL_START",
-        "maxCount" : 10,
-        "windowInMinutes" : 60,
-        "components" : "NAMENODE,DATANODE",
-        "recoveryTimestamp" : 1458150424380
-      }
+      ]
     }
   }
 }

@@ -26,6 +26,7 @@ from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 from ambari_agent.ClusterTopologyCache import ClusterTopologyCache
 from ambari_agent.ClusterMetadataCache import ClusterMetadataCache
+from ambari_agent.ClusterHostLevelParamsCache import ClusterHostLevelParamsCache
 from ambari_agent.Utils import lazy_property
 from ambari_agent.security import AmbariStompConnection
 from ambari_agent.ActionQueue import ActionQueue
@@ -73,6 +74,7 @@ class InitializerModule:
     self.metadata_cache = ClusterMetadataCache(self.cluster_cache_dir)
     self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir, self.config)
     self.configurations_cache = ClusterConfigurationCache(self.cluster_cache_dir)
+    self.host_level_params_cache = ClusterHostLevelParamsCache(self.cluster_cache_dir)
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
 
     self.recovery_manager = RecoveryManager(self.recovery_cache_dir)

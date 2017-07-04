@@ -26,18 +26,17 @@ from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
-METADATA_DICTIONARY_KEY = 'metadataClusters'
-
-class MetadataEventListener(EventListener):
+class HostLevelParamsEventListener(EventListener):
   """
-  Listener of Constants.METADATA_TOPIC events from server.
+  Listener of Constants.HOST_LEVEL_PARAMS_TOPIC events from server.
   """
-  def __init__(self, metadata_cache):
-    self.metadata_cache = metadata_cache
+  def __init__(self, host_level_params_cache, recovery_manager):
+    self.host_level_params_cache = host_level_params_cache
+    self.recovery_manager = recovery_manager
 
   def on_event(self, headers, message):
     """
-    Is triggered when an event to Constants.METADATA_TOPIC topic is received from server.
+    Is triggered when an event to Constants.CONFIGURATIONS_TOPIC topic is received from server.
 
     @param headers: headers dictionary
     @param message: message payload dictionary
@@ -46,8 +45,17 @@ class MetadataEventListener(EventListener):
     if message == {}:
       return
 
-    self.metadata_cache.rewrite_cache(message['clusters'])
-    self.metadata_cache.hash = message['hash']
+    self.host_level_params_cache.rewrite_cache(message['clusters'])
+    self.host_level_params_cache.hash = message['hash']
+
+    if message['clusters']:
+      # FIXME: Recovery manager does not support multiple cluster as of now.
+      cluster_id = message['clusters'].keys()[0]
+
+      if 'recoveryConfig' in message['clusters'][cluster_id]:
+        logging.info("Updating recoveryConfig from metadata")
+        self.recovery_manager.update_recovery_config(self.host_level_params_cache[cluster_id])
+        self.recovery_manager.cluster_id = cluster_id
 
   def get_handled_path(self):
-    return Constants.METADATA_TOPIC
+    return Constants.HOST_LEVEL_PARAMS_TOPIC

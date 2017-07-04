@@ -81,6 +81,7 @@ class CustomServiceOrchestrator():
     self.metadata_cache = initializer_module.metadata_cache
     self.topology_cache = initializer_module.topology_cache
     self.configurations_cache = initializer_module.configurations_cache
+    self.host_level_params_cache = initializer_module.host_level_params_cache
     self.config = initializer_module.config
     self.tmp_dir = self.config.get('agent', 'prefix')
     self.force_https_protocol = self.config.get_force_https_protocol()
@@ -459,13 +460,14 @@ class CustomServiceOrchestrator():
 
     metadata_cache = self.metadata_cache[cluster_id]
     configurations_cache = self.configurations_cache[cluster_id]
+    host_level_params_cache = self.host_level_params_cache[cluster_id]
 
     component_dict = self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name)
 
     command_dict = {
       'clusterLevelParams': metadata_cache.clusterLevelParams,
       'serviceLevelParams': metadata_cache.serviceLevelParams[service_name],
-      'hostLevelParams': self.topology_cache.get_current_host_info(cluster_id).hostLevelParams,
+      'hostLevelParams': host_level_params_cache,
       'componentLevelParams': component_dict.componentLevelParams,
       'script_type': self.SCRIPT_TYPE_PYTHON
     }
