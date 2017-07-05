@@ -34,6 +34,7 @@ import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {BarGraphsService, barGraphs} from '@app/services/storage/bar-graphs.service';
@@ -104,14 +105,15 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       }
     }),
     StoreModule.provideStore({
-      appSettings,
-      auditLogs,
-      serviceLogs,
-      barGraphs,
-      graphs,
-      nodes,
-      userConfigs,
-      filters
+      appSettings: appSettings,
+      appState: appState,
+      auditLogs: auditLogs,
+      serviceLogs: serviceLogs,
+      barGraphs: barGraphs,
+      graphs: graphs,
+      nodes: nodes,
+      userConfigs: userConfigs,
+      filters: filters
     }),
     MomentModule,
     MomentTimezoneModule
@@ -121,6 +123,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ComponentActionsService,
     FilteringService,
     AppSettingsService,
+    AppStateService,
     AuditLogsService,
     ServiceLogsService,
     BarGraphsService,

@@ -21,6 +21,8 @@ import {FormsModule} from '@angular/forms';
 import {HttpModule, Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {StoreModule} from '@ngrx/store';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {HttpClientService} from '@app/services/http-client.service';
 
 import {LoginFormComponent} from './login-form.component';
@@ -38,15 +40,10 @@ describe('LoginFormComponent', () => {
   };
   const httpClient = {
     isAuthorized: true,
-    post: () => {
+    postFormData: () => {
       return {
-        finally: (callback: () => void) => {
-          callback();
-          return {
-            subscribe: (success: () => void, error: () => void) => {
-              authMock.isError ? error() : success();
-            }
-          }
+        subscribe: (success: () => void, error: () => void) => {
+          authMock.isError ? error() : success();
         }
       }
     }
@@ -62,9 +59,13 @@ describe('LoginFormComponent', () => {
           provide: TranslateLoader,
           useFactory: HttpLoaderFactory,
           deps: [Http]
+        }),
+        StoreModule.provideStore({
+          appState
         })
       ],
       providers: [
+        AppStateService,
         {
           provide: HttpClientService,
           useValue: httpClient
@@ -111,9 +112,9 @@ describe('LoginFormComponent', () => {
           expect(component.isLoginAlertDisplayed).toEqual(test.isLoginAlertDisplayed);
         });
 
-        it('isRequestInProgress', () => {
-          expect(component.isRequestInProgress).toEqual(false);
-        })
+        it('isLoginInProgress', () => {
+          expect(component.isLoginInProgress).toEqual(false);
+        });
       });
     });
 

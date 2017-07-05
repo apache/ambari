@@ -15,19 +15,14 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Input, ContentChild, TemplateRef} from '@angular/core';
+import {Component, Input, ContentChild, TemplateRef} from '@angular/core';
 
 @Component({
   selector: 'accordion-panel',
   templateUrl: './accordion-panel.component.html',
   styleUrls: ['./accordion-panel.component.less']
 })
-export class AccordionPanelComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {
-  }
+export class AccordionPanelComponent {
 
   @Input()
   toggleId: string;

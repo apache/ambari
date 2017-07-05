@@ -17,11 +17,12 @@
  */
 
 import {Injectable} from '@angular/core';
+import {AppSettingsService} from '@app/services/storage/app-settings.service';
 
 @Injectable()
 export class ComponentActionsService {
 
-  constructor() {
+  constructor(private appSettings: AppSettingsService) {
   }
 
   //TODO implement actions
@@ -36,6 +37,10 @@ export class ComponentActionsService {
   }
 
   openHistory() {
+  }
+
+  setTimeZone(timeZone: string): void {
+    this.appSettings.setParameter('timeZone', timeZone);
   }
 
 }

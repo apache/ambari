@@ -16,22 +16,18 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {FilteringService} from '@app/services/filtering.service';
-import {AppSettingsService} from '@app/services/storage/app-settings.service';
 
 @Component({
   selector: 'filters-panel',
   templateUrl: './filters-panel.component.html',
   styleUrls: ['./filters-panel.component.less']
 })
-export class FiltersPanelComponent implements OnInit {
+export class FiltersPanelComponent {
 
-  constructor(private filtering: FilteringService, private appSettings: AppSettingsService) {
-  }
-
-  ngOnInit() {
+  constructor(private filtering: FilteringService) {
   }
 
   get filters() {
@@ -45,9 +41,5 @@ export class FiltersPanelComponent implements OnInit {
   }, {});
 
   filtersForm = new FormGroup(this.filtersFormItems);
-
-  setTimeZone(timeZone: string): void {
-    this.appSettings.setParameter('timeZone', timeZone);
-  }
 
 }

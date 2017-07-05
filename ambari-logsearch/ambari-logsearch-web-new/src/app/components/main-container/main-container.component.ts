@@ -16,22 +16,22 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from '@angular/core';
-import {HttpClientService} from '@app/services/http-client.service';
+import {Component} from '@angular/core';
+import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Component({
   selector: 'main-container',
   templateUrl: './main-container.component.html'
 })
-export class MainContainerComponent implements OnInit {
+export class MainContainerComponent {
 
-  constructor(private httpClient: HttpClientService) {}
-
-  ngOnInit() {
+  constructor(private appState: AppStateService) {
+    this.appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
+    this.appState.getParameter('isInitialLoading').subscribe(value => this.isInitialLoading = value);
   }
 
-  get isAuthorized() {
-    return this.httpClient.isAuthorized;
-  }
+  isAuthorized: boolean = false;
+
+  isInitialLoading: boolean = false;
 
 }

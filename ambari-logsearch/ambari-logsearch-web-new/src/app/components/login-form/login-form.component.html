@@ -26,7 +26,7 @@
       <label for="password">{{'authorization.password' | translate}}</label>
       <input class="form-control" type="password" id="password" name="password" required [(ngModel)]="password">
     </div>
-    <button class="btn btn-success" [disabled]="!loginForm.form.valid || isRequestInProgress">
+    <button class="btn btn-success" [disabled]="!loginForm.form.valid || isLoginInProgress">
       {{'authorization.signIn' | translate}}
     </button>
   </form>

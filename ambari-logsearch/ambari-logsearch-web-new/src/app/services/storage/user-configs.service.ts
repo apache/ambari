@@ -18,7 +18,7 @@
 
 
 import {Injectable} from '@angular/core';
-import {Action, ActionReducer, Store} from '@ngrx/store';
+import {Action, Store} from '@ngrx/store';
 import {UserConfig} from '@app/models/user-config.model';
 import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
@@ -29,6 +29,6 @@ export class UserConfigsService extends CollectionModelService {
   }
 }
 
-export const userConfigs: ActionReducer<UserConfig[]> = (state: UserConfig[] = [], action: Action) => {
+export function userConfigs(state: UserConfig[] = [], action: Action): any {
   return collectionReducer(state, action);
 }

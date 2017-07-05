@@ -20,13 +20,11 @@ import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/c
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import * as $ from 'jquery';
 
-export const menuButtonComponentOptions = {
+@Component({
   selector: 'menu-button',
   templateUrl: './menu-button.component.html',
   styleUrls: ['./menu-button.component.less']
-}
-
-@Component(menuButtonComponentOptions)
+})
 export class MenuButtonComponent implements AfterViewInit {
 
   constructor(protected actions: ComponentActionsService) {

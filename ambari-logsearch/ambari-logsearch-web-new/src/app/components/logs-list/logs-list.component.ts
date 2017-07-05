@@ -19,7 +19,6 @@ import {Component, OnInit, Input} from '@angular/core';
 import 'rxjs/add/operator/map';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
-import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
@@ -29,7 +28,7 @@ import {FilteringService} from '@app/services/filtering.service';
 })
 export class LogsListComponent implements OnInit {
 
-  constructor(private httpClient: HttpClientService, private serviceLogsStorage: ServiceLogsService, private appSettings: AppSettingsService, private filtering: FilteringService) {
+  constructor(private httpClient: HttpClientService, private serviceLogsStorage: ServiceLogsService, private filtering: FilteringService) {
     this.filtering.filteringSubject.subscribe(this.loadLogs.bind(this));
   }
 
@@ -61,6 +60,10 @@ export class LogsListComponent implements OnInit {
       }
     });
   });
+
+  get timeZone(): string {
+    return this.filtering.timeZone;
+  }
 
   private loadLogs(): void {
     this.httpClient.get(this.logsArrayId, this.getParams()).subscribe(response => {

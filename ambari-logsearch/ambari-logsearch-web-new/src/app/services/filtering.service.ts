@@ -25,7 +25,7 @@ import {AppSettingsService} from '@app/services/storage/app-settings.service';
 export class FilteringService {
 
   constructor(private appSettings: AppSettingsService) {
-    this.appSettings.getAll().subscribe(settings => this.timeZone = settings.timeZone);
+    this.appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value);
   }
 
   timeZone: string;

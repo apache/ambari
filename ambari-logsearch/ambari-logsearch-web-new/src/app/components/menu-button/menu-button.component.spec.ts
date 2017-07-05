@@ -21,6 +21,8 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {StoreModule} from '@ngrx/store';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 
@@ -38,12 +40,17 @@ describe('MenuButtonComponent', () => {
     TestBed.configureTestingModule({
       declarations: [MenuButtonComponent],
       imports: [
+        StoreModule.provideStore({
+          appSettings
+        }),
         TranslateModule.forRoot({
           provide: TranslateLoader,
           useFactory: HttpLoaderFactory,
           deps: [Http]
-        })],
+        })
+      ],
       providers: [
+        AppSettingsService,
         ComponentActionsService,
         FilteringService
       ],

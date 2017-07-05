@@ -16,19 +16,18 @@
  * limitations under the License.
  */
 
-
 import {Injectable} from '@angular/core';
 import {Action, Store} from '@ngrx/store';
-import {Graph} from '@app/models/graph.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {AppState, initialState} from '@app/models/app-state.model';
+import {AppStore, ObjectModelService, objectReducer} from '@app/models/store.model';
 
 @Injectable()
-export class GraphsService extends CollectionModelService {
+export class AppStateService extends ObjectModelService {
   constructor(store: Store<AppStore>) {
-    super('graphs', store);
+    super('appState', store);
   }
 }
 
-export function graphs(state: Graph[] = [], action: Action): any {
-  return collectionReducer(state, action);
+export function appState(state: AppState = initialState, action: Action): any {
+  return objectReducer(state, action);
 }

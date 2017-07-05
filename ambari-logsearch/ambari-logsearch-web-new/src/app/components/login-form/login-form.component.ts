@@ -16,21 +16,20 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import 'rxjs/add/operator/finally';
 import {HttpClientService} from '@app/services/http-client.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Component({
   selector: 'login-form',
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.less']
 })
-export class LoginFormComponent implements OnInit {
+export class LoginFormComponent {
 
-  constructor(private httpClient: HttpClientService) {
-  }
-
-  ngOnInit() {
+  constructor(private httpClient: HttpClientService, private appState: AppStateService) {
+    this.appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value);
   }
 
   username: string;
@@ -39,22 +38,22 @@ export class LoginFormComponent implements OnInit {
 
   isLoginAlertDisplayed: boolean;
 
-  isRequestInProgress: boolean;
+  isLoginInProgress: boolean;
+
+  private setIsAuthorized(value: boolean): void {
+    this.appState.setParameters({
+      isAuthorized: value,
+      isLoginInProgress: false
+    });
+    this.isLoginAlertDisplayed = !value;
+  }
 
   login() {
-    this.isRequestInProgress = true;
-    this.httpClient.post('login', {
+    this.appState.setParameter('isLoginInProgress', true);
+    this.httpClient.postFormData('login', {
       username: this.username,
       password: this.password
-    }).finally(() => {
-      this.isRequestInProgress = false;
-    }).subscribe(() => {
-      this.isLoginAlertDisplayed = false;
-      this.httpClient.isAuthorized = true;
-    }, () => {
-      this.isLoginAlertDisplayed = true;
-      this.httpClient.isAuthorized = false;
-    });
+    }).subscribe(() => this.setIsAuthorized(true), () => this.setIsAuthorized(false));
   }
 
 }

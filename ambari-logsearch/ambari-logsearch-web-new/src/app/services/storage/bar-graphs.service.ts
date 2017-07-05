@@ -17,7 +17,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Action, ActionReducer, Store} from '@ngrx/store';
+import {Action, Store} from '@ngrx/store';
 import {BarGraph} from '@app/models/bar-graph.model';
 import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
@@ -28,6 +28,6 @@ export class BarGraphsService extends CollectionModelService {
   }
 }
 
-export const barGraphs: ActionReducer<BarGraph[]> = (state: BarGraph[] = [], action: Action) => {
+export function barGraphs(state: BarGraph[] = [], action: Action): any {
   return collectionReducer(state, action);
 }

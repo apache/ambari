@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-import {AppSettings} from '@app/models/app-settings.model';
 import {Observable} from 'rxjs/Observable';
 import {Store, Action} from '@ngrx/store';
+import {AppSettings} from '@app/models/app-settings.model';
+import {AppState} from '@app/models/app-state.model';
 import {AuditLog} from '@app/models/audit-log.model';
 import {ServiceLog} from '@app/models/service-log.model';
 import {BarGraph} from '@app/models/bar-graph.model';
@@ -36,6 +37,7 @@ export const storeActions = {
 
 export interface AppStore {
   appSettings: AppSettings;
+  appState: AppState;
   auditLogs: AuditLog[];
   serviceLogs: ServiceLog[];
   barGraphs: BarGraph[];
@@ -92,6 +94,10 @@ export class CollectionModelService extends ModelService {
 
 export class ObjectModelService extends ModelService {
 
+  getParameter(key: string): Observable<any> {
+    return this.store.select(this.modelName, key);
+  }
+
   setParameter(key: string, value: any): void {
     let payload = {};
     payload[key] = value;
@@ -107,7 +113,7 @@ export class ObjectModelService extends ModelService {
 
 }
 
-export function collectionReducer(state: any, action: Action): any {
+export function collectionReducer(state: any[] = [], action: Action): any {
   switch (action.type) {
     case storeActions.ADD:
       return [...state, ...action.payload];
@@ -122,7 +128,7 @@ export function collectionReducer(state: any, action: Action): any {
   }
 }
 
-export function objectReducer(state: any, action: Action): any {
+export function objectReducer(state: any = {}, action: Action): any {
   switch (action.type) {
     case storeActions.SET:
       return Object.assign({}, state, action.payload);

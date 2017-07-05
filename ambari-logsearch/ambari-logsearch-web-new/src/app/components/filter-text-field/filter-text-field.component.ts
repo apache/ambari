@@ -19,6 +19,7 @@ import {Component, AfterViewInit, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
 import 'rxjs/add/operator/debounceTime';
 import {FilteringService} from '@app/services/filtering.service';
+import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
   selector: 'filter-text-field',
@@ -34,12 +35,12 @@ import {FilteringService} from '@app/services/filtering.service';
 })
 export class FilterTextFieldComponent implements AfterViewInit, ControlValueAccessor {
 
-  constructor(private filtering: FilteringService) {
+  constructor(private filtering: FilteringService, private actions: ComponentActionsService) {
   }
 
   ngAfterViewInit() {
     const callback = this.customOnChange ?
-      (value => this.customOnChange(value)) : (() => this.filtering.filteringSubject.next(null));
+      (value => this.actions[this.customOnChange](value)) : (() => this.filtering.filteringSubject.next(null));
     this.form.controls[this.filterName].valueChanges.debounceTime(this.debounceInterval).subscribe(callback);
   }
 
@@ -47,7 +48,7 @@ export class FilterTextFieldComponent implements AfterViewInit, ControlValueAcce
   filterName: string;
 
   @Input()
-  customOnChange: (value: any) => void;
+  customOnChange: string;
 
   @Input()
   form: FormGroup;

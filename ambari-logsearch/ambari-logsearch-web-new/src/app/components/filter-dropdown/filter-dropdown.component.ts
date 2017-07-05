@@ -18,6 +18,7 @@
 import {Component, AfterViewInit, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
 import {FilteringService} from '@app/services/filtering.service';
+import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
   selector: 'filter-dropdown',
@@ -33,12 +34,12 @@ import {FilteringService} from '@app/services/filtering.service';
 })
 export class FilterDropdownComponent implements AfterViewInit, ControlValueAccessor {
 
-  constructor(private filtering: FilteringService) {
+  constructor(private filtering: FilteringService, private actions: ComponentActionsService) {
   }
 
   ngAfterViewInit() {
     const callback = this.customOnChange ?
-      (value => this.customOnChange(value)) : (() => this.filtering.filteringSubject.next(null));
+      (value => this.actions[this.customOnChange](value)) : (() => this.filtering.filteringSubject.next(null));
     this.form.controls[this.filterName].valueChanges.subscribe(callback);
   }
 
@@ -46,7 +47,7 @@ export class FilterDropdownComponent implements AfterViewInit, ControlValueAcces
   options: any[];
 
   @Input()
-  customOnChange: (value: any) => void;
+  customOnChange: string;
 
   @Input()
   form: FormGroup;

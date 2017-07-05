@@ -16,19 +16,14 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
+import {Component, Input, Output, EventEmitter} from '@angular/core';
 
 @Component({
   selector: 'ul.dropdown-menu',
   templateUrl: './dropdown-list.component.html',
   styleUrls: ['./dropdown-list.component.less']
 })
-export class DropdownListComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {
-  }
+export class DropdownListComponent {
 
   @Input()
   items: any[];

@@ -25,7 +25,7 @@
                      formControlName="timeRange" [form]="filtersForm"></filter-dropdown>
     <filter-dropdown [(ngModel)]="filters.timeZone.selectedValue" [filterName]="'timeZone'"
                      formControlName="timeZone" [form]="filtersForm"
-                     [customOnChange]="setTimeZone"></filter-dropdown>
+                     [customOnChange]="'setTimeZone'"></filter-dropdown>
     <!--button class="btn btn-success" type="button">
       <span class="fa fa-search"></span>
     </button-->

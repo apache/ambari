@@ -18,7 +18,7 @@
 
 
 import {Injectable} from '@angular/core';
-import {Action, ActionReducer, Store} from '@ngrx/store';
+import {Action, Store} from '@ngrx/store';
 import {Filter} from '@app/models/filter.model';
 import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
@@ -29,6 +29,6 @@ export class FiltersService extends CollectionModelService {
   }
 }
 
-export const filters: ActionReducer<Filter[]> = (state: Filter[] = [], action: Action) => {
+export function filters(state: Filter[] = [], action: Action): any {
   return collectionReducer(state, action);
 }

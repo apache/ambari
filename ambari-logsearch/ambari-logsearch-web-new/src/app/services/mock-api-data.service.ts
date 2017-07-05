@@ -62,7 +62,10 @@ export class mockApiDataService implements InMemoryDbService {
 
   parseUrl(url: string): any {
     const urlLocation = mockBackendService.prototype.getLocation(url),
-      query = urlLocation.search && new URLSearchParams(urlLocation.search.substr(1)),
+      query = urlLocation.search && new URLSearchParams(urlLocation.search.substr(1), {
+          encodeKey: key => key,
+          encodeValue: value => value
+        }),
       splitUrl = urlLocation.pathname.substr(1).split('/'),
       urlPartsCount = splitUrl.length,
       collectionName = splitUrl[urlPartsCount - 1],
@@ -104,8 +107,8 @@ export class mockApiDataService implements InMemoryDbService {
           const collection = allData[filterMapItem.pathToCollection],
             filteredCollection = collection.filter(item => {
             let result = true;
-            query.paramsMap.forEach((value, key) => {
-              const paramValue = value[0], // TODO implement multiple conditions
+              query.paramsMap.forEach((value, key) => {
+              const paramValue = decodeURIComponent(value[0]), // TODO implement multiple conditions
                 paramFilter = filterMapItem.filters[key];
               if (paramFilter &&
                 ((paramFilter.filterFunction && !paramFilter.filterFunction(item[paramFilter.key], paramValue)) ||

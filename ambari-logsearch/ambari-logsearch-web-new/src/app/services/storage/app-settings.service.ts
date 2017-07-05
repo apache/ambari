@@ -17,7 +17,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Action, ActionReducer, Store} from '@ngrx/store';
+import {Action, Store} from '@ngrx/store';
 import {AppSettings, defaultSettings} from '@app/models/app-settings.model';
 import {AppStore, ObjectModelService, objectReducer} from '@app/models/store.model';
 
@@ -28,6 +28,6 @@ export class AppSettingsService extends ObjectModelService {
   }
 }
 
-export const appSettings: ActionReducer<AppSettings> = (state: AppSettings = defaultSettings, action: Action) => {
+export function appSettings(state: AppSettings = defaultSettings, action: Action): any {
   return objectReducer(state, action);
 }

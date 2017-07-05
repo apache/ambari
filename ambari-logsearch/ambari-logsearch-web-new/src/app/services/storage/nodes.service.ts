@@ -18,7 +18,7 @@
 
 
 import {Injectable} from '@angular/core';
-import {Action, ActionReducer, Store} from '@ngrx/store';
+import {Action, Store} from '@ngrx/store';
 import {Node} from '@app/models/node.model';
 import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
@@ -29,6 +29,6 @@ export class NodesService extends CollectionModelService {
   }
 }
 
-export const nodes: ActionReducer<Node[]> = (state: Node[] = [], action: Action) => {
+export function nodes(state: Node[] = [], action: Action): any {
   return collectionReducer(state, action);
 }

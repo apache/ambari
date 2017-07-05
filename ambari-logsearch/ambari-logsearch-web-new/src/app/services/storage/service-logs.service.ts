@@ -18,7 +18,7 @@
 
 
 import {Injectable} from '@angular/core';
-import {Action, ActionReducer, Store} from '@ngrx/store';
+import {Action, Store} from '@ngrx/store';
 import {ServiceLog} from '@app/models/service-log.model';
 import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
 
@@ -29,6 +29,6 @@ export class ServiceLogsService extends CollectionModelService {
   }
 }
 
-export const serviceLogs: ActionReducer<ServiceLog[]> = (state: ServiceLog[] = [], action: Action) => {
+export function serviceLogs(state: ServiceLog[] = [], action: Action): any {
   return collectionReducer(state, action);
 }

@@ -16,19 +16,14 @@
  * limitations under the License.
  */
 
-
-import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {Graph} from '@app/models/graph.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
-
-@Injectable()
-export class GraphsService extends CollectionModelService {
-  constructor(store: Store<AppStore>) {
-    super('graphs', store);
-  }
+export interface AppState {
+  isAuthorized: boolean;
+  isInitialLoading: boolean;
+  isLoginInProgress: boolean;
 }
 
-export function graphs(state: Graph[] = [], action: Action): any {
-  return collectionReducer(state, action);
+export const initialState: AppState = {
+  isAuthorized: false,
+  isInitialLoading: false,
+  isLoginInProgress: false
 }

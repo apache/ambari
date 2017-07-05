@@ -18,6 +18,7 @@
 
 import {Component} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
+import {AppStateService} from '@app/services/storage/app-state.service';
 import {HttpClientService} from '@app/services/http-client.service';
 
 @Component({
@@ -28,16 +29,17 @@ import {HttpClientService} from '@app/services/http-client.service';
 
 export class AppComponent {
 
-  constructor(private httpClient: HttpClientService, private translate: TranslateService) {
+  constructor(private httpClient: HttpClientService, private translate: TranslateService, private appState: AppStateService) {
+    this.appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
+    this.appState.setParameter('isInitialLoading', true);
+    this.httpClient.get('status').subscribe(() => this.appState.setParameters({
+      isAuthorized: true,
+      isInitialLoading: false
+    }), () => this.appState.setParameter('isInitialLoading', false));
     translate.setDefaultLang('en');
     translate.use('en');
   }
 
-  ngOnInit() {
-    this.httpClient.get('status');
-  }
+  isAuthorized: boolean = false;
 
-  get isAuthorized() {
-    return this.httpClient.isAuthorized;
-  }
 }

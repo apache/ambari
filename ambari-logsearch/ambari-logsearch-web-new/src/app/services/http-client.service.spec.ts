@@ -18,13 +18,23 @@
 
 import {TestBed, inject} from '@angular/core/testing';
 import {HttpModule, Request} from '@angular/http';
+import {StoreModule} from '@ngrx/store';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {HttpClientService} from './http-client.service';
 
 describe('HttpClientService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
-      providers: [HttpClientService]
+      imports: [
+        HttpModule,
+        StoreModule.provideStore({
+          appState
+        })
+      ],
+      providers: [
+        HttpClientService,
+        AppStateService
+      ]
     });
   });
 

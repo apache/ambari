@@ -24,6 +24,7 @@ import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {FilteringService} from '@app/services/filtering.service';
+import {ComponentActionsService} from '@app/services/component-actions.service';
 
 import {FilterTextFieldComponent} from './filter-text-field.component';
 
@@ -59,7 +60,8 @@ describe('FilterTextFieldComponent', () => {
         {
           provide: FilteringService,
           useValue: filtering
-        }
+        },
+        ComponentActionsService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

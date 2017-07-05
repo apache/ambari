@@ -17,13 +17,23 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {StoreModule} from '@ngrx/store';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 
 import {ComponentActionsService} from './component-actions.service';
 
 describe('ComponentActionsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [ComponentActionsService]
+      imports: [
+        StoreModule.provideStore({
+          appSettings
+        })
+      ],
+      providers: [
+        AppSettingsService,
+        ComponentActionsService
+      ]
     });
   });
 

@@ -20,9 +20,12 @@ import {Component, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
-import {MenuButtonComponent, menuButtonComponentOptions} from '@app/components/menu-button/menu-button.component';
+import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 
-@Component(Object.assign({
+@Component({
+  selector: 'filter-button',
+  templateUrl: '../menu-button/menu-button.component.html',
+  styleUrls: ['../menu-button/menu-button.component.less'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -30,9 +33,7 @@ import {MenuButtonComponent, menuButtonComponentOptions} from '@app/components/m
       multi: true
     }
   ]
-}, menuButtonComponentOptions, {
-  selector: 'filter-button',
-}))
+})
 export class FilterButtonComponent extends MenuButtonComponent implements ControlValueAccessor {
 
   constructor(protected actions: ComponentActionsService, private filtering: FilteringService) {
@@ -41,7 +42,7 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
 
   ngAfterViewInit() {
     const callback = this.customOnChange ?
-      (value => this.customOnChange(value)) : (() => this.filtering.filteringSubject.next(null));
+      (value => this.actions[this.customOnChange](value)) : (() => this.filtering.filteringSubject.next(null));
     this.form.controls[this.filterName].valueChanges.subscribe(callback);
   }
 
@@ -49,7 +50,7 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
   filterName: string;
 
   @Input()
-  customOnChange: (value: any) => void;
+  customOnChange: string;
 
   @Input()
   form: FormGroup;
