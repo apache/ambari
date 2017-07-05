@@ -36,6 +36,6 @@ else
   command_prefx="bash -c"
 fi
 
-$command_prefx "/var/lib/ambari-agent/bin/ambari-agent $@"
+eval "$command_prefx '/var/lib/ambari-agent/bin/ambari-agent $@'"
 
 exit $?
