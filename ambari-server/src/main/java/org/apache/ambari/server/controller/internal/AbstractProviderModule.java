@@ -221,7 +221,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private final Map<Resource.Type, List<PropertyProvider>> propertyProviders = new HashMap<>();
 
   @Inject
-  AmbariManagementController managementController;
+  protected AmbariManagementController managementController;
 
   @Inject
   TimelineMetricCacheProvider metricCacheProvider;

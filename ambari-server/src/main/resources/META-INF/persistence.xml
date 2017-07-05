@@ -96,6 +96,8 @@
     <class>org.apache.ambari.server.orm.entities.KerberosDescriptorEntity</class>
     <class>org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity</class>
     <class>org.apache.ambari.server.orm.entities.RemoteAmbariClusterServiceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ConfigurationBaseEntity</class>
+    <class>org.apache.ambari.server.orm.entities.AmbariConfigurationEntity</class>
 
     <properties>
       <property name="eclipselink.cache.size.default" value="10000" />
