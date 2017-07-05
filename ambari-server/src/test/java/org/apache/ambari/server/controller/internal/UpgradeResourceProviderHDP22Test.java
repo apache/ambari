@@ -137,6 +137,11 @@ public class UpgradeResourceProviderHDP22Test {
 
     StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
 
+    clusters = injector.getInstance(Clusters.class);
+    StackId stackId = new StackId("HDP-2.2.0");
+    clusters.addCluster("c1", stackId);
+    Cluster cluster = clusters.getCluster("c1");
+
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
     repoVersionEntity.setOperatingSystems("");
@@ -151,11 +156,9 @@ public class UpgradeResourceProviderHDP22Test {
     repoVersionEntity.setVersion("2.2.4.2");
     repoVersionDao.create(repoVersionEntity);
 
-    clusters = injector.getInstance(Clusters.class);
-
-    StackId stackId = new StackId("HDP-2.2.0");
-    clusters.addCluster("c1", stackId);
-    Cluster cluster = clusters.getCluster("c1");
+    // create the cluster version for
+    cluster.createClusterVersion(repoVersionEntity.getStackId(), repoVersionEntity.getVersion(),
+        "admin", RepositoryVersionState.INSTALLED);
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);

@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 
-<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
   <services>
     <service name="HDFS">
       <component name="NAMENODE">
@@ -100,12 +100,9 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_configurations" Summary="Updating oozie-site configurations">
-            <condition type="oozie-site" key="oozie.services" value="org.apache.oozie.service.SchedulerService,      org.apache.oozie.service.InstrumentationService,      org.apache.oozie.service.CallableQueueService,      org.apache.oozie.service.UUIDService,      org.apache.oozie.service.ELService,      org.apache.oozie.service.AuthorizationService,      org.apache.oozie.service.UserGroupInformationService,      org.apache.oozie.service.HadoopAccessorService,   org.apache.oozie.service.JobsConcurrencyService,      org.apache.oozie.service.URIHandlerService,      org.apache.oozie.service.MemoryLocksService,      org.apache.oozie.service.DagXLogInfoService,      org.apache.oozie.service.SchemaService,      org.apache.oozie.service.LiteWorkflowAppService,      org.apache.oozie.service.JPAService,      org.apache.oozie.service.StoreService,      org.apache.oozie.service.SLAStoreService,      org.apache.oozie.service.DBLiteWorkflowStoreService,      org.apache.oozie.service.CallbackService,   org.apache.oozie.service.ActionService, org.apache.oozie.service.ShareLibService,      org.apache.oozie.service.ActionCheckerService,      org.apache.oozie.service.RecoveryService,      org.apache.oozie.service.PurgeService,      org.apache.oozie.service.CoordinatorEngineService,      org.apache.oozie.service.BundleEngineService,      org.apache.oozie.service.DagEngineService,      org.apache.oozie.service.CoordMaterializeTriggerService,      org.apache.oozie.service.StatusTransitService,      org.apache.oozie.service.PauseTransitService,      org.apache.oozie.service.GroupsService,      org.apache.oozie.service.ProxyUserService,    org.apache.oozie.service.XLogStreamingService,      org.apache.oozie.service.JvmPauseMonitorService">
-              <type>oozie-site</type>
-              <key>oozie.services</key>
-              <value>org.apache.oozie.service.SchedulerService,      org.apache.oozie.service.InstrumentationService,      org.apache.oozie.service.CallableQueueService,      org.apache.oozie.service.UUIDService,      org.apache.oozie.service.ELService,      org.apache.oozie.service.AuthorizationService,      org.apache.oozie.service.UserGroupInformationService,      org.apache.oozie.service.HadoopAccessorService,   org.apache.oozie.service.JobsConcurrencyService,      org.apache.oozie.service.URIHandlerService,      org.apache.oozie.service.MemoryLocksService,      org.apache.oozie.service.DagXLogInfoService,      org.apache.oozie.service.SchemaService,      org.apache.oozie.service.LiteWorkflowAppService,      org.apache.oozie.service.JPAService,      org.apache.oozie.service.StoreService,      org.apache.oozie.service.SLAStoreService,      org.apache.oozie.service.DBLiteWorkflowStoreService,      org.apache.oozie.service.CallbackService,   org.apache.oozie.service.ActionService, org.apache.oozie.service.ShareLibService,      org.apache.oozie.service.ActionCheckerService,      org.apache.oozie.service.RecoveryService,      org.apache.oozie.service.PurgeService,      org.apache.oozie.service.CoordinatorEngineService,      org.apache.oozie.service.BundleEngineService,      org.apache.oozie.service.DagEngineService,      org.apache.oozie.service.CoordMaterializeTriggerService,      org.apache.oozie.service.StatusTransitService,      org.apache.oozie.service.PauseTransitService,      org.apache.oozie.service.GroupsService,      org.apache.oozie.service.ProxyUserService,    org.apache.oozie.service.XLogStreamingService,      org.apache.oozie.service.JvmPauseMonitorService,     org.apache.oozie.service.SparkConfigurationService</value>
-            </condition>
+          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_configurations" summary="Updating oozie-site configurations">
+            <type>oozie-site</type>
+            <replace key="oozie.services" find="org.apache.oozie.service.JvmPauseMonitorService" replace-with="org.apache.oozie.service.JvmPauseMonitorService,     org.apache.oozie.service.SparkConfigurationService"/>
           </definition>
           <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_configurations" summary="Update oozie env">
             <type>oozie-env</type>

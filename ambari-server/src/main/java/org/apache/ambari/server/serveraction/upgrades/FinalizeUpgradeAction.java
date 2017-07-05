@@ -391,9 +391,10 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       if (!StringUtils.equals(targetRepositoryVersion.getVersion(),
           clusterVersion.getRepositoryVersion().getVersion())) {
         throw new AmbariException(
-            String.format("Downgrade version %s is not the current cluster version of %s",
+            String.format("Downgrade version %s is not the current cluster version of %s. %s",
                 targetRepositoryVersion.getVersion(),
-                clusterVersion.getRepositoryVersion().getVersion()));
+                clusterVersion.getRepositoryVersion().getVersion(),
+                PREVIOUS_UPGRADE_NOT_COMPLETED_MSG));
       } else {
         out.append(String.format(
             "Downgrade version is the same as current. Searching "

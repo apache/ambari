@@ -149,6 +149,7 @@ public class UpgradeActionTest {
   private RepositoryVersionEntity repositoryVersion2110;
   private RepositoryVersionEntity repositoryVersion2111;
   private RepositoryVersionEntity repositoryVersion2201;
+  private RepositoryVersionEntity repositoryVersion2202;
 
   @Before
   public void setup() throws Exception {
@@ -168,6 +169,7 @@ public class UpgradeActionTest {
     repositoryVersion2110 = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_0);
     repositoryVersion2111 = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_1);
     repositoryVersion2201 = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_0_1);
+    repositoryVersion2202 = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_0_2);
   }
 
   @After
@@ -211,7 +213,13 @@ public class UpgradeActionTest {
     hostVersionDAO.create(entity);
   }
 
-  private void makeTwoUpgradesWhereLastDidNotComplete(StackId sourceStack, String sourceRepo, StackId midStack, String midRepo, StackId targetStack, String targetRepo) throws Exception {
+  private void makeTwoUpgradesWhereLastDidNotComplete(
+      RepositoryVersionEntity sourceRepositoryVersion, RepositoryVersionEntity midRepositoryVersion,
+      RepositoryVersionEntity targetRepositoryVersion) throws Exception {
+    StackId sourceStack = sourceRepositoryVersion.getStackId();
+    StackId midStack = midRepositoryVersion.getStackId();
+    StackId targetStack = targetRepositoryVersion.getStackId();
+
     String hostName = "h1";
 
     clusters.addCluster(clusterName, sourceStack);
@@ -229,28 +237,28 @@ public class UpgradeActionTest {
     host.setHostAttributes(hostAttributes);
 
     // Create the starting repo version
-    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
-    c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
+    c.createClusterVersion(sourceStack, sourceRepositoryVersion.getVersion(), "admin", RepositoryVersionState.INSTALLING);
+    c.transitionClusterVersion(sourceStack, sourceRepositoryVersion.getVersion(), RepositoryVersionState.CURRENT);
 
     // Start upgrading the mid repo
     c.setDesiredStackVersion(midStack);
-    c.createClusterVersion(midStack, midRepo, "admin", RepositoryVersionState.INSTALLING);
-    c.transitionClusterVersion(midStack, midRepo, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(midStack, midRepo, RepositoryVersionState.CURRENT);
+    c.createClusterVersion(midStack, midRepositoryVersion.getVersion(), "admin", RepositoryVersionState.INSTALLING);
+    c.transitionClusterVersion(midStack, midRepositoryVersion.getVersion(), RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(midStack, midRepositoryVersion.getVersion(), RepositoryVersionState.CURRENT);
 
     // Set original version as INSTALLED
-    c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(sourceStack, sourceRepositoryVersion.getVersion(), RepositoryVersionState.INSTALLED);
 
     // Notice that we have not yet changed the cluster current stack to the mid stack to simulate
     // the user skipping this step.
     c.setDesiredStackVersion(targetStack);
-    c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
+    c.createClusterVersion(targetStack, targetRepositoryVersion.getVersion(), "admin", RepositoryVersionState.INSTALLING);
+    c.transitionClusterVersion(targetStack, targetRepositoryVersion.getVersion(), RepositoryVersionState.INSTALLED);
 
     // Create a host version for the starting repo in INSTALLED
     HostVersionEntity entitySource = new HostVersionEntity();
     entitySource.setHostEntity(hostDAO.findByName(hostName));
-    entitySource.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(sourceStack, sourceRepo));
+    entitySource.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(sourceStack, sourceRepositoryVersion.getVersion()));
     entitySource.setState(RepositoryVersionState.INSTALL_FAILED);
     hostVersionDAO.create(entitySource);
 
@@ -261,9 +269,11 @@ public class UpgradeActionTest {
     // Create a host version for the target repo in UPGRADED
     HostVersionEntity entityTarget = new HostVersionEntity();
     entityTarget.setHostEntity(hostDAO.findByName(hostName));
-    entityTarget.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(targetStack, targetRepo));
+    entityTarget.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(targetStack, targetRepositoryVersion.getVersion()));
     entityTarget.setState(RepositoryVersionState.INSTALLED);
     hostVersionDAO.create(entityTarget);
+
+    createUpgrade(c, "", Direction.DOWNGRADE, midRepositoryVersion, targetRepositoryVersion);
   }
 
   private void createUpgradeClusterAndSourceRepo(StackId sourceStack, String sourceRepo,
@@ -520,22 +530,13 @@ public class UpgradeActionTest {
    */
   @Test
   public void testFinalizeDowngradeWhenDidNotFinalizePreviousUpgrade() throws Exception {
-    StackId sourceStack = HDP_21_STACK;
-    StackId midStack = HDP_22_STACK;
-    StackId targetStack = HDP_22_STACK;
+    RepositoryVersionEntity sourceRepositoryVersion = repositoryVersion2110;
+    RepositoryVersionEntity midRepositoryVersion = repositoryVersion2201;
+    RepositoryVersionEntity targetRepositoryVersion = repositoryVersion2202;
 
-    String sourceRepo = HDP_2_1_1_0;
-    String midRepo = HDP_2_2_0_1;
-    String targetRepo = HDP_2_2_0_2;
-
-    makeTwoUpgradesWhereLastDidNotComplete(sourceStack, sourceRepo, midStack, midRepo, targetStack, targetRepo);
+    makeTwoUpgradesWhereLastDidNotComplete(sourceRepositoryVersion, midRepositoryVersion, targetRepositoryVersion);
 
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, midRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);
