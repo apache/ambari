@@ -136,13 +136,13 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
     self.assertEquals(initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
     self.assertEquals(initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
-    self.assertEquals(dn_install_in_progress_frame[0]['roleCommand'], 'INSTALL')
-    self.assertEquals(dn_install_in_progress_frame[0]['role'], 'DATANODE')
-    self.assertEquals(dn_install_in_progress_frame[0]['status'], 'IN_PROGRESS')
-    self.assertEquals(dn_install_failed_frame[0]['status'], 'FAILED')
-    self.assertEquals(dn_recovery_in_progress_frame[0]['roleCommand'], 'INSTALL')
-    self.assertEquals(dn_recovery_in_progress_frame[0]['role'], 'DATANODE')
-    self.assertEquals(dn_recovery_in_progress_frame[0]['status'], 'IN_PROGRESS')
+    self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['roleCommand'], 'INSTALL')
+    self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['role'], 'DATANODE')
+    self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['status'], 'IN_PROGRESS')
+    self.assertEquals(dn_install_failed_frame['clusters']['0'][0]['status'], 'FAILED')
+    self.assertEquals(dn_recovery_in_progress_frame['clusters']['0'][0]['roleCommand'], 'INSTALL')
+    self.assertEquals(dn_recovery_in_progress_frame['clusters']['0'][0]['role'], 'DATANODE')
+    self.assertEquals(dn_recovery_in_progress_frame['clusters']['0'][0]['status'], 'IN_PROGRESS')
 
     #============================================================================================
     #============================================================================================

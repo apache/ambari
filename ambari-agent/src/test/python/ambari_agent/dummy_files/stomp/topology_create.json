@@ -13,8 +13,12 @@
           ],
           "componentLevelParams": {
             "unlimited_key_jce_required": "false",
-            "clientsToUpdateConfigs": "[\"*\"]",
-            "script": "scripts/namenode.py"
+            "clientsToUpdateConfigs": "[\"*\"]"
+          },
+          "commandParams": {
+            "script": "scripts/namenode.py",
+            "script_type":"PYTHON",
+            "command_timeout":"1200"
           }
         },
         {
@@ -27,8 +31,12 @@
           ],
           "componentLevelParams": {
             "unlimited_key_jce_required": "false",
-            "clientsToUpdateConfigs": "[\"*\"]",
-            "script": "scripts/namenode.py"
+            "clientsToUpdateConfigs": "[\"*\"]"
+          },
+          "commandParams": {
+            "script": "scripts/datanode.py",
+            "script_type":"PYTHON",
+            "command_timeout":"1200"
           }
         },
         {
@@ -40,8 +48,12 @@
           ],
           "componentLevelParams": {
             "unlimited_key_jce_required": "false",
-            "clientsToUpdateConfigs": "[\"*\"]",
-            "script": "scripts/hdfs_client.py"
+            "clientsToUpdateConfigs": "[\"*\"]"
+          },
+          "commandParams": {
+            "script": "scripts/hdfs_client.py",
+            "script_type":"PYTHON",
+            "command_timeout":"1200"
           }
         }
       ],
@@ -71,8 +83,12 @@
           ],
           "componentLevelParams": {
             "unlimited_key_jce_required": "false",
-            "clientsToUpdateConfigs": "[\"*\"]",
-            "script": "scripts/namenode.py"
+            "clientsToUpdateConfigs": "[\"*\"]"
+          },
+          "commandParams": {
+            "script": "scripts/namenode.py",
+            "script_type":"PYTHON",
+            "command_timeout":"1200"
           }
         }
       ],

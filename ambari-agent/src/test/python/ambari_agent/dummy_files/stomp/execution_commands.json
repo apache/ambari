@@ -15,22 +15,15 @@
 
           },
           "commandParams":{
-            "service_package_folder":"common-services/HDFS/2.1.0.2.0/package",
-            "hooks_folder":"HDP/2.0.6/hooks",
-            "script":"scripts/datanode.py",
-            "phase":"INITIAL_INSTALL",
-            "max_duration_for_retries":"600",
-            "command_retry_enabled":"false",
-            "command_timeout":"1200",
-            "refresh_topology":"True",
-            "script_type":"PYTHON"
+            "command_retry_enabled": "true",
+            "refresh_topology":"true"
           }
         },
         {
           "requestId":6,
           "taskId":9,
           "commandId":0,
-          "clusterId": "null",
+          "clusterId": "0",
           "serviceName":"ZOOKEEPER",
           "role":"ZOOKEEPER_SERVER",
           "commandType":"EXECUTION_COMMAND",

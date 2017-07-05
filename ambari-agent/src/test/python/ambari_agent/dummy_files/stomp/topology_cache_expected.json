@@ -2,9 +2,13 @@
   "0": {
     "components": [
       {
+        "commandParams": {
+          "command_timeout": "1200",
+          "script": "scripts/datanode.py",
+          "script_type": "PYTHON"
+        },
         "componentLevelParams": {
           "clientsToUpdateConfigs": "[\"*\"]",
-          "script": "scripts/namenode.py",
           "unlimited_key_jce_required": "false"
         },
         "componentName": "DATANODE",
@@ -15,9 +19,13 @@
         "version": "2.6.0.3-8"
       },
       {
+        "commandParams": {
+          "command_timeout": "1200",
+          "script": "scripts/hdfs_client.py",
+          "script_type": "PYTHON"
+        },
         "componentLevelParams": {
           "clientsToUpdateConfigs": "[\"*\"]",
-          "script": "scripts/hdfs_client.py",
           "unlimited_key_jce_required": "false"
         },
         "componentName": "HDFS_CLIENT",
@@ -29,9 +37,13 @@
         "version": "2.6.0.3-8"
       },
       {
+        "commandParams": {
+          "command_timeout": "1200",
+          "script": "scripts/namenode.py",
+          "script_type": "PYTHON"
+        },
         "componentLevelParams": {
           "clientsToUpdateConfigs": "[\"*\"]",
-          "script": "scripts/snamenode.py",
           "unlimited_key_jce_required": "false"
         },
         "componentName": "SECONDARY_NAMENODE",

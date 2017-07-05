@@ -105,7 +105,7 @@ class ComponentStatusExecutor(threading.Thread):
     if not cluster_reports or not self.initializer_module.is_registered:
       return
 
-    self.initializer_module.connection.send(message=cluster_reports, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    self.initializer_module.connection.send(message={'clusters': cluster_reports}, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
 
     for cluster_id, reports in cluster_reports.iteritems():
       for report in reports:

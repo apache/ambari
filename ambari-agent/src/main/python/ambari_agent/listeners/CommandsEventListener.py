@@ -42,12 +42,18 @@ class CommandsEventListener(EventListener):
     """
     ""
     commands = []
+    cancel_commands = []
     for cluster_id in message['clusters'].keys():
       cluster_dict = message['clusters'][cluster_id]
-      for command in cluster_dict['commands']:
-        commands.append(command)
 
-    self.action_queue.put(commands)
+      if 'commands' in cluster_dict:
+        commands += cluster_dict['commands']
+      if 'cancelCommands' in cluster_dict:
+        cancel_commands += cluster_dict['cancelCommands']
+
+    with self.action_queue.lock:
+      self.action_queue.cancel(cancel_commands)
+      self.action_queue.put(commands)
 
   def get_handled_path(self):
     return Constants.COMMANDS_TOPIC

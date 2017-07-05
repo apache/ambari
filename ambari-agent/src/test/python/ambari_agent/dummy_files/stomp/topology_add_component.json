@@ -14,8 +14,12 @@
           ],
           "componentLevelParams": {
             "unlimited_key_jce_required": "false",
-            "clientsToUpdateConfigs": "[\"*\"]",
-            "script":"scripts/snamenode.py"
+            "clientsToUpdateConfigs": "[\"*\"]"
+          },
+          "commandParams": {
+            "script": "scripts/namenode.py",
+            "script_type":"PYTHON",
+            "command_timeout":"1200"
           }
         }
       ]

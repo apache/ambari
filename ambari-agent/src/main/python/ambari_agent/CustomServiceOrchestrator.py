@@ -31,6 +31,7 @@ from AgentException import AgentException
 from PythonExecutor import PythonExecutor
 from resource_management.libraries.functions.log_process_information import log_process_information
 from resource_management.core.utils import PasswordString
+from ambari_agent.Utils import Utils
 import subprocess
 import Constants
 import hostname
@@ -310,9 +311,9 @@ class CustomServiceOrchestrator():
     """
     try:
       command = self.generate_command(command_header)
-      script_type = command['script_type'] # TODO STOMP: take this from command?
-      script = command['componentLevelParams']['script']
-      timeout = int('300') # TODO STOMP: fix it
+      script_type = command['commandParams']['script_type']
+      script = command['commandParams']['script']
+      timeout = int(command['commandParams']['command_timeout'])
 
       server_url_prefix = command['clusterLevelParams']['jdk_location']
 
@@ -366,8 +367,7 @@ class CustomServiceOrchestrator():
         credentialStoreEnabled = (command['serviceLevelParams']['credentialStoreEnabled'] == "true")
 
       if credentialStoreEnabled == True:
-        # TODO STOMP: fix this with execution commands
-        if 'commandBeingRetried' not in command or command['commandBeingRetried'] != "true":
+        if 'commandBeingRetried' not in command['agentLevelParams'] or command['agentLevelParams']['commandBeingRetried'] != "true":
           self.generateJceks(command)
         else:
           logger.info("Skipping generation of jceks files as this is a retry of the command")
@@ -469,12 +469,9 @@ class CustomServiceOrchestrator():
       'serviceLevelParams': metadata_cache.serviceLevelParams[service_name],
       'hostLevelParams': host_level_params_cache,
       'componentLevelParams': component_dict.componentLevelParams,
-      'script_type': self.SCRIPT_TYPE_PYTHON
+      'commandParams': component_dict.commandParams
     }
     command_dict.update(configurations_cache)
-    #command_dict['componentLevelParams']['script'] = component_dict.statusCommandParams['script']
-    #command_dict['serviceLevelParams']['hooks_folder'] = metadata_cache['hooks_folder']
-    #command_dict['serviceLevelParams']['service_package_folder'] = component_dict.statusCommandParams['service_package_folder']
 
     command_dict['agentLevelParams'] = {
       'public_hostname': self.public_fqdn,
@@ -486,9 +483,8 @@ class CustomServiceOrchestrator():
         "use_system_proxy_settings": self.config.use_system_proxy_setting()
       }
     }
-    command = copy.copy(command_header)
-    command.update(command_dict)
 
+    command = Utils.update_nested(command_dict, command_header)
     return command
 
   def requestComponentStatus(self, command_header):

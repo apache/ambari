@@ -21,6 +21,7 @@ limitations under the License.
 import logging
 import threading
 import copy
+from collections import defaultdict
 from Grep import Grep
 
 from ambari_agent import Constants
@@ -55,10 +56,10 @@ class CommandStatusDict():
       self.current_state[key] = (command, new_report)
       self.reported_reports.discard(key)
 
-    self.force_update_to_server([new_report])
+    self.force_update_to_server(command['clusterId'], new_report)
 
-  def force_update_to_server(self, reports):
-    self.initializer_module.connection.send(message=reports, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+  def force_update_to_server(self, cluster_id, report):
+    self.initializer_module.connection.send(message={'clusters':{cluster_id: [report]}}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
 
   def get_command_status(self, taskId):
     with self.lock:
@@ -74,13 +75,14 @@ class CommandStatusDict():
     self.generated_reports = []
     from ActionQueue import ActionQueue
     with self.lock: # Synchronized
-      resultReports = []
+      resultReports = defaultdict(lambda:[])
       for key, item in self.current_state.items():
         command = item[0]
         report = item[1]
+        cluster_id = report['clusterId']
         if command ['commandType'] in [ActionQueue.EXECUTION_COMMAND, ActionQueue.BACKGROUND_EXECUTION_COMMAND]:
           if (report['status']) != ActionQueue.IN_PROGRESS_STATUS:
-            resultReports.append(report)
+            resultReports[cluster_id].append(report)
             self.reported_reports.add(key)
           else:
             in_progress_report = self.generate_in_progress_report(command, report)

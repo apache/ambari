@@ -90,7 +90,7 @@ class ActionQueue(threading.Thread):
     for command in commands:
       if not command.has_key('serviceName'):
         command['serviceName'] = "null"
-      if command.has_key('clusterId'):
+      if not command.has_key('clusterId'):
         command['clusterId'] = "null"
 
       logger.info("Adding " + command['commandType'] + " for role " + \
@@ -302,7 +302,7 @@ class ActionQueue(threading.Thread):
         retryDuration -= delay  # allow one last attempt
         commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
         logger.info("Retrying command with taskId = {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
-        command['commandBeingRetried'] = "true"
+        command['agentLevelParams']['commandBeingRetried'] = "true"
         time.sleep(delay)
         continue
       else:

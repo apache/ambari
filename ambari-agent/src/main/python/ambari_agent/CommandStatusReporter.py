@@ -44,8 +44,10 @@ class CommandStatusReporter(threading.Thread):
       try:
         if self.initializer_module.is_registered:
           report = self.commandStatuses.generate_report()
+
           if report:
-            self.initializer_module.connection.send(message=report, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+            self.initializer_module.connection.send(message={'clusters': report}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+
           self.commandStatuses.clear_reported_reports()
       except:
         logger.exception("Exception in CommandStatusReporter. Re-running it")

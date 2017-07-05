@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 import threading
+import collections
 from functools import wraps
 from ambari_agent.ExitHelper import ExitHelper
 
@@ -101,6 +102,22 @@ class Utils(object):
             #print "not equal at "+str(k)
             return False
     return True
+
+  @staticmethod
+  def update_nested(d, u):
+    """
+    Update the dictionary 'd' and its sub-dictionaries with values of dictionary 'u' and its sub-dictionaries.
+    """
+    for k, v in u.iteritems():
+      if isinstance(d, collections.Mapping):
+        if isinstance(v, collections.Mapping):
+          r = Utils.update_nested(d.get(k, {}), v)
+          d[k] = r
+        else:
+          d[k] = u[k]
+      else:
+        d = {k: u[k]}
+    return d
 
   @staticmethod
   def make_immutable(value):
