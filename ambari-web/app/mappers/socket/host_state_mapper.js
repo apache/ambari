@@ -17,17 +17,21 @@
 
 var App = require('app');
 
-App.hostComponentStatusMapper = App.QuickDataMapper.create({
+App.hostStateMapper = App.QuickDataMapper.create({
+
+  config: {
+    alertsSummary: 'alerts_summary',
+    healthStatus: 'host_status',
+    state: 'host_state',
+    lastHeartBeatTime: 'last_heartbeat_time',
+    passiveState: 'maintenance_state'
+  },
 
   /**
    * @param {object} event
    */
-  map: function (event) {
-    event.hostComponents.forEach((componentState) => {
-      const hostComponent = App.HostComponent.find(componentState.componentName + '_' + componentState.hostName);
-      if (hostComponent.get('isLoaded')) {
-        hostComponent.set('workStatus', componentState.currentState);
-      }
-    });
+  map: function(event) {
+    //TODO event should have properties named in CamelCase format
+    this.updatePropertiesByConfig(App.Host.find(event.host_name), event, this.config);
   }
 });

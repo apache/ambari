@@ -192,8 +192,9 @@ App.UpdateController = Em.Controller.extend({
       App.StompClient.subscribe('/events/topologies', App.topologyMapper.map.bind(App.topologyMapper));
       App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
       App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
+      App.StompClient.subscribe('/events/hosts', App.hostStateMapper.map.bind(App.hostStateMapper));
 
-      App.updater.run(this, 'updateHost', 'isWorking');
+      App.updater.run(this, 'updateHostsMetrics', 'isWorking', App.contentUpdateInterval, '\/main\/(hosts).*');
       App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
       App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services|hosts).*');
       App.updater.run(this, 'graphsUpdate', 'isWorking');
@@ -212,6 +213,7 @@ App.UpdateController = Em.Controller.extend({
       App.StompClient.unsubscribe('/events/topologies');
       App.StompClient.unsubscribe('/events/configs');
       App.StompClient.unsubscribe('/events/services');
+      App.StompClient.unsubscribe('/events/hosts');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
@@ -226,7 +228,7 @@ App.UpdateController = Em.Controller.extend({
         self = this,
         hostDetailsFilter = '',
         realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,' +
-            'alerts_summary,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+            'alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
             'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,' +
             '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
         hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
@@ -316,6 +318,23 @@ App.UpdateController = Em.Controller.extend({
     }
   },
 
+  updateHostsMetrics: function(callback) {
+    let queryParams = App.router.get('mainHostController').getQueryParameters(true);
+    if (App.router.get('currentState.parentState.name') === 'hostDetails') {
+      const currentHostname = App.router.get('location.lastSetURL')
+        .match(/\/hosts\/(.*)\/(summary|configs|alerts|stackVersions|logs)/)[1];
+      queryParams = [
+        {
+          key: 'Hosts/host_name',
+          value: [currentHostname],
+          type: 'MULTIPLE',
+          isHostDetails: true
+        }
+      ]
+    }
+    this.loadHostsMetric(queryParams).always(callback);
+  },
+
   /**
    *
    * @param {Array} queryParams
@@ -353,7 +372,7 @@ App.UpdateController = Em.Controller.extend({
         success: 'loadHostsMetricSuccessCallback'
       });
     }
-    return null;
+    return $.Deferred().resolve().promise();
   },
 
   /**

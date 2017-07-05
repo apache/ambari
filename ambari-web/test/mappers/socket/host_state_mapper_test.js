@@ -18,34 +18,27 @@
 
 var App = require('app');
 
-require('mappers/socket/host_component_status_mapper');
+require('mappers/socket/host_state_mapper');
 
-describe('App.hostComponentStatusMapper', function () {
+describe('App.hostStateMapper', function () {
 
   describe('#map', function() {
-    var hc = Em.Object.create({
-      workStatus: 'INSTALLED',
-      isLoaded: true
-    });
     beforeEach(function() {
-      sinon.stub(App.HostComponent, 'find').returns(hc);
+      sinon.stub(App.Host, 'find');
+      sinon.stub(App.hostStateMapper, 'updatePropertiesByConfig');
     });
     afterEach(function() {
-      App.HostComponent.find.restore();
+      App.Host.find.restore();
+      App.hostStateMapper.updatePropertiesByConfig.restore();
     });
 
-    it('host-component should have STARTED status', function() {
+    it('updatePropertiesByConfig should be called', function() {
       const event = {
-        hostComponents: [
-          {
-            componentName: 'C1',
-            hostName: 'host1',
-            currentState: 'STARTED'
-          }
-        ]
+        host_name: 'S1',
+        state: 'HEARTBEAT_LOST'
       };
-      App.hostComponentStatusMapper.map(event);
-      expect(hc.get('workStatus')).to.be.equal('STARTED');
+      App.hostStateMapper.map(event);
+      expect(App.hostStateMapper.updatePropertiesByConfig.calledOnce).to.be.true;
     });
   });
 });

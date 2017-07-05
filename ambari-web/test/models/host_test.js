@@ -31,6 +31,7 @@ describe('App.Host', function () {
       disk_total: 100.555,
       disk_free: 90.555,
       health_status: 'HEALTHY',
+      state: 'HEALTHY',
       last_heart_beat_time: (new Date()).getTime() - 18100000
     },
     {
@@ -40,6 +41,7 @@ describe('App.Host', function () {
       disk_total: 90,
       disk_free: 90,
       health_status: 'HEALTHY',
+      state: 'HEALTHY',
       last_heart_beat_time: (new Date()).getTime() - 170000
     },
     {
@@ -49,6 +51,7 @@ describe('App.Host', function () {
       disk_total: 99.999,
       disk_free: 0,
       health_status: 'UNKNOWN',
+      state: 'HEARTBEAT_LOST',
       last_heart_beat_time: (new Date()).getTime()
     }
   ];
@@ -422,6 +425,17 @@ describe('App.Host', function () {
         host1.propertyDidChange('healthClass');
         expect(host1.get('healthClass')).to.equal(test.result);
       });
+    });
+  });
+
+  describe('#criticalWarningAlertsCount', function () {
+    it('should return sum of critical and warning alerts', function () {
+      host1.set('alertsSummary', {
+        CRITICAL: 1,
+        WARNING: 2,
+        OK: 0
+      });
+      expect(host1.get('criticalWarningAlertsCount')).to.equal(3);
     });
   });
 

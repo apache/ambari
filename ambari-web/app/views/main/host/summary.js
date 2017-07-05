@@ -297,9 +297,13 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @type {String}
    */
   timeSinceHeartBeat: function () {
-    var d = this.get('content.rawLastHeartBeatTime');
-    return d ? $.timeago(d) : '';
-  }.property('content.rawLastHeartBeatTime'),
+    if (this.get('content.isNotHeartBeating')) {
+      const d = this.get('content.lastHeartBeatTime');
+      return d ? $.timeago(d) : '';
+    }
+    //when host hasn't lost heartbeat we assume that last heartbeat was a minute ago
+    return Em.I18n.t('common.minute.ago');
+  }.property('content.lastHeartBeatTime', 'content.isNotHeartBeating'),
 
   /**
    * Get clients with custom commands

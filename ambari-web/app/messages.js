@@ -350,6 +350,7 @@ Em.I18n.translations = {
   'common.hostOrdered': 'Host Ordered',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
+  'common.minute.ago': 'less than a minute ago',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",

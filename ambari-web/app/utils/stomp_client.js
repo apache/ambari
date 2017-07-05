@@ -156,7 +156,7 @@ module.exports = Em.Object.extend({
     const handlers = {
       default: handler
     };
-    if (!this.get('client.connected') || this.get('subscriptions')[destination]) {
+    if (!this.get('client.connected')) {
       return null;
     }
     const subscription = this.get('client').subscribe(destination, (message) => {

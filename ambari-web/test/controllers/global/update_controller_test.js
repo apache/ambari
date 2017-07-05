@@ -74,6 +74,7 @@ describe('App.UpdateController', function () {
       expect(App.StompClient.unsubscribe.calledWith('/events/topologies')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/configs')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/services')).to.be.true;
+      expect(App.StompClient.unsubscribe.calledWith('/events/hosts')).to.be.true;
     });
 
     it('isWorking = true', function () {
@@ -84,6 +85,7 @@ describe('App.UpdateController', function () {
       expect(App.StompClient.subscribe.calledWith('/events/topologies')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/configs')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/services')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/hosts')).to.be.true;
     });
   });
 
@@ -290,7 +292,7 @@ describe('App.UpdateController', function () {
     });
     it("AMBARI_METRICS is not started", function () {
       this.mock.returns(Em.Object.create({isStarted: false}));
-      expect(controller.loadHostsMetric([])).to.be.null;
+      expect(controller.loadHostsMetric([])).to.be.object;
       var args = testHelpers.findAjaxRequest('name', 'hosts.metrics.lazy_load');
       expect(args).to.not.exists;
     });
