@@ -18,33 +18,73 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 @Configuration
 public class SolrEventHistoryPropsConfig extends SolrConnectionPropsConfig {
 
   @Value("${logsearch.solr.collection.history:history}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.collection.history",
+    description = "Name of Log Search event history collection.",
+    examples = {"history"},
+    defaultValue = "history",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String collection;
 
   @Value("${logsearch.history.split.interval.mins:none}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.history.split.interval.mins",
+    description = "Will create multiple collections and use alias. (not supported right now, use implicit routingif the value is not none)",
+    examples = {"none", "15"},
+    defaultValue = "none",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String splitInterval;
 
   @Value("${logsearch.solr.history.config.name:history}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.history.config.name",
+    description = "Solr configuration name of the event history collection.",
+    examples = {"history"},
+    defaultValue = "history",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String configName;
 
   @Value("${logsearch.collection.history.numshards:1}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.collection.history.numshards",
+    description = "Number of Solr shards for event history collection (bootstrapping).",
+    examples = {"2"},
+    defaultValue = "1",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private Integer numberOfShards;
 
   @Value("${logsearch.collection.history.replication.factor:2}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.collection.history.replication.factor",
+    description = "Solr replication factor for event history collection (bootstrapping).",
+    examples = {"3"},
+    defaultValue = "2",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private Integer replicationFactor;
 
-  @Value("#{'${logsearch.logfeeder.include.default.level:FATAL,ERROR,WARN,INFO,DEBUG,TRACE,UNKNOWN}'.split(',')}")
-  private List<String> logLevels;
-
   @Value("${logsearch.schema.fields.populate.interval.mins:1}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.schema.fields.populate.interval.mins",
+    description = "Interval in minutes for populating schema fiels for event history collections.",
+    examples = {"10"},
+    defaultValue = "1",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private Integer populateIntervalMins;
   
   @Override
@@ -95,14 +135,6 @@ public class SolrEventHistoryPropsConfig extends SolrConnectionPropsConfig {
   @Override
   public void setReplicationFactor(Integer replicationFactor) {
     this.replicationFactor = replicationFactor;
-  }
-
-  public List<String> getLogLevels() {
-    return logLevels;
-  }
-
-  public void setLogLevels(List<String> logLevels) {
-    this.logLevels = logLevels;
   }
   
 

@@ -327,7 +327,7 @@ public class UploadService extends BaseService {
       String insertQuery = generateInsertFromQuery(input);
       LOG.info("insertQuery : {}", insertQuery);
 
-      Job job = createJob(insertQuery, "default");
+      Job job = createJob(insertQuery, input.getFromDatabase());
       LOG.info("Job created for insert from temp table : {}", job);
       return Response.ok(job).build();
     } catch (WebApplicationException e) {
@@ -348,7 +348,7 @@ public class UploadService extends BaseService {
       String deleteQuery = generateDeleteQuery(input);
       LOG.info("deleteQuery : {}", deleteQuery);
 
-      Job job = createJob(deleteQuery, "default");
+      Job job = createJob(deleteQuery, input.getDatabase());
       LOG.info("Job created for delete temp table : {} ", job);
       return Response.ok(job).build();
     } catch (WebApplicationException e) {

@@ -111,23 +111,6 @@ public class PropertiesHelper extends PropertyPlaceholderConfigurer {
     return propertiesMap.get(key);
   }
 
-  public static String[] getPropertyStringList(String key) {
-    if (key == null) {
-      return null;
-    }
-    String value = propertiesMap.get(key);
-    if (value == null || value.trim().equals("")) {
-      return new String[0];
-    } else {
-      String[] splitValues = value.split(",");
-      String[] returnValues = new String[splitValues.length];
-      for (int i = 0; i < splitValues.length; i++) {
-        returnValues[i] = splitValues[i].trim();
-      }
-      return returnValues;
-    }
-  }
-
   public static boolean getBooleanProperty(String key, boolean defaultValue) {
     if (key == null) {
       return defaultValue;

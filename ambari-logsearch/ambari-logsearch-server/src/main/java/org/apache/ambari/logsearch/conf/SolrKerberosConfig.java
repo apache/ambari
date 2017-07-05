@@ -18,16 +18,33 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 @Configuration
 public class SolrKerberosConfig {
 
   @Value("${logsearch.solr.jaas.file:/usr/lib/ambari-logsearch-portal/logsearch_solr_jaas.conf}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.jaas.file",
+    description = "Path of the JAAS file for Kerberos based Solr Cloud authentication.",
+    examples = {"/my/path/jaas_file.conf"},
+    defaultValue = "/usr/lib/ambari-logsearch-portal/logsearch_solr_jaas.conf",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String jaasFile;
 
   @Value("${logsearch.solr.kerberos.enable:false}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.kerberos.enable",
+    description = "Enable Kerberos Authentication for Solr Cloud.",
+    examples = {"true", "false"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private boolean enabled;
 
   public String getJaasFile() {

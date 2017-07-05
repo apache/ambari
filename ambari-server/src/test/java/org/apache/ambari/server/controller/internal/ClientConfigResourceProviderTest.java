@@ -594,10 +594,10 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
     PowerMock.mockStatic(File.class);
+    expect(mockFile.exists()).andReturn(true);
     expect(File.createTempFile(anyString(), anyString(), anyObject(File.class))).andReturn(PowerMock.createNiceMock(File.class));
     PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
     PowerMock.mockStatic(Runtime.class);
-    expect(mockFile.exists()).andReturn(true);
     String commandLine = "ambari-python-wrap " + commonServicesPath + "/PIG/package/null generate_configs null " +
             commonServicesPath + "/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
             "INFO /var/lib/ambari-server/tmp";
