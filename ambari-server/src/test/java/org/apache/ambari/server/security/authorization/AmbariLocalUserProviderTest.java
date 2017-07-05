@@ -27,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -56,7 +57,7 @@ public class AmbariLocalUserProviderTest {
 
   @BeforeClass
   public static void prepareData() {
-    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule());
+    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule(), new LdapModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(OrmTestHelper.class).createTestUsers();
   }

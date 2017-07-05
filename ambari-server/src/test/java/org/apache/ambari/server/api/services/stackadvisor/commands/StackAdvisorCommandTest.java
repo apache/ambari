@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.commands;
 
+import static org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.LDAP_CONFIGURATION_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -33,12 +34,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
@@ -50,6 +60,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.junit.After;
@@ -58,6 +69,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import com.google.common.collect.Lists;
 
 /**
  * StackAdvisorCommand unit tests.
@@ -265,6 +278,197 @@ public class StackAdvisorCommandTest {
     assertEquals(0, stackVersions.size());
   }
 
+  @Test
+  public void testPopulateLdapConfig() throws Exception {
+    File recommendationsDir = temp.newFolder("recommendationDir");
+    String recommendationsArtifactsLifetime = "1w";
+    int requestId = 0;
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
+    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
+      ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion").build();
+
+    Map<String, Object> ldapConfigData = map(
+      "authentication.ldap.primaryUrl", "localhost:33389",
+      "authentication.ldap.secondaryUrl", "localhost:333",
+      "authentication.ldap.baseDn", "c=ambari,dc=apache,dc=org"
+    );
+
+    Map<String, Object> storedLdapConfigResult =  map(
+      "items",
+      list(
+        map(
+          "AmbariConfiguration",
+          map(
+            "data", list(ldapConfigData)
+          )
+        )
+      )
+    );
+
+    Response response =
+      Response.status(ResultStatus.STATUS.OK.getStatus()).entity(jsonString(storedLdapConfigResult)).build();
+
+    doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
+
+    JsonNode servicesRootNode = json("{}");
+    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
+
+    JsonNode expectedLdapConfig = json(
+      map(LDAP_CONFIGURATION_PROPERTY, ldapConfigData)
+    );
+
+    assertEquals(expectedLdapConfig, servicesRootNode);
+  }
+
+  @Test
+  public void testPopulateLdapConfig_NoConfigs() throws Exception {
+    File recommendationsDir = temp.newFolder("recommendationDir");
+    String recommendationsArtifactsLifetime = "1w";
+    int requestId = 0;
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
+    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
+      ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion").build();
+
+    Map<String, Object> storedLdapConfigResult =  map(
+      "items", list()
+    );
+
+    Response response =
+      Response.status(ResultStatus.STATUS.OK.getStatus()).entity(jsonString(storedLdapConfigResult)).build();
+
+    doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
+
+    JsonNode servicesRootNode = json("{}");
+    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
+
+    JsonNode expectedLdapConfig = json("{}");
+
+    assertEquals(expectedLdapConfig, servicesRootNode);
+  }
+
+  /**
+   * An ambigous ldap config that has two items in its data[] array should result in exception
+   */
+  @Test(expected = StackAdvisorException.class)
+  public void testPopulateLdapConfig_multipleConfigs() throws Exception {
+    File recommendationsDir = temp.newFolder("recommendationDir");
+    String recommendationsArtifactsLifetime = "1w";
+    int requestId = 0;
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
+    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
+        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion").build();
+
+    Map<String, Object> ldapConfigData = map(
+      "authentication.ldap.primaryUrl", "localhost:33389",
+      "authentication.ldap.secondaryUrl", "localhost:333",
+      "authentication.ldap.baseDn", "c=ambari,dc=apache,dc=org"
+    );
+
+    Map<String, Object> storedLdapConfigResult =  map(
+      "items",
+      list(
+        map(
+          "AmbariConfiguration",
+          map(
+            "data",
+            list(ldapConfigData, ldapConfigData)
+          )
+        )
+      )
+    );
+
+    Response response =
+     Response.status(ResultStatus.STATUS.OK.getStatus()).entity(jsonString(storedLdapConfigResult)).build();
+
+    doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
+
+    JsonNode servicesRootNode = json("{}");
+    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
+  }
+
+  /**
+   * An if multiple ambari configurations are stored with 'ldap-config' type, an
+   * exception should be thrown
+   */
+  @Test(expected = StackAdvisorException.class)
+  public void testPopulateLdapConfig_multipleResults() throws Exception {
+    File recommendationsDir = temp.newFolder("recommendationDir");
+    String recommendationsArtifactsLifetime = "1w";
+    int requestId = 0;
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
+    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
+      ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
+
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+      .build();
+
+    Map<String, Object> ldapConfig = map(
+      "AmbariConfiguration",
+      map(
+        "data",
+        list(
+          map(
+            "authentication.ldap.primaryUrl", "localhost:33389",
+            "authentication.ldap.secondaryUrl", "localhost:333",
+            "authentication.ldap.baseDn", "c=ambari,dc=apache,dc=org"
+          )
+        )
+      )
+    );
+
+    Map<String, Object> storedLdapConfigResult = map(
+      "items",
+      list(ldapConfig, ldapConfig)
+    );
+
+    Response response =
+      Response.status(ResultStatus.STATUS.OK.getStatus()).entity(jsonString(storedLdapConfigResult)).build();
+
+    doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
+
+    JsonNode servicesRootNode = json("{}");
+    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
+  }
+
+  private static String jsonString(Object obj) throws IOException {
+    return new ObjectMapper().writeValueAsString(obj);
+  }
+
+  private static JsonNode json(Object obj) throws IOException {
+    return new ObjectMapper().convertValue(obj, JsonNode.class);
+  }
+
+  private static JsonNode json(String jsonString) throws IOException {
+    return new ObjectMapper().readTree(jsonString);
+  }
+
+  private static List<Object> list(Object... items) {
+    return Lists.newArrayList(items);
+  }
+
+  private static Map<String, Object> map(Object... keysAndValues) {
+    Map<String, Object> map = new HashMap<>();
+    Iterator<Object> iterator = Arrays.asList(keysAndValues).iterator();
+    while (iterator.hasNext()) {
+      map.put(iterator.next().toString(), iterator.next());
+    }
+    return map;
+  }
+
   class TestStackAdvisorCommand extends StackAdvisorCommand<TestResource> {
     public TestStackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType,
                                    int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
@@ -289,6 +493,14 @@ public class StackAdvisorCommandTest {
     @Override
     protected TestResource updateResponse(StackAdvisorRequest request, TestResource response) {
       return response;
+    }
+
+    // Overridden to ensure visiblity in tests
+    @Override
+    public javax.ws.rs.core.Response handleRequest(HttpHeaders headers, String body,
+                                                                  UriInfo uriInfo, Request.Type requestType,
+                                                                  MediaType mediaType, ResourceInstance resource) {
+      return super.handleRequest(headers, body, uriInfo, requestType, mediaType, resource);
     }
   }
 

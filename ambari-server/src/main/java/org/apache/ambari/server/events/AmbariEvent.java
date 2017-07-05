@@ -140,7 +140,13 @@ public abstract class AmbariEvent {
     /**
      * Local user has been created.
      */
-    USER_CREATED;
+    USER_CREATED,
+
+    /**
+     * LDAP config changed event;
+     */
+    LDAP_CONFIG_CHANGED;
+
   }
 
   /**
@@ -151,8 +157,7 @@ public abstract class AmbariEvent {
   /**
    * Constructor.
    *
-   * @param eventType
-   *          the type of event (not {@code null}).
+   * @param eventType the type of event (not {@code null}).
    */
   public AmbariEvent(AmbariEventType eventType) {
     m_eventType = eventType;

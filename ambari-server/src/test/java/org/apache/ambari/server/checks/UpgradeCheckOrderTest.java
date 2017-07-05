@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -54,7 +55,7 @@ public class UpgradeCheckOrderTest {
     properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sourceResourceDirectory);
 
-    Injector injector = Guice.createInjector(new ControllerModule(properties), new AuditLoggerModule());
+    Injector injector = Guice.createInjector(new ControllerModule(properties), new AuditLoggerModule(), new LdapModule());
     UpgradeCheckRegistry registry = injector.getInstance(UpgradeCheckRegistry.class);
     UpgradeCheckRegistry registry2 = injector.getInstance(UpgradeCheckRegistry.class);
 
