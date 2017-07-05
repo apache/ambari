@@ -26,6 +26,7 @@ import java.util.EnumSet;
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.ApplicationConfig;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.util.SSLUtil;
 import org.apache.ambari.logsearch.util.WebUtil;
 import org.apache.ambari.logsearch.web.listener.LogSearchSessionListener;
@@ -55,11 +56,19 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 
 import javax.servlet.DispatcherType;
 
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
 
 public class LogSearch {
   private static final Logger LOG = LoggerFactory.getLogger(LogSearch.class);
 
+  @LogSearchPropertyDescription(
+    name = "logsearch.protocol",
+    description = "Log Search Protocol (http or https)",
+    examples = {"http", "https"},
+    defaultValue = "http",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String LOGSEARCH_PROTOCOL_PROP = "logsearch.protocol";
   private static final String HTTPS_PROTOCOL = "https";
   private static final String HTTP_PROTOCOL = "http";
@@ -149,7 +158,7 @@ public class LogSearch {
     // Configure Jersey
     ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/api/v1/*");
     jerseyServlet.setInitOrder(1);
-    jerseyServlet.setInitParameter("jersey.config.server.provider.packages","org.apache.ambari.logsearch.rest,io.swagger.jaxrs.listing");
+    jerseyServlet.setInitParameter("jersey.config.server.provider.packages","org.apache.ambari.logsearch.rest");
 
     context.getSessionHandler().getSessionManager().setMaxInactiveInterval(SESSION_TIMEOUT);
     context.getSessionHandler().getSessionManager().getSessionCookieConfig().setName(LOGSEARCH_SESSION_ID);

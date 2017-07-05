@@ -18,31 +18,39 @@
  */
 package org.apache.ambari.logsearch.rest;
 
+import io.swagger.annotations.ApiOperation;
+import org.apache.ambari.logsearch.common.ApiDocStorage;
+import org.springframework.context.annotation.Scope;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.apache.ambari.logsearch.manager.PublicManager;
-import org.springframework.context.annotation.Scope;
-
-import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.OBTAIN_GENERAL_CONFIG_OD;
-
-@Api(value = "public", description = "Public operations")
-@Path("public")
+@Path("swagger.{type:json|yaml}")
 @Named
 @Scope("request")
-public class PublicResource {
+public class SwaggerResource {
 
   @Inject
-  private PublicManager publicManager;
+  private ApiDocStorage apiDocStorage;
 
   @GET
-  @Path("/config")
-  @ApiOperation(OBTAIN_GENERAL_CONFIG_OD)
-  public String getGeneralConfig() {
-    return publicManager.getGeneralConfig();
+  @Produces({MediaType.APPLICATION_JSON, "application/yaml"})
+  @ApiOperation(value = "The swagger definition in either JSON or YAML", hidden = true)
+  public Response swaggerDefinitionResponse(@PathParam("type") String type) {
+    Response response = Response.status(404).build();
+    if (apiDocStorage.getSwagger() != null) {
+      if ("yaml".equalsIgnoreCase(type)) {
+        response = Response.ok().entity(apiDocStorage.getSwaggerYaml()).type("application/yaml").build();
+      } else {
+        response = Response.ok().entity(apiDocStorage.getSwagger()).build();
+      }
+    }
+    return response;
   }
 }

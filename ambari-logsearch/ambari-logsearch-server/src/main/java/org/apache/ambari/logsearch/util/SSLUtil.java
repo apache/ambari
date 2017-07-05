@@ -22,6 +22,7 @@ package org.apache.ambari.logsearch.util;
 import javax.net.ssl.SSLContext;
 
 import org.apache.ambari.logsearch.common.PropertiesHelper;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -68,6 +69,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
+
 public class SSLUtil {
   private static final Logger LOG = LoggerFactory.getLogger(SSLUtil.class);
   
@@ -83,9 +86,31 @@ public class SSLUtil {
   private static final String TRUSTSTORE_PASSWORD_PROPERTY_NAME = "logsearch_truststore_password";
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
+
+  @LogSearchPropertyDescription(
+    name = "hadoop.security.credential.provider.path",
+    description = "Path to interrogate for protected credentials. (see: https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/CredentialProviderAPI.html)",
+    examples = {"localjceks://file/home/mypath/my.jceks"},
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
 
+  @LogSearchPropertyDescription(
+    name = "logsearch.cert.folder.location",
+    description = "Folder where the generated certificates (SSL) will be located. Make sure the user of Log Search Server can access it.",
+    examples = {"/etc/mypath/keys"},
+    defaultValue = "/etc/ambari-logsearch-portal/conf/keys",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String LOGSEARCH_CERT_FOLDER_LOCATION = "logsearch.cert.folder.location";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.cert.algorithm",
+    description = "Algorithm to generate certificates for SSL (if needed).",
+    examples = {"sha256WithRSA"},
+    defaultValue = "sha256WithRSA",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String LOGSEARCH_CERT_ALGORITHM = "logsearch.cert.algorithm";
   
   private static final String LOGSEARCH_CERT_FILENAME = "logsearch.crt";

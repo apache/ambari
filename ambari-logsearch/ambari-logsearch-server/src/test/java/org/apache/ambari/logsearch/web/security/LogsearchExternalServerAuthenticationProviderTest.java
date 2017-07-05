@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.web.security;
 
+import com.google.common.collect.Lists;
 import org.apache.ambari.logsearch.common.ExternalServerClient;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.junit.Before;
@@ -36,6 +37,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 public class LogsearchExternalServerAuthenticationProviderTest {
 
@@ -147,6 +149,7 @@ public class LogsearchExternalServerAuthenticationProviderTest {
   public void testAuthenticationUnsuccessful() throws Exception {
     expect(mockAuthPropsConfig.isAuthExternalEnabled()).andReturn(true);
     expect(mockAuthPropsConfig.getExternalAuthLoginUrl()).andReturn("http://server.com?userName=$USERNAME");
+    expect(mockAuthPropsConfig.getAllowedRoles()).andReturn(Arrays.asList("AMBARI.ADMINISTRATOR"));
     expect(mockExternalServerClient.sendGETRequest("http://server.com?userName=principal", String.class, "principal", "credentials"))
     .andReturn("{\"permission_name\": \"NOT.AMBARI.ADMINISTRATOR\" }");
     
@@ -167,6 +170,7 @@ public class LogsearchExternalServerAuthenticationProviderTest {
   public void testAuthenticationSuccessful() throws Exception {
     expect(mockAuthPropsConfig.isAuthExternalEnabled()).andReturn(true);
     expect(mockAuthPropsConfig.getExternalAuthLoginUrl()).andReturn("http://server.com?userName=$USERNAME");
+    expect(mockAuthPropsConfig.getAllowedRoles()).andReturn(Arrays.asList("AMBARI.ADMINISTRATOR"));
     expect(mockExternalServerClient.sendGETRequest("http://server.com?userName=principal", String.class, "principal", "credentials"))
       .andReturn("{\"permission_name\": \"AMBARI.ADMINISTRATOR\" }");
     

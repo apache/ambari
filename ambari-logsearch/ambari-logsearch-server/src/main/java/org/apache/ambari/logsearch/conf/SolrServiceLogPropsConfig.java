@@ -18,25 +18,63 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 @Configuration
 public class SolrServiceLogPropsConfig extends SolrConnectionPropsConfig {
 
   @Value("${logsearch.solr.collection.service.logs:hadoop_logs}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.collection.service.logs",
+    description = "Name of Log Search service log collection.",
+    examples = {"hadoop_logs"},
+    defaultValue = "hadoop_logs",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String collection;
 
   @Value("${logsearch.service.logs.split.interval.mins:none}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.service.logs.split.interval.mins",
+    description = "Will create multiple collections and use alias. (not supported right now, use implicit routingif the value is not none)",
+    examples = {"none", "15"},
+    defaultValue = "none",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String splitInterval;
 
   @Value("${logsearch.solr.service.logs.config.name:hadoop_logs}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.service.logs.config.name",
+    description = "Solr configuration name of the service log collection.",
+    examples = {"hadoop_logs"},
+    defaultValue = "hadoop_logs",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String configName;
 
   @Value("${logsearch.collection.service.logs.numshards:1}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.collection.service.logs.numshards",
+    description = "Number of Solr shards for service log collection (bootstrapping).",
+    examples = {"2"},
+    defaultValue = "1",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private Integer numberOfShards;
 
   @Value("${logsearch.collection.service.logs.replication.factor:1}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.collection.service.logs.replication.factor",
+    description = "Solr replication factor for service log collection (bootstrapping).",
+    examples = {"2"},
+    defaultValue = "1",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private Integer replicationFactor;
 
   @Override

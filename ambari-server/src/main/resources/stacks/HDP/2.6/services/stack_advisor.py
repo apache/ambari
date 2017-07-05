@@ -186,7 +186,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
                 services["configurations"]["yarn-site"]["properties"] and 'hive-env' in services['configurations'] and \
                 'hive_user' in services['configurations']['hive-env']['properties']:
       hive_user_name = services['configurations']['hive-env']['properties']['hive_user']
-      old_hive_user_name = getOldValue(self, services, "hive-env", "hive_user")
+      old_hive_user_name = self.getOldValue(services, "hive-env", "hive_user")
       yarn_nm_kill_escape_user = services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.kill-escape.user"]
       if not hive_user_name in yarn_nm_kill_escape_user:
         if not yarn_nm_kill_escape_user or yarn_nm_kill_escape_user.strip() == "":

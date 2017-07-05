@@ -35,20 +35,19 @@
 				var passDiv = $('#passCont');
 
 		        $.ajax({
-					url : "/api/v1/public/config",
+					url : "/api/v1/info/auth",
 					type: "GET",
 					async: true,
 					dataType: 'json',
-						success:function(results,status)
+						success:function(result,status)
 						{
-							for(var i in results.vNameValues){
-								if ((results.vNameValues[i].name === "simpleAuth") && (results.vNameValues[i].value === "true")){
-									$("#password").val("");
-									passDiv.hide();
-								}
-								if (passDiv.is(':hidden'))
-								   $("#password").prop('required',false);
-							}
+                            if (result != null && result.simple == "true") {
+                                $("#password").val("");
+                                passDiv.hide();
+                            }
+                            if (passDiv.is(':hidden')) {
+                                $("#password").prop('required', false);
+                            }
 						},
 						error: function(errorThrown)
 						{
