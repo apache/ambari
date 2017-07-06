@@ -204,6 +204,9 @@
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie server">
         <task xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_configurations" />
       </execute-stage>
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie server">
+        <task xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" />
+      </execute-stage>
     </group>
 
 
