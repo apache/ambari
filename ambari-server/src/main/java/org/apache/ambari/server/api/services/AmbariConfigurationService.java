@@ -70,8 +70,11 @@ import io.swagger.annotations.ApiResponses;
  * </pre>
  */
 @Path("/configurations/")
-@Api(value = "/configurations", description = "Endpoint for Ambari configuration related operations")
+@Api(value = "Ambari Configurations", description = "Endpoint for Ambari configuration related operations")
 public class AmbariConfigurationService extends BaseService {
+
+  private static final String AMBARI_CONFIGURATION_REQUEST_TYPE =
+      "org.apache.ambari.server.api.services.AmbariConfigurationRequestSwagger";
 
   /**
    * Creates an ambari configuration resource.
@@ -83,9 +86,10 @@ public class AmbariConfigurationService extends BaseService {
    */
   @POST
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Creates an ambari configuration resource")
+  @ApiOperation(value = "Creates an ambari configuration resource",
+      nickname = "AmbariConfigurationService#createAmbariConfiguration")
   @ApiImplicitParams({
-    @ApiImplicitParam(dataType = "", paramType = PARAM_TYPE_BODY)
+      @ApiImplicitParam(dataType = AMBARI_CONFIGURATION_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
@@ -103,7 +107,26 @@ public class AmbariConfigurationService extends BaseService {
 
   @GET
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Retrieve ambari configuration resources")
+  @ApiOperation(value = "Retrieve all ambari configuration resources",
+      nickname = "AmbariConfigurationService#getAmbariConfigurations",
+      notes = "Returns all Ambari configurations.",
+      response = AmbariConfigurationResponseSwagger.class,
+      responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
+          defaultValue = "AmbariConfiguration/data, AmbariConfiguration/id, AmbariConfiguration/type",
+          dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+      @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
+          defaultValue = "AmbariConfiguration/id",
+          dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+      @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+      @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+      @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+      @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
   public Response getAmbariConfigurations(String body, @Context HttpHeaders headers, @Context UriInfo uri) {
     return handleRequest(headers, body, uri, Request.Type.GET, createResource(Resource.Type.AmbariConfiguration,
       Collections.EMPTY_MAP));
@@ -112,7 +135,18 @@ public class AmbariConfigurationService extends BaseService {
   @GET
   @Path("{configurationId}")
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Retrieve ambari configuration resource")
+  @ApiOperation(value = "Retrieve the details of an ambari configuration resource",
+      nickname = "AmbariConfigurationService#getAmbariConfiguration",
+      response = AmbariConfigurationResponseSwagger.class)
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "AmbariConfiguration/*",
+          dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+      @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
   public Response getAmbariConfiguration(String body, @Context HttpHeaders headers, @Context UriInfo uri,
                                          @PathParam("configurationId") String configurationId) {
     return handleRequest(headers, body, uri, Request.Type.GET, createResource(Resource.Type.AmbariConfiguration,
@@ -121,7 +155,20 @@ public class AmbariConfigurationService extends BaseService {
 
   @PUT
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Update ambari configuration resources")
+  @ApiOperation(value = "Updates ambari configuration resources - Not implemented yet",
+    nickname = "AmbariConfigurationService#updateAmbariConfiguration")
+  @ApiImplicitParams({
+      @ApiImplicitParam(dataType = AMBARI_CONFIGURATION_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+      @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+      @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+      @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+      @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+      @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updateAmbariConfiguration() {
     throw new UnsupportedOperationException("Not yet implemented");
   }
@@ -129,7 +176,8 @@ public class AmbariConfigurationService extends BaseService {
   @DELETE
   @Path("{configurationId}")
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Deletes an ambari configuration resource")
+  @ApiOperation(value = "Deletes an ambari configuration resource",
+      nickname = "AmbariConfigurationService#deleteAmbariConfiguration")
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
