@@ -73,7 +73,6 @@ public class InputManagerTest {
     
     expect(input1.monitor()).andReturn(false);
     expect(input2.monitor()).andReturn(false);
-    expect(input3.isTail()).andReturn(false);
     expect(input3.getShortDescription()).andReturn("").once();
     
     replay(input1, input2, input3);

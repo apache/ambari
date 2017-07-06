@@ -197,13 +197,9 @@ public class InputManager {
         if (input.isReady()) {
           input.monitor();
         } else {
-          if (input.isTail()) {
-            LOG.info("Adding input to not ready list. Note, it is possible this component is not run on this host. " +
-                "So it might not be an issue. " + input.getShortDescription());
-            notReadyList.add(input);
-          } else {
-            LOG.info("Input is not ready, so going to ignore it " + input.getShortDescription());
-          }
+          LOG.info("Adding input to not ready list. Note, it is possible this component is not run on this host. " +
+              "So it might not be an issue. " + input.getShortDescription());
+          notReadyList.add(input);
         }
       } catch (Exception e) {
         LOG.error("Error initializing input. " + input.getShortDescription(), e);
@@ -279,46 +275,8 @@ public class InputManager {
       File[] checkPointFiles = checkPointFolderFile.listFiles(fileFilter);
       int totalCheckFilesDeleted = 0;
       for (File checkPointFile : checkPointFiles) {
-        try (RandomAccessFile checkPointReader = new RandomAccessFile(checkPointFile, "r")) {
-          int contentSize = checkPointReader.readInt();
-          byte b[] = new byte[contentSize];
-          int readSize = checkPointReader.read(b, 0, contentSize);
-          if (readSize != contentSize) {
-            LOG.error("Couldn't read expected number of bytes from checkpoint file. expected=" + contentSize + ", read="
-              + readSize + ", checkPointFile=" + checkPointFile);
-          } else {
-            String jsonCheckPointStr = new String(b, 0, readSize);
-            Map<String, Object> jsonCheckPoint = LogFeederUtil.toJSONObject(jsonCheckPointStr);
-
-            String logFilePath = (String) jsonCheckPoint.get("file_path");
-            String logFileKey = (String) jsonCheckPoint.get("file_key");
-            if (logFilePath != null && logFileKey != null) {
-              boolean deleteCheckPointFile = false;
-              File logFile = new File(logFilePath);
-              if (logFile.exists()) {
-                Object fileKeyObj = FileUtil.getFileKey(logFile);
-                String fileBase64 = Base64.byteArrayToBase64(fileKeyObj.toString().getBytes());
-                if (!logFileKey.equals(fileBase64)) {
-                  deleteCheckPointFile = true;
-                  LOG.info("CheckPoint clean: File key has changed. old=" + logFileKey + ", new=" + fileBase64 + ", filePath=" +
-                      logFilePath + ", checkPointFile=" + checkPointFile.getAbsolutePath());
-                }
-              } else {
-                LOG.info("CheckPoint clean: Log file doesn't exist. filePath=" + logFilePath + ", checkPointFile=" +
-                    checkPointFile.getAbsolutePath());
-                deleteCheckPointFile = true;
-              }
-              if (deleteCheckPointFile) {
-                LOG.info("Deleting CheckPoint file=" + checkPointFile.getAbsolutePath() + ", logFile=" + logFilePath);
-                checkPointFile.delete();
-                totalCheckFilesDeleted++;
-              }
-            }
-          }
-        } catch (EOFException eof) {
-          LOG.warn("Caught EOFException. Ignoring reading existing checkPoint file. " + checkPointFile);
-        } catch (Throwable t) {
-          LOG.error("Error while checking checkPoint file. " + checkPointFile, t);
+        if (checkCheckPointFile(checkPointFile)) {
+          totalCheckFilesDeleted++;
         }
       }
       LOG.info("Deleted " + totalCheckFilesDeleted + " checkPoint file(s). checkPointFolderFile=" +
@@ -329,6 +287,67 @@ public class InputManager {
     }
   }
 
+  private boolean checkCheckPointFile(File checkPointFile) {
+    boolean deleted = false;
+    try (RandomAccessFile checkPointReader = new RandomAccessFile(checkPointFile, "r")) {
+      int contentSize = checkPointReader.readInt();
+      byte b[] = new byte[contentSize];
+      int readSize = checkPointReader.read(b, 0, contentSize);
+      if (readSize != contentSize) {
+        LOG.error("Couldn't read expected number of bytes from checkpoint file. expected=" + contentSize + ", read="
+          + readSize + ", checkPointFile=" + checkPointFile);
+      } else {
+        String jsonCheckPointStr = new String(b, 0, readSize);
+        Map<String, Object> jsonCheckPoint = LogFeederUtil.toJSONObject(jsonCheckPointStr);
+
+        String logFilePath = (String) jsonCheckPoint.get("file_path");
+        String logFileKey = (String) jsonCheckPoint.get("file_key");
+        if (logFilePath != null && logFileKey != null) {
+          boolean deleteCheckPointFile = false;
+          File logFile = new File(logFilePath);
+          if (logFile.exists()) {
+            Object fileKeyObj = FileUtil.getFileKey(logFile);
+            String fileBase64 = Base64.byteArrayToBase64(fileKeyObj.toString().getBytes());
+            if (!logFileKey.equals(fileBase64)) {
+              LOG.info("CheckPoint clean: File key has changed. old=" + logFileKey + ", new=" + fileBase64 + ", filePath=" +
+                  logFilePath + ", checkPointFile=" + checkPointFile.getAbsolutePath());
+              deleteCheckPointFile = !wasFileRenamed(logFile.getParentFile(), logFileKey);
+            }
+          } else {
+            LOG.info("CheckPoint clean: Log file doesn't exist. filePath=" + logFilePath + ", checkPointFile=" +
+                checkPointFile.getAbsolutePath());
+            deleteCheckPointFile = !wasFileRenamed(logFile.getParentFile(), logFileKey);
+          }
+          if (deleteCheckPointFile) {
+            LOG.info("Deleting CheckPoint file=" + checkPointFile.getAbsolutePath() + ", logFile=" + logFilePath);
+            checkPointFile.delete();
+            deleted = true;
+          }
+        }
+      }
+    } catch (EOFException eof) {
+      LOG.warn("Caught EOFException. Ignoring reading existing checkPoint file. " + checkPointFile);
+    } catch (Throwable t) {
+      LOG.error("Error while checking checkPoint file. " + checkPointFile, t);
+    }
+    
+    return deleted;
+  }
+  
+  private boolean wasFileRenamed(File folder, String searchFileBase64) {
+    for (File file : folder.listFiles()) {
+      Object fileKeyObj = FileUtil.getFileKey(file);
+      String fileBase64 = Base64.byteArrayToBase64(fileKeyObj.toString().getBytes());
+      if (searchFileBase64.equals(fileBase64)) {
+        // even though the file name in the checkpoint file is different from the one it was renamed to, checkpoint files are
+        // identified by their name, which is generated from the file key, which would be the same for the renamed file
+        LOG.info("CheckPoint clean: File key matches file " + file.getAbsolutePath() + ", it must have been renamed");
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public void waitOnAllInputs() {
     //wait on inputs
     for (List<Input> inputList : inputs.values()) {

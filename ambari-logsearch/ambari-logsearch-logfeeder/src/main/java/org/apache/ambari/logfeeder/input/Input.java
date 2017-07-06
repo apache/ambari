@@ -270,10 +270,6 @@ public abstract class Input extends ConfigItem implements Runnable {
     }
   }
 
-  public boolean isTail() {
-    return tail;
-  }
-
   public boolean isUseEventMD5() {
     return useEventMD5;
   }

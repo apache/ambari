@@ -22,6 +22,7 @@ package org.apache.ambari.logsearch.config.zookeeper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
@@ -53,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -175,10 +177,14 @@ public class LogSearchConfigZK implements LogSearchConfig {
       globalConfigNode.add(globalConfigJson.getAsJsonObject().get("global"));
     }
     
-    createGlobalConfigNode(globalConfigNode);
-    
     TreeCacheListener listener = new TreeCacheListener() {
+      private final Set<Type> nodeEvents = ImmutableSet.of(Type.NODE_ADDED, Type.NODE_UPDATED, Type.NODE_REMOVED);
+      
       public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        if (!nodeEvents.contains(event.getType())) {
+          return;
+        }
+        
         String nodeName = ZKPaths.getNodeFromPath(event.getData().getPath());
         String nodeData = new String(event.getData().getData());
         Type eventType = event.getType();
@@ -265,6 +271,8 @@ public class LogSearchConfigZK implements LogSearchConfig {
     };
     cache.getListenable().addListener(listener);
     cache.start();
+
+    createGlobalConfigNode(globalConfigNode);
   }
 
   private void createGlobalConfigNode(JsonArray globalConfigNode) {
