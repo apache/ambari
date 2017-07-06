@@ -82,10 +82,12 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
         cluster.getUpgradeInProgress());
 
 
+    CommandReport commandReport = updateDesiredStack(cluster, context);
+
     // invalidate any cached effective ID
     cluster.invalidateUpgradeEffectiveVersion();
 
-    return updateDesiredStack(cluster, context);
+    return commandReport;
   }
 
   /**

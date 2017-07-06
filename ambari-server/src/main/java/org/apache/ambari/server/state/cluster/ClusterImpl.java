@@ -112,6 +112,7 @@ import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
@@ -1038,6 +1039,7 @@ public class ClusterImpl implements Cluster {
     Long upgradeId = upgradeEntity.getId();
     Long effectiveClusterVersionId = upgradeEffectiveVersionCache.get(upgradeId);
     if (null == effectiveClusterVersionId) {
+      boolean updateCache = true;
       final ClusterVersionEntity effectiveClusterVersion;
 
       if (upgradeEntity.getUpgradeType() != UpgradeType.NON_ROLLING) {
@@ -1046,7 +1048,10 @@ public class ClusterImpl implements Cluster {
             clusterName, repositoryVersion.getStackId(), repositoryVersion.getVersion());
       } else {
         if (upgradeEntity.getDirection() == Direction.UPGRADE) {
-          boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
+          HostRoleStatus stackActionStatus = getExpressUpgradeDesiredStackStatus(upgradeEntity);
+          boolean pastChangingStack = stackActionStatus == HostRoleStatus.COMPLETED;
+          updateCache = stackActionStatus != HostRoleStatus.IN_PROGRESS;
+
           RepositoryVersionEntity repositoryVersion = pastChangingStack
               ? upgradeEntity.getToRepositoryVersion() : upgradeEntity.getFromRepositoryVersion();
 
@@ -1060,8 +1065,8 @@ public class ClusterImpl implements Cluster {
         }
       }
 
-      // cache for later use
-      if (null != effectiveClusterVersion) {
+      // cache for later use, but only if the action is completed
+      if (null != effectiveClusterVersion && updateCache) {
         effectiveClusterVersionId = effectiveClusterVersion.getId();
         upgradeEffectiveVersionCache.put(upgradeId, effectiveClusterVersionId);
       }
@@ -1077,11 +1082,14 @@ public class ClusterImpl implements Cluster {
   }
 
   /**
-   * Given a NonRolling stack upgrade, determine if it has already crossed the point of using the newer version.
-   * @param upgrade Stack Upgrade
-   * @return Return true if should be using to_version, otherwise, false to mean the from_version.
+   * Gets the status of the {@link UpdateDesiredStackAction} for an express
+   * upgrade.
+   *
+   * @param upgrade
+   *          Stack Upgrade
+   * @return the status of the command
    */
-  private boolean isNonRollingUpgradePastUpgradingStack(UpgradeEntity upgrade) {
+  private HostRoleStatus getExpressUpgradeDesiredStackStatus(UpgradeEntity upgrade) {
     for (UpgradeGroupEntity group : upgrade.getUpgradeGroups()) {
       if (group.getName().equalsIgnoreCase(UpgradeResourceProvider.CONST_UPGRADE_GROUP_NAME)) {
         for (UpgradeItemEntity item : group.getItems()) {
@@ -1089,16 +1097,16 @@ public class ClusterImpl implements Cluster {
           List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByPKs(taskIds);
           for (HostRoleCommandEntity command : commands) {
             if (command.getCustomCommandName() != null &&
-                command.getCustomCommandName().equalsIgnoreCase(UpgradeResourceProvider.CONST_CUSTOM_COMMAND_NAME) &&
-                command.getStatus() == HostRoleStatus.COMPLETED) {
-              return true;
+                command.getCustomCommandName().equalsIgnoreCase(
+                    UpgradeResourceProvider.CONST_CUSTOM_COMMAND_NAME)) {
+              return command.getStatus();
             }
           }
         }
-        return false;
+        return HostRoleStatus.PENDING;
       }
     }
-    return false;
+    return HostRoleStatus.PENDING;
   }
 
   /**
