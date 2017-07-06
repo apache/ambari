@@ -43,7 +43,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   installProgress: function() {
     if (App.get('testMode')) return 100;
 
-    var installRequest, requestIds = App.db.get('repoVersionInstall', 'id');
+    var installRequest, requestIds = this.get('controller').getRepoVersionInstallId();
     if (requestIds) {
       installRequest = App.router.get('backgroundOperationsController.services').findProperty('id', requestIds[0]);
     }
