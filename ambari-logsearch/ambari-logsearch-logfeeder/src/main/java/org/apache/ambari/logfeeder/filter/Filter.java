@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.ConfigItem;
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.mapper.Mapper;
@@ -116,7 +116,7 @@ public abstract class Filter extends ConfigItem {
   /**
    * Deriving classes should implement this at the minimum
    */
-  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException  {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException  {
     // TODO: There is no transformation for string types.
     if (nextFilter != null) {
       nextFilter.apply(inputStr, inputMarker);
@@ -125,7 +125,7 @@ public abstract class Filter extends ConfigItem {
     }
   }
 
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogFeederException {
     for (String fieldName : postFieldValueMappers.keySet()) {
       Object value = jsonObj.get(fieldName);
       if (value != null) {

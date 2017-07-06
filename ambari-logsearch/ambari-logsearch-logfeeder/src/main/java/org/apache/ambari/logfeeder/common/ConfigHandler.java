@@ -41,15 +41,14 @@ import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logfeeder.util.AliasUtil;
-import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
@@ -62,8 +61,29 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
 
+import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
+
 public class ConfigHandler implements InputConfigMonitor {
   private static final Logger LOG = Logger.getLogger(ConfigHandler.class);
+
+  @LogSearchPropertyDescription(
+    name = "logfeeder.config.files",
+    description = "Comma separated list of the config files containing global / output configurations.",
+    examples = {"global.json,output.json", "/etc/ambari-logsearch-logfeeder/conf/global.json"},
+    defaultValue = "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CONFIG_FILES_PROPERTY = "logfeeder.config.files";
+
+  private static final int DEFAULT_SIMULATE_INPUT_NUMBER = 0;
+  @LogSearchPropertyDescription(
+    name = "logfeeder.simulate.input_number",
+    description = "The number of the simulator instances to run with. O means no simulation.",
+    examples = {"10"},
+    defaultValue = DEFAULT_SIMULATE_INPUT_NUMBER + "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String SIMULATE_INPUT_NUMBER_PROPERTY = "logfeeder.simulate.input_number";
 
   private final OutputManager outputManager = new OutputManager();
   private final InputManager inputManager = new InputManager();
@@ -108,24 +128,10 @@ public class ConfigHandler implements InputConfigMonitor {
   private List<String> getConfigFiles() {
     List<String> configFiles = new ArrayList<>();
     
-    String logfeederConfigFilesProperty = LogFeederUtil.getStringProperty("logfeeder.config.files");
-    LOG.info("logfeeder.config.files=" + logfeederConfigFilesProperty);
-    if (logfeederConfigFilesProperty != null) {
-      configFiles.addAll(Arrays.asList(logfeederConfigFilesProperty.split(",")));
-    }
-
-    String inputConfigDir = LogFeederUtil.getStringProperty("input_config_dir");
-    if (StringUtils.isNotEmpty(inputConfigDir)) {
-      File configDirFile = new File(inputConfigDir);
-      List<File> inputConfigFiles = FileUtil.getAllFileFromDir(configDirFile, "json", false);
-      for (File inputConfigFile : inputConfigFiles) {
-        configFiles.add(inputConfigFile.getAbsolutePath());
-      }
-    }
-    
-    if (CollectionUtils.isEmpty(configFiles)) {
-      String configFileProperty = LogFeederUtil.getStringProperty("config.file", "config.json");
-      configFiles.addAll(Arrays.asList(configFileProperty.split(",")));
+    String logFeederConfigFilesProperty = LogFeederUtil.getStringProperty(CONFIG_FILES_PROPERTY);
+    LOG.info("logfeeder.config.files=" + logFeederConfigFilesProperty);
+    if (logFeederConfigFilesProperty != null) {
+      configFiles.addAll(Arrays.asList(logFeederConfigFilesProperty.split(",")));
     }
     
     return configFiles;
@@ -225,7 +231,7 @@ public class ConfigHandler implements InputConfigMonitor {
   }
   
   private void simulateIfNeeded() throws Exception {
-    int simulatedInputNumber = LogFeederUtil.getIntProperty("logfeeder.simulate.input_number", 0);
+    int simulatedInputNumber = LogFeederUtil.getIntProperty(SIMULATE_INPUT_NUMBER_PROPERTY, DEFAULT_SIMULATE_INPUT_NUMBER);
     if (simulatedInputNumber == 0)
       return;
     
@@ -432,10 +438,6 @@ public class ConfigHandler implements InputConfigMonitor {
   public void addMetrics(List<MetricData> metricsList) {
     inputManager.addMetricsContainers(metricsList);
     outputManager.addMetricsContainers(metricsList);
-  }
-
-  public void waitOnAllInputs() {
-    inputManager.waitOnAllInputs();
   }
 
   public void close() {

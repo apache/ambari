@@ -53,7 +53,7 @@ public class LogSearchConfigConfigurer implements Configurer {
         while (true) {
           try {
             logSearchConfig = LogSearchConfigFactory.createLogSearchConfig(Component.SERVER, PropertiesHelper.getProperties(),
-                LogSearchConfigZK.class);
+                null, LogSearchConfigZK.class);
             logSearchConfigState.setLogSearchConfigAvailable(true);
             break;
           } catch (Exception e) {

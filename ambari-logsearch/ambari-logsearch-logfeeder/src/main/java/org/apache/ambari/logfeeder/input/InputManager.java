@@ -36,16 +36,36 @@ import java.util.UUID;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Base64;
 
+import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
+
 public class InputManager {
   private static final Logger LOG = Logger.getLogger(InputManager.class);
 
-  private static final String CHECKPOINT_SUBFOLDER_NAME = "logfeeder_checkpoints";
   public static final String DEFAULT_CHECKPOINT_EXTENSION = ".cp";
+  @LogSearchPropertyDescription(
+    name = "logfeeder.checkpoint.extension",
+    description = "The extension used for checkpoint files.",
+    examples = {"ckp"},
+    defaultValue = DEFAULT_CHECKPOINT_EXTENSION,
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  public static final String CHECKPOINT_EXTENSION_PROPERTY = "logfeeder.checkpoint.extension";
+  
+  @LogSearchPropertyDescription(
+    name = "logfeeder.checkpoint.folder",
+    description = "The folder wher checkpoint files are stored.",
+    examples = {"/etc/ambari-logsearch-logfeeder/conf/checkpoints"},
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CHECKPOINT_FOLDER_PROPERTY = "logfeeder.checkpoint.folder";
+
+  private static final String CHECKPOINT_SUBFOLDER_NAME = "logfeeder_checkpoints";
   
   private Map<String, List<Input>> inputs = new HashMap<>();
   private Set<Input> notReadyList = new HashSet<Input>();
@@ -118,32 +138,21 @@ public class InputManager {
   }
   
   private void initCheckPointSettings() {
-    checkPointExtension = LogFeederUtil.getStringProperty("logfeeder.checkpoint.extension", DEFAULT_CHECKPOINT_EXTENSION);
+    checkPointExtension = LogFeederUtil.getStringProperty(CHECKPOINT_EXTENSION_PROPERTY, DEFAULT_CHECKPOINT_EXTENSION);
     LOG.info("Determining valid checkpoint folder");
     boolean isCheckPointFolderValid = false;
     // We need to keep track of the files we are reading.
-    String checkPointFolder = LogFeederUtil.getStringProperty("logfeeder.checkpoint.folder");
+    String checkPointFolder = LogFeederUtil.getStringProperty(CHECKPOINT_FOLDER_PROPERTY);
     if (!StringUtils.isEmpty(checkPointFolder)) {
       checkPointFolderFile = new File(checkPointFolder);
       isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
     }
-    if (!isCheckPointFolderValid) {
-      // Let's try home folder
-      String userHome = LogFeederUtil.getStringProperty("user.home");
-      if (userHome != null) {
-        checkPointFolderFile = new File(userHome, CHECKPOINT_SUBFOLDER_NAME);
-        LOG.info("Checking if home folder can be used for checkpoints. Folder=" + checkPointFolderFile);
-        isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
-      }
-    }
+    
     if (!isCheckPointFolderValid) {
       // Let's use tmp folder
-      String tmpFolder = LogFeederUtil.getStringProperty("java.io.tmpdir");
-      if (tmpFolder == null) {
-        tmpFolder = "/tmp";
-      }
+      String tmpFolder = LogFeederUtil.getLogFeederTempDir();
       checkPointFolderFile = new File(tmpFolder, CHECKPOINT_SUBFOLDER_NAME);
-      LOG.info("Checking if tmps folder can be used for checkpoints. Folder=" + checkPointFolderFile);
+      LOG.info("Checking if tmp folder can be used for checkpoints. Folder=" + checkPointFolderFile);
       isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
       if (isCheckPointFolderValid) {
         LOG.warn("Using tmp folder " + checkPointFolderFile + " to store check points. This is not recommended." +
@@ -153,6 +162,8 @@ public class InputManager {
     
     if (isCheckPointFolderValid) {
       LOG.info("Using folder " + checkPointFolderFile + " for storing checkpoints");
+    } else {
+      throw new IllegalStateException("Could not determine the checkpoint folder.");
     }
   }
 

@@ -68,7 +68,8 @@ public abstract class AbstractInputFile extends Input {
   public void init() throws Exception {
     LOG.info("init() called");
     
-    checkPointExtension = LogFeederUtil.getStringProperty("logfeeder.checkpoint.extension", InputManager.DEFAULT_CHECKPOINT_EXTENSION);
+    checkPointExtension = LogFeederUtil.getStringProperty(InputManager.CHECKPOINT_EXTENSION_PROPERTY,
+        InputManager.DEFAULT_CHECKPOINT_EXTENSION);
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);

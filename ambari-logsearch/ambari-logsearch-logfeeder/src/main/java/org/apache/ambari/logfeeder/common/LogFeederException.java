@@ -19,13 +19,13 @@
 
 package org.apache.ambari.logfeeder.common;
 
-public class LogfeederException extends Exception {
+public class LogFeederException extends Exception {
 
-  public LogfeederException(String message, Throwable throwable) {
+  public LogFeederException(String message, Throwable throwable) {
     super(message, throwable);
   }
 
-  public LogfeederException(String message) {
+  public LogFeederException(String message) {
     super(message);
   }
 }

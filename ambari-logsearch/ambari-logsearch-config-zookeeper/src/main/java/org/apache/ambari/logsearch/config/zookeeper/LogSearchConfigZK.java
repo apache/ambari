@@ -72,14 +72,6 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
   @LogSearchPropertyDescription(
-    name = "cluster.name",
-    description = "Cluster name for Log Feeder. (added into zk path of the shipper configs)",
-    examples = {"cl1"},
-    sources = {"logfeeder.properties"}
-  )
-  private static final String CLUSTER_NAME_PROPERTY = "cluster.name";
-
-  @LogSearchPropertyDescription(
     name = "logsearch.config.zk_connect_string",
     description = "ZooKeeper connection string.",
     examples = {"localhost1:2181,localhost2:2181/znode"},
@@ -111,7 +103,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private Gson gson;
 
   @Override
-  public void init(Component component, Map<String, String> properties) throws Exception {
+  public void init(Component component, Map<String, String> properties, String clusterName) throws Exception {
     this.properties = properties;
     
     LOG.info("Connecting to ZooKeeper at " + properties.get(ZK_CONNECT_STRING_PROPERTY));
@@ -136,8 +128,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
         LOG.info("Root node is not present yet, going to sleep for " + WAIT_FOR_ROOT_SLEEP_SECONDS + " seconds");
         Thread.sleep(WAIT_FOR_ROOT_SLEEP_SECONDS * 1000);
       }
-
-      cache = new TreeCache(client, String.format("%s/%s", root, properties.get(CLUSTER_NAME_PROPERTY)));
+      cache = new TreeCache(client, String.format("%s/%s", root, clusterName));
     }
     
     gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
@@ -169,13 +160,15 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   @Override
   public void monitorInputConfigChanges(final InputConfigMonitor inputConfigMonitor,
-      final LogLevelFilterMonitor logLevelFilterMonitor) throws Exception {
+      final LogLevelFilterMonitor logLevelFilterMonitor, final String clusterName) throws Exception {
     final JsonParser parser = new JsonParser();
     final JsonArray globalConfigNode = new JsonArray();
     for (String globalConfigJsonString : inputConfigMonitor.getGlobalConfigJsons()) {
       JsonElement globalConfigJson = parser.parse(globalConfigJsonString);
       globalConfigNode.add(globalConfigJson.getAsJsonObject().get("global"));
     }
+    
+    createGlobalConfigNode(globalConfigNode, clusterName);
     
     TreeCacheListener listener = new TreeCacheListener() {
       private final Set<Type> nodeEvents = ImmutableSet.of(Type.NODE_ADDED, Type.NODE_UPDATED, Type.NODE_REMOVED);
@@ -189,7 +182,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
         String nodeData = new String(event.getData().getData());
         Type eventType = event.getType();
         
-        String configPathStab = String.format("%s/%s/", root, properties.get(CLUSTER_NAME_PROPERTY));
+        String configPathStab = String.format("%s/%s/", root, clusterName);
         
         if (event.getData().getPath().startsWith(configPathStab + "input/")) {
           handleInputConfigChange(eventType, nodeName, nodeData);
@@ -271,12 +264,10 @@ public class LogSearchConfigZK implements LogSearchConfig {
     };
     cache.getListenable().addListener(listener);
     cache.start();
-
-    createGlobalConfigNode(globalConfigNode);
   }
 
-  private void createGlobalConfigNode(JsonArray globalConfigNode) {
-    String globalConfigNodePath = String.format("%s/%s/global", root, properties.get(CLUSTER_NAME_PROPERTY));
+  private void createGlobalConfigNode(JsonArray globalConfigNode, String clusterName) {
+    String globalConfigNodePath = String.format("%s/%s/global", root, clusterName);
     String data = InputConfigGson.gson.toJson(globalConfigNode);
     
     try {

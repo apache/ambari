@@ -25,10 +25,10 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
-public class LogfeederHDFSUtil {
-  private static final Logger LOG = Logger.getLogger(LogfeederHDFSUtil.class);
+public class LogFeederHDFSUtil {
+  private static final Logger LOG = Logger.getLogger(LogFeederHDFSUtil.class);
 
-  private LogfeederHDFSUtil() {
+  private LogFeederHDFSUtil() {
     throw new UnsupportedOperationException();
   }
   

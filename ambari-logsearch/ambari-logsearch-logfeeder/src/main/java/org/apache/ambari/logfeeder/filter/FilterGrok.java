@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.exception.GrokException;
 
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
@@ -160,7 +160,7 @@ public class FilterGrok extends Filter {
   }
 
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException {
     if (grokMessage == null) {
       return;
     }
@@ -195,7 +195,7 @@ public class FilterGrok extends Filter {
   }
 
   @Override
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogFeederException {
     if (sourceField != null) {
       savedInputMarker = inputMarker;
       applyMessage((String) jsonObj.get(sourceField), jsonObj, null);
@@ -205,7 +205,7 @@ public class FilterGrok extends Filter {
     }
   }
 
-  private void applyMessage(String inputStr, Map<String, Object> jsonObj, String multilineJsonStr) throws LogfeederException {
+  private void applyMessage(String inputStr, Map<String, Object> jsonObj, String multilineJsonStr) throws LogFeederException {
     String jsonStr = grokMessage.capture(inputStr);
 
     boolean parseError = false;
@@ -260,7 +260,7 @@ public class FilterGrok extends Filter {
       Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
       try {
         applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
-      } catch (LogfeederException e) {
+      } catch (LogFeederException e) {
         LOG.error(e.getLocalizedMessage(), e.getCause());
       }
       strBuff = null;

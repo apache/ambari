@@ -143,32 +143,6 @@ public class InputManagerTest {
   }
 
   @Test
-  public void testInputManagr_waitOnAllInputs() throws Exception {
-    Input input1 = strictMock(Input.class);
-    Input input2 = strictMock(Input.class);
-    Input input3 = strictMock(Input.class);
-    
-    Thread mockThread = strictMock(Thread.class);
-    
-    expect(input1.getThread()).andReturn(null);
-    expect(input2.getThread()).andReturn(null);
-    expect(input3.getThread()).andReturn(mockThread);
-    
-    mockThread.join(); expectLastCall();
-    
-    replay(input1, input2, input3);
-    
-    InputManager manager = new InputManager();
-    manager.add("serviceName", input1);
-    manager.add("serviceName", input2);
-    manager.add("serviceName", input3);
-    
-    manager.waitOnAllInputs();
-    
-    verify(input1, input2, input3);
-  }
-
-  @Test
   public void testInputManager_checkInAll() throws Exception {
     Input input1 = strictMock(Input.class);
     Input input2 = strictMock(Input.class);

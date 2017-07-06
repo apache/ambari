@@ -80,7 +80,6 @@ public class MetricsManagerTest {
     assertEquals(metricList.size(), 1);
     
     TimelineMetric metric = metricList.get(0);
-    assertEquals(metric.getHostName(), "test_host_name");
     assertEquals(metric.getAppId(), "logfeeder");
     assertEquals(metric.getMetricName(), "metric1");
     assertEquals(metric.getType(), "Long");
@@ -116,7 +115,6 @@ public class MetricsManagerTest {
     assertEquals(metricList.size(), 1);
     
     TimelineMetric metric = metricList.get(0);
-    assertEquals(metric.getHostName(), "test_host_name");
     assertEquals(metric.getAppId(), "logfeeder");
     assertEquals(metric.getMetricName(), "metric1");
     assertEquals(metric.getType(), "Long");
