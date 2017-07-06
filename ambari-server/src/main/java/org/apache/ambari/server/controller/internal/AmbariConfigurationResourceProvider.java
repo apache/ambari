@@ -97,14 +97,14 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
     }
   }
 
-  private static Set<String> properties = Sets.newHashSet(
+  private static Set<String> PROPERTIES = Sets.newHashSet(
     ResourcePropertyId.ID.getPropertyId(),
     ResourcePropertyId.TYPE.getPropertyId(),
     ResourcePropertyId.VERSION.getPropertyId(),
     ResourcePropertyId.VERSION_TAG.getPropertyId(),
     ResourcePropertyId.DATA.getPropertyId());
 
-  private static Map<Resource.Type, String> pkPropertyMap = Collections.unmodifiableMap(
+  private static Map<Resource.Type, String> PK_PROPERTY_MAP = Collections.unmodifiableMap(
     new HashMap<Resource.Type, String>() {{
       put(Resource.Type.AmbariConfiguration, ResourcePropertyId.ID.getPropertyId());
     }}
@@ -117,7 +117,7 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
   private Gson gson;
 
   protected AmbariConfigurationResourceProvider() {
-    super(properties, pkPropertyMap);
+    super(PROPERTIES, PK_PROPERTY_MAP);
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION));
 
@@ -126,7 +126,7 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return Sets.newHashSet("AmbariConfiguration/id");
+    return Sets.newHashSet(ResourcePropertyId.ID.getPropertyId());
   }
 
   @Override
@@ -137,7 +137,7 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
     AmbariConfigurationEntity ambariConfigurationEntity = getEntityFromRequest(request);
 
     LOGGER.info("Persisting new ambari configuration: {} ", ambariConfigurationEntity);
-    ambariConfigurationDAO.persist(ambariConfigurationEntity);
+    ambariConfigurationDAO.create(ambariConfigurationEntity);
 
     return getRequestStatus(null);
   }
@@ -170,7 +170,7 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
     } else {
       LOGGER.debug("Deleting amari configuration with id: {}", idFromRequest);
       try {
-        ambariConfigurationDAO.deleteById(idFromRequest);
+        ambariConfigurationDAO.removeByPK(idFromRequest);
       } catch (IllegalStateException e) {
         throw new NoSuchResourceException(e.getMessage());
       }

@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import static org.apache.ambari.server.orm.DBAccessor.DbType;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -31,19 +29,10 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import org.apache.ambari.server.orm.DBAccessor;
-
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class DaoUtils {
-  @Inject
-  private DBAccessor dbAccessor;
-
-  public DbType getDbType() {
-    return dbAccessor.getDbType();
-  }
 
   public <T> List<T> selectAll(EntityManager entityManager, Class<T> entityClass) {
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -92,7 +81,7 @@ public class DaoUtils {
 
   public void setParameters(Query query, Object... parameters) {
     for (int i = 0; i < parameters.length; i++) {
-      query.setParameter(i+1, parameters[i]);
+      query.setParameter(i + 1, parameters[i]);
     }
   }
 }

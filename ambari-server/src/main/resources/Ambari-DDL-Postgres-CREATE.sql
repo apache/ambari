@@ -67,13 +67,13 @@ CREATE TABLE clusters (
 );
 
 CREATE TABLE configuration_base (
-  id               BIGINT       NOT NULL,
-  version_tag      VARCHAR(255) NOT NULL,
-  version          BIGINT       NOT NULL,
-  type             VARCHAR(255) NOT NULL,
-  data             TEXT         NOT NULL,
-  attributes       TEXT,
-  create_timestamp BIGINT       NOT NULL,
+  id BIGINT NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  version BIGINT NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  data TEXT NOT NULL,
+  attributes TEXT,
+  create_timestamp BIGINT NOT NULL,
   CONSTRAINT PK_configuration_base PRIMARY KEY (id)
 );
 
