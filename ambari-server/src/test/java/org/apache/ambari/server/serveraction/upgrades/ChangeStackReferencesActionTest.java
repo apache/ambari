@@ -40,7 +40,7 @@ import org.junit.Test;
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
-public class ChangeStackRootDirectoryActionTest {
+public class ChangeStackReferencesActionTest {
 
   @Test
   public void testExecute() throws Exception {
@@ -74,6 +74,7 @@ public class ChangeStackRootDirectoryActionTest {
     // this is the crux of the test
     Map<String, String> updatedProperties = Maps.newHashMap();
     updatedProperties.put("mapreduce_tar_source", "/usr/hdp/current/hadoop-client/mapreduce.tar.gz");
+    updatedProperties.put("pig_tar_destination_folder", "hdfs:///hdp/apps/{{ stack_version }}/pig/");
     updatedProperties.put("pig_tar_source", "/usr/hdp/current/pig-client/pig.tar.gz");
     clusterEnv.updateProperties(updatedProperties); expectLastCall();
 
@@ -83,11 +84,11 @@ public class ChangeStackRootDirectoryActionTest {
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
     expect(injector.getInstance(Clusters.class)).andReturn(clusters).atLeastOnce();
 
-    ChangeStackRootDirectoryAction underTest = new ChangeStackRootDirectoryAction();
+    ChangeStackReferencesAction underTest = new ChangeStackReferencesAction();
     underTest.setExecutionCommand(executionCommand);
     underTest.setHostRoleCommand(hrc);
 
-    Field clustersField = ChangeStackRootDirectoryAction.class.getDeclaredField("clusters");
+    Field clustersField = ChangeStackReferencesAction.class.getDeclaredField("clusters");
     clustersField.setAccessible(true);
     clustersField.set(underTest, clusters);
 

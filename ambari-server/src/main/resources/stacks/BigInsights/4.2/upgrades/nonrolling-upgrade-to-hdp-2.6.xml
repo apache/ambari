@@ -159,12 +159,12 @@
       </execute-stage>
     </group>
 
-    <group xsi:type="cluster" name="CHANGE_STACK_ROOT_DIRECTORY_REFERENCES" title="Change stack root directory references">
+    <group xsi:type="cluster" name="CHANGE_STACK_REFERENCES" title="Change stack references">
       <direction>UPGRADE</direction>
       <skippable>false</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <execute-stage title="Change stack root directory references">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ChangeStackRootDirectoryAction"/>
+      <execute-stage title="Change stack references">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ChangeStackReferencesAction"/>
       </execute-stage>
     </group>
 

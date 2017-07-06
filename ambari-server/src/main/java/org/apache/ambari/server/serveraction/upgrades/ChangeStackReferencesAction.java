@@ -18,8 +18,10 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
@@ -32,18 +34,29 @@ import org.apache.ambari.server.state.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
- * Replaces references to the old stack root ("/usr/iop") with the new
- * stack root ("/usr/hdp") during upgrade from BigInsights to HDP.
- * TODO pass stack root locations as parameters from the upgrade pack
+ * Replaces references to the old stack ("iop" and "IOP") with the new
+ * stack ("hdp" and "HDP") during upgrade from BigInsights to HDP.
  */
-public class ChangeStackRootDirectoryAction extends AbstractServerAction {
+public class ChangeStackReferencesAction extends AbstractServerAction {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ChangeStackRootDirectoryAction.class);
-  private static final String OLD_STACK_ROOT = "/usr/iop";
-  private static final String NEW_STACK_ROOT = "/usr/hdp";
+  private static final Logger LOG = LoggerFactory.getLogger(ChangeStackReferencesAction.class);
+  private static final Set<Map.Entry<String, String>> REPLACEMENTS = Maps.asMap(
+    Sets.newHashSet("/usr/iop", "iop/apps", "iop.version", "IOP_VERSION"),
+    new Function<String, String>() {
+      @Nullable
+      @Override
+      public String apply(@Nullable String input) {
+        return input != null
+          ? input.replace("iop", "hdp").replace("IOP", "HDP")
+          : null;
+      }
+    }
+  ).entrySet();
 
   @Inject
   private Clusters clusters;
@@ -52,7 +65,7 @@ public class ChangeStackRootDirectoryAction extends AbstractServerAction {
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
     StringBuilder out = new StringBuilder();
 
-    String msg = String.format("Changing stack root directory references from %s to %s", OLD_STACK_ROOT, NEW_STACK_ROOT);
+    String msg = "Changing stack-specific references from IOP to HDP";
     LOG.info(msg);
     out.append(msg).append(System.lineSeparator());
 
@@ -71,7 +84,10 @@ public class ChangeStackRootDirectoryAction extends AbstractServerAction {
           String key = entry.getKey();
           String original = entry.getValue();
           if (original != null) {
-            String replaced = original.replace(OLD_STACK_ROOT, NEW_STACK_ROOT);
+            String replaced = original;
+            for (Map.Entry<String, String> replacement : REPLACEMENTS) {
+              replaced = replaced.replace(replacement.getKey(), replacement.getValue());
+            }
             if (!replaced.equals(original)) {
               changedProperties.put(key, replaced);
               String itemMsg = String.format("Changing %s", key);
