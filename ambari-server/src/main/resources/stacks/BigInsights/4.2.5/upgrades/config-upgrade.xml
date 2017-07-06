@@ -76,6 +76,10 @@
             <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
           </definition>
           
+          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure" summary="Configuring hive env for MariaDB/RedHat7 support">
+            <type>hive-env</type>
+            <set key="mariadb_redhat_support" value="true"/>
+          </definition>
         </changes>
       </component>
       

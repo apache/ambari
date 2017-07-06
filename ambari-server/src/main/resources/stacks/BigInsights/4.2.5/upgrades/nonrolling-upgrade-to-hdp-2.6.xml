@@ -185,6 +185,9 @@
       
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure"/>
+      </execute-stage>
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_0_0_hive_server_configure_authentication"/>
       </execute-stage>      
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for Hive WebHCat server">
