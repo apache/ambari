@@ -3089,13 +3089,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     beforeEach(function() {
       sinon.stub(App.router, 'get').withArgs('highAvailabilityProgressPopupController').returns(mock);
       sinon.stub(mock, 'initPopup');
-      sinon.stub(App.db, 'get').returns([1]);
+      sinon.stub(controller, 'getRepoVersionInstallId').returns([1]);
     });
 
     afterEach(function() {
       App.router.get.restore();
       mock.initPopup.restore();
-      App.db.get.restore();
+      controller.getRepoVersionInstallId.restore();
     });
 
     it("initPopup should be called", function() {
@@ -3105,6 +3105,42 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         [1],
         controller
       )).to.be.true;
+    });
+  });
+
+  describe('#getRepoVersionInstallId', function() {
+    beforeEach(function() {
+      this.mockDB = sinon.stub(App.db, 'get');
+      this.mockRequests = sinon.stub(App.router, 'get');
+    });
+    afterEach(function() {
+      this.mockDB.restore();
+      this.mockRequests.restore();
+    });
+
+    it('should return id from latest version install', function() {
+      this.mockDB.returns(null);
+      this.mockRequests.returns([Em.Object.create({
+        name: 'Install version',
+        id: 1
+      })]);
+      expect(controller.getRepoVersionInstallId()[0]).to.be.equal(1);
+    });
+    it('should return id from localDB', function() {
+      this.mockDB.returns([2]);
+      this.mockRequests.returns([Em.Object.create({
+        name: 'Install version',
+        id: 2
+      })]);
+      expect(controller.getRepoVersionInstallId()[0]).to.be.equal(2);
+    });
+    it('should return id from latest version install and ignore deprecated localDb value', function() {
+      this.mockDB.returns([2]);
+      this.mockRequests.returns([Em.Object.create({
+        name: 'Install version',
+        id: 3
+      })]);
+      expect(controller.getRepoVersionInstallId()[0]).to.be.equal(3);
     });
   });
 

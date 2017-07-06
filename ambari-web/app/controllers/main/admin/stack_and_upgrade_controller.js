@@ -1649,9 +1649,23 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   showProgressPopup: function(version) {
     var popupTitle = Em.I18n.t('admin.stackVersions.details.install.hosts.popup.title').format(version.get('displayName'));
-    var requestIds = App.get('testMode') ? [1] : App.db.get('repoVersionInstall', 'id');
+    var requestIds = this.getRepoVersionInstallId();
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
     hostProgressPopupController.initPopup(popupTitle, requestIds, this);
+  },
+
+  getRepoVersionInstallId: function() {
+    if (App.get('testMode')) return [1];
+
+    var requestIds = App.db.get('repoVersionInstall', 'id');
+    var lastRepoVersionInstall = App.router.get('backgroundOperationsController.services').find(function(request) {
+      return request.get('name').startsWith('Install version');
+    });
+    if (!requestIds ||
+      (lastRepoVersionInstall && !requestIds.contains(lastRepoVersionInstall.get('id')))) {
+      requestIds = [lastRepoVersionInstall.get('id')];
+    }
+    return requestIds;
   },
 
   /**
