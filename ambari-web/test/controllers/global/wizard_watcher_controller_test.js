@@ -42,6 +42,7 @@ describe('App.wizardWatcherController', function () {
 
   describe("#wizardDisplayName", function() {
     beforeEach(function () {
+      controller.set('wizardUser', 'tdk');
       sinon.stub(App.router, 'get').returns(Em.Object.create({displayName: 'Wizard'}));
     });
     afterEach(function () {
@@ -55,7 +56,7 @@ describe('App.wizardWatcherController', function () {
     it("controllerName is correct", function() {
       controller.set('controllerName', 'ctrl1');
       controller.propertyDidChange('wizardDisplayName');
-      expect(controller.get('wizardDisplayName')).to.equal(Em.I18n.t('wizard.inProgress').format('Wizard'));
+      expect(controller.get('wizardDisplayName')).to.equal(Em.I18n.t('wizard.inProgress').format('Wizard', 'tdk'));
     });
   });
 

@@ -29,11 +29,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
@@ -84,6 +80,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DesiredConfig;
@@ -270,8 +267,8 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException
    */
   private void addCustomCommandAction(final ActionExecutionContext actionExecutionContext,
-      final RequestResourceFilter resourceFilter, Stage stage,
-      Map<String, String> additionalCommandParams, String commandDetail) throws AmbariException {
+      final RequestResourceFilter resourceFilter, Stage stage, Map<String, String> additionalCommandParams,
+      String commandDetail, Map<String, String> requestParams) throws AmbariException {
     final String serviceName = resourceFilter.getServiceName();
     final String componentName = resourceFilter.getComponentName();
     final String commandName = actionExecutionContext.getActionName();
@@ -479,6 +476,19 @@ public class AmbariCustomCommandExecutionHelper {
         commandTimeout = Math.max(60, commandTimeout);
       }
 
+      if (requestParams != null && requestParams.containsKey("context")) {
+        String requestContext = requestParams.get("context");
+        if (StringUtils.isNotEmpty(requestContext) && requestContext.toLowerCase().contains("rolling-restart")) {
+          Config clusterEnvConfig = cluster.getDesiredConfigByType("cluster-env");
+          if (clusterEnvConfig != null) {
+            String componentRollingRestartTimeout = clusterEnvConfig.getProperties().get("namenode_rolling_restart_timeout");
+            if (StringUtils.isNotEmpty(componentRollingRestartTimeout)) {
+              commandTimeout = Integer.parseInt(componentRollingRestartTimeout);
+            }
+          }
+        }
+      }
+
       commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
       commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
@@ -494,7 +504,7 @@ public class AmbariCustomCommandExecutionHelper {
       if (isUpgradeSuspended) {
         cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
       }
-
+      StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
 
       execCmd.setCommandParams(commandParams);
@@ -801,6 +811,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
     commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
     execCmd.setCommandParams(commandParams);
 
@@ -1038,7 +1049,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       if (!serviceName.equals(Service.Type.HBASE.name()) || hostName.equals(primaryCandidate)) {
         commandParams.put(UPDATE_EXCLUDE_FILE_ONLY, "false");
-        addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString());
+        addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString(), null);
       }
     }
   }
@@ -1163,7 +1174,7 @@ public class AmbariCustomCommandExecutionHelper {
           }
         }
 
-        addCustomCommandAction(actionExecutionContext, resourceFilter, stage, extraParams, commandDetail);
+        addCustomCommandAction(actionExecutionContext, resourceFilter, stage, extraParams, commandDetail, requestParams);
       } else {
         throw new AmbariException("Unsupported action " + actionName);
       }
@@ -1392,9 +1403,9 @@ public class AmbariCustomCommandExecutionHelper {
    * @return a wrapper of the important JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
-      Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
+      Cluster cluster, RepositoryVersionEntity repositoryVersion, String requestContext) throws AmbariException {
 
-    Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext);
+    Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext, requestContext);
     Map<String, String> hostParamsStage = new HashMap<>();
     Map<String, Set<String>> clusterHostInfo;
     String clusterHostInfoJson = "{}";
@@ -1467,11 +1478,8 @@ public class AmbariCustomCommandExecutionHelper {
   Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException {
 
     TreeMap<String, String> hostLevelParams = new TreeMap<>();
+    StageUtils.useStackJdkIfExists(hostLevelParams, configs);
     hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
-    hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
-    hostLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
-    hostLevelParams.put(JDK_NAME, managementController.getJDKName());
-    hostLevelParams.put(JCE_NAME, managementController.getJCEName());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
     hostLevelParams.put(DB_NAME, managementController.getServerDB());

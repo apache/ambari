@@ -25,4 +25,6 @@ public interface FilterGrokDescriptor extends FilterDescriptor {
   String getMultilinePattern();
 
   String getMessagePattern();
+
+  void setMultilinePattern(String multilinePattern);
 }

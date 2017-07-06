@@ -23,11 +23,28 @@ package org.apache.ambari.server.cleanup;
  */
 public interface CleanupService<T> {
 
+  interface CleanupResult {
+    /**
+     * Returns the number of rows deleted by the cleanup
+     * @return The total number of rows deleted by the cleanup
+     */
+    long getAffectedRows();
+
+    /**
+     * The cleanup process executes the specific cleanup operations via
+     * {@link org.apache.ambari.server.orm.dao.Cleanable} implementations.
+     * Some of these may fail during the cleanup process. This method returns
+     * the number of failed clean ups.
+     * @return The number of failed cleanups.
+     */
+    int getErrorCount();
+  }
+
   /**
    * Triggers the cleanup for the given cleanup policy.
    *
    * @param cleanupPolicy the cleanup policy based on which the cleanup is executed.
    * @return the affected "rows"
    */
-  long cleanup(T cleanupPolicy);
+  CleanupResult cleanup(T cleanupPolicy);
 }

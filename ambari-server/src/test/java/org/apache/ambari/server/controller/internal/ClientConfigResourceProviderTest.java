@@ -271,7 +271,11 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn(stackRoot);
+    expect(configuration.getJavaHome()).andReturn("dummy_java_home");
+    expect(configuration.getJDKName()).andReturn(null);
+    expect(configuration.getJCEName()).andReturn(null);
     expect(configuration.getJavaVersion()).andReturn(8);
+    expect(configuration.getStackJavaHome()).andReturn(null);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
@@ -524,7 +528,11 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn("/var/lib/ambari-server/src/main/resources");
+    expect(configuration.getJavaHome()).andReturn("dummy_java_home");
+    expect(configuration.getJDKName()).andReturn(null);
+    expect(configuration.getJCEName()).andReturn(null);
     expect(configuration.getJavaVersion()).andReturn(8);
+    expect(configuration.getStackJavaHome()).andReturn(null);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
@@ -586,10 +594,10 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
     PowerMock.mockStatic(File.class);
+    expect(mockFile.exists()).andReturn(true);
     expect(File.createTempFile(anyString(), anyString(), anyObject(File.class))).andReturn(PowerMock.createNiceMock(File.class));
     PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
     PowerMock.mockStatic(Runtime.class);
-    expect(mockFile.exists()).andReturn(true);
     String commandLine = "ambari-python-wrap " + commonServicesPath + "/PIG/package/null generate_configs null " +
             commonServicesPath + "/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
             "INFO /var/lib/ambari-server/tmp";

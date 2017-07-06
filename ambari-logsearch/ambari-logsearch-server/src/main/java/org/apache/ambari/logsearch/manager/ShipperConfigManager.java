@@ -20,7 +20,10 @@
 package org.apache.ambari.logsearch.manager;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.ambari.logfeeder.common.LogEntryParseTester;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
 import org.apache.ambari.logsearch.model.common.LSServerInputConfig;
@@ -33,6 +36,9 @@ import com.google.common.collect.ImmutableMap;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -89,6 +95,24 @@ public class ShipperConfigManager extends JsonManagerBase {
     } catch (Exception e) {
       logger.warn("Could not update input config", e);
       return Response.serverError().build();
+    }
+  }
+
+  public Map<String, Object> testShipperConfig(String shipperConfig, String logId, String testEntry, String clusterName) {
+    try {
+      LSServerInputConfig inputConfigValidate = new ObjectMapper().readValue(shipperConfig, LSServerInputConfig.class);
+      Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+      Set<ConstraintViolation<LSServerInputConfig>> violations = validator.validate(inputConfigValidate);
+      if (!violations.isEmpty()) {
+        throw new IllegalArgumentException("Error validating shipper config:\n" + violations);
+      }
+      
+      String globalConfigs = LogSearchConfigConfigurer.getConfig().getGlobalConfigs(clusterName);
+      LogEntryParseTester tester = new LogEntryParseTester(testEntry, shipperConfig, globalConfigs, logId);
+      return tester.parse();
+    } catch (Exception e) {
+      Map<String, Object> errorResponse = ImmutableMap.of("errorMessage", (Object)e.toString());
+      return errorResponse;
     }
   }
 

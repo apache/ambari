@@ -310,7 +310,7 @@ public class Grouping {
           type = StageWrapper.Type.SERVER_SIDE_ACTION;
           break;
         case EXECUTE:
-          type = StageWrapper.Type.RU_TASKS;
+          type = StageWrapper.Type.UPGRADE_TASKS;
           break;
         case CONFIGURE_FUNCTION:
           type = StageWrapper.Type.CONFIGURE;

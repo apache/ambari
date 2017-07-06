@@ -36,7 +36,6 @@ import java.util.concurrent.Executors;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -298,10 +297,6 @@ public class TopologyManager {
 
     topologyValidatorService.validateTopologyConfiguration(topology);
 
-    if (repoVersion == null){
-      //Override repos stored in the metainfo table with ones included in the blueprint
-      updateRepos(topology.getBlueprint().getRepositorySettings(), stack);
-    }
 
     // create resources
     ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
@@ -357,41 +352,6 @@ public class TopologyManager {
     return getRequestStatus(logicalRequest.getRequestId());
   }
 
-  void updateRepos(List<RepositorySetting> repoSettings, Stack stack) {
-    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    boolean repoExists = false;
-    String stackName = stack.getName();
-    String stackVersion = stack.getVersion();
-    for (RepositorySetting repoSetting: repoSettings){
-      String repoSettingDetails = repoSetting.toString();
-      LOG.info(String.format("New repository setting: %s ", repoSettingDetails));
-      String operatingSystem = repoSetting.getOperatingSystem();
-      String repoId = repoSetting.getRepoId();
-      try {
-        ambariMetaInfo.getRepository(stackName, stackVersion, operatingSystem, repoId);
-        repoExists = true;
-      } catch (AmbariException e){
-        repoExists = false;
-      }
-      LOG.info(String.format("Repo exists: %s ", repoExists));
-      String overrideStrategy = repoSetting.getOverrideStrategy();
-      if (repoExists){
-        if (RepositorySetting.OVERRIDE_STRATEGY_ALWAYS_APPLY.equals(overrideStrategy)){
-          try {
-            ambariMetaInfo.updateRepo(stackName, stackVersion, operatingSystem, repoId, repoSetting.getBaseUrl(), null);
-          } catch (AmbariException e) {
-            LOG.error(String.format("Failed to update repo with information %s", repoSettingDetails), e);
-          }
-        }
-      } else {
-        try {
-          ambariMetaInfo.createRepo(stackName, stackVersion, operatingSystem, repoId, repoSetting.getBaseUrl(), null);
-        } catch (AmbariException e) {
-          LOG.error(String.format("Failed to insert repo with information %s", repoSettingDetails), e);
-        }
-      }
-    }
-  }
 
   /**
    * Saves the quick links profile to the DB as an Ambari setting. Creates a new setting entity or updates the existing
@@ -570,8 +530,11 @@ public class TopologyManager {
     if (!logicalRequest.hasPendingHostRequests()) {
       outstandingRequests.remove(logicalRequest);
     }
+    if (logicalRequest.getHostRequests().isEmpty()) {
+      allRequests.remove(requestId);
+    }
 
-    persistedState.removeHostRequests(pendingHostRequests);
+    persistedState.removeHostRequests(requestId, pendingHostRequests);
 
     // set current host count to number of currently connected hosts
     for (HostGroupInfo currentHostGroupInfo : topology.getHostGroupInfo().values()) {
@@ -579,6 +542,31 @@ public class TopologyManager {
     }
 
     LOG.info("TopologyManager.removePendingHostRequests: Exit");
+  }
+
+  /**
+   * Removes topology host requests matched to the given host.  If the parent
+   * request has no more child host requests, then it is also removed.
+   * This is used when hosts are deleted from the cluster.
+   *
+   * @param hostName the host name for which requests should be removed
+   */
+  public void removeHostRequests(String hostName) {
+    ensureInitialized();
+
+    for (Iterator<LogicalRequest> iter = allRequests.values().iterator(); iter.hasNext(); ) {
+      LogicalRequest logicalRequest = iter.next();
+      Collection<HostRequest> removed = logicalRequest.removeHostRequestByHostName(hostName);
+      if (!logicalRequest.hasPendingHostRequests()) {
+        outstandingRequests.remove(logicalRequest);
+      }
+      if (logicalRequest.getHostRequests().isEmpty()) {
+        iter.remove();
+      }
+      if (!removed.isEmpty()) {
+        persistedState.removeHostRequests(logicalRequest.getRequestId(), removed);
+      }
+    }
   }
 
   /**

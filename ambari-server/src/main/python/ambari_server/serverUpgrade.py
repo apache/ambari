@@ -405,6 +405,7 @@ def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_n
                                     old_dir_mask, base_service_dir):
   services = glob.glob(os.path.join(resources_dir, services_search_path))
   managed_services = []
+  is_common_services_base_dir = "common-services" in base_service_dir
   for service in services:
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
       managed_services.append(os.path.basename(service))
@@ -425,10 +426,23 @@ def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_n
         continue
 
       # process dirs only
-      if os.path.isdir(backup_service) and not os.path.islink(backup_service):
-        service_name = os.path.basename(backup_service)
-        if not service_name in managed_services:
-          shutil.copytree(backup_service, os.path.join(current_base_service_dir,service_name))
+      if is_common_services_base_dir:
+        version_dirs_in_backup_service_dir = glob.glob(os.path.join(backup_service,"*"))
+        if os.path.isdir(backup_service) and not os.path.islink(backup_service):
+          service_name = os.path.basename(backup_service)
+          current_service_dir_path = os.path.join(current_base_service_dir, service_name)
+          if not service_name in managed_services:
+            if not os.path.exists(current_service_dir_path):
+              os.makedirs(current_service_dir_path)
+            for version_dir_path in version_dirs_in_backup_service_dir:
+              if not os.path.islink(version_dir_path):
+                version_dir =  os.path.basename(version_dir_path)
+                shutil.copytree(version_dir_path, os.path.join(current_service_dir_path, version_dir))
+      else:
+        if os.path.isdir(backup_service) and not os.path.islink(backup_service):
+          service_name = os.path.basename(backup_service)
+          if not service_name in managed_services:
+            shutil.copytree(backup_service, os.path.join(current_base_service_dir,service_name))
 
 
 

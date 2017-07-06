@@ -733,8 +733,8 @@ public class Configuration {
    * The location of the JDK on the Ambari Agent hosts.
    */
   @Markdown(
-      description = "The location of the JDK on the Ambari Agent hosts.",
-      examples = { "/usr/jdk64/jdk1.7.0_45" })
+      description = "The location of the JDK on the Ambari Agent hosts. If stack.java.home exists, that is only used by Ambari Server (or you can find that as ambari_java_home in the commandParams on the agent side)",
+      examples = { "/usr/jdk64/jdk1.8.0_112" })
   public static final ConfigurationProperty<String> JAVA_HOME = new ConfigurationProperty<>(
       "java.home", null);
 
@@ -742,8 +742,8 @@ public class Configuration {
    * The name of the JDK installation binary.
    */
   @Markdown(
-      description = "The name of the JDK installation binary.",
-      examples = { "jdk-7u45-linux-x64.tar.gz" })
+      description = "The name of the JDK installation binary. If stack.jdk.name exists, that is only used by Ambari Server (or you can find that as ambari_jdk_name in the commandParams on the agent side)",
+      examples = { "jdk-8u112-linux-x64.tar.gz" })
   public static final ConfigurationProperty<String> JDK_NAME = new ConfigurationProperty<>(
       "jdk.name", null);
 
@@ -751,10 +751,46 @@ public class Configuration {
    * The name of the JCE policy ZIP file.
    */
   @Markdown(
-      description = "The name of the JCE policy ZIP file. ",
-      examples = {"UnlimitedJCEPolicyJDK7.zip"})
+      description = "The name of the JCE policy ZIP file. If stack.jce.name exists, that is only used by Ambari Server (or you can find that as ambari_jce_name in the commandParams on the agent side)",
+      examples = {"UnlimitedJCEPolicyJDK8.zip"})
   public static final ConfigurationProperty<String> JCE_NAME = new ConfigurationProperty<>(
       "jce.name", null);
+
+  /**
+   * The location of the JDK on the Ambari Agent hosts.
+   */
+  @Markdown(
+    description = "The location of the JDK on the Ambari Agent hosts for stack services.",
+    examples = { "/usr/jdk64/jdk1.7.0_45" })
+  public static final ConfigurationProperty<String> STACK_JAVA_HOME = new ConfigurationProperty<>(
+    "stack.java.home", null);
+
+  /**
+   * The name of the JDK installation binary.
+   */
+  @Markdown(
+    description = "The name of the JDK installation binary for stack services.",
+    examples = { "jdk-7u45-linux-x64.tar.gz" })
+  public static final ConfigurationProperty<String> STACK_JDK_NAME = new ConfigurationProperty<>(
+    "stack.jdk.name", null);
+
+  /**
+   * The name of the JCE policy ZIP file.
+   */
+  @Markdown(
+    description = "The name of the JCE policy ZIP file for stack services.",
+    examples = {"UnlimitedJCEPolicyJDK7.zip"})
+  public static final ConfigurationProperty<String> STACK_JCE_NAME = new ConfigurationProperty<>(
+    "stack.jce.name", null);
+
+  /**
+   * Java version of the stack
+   */
+  @Markdown(
+    description = "JDK version of the stack, use in case of it differs from Ambari JDK version.",
+    examples = {"1.7"})
+  public static final ConfigurationProperty<String> STACK_JAVA_VERSION = new ConfigurationProperty<>(
+    "stack.java.version", null);
 
   /**
    * The auto group creation by Ambari.
@@ -4128,6 +4164,23 @@ public class Configuration {
   public String getJCEName() {
     return getProperty(JCE_NAME);
   }
+
+  public String getStackJavaHome() {
+    return getProperty(STACK_JAVA_HOME);
+  }
+
+  public String getStackJDKName() {
+    return getProperty(STACK_JDK_NAME);
+  }
+
+  public String getStackJCEName() {
+    return getProperty(STACK_JCE_NAME);
+  }
+
+  public String getStackJavaVersion() {
+    return getProperty(STACK_JAVA_VERSION);
+  }
+
   public String getAmbariBlacklistFile() {
     return getProperty(PROPERTY_MASK_FILE);
   }

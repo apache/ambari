@@ -30,7 +30,7 @@ import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 
 public class LogSearchConfigClass1 implements LogSearchConfig {
   @Override
-  public void init(Component component, Map<String, String> properties) {}
+  public void init(Component component, Map<String, String> properties, String clusterName) {}
 
   @Override
   public boolean inputConfigExists(String clusterName, String serviceName) throws Exception {
@@ -44,11 +44,16 @@ public class LogSearchConfigClass1 implements LogSearchConfig {
   public void setInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {}
 
   @Override
-  public void monitorInputConfigChanges(InputConfigMonitor inputConfigMonitor, LogLevelFilterMonitor logLevelFilterMonitor)
-      throws Exception {}
+  public void monitorInputConfigChanges(InputConfigMonitor inputConfigMonitor, LogLevelFilterMonitor logLevelFilterMonitor,
+      String clusterName) throws Exception {}
 
   @Override
   public List<String> getServices(String clusterName) {
+    return null;
+  }
+
+  @Override
+  public String getGlobalConfigs(String clusterName) {
     return null;
   }
 

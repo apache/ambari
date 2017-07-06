@@ -31,6 +31,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -68,7 +69,6 @@ public class ViewExternalSubResourceService  extends BaseService {
    */
   private final Map<String, Object> resourceServiceMap = new HashMap<>();
 
-
   // ----- Constructors ------------------------------------------------------
 
   public ViewExternalSubResourceService(Resource.Type type, ViewInstanceEntity viewInstanceDefinition) {
@@ -89,7 +89,7 @@ public class ViewExternalSubResourceService  extends BaseService {
    *
    * @return instance collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getResources(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -116,7 +116,6 @@ public class ViewExternalSubResourceService  extends BaseService {
 
     return service;
   }
-
 
   // ----- helper methods ----------------------------------------------------
 

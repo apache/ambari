@@ -296,7 +296,7 @@ public class ClusterGrouping extends Grouping {
         }
 
         return new StageWrapper(
-            StageWrapper.Type.RU_TASKS,
+            StageWrapper.Type.UPGRADE_TASKS,
             execution.title,
             new TaskWrapper(service, component, realHosts, et));
       }
@@ -313,7 +313,7 @@ public class ClusterGrouping extends Grouping {
       }
 
       return new StageWrapper(
-          StageWrapper.Type.RU_TASKS,
+          StageWrapper.Type.UPGRADE_TASKS,
           execution.title,
           new TaskWrapper(service, component, hostNames, et));
     }

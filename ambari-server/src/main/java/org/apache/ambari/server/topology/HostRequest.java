@@ -40,7 +40,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
-import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.topology.tasks.InstallHostTask;
 import org.apache.ambari.server.topology.tasks.PersistHostResourcesTask;
 import org.apache.ambari.server.topology.tasks.RegisterWithConfigGroupTask;
@@ -135,7 +135,7 @@ public class HostRequest implements Comparable<HostRequest> {
   }
 
   //todo: synchronization
-  public synchronized HostOfferResponse offer(HostImpl host) {
+  public synchronized HostOfferResponse offer(Host host) {
     if (!isOutstanding) {
       return HostOfferResponse.DECLINED_DUE_TO_DONE;
     }
@@ -301,7 +301,7 @@ public class HostRequest implements Comparable<HostRequest> {
         AmbariContext.TaskType.START;
   }
 
-  private void setHostOnTasks(HostImpl host) {
+  private void setHostOnTasks(Host host) {
     for (HostRoleCommand task : getLogicalTasks()) {
       task.setHost(host.getHostId(), host.getHostName());
     }
@@ -393,7 +393,7 @@ public class HostRequest implements Comparable<HostRequest> {
     return containsMaster;
   }
 
-  public boolean matchesHost(HostImpl host) {
+  public boolean matchesHost(Host host) {
     return (hostname != null) ?
         host.getHostName().equals(hostname) :
         predicate == null || predicate.evaluate(new HostResourceAdapter(host));
@@ -456,7 +456,7 @@ public class HostRequest implements Comparable<HostRequest> {
   private class HostResourceAdapter implements Resource {
     Resource hostResource;
 
-    public HostResourceAdapter(HostImpl host) {
+    public HostResourceAdapter(Host host) {
       buildPropertyMap(host);
     }
 
@@ -485,7 +485,7 @@ public class HostRequest implements Comparable<HostRequest> {
       // read only, nothing to do
     }
 
-    private void buildPropertyMap(HostImpl host) {
+    private void buildPropertyMap(Host host) {
       hostResource = new ResourceImpl(Resource.Type.Host);
 
       hostResource.setProperty(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID,

@@ -32,6 +32,7 @@ import static org.powermock.api.easymock.PowerMock.reset;
 import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -80,6 +81,7 @@ import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.HostRequest;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
@@ -1731,7 +1733,10 @@ public class RequestResourceProviderTest {
 
 
     LogicalRequest logicalRequest = createNiceMock(LogicalRequest.class);
-    expect(logicalRequest.hasPendingHostRequests()).andReturn(true).anyTimes();
+    Collection<HostRequest> hostRequests = new ArrayList<>();
+    HostRequest hostRequest = createNiceMock(HostRequest.class);
+    hostRequests.add(hostRequest);
+    expect(logicalRequest.getHostRequests()).andReturn(hostRequests).anyTimes();
     expect(logicalRequest.constructNewPersistenceEntity()).andReturn(requestMock).anyTimes();
 
     reset(topologyManager);
@@ -1744,7 +1749,7 @@ public class RequestResourceProviderTest {
     expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
       Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
 
-    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest);
+    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest, hostRequest);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
@@ -1772,7 +1777,7 @@ public class RequestResourceProviderTest {
 
     // verify
     PowerMock.verifyAll();
-    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest);
+    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest, hostRequest);
 
     Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {

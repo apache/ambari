@@ -174,23 +174,7 @@ public abstract class AbstractTimelineMetricsSink {
         connection.setRequestProperty(COOKIE, appCookie);
       }
 
-      connection.setRequestMethod("POST");
-      connection.setRequestProperty("Content-Type", "application/json");
-      connection.setRequestProperty("Connection", "Keep-Alive");
-      connection.setConnectTimeout(timeout);
-      connection.setReadTimeout(timeout);
-      connection.setDoOutput(true);
-
-      if (jsonData != null) {
-        try (OutputStream os = connection.getOutputStream()) {
-          os.write(jsonData.getBytes("UTF-8"));
-        }
-      }
-
-      int statusCode = connection.getResponseCode();
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("emitMetricsJson: statusCode = " + statusCode);
-      }
+      int statusCode = emitMetricsJson(connection, timeout, jsonData);
 
       if (statusCode == HttpStatus.SC_UNAUTHORIZED ) {
         String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
@@ -200,18 +184,11 @@ public abstract class AbstractTimelineMetricsSink {
         if (wwwAuthHeader != null && wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
           appCookie = appCookieManager.getAppCookie(connectUrl, true);
           if (appCookie != null) {
+            cleanupInputStream(connection.getInputStream());
+            connection = connectUrl.startsWith("https") ?
+                getSSLConnection(connectUrl) : getConnection(connectUrl);
             connection.setRequestProperty(COOKIE, appCookie);
-
-            if (jsonData != null) {
-              try (OutputStream os = connection.getOutputStream()) {
-                os.write(jsonData.getBytes("UTF-8"));
-              }
-            }
-
-            statusCode = connection.getResponseCode();
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("emitMetricsJson: statusCode2 = " + statusCode);
-            }
+            statusCode = emitMetricsJson(connection, timeout, jsonData);
           }
         } else {
           // no supported authentication type found
@@ -261,6 +238,27 @@ public abstract class AbstractTimelineMetricsSink {
     }
   }
 
+  private int emitMetricsJson(HttpURLConnection connection, int timeout, String jsonData) throws IOException {
+    connection.setRequestMethod("POST");
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty("Connection", "Keep-Alive");
+    connection.setConnectTimeout(timeout);
+    connection.setReadTimeout(timeout);
+    connection.setDoOutput(true);
+
+    if (jsonData != null) {
+      try (OutputStream os = connection.getOutputStream()) {
+        os.write(jsonData.getBytes("UTF-8"));
+      }
+    }
+
+    int statusCode = connection.getResponseCode();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("emitMetricsJson: statusCode = " + statusCode);
+    }
+    return statusCode;
+  }
+
   protected String getCurrentCollectorHost() {
     String collectorHost;
     // Get cached target
@@ -292,22 +290,29 @@ public abstract class AbstractTimelineMetricsSink {
 
   protected boolean emitMetrics(TimelineMetrics metrics) {
     String connectUrl;
+    boolean validCollectorHost = true;
+
     if (isHostInMemoryAggregationEnabled()) {
       connectUrl = constructTimelineMetricUri("http", "localhost", String.valueOf(getHostInMemoryAggregationPort()));
     } else {
       String collectorHost  = getCurrentCollectorHost();
+      if (collectorHost == null) {
+        validCollectorHost = false;
+      }
       connectUrl = getCollectorUri(collectorHost);
     }
 
-    String jsonData = null;
-    LOG.debug("EmitMetrics connectUrl = "  + connectUrl);
-    try {
-      jsonData = mapper.writeValueAsString(metrics);
-    } catch (IOException e) {
-      LOG.error("Unable to parse metrics", e);
-    }
-    if (jsonData != null) {
-      return emitMetricsJson(connectUrl, jsonData);
+    if (validCollectorHost) {
+      String jsonData = null;
+      LOG.debug("EmitMetrics connectUrl = "  + connectUrl);
+      try {
+        jsonData = mapper.writeValueAsString(metrics);
+      } catch (IOException e) {
+        LOG.error("Unable to parse metrics", e);
+      }
+      if (jsonData != null) {
+        return emitMetricsJson(connectUrl, jsonData);
+      }
     }
     return false;
   }

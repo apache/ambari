@@ -32,6 +32,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -55,7 +56,7 @@ public class AlertGroupService extends BaseService {
     m_clusterName = clusterName;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getGroups(@Context HttpHeaders headers,
       @Context UriInfo ui) {
@@ -63,7 +64,7 @@ public class AlertGroupService extends BaseService {
         createAlertGroupResource(m_clusterName, null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{groupId}")
   public Response getGroup(@Context HttpHeaders headers,
@@ -72,7 +73,7 @@ public class AlertGroupService extends BaseService {
         createAlertGroupResource(m_clusterName, groupId));
   }
 
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createGroup(String body, @Context HttpHeaders headers,
       @Context UriInfo ui) {
@@ -80,7 +81,7 @@ public class AlertGroupService extends BaseService {
         createAlertGroupResource(m_clusterName, null));
   }
 
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{groupId}")
   public Response updateGroup(String body, @Context HttpHeaders headers,
@@ -89,7 +90,7 @@ public class AlertGroupService extends BaseService {
         createAlertGroupResource(m_clusterName, groupId));
   }
 
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{groupId}")
   public Response deleteGroup(String body, @Context HttpHeaders headers,

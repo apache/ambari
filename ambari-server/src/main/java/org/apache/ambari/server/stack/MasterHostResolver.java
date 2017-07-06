@@ -132,7 +132,7 @@ public class MasterHostResolver {
               return filterHosts(hostsType, serviceName, componentName);
             }
 
-            Map<Status, String> pair = getNameNodePair();
+            Map<Status, String> pair = getNameNodePair(componentHosts);
             if (pair != null) {
               hostsType.master = pair.containsKey(Status.ACTIVE) ? pair.get(Status.ACTIVE) :  null;
               hostsType.secondary = pair.containsKey(Status.STANDBY) ? pair.get(Status.STANDBY) :  null;
@@ -273,7 +273,7 @@ public class MasterHostResolver {
    * one active and one standby host were found, otherwise, return null.
    * The hostnames are returned in lowercase.
    */
-  private Map<Status, String> getNameNodePair() {
+  private Map<Status, String> getNameNodePair(Set<String> componentHosts) throws AmbariException {
     Map<Status, String> stateToHost = new HashMap<>();
     Cluster cluster = getCluster();
 
@@ -307,6 +307,13 @@ public class MasterHostResolver {
           throw new MalformedURLException("Could not parse host and port from " + value);
         }
 
+        if (!componentHosts.contains(hp.host)){
+          //This may happen when NN HA is configured on dual network card machines with public/private FQDNs.
+          LOG.error(
+              String.format(
+                  "Hadoop NameNode HA configuration {0} contains host {1} that does not exist in the NameNode hosts list {3}",
+                  key, hp.host, componentHosts.toString()));
+        }
         String state = queryJmxBeanValue(hp.host, hp.port, "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, encrypted);
 
         if (null != state && (state.equalsIgnoreCase(Status.ACTIVE.toString()) || state.equalsIgnoreCase(Status.STANDBY.toString()))) {

@@ -207,7 +207,7 @@ def upload_conf_set(config_set, jaasFile):
       config_set_dir=format("{conf_dir}/solr"),
       config_set=config_set,
       tmp_dir=params.tmp_dir,
-      java64_home=params.java64_home,
+      java64_home=params.ambari_java_home,
       solrconfig_content=InlineTemplate(params.metadata_solrconfig_content),
       jaas_file=jaasFile,
       retry=30, interval=5)
@@ -220,7 +220,7 @@ def create_collection(collection, config_set, jaasFile):
       solr_znode=params.infra_solr_znode,
       collection = collection,
       config_set=config_set,
-      java64_home=params.java64_home,
+      java64_home=params.ambari_java_home,
       jaas_file=jaasFile,
       shards=params.atlas_solr_shards,
       replication_factor = params.infra_solr_replication_factor)
@@ -230,7 +230,7 @@ def secure_znode(znode, jaasFile):
   solr_cloud_util.secure_znode(config=params.config, zookeeper_quorum=params.zookeeper_quorum,
                                solr_znode=znode,
                                jaas_file=jaasFile,
-                               java64_home=params.java64_home, sasl_users=[params.atlas_jaas_principal])
+                               java64_home=params.ambari_java_home, sasl_users=[params.atlas_jaas_principal])
 
 
 
@@ -240,4 +240,4 @@ def check_znode():
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.infra_solr_znode,
-    java64_home=params.java64_home)
+    java64_home=params.ambari_java_home)

@@ -283,6 +283,7 @@ class AlertSchedulerHandler():
     for command_json in all_commands:
       clusterName = '' if not 'clusterName' in command_json else command_json['clusterName']
       hostName = '' if not 'hostName' in command_json else command_json['hostName']
+      publicHostName = '' if not 'publicHostName' in command_json else command_json['publicHostName']
       clusterHash = None if not 'hash' in command_json else command_json['hash']
 
       # cache the cluster and cluster hash after loading the JSON
@@ -291,7 +292,7 @@ class AlertSchedulerHandler():
         self._cluster_hashes[clusterName] = clusterHash
 
       for definition in command_json['alertDefinitions']:
-        alert = self.__json_to_callable(clusterName, hostName, definition)
+        alert = self.__json_to_callable(clusterName, hostName, publicHostName, definition)
 
         if alert is None:
           continue
@@ -303,7 +304,7 @@ class AlertSchedulerHandler():
     return definitions
 
 
-  def __json_to_callable(self, clusterName, hostName, json_definition):
+  def __json_to_callable(self, clusterName, hostName, publicHostName, json_definition):
     """
     converts the json that represents all aspects of a definition
     and makes an object that extends BaseAlert that is used for individual
@@ -336,7 +337,7 @@ class AlertSchedulerHandler():
         alert = RecoveryAlert(json_definition, source, self.config, self.recovery_manger)
 
       if alert is not None:
-        alert.set_cluster(clusterName, hostName)
+        alert.set_cluster(clusterName, hostName, publicHostName)
 
     except Exception, exception:
       logger.exception("[AlertScheduler] Unable to load an invalid alert definition. It will be skipped.")
@@ -402,8 +403,9 @@ class AlertSchedulerHandler():
 
         clusterName = '' if not 'clusterName' in execution_command else execution_command['clusterName']
         hostName = '' if not 'hostName' in execution_command else execution_command['hostName']
+        publicHostName = '' if not 'publicHostName' in execution_command else execution_command['publicHostName']
 
-        alert = self.__json_to_callable(clusterName, hostName, alert_definition)
+        alert = self.__json_to_callable(clusterName, hostName, publicHostName, alert_definition)
 
         if alert is None:
           continue

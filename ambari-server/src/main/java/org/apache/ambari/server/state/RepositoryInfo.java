@@ -31,7 +31,6 @@ public class RepositoryInfo {
   private String repoName;
   private String mirrorsList;
   private String defaultBaseUrl;
-  private String latestBaseUrl;
   private boolean repoSaved = false;
   private boolean unique = false;
   private boolean ambariManagedRepositories = true;
@@ -121,20 +120,6 @@ public class RepositoryInfo {
   }
 
   /**
-   * @return the latest determined base url
-   */
-  public String getLatestBaseUrl() {
-    return latestBaseUrl;
-  }
-
-  /**
-   * @param url the latest determined base url
-   */
-  public void setLatestBaseUrl(String url) {
-    latestBaseUrl = url;
-  }
-
-  /**
    * @return if the base url or mirrors list was from a saved value
    */
   public boolean isRepoSaved() {
@@ -188,19 +173,18 @@ public class RepositoryInfo {
         Objects.equal(repoName, that.repoName) &&
         Objects.equal(mirrorsList, that.mirrorsList) &&
         Objects.equal(defaultBaseUrl, that.defaultBaseUrl) &&
-        Objects.equal(latestBaseUrl, that.latestBaseUrl) &&
         Objects.equal(ambariManagedRepositories, that.ambariManagedRepositories);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(baseUrl, osType, repoId, repoName, mirrorsList, defaultBaseUrl, latestBaseUrl, repoSaved, unique, ambariManagedRepositories);
+    return Objects.hashCode(baseUrl, osType, repoId, repoName, mirrorsList, defaultBaseUrl, repoSaved, unique, ambariManagedRepositories);
   }
 
   public RepositoryResponse convertToResponse()
   {
     return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
-        getRepoName(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl());
+        getRepoName(), getMirrorsList(), getDefaultBaseUrl());
   }
 
   /**

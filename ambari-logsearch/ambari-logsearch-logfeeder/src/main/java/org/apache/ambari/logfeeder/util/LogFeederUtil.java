@@ -32,6 +32,7 @@ import java.util.Properties;
 
 import org.apache.ambari.logfeeder.LogFeeder;
 import org.apache.ambari.logfeeder.metrics.MetricData;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -45,6 +46,26 @@ import com.google.gson.reflect.TypeToken;
  */
 public class LogFeederUtil {
   private static final Logger LOG = Logger.getLogger(LogFeederUtil.class);
+
+  public static final String LOGFEEDER_PROPERTIES_FILE = "logfeeder.properties";
+
+  @LogSearchPropertyDescription(
+    name = "cluster.name",
+    description = "The name of the cluster the Log Feeder program runs in.",
+    examples = {"cl1"},
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CLUSTER_NAME_PROPERTY = "cluster.name";
+
+  private static final String DEFAULT_TMP_DIR = "/tmp/$username/logfeeder/";
+  @LogSearchPropertyDescription(
+    name = "logfeeder.tmp.dir",
+    description = "The tmp dir used for creating temporary files.",
+    examples = {"/tmp/"},
+    defaultValue = DEFAULT_TMP_DIR,
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+   )
+  private static final String TMP_DIR_PROPERTY = "logfeeder.tmp.dir";
 
   private final static String GSON_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
   private static Gson gson = new GsonBuilder().setDateFormat(GSON_DATE_FORMAT).create();
@@ -81,10 +102,14 @@ public class LogFeederUtil {
     return props;
   }
 
+  public static void loadProperties() throws Exception {
+    loadProperties(LOGFEEDER_PROPERTIES_FILE);
+  }
+  
   /**
    * This method will read the properties from System, followed by propFile and finally from the map
    */
-  public static void loadProperties(String propFile, String[] propNVList) throws Exception {
+  public static void loadProperties(String propFile) throws Exception {
     LOG.info("Loading properties. propFile=" + propFile);
     props = new Properties(System.getProperties());
     boolean propLoaded = false;
@@ -122,30 +147,6 @@ public class LogFeederUtil {
     if (!propLoaded) {
       LOG.fatal("Properties file is not loaded.");
       throw new Exception("Properties not loaded");
-    } else {
-      updatePropertiesFromMap(propNVList);
-    }
-  }
-
-  private static void updatePropertiesFromMap(String[] nvList) {
-    if (nvList == null) {
-      return;
-    }
-    LOG.info("Trying to load additional proeprties from argument paramters. nvList.length=" + nvList.length);
-    for (String nv : nvList) {
-      LOG.info("Passed nv=" + nv);
-      if (nv.startsWith("-") && nv.length() > 1) {
-        nv = nv.substring(1);
-        LOG.info("Stripped nv=" + nv);
-        int i = nv.indexOf("=");
-        if (nv.length() > i) {
-          LOG.info("Candidate nv=" + nv);
-          String name = nv.substring(0, i);
-          String value = nv.substring(i + 1);
-          LOG.info("Adding property from argument to properties. name=" + name + ", value=" + value);
-          props.put(name, value);
-        }
-      }
     }
   }
 
@@ -260,16 +261,20 @@ public class LogFeederUtil {
     }
   }
   
-  private static String logfeederTempDir = null;
+  public static String getClusterName() {
+    return getStringProperty(CLUSTER_NAME_PROPERTY);
+  }
   
-  public synchronized static String getLogfeederTempDir() {
-    if (logfeederTempDir == null) {
-      String tempDirValue = getStringProperty("logfeeder.tmp.dir", "/tmp/$username/logfeeder/");
+  private static String logFeederTempDir = null;
+  
+  public synchronized static String getLogFeederTempDir() {
+    if (logFeederTempDir == null) {
+      String tempDirValue = getStringProperty(TMP_DIR_PROPERTY, DEFAULT_TMP_DIR);
       HashMap<String, String> contextParam = new HashMap<String, String>();
       String username = System.getProperty("user.name");
       contextParam.put("username", username);
-      logfeederTempDir = PlaceholderUtil.replaceVariables(tempDirValue, contextParam);
+      logFeederTempDir = PlaceholderUtil.replaceVariables(tempDirValue, contextParam);
     }
-    return logfeederTempDir;
+    return logFeederTempDir;
   }
 }

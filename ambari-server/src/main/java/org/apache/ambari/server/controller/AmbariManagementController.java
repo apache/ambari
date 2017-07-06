@@ -430,15 +430,6 @@ public interface AmbariManagementController {
   Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests) throws AmbariException;
 
   /**
-   * Updates repositories by stack name, version and operating system.
-   *
-   * @param requests the repositories
-   *
-   * @throws AmbariException
-   */
-  void updateRepositories(Set<RepositoryRequest> requests) throws AmbariException;
-
-  /**
    * Verifies repositories' base urls.
    *
    * @param requests the repositories
@@ -919,6 +910,10 @@ public interface AmbariManagementController {
    * based on the actual quick links profile. If no profile is set, all links will be shown.
    */
   QuickLinkVisibilityController getQuicklinkVisibilityController();
+
+  ConfigGroupResponse getConfigGroupUpdateResults(ConfigGroupRequest configGroupRequest);
+
+  void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse);
 
 }
 

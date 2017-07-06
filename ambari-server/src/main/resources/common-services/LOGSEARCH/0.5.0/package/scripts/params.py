@@ -74,7 +74,9 @@ logfeeder_pid_file = status_params.logfeeder_pid_file
 user_group = config['configurations']['cluster-env']['user_group']
 
 # shared configs
-java64_home = config['hostLevelParams']['java_home']
+java_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+java64_home = ambari_java_home if ambari_java_home is not None else java_home
 cluster_name = str(config['clusterName'])
 
 configurations = config['configurations'] # need reference inside logfeeder jinja templates
@@ -204,7 +206,6 @@ logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['conte
 # Log dirs
 ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
-nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
 
 # System logs
 logfeeder_system_messages_content = config['configurations']['logfeeder-system_log-env']['logfeeder_system_messages_content']

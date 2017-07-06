@@ -18,24 +18,38 @@
 
 <div class="graph-widget img-thumbnail">
   {{#if view.isLoaded}}
-    <a {{bindAttr class=":corner-icon :col-md-1 view.parentView.isMoving:hidden"}} href="#" {{action hideWidget view.id target="view"}}>
-      <i class="glyphicon-remove-sign glyphicon glyphicon-large"></i>
-    </a>
     <div class="caption title col-md-11">{{view.content.widgetName}}</div>
-      <div class="widget-icons">
-        <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :pull-right"}} href="#" {{action toggleFormatsList target="view"}}>
-          <i class="glyphicon glyphicon-save"></i>
-        </a>
+    <div {{bindAttr class="view.parentView.isMoving:hidden :corner-icon :widget-icons"}}>
+      <button class="dropdown-toggle ellipsis-menu button-border" data-toggle="dropdown" href="#"></button>
+      <ul class="dropdown-menu">
+        <li>
+          <a href="#" {{bindAttr class="view.isExportButtonHidden:hidden"}}
+            {{action exportGraphData view.exportToCSVArgument target="view"}}>
+            <i class="icon-file-text"></i>&nbsp;{{t common.csv}}</a>
+        </li>
+        <li>
+          <a href="#" {{bindAttr class="view.isExportButtonHidden:hidden"}}
+            {{action exportGraphData target="view"}}><i class="icon-file-text-alt"></i>&nbsp;{{t common.json}}</a>
+        </li>
         {{#if controller.isAmbariMetricsInstalled}}
-          <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
-            <i class="glyphicon glyphicon-edit"></i>
-          </a>
-          <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
-            <i class="glyphicon glyphicon-copy"></i>
-          </a>
+          <li>
+            <a href="#" href="#" {{action editWidget target="view"}}>
+              <i class="icon-pencil"></i>&nbsp;{{t common.edit}}
+            </a>
+          </li>
+          <li>
+            <a href="#" {{action cloneWidget target="view"}}>
+              <i class="icon-copy"></i>&nbsp;{{t common.clone}}
+            </a>
+          </li>
         {{/if}}
-        {{view view.exportMetricsMenuView}}
-      </div>
+        <li>
+          <a href="#" {{action hideWidget view.id target="view"}}>
+            <i class="icon-trash"></i>&nbsp;{{t common.delete}}
+          </a>
+        </li>
+      </ul>
+    </div>
     <div class="content"> {{view view.graphView}}</div>
 
   {{else}}

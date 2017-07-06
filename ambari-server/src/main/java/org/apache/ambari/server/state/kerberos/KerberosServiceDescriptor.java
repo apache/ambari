@@ -272,6 +272,12 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
     return map;
   }
 
+  public List<KerberosIdentityDescriptor> getComponentIdentities(String componentName) {
+    return getComponent(componentName) != null
+      ? nullToEmpty(getComponent(componentName).getIdentities())
+      : Collections.<KerberosIdentityDescriptor>emptyList();
+  }
+
   @Override
   public int hashCode() {
     return super.hashCode() +

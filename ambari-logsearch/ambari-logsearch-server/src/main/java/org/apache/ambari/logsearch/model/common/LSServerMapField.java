@@ -20,11 +20,14 @@
 package org.apache.ambari.logsearch.model.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import io.swagger.annotations.ApiModel;
 
 @ApiModel
 @JsonIgnoreProperties(value = { "name" })
+@JsonInclude(Include.NON_NULL)
 public abstract class LSServerMapField {
   public abstract String getName();
 }

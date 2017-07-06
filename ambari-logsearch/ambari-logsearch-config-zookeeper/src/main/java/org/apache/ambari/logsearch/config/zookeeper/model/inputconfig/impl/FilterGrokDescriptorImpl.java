@@ -51,6 +51,7 @@ public class FilterGrokDescriptorImpl extends FilterDescriptorImpl implements Fi
     return multilinePattern;
   }
 
+  @Override
   public void setMultilinePattern(String multilinePattern) {
     this.multilinePattern = multilinePattern;
   }

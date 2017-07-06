@@ -30,6 +30,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -71,7 +72,7 @@ public class TaskAttemptService extends BaseService {
    * 
    * @return task attempt instance representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{taskAttemptId}")
   @Produces("text/plain")
   public Response getTaskAttempt(String body, @Context HttpHeaders headers,
@@ -95,7 +96,7 @@ public class TaskAttemptService extends BaseService {
    * 
    * @return task attempt collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getTaskAttempts(String body, @Context HttpHeaders headers,
       @Context UriInfo ui) {

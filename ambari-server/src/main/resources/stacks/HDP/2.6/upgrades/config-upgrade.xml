@@ -26,6 +26,11 @@
             <transfer operation="delete" delete-key="shiro_ini_content" />
             <transfer operation="delete" delete-key="log4j_properties_content" />
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0__set_zeppelin.server.ssl.port">
+            <type>zeppelin-config</type>
+            <set key="zeppelin.server.ssl.port" value="9995"/>
+          </definition>
         </changes>
       </component>
     </service>
@@ -55,6 +60,20 @@
             <type>ranger-hive-audit</type>
             <set key="ranger.plugin.hive.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-hive-audit" if-key="xasecure.audit.destination.solr" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes">
+            <type>ranger-hive-security</type>
+            <set key="ranger.plugin.hive.urlauth.filesystem.schemes" value="hdfs:,file:,wasb:,adl:"
+              if-type="ranger-hive-security" if-key="ranger.plugin.hive.service.name" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook" summary="Updating hive atlas application properties">
+            <type>hive-atlas-application.properties</type>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag" value="required"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleName" value="com.sun.security.auth.module.Krb5LoginModule"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.option.useTicketCache" value="true"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
           </definition>
         </changes>
       </component>
@@ -163,6 +182,30 @@
             <type>ranger-kms-audit</type>
             <set key="ranger.plugin.kms.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-kms-audit" if-key="ranger.plugin.kms.ambari.cluster.name" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK">
+      <component name="SPARK_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_spark_thriftserver">
+            <type>spark-thrift-sparkconf</type>
+            <set key="spark.yarn.executor.failuresValidityInterval" value="2h"/>
+            <set key="spark.yarn.maxAppAttempts" value="1"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK2">
+      <component name="SPARK2_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver">
+            <type>spark2-thrift-sparkconf</type>
+            <set key="spark.yarn.executor.failuresValidityInterval" value="2h"/>
+            <set key="spark.yarn.maxAppAttempts" value="1"/>
           </definition>
         </changes>
       </component>

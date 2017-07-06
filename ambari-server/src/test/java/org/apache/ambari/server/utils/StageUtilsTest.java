@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.getCurrentArguments;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -613,6 +614,104 @@ public class StageUtilsTest extends EasyMockSupport {
         components.add(componentName);
       }
     }
+  }
+
+  @Test
+  public void testUseAmbariJdkWithoutavaHome() {
+    // GIVEN
+    Map<String, String> commandParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    // WHEN
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configuration);
+    // THEN
+    assertTrue(commandParams.isEmpty());
+  }
+
+  @Test
+  public void testUseAmbariJdkWithCustomJavaHome() {
+    // GIVEN
+    Map<String, String> commandParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    configuration.setProperty("java.home", "myJavaHome");
+    // WHEN
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configuration);
+    // THEN
+    assertEquals("myJavaHome", commandParams.get("ambari_java_home"));
+    assertEquals(2, commandParams.size());
+  }
+
+  @Test
+  public void testUseAmbariJdk() {
+    // GIVEN
+    Map<String, String> commandParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    configuration.setProperty("java.home", "myJavaHome");
+    configuration.setProperty("jdk.name", "myJdkName");
+    configuration.setProperty("jce.name", "myJceName");
+    // WHEN
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configuration);
+    // THEN
+    assertEquals("myJavaHome", commandParams.get("ambari_java_home"));
+    assertEquals("myJdkName", commandParams.get("ambari_jdk_name"));
+    assertEquals("myJceName", commandParams.get("ambari_jce_name"));
+    assertEquals(4, commandParams.size());
+  }
+
+  @Test
+  public void testUseStackJdkIfExistsWithCustomStackJdk() {
+    // GIVEN
+    Map<String, String> hostLevelParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    configuration.setProperty("java.home", "myJavaHome");
+    configuration.setProperty("jdk.name", "myJdkName");
+    configuration.setProperty("jce.name", "myJceName");
+    configuration.setProperty("stack.java.home", "myStackJavaHome");
+    // WHEN
+    StageUtils.useStackJdkIfExists(hostLevelParams, configuration);
+    // THEN
+    assertEquals("myStackJavaHome", hostLevelParams.get("java_home"));
+    assertNull(hostLevelParams.get("jdk_name"));
+    assertNull(hostLevelParams.get("jce_name"));
+    assertEquals(4, hostLevelParams.size());
+  }
+
+  @Test
+  public void testUseStackJdkIfExists() {
+    // GIVEN
+    Map<String, String> hostLevelParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    configuration.setProperty("java.home", "myJavaHome");
+    configuration.setProperty("jdk.name", "myJdkName");
+    configuration.setProperty("jce.name", "myJceName");
+    configuration.setProperty("stack.java.home", "myStackJavaHome");
+    configuration.setProperty("stack.jdk.name", "myStackJdkName");
+    configuration.setProperty("stack.jce.name", "myStackJceName");
+    configuration.setProperty("stack.java.version", "7");
+    // WHEN
+    StageUtils.useStackJdkIfExists(hostLevelParams, configuration);
+    // THEN
+    assertEquals("myStackJavaHome", hostLevelParams.get("java_home"));
+    assertEquals("myStackJdkName", hostLevelParams.get("jdk_name"));
+    assertEquals("myStackJceName", hostLevelParams.get("jce_name"));
+    assertEquals("7", hostLevelParams.get("java_version"));
+    assertEquals(4, hostLevelParams.size());
+  }
+
+  @Test
+  public void testUseStackJdkIfExistsWithoutStackJdk() {
+    // GIVEN
+    Map<String, String> hostLevelParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    configuration.setProperty("java.home", "myJavaHome");
+    configuration.setProperty("jdk.name", "myJdkName");
+    configuration.setProperty("jce.name", "myJceName");
+    // WHEN
+    StageUtils.useStackJdkIfExists(hostLevelParams, configuration);
+    // THEN
+    assertEquals("myJavaHome", hostLevelParams.get("java_home"));
+    assertEquals("myJdkName", hostLevelParams.get("jdk_name"));
+    assertEquals("myJceName", hostLevelParams.get("jce_name"));
+    assertEquals(4, hostLevelParams.size());
   }
 
   private void checkServiceHostIndexes(Map<String, Set<String>> info, String componentName, String mappedComponentName,

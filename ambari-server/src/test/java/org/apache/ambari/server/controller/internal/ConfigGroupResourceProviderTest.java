@@ -495,6 +495,8 @@ public class ConfigGroupResourceProviderTest {
     expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
     expect(h1.getHostId()).andReturn(1L).anyTimes();
     expect(h2.getHostId()).andReturn(2L).anyTimes();
+    expect(managementController.getConfigGroupUpdateResults((ConfigGroupRequest)anyObject())).
+            andReturn(new ConfigGroupResponse(1L, "", "", "", "", new HashSet<Map<String, Object>>(), new HashSet<Map<String, Object>>())).atLeastOnce();
 
     expect(configGroup.getName()).andReturn("test-1").anyTimes();
     expect(configGroup.getId()).andReturn(25L).anyTimes();

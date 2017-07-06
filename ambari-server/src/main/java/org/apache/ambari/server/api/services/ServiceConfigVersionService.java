@@ -28,6 +28,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -41,12 +42,11 @@ public class ServiceConfigVersionService extends BaseService {
     this.m_clusterName = m_clusterName;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getServiceConfigVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET, createServiceConfigResource(m_clusterName));
   }
-
 
   ResourceInstance createServiceConfigResource(String clusterName) {
     Map<Resource.Type,String> mapIds = new HashMap<>();

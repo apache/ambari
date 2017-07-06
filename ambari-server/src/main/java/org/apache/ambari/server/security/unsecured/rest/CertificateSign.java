@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.security.unsecured.rest;
 
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -27,6 +26,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SignCertResponse;
 import org.apache.ambari.server.security.SignMessage;
@@ -55,7 +55,7 @@ public class CertificateSign {
    * @throws Exception
    */
   @Path("{hostName}")
-  @POST
+  @POST @ApiIgnore // until documented
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public SignCertResponse signAgentCrt(@PathParam("hostName") String hostname,

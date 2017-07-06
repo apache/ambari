@@ -31,6 +31,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -61,7 +62,7 @@ public class RepositoryService extends BaseService {
    * @param headers http headers
    * @param ui      uri info
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createRepository(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(null));
@@ -76,7 +77,7 @@ public class RepositoryService extends BaseService {
    * @param repoId  repository id
    * @param ui      uri info
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{repoId}")
   @Produces("text/plain")
   public Response createRepository(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("repoId") String repoId) {
@@ -90,7 +91,7 @@ public class RepositoryService extends BaseService {
    * @param headers http headers
    * @param ui      uri info
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getRepositories(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
@@ -105,7 +106,7 @@ public class RepositoryService extends BaseService {
    * @param repoId  repository id
    * @return information regarding the specified repository
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{repoId}")
   @Produces("text/plain")
   public Response getRepository(@Context HttpHeaders headers, @Context UriInfo ui, @PathParam("repoId") String repoId) {
@@ -121,7 +122,7 @@ public class RepositoryService extends BaseService {
    * @param repoId  repository id
    * @return information regarding the specified repository
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{repoId}")
   @Produces("text/plain")
   public Response updateRepository(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("repoId") String repoId) {

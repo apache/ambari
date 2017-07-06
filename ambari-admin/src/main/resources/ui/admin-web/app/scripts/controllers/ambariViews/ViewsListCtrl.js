@@ -132,6 +132,26 @@ angular.module('ambariAdminConsole')
     }
   };
 
+  $scope.deleteInstance = function(instance) {
+      ConfirmationModal.show(
+        $t('common.delete', {
+          term: $t('views.viewInstance')
+        }),
+        $t('common.deleteConfirmation', {
+          instanceType: $t('views.viewInstance'),
+          instanceName: instance.ViewInstanceInfo.label
+        })
+      ).then(function() {
+        View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
+          .then(function() {
+            loadViews();
+          })
+          .catch(function(data) {
+            Alert.error($t('views.alerts.cannotDeleteInstance'), data.data.message);
+          });
+      });
+    };
+
   $scope.reloadViews = function () {
     loadViews();
   };

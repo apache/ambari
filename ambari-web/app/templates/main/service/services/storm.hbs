@@ -17,68 +17,74 @@
 }}
 
 <div class="row">
-  <div class="col-md-6">
-    {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
-    {{#if view.isSupervisorCreated}}
-      <div class="row component SUPERVISOR">
-        <div class="col-md-6 summary-label">
-          <a href="#" {{action filterHosts view.filterComponent}}>
-            {{t dashboard.services.storm.supervisors}}
-          </a>
+  <div class="col-md-12 component-summary">
+    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
+    <div class="col-md-10">
+      {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
+      {{#if view.isSupervisorCreated}}
+        <div class="row col-md-3 component SUPERVISOR">
+          <div class="summary-value main-info">
+            {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal" tagName="span"}}
+                {{view.liveComponents}}/{{view.totalComponents}}
+              {{/view}}
+              {{t common.live}}
+            {{else}}
+              {{t common.loading.eclipses}}
+            {{/if}}
+          </div>
+          <div class="summary-label">
+            <a href="#" {{action filterHosts view.filterComponent}}>
+              {{t dashboard.services.storm.supervisors}}
+            </a>
+          </div>
         </div>
-        <div class="col-md-6 summary-value">
-          {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-            {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal" tagName="span"}}
-              {{view.liveComponents}}/{{view.totalComponents}}
-            {{/view}}
-            {{t services.service.summary.SupervisorsLIVE}}
-          {{else}}
-            {{t common.loading.eclipses}}
-          {{/if}}
-        </div>
-      </div>
-    {{/if}}
+      {{/if}}
+    </div>
   </div>
-  <div class="col-md-6">
-    <div class="row storm-slots">
-      <div class="col-md-6 summary-label">
-        {{t services.service.summary.storm.freeslots}}
+  <div class="col-md-12 metrics-summary">
+    <div class="col-md-2">{{t dashboard.services.hdfs.summary.service-metrics}}</div>
+    <div class="col-md-10">
+      <div class="row col-md-3 storm-slots">
+        <div class="summary-value main-info">
+          {{formatNull view.service.freeSlots}} / {{formatNull view.service.totalSlots}}
+          ({{formatNull view.freeSlotsPercentage empty="0"}}% {{t common.free}})
+        </div>
+        <div class="summary-label">
+          {{t services.service.summary.storm.freeslots}}
+        </div>
       </div>
-      <div class="col-md-6 summary-value">
-        {{formatNull view.service.freeSlots}} / {{formatNull view.service.totalSlots}}
-        ({{formatNull view.freeSlotsPercentage empty="0"}}% {{t common.free}})
+      <div class="row col-md-3 storm-tasks">
+        <div class="summary-value main-info">
+          {{formatNull view.service.totalTasks}}
+        </div>
+        <div class="summary-label">
+          {{t services.service.summary.storm.tasks}}
+        </div>
       </div>
-    </div>
-    <div class="row storm-tasks">
-      <div class="col-md-6 summary-label">
-        {{t services.service.summary.storm.tasks}}
+      <div class="row col-md-3 storm-executors">
+        <div class="summary-value main-info">
+          {{formatNull view.service.totalExecutors}}
+        </div>
+        <div class="summary-label">
+          {{t services.service.summary.storm.executors}}
+        </div>
       </div>
-      <div class="col-md-6 summary-value">
-        {{formatNull view.service.totalTasks}}
+      <div class="row col-md-3 storm-topologies">
+        <div class="summary-value main-info">
+          {{formatNull view.service.topologies}}
+        </div>
+        <div class="summary-label">
+          {{t services.service.summary.storm.topologies}}
+        </div>
       </div>
-    </div>
-    <div class="row storm-executors">
-      <div class="col-md-6 summary-label">
-        {{t services.service.summary.storm.executors}}
-      </div>
-      <div class="col-md-6 summary-value">
-        {{formatNull view.service.totalExecutors}}
-      </div>
-    </div>
-    <div class="row storm-topologies">
-      <div class="col-md-6 summary-label">
-        {{t services.service.summary.storm.topologies}}
-      </div>
-      <div class="col-md-6 summary-value">
-        {{formatNull view.service.topologies}}
-      </div>
-    </div>
-    <div class="row nimbus-uptime">
-      <div class="col-md-6 summary-label">
-        {{t services.service.summary.storm.nimbus.uptime}}
-      </div>
-      <div class="col-md-6 summary-value">
-        {{view.nimbusUptimeFormatted}}
+      <div class="row col-md-3 nimbus-uptime">
+        <div class="summary-value main-info">
+          {{view.nimbusUptimeFormatted}}
+        </div>
+        <div class="summary-label">
+          {{t services.service.summary.storm.nimbus.uptime}}
+        </div>
       </div>
     </div>
   </div>

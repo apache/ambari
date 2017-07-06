@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.state.kerberos;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -179,6 +182,18 @@ public abstract class AbstractKerberosDescriptor {
     }
 
     return root;
+  }
+
+  public static <T> Collection<T> nullToEmpty(Collection<T> collection) {
+    return collection == null ? Collections.<T>emptyList() : collection;
+  }
+
+  public static <T> List<T> nullToEmpty(List<T> list) {
+    return list == null ? Collections.<T>emptyList() : list;
+  }
+
+  public static <K,V> Map<K,V> nullToEmpty(Map<K,V> collection) {
+    return collection == null ? Collections.<K,V>emptyMap() : collection;
   }
 
   @Override

@@ -20,6 +20,7 @@ package org.apache.ambari.infra.job.dummy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 
@@ -35,5 +36,11 @@ public class DummyJobListener implements JobExecutionListener {
   @Override
   public void afterJob(JobExecution jobExecution) {
     LOG.info("Dummy - after job execution");
+    if (jobExecution.getExecutionContext().get("jobOutputLocation") != null) {
+      String jobOutputLocation = (String) jobExecution.getExecutionContext().get("jobOutputLocation");
+      String exitDescription = "file://" + jobOutputLocation;
+      LOG.info("Add exit description '{}'", exitDescription);
+      jobExecution.setExitStatus(new ExitStatus(ExitStatus.COMPLETED.getExitCode(), exitDescription));
+    }
   }
 }

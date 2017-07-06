@@ -155,7 +155,7 @@ public class StageWrapper {
   public enum Type {
     SERVER_SIDE_ACTION,
     RESTART,
-    RU_TASKS,
+    UPGRADE_TASKS,
     SERVICE_CHECK,
     STOP,
     START,

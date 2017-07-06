@@ -32,6 +32,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -46,7 +47,7 @@ public class WidgetService extends BaseService {
     this.clusterName = clusterName;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{widgetId}")
   @Produces("text/plain")
   public Response getService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -65,7 +66,7 @@ public class WidgetService extends BaseService {
    *
    * @return instance collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -73,7 +74,7 @@ public class WidgetService extends BaseService {
             createResource(null));
   }
 
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{widgetId}")
   @Produces("text/plain")
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -82,7 +83,7 @@ public class WidgetService extends BaseService {
             createResource(widgetId));
   }
 
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -90,7 +91,7 @@ public class WidgetService extends BaseService {
             createResource(null));
   }
 
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{widgetId}")
   @Produces("text/plain")
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -99,14 +100,14 @@ public class WidgetService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.PUT, createResource(widgetId));
   }
 
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT, createResource(null));
   }
 
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{widgetId}")
   @Produces("text/plain")
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,

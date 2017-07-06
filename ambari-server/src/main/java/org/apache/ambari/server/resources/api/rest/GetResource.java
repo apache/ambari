@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.resources.api.rest;
 
-
 import java.io.File;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +30,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +51,7 @@ public class GetResource {
 	  resourceManager = instance;
   }
 
-
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{resourcePath:.*}")
   @Consumes(MediaType.TEXT_PLAIN)
   @Produces(MediaType.APPLICATION_OCTET_STREAM)

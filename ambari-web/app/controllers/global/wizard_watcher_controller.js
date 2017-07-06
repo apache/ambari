@@ -47,10 +47,8 @@ App.WizardWatcherController = Em.Controller.extend(App.Persist, {
    * @type {string}
    */
   wizardDisplayName: function() {
-    if (this.get('controllerName')) {
-      return Em.I18n.t('wizard.inProgress').format(App.router.get(this.get('controllerName')).get('displayName'));
-    }
-    return "";
+    const controllerName = this.get('controllerName');
+    return controllerName ? Em.I18n.t('wizard.inProgress').format(App.router.get(controllerName).get('displayName'), this.get('wizardUser')) : '';
   }.property('controllerName'),
 
   /**

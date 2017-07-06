@@ -23,11 +23,8 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapDateDescriptor;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-@JsonInclude(Include.NON_NULL)
 public class LSServerMapDate extends LSServerMapField {
   @Override
   public String getName() {

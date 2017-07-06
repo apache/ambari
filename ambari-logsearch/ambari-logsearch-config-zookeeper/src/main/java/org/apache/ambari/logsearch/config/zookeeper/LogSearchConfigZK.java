@@ -22,9 +22,11 @@ package org.apache.ambari.logsearch.config.zookeeper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
@@ -52,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -68,9 +71,29 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private static final long WAIT_FOR_ROOT_SLEEP_SECONDS = 10;
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-  private static final String CLUSTER_NAME_PROPERTY = "cluster.name";
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_connect_string",
+    description = "ZooKeeper connection string.",
+    examples = {"localhost1:2181,localhost2:2181/znode"},
+    sources = {"logsearch.properties", "logfeeder.properties"}
+  )
   private static final String ZK_CONNECT_STRING_PROPERTY = "logsearch.config.zk_connect_string";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_acls",
+    description = "ZooKeeper ACLs for handling configs. (read & write)",
+    examples = {"world:anyone:r,sasl:solr:cdrwa,sasl:logsearch:cdrwa"},
+    sources = {"logsearch.properties", "logfeeder.properties"},
+    defaultValue = "world:anyone:cdrwa"
+  )
   private static final String ZK_ACLS_PROPERTY = "logsearch.config.zk_acls";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_root",
+    description = "ZooKeeper root node where the shippers are stored. (added to the connection string)",
+    examples = {"/logsearch"},
+    sources = {"logsearch.properties", "logfeeder.properties"}
+  )
   private static final String ZK_ROOT_NODE_PROPERTY = "logsearch.config.zk_root";
 
   private Map<String, String> properties;
@@ -80,7 +103,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private Gson gson;
 
   @Override
-  public void init(Component component, Map<String, String> properties) throws Exception {
+  public void init(Component component, Map<String, String> properties, String clusterName) throws Exception {
     this.properties = properties;
     
     LOG.info("Connecting to ZooKeeper at " + properties.get(ZK_CONNECT_STRING_PROPERTY));
@@ -105,8 +128,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
         LOG.info("Root node is not present yet, going to sleep for " + WAIT_FOR_ROOT_SLEEP_SECONDS + " seconds");
         Thread.sleep(WAIT_FOR_ROOT_SLEEP_SECONDS * 1000);
       }
-
-      cache = new TreeCache(client, String.format("%s/%s", root, properties.get(CLUSTER_NAME_PROPERTY)));
+      cache = new TreeCache(client, String.format("%s/%s", root, clusterName));
     }
     
     gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
@@ -138,7 +160,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   @Override
   public void monitorInputConfigChanges(final InputConfigMonitor inputConfigMonitor,
-      final LogLevelFilterMonitor logLevelFilterMonitor) throws Exception {
+      final LogLevelFilterMonitor logLevelFilterMonitor, final String clusterName) throws Exception {
     final JsonParser parser = new JsonParser();
     final JsonArray globalConfigNode = new JsonArray();
     for (String globalConfigJsonString : inputConfigMonitor.getGlobalConfigJsons()) {
@@ -146,15 +168,21 @@ public class LogSearchConfigZK implements LogSearchConfig {
       globalConfigNode.add(globalConfigJson.getAsJsonObject().get("global"));
     }
     
-    createGlobalConfigNode(globalConfigNode);
+    createGlobalConfigNode(globalConfigNode, clusterName);
     
     TreeCacheListener listener = new TreeCacheListener() {
+      private final Set<Type> nodeEvents = ImmutableSet.of(Type.NODE_ADDED, Type.NODE_UPDATED, Type.NODE_REMOVED);
+      
       public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        if (!nodeEvents.contains(event.getType())) {
+          return;
+        }
+        
         String nodeName = ZKPaths.getNodeFromPath(event.getData().getPath());
         String nodeData = new String(event.getData().getData());
         Type eventType = event.getType();
         
-        String configPathStab = String.format("%s/%s/", root, properties.get(CLUSTER_NAME_PROPERTY));
+        String configPathStab = String.format("%s/%s/", root, clusterName);
         
         if (event.getData().getPath().startsWith(configPathStab + "input/")) {
           handleInputConfigChange(eventType, nodeName, nodeData);
@@ -238,8 +266,8 @@ public class LogSearchConfigZK implements LogSearchConfig {
     cache.start();
   }
 
-  private void createGlobalConfigNode(JsonArray globalConfigNode) {
-    String globalConfigNodePath = String.format("%s/%s/global", root, properties.get(CLUSTER_NAME_PROPERTY));
+  private void createGlobalConfigNode(JsonArray globalConfigNode, String clusterName) {
+    String globalConfigNodePath = String.format("%s/%s/global", root, clusterName);
     String data = InputConfigGson.gson.toJson(globalConfigNode);
     
     try {
@@ -261,9 +289,14 @@ public class LogSearchConfigZK implements LogSearchConfig {
   }
 
   @Override
-  public InputConfig getInputConfig(String clusterName, String serviceName) {
+  public String getGlobalConfigs(String clusterName) {
     String globalConfigNodePath = String.format("%s/%s/global", root, clusterName);
-    String globalConfigData = new String(cache.getCurrentData(globalConfigNodePath).getData());
+    return new String(cache.getCurrentData(globalConfigNodePath).getData());
+  }
+
+  @Override
+  public InputConfig getInputConfig(String clusterName, String serviceName) {
+    String globalConfigData = getGlobalConfigs(clusterName);
     JsonArray globalConfigs = (JsonArray) new JsonParser().parse(globalConfigData);
     InputAdapter.setGlobalConfigs(globalConfigs);
     

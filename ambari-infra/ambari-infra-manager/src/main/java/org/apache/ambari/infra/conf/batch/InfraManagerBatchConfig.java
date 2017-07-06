@@ -43,9 +43,10 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobOperator;
+import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.repository.dao.DefaultExecutionContextSerializer;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
+import org.springframework.batch.core.repository.dao.Jackson2ExecutionContextStringSerializer;
 import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.batch.item.ItemProcessor;
@@ -143,10 +144,16 @@ public class InfraManagerBatchConfig {
   }
 
   @Bean
+  public ExecutionContextSerializer executionContextSerializer() {
+    return new Jackson2ExecutionContextStringSerializer();
+  }
+
+  @Bean
   public JobRepository jobRepository() throws Exception {
     JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
     factory.setDataSource(dataSource());
     factory.setTransactionManager(getTransactionManager());
+    factory.setSerializer(executionContextSerializer());
     factory.afterPropertiesSet();
     return factory.getObject();
   }
@@ -213,7 +220,7 @@ public class InfraManagerBatchConfig {
   @Bean
   public ExecutionContextDao executionContextDao() {
     JdbcExecutionContextDao dao = new JdbcExecutionContextDao();
-    dao.setSerializer(new DefaultExecutionContextSerializer());
+    dao.setSerializer(executionContextSerializer());
     dao.setJdbcTemplate(jdbcTemplate());
     return dao;
   }

@@ -254,6 +254,8 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     for (String hostName : hostNames) {
       try {
         String port = getPort(clusterName, componentName, hostName, httpsEnabled);
+        String publicHostName = jmxHostProvider.getPublicHostName(clusterName, hostName);
+
         if (port == null) {
           LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
           return resource;
@@ -267,6 +269,17 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
         // check to see if there is a cached value and use it if there is
         JMXMetricHolder jmxMetricHolder = metricsRetrievalService.getCachedJMXMetric(jmxUrl);
+
+        if( jmxMetricHolder == null && !hostName.equalsIgnoreCase(publicHostName)) {
+          // build the URL using public host name
+          String publicJmxUrl = getSpec(protocol, publicHostName, port, "/jmx");
+
+          // always submit a request to cache the latest data
+          metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, publicJmxUrl);
+
+          // check to see if there is a cached value and use it if there is
+          jmxMetricHolder = metricsRetrievalService.getCachedJMXMetric(publicJmxUrl);
+        }
 
         // if the ticket becomes invalid (timeout) then bail out
         if (!ticket.isValid()) {
@@ -289,6 +302,17 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
                 String adHocUrl = getSpec(protocol, hostName, port, queryURL);
                 metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, adHocUrl);
                 JMXMetricHolder adHocJMXMetricHolder = metricsRetrievalService.getCachedJMXMetric(adHocUrl);
+
+                if( adHocJMXMetricHolder == null && !hostName.equalsIgnoreCase(publicHostName)) {
+                  // build the adhoc URL using public host name
+                  String publicAdHocUrl = getSpec(protocol, publicHostName, port, queryURL);
+
+                  // always submit a request to cache the latest data
+                  metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, publicAdHocUrl);
+
+                  // check to see if there is a cached value and use it if there is
+                  adHocJMXMetricHolder = metricsRetrievalService.getCachedJMXMetric(publicAdHocUrl);
+                }
 
                 // if the ticket becomes invalid (timeout) then bail out
                 if (!ticket.isValid()) {

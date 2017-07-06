@@ -27,7 +27,7 @@ define(['require',
 	var VUserFilterBase = BaseModel.extend(
 	/** @lends VUserFilterBase.prototype */
 	{
-		urlRoot: Globals.baseURL + 'userconfig/filters',
+		urlRoot: Globals.baseURL + 'history/filters',
 
 		defaults: {},
 

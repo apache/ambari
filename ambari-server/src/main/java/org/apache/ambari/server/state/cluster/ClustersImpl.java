@@ -52,9 +52,7 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
-import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
-import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -63,10 +61,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
-import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
-import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -81,6 +76,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.host.HostFactory;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,11 +126,9 @@ public class ClustersImpl implements Clusters {
   @Inject
   private TopologyLogicalTaskDAO topologyLogicalTaskDAO;
   @Inject
-  private TopologyHostRequestDAO topologyHostRequestDAO;
-  @Inject
-  private TopologyRequestDAO topologyRequestDAO;
-  @Inject
   private TopologyHostInfoDAO topologyHostInfoDAO;
+  @Inject
+  private TopologyManager topologyManager;
 
   /**
    * Data access object for stacks.
@@ -742,18 +736,7 @@ public class ClustersImpl implements Clusters {
       }
     }
 
-    for (Long clusterId : clusterIds) {
-      for (TopologyRequestEntity topologyRequestEntity : topologyRequestDAO.findByClusterId(
-          clusterId)) {
-        TopologyLogicalRequestEntity topologyLogicalRequestEntity = topologyRequestEntity.getTopologyLogicalRequestEntity();
-
-        for (TopologyHostRequestEntity topologyHostRequestEntity : topologyLogicalRequestEntity.getTopologyHostRequestEntities()) {
-          if (hostname.equals(topologyHostRequestEntity.getHostName())) {
-            topologyHostRequestDAO.remove(topologyHostRequestEntity);
-          }
-        }
-      }
-    }
+    topologyManager.removeHostRequests(hostname);
 
     entity.setHostStateEntity(null);
     hostStateDAO.removeByHostId(entity.getHostId());

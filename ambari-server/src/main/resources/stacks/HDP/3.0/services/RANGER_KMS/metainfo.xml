@@ -20,8 +20,8 @@
     <services>
         <service>
             <name>RANGER_KMS</name>
-            <version>0.5.0.3.0</version>
-            <extends>common-services/RANGER_KMS/0.5.0.3.0</extends>
+            <version>1.0.0.3.0</version>
+            <extends>common-services/RANGER_KMS/1.0.0.3.0</extends>
         </service>
     </services>
 </metainfo>

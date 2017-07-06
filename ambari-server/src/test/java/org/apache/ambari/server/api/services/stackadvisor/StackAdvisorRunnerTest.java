@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommandType;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +69,7 @@ public class StackAdvisorRunnerTest {
         .toReturn(processBuilder);
     expect(processBuilder.start()).andThrow(new IOException());
     replay(processBuilder);
-    saRunner.runScript(script, saCommandType, actionDirectory);
+    saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
   }
 
   @Test(expected = StackAdvisorRequestException.class)
@@ -85,7 +86,7 @@ public class StackAdvisorRunnerTest {
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(1);
     replay(processBuilder, process);
-    saRunner.runScript(script, saCommandType, actionDirectory);
+    saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
   }
 
   @Test(expected = StackAdvisorException.class)
@@ -102,7 +103,7 @@ public class StackAdvisorRunnerTest {
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(2);
     replay(processBuilder, process);
-    saRunner.runScript(script, saCommandType, actionDirectory);
+    saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
   }
 
   @Test
@@ -120,10 +121,9 @@ public class StackAdvisorRunnerTest {
     expect(process.waitFor()).andReturn(0);
     replay(processBuilder, process);
     try {
-      saRunner.runScript(script, saCommandType, actionDirectory);
+      saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
     } catch (StackAdvisorException ex) {
       fail("Should not fail with StackAdvisorException");
     }
   }
-
 }

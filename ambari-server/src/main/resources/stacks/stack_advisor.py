@@ -893,12 +893,13 @@ class DefaultStackAdvisor(StackAdvisor):
     Services with no dependencies will go first.  Services with dependencies will go after the services they are dependent on.
     If there are circular dependencies, the services will go in the order in which they were processed.
     """
-    if service in processedServices:
+    if service is None or service in processedServices:
       return
 
     processedServices.append(service)
 
-    for component in service["components"]:
+    components = [] if "components" not in service else service["components"]
+    for component in components:
       dependencies = [] if "dependencies" not in component else component['dependencies']
       for dependency in dependencies:
         # accounts only for dependencies that are not conditional
@@ -2751,7 +2752,7 @@ class DefaultStackAdvisor(StackAdvisor):
     if len(leaf_queue_names) == 0:
       return None
     elif queue_name not in leaf_queue_names:
-      return self.getErrorItem("Queue is not exist or not corresponds to existing YARN leaf queue")
+      return self.getErrorItem("Queue does not exist or correspond to an existing YARN leaf queue")
 
     return None
 

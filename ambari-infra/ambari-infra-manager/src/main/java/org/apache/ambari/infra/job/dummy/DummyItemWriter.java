@@ -20,6 +20,8 @@ package org.apache.ambari.infra.job.dummy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemWriter;
 
 import java.io.File;
@@ -35,6 +37,8 @@ public class DummyItemWriter implements ItemWriter<String> {
 
   private static final Logger LOG = LoggerFactory.getLogger(DummyItemWriter.class);
 
+  private StepExecution stepExecution;
+
   @Override
   public void write(List<? extends String> values) throws Exception {
     LOG.info("DummyItem writer called (values: {})... wait 1 seconds", values.toString());
@@ -43,7 +47,16 @@ public class DummyItemWriter implements ItemWriter<String> {
     Path pathToDirectory = Paths.get(outputDirectoryLocation);
     Path pathToFile = Paths.get(String.format("%s%s%s", outputDirectoryLocation, File.separator, "dummyOutput.txt"));
     Files.createDirectories(pathToDirectory);
-    LOG.info("Write to file: ", pathToFile.getFileName().toAbsolutePath());
+    LOG.info("Write location to step execution context...");
+    stepExecution.getExecutionContext().put("stepOutputLocation", pathToFile.getFileName().toAbsolutePath().toString());
+    LOG.info("Write location to job execution context...");
+    stepExecution.getJobExecution().getExecutionContext().put("jobOutputLocation", pathToFile.getFileName().toAbsolutePath().toString());
+    LOG.info("Write to file: {}", pathToFile.getFileName().toAbsolutePath().toString());
     Files.write(pathToFile, values.toString().getBytes());
+  }
+
+  @BeforeStep
+  public void saveStepExecution(StepExecution stepExecution) {
+    this.stepExecution = stepExecution;
   }
 }

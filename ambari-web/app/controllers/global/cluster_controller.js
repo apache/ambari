@@ -144,7 +144,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
   setServerClock: function (data) {
     var clientClock = new Date().getTime();
-    var serverClock = (data.RootServiceComponents.server_clock).toString();
+    var serverClock = (Em.getWithDefault(data, 'RootServiceComponents.server_clock', '')).toString();
     serverClock = serverClock.length < 13 ? serverClock + '000' : serverClock;
     App.set('clockDistance', serverClock - clientClock);
     App.set('currentServerTime', parseInt(serverClock));

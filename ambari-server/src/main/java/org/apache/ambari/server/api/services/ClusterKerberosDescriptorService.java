@@ -30,6 +30,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -66,7 +67,7 @@ public class ClusterKerberosDescriptorService extends BaseService {
    * @param ui      uri info
    * @return Kerberos descriptor resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getKerberosDescriptors(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
@@ -81,14 +82,13 @@ public class ClusterKerberosDescriptorService extends BaseService {
    * @param type    Kerberos descriptor type (COMPOSITE, STACK, USER)
    * @return Kerberos descriptor instance representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{type}")
   @Produces("text/plain")
   public Response getKerberosDescriptor(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("type") String type) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(type));
   }
-
 
   /**
    * Create a composite Kerberos Descriptor resource instance.

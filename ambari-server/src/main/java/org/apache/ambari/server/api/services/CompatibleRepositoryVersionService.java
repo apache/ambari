@@ -29,6 +29,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -58,7 +59,7 @@ public class CompatibleRepositoryVersionService extends BaseService {
    * @param headers http headers
    * @param ui      uri info
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getRepositoryVersions(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
@@ -73,7 +74,7 @@ public class CompatibleRepositoryVersionService extends BaseService {
    * @param repositoryVersionId   the repository version id
    * @return information regarding the specified repository
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{repositoryVersionId}")
   @Produces("text/plain")
   public Response getRepositoryVersion(@Context HttpHeaders headers,

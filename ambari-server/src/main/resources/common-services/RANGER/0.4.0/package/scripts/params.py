@@ -123,6 +123,7 @@ if stack_supports_ranger_tagsync:
 usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 
 java_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/commandParams/ambari_java_home", java_home)
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
 ranger_pid_dir = default("/configurations/ranger-env/ranger_pid_dir", "/var/run/ranger")
@@ -446,3 +447,5 @@ truststore_password = config['configurations']['ranger-admin-site']['ranger.trus
 
 # need this to capture cluster name for ranger tagsync
 cluster_name = config['clusterName']
+ranger_ldap_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.bind.password']
+ranger_ad_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.ad.bind.password']

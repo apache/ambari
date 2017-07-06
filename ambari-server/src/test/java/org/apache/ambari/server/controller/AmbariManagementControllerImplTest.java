@@ -558,9 +558,14 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
     ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+    ConfigurationRequest configurationRequest = createNiceMock(ConfigurationRequest.class);
 
     // requests
-    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+    Set<ClusterRequest> setRequests = new HashSet<ClusterRequest>();
+    setRequests.add(clusterRequest);
+
+    List<ConfigurationRequest> configRequests = new ArrayList<>();
+    configRequests.add(configurationRequest);
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
     // expectations
@@ -570,6 +575,8 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusterRequest.getDesiredConfig()).andReturn(configRequests);
+    expect(configurationRequest.getVersionTag()).andReturn(null).times(1);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
 
@@ -579,8 +586,11 @@ public class AmbariManagementControllerImplTest {
     cluster.setClusterName("clusterNew");
     expectLastCall();
 
+    configurationRequest.setVersionTag(EasyMock.anyObject(String.class));
+    expectLastCall();
+
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -588,7 +598,7 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
   }
 
   /**

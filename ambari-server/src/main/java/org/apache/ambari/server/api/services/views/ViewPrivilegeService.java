@@ -33,6 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -158,7 +159,7 @@ public class ViewPrivilegeService extends BaseService {
    *
    * @return information regarding the updated privilege
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   // Remove comments when the below API call is fixed
   /*@Path("{privilegeId}")
   @Produces("text/plain")
@@ -192,7 +193,7 @@ public class ViewPrivilegeService extends BaseService {
    *
    * @return information regarding the updated privileges
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updatePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
@@ -214,7 +215,7 @@ public class ViewPrivilegeService extends BaseService {
    *
    * @return information regarding the deleted privileges
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Produces("text/plain")
   public Response deletePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
@@ -253,7 +254,6 @@ public class ViewPrivilegeService extends BaseService {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE, createPrivilegeResource(viewName, version, instanceName, privilegeId));
   }
-
 
   protected ResourceInstance createPrivilegeResource(String viewName, String viewVersion, String instanceName, String privilegeId) {
     Map<Resource.Type,String> mapIds = new HashMap<>();

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <!-- Can compile this project independently, cd ambari-serviceadvisor ; mvn clean package install
+
+  To test independently without needing the rest of Ambari, simply compile and run as,
+  java -jar ambari-serviceadvisor-$VERSION.jar [ACTION] [HOSTS_FILE.json] [SERVICES_FILE.json]
+  -->
+  <groupId>org.apache.ambari</groupId>
+  <artifactId>ambari-serviceadvisor</artifactId>
+  <name>Ambari Service Advisor</name>
+  <version>1.0.0.0-SNAPSHOT</version>
+  <description>Service Advisor</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <version>2.6</version>
+    </dependency>
+
+    <!-- Log Factory logging
+    The main class is expected to write to stdout and stderr appropriately.
+    -->
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.20</version>
+    </dependency>
+      <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
+    </dependency>
+  </dependencies>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>oss.sonatype.org</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <packaging>jar</packaging>
+  <!-- Run with mvn clean package .
+  Execute as, java -jar serviceadvisor-$VERSION.jar
+  -->
+  <build>
+    <plugins>
+      <!--
+      The next 2 plugins are to include the main class in the Jar and to create a single jar with all of the dependencies.
+      It conflicts with the maven-compiler-plugin since the jar created is different.
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>org.apache.ambari.stackadvisor.StackAdvisor</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.0.1</version>
+        <executions>
+          <execution>
+            <!-- unbinds rpm creation from maven lifecycle -->
+            <phase>none</phase>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <copyright>2012, Apache Software Foundation</copyright>
+          <group>Development</group>
+          <disabled>true</disabled>
+          <description>Maven Recipe: RPM Package.</description>
+          <mappings/>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

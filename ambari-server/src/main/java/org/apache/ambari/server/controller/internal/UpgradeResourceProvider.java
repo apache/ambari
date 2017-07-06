@@ -182,7 +182,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   /**
    * The role that will be used when creating HRC's for the type
-   * {@link StageWrapper.Type#RU_TASKS}.
+   * {@link StageWrapper.Type#UPGRADE_TASKS}.
    */
   protected static final String EXECUTE_TASK_ROLE = "ru_execute_tasks";
 
@@ -838,7 +838,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         makeCommandStage(context, request, effectiveRepositoryVersion, entity, wrapper, skippable,
             supportsAutoSkipOnFailure, allowRetry);
         break;
-      case RU_TASKS:
+      case UPGRADE_TASKS:
         makeActionStage(context, request, effectiveRepositoryVersion, entity, wrapper, skippable,
             supportsAutoSkipOnFailure, allowRetry);
         break;
@@ -927,7 +927,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion);
+        cluster, effectiveRepositoryVersion, null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1009,7 +1009,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion);
+        cluster, effectiveRepositoryVersion, null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1070,7 +1070,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion);
+        cluster, effectiveRepositoryVersion, null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1198,7 +1198,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getRepositoryVersion());
+        cluster, context.getRepositoryVersion(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getCommandParamsForStage(),

@@ -348,20 +348,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           validateRepositoryVersion(repositoryVersionDAO, ambariMetaInfo, entity);
 
           repositoryVersionDAO.merge(entity);
-
-          //
-          // Update metaInfo table as well
-          //
-          if (operatingSystemEntities != null) {
-            String entityStackName = entity.getStackName();
-            String entityStackVersion = entity.getStackVersion();
-            for (OperatingSystemEntity osEntity : operatingSystemEntities) {
-              List<RepositoryEntity> repositories = osEntity.getRepositories();
-              for (RepositoryEntity repository : repositories) {
-                ambariMetaInfo.updateRepo(entityStackName, entityStackVersion, osEntity.getOsType(), repository.getRepositoryId(), repository.getBaseUrl(), repository.getMirrorsList());
-              }
-            }
-          }
         }
         return null;
       }

@@ -106,7 +106,7 @@ select.form-control {
 .panel {
   background-color: #fff;
   .panel-heading {
-    background-color: #f0f0f0;
+    background-color: #fff;
     .panel-title {
       line-height: 34px;
     }
@@ -285,6 +285,10 @@ select.form-control {
   color: #fff;
 }
 
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+  background-color: #f0f0f0;
+}
+
 @media (max-width: 992px) {
   .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12 {
     float: left;
@@ -347,8 +351,12 @@ select.form-control {
     width: 1130px;
   }
 
-  .main-container {
+  .main-container, .container {
     width: 1170px;
+  }
+
+  #top-nav {
+    min-width: 1170px;
   }
 
   .contribview  .main-container {
@@ -395,8 +403,12 @@ select.form-control {
     width: 1300px;
   }
 
-  .main-container {
+  .main-container, .container {
     width: 1340px;
+  }
+
+  #top-nav {
+    min-width: 1340px;
   }
 
   .contribview  .main-container {

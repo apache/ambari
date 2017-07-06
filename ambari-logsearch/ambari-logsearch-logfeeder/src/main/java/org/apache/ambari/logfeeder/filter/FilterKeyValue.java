@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
@@ -58,12 +58,12 @@ public class FilterKeyValue extends Filter {
   }
 
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException {
     apply(LogFeederUtil.toJSONObject(inputStr), inputMarker);
   }
 
   @Override
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogFeederException {
     if (sourceField == null) {
       return;
     }

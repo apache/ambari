@@ -33,6 +33,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ public class PersistKeyValueService {
   }
 
   @SuppressWarnings("unchecked")
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response update(String keyValues)
       throws WebApplicationException, InvalidStateTransitionException,
@@ -67,7 +68,7 @@ public class PersistKeyValueService {
   }
 
   @SuppressWarnings("unchecked")
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public String store(String values) throws IOException, JAXBException {
     LOG.debug("Received message from UI {}", values);
@@ -81,7 +82,7 @@ public class PersistKeyValueService {
     return stringRet;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{keyName}")
   public String getKey( @PathParam("keyName") String keyName) {
@@ -89,7 +90,7 @@ public class PersistKeyValueService {
     return persistKeyVal.getValue(keyName);
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public String getAllKeyValues() throws JAXBException, IOException {
     Map<String, String> ret = persistKeyVal.getAllKeyValues();

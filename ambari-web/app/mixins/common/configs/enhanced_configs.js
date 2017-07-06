@@ -553,12 +553,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     if (Em.isNone(recommended)) {
       stepConfig.get('configs').removeObject(config);
     } else if (Em.isNone(initial)) {
+      var stackConfigProperty = App.configsCollection.getConfigByName(name, filename);
       stepConfig.get('configs').pushObject(this._createNewProperty(
         name,
         filename,
         Em.get(prop, 'serviceName'),
         recommended,
-        App.configsCollection.getConfigByName(name, filename).propertyDependsOn));
+        stackConfigProperty? stackConfigProperty.propertyDependsOn : []));
     } else {
       Em.set(config, 'value', recommended);
     }

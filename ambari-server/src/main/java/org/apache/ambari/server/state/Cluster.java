@@ -133,6 +133,14 @@ public interface Cluster {
    */
   Set<String> getHosts(String serviceName, String componentName);
 
+  /**
+   * Get specific host info using host name.
+   *
+   * @param hostName the host name
+   * @return Host info {@link Host}
+   */
+  Host getHost(String hostName);
+
 
   /**
    * Adds schs to cluster AND persists them

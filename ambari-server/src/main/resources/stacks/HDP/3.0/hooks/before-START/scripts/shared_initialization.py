@@ -190,8 +190,16 @@ def create_microsoft_r_dir():
     except Exception as exception:
       Logger.warning("Could not check the existence of {0} on DFS while starting {1}, exception: {2}".format(directory, params.current_service, str(exception)))
 
-
 def setup_unlimited_key_jce_policy():
+  """
+  Sets up the unlimited key JCE policy if needed. (sets up ambari JCE as well if ambari and the  stack use different JDK)
+  """
+  import params
+  __setup_unlimited_key_jce_policy(custom_java_home=params.java_home, custom_jdk_name=params.jdk_name, custom_jce_name = params.jce_policy_zip)
+  if params.ambari_jce_name and params.ambari_jce_name != params.jce_policy_zip:
+    __setup_unlimited_key_jce_policy(custom_java_home=params.ambari_java_home, custom_jdk_name=params.ambari_jdk_name, custom_jce_name = params.ambari_jce_name)
+
+def __setup_unlimited_key_jce_policy(custom_java_home, custom_jdk_name, custom_jce_name):
   """
   Sets up the unlimited key JCE policy if needed.
 
@@ -216,27 +224,27 @@ def setup_unlimited_key_jce_policy():
   if params.sysprep_skip_setup_jce:
     Logger.info("Skipping unlimited key JCE policy check and setup since the host is sys prepped")
 
-  elif not params.jdk_name:
+  elif not custom_jdk_name:
     Logger.debug("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
 
   elif not params.unlimited_key_jce_required:
     Logger.debug("Skipping unlimited key JCE policy check and setup since it is not required")
 
   else:
-    jcePolicyInfo = JcePolicyInfo(params.java_home)
+    jcePolicyInfo = JcePolicyInfo(custom_java_home)
 
     if jcePolicyInfo.is_unlimited_key_jce_policy():
       Logger.info("The unlimited key JCE policy is required, and appears to have been installed.")
 
-    elif params.jce_policy_zip is None:
+    elif custom_jce_name is None:
       raise Fail("The unlimited key JCE policy needs to be installed; however the JCE policy zip is not specified.")
 
     else:
       Logger.info("The unlimited key JCE policy is required, and needs to be installed.")
 
-      jce_zip_target = format("{artifact_dir}/{jce_policy_zip}")
-      jce_zip_source = format("{ambari_server_resources_url}/{jce_policy_zip}")
-      java_security_dir = format("{java_home}/jre/lib/security")
+      jce_zip_target = format("{artifact_dir}/{custom_jce_name}")
+      jce_zip_source = format("{ambari_server_resources_url}/{custom_jce_name}")
+      java_security_dir = format("{custom_java_home}/jre/lib/security")
 
       Logger.debug("Downloading the unlimited key JCE policy files from {0} to {1}.".format(jce_zip_source, jce_zip_target))
       Directory(params.artifact_dir, create_parents=True)

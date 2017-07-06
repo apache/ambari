@@ -33,7 +33,7 @@ public class LogSearchConfigFactoryTest {
   @Test
   public void testDefaultConfig() throws Exception {
     LogSearchConfig config = LogSearchConfigFactory.createLogSearchConfig(Component.SERVER,
-        Collections.<String, String> emptyMap(), LogSearchConfigClass1.class);
+        Collections.<String, String> emptyMap(), null, LogSearchConfigClass1.class);
     
     Assert.assertSame(config.getClass(), LogSearchConfigClass1.class);
   }
@@ -43,7 +43,7 @@ public class LogSearchConfigFactoryTest {
     Map<String, String> logsearchConfClassMap = new HashMap<>();
     logsearchConfClassMap.put("logsearch.config.class", "org.apache.ambari.logsearch.config.api.LogSearchConfigClass2");
     LogSearchConfig config = LogSearchConfigFactory.createLogSearchConfig(Component.SERVER,
-      logsearchConfClassMap, LogSearchConfigClass1.class);
+      logsearchConfClassMap, null, LogSearchConfigClass1.class);
     
     Assert.assertSame(config.getClass(), LogSearchConfigClass2.class);
   }
@@ -53,6 +53,6 @@ public class LogSearchConfigFactoryTest {
     Map<String, String> logsearchConfClassMap = new HashMap<>();
     logsearchConfClassMap.put("logsearch.config.class", "org.apache.ambari.logsearch.config.api.NonLogSearchConfigClass");
     LogSearchConfigFactory.createLogSearchConfig(Component.SERVER,
-      logsearchConfClassMap, LogSearchConfigClass1.class);
+      logsearchConfClassMap, null, LogSearchConfigClass1.class);
   }
 }

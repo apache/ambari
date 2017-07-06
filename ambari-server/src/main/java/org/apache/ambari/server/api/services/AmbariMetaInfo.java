@@ -55,7 +55,6 @@ import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -141,15 +140,6 @@ public class AmbariMetaInfo {
   };
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
 
-  /**
-   * Repository XML base url property name
-   */
-  public static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
-
-  /**
-   * Repository XML mirrors list property name
-   */
-  public static final String REPOSITORY_XML_PROPERTY_MIRRORSLIST = "mirrorslist";
 
   // all the supported OS'es
   @Inject
@@ -876,110 +866,6 @@ public class AmbariMetaInfo {
     return ALL_SUPPORTED_OS.contains(osType);
   }
 
-  /**
-   * Returns a suitable key for use with stack url overrides.
-   * @param stackName the stack name
-   * @param stackVersion the stack version
-   * @param osType the os
-   * @param repoId the repo id
-   * @param field the field name
-   * @return the key for any repo value override
-   */
-  public static String generateRepoMetaKey(String stackName, String stackVersion,
-      String osType, String repoId, String field) {
-
-    StringBuilder sb = new StringBuilder("repo:/");
-    sb.append(stackName).append('/');
-    sb.append(stackVersion).append('/');
-    sb.append(osType).append('/');
-    sb.append(repoId);
-    sb.append(':').append(field);
-
-    return sb.toString();
-  }
-
-  /**
-   * @param stackName the stack name
-   * @param stackVersion the stack version
-   * @param osType the os
-   * @param repoId the repo id
-   * @param newBaseUrl the new base url
-   * @param newMirrorsList the new mirrors list
-   */
-  public void updateRepo(String stackName,
-                         String stackVersion, String osType, String repoId, String newBaseUrl, String newMirrorsList) throws AmbariException {
-
-    // validate existing
-    RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
-
-    if (!stackRoot.exists()) {
-      throw new StackAccessException("Stack root does not exist.");
-    }
-
-    if (null != newMirrorsList) {
-      ri.setMirrorsList(newMirrorsList);
-    }
-    if (null != newBaseUrl) {
-      ri.setBaseUrl(newBaseUrl);
-    }
-    if (null != metaInfoDAO) {
-      if (null != newBaseUrl) {
-        updateRepoInMetaInfo(stackName, stackVersion, osType, repoId, newBaseUrl, ri, REPOSITORY_XML_PROPERTY_BASEURL);
-      }
-      if (null != newMirrorsList) {
-        updateRepoInMetaInfo(stackName, stackVersion, osType, repoId, newMirrorsList, ri, REPOSITORY_XML_PROPERTY_MIRRORSLIST);
-      }
-    }
-  }
-
-  /**
-   * Update repo property repositoryXmlProperty in metaInfo with new value
-   *
-   * @param stackName             the stack name
-   * @param stackVersion          the stack version
-   * @param osType                the os
-   * @param repoId                the repo id
-   * @param value                 new value
-   * @param ri                    repositoryInfo
-   * @param repositoryXmlProperty repository.xml property name
-   */
-  private void updateRepoInMetaInfo(String stackName, String stackVersion, String osType, String repoId, String value, RepositoryInfo ri, String repositoryXmlProperty) {
-    String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
-        repoId, repositoryXmlProperty);
-
-    MetainfoEntity entity = new MetainfoEntity();
-    entity.setMetainfoName(metaKey);
-    entity.setMetainfoValue(value);
-
-    // !!! need a way to remove
-    if (StringUtils.isBlank(value)) { // This block should get removed someday, we aren't supporting this mechanism anymore
-      metaInfoDAO.remove(entity);
-    } else {
-      metaInfoDAO.merge(entity);
-      ri.setRepoSaved(true);
-    }
-  }
-
-  public void createRepo(String stackName, String stackVersion, String osType, String repoId, String baseUrl, String mirrorsList) throws AmbariException {
-    if (!stackRoot.exists()) {
-      throw new StackAccessException("Create repo - Stack root does not exist.");
-    }
-
-    if (null != baseUrl) {
-      createRepoInMetaInfo(stackName, stackVersion, osType, repoId, baseUrl, REPOSITORY_XML_PROPERTY_BASEURL);
-    } else if (null != mirrorsList) {
-      createRepoInMetaInfo(stackName, stackVersion, osType, repoId, mirrorsList, REPOSITORY_XML_PROPERTY_MIRRORSLIST);
-    }
-  }
-
-  private void createRepoInMetaInfo(String stackName, String stackVersion, String osType, String repoId, String value, String repositoryXmlProperty) {
-    String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
-        repoId, repositoryXmlProperty);
-    MetainfoEntity entity = new MetainfoEntity();
-    entity.setMetainfoName(metaKey);
-    entity.setMetainfoValue(value);
-    metaInfoDAO.create(entity);
-  }
 
   public File getStackRoot() {
     return stackRoot;

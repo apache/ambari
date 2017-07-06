@@ -28,7 +28,20 @@ function diskPart(i18nKey, totalKey, usedKey) {
     if (percent == "NaN" || percent < 0) {
       percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    return text.format(numberUtils.bytesToSize(used, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'), percent);
+    return text.format(numberUtils.bytesToSize(used, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'));
+  });
+}
+
+function diskPartPercent(i18nKey, totalKey, usedKey) {
+  return Em.computed(totalKey, usedKey, function () {
+    var text = Em.I18n.t(i18nKey);
+    var total = this.get(totalKey);
+    var used = this.get(usedKey);
+    var percent = total > 0 ? ((used * 100) / total).toFixed(2) : 0;
+    if (percent == "NaN" || percent < 0) {
+      percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
+    }
+    return text.format(percent);
   });
 }
 
@@ -113,9 +126,11 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return this.t('services.service.summary.notRunning');
   }.property("service.nameNodeStartTime"),
 
+  nodeHeapPercent: App.MainDashboardServiceView.formattedHeapPercent('dashboard.services.hdfs.nodes.heapUsedPercent', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
   nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.hdfs.nodes.heapUsed', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
 
   dfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'service.capacityUsed'),
+  dfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'service.capacityTotal', 'service.capacityUsed'),
 
   nonDfsUsed: function () {
     var total = this.get('service.capacityTotal');
@@ -125,8 +140,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.capacityTotal', 'service.capacityRemaining', 'service.capacityUsed'),
 
   nonDfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'nonDfsUsed'),
+  nonDfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'service.capacityTotal', 'nonDfsUsed'),
 
   remainingDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'service.capacityRemaining'),
+  remainingDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'service.capacityTotal', 'service.capacityRemaining'),
 
   dataNodeComponent: Em.Object.create({
     componentName: 'DATANODE'

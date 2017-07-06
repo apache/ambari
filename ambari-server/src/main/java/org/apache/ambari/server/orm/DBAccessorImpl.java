@@ -18,6 +18,7 @@
 package org.apache.ambari.server.orm;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,6 +27,7 @@ import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -200,6 +202,27 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     return objectName;
+  }
+
+  /**
+   * Setting arguments for prepared statement
+   *
+   * @param preparedStatement {@link PreparedStatement} object
+   * @param arguments array of arguments
+   *
+   * @throws SQLException
+   */
+  private void setArgumentsForPreparedStatement(PreparedStatement preparedStatement, Object[] arguments) throws SQLException{
+    for (int i = 0; i < arguments.length; i++) {
+      if (arguments[i] instanceof byte[]) {
+        byte[] binaryData = (byte[]) arguments[i];
+
+        // JDBC drivers supports only this function signature
+        preparedStatement.setBinaryStream(i+1, new ByteArrayInputStream(binaryData), binaryData.length);
+      } else {
+        preparedStatement.setObject(i+1, arguments[i]);
+      }
+    }
   }
 
   @Override
@@ -614,7 +637,7 @@ public class DBAccessorImpl implements DBAccessor {
       case POSTGRES:
       case SQL_ANYWHERE:
       case SQL_SERVER:
-      default: {
+      default: {  // ToDo: getAddColumnStatement not supporting default clause for binary fields
         String query = dbmsHelper.getAddColumnStatement(tableName, columnInfo);
         executeQuery(query);
         break;
@@ -858,6 +881,70 @@ public class DBAccessorImpl implements DBAccessor {
     } finally {
       if (statement != null) {
         statement.close();
+      }
+    }
+  }
+
+  /**
+   {@inheritDoc}
+   */
+  public void executePreparedQuery(String query, Object...arguments) throws SQLException {
+    executePreparedQuery(query, false, arguments);
+  }
+
+  /**
+   {@inheritDoc}
+   */
+  public void executePreparedQuery(String query, boolean ignoreFailure, Object...arguments) throws SQLException{
+    LOG.info("Executing prepared query: {}", query);
+
+    PreparedStatement preparedStatement = getConnection().prepareStatement(query);
+    setArgumentsForPreparedStatement(preparedStatement, arguments);
+
+    try {
+        preparedStatement.execute();
+    } catch (SQLException e) {
+        if (!ignoreFailure){
+          LOG.error("Error executing prepared query: {}", query, e);
+          throw e;
+        } else {
+          LOG.warn("Error executing prepared query: {}, errorCode={}, message = {}", query, e.getErrorCode(), e.getMessage());
+        }
+    } finally {
+        if (preparedStatement != null) {
+          preparedStatement.close();
+        }
+    }
+  }
+
+  /**
+   {@inheritDoc}
+   */
+  public void executePreparedUpdate(String query, Object...arguments) throws SQLException {
+    executePreparedUpdate(query, false, arguments);
+  }
+
+  /**
+   {@inheritDoc}
+   */
+  public void executePreparedUpdate(String query, boolean ignoreFailure, Object...arguments) throws SQLException{
+    LOG.info("Executing prepared query: {}", query);
+
+    PreparedStatement preparedStatement = getConnection().prepareStatement(query);
+    setArgumentsForPreparedStatement(preparedStatement, arguments);
+
+    try {
+      preparedStatement.executeUpdate();
+    } catch (SQLException e) {
+      if (!ignoreFailure){
+        LOG.error("Error executing prepared query: {}", query, e);
+        throw e;
+      } else {
+        LOG.warn("Error executing prepared query: {}, errorCode={}, message = {}", query, e.getErrorCode(), e.getMessage());
+      }
+    } finally {
+      if (preparedStatement != null) {
+        preparedStatement.close();
       }
     }
   }
@@ -1321,31 +1408,39 @@ public class DBAccessorImpl implements DBAccessor {
    *          the target column name
    * @param targetIDFieldName
    *          the target id key name matched with {@code sourceIDFieldName}
-   * @param isColumnNullable
-   *          should be target column nullable or not
-   *
+   * @param initialValue
+   *          initial value for null-contained cells
    * @throws SQLException
    */
   @Override
   public void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
-              String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName,  boolean isColumnNullable) throws SQLException {
+              String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, Object initialValue) throws SQLException {
 
-    if (this.tableHasColumn(sourceTableName, sourceIDFieldName)) {
+    if (tableHasColumn(sourceTableName, sourceIDFieldName) &&
+      tableHasColumn(sourceTableName, sourceColumn.getName()) &&
+      tableHasColumn(targetTableName, targetIDFieldName)
+    ) {
 
       final String moveSQL = dbmsHelper.getCopyColumnToAnotherTableStatement(sourceTableName, sourceColumn.getName(),
         sourceIDFieldName, targetTableName, targetColumn.getName(),targetIDFieldName);
+      final boolean isTargetColumnNullable = targetColumn.isNullable();
 
-      targetColumn.setNullable(true);  // setting column nullable by default
+      targetColumn.setNullable(true);  // setting column nullable by default to move rows with null
 
-      this.addColumn(targetTableName, targetColumn);
-      this.executeUpdate(moveSQL, false);
+      addColumn(targetTableName, targetColumn);
+      executeUpdate(moveSQL, false);
 
-      if (!isColumnNullable) {
-        // this can will trigger exception if some record is null
-        // ToDo: add default option
-        this.setColumnNullable(targetTableName, targetColumn.getName(), false);
+      if (initialValue != null) {
+        String updateSQL = dbmsHelper.getColumnUpdateStatementWhereColumnIsNull(convertObjectName(targetTableName),
+          convertObjectName(targetColumn.getName()), convertObjectName(targetColumn.getName()));
+
+        executePreparedUpdate(updateSQL, initialValue);
       }
-      this.dropColumn(sourceTableName, sourceColumn.getName());
+
+      if (!isTargetColumnNullable) {
+        setColumnNullable(targetTableName, targetColumn.getName(), false);
+      }
+      dropColumn(sourceTableName, sourceColumn.getName());
     }
   }
 }

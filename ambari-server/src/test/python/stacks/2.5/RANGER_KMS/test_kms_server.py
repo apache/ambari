@@ -236,6 +236,11 @@ class TestRangerKMS(RMFTestCase):
       sudo=True
     )
 
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-kms/install.properties',
+      owner = 'kms',
+      properties = {'db_password': '_', 'KMS_MASTER_KEY_PASSWD': '_', 'REPOSITORY_CONFIG_PASSWORD': '_', 'db_root_password': '_'}
+    )
+
     self.assertResourceCalled('Execute', '/usr/hdp/current/ranger-kms/ranger-kms start',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangerkms | grep -v grep',
@@ -669,6 +674,11 @@ class TestRangerKMS(RMFTestCase):
       only_if = 'test -e /usr/jdk64/jdk1.7.0_45/jre/lib/security && test -f /tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
       path=['/bin/', '/usr/bin'],
       sudo=True
+    )
+
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-kms/install.properties',
+      owner = 'kms',
+      properties = {'db_password': '_', 'KMS_MASTER_KEY_PASSWD': '_', 'REPOSITORY_CONFIG_PASSWORD': '_', 'db_root_password': '_'}
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/ranger-kms/ranger-kms start',

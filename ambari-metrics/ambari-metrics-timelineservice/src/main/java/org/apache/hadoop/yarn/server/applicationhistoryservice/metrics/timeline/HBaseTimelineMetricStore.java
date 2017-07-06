@@ -82,6 +82,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
+  private boolean containerMetricsDisabled = false;
 
   /**
    * Construct the service.
@@ -188,7 +189,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         LOG.info("Started watchdog for timeline metrics store with initial " +
           "delay = " + initDelay + ", delay = " + delay);
       }
-
+      containerMetricsDisabled = configuration.isContainerMetricsDisabled();
       isInitialized = true;
     }
 
@@ -363,6 +364,12 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   @Override
   public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
       throws SQLException, IOException {
+
+    if (containerMetricsDisabled) {
+      LOG.debug("Ignoring submitted container metrics according to configuration. Values will not be stored.");
+      return new TimelinePutResponse();
+    }
+
     hBaseAccessor.insertContainerMetrics(metrics);
     return new TimelinePutResponse();
   }
@@ -415,7 +422,11 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
           throws SQLException, IOException {
 
     Map<String, Set<String>> hostedApps = metricMetadataManager.getHostedAppsCache();
-    Map<String, Set<String>> instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    Map<String, Set<String>> instanceHosts = new HashMap<>();
+    if (configuration.getTimelineMetricsMultipleClusterSupport()) {
+      instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    }
+
     Map<String, Map<String, Set<String>>> instanceAppHosts = new HashMap<>();
 
     if (MapUtils.isEmpty(instanceHosts)) {
