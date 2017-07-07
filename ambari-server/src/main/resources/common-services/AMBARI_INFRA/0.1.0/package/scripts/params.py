@@ -80,6 +80,9 @@ solr_client_dir = '/usr/lib/ambari-infra-solr-client'
 solr_bindir = solr_dir + '/bin'
 cloud_scripts = solr_dir + '/server/scripts/cloud-scripts'
 
+logsearch_hosts = default("/clusterHostInfo/logsearch_server_hosts", [])
+has_logsearch = len(logsearch_hosts) > 0
+
 if "infra-solr-env" in config['configurations']:
   infra_solr_hosts = config['clusterHostInfo']['infra_solr_hosts']
   infra_solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']

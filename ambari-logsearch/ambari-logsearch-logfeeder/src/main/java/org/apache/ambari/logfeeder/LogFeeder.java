@@ -33,7 +33,6 @@ import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
 import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZK;
 import org.apache.commons.io.FileUtils;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
-import org.apache.ambari.logfeeder.input.InputManager;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.metrics.MetricsManager;
@@ -57,11 +56,9 @@ public class LogFeeder {
   private ConfigHandler configHandler = new ConfigHandler();
   private LogSearchConfig config;
   
-  private InputManager inputManager = new InputManager();
   private MetricsManager metricsManager = new MetricsManager();
 
   private long lastCheckPointCleanedMS = 0;
-  private boolean isLogfeederCompleted = false;
   private Thread statLoggerThread = null;
 
   private LogFeeder(LogFeederCommandLine cli) {
@@ -72,7 +69,6 @@ public class LogFeeder {
     try {
       init();
       monitor();
-      waitOnAllDaemonThreads();
     } catch (Throwable t) {
       LOG.fatal("Caught exception in main.", t);
       System.exit(1);
@@ -85,11 +81,11 @@ public class LogFeeder {
     configHandler.init();
     SSLUtil.ensureStorePasswords();
     
-    config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER,
-        Maps.fromProperties(LogFeederUtil.getProperties()), LogSearchConfigZK.class);
+    config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER, Maps.fromProperties(LogFeederUtil.getProperties()),
+        LogFeederUtil.getClusterName(), LogSearchConfigZK.class);
     LogLevelFilterHandler.init(config);
     InputConfigUploader.load(config);
-    config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler());
+    config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler(), LogFeederUtil.getClusterName());
     
     metricsManager.init();
     
@@ -117,8 +113,8 @@ public class LogFeeder {
   }
 
   private void monitor() throws Exception {
-    JVMShutdownHook logfeederJVMHook = new JVMShutdownHook();
-    ShutdownHookManager.get().addShutdownHook(logfeederJVMHook, LOGFEEDER_SHUTDOWN_HOOK_PRIORITY);
+    JVMShutdownHook logFeederJVMHook = new JVMShutdownHook();
+    ShutdownHookManager.get().addShutdownHook(logFeederJVMHook, LOGFEEDER_SHUTDOWN_HOOK_PRIORITY);
     
     statLoggerThread = new Thread("statLogger") {
 
@@ -140,10 +136,6 @@ public class LogFeeder {
             lastCheckPointCleanedMS = System.currentTimeMillis();
             configHandler.cleanCheckPointFiles();
           }
-
-          if (isLogfeederCompleted) {
-            break;
-          }
         }
       }
 
@@ -160,20 +152,6 @@ public class LogFeeder {
       List<MetricData> metricsList = new ArrayList<MetricData>();
       configHandler.addMetrics(metricsList);
       metricsManager.useMetrics(metricsList);
-    }
-  }
-
-  private void waitOnAllDaemonThreads() {
-    if ("true".equals(LogFeederUtil.getStringProperty("foreground"))) {
-      inputManager.waitOnAllInputs();
-      isLogfeederCompleted = true;
-      if (statLoggerThread != null) {
-        try {
-          statLoggerThread.join();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
     }
   }
 
@@ -203,7 +181,7 @@ public class LogFeeder {
     
     if (cli.isMonitor()) {
       try {
-        LogFeederUtil.loadProperties("logfeeder.properties");
+        LogFeederUtil.loadProperties();
       } catch (Throwable t) {
         LOG.warn("Could not load logfeeder properites");
         System.exit(1);

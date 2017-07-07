@@ -22,6 +22,7 @@ package org.apache.ambari.logsearch.config.zookeeper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
@@ -53,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -68,14 +70,6 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private static final String DEFAULT_ZK_ROOT = "/logsearch";
   private static final long WAIT_FOR_ROOT_SLEEP_SECONDS = 10;
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-
-  @LogSearchPropertyDescription(
-    name = "cluster.name",
-    description = "Cluster name for Log Feeder. (added into zk path of the shipper configs)",
-    examples = {"cl1"},
-    sources = {"logfeeder.properties"}
-  )
-  private static final String CLUSTER_NAME_PROPERTY = "cluster.name";
 
   @LogSearchPropertyDescription(
     name = "logsearch.config.zk_connect_string",
@@ -103,39 +97,37 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private static final String ZK_ROOT_NODE_PROPERTY = "logsearch.config.zk_root";
 
   private Map<String, String> properties;
-  private String root;
   private CuratorFramework client;
   private TreeCache cache;
   private Gson gson;
 
   @Override
-  public void init(Component component, Map<String, String> properties) throws Exception {
+  public void init(Component component, Map<String, String> properties, String clusterName) throws Exception {
     this.properties = properties;
     
-    LOG.info("Connecting to ZooKeeper at " + properties.get(ZK_CONNECT_STRING_PROPERTY));
+    String root = MapUtils.getString(properties, ZK_ROOT_NODE_PROPERTY, DEFAULT_ZK_ROOT);
+    LOG.info("Connecting to ZooKeeper at " + properties.get(ZK_CONNECT_STRING_PROPERTY) + root);
     client = CuratorFrameworkFactory.builder()
-        .connectString(properties.get(ZK_CONNECT_STRING_PROPERTY))
+        .connectString(properties.get(ZK_CONNECT_STRING_PROPERTY) + root)
         .retryPolicy(new ExponentialBackoffRetry(1000, 3))
         .connectionTimeoutMs(CONNECTION_TIMEOUT)
         .sessionTimeoutMs(SESSION_TIMEOUT)
         .build();
     client.start();
 
-    root = MapUtils.getString(properties, ZK_ROOT_NODE_PROPERTY, DEFAULT_ZK_ROOT);
 
     if (component == Component.SERVER) {
-      if (client.checkExists().forPath(root) == null) {
-        client.create().creatingParentContainersIfNeeded().forPath(root);
+      if (client.checkExists().forPath("/") == null) {
+        client.create().creatingParentContainersIfNeeded().forPath("/");
       }
-      cache = new TreeCache(client, root);
+      cache = new TreeCache(client, "/");
       cache.start();
     } else {
-      while (client.checkExists().forPath(root) == null) {
+      while (client.checkExists().forPath("/") == null) {
         LOG.info("Root node is not present yet, going to sleep for " + WAIT_FOR_ROOT_SLEEP_SECONDS + " seconds");
         Thread.sleep(WAIT_FOR_ROOT_SLEEP_SECONDS * 1000);
       }
-
-      cache = new TreeCache(client, String.format("%s/%s", root, properties.get(CLUSTER_NAME_PROPERTY)));
+      cache = new TreeCache(client, String.format("/%s", clusterName));
     }
     
     gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
@@ -143,13 +135,13 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   @Override
   public boolean inputConfigExists(String clusterName, String serviceName) throws Exception {
-    String nodePath = root + "/" + clusterName + "/input/" + serviceName;
+    String nodePath = String.format("/%s/input/%s", clusterName, serviceName);
     return cache.getCurrentData(nodePath) != null;
   }
 
   @Override
   public void createInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {
-    String nodePath = String.format("%s/%s/input/%s", root, clusterName, serviceName);
+    String nodePath = String.format("/%s/input/%s", clusterName, serviceName);
     try {
       client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, inputConfig.getBytes());
       LOG.info("Uploaded input config for the service " + serviceName + " for cluster " + clusterName);
@@ -160,14 +152,14 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   @Override
   public void setInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {
-    String nodePath = String.format("%s/%s/input/%s", root, clusterName, serviceName);
+    String nodePath = String.format("/%s/input/%s", clusterName, serviceName);
     client.setData().forPath(nodePath, inputConfig.getBytes());
     LOG.info("Set input config for the service " + serviceName + " for cluster " + clusterName);
   }
 
   @Override
   public void monitorInputConfigChanges(final InputConfigMonitor inputConfigMonitor,
-      final LogLevelFilterMonitor logLevelFilterMonitor) throws Exception {
+      final LogLevelFilterMonitor logLevelFilterMonitor, final String clusterName) throws Exception {
     final JsonParser parser = new JsonParser();
     final JsonArray globalConfigNode = new JsonArray();
     for (String globalConfigJsonString : inputConfigMonitor.getGlobalConfigJsons()) {
@@ -175,15 +167,21 @@ public class LogSearchConfigZK implements LogSearchConfig {
       globalConfigNode.add(globalConfigJson.getAsJsonObject().get("global"));
     }
     
-    createGlobalConfigNode(globalConfigNode);
+    createGlobalConfigNode(globalConfigNode, clusterName);
     
     TreeCacheListener listener = new TreeCacheListener() {
+      private final Set<Type> nodeEvents = ImmutableSet.of(Type.NODE_ADDED, Type.NODE_UPDATED, Type.NODE_REMOVED);
+      
       public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        if (!nodeEvents.contains(event.getType())) {
+          return;
+        }
+        
         String nodeName = ZKPaths.getNodeFromPath(event.getData().getPath());
         String nodeData = new String(event.getData().getData());
         Type eventType = event.getType();
         
-        String configPathStab = String.format("%s/%s/", root, properties.get(CLUSTER_NAME_PROPERTY));
+        String configPathStab = String.format("/%s/", clusterName);
         
         if (event.getData().getPath().startsWith(configPathStab + "input/")) {
           handleInputConfigChange(eventType, nodeName, nodeData);
@@ -267,8 +265,8 @@ public class LogSearchConfigZK implements LogSearchConfig {
     cache.start();
   }
 
-  private void createGlobalConfigNode(JsonArray globalConfigNode) {
-    String globalConfigNodePath = String.format("%s/%s/global", root, properties.get(CLUSTER_NAME_PROPERTY));
+  private void createGlobalConfigNode(JsonArray globalConfigNode, String clusterName) {
+    String globalConfigNodePath = String.format("/%s/global", clusterName);
     String data = InputConfigGson.gson.toJson(globalConfigNode);
     
     try {
@@ -284,14 +282,14 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   @Override
   public List<String> getServices(String clusterName) {
-    String parentPath = String.format("%s/%s/input", root, clusterName);
+    String parentPath = String.format("/%s/input", clusterName);
     Map<String, ChildData> serviceNodes = cache.getCurrentChildren(parentPath);
     return new ArrayList<String>(serviceNodes.keySet());
   }
 
   @Override
   public String getGlobalConfigs(String clusterName) {
-    String globalConfigNodePath = String.format("%s/%s/global", root, clusterName);
+    String globalConfigNodePath = String.format("/%s/global", clusterName);
     return new String(cache.getCurrentData(globalConfigNodePath).getData());
   }
 
@@ -301,13 +299,13 @@ public class LogSearchConfigZK implements LogSearchConfig {
     JsonArray globalConfigs = (JsonArray) new JsonParser().parse(globalConfigData);
     InputAdapter.setGlobalConfigs(globalConfigs);
     
-    ChildData childData = cache.getCurrentData(String.format("%s/%s/input/%s", root, clusterName, serviceName));
+    ChildData childData = cache.getCurrentData(String.format("/%s/input/%s", clusterName, serviceName));
     return childData == null ? null : InputConfigGson.gson.fromJson(new String(childData.getData()), InputConfigImpl.class);
   }
 
   @Override
   public void createLogLevelFilter(String clusterName, String logId, LogLevelFilter filter) throws Exception {
-    String nodePath = String.format("%s/%s/loglevelfilter/%s", root, clusterName, logId);
+    String nodePath = String.format("/%s/loglevelfilter/%s", clusterName, logId);
     String logLevelFilterJson = gson.toJson(filter);
     try {
       client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, logLevelFilterJson.getBytes());
@@ -320,7 +318,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
   @Override
   public void setLogLevelFilters(String clusterName, LogLevelFilterMap filters) throws Exception {
     for (Map.Entry<String, LogLevelFilter> e : filters.getFilter().entrySet()) {
-      String nodePath = String.format("%s/%s/loglevelfilter/%s", root, clusterName, e.getKey());
+      String nodePath = String.format("/%s/loglevelfilter/%s", clusterName, e.getKey());
       String logLevelFilterJson = gson.toJson(e.getValue());
       String currentLogLevelFilterJson = new String(cache.getCurrentData(nodePath).getData());
       if (!logLevelFilterJson.equals(currentLogLevelFilterJson)) {
@@ -332,7 +330,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   @Override
   public LogLevelFilterMap getLogLevelFilters(String clusterName) {
-    String parentPath = String.format("%s/%s/loglevelfilter", root, clusterName);
+    String parentPath = String.format("/%s/loglevelfilter", clusterName);
     Map<String, ChildData> logLevelFilterNodes = cache.getCurrentChildren(parentPath);
     TreeMap<String, LogLevelFilter> filters = new TreeMap<>();
     for (Map.Entry<String, ChildData> e : logLevelFilterNodes.entrySet()) {

@@ -58,6 +58,8 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.state.ClientConfigFileDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.State;
@@ -1022,10 +1024,22 @@ public class DatabaseConsistencyCheckHelper {
             Multimap<String, String> dbServiceConfigs = dbServiceVersionConfigs.get(serviceVersion);
             if (dbServiceConfigs != null) {
               for (String serviceName : dbServiceConfigs.keySet()) {
+                ServiceInfo serviceInfo = serviceInfoMap.get(serviceName);
                 Collection<String> serviceConfigsFromStack = stackServiceConfigs.get(serviceName);
                 Collection<String> serviceConfigsFromDB = dbServiceConfigs.get(serviceName);
                 if (serviceConfigsFromDB != null && serviceConfigsFromStack != null) {
                   serviceConfigsFromStack.removeAll(serviceConfigsFromDB);
+                  if (serviceInfo != null && serviceInfo.getComponents() != null) {
+                    for (ComponentInfo componentInfo : serviceInfo.getComponents()) {
+                      if (componentInfo.getClientConfigFiles() != null) {
+                        for (ClientConfigFileDefinition clientConfigFileDefinition : componentInfo.getClientConfigFiles()) {
+                          if (clientConfigFileDefinition.isOptional()) {
+                            serviceConfigsFromStack.remove(clientConfigFileDefinition.getDictionaryName());
+                          }
+                        }
+                      }
+                    }
+                  }
 
                   // skip ranger-{service_name}-* from being checked, unless ranger is installed
                   if(!dbServiceConfigs.containsKey("RANGER")) {

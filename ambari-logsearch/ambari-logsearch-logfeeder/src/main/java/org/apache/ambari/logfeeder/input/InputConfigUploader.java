@@ -28,13 +28,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.log4j.Logger;
 
 import com.google.common.io.Files;
 
+import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
+
 public class InputConfigUploader extends Thread {
   protected static final Logger LOG = Logger.getLogger(InputConfigUploader.class);
+
+  @LogSearchPropertyDescription(
+    name = "logfeeder.config.dir",
+    description = "The directory where shipper configuration files are looked for.",
+    examples = {"/etc/ambari-logsearch-logfeeder/conf"},
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CONFIG_DIR_PROPERTY = "logfeeder.config.dir";
 
   private static final long SLEEP_BETWEEN_CHECK = 2000;
 
@@ -48,7 +59,6 @@ public class InputConfigUploader extends Thread {
   private final Set<String> filesHandled = new HashSet<>();
   private final Pattern serviceNamePattern = Pattern.compile("input.config-(.+).json");
   private final LogSearchConfig config;
-  private final String clusterName = LogFeederUtil.getStringProperty("cluster.name");
   
   public static void load(LogSearchConfig config) {
     new InputConfigUploader(config).start();
@@ -58,7 +68,7 @@ public class InputConfigUploader extends Thread {
     super("Input Config Loader");
     setDaemon(true);
     
-    this.configDir = new File(LogFeederUtil.getStringProperty("logfeeder.config.dir"));
+    this.configDir = new File(LogFeederUtil.getStringProperty(CONFIG_DIR_PROPERTY));
     this.config = config;
   }
   
@@ -74,8 +84,8 @@ public class InputConfigUploader extends Thread {
             String serviceName = m.group(1);
             String inputConfig = Files.toString(inputConfigFile, Charset.defaultCharset());
             
-            if (!config.inputConfigExists(clusterName, serviceName)) {
-              config.createInputConfig(clusterName, serviceName, inputConfig);
+            if (!config.inputConfigExists(LogFeederUtil.getClusterName(), serviceName)) {
+              config.createInputConfig(LogFeederUtil.getClusterName(), serviceName, inputConfig);
             }
             filesHandled.add(inputConfigFile.getAbsolutePath());
           } catch (Exception e) {

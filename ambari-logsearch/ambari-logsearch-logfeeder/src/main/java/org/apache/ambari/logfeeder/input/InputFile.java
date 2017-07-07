@@ -22,6 +22,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import org.apache.ambari.logfeeder.input.reader.LogsearchReaderFactory;
 import org.apache.ambari.logfeeder.util.FileUtil;
@@ -41,7 +43,7 @@ public class InputFile extends AbstractInputFile {
       if (!ArrayUtils.isEmpty(logFiles) && logFiles[0].isFile()) {
         if (tail && logFiles.length > 1) {
           LOG.warn("Found multiple files (" + logFiles.length + ") for the file filter " + filePath +
-              ". Will use only the first one. Using " + logFiles[0].getAbsolutePath());
+              ". Will follow only the first one. Using " + logFiles[0].getAbsolutePath());
         }
         LOG.info("File filter " + filePath + " expanded to " + logFiles[0].getAbsolutePath());
         isReady = true;
@@ -58,7 +60,15 @@ public class InputFile extends AbstractInputFile {
       return new File[]{searchFile};
     } else {
       FileFilter fileFilter = new WildcardFileFilter(searchFile.getName());
-      return searchFile.getParentFile().listFiles(fileFilter);
+      File[] logFiles = searchFile.getParentFile().listFiles(fileFilter);
+      Arrays.sort(logFiles,
+          new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+              return o1.getName().compareTo(o2.getName());
+            }
+      });
+      return logFiles;
     }
   }
 
@@ -66,12 +76,11 @@ public class InputFile extends AbstractInputFile {
   void start() throws Exception {
     boolean isProcessFile = BooleanUtils.toBooleanDefaultIfNull(((InputFileDescriptor)inputDescriptor).getProcessFile(), true);
     if (isProcessFile) {
-      if (tail) {
-        processFile(logFiles[0]);
-      } else {
-        for (File file : logFiles) {
+      for (int i = logFiles.length - 1; i >= 0; i--) {
+        File file = logFiles[i];
+        if (i == 0 || !tail) {
           try {
-            processFile(file);
+            processFile(file, i == 0);
             if (isClosed() || isDrain()) {
               LOG.info("isClosed or isDrain. Now breaking loop.");
               break;

@@ -43,9 +43,10 @@ public interface LogSearchConfig extends Closeable {
    * 
    * @param component The component which will use the configuration.
    * @param properties The properties of that component.
+   * @param clusterName The name of the cluster, only need to be specified in LOGFEEDER mode (null for SERVER mode).
    * @throws Exception
    */
-  void init(Component component, Map<String, String> properties) throws Exception;
+  void init(Component component, Map<String, String> properties, String clusterName) throws Exception;
 
   /**
    * Returns all the service names with input configurations of a cluster. Will be used only in SERVER mode.
@@ -134,7 +135,9 @@ public interface LogSearchConfig extends Closeable {
    * 
    * @param inputConfigMonitor The input config monitor to call in case of an input config change.
    * @param logLevelFilterMonitor The log level filter monitor to call in case of a log level filter change.
+   * @param clusterName The name of the cluster, only need to be specified in LOGFEEDER mode (null for SERVER mode).
    * @throws Exception
    */
-  void monitorInputConfigChanges(InputConfigMonitor inputConfigMonitor, LogLevelFilterMonitor logLevelFilterMonitor) throws Exception;
+  void monitorInputConfigChanges(InputConfigMonitor inputConfigMonitor, LogLevelFilterMonitor logLevelFilterMonitor,
+      String clusterName) throws Exception;
 }

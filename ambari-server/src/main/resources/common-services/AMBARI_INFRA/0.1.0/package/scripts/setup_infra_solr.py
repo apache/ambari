@@ -85,6 +85,11 @@ def setup_infra_solr(name = None):
 
     create_ambari_solr_znode()
 
+    if params.has_logsearch:
+      cleanup_logsearch_collections(params.logsearch_service_logs_collection, jaas_file)
+      cleanup_logsearch_collections(params.logsearch_audit_logs_collection, jaas_file)
+      cleanup_logsearch_collections('history', jaas_file)
+
     security_json_file_location = custom_security_json_location \
       if params.infra_solr_security_json_content and str(params.infra_solr_security_json_content).strip() \
       else format("{infra_solr_conf}/security.json") # security.json file to upload
@@ -142,3 +147,13 @@ def create_ambari_solr_znode():
     solr_znode=params.infra_solr_znode,
     java64_home=params.java64_home,
     retry=30, interval=5)
+
+def cleanup_logsearch_collections(collection, jaas_file):
+  import params
+  solr_cloud_util.remove_admin_handlers(
+    zookeeper_quorum=params.zookeeper_quorum,
+    solr_znode=params.infra_solr_znode,
+    java64_home=params.java64_home,
+    jaas_file=jaas_file,
+    collection=collection
+  )

@@ -205,7 +205,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
 
   @VisibleForTesting
   protected LogSpooler createSpooler(String filePath) {
-    String spoolDirectory = LogFeederUtil.getLogfeederTempDir() + "/s3/service";
+    String spoolDirectory = LogFeederUtil.getLogFeederTempDir() + "/s3/service";
     LOG.info(String.format("Creating spooler with spoolDirectory=%s, filePath=%s", spoolDirectory, filePath));
     return new LogSpooler(spoolDirectory, new File(filePath).getName()+"-", this, this,
         s3OutputConfiguration.getRolloverTimeThresholdSecs());

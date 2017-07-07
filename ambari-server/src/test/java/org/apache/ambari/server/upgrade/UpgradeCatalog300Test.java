@@ -351,11 +351,38 @@ public class UpgradeCatalog300Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
+    Map<String, String> oldLogSearchServiceLogsConf = ImmutableMap.of(
+      "content", "<before/><requestHandler name=\"/admin/\"   class=\"solr.admin.AdminHandlers\" /><after/>");
+
+    Map<String, String> expectedLogSearchServiceLogsConf = ImmutableMap.of(
+      "content", "<before/><after/>");
+
+    Config confLogSearchServiceLogsConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig")).andReturn(confLogSearchServiceLogsConf).atLeastOnce();
+    expect(confLogSearchServiceLogsConf.getProperties()).andReturn(oldLogSearchServiceLogsConf).anyTimes();
+    Capture<Map<String, String>> logSearchServiceLogsConfCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchServiceLogsConfCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogSearchAuditLogsConf = ImmutableMap.of(
+      "content", "<before/><requestHandler name=\"/admin/\"   class=\"solr.admin.AdminHandlers\" /><after/>");
+
+    Map<String, String> expectedLogSearchAuditLogsConf = ImmutableMap.of(
+      "content", "<before/><after/>");
+
+    Config confLogSearchAuditLogsConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig")).andReturn(confLogSearchAuditLogsConf).atLeastOnce();
+    expect(confLogSearchAuditLogsConf.getProperties()).andReturn(oldLogSearchAuditLogsConf).anyTimes();
+    Capture<Map<String, String>> logSearchAuditLogsConfCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchAuditLogsConfCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
     replay(clusters, cluster);
     replay(controller, injector2);
     replay(confSomethingElse1, confSomethingElse2, confLogSearchConf1, confLogSearchConf2);
     replay(logSearchPropertiesConf, logFeederPropertiesConf);
     replay(mockLogFeederLog4j, mockLogSearchLog4j);
+    replay(confLogSearchServiceLogsConf, confLogSearchAuditLogsConf);
     new UpgradeCatalog300(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
@@ -376,5 +403,11 @@ public class UpgradeCatalog300Test {
 
     Map<String, String> updatedLogSearchLog4j = logSearchLog4jCapture.getValue();
     assertTrue(Maps.difference(expectedLogSearchLog4j, updatedLogSearchLog4j).areEqual());
+
+    Map<String, String> updatedServiceLogsConf = logSearchServiceLogsConfCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchServiceLogsConf, updatedServiceLogsConf).areEqual());
+
+    Map<String, String> updatedAuditLogsConf = logSearchAuditLogsConfCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchAuditLogsConf, updatedAuditLogsConf).areEqual());
   }
 }

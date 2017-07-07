@@ -52,12 +52,14 @@ public class AmbariSolrCloudCLI {
   private static final String UNSECURE_ZNODE_COMMAND = "unsecure-znode";
   private static final String SECURE_SOLR_ZNODE_COMMAND = "secure-solr-znode";
   private static final String SECURITY_JSON_LOCATION = "security-json-location";
+  private static final String REMOVE_ADMIN_HANDLERS = "remove-admin-handlers";
   private static final String CMD_LINE_SYNTAX =
     "\n./solrCloudCli.sh --create-collection -z host1:2181,host2:2181/ambari-solr -c collection -cs conf_set"
       + "\n./solrCloudCli.sh --upload-config -z host1:2181,host2:2181/ambari-solr -d /tmp/myconfig_dir -cs config_set"
       + "\n./solrCloudCli.sh --download-config -z host1:2181,host2:2181/ambari-solr -cs config_set -d /tmp/myonfig_dir"
       + "\n./solrCloudCli.sh --check-config -z host1:2181,host2:2181/ambari-solr -cs config_set"
       + "\n./solrCloudCli.sh --create-shard -z host1:2181,host2:2181/ambari-solr -c collection -sn myshard"
+      + "\n./solrCloudCli.sh --remove-admin-handlers -z host1:2181,host2:2181/ambari-solr -c collection"
       + "\n./solrCloudCli.sh --create-znode -z host1:2181,host2:2181 -zn /ambari-solr"
       + "\n./solrCloudCli.sh --check-znode -z host1:2181,host2:2181 -zn /ambari-solr"
       + "\n./solrCloudCli.sh --cluster-prop -z host1:2181,host2:2181/ambari-solr -cpn urlScheme -cpn http"
@@ -135,6 +137,11 @@ public class AmbariSolrCloudCLI {
     final Option unsecureZnodeOption = Option.builder("uz")
       .longOpt(UNSECURE_ZNODE_COMMAND)
       .desc("Disable security for znode")
+      .build();
+
+    final Option removeAdminHandlerOption = Option.builder("rah")
+      .longOpt(REMOVE_ADMIN_HANDLERS)
+      .desc("Remove AdminHandlers request handler from solrconfig.xml")
       .build();
 
     final Option shardNameOption = Option.builder("sn")
@@ -328,6 +335,7 @@ public class AmbariSolrCloudCLI {
 
     options.addOption(helpOption);
     options.addOption(retryOption);
+    options.addOption(removeAdminHandlerOption);
     options.addOption(intervalOption);
     options.addOption(zkConnectStringOption);
     options.addOption(configSetOption);
@@ -414,6 +422,9 @@ public class AmbariSolrCloudCLI {
       } else if (cli.hasOption("uz")) {
         command = UNSECURE_ZNODE_COMMAND;
         validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption, jaasFileOption);
+      } else if (cli.hasOption("rah")) {
+        command = REMOVE_ADMIN_HANDLERS;
+        validateRequiredOptions(cli, command, zkConnectStringOption, collectionOption);
       } else {
         List<String> commands = Arrays.asList(CREATE_COLLECTION_COMMAND, CREATE_SHARD_COMMAND, UPLOAD_CONFIG_COMMAND,
           DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND, SET_CLUSTER_PROP, CREATE_ZNODE, SECURE_ZNODE_COMMAND, UNSECURE_ZNODE_COMMAND,
@@ -539,6 +550,9 @@ public class AmbariSolrCloudCLI {
         case SECURE_SOLR_ZNODE_COMMAND:
           solrCloudClient = clientBuilder.build();
           solrCloudClient.secureSolrZnode();
+        case REMOVE_ADMIN_HANDLERS:
+          solrCloudClient = clientBuilder.build();
+          solrCloudClient.removeAdminHandlerFromCollectionConfig();
           break;
         default:
           throw new AmbariSolrCloudClientException(String.format("Not found command: '%s'", command));

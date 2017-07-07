@@ -58,6 +58,15 @@ class TestStormNimbus(TestStormBase):
         owner = 'storm',
         group = 'hadoop',
     )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+        owner = 'storm',
+        group = 'hadoop',
+    )
     self.assertNoMoreResources()
 
   def test_start_with_metrics_collector(self):
@@ -98,6 +107,15 @@ class TestStormNimbus(TestStormBase):
     self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
         owner = 'storm',
         group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+      path = ['/usr/bin'],
+      user = 'storm',
+      not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      owner = 'storm',
+      group = 'hadoop',
     )
     self.assertNoMoreResources()
 
@@ -141,12 +159,21 @@ class TestStormNimbus(TestStormBase):
         owner = 'storm',
         group = 'hadoop',
     )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+      path = ['/usr/bin'],
+      user = 'storm',
+      not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      owner = 'storm',
+      group = 'hadoop',
+    )
     self.assertNoMoreResources()
 
   @patch("os.path.exists")
   def test_stop_default(self, path_exists_mock):
     # Bool for the pid file
-    path_exists_mock.side_effect = [True]
+    path_exists_mock.side_effect = [True, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -163,6 +190,16 @@ class TestStormNimbus(TestStormBase):
     )
     self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
         action = ['delete'],
+    )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+      not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+    )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
+      not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+      ignore_failures = True,
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -196,12 +233,21 @@ class TestStormNimbus(TestStormBase):
         owner = 'storm',
         group = 'hadoop',
     )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+        owner = 'storm',
+        group = 'hadoop',
+    )
     self.assertNoMoreResources()
 
   @patch("os.path.exists")
   def test_stop_secured(self, path_exists_mock):
     # Bool for the pid file
-    path_exists_mock.side_effect = [True]
+    path_exists_mock.side_effect = [True, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -218,6 +264,16 @@ class TestStormNimbus(TestStormBase):
     )
     self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
         action = ['delete'],
+    )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+      not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+    )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
+      not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+      ignore_failures = True,
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      action = ['delete'],
     )
     self.assertNoMoreResources()
 
