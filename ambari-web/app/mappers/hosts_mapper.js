@@ -171,9 +171,17 @@ App.hostsMapper = App.QuickDataMapper.create({
           ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';
         for (var j = 0; j < item.stack_versions.length; j++) {
           var stackVersion = item.stack_versions[j];
+          var versionNumber = Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version');
+          var isDifferentStack = stackVersion.HostStackVersions.stack !== currentVersion.HostStackVersions.stack;
+          var isCompatible = App.RepositoryVersion.find(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.id')).get('isCompatible');
           stackVersion.host_name = item.Hosts.host_name;
-          stackVersion.is_visible = stringUtils.compareVersions(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version'), currentVersionNumber) >= 0
-            || App.get('supports.displayOlderVersions') || !currentVersionNumber;
+          if (isDifferentStack && !isCompatible) {
+            stackVersion.is_visible = false;
+          } else {
+            stackVersion.is_visible = isDifferentStack
+            || (App.get('supports.displayOlderVersions') || stringUtils.compareVersions(versionNumber, currentVersionNumber) >= 0)
+            || !currentVersionNumber;
+          }
           stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
         }
 
