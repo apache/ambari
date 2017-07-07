@@ -205,6 +205,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    */
   protected static final String UPGRADE_HOST_ORDERED_HOSTS = "Upgrade/host_order";
 
+  /**
+   * The role that will be used when creating HRC's for the type
+   * {@link StageWrapper.Type#UPGRADE_TASKS}.
+   */
+  protected static final String EXECUTE_TASK_ROLE = "ru_execute_tasks";
+
   /*
    * Lifted from RequestResourceProvider
    */
@@ -1327,6 +1333,32 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
+  /**
+   * Creates an action stage using the {@link #EXECUTE_TASK_ROLE} custom action
+   * to execute some Python command.
+   *
+   * @param context
+   *          the upgrade context.
+   * @param request
+   *          the request object to add the stage to.
+   * @param effectiveStackId
+   *          the stack ID to use when generating content for the command. On
+   *          some upgrade types, this may change during the course of the
+   *          upgrade orchestration. An express upgrade changes this after
+   *          stopping all services.
+   * @param entity
+   *          the upgrade entity to set the stage information on
+   * @param wrapper
+   *          the stage wrapper containing information to generate the stage.
+   * @param skippable
+   *          {@code true} to mark the stage as being skippable if a failure
+   *          occurs.
+   * @param supportsAutoSkipOnFailure
+   *          {@code true} to automatically skip on a failure.
+   * @param allowRetry
+   *          {@code true} to be able to retry the failed stage.
+   * @throws AmbariException
+   */
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
       StackId effectiveStackId, UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
       boolean supportsAutoSkipOnFailure, boolean allowRetry) throws AmbariException {
@@ -1356,21 +1388,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         && wrapper.getTasks().get(0).getService() != null) {
 
       AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
-      StackId stackId = context.getTargetStackId();
 
-      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-          stackId.getStackVersion());
+      StackInfo stackInfo = ambariMetaInfo.getStack(effectiveStackId.getStackName(),
+          effectiveStackId.getStackVersion());
 
       String serviceName = wrapper.getTasks().get(0).getService();
-      ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), serviceName);
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(effectiveStackId.getStackName(),
+          effectiveStackId.getStackVersion(), serviceName);
 
       params.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
     }
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        "ru_execute_tasks", Collections.singletonList(filter), params);
+        EXECUTE_TASK_ROLE, Collections.singletonList(filter), params);
+
+    actionContext.setStackId(effectiveStackId);
 
     // hosts in maintenance mode are excluded from the upgrade
     actionContext.setMaintenanceModeHostExcluded(true);
@@ -1464,6 +1497,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         function, filters, commandParams);
+
+    actionContext.setStackId(effectiveStackId);
+
     actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
@@ -1523,6 +1559,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
 
+    actionContext.setStackId(effectiveStackId);
     actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
@@ -1665,6 +1702,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         Role.AMBARI_SERVER_ACTION.toString(), Collections.<RequestResourceFilter> emptyList(),
         commandParams);
 
+    actionContext.setStackId(effectiveStackId);
     actionContext.setTimeout(Short.valueOf((short) -1));
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());

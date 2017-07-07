@@ -204,19 +204,25 @@ public class ExecutionCommandWrapper {
             effectiveClusterVersion.getRepositoryVersion().getVersion());
       }
 
-      // add the stack and common-services folders to the command
+      // add the stack and common-services folders to the command, but only if
+      // they don't exist - they may have been put on here with specific values
+      // ahead of time
       StackId stackId = cluster.getDesiredStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
           stackId.getStackVersion());
 
-      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+      if (!commandParams.containsKey(HOOKS_FOLDER)) {
+        commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+      }
 
-      String serviceName = executionCommand.getServiceName();
-      if (!StringUtils.isEmpty(serviceName)) {
-        ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-            stackId.getStackVersion(), serviceName);
+      if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
+        String serviceName = executionCommand.getServiceName();
+        if (!StringUtils.isEmpty(serviceName)) {
+          ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+              stackId.getStackVersion(), serviceName);
 
-        commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+          commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+        }
       }
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
