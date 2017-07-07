@@ -29,7 +29,8 @@
           "centos-ppc"
         ],
         "versions": [
-          6
+          6,
+          7
         ]
       },
       "debian": {
