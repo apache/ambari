@@ -20,10 +20,8 @@
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.6.*.*</target>
   <target-stack>HDP-2.6</target-stack>
-  <type>NON_ROLLING</type>
-  <!-- TODO
   <downgrade-allowed>false</downgrade-allowed>
-  -->
+  <type>NON_ROLLING</type>
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
     <check>org.apache.ambari.server.checks.JavaVersionCheck</check>
