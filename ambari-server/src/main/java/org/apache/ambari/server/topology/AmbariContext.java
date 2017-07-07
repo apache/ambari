@@ -69,6 +69,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
@@ -80,6 +81,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.inject.Provider;
 
 
 /**
@@ -99,6 +101,12 @@ public class AmbariContext {
    */
   @Inject
   ConfigFactory configFactory;
+
+  /**
+   * Used for getting configuration property values from stack and services.
+   */
+  @Inject
+  private Provider<ConfigHelper> configHelper;
 
   private static AmbariManagementController controller;
   private static ClusterController clusterController;
@@ -672,6 +680,16 @@ public class AmbariContext {
    */
   private String getConfigurationGroupName(String bpName, String hostGroupName) {
     return String.format("%s:%s", bpName, hostGroupName);
+  }
+
+  /**
+   * Gets an instance of {@link ConfigHelper} for classes which are not
+   * dependency injected.
+   *
+   * @return a {@link ConfigHelper} instance.
+   */
+  public ConfigHelper getConfigHelper() {
+    return configHelper.get();
   }
 
   private synchronized HostResourceProvider getHostResourceProvider() {

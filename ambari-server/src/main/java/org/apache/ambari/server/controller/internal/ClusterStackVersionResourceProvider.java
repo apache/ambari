@@ -67,11 +67,13 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -83,6 +85,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
@@ -171,10 +174,18 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Inject
   private static RepositoryVersionHelper repoVersionHelper;
 
-
+  @Inject
+  private static Gson gson;
 
   @Inject
   private static Provider<Clusters> clusters;
+
+  /**
+   * Used for updating the existing stack tools with those of the stack being
+   * distributed.
+   */
+  @Inject
+  private static Provider<ConfigHelper> configHelperProvider;
 
   /**
    * Constructor.
@@ -287,8 +298,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     String clName;
     final String desiredRepoVersion;
-    String stackName;
-    String stackVersion;
 
     Map<String, Object> propertyMap = iterator.next();
 
@@ -327,30 +336,30 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           cluster.getClusterName(), entity.getDirection().getText(false)));
     }
 
-    Set<StackId> stackIds = new HashSet<>();
-    if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
-            propertyMap.containsKey(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)) {
-      stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      stackVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      StackId stackId = new StackId(stackName, stackVersion);
-      if (! ami.isSupportedStack(stackName, stackVersion)) {
-        throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
-                stackId));
-      }
-      stackIds.add(stackId);
-    } else { // Using stack that is current for cluster
-      for (Service service : cluster.getServices().values()) {
-        stackIds.add(service.getDesiredStackId());
-      }
+    String stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
+    String stackVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
+    if (StringUtils.isBlank(stackName) || StringUtils.isBlank(stackVersion)) {
+      String message = String.format(
+          "Both the %s and %s properties are required when distributing a new stack",
+          CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
+
+      throw new SystemException(message);
     }
 
-    if (stackIds.size() > 1) {
-      throw new SystemException("Could not determine stack to add out of " + StringUtils.join(stackIds, ','));
+    StackId stackId = new StackId(stackName, stackVersion);
+
+    if (!ami.isSupportedStack(stackName, stackVersion)) {
+      throw new NoSuchParentResourceException(String.format("Stack %s is not supported", stackId));
     }
 
-    StackId stackId = stackIds.iterator().next();
-    stackName = stackId.getStackName();
-    stackVersion = stackId.getStackVersion();
+    // bootstrap the stack tools if necessary for the stack which is being
+    // distributed
+    try {
+      bootstrapStackTools(stackId, cluster);
+    } catch (AmbariException ambariException) {
+      throw new SystemException("Unable to modify stack tools for new stack being distributed",
+          ambariException);
+    }
 
     RepositoryVersionEntity repoVersionEntity = repositoryVersionDAO.findByStackAndVersion(
         stackId, desiredRepoVersion);
@@ -580,6 +589,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     // determine packages for all services that are installed on host
+    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
     Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {
@@ -600,16 +610,15 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
             Collections.singletonList(host.getHostName()));
 
-    ActionExecutionContext actionContext = new ActionExecutionContext(
-            cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
-            Collections.singletonList(filter),
-            roleParams);
+    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
+        INSTALL_PACKAGES_ACTION, Collections.singletonList(filter), roleParams);
+
+    actionContext.setStackId(stackId);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     repoVersionHelper.addCommandRepository(actionContext, osFamily, repoVersion, repoInfo);
 
     return actionContext;
-
   }
 
 
@@ -698,4 +707,100 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
 
+  /**
+   * Ensures that the stack tools and stack features are set on
+   * {@link ConfigHelper#CLUSTER_ENV} for the stack of the repository being
+   * distributed. This step ensures that the new repository can be distributed
+   * with the correct tools.
+   * <p/>
+   * If the cluster's current stack name matches that of the new stack or the
+   * new stack's tools are already added in the configuration, then this method
+   * will not change anything.
+   *
+   * @param stackId
+   *          the stack of the repository being distributed (not {@code null}).
+   * @param cluster
+   *          the cluster the new stack/repo is being distributed for (not
+   *          {@code null}).
+   * @throws AmbariException
+   */
+  private void bootstrapStackTools(StackId stackId, Cluster cluster) throws AmbariException {
+    // if the stack name is the same as the cluster's current stack name, then
+    // there's no work to do
+    if (StringUtils.equals(stackId.getStackName(),
+        cluster.getCurrentStackVersion().getStackName())) {
+      return;
+    }
+
+    ConfigHelper configHelper = configHelperProvider.get();
+
+    // get the stack tools/features for the stack being distributed
+    Map<String, Map<String, String>> defaultStackConfigurationsByType = configHelper.getDefaultStackProperties(stackId);
+
+    Map<String, String> clusterEnvDefaults = defaultStackConfigurationsByType.get(
+        ConfigHelper.CLUSTER_ENV);
+
+    Config clusterEnv = cluster.getDesiredConfigByType(ConfigHelper.CLUSTER_ENV);
+    Map<String, String> clusterEnvProperties = clusterEnv.getProperties();
+
+    // the 3 properties we need to check and update
+    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY);
+
+    // any updates are stored here and merged into the existing config type
+    Map<String, String> updatedProperties = new HashMap<>();
+
+    for (String property : properties) {
+      // determine if the property exists in the stack being distributed (it
+      // kind of has to, but we'll be safe if it's not found)
+      String newStackDefaultJson = clusterEnvDefaults.get(property);
+      if (StringUtils.isBlank(newStackDefaultJson)) {
+        continue;
+      }
+
+      String existingPropertyJson = clusterEnvProperties.get(property);
+
+      // if the stack tools/features property doesn't exist, then just set the
+      // one from the new stack
+      if (StringUtils.isBlank(existingPropertyJson)) {
+        updatedProperties.put(property, newStackDefaultJson);
+        continue;
+      }
+
+      // now is the hard part - we need to check to see if the new stack tools
+      // exists alongside the current tools and if it doesn't, then add the new
+      // tools in
+      final Map<String, Object> existingJson;
+      final Map<String, ?> newStackJsonAsObject;
+      if (StringUtils.equals(property, ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY)) {
+        existingJson = gson.<Map<String, Object>> fromJson(existingPropertyJson, Map.class);
+        newStackJsonAsObject = gson.<Map<String, String>> fromJson(newStackDefaultJson, Map.class);
+      } else {
+        existingJson = gson.<Map<String, Object>> fromJson(existingPropertyJson,
+            Map.class);
+
+        newStackJsonAsObject = gson.<Map<String, Map<Object, Object>>> fromJson(newStackDefaultJson,
+            Map.class);
+      }
+
+      if (existingJson.keySet().contains(stackId.getStackName())) {
+        continue;
+      }
+
+      existingJson.put(stackId.getStackName(), newStackJsonAsObject.get(stackId.getStackName()));
+
+      String newJson = gson.toJson(existingJson);
+      updatedProperties.put(property, newJson);
+    }
+
+    if (!updatedProperties.isEmpty()) {
+      AmbariManagementController amc = getManagementController();
+      String serviceNote = String.format(
+          "Adding stack tools for %s while distributing a new repository", stackId.toString());
+
+      configHelper.updateConfigType(cluster, stackId, amc, clusterEnv.getType(), updatedProperties,
+          null, amc.getAuthName(), serviceNote);
+    }
+  }
 }

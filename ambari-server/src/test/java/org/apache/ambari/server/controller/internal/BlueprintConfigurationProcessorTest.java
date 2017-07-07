@@ -46,9 +46,11 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
@@ -66,6 +68,7 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.lang.StringUtils;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -95,6 +98,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(), Collections.<String, Map<String, Map<String, String>>>emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<>();
+  private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
+
+  private final String STACK_NAME = "testStack";
+  private final String STACK_VERSION = "1";
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -129,13 +136,16 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Mock
   private TopologyRequest topologyRequestMock;
 
+  @Mock(type = MockType.NICE)
+  private ConfigHelper configHelper;
+
   @Before
   public void init() throws Exception {
     expect(bp.getStack()).andReturn(stack).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
 
-    expect(stack.getName()).andReturn("testStack").anyTimes();
-    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
+    expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
     // return false for all components since for this test we don't care about the value
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.<String, Stack.ConfigProperty>emptyMap()).anyTimes();
@@ -225,6 +235,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
+
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
+    expect(configHelper.getDefaultStackProperties(
+        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+
     expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
     expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
     PowerMock.mockStatic(AmbariServer.class);
@@ -234,14 +249,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(kerberosHelper.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).anyTimes();
-    Set<String> properties = new HashSet<String>();
+    Set<String> properties = new HashSet<>();
     properties.add("core-site/hadoop.security.auth_to_local");
     expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();
   }
 
   @After
   public void tearDown() {
-    reset(bp, serviceInfo, stack, ambariContext);
+    reset(bp, serviceInfo, stack, ambariContext, configHelper);
   }
 
   @Test
@@ -6322,13 +6337,16 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
     topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
     reset(stack);
+    expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getConfiguration(bp.getServices())).andReturn(createStackDefaults()).anyTimes();
 
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
-
     replay(stack);
+
     // WHEN
     Set<String> configTypeUpdated = configProcessor.doUpdateForClusterCreate();
     // THEN
@@ -6379,13 +6397,17 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
     topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
     reset(stack);
+    expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getConfiguration(bp.getServices())).andReturn(createStackDefaults()).anyTimes();
 
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
     replay(stack);
+
     // WHEN
     configProcessor.doUpdateForClusterCreate();
     // THEN
@@ -8050,6 +8072,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Test
   public void testValuesTrimming() throws Exception {
     reset(stack);
+
+    expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
+
     Map<String, Map<String, String>> properties = new HashMap<>();
 
     Map<String, String> hdfsSite = new HashMap<>();
@@ -8073,6 +8099,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       new StackConfigurationResponse(null, null, null, null, "hdfs-site", null, Collections.singleton(PropertyInfo.PropertyType.PASSWORD), null, null, null)));
     propertyConfigs.put("test.host", new Stack.ConfigProperty(
       new StackConfigurationResponse(null, null, null, null, "hdfs-site", null, null, null, valueAttributesInfoHost, null)));
+
     expect(stack.getServiceForConfigType("hdfs-site")).andReturn("HDFS").anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata("HDFS", "hdfs-site")).andReturn(propertyConfigs).anyTimes();
 
@@ -8144,7 +8171,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     throws InvalidTopologyException {
 
 
-    replay(stack, serviceInfo, ambariContext, controller, kerberosHelper, kerberosDescriptor, clusters, cluster);
+    replay(stack, serviceInfo, ambariContext, configHelper, controller, kerberosHelper, kerberosDescriptor, clusters, cluster);
 
     Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
     Collection<String> allServices = new HashSet<>();
@@ -8207,7 +8234,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       this.name = name;
       this.components = components;
       this.hosts = hosts;
-      this.configuration = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
+      configuration = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
         Collections.<String, Map<String, Map<String, String>>>emptyMap());
     }
 
