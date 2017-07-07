@@ -26,7 +26,6 @@ from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_klist_path
-from resource_management.libraries.functions import stack_tools
 from ambari_commons.os_check import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from urlparse import urlparse
@@ -67,7 +66,6 @@ USER_PRINCIPAL_DEFAULT = 'oozie@EXAMPLE.COM'
 # default user
 USER_DEFAULT = 'oozie'
 
-STACK_NAME_KEY = '{{cluster-env/stack_name}}'
 STACK_ROOT_KEY = '{{cluster-env/stack_root}}'
 STACK_ROOT_DEFAULT = '/usr/hdp'
 
@@ -88,7 +86,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (OOZIE_URL_KEY, USER_PRINCIPAL_KEY, SECURITY_ENABLED, USER_KEYTAB_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
-          USER_KEY, OOZIE_HTTPS_PORT, OOZIE_ENV_CONTENT, STACK_NAME_KEY, STACK_ROOT_KEY)
+          USER_KEY, OOZIE_HTTPS_PORT, OOZIE_ENV_CONTENT, STACK_ROOT_KEY)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_check_command(oozie_url, host_name, configurations):
@@ -160,8 +158,8 @@ def get_check_command(oozie_url, host_name, configurations, parameters, only_kin
 
   # Configure stack root
   stack_root = STACK_ROOT_DEFAULT
-  if STACK_NAME_KEY in configurations and STACK_ROOT_KEY in configurations:
-    stack_root = stack_tools.get_stack_root(configurations[STACK_NAME_KEY], configurations[STACK_ROOT_KEY]).lower()
+  if STACK_ROOT_KEY in configurations:
+    stack_root = configurations[STACK_ROOT_KEY].lower()
 
   # oozie configuration directory using a symlink
   oozie_config_directory = OOZIE_CONF_DIR.replace(STACK_ROOT_PATTERN, stack_root)

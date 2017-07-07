@@ -20,18 +20,6 @@
  */
 -->
 <configuration>
-  <!-- Define stack_name property in the base stack. DO NOT override this property for each stack version -->
-  <property>
-    <name>stack_name</name>
-    <value>PERF</value>
-    <description>The name of the stack.</description>
-    <value-attributes>
-      <read-only>true</read-only>
-      <overridable>false</overridable>
-      <visible>false</visible>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
 
   <!-- Define stack_tools property in the base stack. DO NOT override this property for each stack version -->
   <property>
@@ -67,8 +55,8 @@
 
   <property>
     <name>stack_root</name>
-    <value>{"PERF":"/usr/perf"}</value>
-    <description>JSON which defines the stack root by stack name</description>  
+    <value>/usr/perf</value>
+    <description>Stack root folder</description>
     <value-attributes>
       <read-only>true</read-only>
       <overridable>false</overridable>

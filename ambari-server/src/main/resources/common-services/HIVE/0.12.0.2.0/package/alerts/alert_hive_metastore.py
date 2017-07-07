@@ -27,7 +27,6 @@ import logging
 from resource_management.core import global_lock
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions import stack_tools
 from resource_management.core.resources import Execute
 from resource_management.core.signal_utils import TerminateStrategy
 from ambari_commons.os_check import OSConst
@@ -57,7 +56,6 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
-STACK_NAME = '{{cluster-env/stack_name}}'
 STACK_ROOT = '{{cluster-env/stack_root}}'
 
 HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
@@ -80,7 +78,7 @@ def get_tokens():
   """
   return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,
     HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
-    STACK_NAME, STACK_ROOT)
+    STACK_ROOT)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_tokens():
@@ -177,10 +175,9 @@ def execute(configurations={}, parameters={}, host_name=None):
     bin_dir = HIVE_BIN_DIR_LEGACY
 
 
-    if STACK_NAME in configurations and STACK_ROOT in configurations:
-      stack_root = stack_tools.get_stack_root(configurations[STACK_NAME], configurations[STACK_ROOT])
-      hive_conf_dir = stack_root + format("/current/hive-metastore/conf")
-      hive_bin_dir = stack_root + format("/current/hive-metastore/bin")
+    if STACK_ROOT in configurations:
+      hive_conf_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/conf")
+      hive_bin_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/bin")
 
       if os.path.exists(hive_conf_dir):
         conf_dir = hive_conf_dir

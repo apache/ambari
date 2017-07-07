@@ -42,12 +42,6 @@ def check_stack_feature(stack_feature, stack_version):
 
   from resource_management.libraries.functions.default import default
   from resource_management.libraries.functions.version import compare_versions
-
-  stack_name = default("/hostLevelParams/stack_name", None)
-  if stack_name is None:
-    Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
-    return False
-
   stack_features_config = default("/configurations/cluster-env/stack_features", None)
 
   if not stack_version:
@@ -56,13 +50,6 @@ def check_stack_feature(stack_feature, stack_version):
 
   if stack_features_config:
     data = json.loads(stack_features_config)
-
-    if stack_name not in data:
-      Logger.warning("Cannot find stack features for the stack named {0}".format(stack_name))
-      return False
-
-    data = data[stack_name]
-
     for feature in data["stack_features"]:
       if feature["name"] == stack_feature:
         if "min_version" in feature:

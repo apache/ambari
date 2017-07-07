@@ -31,7 +31,6 @@ RESULT_STATE_WARNING = 'WARNING'
 RESULT_STATE_CRITICAL = 'CRITICAL'
 RESULT_STATE_UNKNOWN = 'UNKNOWN'
 
-STACK_NAME = '{{cluster-env/stack_name}}'
 STACK_TOOLS = '{{cluster-env/stack_tools}}'
 
 
@@ -43,7 +42,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (STACK_NAME, STACK_TOOLS)
+  return (STACK_TOOLS,)
 
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -66,10 +65,8 @@ def execute(configurations={}, parameters={}, host_name=None):
     if STACK_TOOLS not in configurations:
       return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(STACK_TOOLS)])
 
-    stack_name = Script.get_stack_name()
-
     # Of the form,
-    # { "HDP" : { "stack_selector": ["hdp-select", "/usr/bin/hdp-select", "hdp-select"], "conf_selector": ["conf-select", "/usr/bin/conf-select", "conf-select"] } }
+    # { "stack_selector": ["hdp-select", "/usr/bin/hdp-select", "hdp-select"], "conf_selector": ["conf-select", "/usr/bin/conf-select", "conf-select"] }
     stack_tools_str = configurations[STACK_TOOLS]
 
     if stack_tools_str is None:
@@ -78,7 +75,6 @@ def execute(configurations={}, parameters={}, host_name=None):
     distro_select = "unknown-distro-select"
     try:
       stack_tools = json.loads(stack_tools_str)
-      stack_tools = stack_tools[stack_name]
       distro_select = stack_tools["stack_selector"][0]
     except:
       pass

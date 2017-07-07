@@ -18,20 +18,10 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.hadoop.metrics2.sink.relocated.commons.lang.StringUtils;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -51,8 +41,6 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_GROUP_TABLE = "upgrade_group";
   private static final String UPGRADE_ITEM_TABLE = "upgrade_item";
   private static final String UPGRADE_ID_COLUMN = "upgrade_id";
-
-  private static final String CLUSTER_ENV = "cluster-env";
 
   /**
    * Constructor.
@@ -101,7 +89,6 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    resetStackToolsAndFeatures();
   }
 
   /**
@@ -147,53 +134,5 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
 
     dbAccessor.addFKConstraint(UPGRADE_TABLE, "FK_upgrade_to_repo_id",
         UPGRADE_TABLE_FROM_REPO_COLUMN, "repo_version", "repo_version_id", false);
-  }
-
-  /**
-   * Resets the following properties in {@code cluster-env} to their new
-   * defaults:
-   * <ul>
-   * <li>stack_root
-   * <li>stack_tools
-   * <li>stack_features
-   * <ul>
-   *
-   * @throws AmbariException
-   */
-  private void resetStackToolsAndFeatures() throws AmbariException {
-    Set<String> propertiesToReset = Sets.newHashSet("stack_tools", "stack_features", "stack_root");
-
-    Clusters clusters = injector.getInstance(Clusters.class);
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-
-    Map<String, Cluster> clusterMap = clusters.getClusters();
-    for (Cluster cluster : clusterMap.values()) {
-      Config clusterEnv = cluster.getDesiredConfigByType(CLUSTER_ENV);
-      if (null == clusterEnv) {
-        continue;
-      }
-
-      Map<String, String> newStackProperties = new HashMap<>();
-      Set<PropertyInfo> stackProperties = configHelper.getStackProperties(cluster);
-      if (null == stackProperties) {
-        continue;
-      }
-
-      for (PropertyInfo propertyInfo : stackProperties) {
-        String fileName = propertyInfo.getFilename();
-        if (StringUtils.isEmpty(fileName)) {
-          continue;
-        }
-
-        if (StringUtils.equals(ConfigHelper.fileNameToConfigType(fileName), CLUSTER_ENV)) {
-          String stackPropertyName = propertyInfo.getName();
-          if (propertiesToReset.contains(stackPropertyName)) {
-            newStackProperties.put(stackPropertyName, propertyInfo.getValue());
-          }
-        }
-      }
-
-      updateConfigurationPropertiesForCluster(cluster, CLUSTER_ENV, newStackProperties, true, false);
-    }
   }
 }

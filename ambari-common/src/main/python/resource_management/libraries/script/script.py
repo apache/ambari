@@ -553,11 +553,7 @@ class Script(object):
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = default("/hostLevelParams/stack_name", None)
-    if stack_name is None:
-      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
-
-    return stack_name
+    return default("/hostLevelParams/stack_name", "HDP")
 
   @staticmethod
   def get_stack_root():
@@ -567,18 +563,7 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
     stack_name = Script.get_stack_name()
-    stack_root_json = default("/configurations/cluster-env/stack_root", None)
-
-    if stack_root_json is None:
-      return "/usr/{0}".format(stack_name.lower())
-
-    stack_root = json.loads(stack_root_json)
-
-    if stack_name not in stack_root:
-      Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
-      return "/usr/{0}".format(stack_name.lower())
-
-    return stack_root[stack_name]
+    return default("/configurations/cluster-env/stack_root", "/usr/{0}".format(stack_name.lower()))
 
   @staticmethod
   def get_stack_version():
