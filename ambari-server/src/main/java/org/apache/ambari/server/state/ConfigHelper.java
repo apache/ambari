@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Objects;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -46,6 +45,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
@@ -91,6 +91,7 @@ public class ConfigHelper {
   public static final String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
   public static final String CLUSTER_ENV_STACK_FEATURES_PROPERTY = "stack_features";
   public static final String CLUSTER_ENV_STACK_TOOLS_PROPERTY = "stack_tools";
+  public static final String CLUSTER_ENV_STACK_ROOT_PROPERTY = "stack_root";
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
@@ -652,7 +653,7 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = new HashSet<PropertyInfo>(servicesMap.get(service.getName()).getProperties());
+      Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
