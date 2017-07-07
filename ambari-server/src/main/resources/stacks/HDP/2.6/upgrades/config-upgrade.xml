@@ -66,6 +66,15 @@
             <set key="ranger.plugin.hive.urlauth.filesystem.schemes" value="hdfs:,file:,wasb:,adl:"
               if-type="ranger-hive-security" if-key="ranger.plugin.hive.service.name" if-key-state="present"/>
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook" summary="Updating hive atlas application properties">
+            <type>hive-atlas-application.properties</type>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag" value="required"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleName" value="com.sun.security.auth.module.Krb5LoginModule"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.option.useTicketCache" value="true"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+          </definition>
         </changes>
       </component>
     </service>

@@ -280,7 +280,7 @@ public class GenericDbmsHelper implements DbmsHelper {
    */
   @Override
   public String getColumnUpdateStatementWhereColumnIsNull(String tableName, String setColumnName, String conditionColumnName){
-    return "UPDATE " + tableName + " SET " + setColumnName + "=? WHERE " + conditionColumnName + " IS NULL;";
+    return "UPDATE " + tableName + " SET " + setColumnName + "=? WHERE " + conditionColumnName + " IS NULL";
   }
 
   /**

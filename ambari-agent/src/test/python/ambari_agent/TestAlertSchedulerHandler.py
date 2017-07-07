@@ -70,7 +70,7 @@ class TestAlertSchedulerHandler(TestCase):
       }
     }
 
-    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
+    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, MetricAlert))
@@ -85,7 +85,7 @@ class TestAlertSchedulerHandler(TestCase):
       }
     }
 
-    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
+    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, AmsAlert))
@@ -100,7 +100,7 @@ class TestAlertSchedulerHandler(TestCase):
     }
 
     scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
-    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
+    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, PortAlert))
@@ -116,7 +116,7 @@ class TestAlertSchedulerHandler(TestCase):
     }
 
     scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
-    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
+    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, WebAlert))
@@ -131,7 +131,7 @@ class TestAlertSchedulerHandler(TestCase):
     }
 
     scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
-    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
+    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is None)
 
@@ -174,6 +174,7 @@ class TestAlertSchedulerHandler(TestCase):
       {
         'clusterName': 'cluster',
         'hostName': 'host',
+        'publicHostName' : 'host',
         'alertDefinition': {
           'name': 'alert1'
         }
@@ -191,7 +192,7 @@ class TestAlertSchedulerHandler(TestCase):
 
     scheduler.execute_alert(execution_commands)
 
-    scheduler._AlertSchedulerHandler__json_to_callable.assert_called_with('cluster', 'host', {'name': 'alert1'})
+    scheduler._AlertSchedulerHandler__json_to_callable.assert_called_with('cluster', 'host', 'host', {'name': 'alert1'})
     self.assertTrue(alert_mock.collect.called)
 
   def test_execute_alert_from_extension(self):
@@ -199,6 +200,7 @@ class TestAlertSchedulerHandler(TestCase):
       {
         'clusterName': 'cluster',
         'hostName': 'host',
+        'publicHostName' : 'host',
         'alertDefinition': {
           'name': 'alert1'
         }
@@ -216,7 +218,7 @@ class TestAlertSchedulerHandler(TestCase):
 
     scheduler.execute_alert(execution_commands)
 
-    scheduler._AlertSchedulerHandler__json_to_callable.assert_called_with('cluster', 'host', {'name': 'alert1'})
+    scheduler._AlertSchedulerHandler__json_to_callable.assert_called_with('cluster', 'host', 'host', {'name': 'alert1'})
     self.assertTrue(alert_mock.collect.called)
 
   def test_load_definitions(self):
@@ -245,6 +247,7 @@ class TestAlertSchedulerHandler(TestCase):
       {
         'clusterName': 'cluster',
         'hostName': 'host',
+        'publicHostName' : 'host',
         'alertDefinition': {
           'name': 'alert1'
         }

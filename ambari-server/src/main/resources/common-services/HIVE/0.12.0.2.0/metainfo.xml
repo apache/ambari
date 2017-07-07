@@ -229,6 +229,7 @@
               <type>env</type>
               <fileName>parquet-logging.properties</fileName>
               <dictionaryName>parquet-logging</dictionaryName>
+              <optional>true</optional>
             </configFile>
           </configFiles>
           <configuration-dependencies>

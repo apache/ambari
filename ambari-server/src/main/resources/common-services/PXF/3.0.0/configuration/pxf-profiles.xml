@@ -74,6 +74,7 @@ under the License.
         <description>
             This profile is suitable for using when connecting to Hive.
             Supports GPDBWritable output format, as specified in FORMAT header parameter.
+            It auto-detects actual file storage format and uses an optimized profile (HiveRC, HiveText, HiveORC) if applicable.
         </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveDataFragmenter</fragmenter>
@@ -127,6 +128,19 @@ under the License.
             <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveInputFormatFragmenter</fragmenter>
             <accessor>org.apache.hawq.pxf.plugins.hive.HiveORCAccessor</accessor>
             <resolver>org.apache.hawq.pxf.plugins.hive.HiveORCSerdeResolver</resolver>
+            <metadata>org.apache.hawq.pxf.plugins.hive.HiveMetadataFetcher</metadata>
+            <outputFormat>org.apache.hawq.pxf.service.io.GPDBWritable</outputFormat>
+        </plugins>
+    </profile>
+    <profile>
+        <name>HiveVectorizedORC</name>
+        <description>This profile is same as HiveORC profile, but operates on batches of rows
+            instead of one row at a time, leading to faster reading and resolution phases.
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveInputFormatFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hive.HiveORCVectorizedAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hive.HiveORCVectorizedResolver</resolver>
             <metadata>org.apache.hawq.pxf.plugins.hive.HiveMetadataFetcher</metadata>
             <outputFormat>org.apache.hawq.pxf.service.io.GPDBWritable</outputFormat>
         </plugins>
@@ -194,6 +208,15 @@ under the License.
             <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
             <accessor>org.apache.hawq.pxf.plugins.json.JsonAccessor</accessor>
             <resolver>org.apache.hawq.pxf.plugins.json.JsonResolver</resolver>
+        </plugins>
+    </profile>
+    <profile>
+        <name>Jdbc</name>
+        <description>A profile for reading data into HAWQ via JDBC</description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.jdbc.JdbcPartitionFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.jdbc.JdbcReadAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.jdbc.JdbcReadResolver</resolver>
         </plugins>
     </profile>
 </profiles>

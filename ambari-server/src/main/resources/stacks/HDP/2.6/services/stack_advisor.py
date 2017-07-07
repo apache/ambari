@@ -548,6 +548,9 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    putHiveAtlasHookProperty = self.putProperty(configurations, "hive-atlas-application.properties", services)
+    putHiveAtlasHookPropertyAttribute = self.putPropertyAttribute(configurations,"hive-atlas-application.properties")
+
     if 'hive-env' in services['configurations'] and 'hive_user' in services['configurations']['hive-env']['properties']:
       hive_user = services['configurations']['hive-env']['properties']['hive_user']
     else:
@@ -566,6 +569,24 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerHivePluginProperty("REPOSITORY_CONFIG_USERNAME",hive_user)
     else:
       Logger.info("Not setting Hive Repo user for Ranger.")
+
+    security_enabled = self.isSecurityEnabled(services)
+    enable_atlas_hook = False
+
+    if 'hive-env' in configurations and 'hive.atlas.hook' in configurations['hive-env']['properties']:
+      enable_atlas_hook = configurations['hive-env']['properties']['hive.atlas.hook'].lower() == 'true'
+    elif 'hive-env' in services['configurations'] and 'hive.atlas.hook' in services['configurations']['hive-env']['properties']:
+      enable_atlas_hook = services['configurations']['hive-env']['properties']['hive.atlas.hook'].lower() == 'true'
+
+    if 'hive-atlas-application.properties' in services['configurations']:
+      if security_enabled and enable_atlas_hook:
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'required')
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'com.sun.security.auth.module.Krb5LoginModule')
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'true')
+      else:
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'delete', 'true')
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'delete', 'true')
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'delete', 'true')
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)

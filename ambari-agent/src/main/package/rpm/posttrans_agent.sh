@@ -18,6 +18,8 @@ RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
 RESOURCE_MANAGEMENT_DIR_AGENT="/usr/lib/ambari-agent/lib/resource_management"
 JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
 JINJA_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_jinja2"
+AMBARI_AGENT_BINARY="/etc/init.d/ambari-agent"
+AMBARI_AGENT_BINARY_SYMLINK="/usr/sbin/ambari-agent"
 
 # remove RESOURCE_MANAGEMENT_DIR if it's a directory
 if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then  # resource_management dir exists
@@ -33,6 +35,11 @@ fi
 # setting jinja2 shared resource
 if [ ! -d "$JINJA_DIR" ]; then
   ln -s "$JINJA_AGENT_DIR" "$JINJA_DIR"
+fi
+
+# setting ambari-agent binary symlink
+if [ ! -f "$AMBARI_AGENT_BINARY_SYMLINK" ]; then
+  ln -s "$AMBARI_AGENT_BINARY" "$AMBARI_AGENT_BINARY_SYMLINK"
 fi
 
 exit 0

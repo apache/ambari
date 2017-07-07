@@ -7747,13 +7747,12 @@ class TestAmbariServer(TestCase):
   @patch("urllib2.urlopen")
   @patch("urllib2.Request")
   @patch("base64.encodestring")
-  @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.logger")
   def test_sync_ldap_forbidden(self, logger_mock, get_validated_string_input_method, get_ambari_properties_method,
-                                is_server_runing_method, is_root_method,
+                                is_server_runing_method,
                                 encodestring_method, request_constructor, urlopen_method):
 
     options = self._create_empty_options_mock()
@@ -7761,16 +7760,6 @@ class TestAmbariServer(TestCase):
     options.ldap_sync_existing = False
     options.ldap_sync_users = None
     options.ldap_sync_groups = None
-
-    is_root_method.return_value = False
-    try:
-      sync_ldap(options)
-      self.fail("Should throw exception if not root")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("root-level" in fe.reason)
-      pass
-    is_root_method.return_value = True
 
     is_server_runing_method.return_value = (None, None)
     try:

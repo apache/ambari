@@ -228,6 +228,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         String serviceName = response.getServiceName();
         String componentName = response.getComponentName();
         String hostName = response.getHostname();
+        String publicHostName = response.getPublicHostname();
         ComponentInfo componentInfo = null;
         String packageFolder = null;
 
@@ -443,6 +444,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("clusterHostInfo", clusterHostInfo);
         jsonContent.put("hostLevelParams", hostLevelParams);
         jsonContent.put("hostname", hostName);
+        jsonContent.put("public_hostname", publicHostName);
         jsonContent.put("clusterName", cluster.getClusterName());
         jsonConfigurations = gson.toJson(jsonContent);
 
