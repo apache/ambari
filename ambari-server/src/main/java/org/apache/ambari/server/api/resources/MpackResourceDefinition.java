@@ -17,10 +17,17 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Resource Definition for Mpack Resource types.
@@ -47,4 +54,49 @@ public class MpackResourceDefinition extends BaseResourceDefinition {
   public String getSingularName() {
     return "mpack";
   }
+
+  @Override
+  public List<PostProcessor> getPostProcessors() {
+    List<PostProcessor> listProcessors = new ArrayList<>();
+    listProcessors.add(new MpackHrefProcessor());
+    listProcessors.add(new MpackPostProcessor());
+    return listProcessors;
+  }
+
+  /**
+   * Post Processing the mpack href when the call comes from stack endpoint to ensure that the
+   * href is a backreference to the mpacks end point
+   */
+  private class MpackHrefProcessor extends BaseHrefPostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      if (href.contains("/stacks/")) {
+        ResourceImpl mpack = (ResourceImpl) resultNode.getObject();
+        Map<String, Map<String, Object>> mapInfo = mpack.getPropertiesMap();
+        Map<String, Object> mpackInfo = mapInfo.get("MpackInfo");
+
+        int idx = href.indexOf("stacks/");
+        Long mpackId = (Long)mpackInfo.get("mpack_id");
+        href = href.substring(0, idx) + "mpacks/" + mpackId;
+        resultNode.setProperty("href", href);
+      } else {
+        super.process(request, resultNode, href);
+      }
+    }
+  }
+
+  /***
+   * Post processing to change the name of the result node to current_mpack
+   */
+  private class MpackPostProcessor implements PostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      if (href.contains("/stacks/")) {
+        resultNode.setName("current_mpack");
+
+      }
+    }
+  }
+
+
 }

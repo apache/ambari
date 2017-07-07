@@ -17,11 +17,30 @@
 --
 
 ------create tables and grant privileges to db user---------
+CREATE TABLE registries(
+ id BIGINT NOT NULL,
+ registy_name VARCHAR(255) NOT NULL,
+ registry_type VARCHAR(255) NOT NULL,
+ registry_uri VARCHAR(255) NOT NULL,
+ CONSTRAINT PK_registries PRIMARY KEY (id));
+
+CREATE TABLE mpacks(
+ id BIGINT NOT NULL,
+ mpack_name VARCHAR(255) NOT NULL,
+ mpack_version VARCHAR(255) NOT NULL,
+ mpack_uri VARCHAR(255),
+ registry_id BIGINT,
+ CONSTRAINT PK_mpacks PRIMARY KEY (id),
+ CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id),
+ CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version));
+
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
+  current_mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
+  CONSTRAINT FK_mpacks FOREIGN KEY (current_mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -1556,23 +1575,6 @@ CREATE TABLE qrtz_locks
   LOCK_NAME  VARCHAR(40) NOT NULL,
   PRIMARY KEY (SCHED_NAME,LOCK_NAME)
 );
-
-CREATE TABLE registries(
- id BIGINT NOT NULL,
- registy_name VARCHAR(255) NOT NULL,
- registry_type VARCHAR(255) NOT NULL,
- registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id));
-
-CREATE TABLE mpacks(
- id BIGINT NOT NULL,
- mpack_name VARCHAR(255) NOT NULL,
- mpack_version VARCHAR(255) NOT NULL,
- mpack_uri VARCHAR(255),
- registry_id BIGINT,
- CONSTRAINT PK_mpacks PRIMARY KEY (id),
- CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id)
- CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version));
 
 create index idx_qrtz_j_req_recovery on qrtz_job_details(SCHED_NAME,REQUESTS_RECOVERY);
 create index idx_qrtz_j_grp on qrtz_job_details(SCHED_NAME,JOB_GROUP);

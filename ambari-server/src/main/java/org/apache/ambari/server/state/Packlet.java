@@ -27,6 +27,8 @@ public class Packlet {
   private String name;
   @SerializedName("version")
   private String version;
+  @SerializedName("service-id")
+  private String serviceId;
   @SerializedName("source_dir")
   private String sourceDir;
 
@@ -62,6 +64,16 @@ public class Packlet {
     this.sourceDir = sourceDir;
   }
 
+
+  public String getServiceId() {
+    return serviceId;
+  }
+
+  public void setServiceId(String serviceId) {
+    this.serviceId = serviceId;
+  }
+
+
   /**
    * {@inheritDoc}
    */
@@ -72,6 +84,7 @@ public class Packlet {
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
+    result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
     result = prime * result + ((sourceDir == null) ? 0 : sourceDir.hashCode());
     return result;
   }
@@ -115,6 +128,14 @@ public class Packlet {
       return false;
     }
 
+    if (serviceId == null) {
+      if (other.serviceId != null) {
+        return false;
+      }
+    } else if (!serviceId.equals(other.serviceId)) {
+      return false;
+    }
+
     if (sourceDir == null) {
       if (other.sourceDir != null) {
         return false;
@@ -132,6 +153,7 @@ public class Packlet {
     sb.append("type=").append(type).append(", ");
     sb.append("name=").append(name).append(", ");
     sb.append("version=").append(version).append(", ");
+    sb.append("service id=").append(serviceId).append(", ");
     sb.append("source directory=").append(sourceDir).append(", ");
     sb.append('}');
     return sb.toString();

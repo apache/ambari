@@ -116,7 +116,7 @@ public class StackManager {
   /**
    * Constructor. Initialize stack manager.
    *
-   * @param stackRoot
+   * @param stackRootDir
    *          stack root directory
    * @param commonServicesRoot
    *          common services root directory
@@ -141,7 +141,7 @@ public class StackManager {
    *           if an exception occurs while processing the stacks
    */
   @AssistedInject
-  public StackManager(@Assisted("stackRoot") File stackRoot,
+  public StackManager(@Assisted("stackRoot") File stackRootDir,
       @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
       @Assisted("extensionRoot") @Nullable File extensionRoot,
       @Assisted OsFamily osFamily, @Assisted boolean validate,
@@ -151,6 +151,7 @@ public class StackManager {
 
     LOG.info("Initializing the stack manager...");
 
+    stackRoot = stackRootDir;
     if (validate) {
       validateStackDirectory(stackRoot);
       validateCommonServicesDirectory(commonServicesRoot);

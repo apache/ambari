@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@ package org.apache.ambari.server.api.resources;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.ambari.server.controller.spi.Resource;
 
 public class StackVersionResourceDefinition extends BaseResourceDefinition {
@@ -50,7 +49,8 @@ public class StackVersionResourceDefinition extends BaseResourceDefinition {
     children.add(new SubResourceDefinition(Resource.Type.RepositoryVersion));
     children.add(new SubResourceDefinition(Resource.Type.StackArtifact));
     children.add(new SubResourceDefinition(Resource.Type.CompatibleRepositoryVersion));
-
+    children.add(new SubResourceDefinition(Resource.Type.Mpack, null, false));
     return children;
   }
-}
+
+ }

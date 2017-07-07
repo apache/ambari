@@ -17,11 +17,30 @@
 --
 
 ------create tables---------
+CREATE TABLE registries(
+ id BIGINT NOT NULL,
+ registy_name VARCHAR(255) NOT NULL,
+ registry_type VARCHAR(255) NOT NULL,
+ registry_uri VARCHAR(255) NOT NULL,
+ CONSTRAINT PK_registries PRIMARY KEY (id));
+
+CREATE TABLE mpacks(
+ id BIGINT NOT NULL,
+ mpack_name VARCHAR(255) NOT NULL,
+ mpack_version VARCHAR(255) NOT NULL,
+ mpack_uri VARCHAR(255),
+ registry_id BIGINT,
+ CONSTRAINT PK_mpacks PRIMARY KEY (id),
+ CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
+ CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
+
 CREATE TABLE stack(
   stack_id NUMBER(19) NOT NULL,
   stack_name VARCHAR2(255) NOT NULL,
   stack_version VARCHAR2(255) NOT NULL,
+  current_mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
+  CONSTRAINT FK_mpacks FOREIGN KEY (current_mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -1040,23 +1059,6 @@ CREATE TABLE alert_notice (
   FOREIGN KEY (target_id) REFERENCES alert_target(target_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
-
-CREATE TABLE registries(
- id BIGINT NOT NULL,
- registy_name VARCHAR(255) NOT NULL,
- registry_type VARCHAR(255) NOT NULL,
- registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id));
-
-CREATE TABLE mpacks(
- id BIGINT NOT NULL,
- mpack_name VARCHAR(255) NOT NULL,
- mpack_version VARCHAR(255) NOT NULL,
- mpack_uri VARCHAR(255),
- registry_id BIGINT,
- CONSTRAINT PK_mpacks PRIMARY KEY (id),
- CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
- CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
 
 CREATE INDEX idx_alert_history_def_id on alert_history(alert_definition_id);
 CREATE INDEX idx_alert_history_service on alert_history(service_name);

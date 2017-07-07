@@ -153,10 +153,40 @@ import org.apache.ambari.server.stack.ExtensionHelper;
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
+import org.apache.ambari.server.state.ExtensionInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.Packlet;
+import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
@@ -485,6 +515,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public MpackResponse registerMpack(MpackRequest request) throws IOException, AuthorizationException, ResourceAlreadyExistsException{
     MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
+    updateStacks();
     return mpackResponse;
   }
 

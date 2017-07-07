@@ -59,6 +59,20 @@ public class StackEntity {
   @Column(name = "stack_version", length = 255, nullable = false)
   private String stackVersion;
 
+
+  @Column(name = "current_mpack_id")
+  private Long currentMpackId;
+
+
+  public Long getCurrentMpackId() {
+    return currentMpackId;
+  }
+
+  public void setCurrentMpackId(Long currentMpackId) {
+    this.currentMpackId = currentMpackId;
+  }
+
+
   /**
    * Constructor.
    */
@@ -154,6 +168,7 @@ public class StackEntity {
     buffer.append("id=").append(stackId);
     buffer.append(", name=").append(stackName);
     buffer.append(", version=").append(stackVersion);
+    buffer.append(", current_mpack_id=").append(currentMpackId);
     buffer.append("}");
     return buffer.toString();
   }

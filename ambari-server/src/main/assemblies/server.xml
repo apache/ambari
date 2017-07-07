@@ -191,6 +191,14 @@
 	  </includes>
     </fileSet>
     <fileSet>
+      <directoryMode>700</directoryMode>
+      <directory>src/main/resources/mpacks-v2</directory>
+      <outputDirectory>/var/lib/ambari-server/resources/mpacks-v2</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
       <fileMode>755</fileMode>
       <directory>src/main/python/ambari_server</directory>
       <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
