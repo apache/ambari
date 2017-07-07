@@ -33,15 +33,18 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 
-import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
-import {AppStateService, appState} from '@app/services/storage/app-state.service';
-import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
-import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
-import {BarGraphsService, barGraphs} from '@app/services/storage/bar-graphs.service';
-import {GraphsService, graphs} from '@app/services/storage/graphs.service';
-import {NodesService, nodes} from '@app/services/storage/nodes.service';
-import {UserConfigsService, userConfigs} from '@app/services/storage/user-configs.service';
-import {FiltersService, filters} from '@app/services/storage/filters.service';
+import {AppSettingsService} from '@app/services/storage/app-settings.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
+import {AuditLogsService} from '@app/services/storage/audit-logs.service';
+import {ServiceLogsService} from '@app/services/storage/service-logs.service';
+import {BarGraphsService} from '@app/services/storage/bar-graphs.service';
+import {GraphsService} from '@app/services/storage/graphs.service';
+import {NodesService} from '@app/services/storage/nodes.service';
+import {UserConfigsService} from '@app/services/storage/user-configs.service';
+import {FiltersService} from '@app/services/storage/filters.service';
+import {ClustersService} from '@app/services/storage/clusters.service';
+import {ComponentsService} from '@app/services/storage/components.service';
+import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
 import {LoginFormComponent} from '@app/components/login-form/login-form.component';
@@ -104,17 +107,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
         deps: [Http]
       }
     }),
-    StoreModule.provideStore({
-      appSettings: appSettings,
-      appState: appState,
-      auditLogs: auditLogs,
-      serviceLogs: serviceLogs,
-      barGraphs: barGraphs,
-      graphs: graphs,
-      nodes: nodes,
-      userConfigs: userConfigs,
-      filters: filters
-    }),
+    StoreModule.provideStore(reducer),
     MomentModule,
     MomentTimezoneModule
   ],
@@ -131,6 +124,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     NodesService,
     UserConfigsService,
     FiltersService,
+    ClustersService,
+    ComponentsService,
     {
       provide: XHRBackend,
       useFactory: getXHRBackend,

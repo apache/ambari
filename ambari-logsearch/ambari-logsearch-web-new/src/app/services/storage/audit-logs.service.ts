@@ -17,17 +17,16 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {AuditLog} from '@app/models/audit-log.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+
+export const modelName = 'auditLogs';
 
 @Injectable()
 export class AuditLogsService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
-    super('auditLogs', store);
+    super(modelName, store);
   }
 }
 
-export function auditLogs(state: AuditLog[] = [], action: Action): any {
-  return collectionReducer(state, action);
-}
+export const auditLogs = getCollectionReducer(modelName);

@@ -17,17 +17,17 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {AppSettings, defaultSettings} from '@app/models/app-settings.model';
-import {AppStore, ObjectModelService, objectReducer} from '@app/models/store.model';
+import {Store} from '@ngrx/store';
+import {defaultSettings} from '@app/models/app-settings.model';
+import {AppStore, ObjectModelService, getObjectReducer} from '@app/models/store.model';
+
+export const modelName = 'appSettings';
 
 @Injectable()
 export class AppSettingsService extends ObjectModelService {
   constructor(store: Store<AppStore>) {
-    super('appSettings', store);
+    super(modelName, store);
   }
 }
 
-export function appSettings(state: AppSettings = defaultSettings, action: Action): any {
-  return objectReducer(state, action);
-}
+export const appSettings = getObjectReducer(modelName, defaultSettings);

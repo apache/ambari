@@ -49,17 +49,15 @@ export class LogsListComponent implements OnInit {
     levels: ['level']
   };
 
-  logs = this.serviceLogsStorage.getAll().map(logs => {
-    return logs.map(log => {
-      return {
-        type: log.type,
-        level: log.level,
-        className: log.level.toLowerCase(),
-        message: log.log_message,
-        time: log.logtime
-      }
-    });
-  });
+  logs = this.serviceLogsStorage.getAll().map(logs => logs.map(log => {
+    return {
+      type: log.type,
+      level: log.level,
+      className: log.level.toLowerCase(),
+      message: log.log_message,
+      time: log.logtime
+    };
+  }));
 
   get timeZone(): string {
     return this.filtering.timeZone;
@@ -67,9 +65,13 @@ export class LogsListComponent implements OnInit {
 
   private loadLogs(): void {
     this.httpClient.get(this.logsArrayId, this.getParams()).subscribe(response => {
+      const jsonResponse = response.json(),
+        logs = jsonResponse && jsonResponse.logList;
       this.serviceLogsStorage.clear();
-      const logs = response.json().logList;
-      this.serviceLogsStorage.addInstances(logs);
+      if (logs) {
+        const logs = response.json().logList;
+        this.serviceLogsStorage.addInstances(logs);
+      }
     });
   }
 

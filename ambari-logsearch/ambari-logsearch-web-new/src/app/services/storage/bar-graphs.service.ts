@@ -17,17 +17,16 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {BarGraph} from '@app/models/bar-graph.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+
+export const modelName = 'barGraphs';
 
 @Injectable()
 export class BarGraphsService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
-    super('barGraphs', store);
+    super(modelName, store);
   }
 }
 
-export function barGraphs(state: BarGraph[] = [], action: Action): any {
-  return collectionReducer(state, action);
-}
+export const barGraphs = getCollectionReducer(modelName);

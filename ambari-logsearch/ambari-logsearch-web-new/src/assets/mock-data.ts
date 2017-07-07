@@ -531,7 +531,21 @@ export const mockData = {
                   }
                 ]
               }
-            }
+            },
+            groupList: [
+              {
+                type: 'ams_collector'
+              },
+              {
+                type: 'ambari_agent'
+              },
+              {
+                type: 'zookeeper_server'
+              },
+              {
+                type: 'zookeeper_client'
+              }
+            ]
           },
           files: {
             hostLogFiles: {
@@ -798,7 +812,14 @@ export const mockData = {
                 _router_field_: 5
               }
             ]
-          }
+          },
+          clusters: [
+            'cl0',
+            'cl1',
+            'cl2',
+            'cl3',
+            'cl4'
+          ]
         }
       },
       status: {

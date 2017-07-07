@@ -18,17 +18,16 @@
 
 
 import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {UserConfig} from '@app/models/user-config.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+
+export const modelName = 'userConfigs';
 
 @Injectable()
 export class UserConfigsService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
-    super('userConfigs', store);
+    super(modelName, store);
   }
 }
 
-export function userConfigs(state: UserConfig[] = [], action: Action): any {
-  return collectionReducer(state, action);
-}
+export const userConfigs = getCollectionReducer(modelName);

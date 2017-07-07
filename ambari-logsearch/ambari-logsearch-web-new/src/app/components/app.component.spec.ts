@@ -57,7 +57,7 @@ describe('AppComponent', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        },
+        }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();

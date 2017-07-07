@@ -19,6 +19,8 @@
 import {TestBed, inject} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
 
 import {FilteringService} from './filtering.service';
 
@@ -27,12 +29,16 @@ describe('FilteringService', () => {
     TestBed.configureTestingModule({
       imports: [
         StoreModule.provideStore({
-          appSettings
+          appSettings,
+          clusters,
+          components
         })
       ],
       providers: [
         FilteringService,
-        AppSettingsService
+        AppSettingsService,
+        ClustersService,
+        ComponentsService
       ]
     });
   });

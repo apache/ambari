@@ -18,17 +18,16 @@
 
 
 import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {Filter} from '@app/models/filter.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+
+export const modelName = 'filters';
 
 @Injectable()
 export class FiltersService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
-    super('filters', store);
+    super(modelName, store);
   }
 }
 
-export function filters(state: Filter[] = [], action: Action): any {
-  return collectionReducer(state, action);
-}
+export const filters = getCollectionReducer(modelName);

@@ -29,10 +29,12 @@ import {UserConfig} from '@app/models/user-config.model';
 import {Filter} from '@app/models/filter.model';
 
 export const storeActions = {
-  ADD: 'ADD',
-  DELETE: 'DELETE',
-  CLEAR: 'CLEAR',
-  SET: 'SET'
+  'ARRAY.ADD': 'ADD',
+  'ARRAY.DELETE.PRIMITIVE': 'DELETE_PRIMITIVE',
+  'ARRAY.DELETE.OBJECT': 'DELETE_OBJECT',
+  'ARRAY.CLEAR': 'CLEAR',
+
+  'OBJECT.SET': 'SET'
 };
 
 export interface AppStore {
@@ -45,6 +47,8 @@ export interface AppStore {
   nodes: Node[];
   userConfigs: UserConfig[];
   filters: Filter[];
+  clusters: string[];
+  components: string[];
 }
 
 export class ModelService {
@@ -72,21 +76,28 @@ export class CollectionModelService extends ModelService {
 
   addInstances(instances: any[]): void {
     this.store.dispatch({
-      type: storeActions.ADD,
+      type: `${storeActions['ARRAY.ADD']}_${this.modelName}`,
       payload: instances
     });
   }
 
-  deleteInstance(instance: any): void {
+  deleteObjectInstance(instance: any): void {
     this.store.dispatch({
-      type: storeActions.DELETE,
+      type: `${storeActions['ARRAY.DELETE.OBJECT']}_${this.modelName}`,
+      payload: instance
+    });
+  }
+
+  deletePrimitiveInstance(instance: any): void {
+    this.store.dispatch({
+      type: `${storeActions['ARRAY.DELETE.PRINITIVE']}_${this.modelName}`,
       payload: instance
     });
   }
 
   clear(): void {
     this.store.dispatch({
-      type: storeActions.CLEAR
+      type: `${storeActions['ARRAY.CLEAR']}_${this.modelName}`
     });
   }
 
@@ -106,33 +117,37 @@ export class ObjectModelService extends ModelService {
 
   setParameters(params: any): void {
     this.store.dispatch({
-      type: storeActions.SET,
+      type: `${storeActions['OBJECT.SET']}_${this.modelName}`,
       payload: params
     });
   }
 
 }
 
-export function collectionReducer(state: any[] = [], action: Action): any {
-  switch (action.type) {
-    case storeActions.ADD:
-      return [...state, ...action.payload];
-    case storeActions.DELETE:
-      return state.filter(instance => {
-        return instance.id !== action.payload.id;
-      });
-    case storeActions.CLEAR:
-      return [];
-    default:
-      return state;
-  }
+export function getCollectionReducer(modelName: string, defaultState: any = []): any {
+  return (state: any = defaultState, action: Action) => {
+    switch (action.type) {
+      case `${storeActions['ARRAY.ADD']}_${modelName}`:
+        return [...state, ...action.payload];
+      case `${storeActions['ARRAY.DELETE.OBJECT']}_${modelName}`:
+        return state.filter(instance => instance.id !== action.payload.id);
+      case `${storeActions['ARRAY.DELETE.PRIMITIVE']}_${modelName}`:
+        return state.filter(item => item !== action.payload);
+      case `${storeActions['ARRAY.CLEAR']}_${modelName}`:
+        return [];
+      default:
+        return state;
+    }
+  };
 }
 
-export function objectReducer(state: any = {}, action: Action): any {
-  switch (action.type) {
-    case storeActions.SET:
-      return Object.assign({}, state, action.payload);
-    default:
-      return state;
-  }
+export function getObjectReducer(modelName: string, defaultState: any = {}) {
+  return (state: any = defaultState, action: Action): any => {
+    switch (action.type) {
+      case `${storeActions['OBJECT.SET']}_${modelName}`:
+        return Object.assign({}, state, action.payload);
+      default:
+        return state;
+    }
+  };
 }

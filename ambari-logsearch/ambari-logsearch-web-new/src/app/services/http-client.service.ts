@@ -18,9 +18,8 @@
 
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/operator/first';
 import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams} from '@angular/http';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/catch';
 import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params.class';
 import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params.class';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -45,6 +44,12 @@ export class HttpClientService extends Http {
     serviceLogs: {
       url: 'service/logs',
       params: opts => new ServiceLogsQueryParams(opts)
+    },
+    components: {
+      url: 'service/logs/components'
+    },
+    clusters: {
+      url: 'service/logs/clusters'
     }
   };
 
@@ -93,7 +98,7 @@ export class HttpClientService extends Http {
   }
 
   request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
-    let req = super.request(this.generateUrl(url), options).share();
+    let req = super.request(this.generateUrl(url), options).share().first();
     this.handleError(req);
     return req;
   }

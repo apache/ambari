@@ -23,7 +23,10 @@ import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
 import {FilteringService} from '@app/services/filtering.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 import {FiltersPanelComponent} from './filters-panel.component';
 
@@ -36,11 +39,21 @@ describe('FiltersPanelComponent', () => {
   let fixture: ComponentFixture<FiltersPanelComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [FiltersPanelComponent],
       imports: [
         StoreModule.provideStore({
-          appSettings
+          appSettings,
+          clusters,
+          components
         }),
         TranslateModule.forRoot({
           provide: TranslateLoader,
@@ -50,7 +63,13 @@ describe('FiltersPanelComponent', () => {
       ],
       providers: [
         AppSettingsService,
-        FilteringService
+        ClustersService,
+        ComponentsService,
+        FilteringService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

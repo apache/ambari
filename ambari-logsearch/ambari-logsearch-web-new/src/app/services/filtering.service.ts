@@ -20,15 +20,28 @@ import {Injectable} from '@angular/core';
 import {Subject} from 'rxjs/Subject';
 import * as moment from 'moment-timezone';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
+import {ClustersService} from '@app/services/storage/clusters.service';
+import {ComponentsService} from '@app/services/storage/components.service';
 
 @Injectable()
 export class FilteringService {
 
-  constructor(private appSettings: AppSettingsService) {
-    this.appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value);
+  constructor(private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService) {
+    this.appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
+    this.clustersStorage.getAll().subscribe(clusters => this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)]);
+    this.componentsStorage.getAll().subscribe(components => this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)]);
   }
 
-  timeZone: string;
+  private getListItem(name: string): any {
+    return {
+      label: name,
+      value: name
+    };
+  }
+
+  private readonly defaultTimeZone = moment.tz.guess();
+
+  timeZone: string = this.defaultTimeZone;
 
   // TODO implement loading of real options data
   filters = {
@@ -38,26 +51,6 @@ export class FilteringService {
         {
           label: 'filter.all',
           value: ''
-        },
-        {
-          label: 'cl0',
-          value: 'cl0'
-        },
-        {
-          label: 'cl1',
-          value: 'cl1'
-        },
-        {
-          label: 'cl2',
-          value: 'cl2'
-        },
-        {
-          label: 'cl3',
-          value: 'cl3'
-        },
-        {
-          label: 'cl4',
-          value: 'cl4'
         }
       ],
       selectedValue: '',
@@ -152,8 +145,8 @@ export class FilteringService {
           value: zone
         };
       }),
-      selectedValue: moment.tz.guess(),
-      selectedLabel: this.getTimeZoneLabel(moment.tz.guess())
+      selectedValue: this.defaultTimeZone,
+      selectedLabel: this.getTimeZoneLabel(this.defaultTimeZone)
     },
     components: {
       label: 'filter.components',
@@ -162,22 +155,6 @@ export class FilteringService {
         {
           label: 'filter.all',
           value: ''
-        },
-        {
-          label: 'ambari_agent',
-          value: 'ambari_agent'
-        },
-        {
-          label: 'ams_collector',
-          value: 'ams_collector'
-        },
-        {
-          label: 'zookeeper_server',
-          value: 'zookeeper_server'
-        },
-        {
-          label: 'zookeeper_client',
-          value: 'zookeeper_client'
         }
       ],
       selectedValue: '',

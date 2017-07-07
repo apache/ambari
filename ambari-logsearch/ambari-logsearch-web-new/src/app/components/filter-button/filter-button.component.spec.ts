@@ -24,6 +24,8 @@ import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 
@@ -42,7 +44,9 @@ describe('FilterButtonComponent', () => {
       declarations: [FilterButtonComponent],
       imports: [
         StoreModule.provideStore({
-          appSettings
+          appSettings,
+          clusters,
+          components
         }),
         TranslateModule.forRoot({
           provide: TranslateLoader,
@@ -51,6 +55,8 @@ describe('FilterButtonComponent', () => {
         })],
       providers: [
         AppSettingsService,
+        ClustersService,
+        ComponentsService,
         ComponentActionsService,
         FilteringService
       ],

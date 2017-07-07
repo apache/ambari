@@ -18,17 +18,16 @@
 
 
 import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {ServiceLog} from '@app/models/service-log.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+
+export const modelName = 'serviceLogs';
 
 @Injectable()
 export class ServiceLogsService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
-    super('serviceLogs', store);
+    super(modelName, store);
   }
 }
 
-export function serviceLogs(state: ServiceLog[] = [], action: Action): any {
-  return collectionReducer(state, action);
-}
+export const serviceLogs = getCollectionReducer(modelName);

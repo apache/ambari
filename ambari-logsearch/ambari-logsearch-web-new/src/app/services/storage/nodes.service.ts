@@ -16,19 +16,17 @@
  * limitations under the License.
  */
 
-
 import {Injectable} from '@angular/core';
-import {Action, Store} from '@ngrx/store';
-import {Node} from '@app/models/node.model';
-import {AppStore, CollectionModelService, collectionReducer} from '@app/models/store.model';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+
+export const modelName = 'nodes';
 
 @Injectable()
 export class NodesService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
-    super('nodes', store);
+    super(modelName, store);
   }
 }
 
-export function nodes(state: Node[] = [], action: Action): any {
-  return collectionReducer(state, action);
-}
+export const nodes = getCollectionReducer(modelName);
