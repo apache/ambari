@@ -27,11 +27,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -42,18 +39,6 @@ public class FileUtil {
   private FileUtil() {
     throw new UnsupportedOperationException();
   }
-  
-  public static List<File> getAllFileFromDir(File directory, String extension, boolean checkInSubDir) {
-    if (!directory.exists()) {
-      LOG.error(directory.getAbsolutePath() + " is not exists ");
-    } else if (!directory.isDirectory()) {
-      LOG.error(directory.getAbsolutePath() + " is not Directory ");
-    } else {
-      return (List<File>) FileUtils.listFiles(directory, new String[]{extension}, checkInSubDir);
-    }
-    return new ArrayList<File>();
-  }
-
 
   public static Object getFileKey(File file) {
     try {

@@ -37,12 +37,13 @@ public class LogSearchConfigFactory {
    * @param component The component of the Log Search Service to create the configuration for (SERVER/LOGFEEDER).
    * @param properties The properties of the component for which the configuration is created. If the properties contain the
    *                  "logsearch.config.class" entry than the class defined there would be used instead of the default class.
+   * @param clusterName The name of the cluster, only need to be specified in LOGFEEDER mode (null for SERVER mode).
    * @param defaultClass The default configuration class to use if not specified otherwise.
    * @return The Log Search Configuration instance.
    * @throws Exception Throws exception if the defined class does not implement LogSearchConfig, or doesn't have an empty
    *                   constructor, or throws an exception in it's init method.
    */
-  public static LogSearchConfig createLogSearchConfig(Component component, Map<String, String> properties,
+  public static LogSearchConfig createLogSearchConfig(Component component, Map<String, String> properties, String clusterName,
       Class<? extends LogSearchConfig> defaultClass) throws Exception {
     try {
       LogSearchConfig logSearchConfig = null;
@@ -52,13 +53,14 @@ public class LogSearchConfigFactory {
         if (LogSearchConfig.class.isAssignableFrom(clazz)) {
           logSearchConfig = (LogSearchConfig) clazz.newInstance();
         } else {
-          throw new IllegalArgumentException("Class " + configClassName + " does not implement the interface " + LogSearchConfig.class.getName());
+          throw new IllegalArgumentException("Class " + configClassName + " does not implement the interface " +
+              LogSearchConfig.class.getName());
         }
       } else {
         logSearchConfig = defaultClass.newInstance();
       }
       
-      logSearchConfig.init(component, properties);
+      logSearchConfig.init(component, properties, clusterName);
       return logSearchConfig;
     } catch (Exception e) {
       LOG.error("Could not initialize logsearch config.", e);

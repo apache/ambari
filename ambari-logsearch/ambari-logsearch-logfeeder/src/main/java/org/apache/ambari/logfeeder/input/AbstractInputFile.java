@@ -31,7 +31,6 @@ import java.util.Map;
 import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,11 +47,12 @@ public abstract class AbstractInputFile extends Input {
   protected boolean isReady;
 
   private String checkPointExtension;
-  private File checkPointFile;
-  private long lastCheckPointTimeMS;
   private int checkPointIntervalMS;
-  private Map<String, Object> jsonCheckPoint;
-  private InputMarker lastCheckPointInputMarker;
+  
+  private Map<String, File> checkPointFiles = new HashMap<>();
+  private Map<String, Long> lastCheckPointTimeMSs = new HashMap<>();
+  private Map<String, Map<String, Object>> jsonCheckPoints = new HashMap<>();
+  private Map<String, InputMarker> lastCheckPointInputMarkers = new HashMap<>();
 
   @Override
   protected String getStatMetricName() {
@@ -68,12 +68,12 @@ public abstract class AbstractInputFile extends Input {
   public void init() throws Exception {
     LOG.info("init() called");
     
-    checkPointExtension = LogFeederUtil.getStringProperty("logfeeder.checkpoint.extension", InputManager.DEFAULT_CHECKPOINT_EXTENSION);
+    checkPointExtension = LogFeederUtil.getStringProperty(InputManager.CHECKPOINT_EXTENSION_PROPERTY,
+        InputManager.DEFAULT_CHECKPOINT_EXTENSION);
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);
     logPath = inputDescriptor.getPath();
-    tail = BooleanUtils.toBooleanDefaultIfNull(inputDescriptor.isTail(), tail);
     checkPointIntervalMS = (int) ObjectUtils.defaultIfNull(((InputFileBaseDescriptor)inputDescriptor).getCheckpointIntervalMs(), DEFAULT_CHECKPOINT_INTERVAL_MS);
 
     if (StringUtils.isEmpty(logPath)) {
@@ -89,11 +89,9 @@ public abstract class AbstractInputFile extends Input {
     super.init();
   }
 
-  protected void processFile(File logPathFile) throws FileNotFoundException, IOException {
+  protected void processFile(File logPathFile, boolean follow) throws FileNotFoundException, IOException {
     LOG.info("Monitoring logPath=" + logPath + ", logPathFile=" + logPathFile);
     BufferedReader br = null;
-    checkPointFile = null;
-    jsonCheckPoint = null;
 
     int lineCount = 0;
     try {
@@ -125,7 +123,7 @@ public abstract class AbstractInputFile extends Input {
             sleepIteration++;
             if (sleepIteration == 2) {
               flush();
-              if (!tail) {
+              if (!follow) {
                 LOG.info("End of file. Done with filePath=" + logPathFile.getAbsolutePath() + ", lineCount=" + lineCount);
                 break;
               }
@@ -204,47 +202,50 @@ public abstract class AbstractInputFile extends Input {
   private int getResumeFromLineNumber() {
     int resumeFromLineNumber = 0;
     
-    if (tail) {
-      try {
-        LOG.info("Checking existing checkpoint file. " + getShortDescription());
+    File checkPointFile = null;
+    try {
+      LOG.info("Checking existing checkpoint file. " + getShortDescription());
 
-        String checkPointFileName = base64FileKey + checkPointExtension;
-        File checkPointFolder = inputManager.getCheckPointFolderFile();
-        checkPointFile = new File(checkPointFolder, checkPointFileName);
-        if (!checkPointFile.exists()) {
-          LOG.info("Checkpoint file for log file " + filePath + " doesn't exist, starting to read it from the beginning");
-        } else {
-          try (RandomAccessFile checkPointWriter = new RandomAccessFile(checkPointFile, "rw")) {
-            int contentSize = checkPointWriter.readInt();
-            byte b[] = new byte[contentSize];
-            int readSize = checkPointWriter.read(b, 0, contentSize);
-            if (readSize != contentSize) {
-              LOG.error("Couldn't read expected number of bytes from checkpoint file. expected=" + contentSize + ", read=" +
-                  readSize + ", checkPointFile=" + checkPointFile + ", input=" + getShortDescription());
-            } else {
-              String jsonCheckPointStr = new String(b, 0, readSize);
-              jsonCheckPoint = LogFeederUtil.toJSONObject(jsonCheckPointStr);
+      String checkPointFileName = base64FileKey + checkPointExtension;
+      File checkPointFolder = inputManager.getCheckPointFolderFile();
+      checkPointFile = new File(checkPointFolder, checkPointFileName);
+      checkPointFiles.put(base64FileKey, checkPointFile);
+      Map<String, Object> jsonCheckPoint = null;
+      if (!checkPointFile.exists()) {
+        LOG.info("Checkpoint file for log file " + filePath + " doesn't exist, starting to read it from the beginning");
+      } else {
+        try (RandomAccessFile checkPointWriter = new RandomAccessFile(checkPointFile, "rw")) {
+          int contentSize = checkPointWriter.readInt();
+          byte b[] = new byte[contentSize];
+          int readSize = checkPointWriter.read(b, 0, contentSize);
+          if (readSize != contentSize) {
+            LOG.error("Couldn't read expected number of bytes from checkpoint file. expected=" + contentSize + ", read=" +
+                readSize + ", checkPointFile=" + checkPointFile + ", input=" + getShortDescription());
+          } else {
+            String jsonCheckPointStr = new String(b, 0, readSize);
+            jsonCheckPoint = LogFeederUtil.toJSONObject(jsonCheckPointStr);
 
-              resumeFromLineNumber = LogFeederUtil.objectToInt(jsonCheckPoint.get("line_number"), 0, "line_number");
+            resumeFromLineNumber = LogFeederUtil.objectToInt(jsonCheckPoint.get("line_number"), 0, "line_number");
 
-              LOG.info("CheckPoint. checkPointFile=" + checkPointFile + ", json=" + jsonCheckPointStr +
-                  ", resumeFromLineNumber=" + resumeFromLineNumber);
-           }
-          } catch (EOFException eofEx) {
-            LOG.info("EOFException. Will reset checkpoint file " + checkPointFile.getAbsolutePath() + " for " +
-                getShortDescription(), eofEx);
-          }
+            LOG.info("CheckPoint. checkPointFile=" + checkPointFile + ", json=" + jsonCheckPointStr +
+                ", resumeFromLineNumber=" + resumeFromLineNumber);
+         }
+        } catch (EOFException eofEx) {
+          LOG.info("EOFException. Will reset checkpoint file " + checkPointFile.getAbsolutePath() + " for " +
+              getShortDescription(), eofEx);
         }
-        if (jsonCheckPoint == null) {
-          // This seems to be first time, so creating the initial checkPoint object
-          jsonCheckPoint = new HashMap<String, Object>();
-          jsonCheckPoint.put("file_path", filePath);
-          jsonCheckPoint.put("file_key", base64FileKey);
-        }
-
-      } catch (Throwable t) {
-        LOG.error("Error while configuring checkpoint file. Will reset file. checkPointFile=" + checkPointFile, t);
       }
+      if (jsonCheckPoint == null) {
+        // This seems to be first time, so creating the initial checkPoint object
+        jsonCheckPoint = new HashMap<String, Object>();
+        jsonCheckPoint.put("file_path", filePath);
+        jsonCheckPoint.put("file_key", base64FileKey);
+      }
+      
+      jsonCheckPoints.put(base64FileKey, jsonCheckPoint);
+
+    } catch (Throwable t) {
+      LOG.error("Error while configuring checkpoint file. Will reset file. checkPointFile=" + checkPointFile, t);
     }
     
     return resumeFromLineNumber;
@@ -253,6 +254,9 @@ public abstract class AbstractInputFile extends Input {
   @Override
   public synchronized void checkIn(InputMarker inputMarker) {
     try {
+      Map<String, Object> jsonCheckPoint = jsonCheckPoints.get(inputMarker.base64FileKey);
+      File checkPointFile = checkPointFiles.get(inputMarker.base64FileKey);
+      
       int lineNumber = LogFeederUtil.objectToInt(jsonCheckPoint.get("line_number"), 0, "line_number");
       if (lineNumber > inputMarker.lineNumber) {
         // Already wrote higher line number for this input
@@ -260,12 +264,14 @@ public abstract class AbstractInputFile extends Input {
       }
       // If interval is greater than last checkPoint time, then write
       long currMS = System.currentTimeMillis();
-      if (!isClosed() && (currMS - lastCheckPointTimeMS) < checkPointIntervalMS) {
+      long lastCheckPointTimeMs = lastCheckPointTimeMSs.containsKey(inputMarker.base64FileKey) ?
+          lastCheckPointTimeMSs.get(inputMarker.base64FileKey) : 0;
+      if (!isClosed() && (currMS - lastCheckPointTimeMs < checkPointIntervalMS)) {
         // Let's save this one so we can update the check point file on flush
-        lastCheckPointInputMarker = inputMarker;
+        lastCheckPointInputMarkers.put(inputMarker.base64FileKey, inputMarker);
         return;
       }
-      lastCheckPointTimeMS = currMS;
+      lastCheckPointTimeMSs.put(inputMarker.base64FileKey, currMS);
 
       jsonCheckPoint.put("line_number", "" + new Integer(inputMarker.lineNumber));
       jsonCheckPoint.put("last_write_time_ms", "" + new Long(currMS));
@@ -299,7 +305,7 @@ public abstract class AbstractInputFile extends Input {
 
   @Override
   public void lastCheckIn() {
-    if (lastCheckPointInputMarker != null) {
+    for (InputMarker lastCheckPointInputMarker : lastCheckPointInputMarkers.values()) {
       checkIn(lastCheckPointInputMarker);
     }
   }

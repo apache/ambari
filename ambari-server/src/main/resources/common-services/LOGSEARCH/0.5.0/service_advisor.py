@@ -120,7 +120,9 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
     putLogFeederEnvAttribute = self.putPropertyAttribute(configurations, "logfeeder-env")
 
     logSearchServerHosts = self.getComponentHostNames(services, "LOGSEARCH", "LOGSEARCH_SERVER")
+    # if there is no Log Search server on the cluster, i.e. there is an external server
     if logSearchServerHosts is None or len(logSearchServerHosts) == 0:
+      # hide logsearch specific attributes, except for a few which are used by the logfeeders too
       for key in services['configurations']['logsearch-env']['properties']:
         putLogSearchEnvAttribute(key, 'visible', 'false')
       for key in services['configurations']['logsearch-properties']['properties']:
@@ -135,10 +137,13 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
       for key in services['configurations']['logsearch-log4j']['properties']:
         self.putPropertyAttribute(configurations, "logsearch-log4j")(key, 'visible', 'false')
       
+      # in the abscence of a server we can't provide a good estimation for the number of shards
       putLogSearchProperty("logsearch.collection.service.logs.numshards", 2)
       putLogSearchProperty("logsearch.collection.audit.logs.numshards", 2)
+    # if there is a Log Search server on the cluster
     else:
       infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
+      # if there is AMBARI_INFRA, calculate the min/max shards and recommendations based on the number of infra solr hosts
       if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
         replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
         recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
@@ -146,6 +151,7 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
         recommendedMinShards = len(infraSolrHosts)
         recommendedShards = 2 * len(infraSolrHosts)
         recommendedMaxShards = 3 * len(infraSolrHosts)
+      # if there is no AMBARI_INFRA (i.e. external solr is used), use default values for min/max shards and recommendations
       else:
         recommendedReplicationFactor = 2
         
@@ -168,6 +174,7 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
       putLogSearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
       
     kerberos_authentication_enabled = self.isSecurityEnabled(services)
+    # if there is no kerberos enabled hide kerberor related properties
     if not kerberos_authentication_enabled:
        putLogSearchCommonEnvProperty('logsearch_external_solr_kerberos_enabled', 'false')
        putLogSearchCommonEnvAttribute('logsearch_external_solr_kerberos_enabled', 'visible', 'false')

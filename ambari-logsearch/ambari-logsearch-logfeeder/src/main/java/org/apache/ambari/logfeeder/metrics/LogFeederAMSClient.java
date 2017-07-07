@@ -21,12 +21,15 @@ package org.apache.ambari.logfeeder.metrics;
 
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.SSLUtil;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;
 
 import com.google.common.base.Splitter;
+
+import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,21 +38,53 @@ import java.util.List;
 public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
   private static final Logger LOG = Logger.getLogger(LogFeederAMSClient.class);
 
+  @LogSearchPropertyDescription(
+    name = "logfeeder.metrics.collector.hosts",
+    description = "Comma separtaed list of metric collector hosts.",
+    examples = {"c6401.ambari.apache.org"},
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String METRICS_COLLECTOR_HOSTS_PROPERTY = "logfeeder.metrics.collector.hosts";
+
+  @LogSearchPropertyDescription(
+    name = "logfeeder.metrics.collector.protocol",
+    description = "The protocol used by metric collectors.",
+    examples = {"http", "https"},
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String METRICS_COLLECTOR_PROTOCOL_PROPERTY = "logfeeder.metrics.collector.protocol";
+
+  @LogSearchPropertyDescription(
+    name = "logfeeder.metrics.collector.port",
+    description = "The port used by metric collectors.",
+    examples = {"6188"},
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String METRICS_COLLECTOR_PORT_PROPERTY = "logfeeder.metrics.collector.port";
+
+  @LogSearchPropertyDescription(
+    name = "logfeeder.metrics.collector.path",
+    description = "The path used by metric collectors.",
+    examples = {"/ws/v1/timeline/metrics"},
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String METRICS_COLLECTOR_PATH_PROPERTY = "logfeeder.metrics.collector.path";
+
   private final List<String> collectorHosts;
   private final String collectorProtocol;
   private final String collectorPort;
   private final String collectorPath;
 
   public LogFeederAMSClient() {
-    String collectorHostsString = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.hosts");
+    String collectorHostsString = LogFeederUtil.getStringProperty(METRICS_COLLECTOR_HOSTS_PROPERTY);
     if (!StringUtils.isBlank(collectorHostsString)) {
       collectorHostsString = collectorHostsString.trim();
       LOG.info("AMS collector Hosts=" + collectorHostsString);
       
       collectorHosts = Splitter.on(",").splitToList(collectorHostsString);
-      collectorProtocol = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.protocol");
-      collectorPort = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.port");
-      collectorPath = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.path");
+      collectorProtocol = LogFeederUtil.getStringProperty(METRICS_COLLECTOR_PROTOCOL_PROPERTY);
+      collectorPort = LogFeederUtil.getStringProperty(METRICS_COLLECTOR_PORT_PROPERTY);
+      collectorPath = LogFeederUtil.getStringProperty(METRICS_COLLECTOR_PATH_PROPERTY);
     } else {
       collectorHosts = null;
       collectorProtocol = null;

@@ -26,12 +26,13 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.input.cache.LRUCache;
 import org.apache.ambari.logfeeder.common.ConfigItem;
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Conditions;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Fields;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
@@ -39,15 +40,62 @@ import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.log4j.Priority;
 
+import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
+
 public abstract class Input extends ConfigItem implements Runnable {
+  private static final boolean DEFAULT_CACHE_ENABLED = false;
+  @LogSearchPropertyDescription(
+      name = "logfeeder.cache.enabled",
+      description = "Enables the usage of a cache to avoid duplications.",
+      examples = {"true"},
+      defaultValue = DEFAULT_CACHE_ENABLED + "",
+      sources = {LOGFEEDER_PROPERTIES_FILE}
+    )
+  private static final String CACHE_ENABLED_PROPERTY = "logfeeder.cache.enabled";
+
+  private static final String DEFAULT_CACHE_KEY_FIELD = "log_message";
+  @LogSearchPropertyDescription(
+    name = "logfeeder.cache.key.field",
+    description = "The field which's value should be cached and should be checked for repteitions.",
+    examples = {"some_field_prone_to_repeating_value"},
+    defaultValue = DEFAULT_CACHE_KEY_FIELD,
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CACHE_KEY_FIELD_PROPERTY = "logfeeder.cache.key.field";
+
+  private static final int DEFAULT_CACHE_SIZE = 100;
+  @LogSearchPropertyDescription(
+    name = "logfeeder.cache.size",
+    description = "The number of log entries to cache in order to avoid duplications.",
+    examples = {"50"},
+    defaultValue = DEFAULT_CACHE_SIZE + "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CACHE_SIZE_PROPERTY = "logfeeder.cache.size";
+  
+  private static final boolean DEFAULT_CACHE_LAST_DEDUP_ENABLED = false;
+  @LogSearchPropertyDescription(
+    name = "logfeeder.cache.last.dedup.enabled",
+    description = "Enable filtering directly repeating log entries irrelevant of the time spent between them.",
+    examples = {"true"},
+    defaultValue = DEFAULT_CACHE_LAST_DEDUP_ENABLED + "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CACHE_LAST_DEDUP_ENABLED_PROPERTY = "logfeeder.cache.last.dedup.enabled";
+
+  private static final long DEFAULT_CACHE_DEDUP_INTERVAL = 1000;
+  @LogSearchPropertyDescription(
+    name = "logfeeder.cache.dedup.interval",
+    description = "Maximum number of milliseconds between two identical messages to be filtered out.",
+    examples = {"500"},
+    defaultValue = DEFAULT_CACHE_DEDUP_INTERVAL + "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CACHE_DEDUP_INTERVAL_PROPERTY = "logfeeder.cache.dedup.interval";
+  
   private static final boolean DEFAULT_TAIL = true;
   private static final boolean DEFAULT_USE_EVENT_MD5 = false;
   private static final boolean DEFAULT_GEN_EVENT_MD5 = true;
-  private static final boolean DEFAULT_CACHE_ENABLED = false;
-  private static final boolean DEFAULT_CACHE_DEDUP_LAST = false;
-  private static final int DEFAULT_CACHE_SIZE = 100;
-  private static final long DEFAULT_CACHE_DEDUP_INTERVAL = 1000;
-  private static final String DEFAULT_CACHE_KEY_FIELD = "log_message";
 
   protected InputDescriptor inputDescriptor;
   
@@ -183,7 +231,7 @@ public abstract class Input extends ConfigItem implements Runnable {
     if (firstFilter != null) {
       try {
         firstFilter.apply(line, marker);
-      } catch (LogfeederException e) {
+      } catch (LogFeederException e) {
         LOG.error(e.getLocalizedMessage(), e);
       }
     } else {
@@ -246,32 +294,28 @@ public abstract class Input extends ConfigItem implements Runnable {
   private void initCache() {
     boolean cacheEnabled = inputDescriptor.isCacheEnabled() != null
       ? inputDescriptor.isCacheEnabled()
-      : LogFeederUtil.getBooleanProperty("logfeeder.cache.enabled", DEFAULT_CACHE_ENABLED);
+      : LogFeederUtil.getBooleanProperty(CACHE_ENABLED_PROPERTY, DEFAULT_CACHE_ENABLED);
     if (cacheEnabled) {
       String cacheKeyField = inputDescriptor.getCacheKeyField() != null
         ? inputDescriptor.getCacheKeyField()
-        : LogFeederUtil.getStringProperty("logfeeder.cache.key.field", DEFAULT_CACHE_KEY_FIELD);
+        : LogFeederUtil.getStringProperty(CACHE_KEY_FIELD_PROPERTY, DEFAULT_CACHE_KEY_FIELD);
 
       setCacheKeyField(cacheKeyField);
 
       boolean cacheLastDedupEnabled = inputDescriptor.getCacheLastDedupEnabled() != null
         ? inputDescriptor.getCacheLastDedupEnabled()
-        : LogFeederUtil.getBooleanProperty("logfeeder.cache.last.dedup.enabled", DEFAULT_CACHE_DEDUP_LAST);
+        : LogFeederUtil.getBooleanProperty(CACHE_LAST_DEDUP_ENABLED_PROPERTY, DEFAULT_CACHE_LAST_DEDUP_ENABLED);
 
       int cacheSize = inputDescriptor.getCacheSize() != null
         ? inputDescriptor.getCacheSize()
-        : LogFeederUtil.getIntProperty("logfeeder.cache.size", DEFAULT_CACHE_SIZE);
+        : LogFeederUtil.getIntProperty(CACHE_SIZE_PROPERTY, DEFAULT_CACHE_SIZE);
 
       long cacheDedupInterval = inputDescriptor.getCacheDedupInterval() != null
         ? inputDescriptor.getCacheDedupInterval()
-        : Long.parseLong(LogFeederUtil.getStringProperty("logfeeder.cache.dedup.interval", String.valueOf(DEFAULT_CACHE_DEDUP_INTERVAL)));
+        : Long.parseLong(LogFeederUtil.getStringProperty(CACHE_DEDUP_INTERVAL_PROPERTY, String.valueOf(DEFAULT_CACHE_DEDUP_INTERVAL)));
 
       setCache(new LRUCache(cacheSize, filePath, cacheDedupInterval, cacheLastDedupEnabled));
     }
-  }
-
-  public boolean isTail() {
-    return tail;
   }
 
   public boolean isUseEventMD5() {
