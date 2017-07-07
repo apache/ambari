@@ -59,6 +59,7 @@ import org.apache.ambari.server.mpack.MpackManager;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -280,7 +281,7 @@ public class AmbariMetaInfo {
     stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
         osFamily, false);
 
-    mpackManager = mpackManagerFactory.create(mpacksV2Staging);
+    mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
 
     getCustomActionDefinitions(customActionRoot);
   }
@@ -1506,6 +1507,7 @@ public class AmbariMetaInfo {
     return versionDefinitions;
   }
 
+
   /**
    * Reads a Kerberos descriptor from the specified file path.
    *
@@ -1538,4 +1540,5 @@ public class AmbariMetaInfo {
   public File getCommonWidgetsDescriptorFile() {
     return commonWidgetsDescriptorFile;
   }
+
 }

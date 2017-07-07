@@ -29,6 +29,7 @@ public class MpackResponse {
   private String mpackName;
   private String mpackUri;
   private Long registryId;
+  private String stackId;
 
   public MpackResponse(Mpacks mpacks) {
     this.mpackId = mpacks.getMpackId();
@@ -36,6 +37,7 @@ public class MpackResponse {
     this.mpackUri = mpacks.getMpacksUri();
     this.mpackName = mpacks.getName();
     this.registryId = mpacks.getRegistryId();
+    this.stackId = mpacks.getStackId();
   }
 
   public String getMpackVersion() {
@@ -48,6 +50,14 @@ public class MpackResponse {
 
   public Long getMpackId() {
     return mpackId;
+  }
+
+  public String getStackId() {
+    return stackId;
+  }
+
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
   }
 
   public String getMpackName() {

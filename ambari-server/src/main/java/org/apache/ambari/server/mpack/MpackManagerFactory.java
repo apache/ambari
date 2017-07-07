@@ -31,7 +31,8 @@ public interface MpackManagerFactory {
   /**
    * @param mpackStaging
    *        the folder location where mpack is downloaded. (not {@code null}).
+   * @param stackRoot
    * @return a mpack manager instance.
    */
-  MpackManager create(@Assisted("mpackv2Staging") File mpackStaging);
+  MpackManager create(@Assisted("mpackv2Staging") File mpackStaging, @Assisted("stackRoot") File stackRoot);
 }

@@ -27,211 +27,245 @@ import java.util.HashMap;
  */
 public class Mpacks {
 
-    private Long mpackId;
+  private Long mpackId;
 
-    private Long registryId;
+  private Long registryId;
 
-    @SerializedName("name")
-    private String name;
+  @SerializedName("name")
+  private String name;
 
-    @SerializedName("version")
-    private String version;
+  @SerializedName("version")
+  private String version;
 
-    @SerializedName("description")
-    private String description;
+  @SerializedName("description")
+  private String description;
 
-    @SerializedName("prerequisites")
-    private HashMap<String,String> prerequisites;
+  @SerializedName("prerequisites")
+  private HashMap<String, String> prerequisites;
 
-    @SerializedName("packlets")
-    private ArrayList<Packlet> packlets;
+  @SerializedName("packlets")
+  private ArrayList<Packlet> packlets;
 
-    private String mpacksUri;
+  @SerializedName("stack-id")
+  private String stackId;
 
-    public Long getMpackId() {
-        return mpackId;
+  private String mpacksUri;
+
+  public Long getMpackId() {
+    return mpackId;
+  }
+
+  public void setMpackId(Long mpackId) {
+    this.mpackId = mpackId;
+  }
+
+  public Long getRegistryId() {
+    return registryId;
+  }
+
+  public void setRegistryId(Long registryId) {
+    this.registryId = registryId;
+  }
+
+  public String getMpacksUri() {
+    return mpacksUri;
+  }
+
+  public void setMpacksUri(String mpacksUri) {
+    this.mpacksUri = mpacksUri;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public HashMap<String, String> getPrerequisites() {
+    return prerequisites;
+  }
+
+  public void setPrerequisites(HashMap<String, String> prerequisites) {
+    this.prerequisites = prerequisites;
+  }
+
+  public ArrayList<Packlet> getPacklets() {
+    return packlets;
+  }
+
+  public void setPacklets(ArrayList<Packlet> packlets) {
+    this.packlets = packlets;
+  }
+
+
+  public String getStackId() {
+    return stackId;
+  }
+
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((mpackId == null) ? 0 : mpackId.hashCode());
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + ((version == null) ? 0 : version.hashCode());
+    result = prime * result + ((registryId == null) ? 0 : registryId.hashCode());
+    result = prime * result + ((description == null) ? 0 : description.hashCode());
+    result = prime * result + ((prerequisites == null) ? 0 : prerequisites.hashCode());
+    result = prime * result + ((packlets == null) ? 0 : packlets.hashCode());
+    result = prime * result + ((stackId == null) ? 0 : stackId.hashCode());
+    result = prime * result + ((mpacksUri == null) ? 0 : mpacksUri.hashCode());
+    return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public void setMpackId(Long mpackId) {
-        this.mpackId = mpackId;
+    if (obj == null) {
+      return false;
     }
 
-    public Long getRegistryId() {
-        return registryId;
+    if (getClass() != obj.getClass()) {
+      return false;
     }
 
-    public void setRegistryId(Long registryId) {
-        this.registryId = registryId;
+    Mpacks other = (Mpacks) obj;
+
+    if (name != other.name) {
+      return false;
     }
 
-    public String getMpacksUri() {
-        return mpacksUri;
+    if (version == null) {
+      if (other.version != null) {
+        return false;
+      }
+    } else if (!version.equals(other.version)) {
+      return false;
     }
 
-    public void setMpacksUri(String mpacksUri) {
-        this.mpacksUri = mpacksUri;
+    if (description == null) {
+      if (other.description != null) {
+        return false;
+      }
+    } else if (!description.equals(other.description)) {
+      return false;
     }
 
-    public String getName() {
-        return name;
+    if (mpackId == null) {
+      if (other.mpackId != null) {
+        return false;
+      }
+    } else if (!mpackId.equals(other.mpackId)) {
+      return false;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    if (registryId == null) {
+      if (other.registryId != null) {
+        return false;
+      }
+    } else if (!registryId.equals(other.registryId)) {
+      return false;
     }
 
-    public String getVersion() {
-        return version;
+    if (prerequisites == null) {
+      if (other.prerequisites != null) {
+        return false;
+      }
+    } else if (!prerequisites.equals(other.prerequisites)) {
+      return false;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    if (packlets == null) {
+      if (other.packlets != null) {
+        return false;
+      }
+    } else if (!packlets.equals(other.packlets)) {
+      return false;
     }
 
-    public String getDescription() {
-        return description;
+    if (mpacksUri == null) {
+      if (other.mpacksUri != null) {
+        return false;
+      }
+    } else if (!mpacksUri.equals(other.mpacksUri)) {
+      return false;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    if (stackId == null) {
+      if (other.stackId != null) {
+        return false;
+      }
+    } else if (!stackId.equals(other.stackId)) {
+      return false;
     }
 
-    public HashMap<String, String> getPrerequisites() {
-        return prerequisites;
-    }
+    return true;
+  }
 
-    public void setPrerequisites(HashMap<String, String> prerequisites) {
-        this.prerequisites = prerequisites;
-    }
-
-    public ArrayList<Packlet> getPacklets() {
-        return packlets;
-    }
-
-    public void setPacklets(ArrayList<Packlet> packlets) {
-        this.packlets = packlets;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((mpackId == null) ? 0 : mpackId.hashCode());
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((version == null) ? 0 : version.hashCode());
-        result = prime * result + ((registryId == null) ? 0 : registryId.hashCode());
-        result = prime * result + ((description == null) ? 0 : description.hashCode());
-        result = prime * result + ((prerequisites == null) ? 0 : prerequisites.hashCode());
-        result = prime * result + ((packlets == null) ? 0 : packlets.hashCode());
-        result = prime * result + ((mpacksUri == null) ? 0 : mpacksUri.hashCode());
-        return result;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj == null) {
-            return false;
-        }
-
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-
-        Mpacks other = (Mpacks) obj;
-
-        if (name != other.name) {
-            return false;
-        }
-
-        if (version == null) {
-            if (other.version != null) {
-                return false;
-            }
-        } else if (!version.equals(other.version)) {
-            return false;
-        }
-
-        if (description == null) {
-            if (other.description != null) {
-                return false;
-            }
-        } else if (!description.equals(other.description)) {
-            return false;
-        }
-
-        if (mpackId == null) {
-            if (other.mpackId != null) {
-                return false;
-            }
-        } else if (!mpackId.equals(other.mpackId)) {
-            return false;
-        }
-
-        if (registryId == null) {
-            if (other.registryId != null) {
-                return false;
-            }
-        } else if (!registryId.equals(other.registryId)) {
-            return false;
-        }
-
-        if (registryId == null) {
-            if (other.registryId != null) {
-                return false;
-            }
-        } else if (!registryId.equals(other.registryId)) {
-            return false;
-        }
-
-        if (registryId == null) {
-            if (other.registryId != null) {
-                return false;
-            }
-        } else if (!registryId.equals(other.registryId)) {
-            return false;
-        }
-
-        if (prerequisites == null) {
-            if (other.prerequisites != null) {
-                return false;
-            }
-        } else if (!prerequisites.equals(other.prerequisites)) {
-            return false;
-        }
-
-        if (packlets == null) {
-            if (other.packlets != null) {
-                return false;
-            }
-        } else if (!packlets.equals(other.packlets)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append('{');
-        sb.append("name=").append(name).append(", ");
-        sb.append("mpackId=").append(mpackId).append(", ");
-        sb.append("version=").append(version).append(", ");
-        sb.append("registryId=").append(registryId).append(", ");
-        sb.append("description=").append(description).append(", ");
-        sb.append("prereq=").append(prerequisites.toString()).append(", ");
-        sb.append("packlets=").append(packlets.toString()).append(", ");
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append('{');
+    sb.append("name=").append(name).append(", ");
+    sb.append("mpackId=").append(mpackId).append(", ");
+    sb.append("version=").append(version).append(", ");
+    sb.append("stackid=").append(stackId).append(", ");
+    sb.append("registryId=").append(registryId).append(", ");
+    sb.append("description=").append(description).append(", ");
+    sb.append("prereq=").append(prerequisites.toString()).append(", ");
+    sb.append("packlets=").append(packlets.toString()).append(", ");
         sb.append('}');
-        return sb.toString();
-    }
+    return sb.toString();
+  }
+
+  public void copyFrom(Mpacks mpack) {
+    if (this.name == null)
+      this.name = mpack.getName();
+    if (this.mpackId == null)
+      this.mpackId = mpack.getMpackId();
+    if (this.version == null)
+      this.version = mpack.getVersion();
+    if (this.stackId == null)
+      this.stackId = mpack.getStackId();
+    if (this.registryId == null)
+      this.registryId = mpack.getRegistryId();
+    if (this.description == null)
+      this.description = mpack.getDescription();
+    if (this.prerequisites == null)
+      this.prerequisites = mpack.getPrerequisites();
+    if (this.packlets == null)
+      this.packlets = mpack.getPacklets();
+
+  }
 }

@@ -43,12 +43,11 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.MpackRequest;
-
-
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.dao.MpackDAO;
-
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Packlet;
 
 /**
@@ -63,10 +62,11 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   public static final String MPACK_VERSION = "MpackInfo/mpack_version";
   public static final String MPACK_URI = "MpackInfo/mpack_uri";
   public static final String PACKLETS = "MpackInfo/packlets";
-
+  public static final String STACK_NAME_PROPERTY_ID = "MpackInfo/stack_name";
+  public static final String STACK_VERSION_PROPERTY_ID = "MpackInfo/stack_version";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-          Arrays.asList(MPACK_ID));
+          Arrays.asList(MPACK_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID));
 
   /**
    * The property ids for an mpack resource.
@@ -81,6 +81,9 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   @Inject
   protected static MpackDAO mpackDAO;
 
+  @Inject
+  protected static StackDAO stackDAO;
+
   static {
     // properties
     PROPERTY_IDS.add(MPACK_ID);
@@ -89,9 +92,13 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     PROPERTY_IDS.add(MPACK_VERSION);
     PROPERTY_IDS.add(MPACK_URI);
     PROPERTY_IDS.add(PACKLETS);
+    PROPERTY_IDS.add(STACK_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_VERSION_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID);
 
   }
 
@@ -161,7 +168,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
           NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Resource> results = new LinkedHashSet<>();
-
+    Long mpackId = null;
     //Fetch all mpacks
     if (predicate == null) {
       List<MpackEntity> entities = mpackDAO.findAll();
@@ -180,9 +187,32 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     } //Fetch a particular mpack based on id
     else {
       Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
+      if (propertyMap.containsKey(STACK_NAME_PROPERTY_ID) && propertyMap.containsKey(STACK_VERSION_PROPERTY_ID)) {
+        String stackName = (String) propertyMap.get(STACK_NAME_PROPERTY_ID);
+        String stackVersion = (String) propertyMap.get(STACK_VERSION_PROPERTY_ID);
+        StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
+        mpackId = stackEntity.getCurrentMpackId();
+        if (mpackId != null) {
+          MpackEntity entity = mpackDAO.findById(mpackId);
+          Resource resource = new ResourceImpl(Resource.Type.Mpack);
+          if (null != entity) {
+            resource.setProperty(MPACK_ID, entity.getMpackId());
+            resource.setProperty(MPACK_NAME, entity.getMpackName());
+            resource.setProperty(MPACK_VERSION, entity.getMpackVersion());
+            resource.setProperty(STACK_NAME_PROPERTY_ID, stackName);
+            resource.setProperty(STACK_VERSION_PROPERTY_ID, stackVersion);
+            results.add(resource);
+          }
+        }
+        return results;
+      }
+
       if (propertyMap.containsKey(MPACK_ID)) {
-        String mpackId = (String) propertyMap.get(MPACK_ID);
-        MpackEntity entity = mpackDAO.findById(Long.parseLong((mpackId)));
+        Object objMpackId = propertyMap.get(MPACK_ID);
+        if(objMpackId != null)
+          mpackId = Long.valueOf((String) objMpackId);
+
+        MpackEntity entity = mpackDAO.findById(mpackId);
         Resource resource = new ResourceImpl(Resource.Type.Mpack);
         if (null != entity) {
           resource.setProperty(MPACK_ID, entity.getMpackId());
@@ -201,7 +231,6 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
                 "The requested resource doesn't exist: " + predicate);
       }
     }
-
     return results;
   }
 
