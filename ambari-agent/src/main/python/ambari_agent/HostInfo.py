@@ -297,14 +297,15 @@ class HostInfoLinux(HostInfo):
       logger.exception('Unable to get information about JCE')
       return None
 
-  def register(self, dict, runExpensiveChecks=False):
+  def register(self, dict, runExpensiveChecks=False, checkJavaProcs=False):
     """ Return various details about the host"""
 
     dict['hostHealth'] = {}
 
-    java = []
-    self.javaProcs(java)
-    dict['hostHealth']['activeJavaProcs'] = java
+    if checkJavaProcs:
+      java = []
+      self.javaProcs(java)
+      dict['hostHealth']['activeJavaProcs'] = java
 
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)

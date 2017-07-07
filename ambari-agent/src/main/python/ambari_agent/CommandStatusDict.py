@@ -86,7 +86,7 @@ class CommandStatusDict():
             self.reported_reports.add(key)
           else:
             in_progress_report = self.generate_in_progress_report(command, report)
-            resultReports.append(in_progress_report)
+            resultReports[cluster_id].append(in_progress_report)
         elif command ['commandType'] in [ActionQueue.AUTO_EXECUTION_COMMAND]:
           logger.debug("AUTO_EXECUTION_COMMAND task deleted " + str(command['commandId']))
           self.reported_reports.add(key)

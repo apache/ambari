@@ -33,6 +33,7 @@ class ClusterCache(dict):
   Maintains an in-memory cache and disk cache (for debugging purposes) for
   every cluster. This is useful for having quick access to any of the properties.
   """
+  COMMON_DATA_CLUSTER = '-1'
 
   file_locks = defaultdict(threading.RLock)
 
@@ -57,15 +58,17 @@ class ClusterCache(dict):
       with self.__file_lock:
         with open(self.__current_cache_json_file, 'r') as fp:
           cache_dict = json.load(fp)
-    """
-    for cluster_id, cache in cache_dict.iteritems():
-      immutable_cache = Utils.make_immutable(cache)
-      cache_dict[cluster_id] = immutable_cache
-    """
+
     self.rewrite_cache(cache_dict)
 
+  def get_cluster_indepedent_data(self):
+    return self[ClusterCache.COMMON_DATA_CLUSTER]
+
   def get_cluster_ids(self):
-    return self.keys()
+    cluster_ids = self.keys()[:]
+    if ClusterCache.COMMON_DATA_CLUSTER in cluster_ids:
+      cluster_ids.remove(ClusterCache.COMMON_DATA_CLUSTER)
+    return cluster_ids
 
   def rewrite_cache(self, cache):
     cache_ids_to_delete = []
@@ -107,7 +110,7 @@ class ClusterCache(dict):
       os.makedirs(self.cluster_cache_dir)
 
     with self.__file_lock:
-      with os.fdopen(os.open(self.__current_cache_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
+      with open(self.__current_cache_json_file, 'w') as f:
         json.dump(self, f, indent=2)
 
   def _get_mutable_copy(self):

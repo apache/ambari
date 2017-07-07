@@ -302,6 +302,9 @@ class ActionQueue(threading.Thread):
         retryDuration -= delay  # allow one last attempt
         commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
         logger.info("Retrying command with taskId = {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
+        if 'agentLevelParams' not in command:
+          command['agentLevelParams'] = {}
+
         command['agentLevelParams']['commandBeingRetried'] = "true"
         time.sleep(delay)
         continue
@@ -357,8 +360,8 @@ class ActionQueue(threading.Thread):
 
     # let ambari know name of custom command
 
-    if command.has_key('custom_command'):
-      roleResult['customCommand'] = command['custom_command']
+    if 'commandParams' in command and command['commandParams'].has_key('custom_command'):
+      roleResult['customCommand'] = command['commandParams']['custom_command']
 
     if 'structuredOut' in commandresult:
       roleResult['structuredOut'] = str(json.dumps(commandresult['structuredOut']))
@@ -369,7 +372,7 @@ class ActionQueue(threading.Thread):
     if status == self.COMPLETED_STATUS:
       # let ambari know that configuration tags were applied
       configHandler = ActualConfigHandler(self.config, self.configTags)
-
+      """
       #update
       if 'commandParams' in command:
         command_params = command['commandParams']
@@ -401,6 +404,7 @@ class ActionQueue(threading.Thread):
                                                 command['hostLevelParams']['clientsToUpdateConfigs'])
         roleResult['configurationTags'] = configHandler.read_actual_component(
             command['role'])
+    """
 
     self.recovery_manager.process_execution_command_result(command, status)
     self.commandStatuses.put_command_status(command, roleResult)

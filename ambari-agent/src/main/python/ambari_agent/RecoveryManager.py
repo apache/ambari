@@ -96,7 +96,6 @@ class RecoveryManager:
     self.__active_command_lock = threading.RLock()
     self.__cache_lock = threading.RLock()
     self.active_command_count = 0
-    self.paused = False
     self.cluster_id = None
 
     if not os.path.exists(cache_dir):
@@ -125,11 +124,6 @@ class RecoveryManager:
 
   def has_active_command(self):
     return self.active_command_count > 0
-
-  def set_paused(self, paused):
-    if self.paused != paused:
-      logger.debug("RecoveryManager is transitioning from isPaused = " + str(self.paused) + " to " + str(paused))
-    self.paused = paused
 
   def enabled(self):
     return self.recovery_enabled
@@ -746,8 +740,8 @@ class RecoveryManager:
     """
     Get command dictionary by component name and command_name
     """
-    if self.paused:
-      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
+    if self.has_active_command():
+      logger.info("Recovery is paused, tasks waiting in pipeline for this host.")
       return None
 
     if self.enabled():

@@ -24,7 +24,6 @@ import ambari_simplejson as json
 import sys
 from ambari_commons import shell
 import threading
-import copy
 
 from FileCache import FileCache
 from AgentException import AgentException
@@ -315,7 +314,7 @@ class CustomServiceOrchestrator():
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
 
-      server_url_prefix = command['clusterLevelParams']['jdk_location']
+      server_url_prefix = command['ambariLevelParams']['jdk_location']
 
       # Status commands have no taskId nor roleCommand
       if not is_status_command:
@@ -333,7 +332,7 @@ class CustomServiceOrchestrator():
         hook_dir = None
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
-          command_name = command['hostLevelParams']['custom_command']
+          command_name = command['commandParams']['custom_command']
 
         # forces a hash challenge on the directories to keep them updated, even
         # if the return type is not used
@@ -363,7 +362,7 @@ class CustomServiceOrchestrator():
       # If command contains credentialStoreEnabled, then
       # generate the JCEKS file for the configurations.
       credentialStoreEnabled = False
-      if 'credentialStoreEnabled' in command['serviceLevelParams']:
+      if 'serviceLevelParams' in command and 'credentialStoreEnabled' in command['serviceLevelParams']:
         credentialStoreEnabled = (command['serviceLevelParams']['credentialStoreEnabled'] == "true")
 
       if credentialStoreEnabled == True:
@@ -454,29 +453,43 @@ class CustomServiceOrchestrator():
     return None
 
   def generate_command(self, command_header):
-    service_name = command_header['serviceName']
-    component_name = command_header['role']
     cluster_id = str(command_header['clusterId'])
 
-    metadata_cache = self.metadata_cache[cluster_id]
-    configurations_cache = self.configurations_cache[cluster_id]
-    host_level_params_cache = self.host_level_params_cache[cluster_id]
+    if cluster_id != '-1' and cluster_id != 'null':
+      service_name = command_header['serviceName']
+      component_name = command_header['role']
 
-    component_dict = self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name)
+      metadata_cache = self.metadata_cache[cluster_id]
+      configurations_cache = self.configurations_cache[cluster_id]
+      host_level_params_cache = self.host_level_params_cache[cluster_id]
 
-    command_dict = {
-      'clusterLevelParams': metadata_cache.clusterLevelParams,
-      'serviceLevelParams': metadata_cache.serviceLevelParams[service_name],
-      'hostLevelParams': host_level_params_cache,
-      'componentLevelParams': component_dict.componentLevelParams,
-      'commandParams': component_dict.commandParams
-    }
-    command_dict.update(configurations_cache)
+      command_dict = {
+        'clusterLevelParams': metadata_cache.clusterLevelParams,
+        'hostLevelParams': host_level_params_cache,
+        'clusterHostInfo': self.topology_cache.get_cluster_host_info(cluster_id),
+        'agentLevelParams': {'hostname': self.topology_cache.get_current_host_info(cluster_id)['hostName']}
+      }
 
-    command_dict['agentLevelParams'] = {
+      if service_name is not None and service_name != 'null':
+        command_dict['serviceLevelParams'] = metadata_cache.serviceLevelParams[service_name]
+
+      component_dict = self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name)
+      if component_dict is not None:
+        command_dict.update({
+          'componentLevelParams': component_dict.componentLevelParams,
+          'commandParams': component_dict.commandParams
+        })
+
+      command_dict.update(configurations_cache)
+    else:
+      command_dict = {'agentLevelParams': {}}
+
+    command_dict['ambariLevelParams'] = self.metadata_cache.get_cluster_indepedent_data().clusterLevelParams
+
+    command_dict['agentLevelParams'].update({
       'public_hostname': self.public_fqdn,
       'agentCacheDir': self.config.get('agent', 'cache_dir'),
-    }
+    })
     command_dict['agentLevelParams']["agentConfigParams"] = {
       "agent": {
         "parallel_execution": self.config.get_parallel_exec_option(),
@@ -484,7 +497,7 @@ class CustomServiceOrchestrator():
       }
     }
 
-    command = Utils.update_nested(command_dict, command_header)
+    command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
     return command
 
   def requestComponentStatus(self, command_header):
@@ -542,8 +555,6 @@ class CustomServiceOrchestrator():
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
       task_id = command['taskId']
-      if 'clusterHostInfo' in command and command['clusterHostInfo'] and not retry:
-        command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
       if command_type == ActionQueue.AUTO_EXECUTION_COMMAND:
         file_path = os.path.join(self.tmp_dir, "auto_command-{0}.json".format(task_id))

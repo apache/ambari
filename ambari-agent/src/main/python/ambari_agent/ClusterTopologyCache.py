@@ -45,28 +45,49 @@ class ClusterTopologyCache(ClusterCache):
     self.components_by_key = ImmutableDictionary({})
     self.hostname = hostname.hostname(config)
     self.current_host_ids_to_cluster = {}
+    self.cluster_host_info = None
     super(ClusterTopologyCache, self).__init__(cluster_cache_dir)
 
   def get_cache_name(self):
     return 'topology'
 
   def on_cache_update(self):
+    self.cluster_host_info = None
+
     hosts_to_id = defaultdict(lambda:{})
     components_by_key = defaultdict(lambda:{})
 
     for cluster_id, cluster_topology in self.iteritems():
-      for host_dict in cluster_topology.hosts:
-        hosts_to_id[cluster_id][host_dict.hostId] = host_dict
+      if 'hosts' in cluster_topology:
+        for host_dict in cluster_topology.hosts:
+          hosts_to_id[cluster_id][host_dict.hostId] = host_dict
 
-        if host_dict.hostName == self.hostname:
-          self.current_host_ids_to_cluster[cluster_id] = host_dict.hostId
+          if host_dict.hostName == self.hostname:
+            self.current_host_ids_to_cluster[cluster_id] = host_dict.hostId
 
-      for component_dict in cluster_topology.components:
-        key = "{0}/{1}".format(component_dict.serviceName, component_dict.componentName)
-        components_by_key[cluster_id][key] = component_dict
+      if 'components' in cluster_topology:
+        for component_dict in cluster_topology.components:
+          key = "{0}/{1}".format(component_dict.serviceName, component_dict.componentName)
+          components_by_key[cluster_id][key] = component_dict
 
     self.hosts_to_id = ImmutableDictionary(hosts_to_id)
     self.components_by_key = ImmutableDictionary(components_by_key)
+
+  def get_cluster_host_info(self, cluster_id):
+    """
+    Get dictionary used in commands as clusterHostInfo
+    """
+    if self.cluster_host_info is not None:
+      return self.cluster_host_info
+
+    cluster_host_info = defaultdict(lambda: [])
+    for component_dict in self[cluster_id].components:
+      component_name = component_dict.componentName
+      hostnames = [self.hosts_to_id[cluster_id][host_id].hostName for host_id in component_dict.hostIds]
+      cluster_host_info[component_name.lower()+"_hosts"] += hostnames
+
+    self.cluster_host_info = cluster_host_info
+    return cluster_host_info
 
   def get_component_info_by_key(self, cluster_id, service_name, component_name):
     """
@@ -119,11 +140,15 @@ class ClusterTopologyCache(ClusterCache):
     mutable_dict = self._get_mutable_copy()
 
     for cluster_id, cluster_updates_dict in cache_update.iteritems():
+      # adding a new cluster via UPDATE
       if not cluster_id in mutable_dict:
-        logger.error("Cannot do topology update for cluster cluster_id={0}, because do not have information about the cluster")
+        mutable_dict[cluster_id] = cluster_updates_dict
         continue
 
       if 'hosts' in cluster_updates_dict:
+        if not 'hosts' in mutable_dict[cluster_id]:
+          mutable_dict[cluster_id]['hosts'] = []
+
         hosts_mutable_list = mutable_dict[cluster_id]['hosts']
         for host_updates_dict in cluster_updates_dict['hosts']:
           host_mutable_dict = ClusterTopologyCache._find_host_by_id_in_dict(hosts_mutable_list, host_updates_dict['hostId'])
@@ -133,6 +158,9 @@ class ClusterTopologyCache(ClusterCache):
             hosts_mutable_list.append(host_updates_dict)
 
       if 'components' in cluster_updates_dict:
+        if not 'components' in mutable_dict[cluster_id]:
+          mutable_dict[cluster_id]['components'] = []
+
         components_mutable_list = mutable_dict[cluster_id]['components']
         for component_updates_dict in cluster_updates_dict['components']:
           component_mutable_dict = ClusterTopologyCache._find_component_in_dict(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
@@ -160,7 +188,7 @@ class ClusterTopologyCache(ClusterCache):
 
     for cluster_id, cluster_updates_dict in cache_update.iteritems():
       if not cluster_id in mutable_dict:
-        logger.error("Cannot do topology delete for cluster cluster_id={0}, because do not have information about the cluster")
+        logger.error("Cannot do topology delete for cluster cluster_id={0}, because do not have information about the cluster".format(cluster_id))
         continue
 
       if 'hosts' in cluster_updates_dict:

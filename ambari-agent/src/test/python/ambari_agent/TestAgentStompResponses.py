@@ -132,7 +132,6 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
 
     self.assertTrue('mounts' in host_status_report)
-    self.assertTrue('activeJavaProcs' in host_status_report['agentEnv']['hostHealth'])
     self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
     self.assertEquals(initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
     self.assertEquals(initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
