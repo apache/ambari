@@ -15,24 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.mpack;
 
-import java.io.File;
-
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
+package org.apache.ambari.server.registry;
 
 /**
- * The {@link MpackManagerFactory} is used along with {@link AssistedInject} to
- * build instances of {@link MpackManager}.
+ *
  */
-public interface MpackManagerFactory {
-
+public enum RegistryType {
   /**
-   * @param mpacksV2Staging
-   *        the folder location where mpack is downloaded. (not {@code null}).
-   * @param stackRoot
-   * @return a mpack manager instance.
+   * Json Registry Type
    */
-  MpackManager create(@Assisted("mpacksv2Staging") File mpacksV2Staging, @Assisted("stackRoot") File stackRoot);
+  JSON
 }

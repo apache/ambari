@@ -17,6 +17,14 @@
  */
 package org.apache.ambari.server.api.services;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
@@ -24,47 +32,39 @@ import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Unit tests for MpackService
+ * Unit tests for MpacksService
  */
-public class MpackServiceTest extends BaseServiceTest{
+public class MpacksServiceTest extends BaseServiceTest{
   @Override
   public List<BaseServiceTest.ServiceTestInvocation> getTestInvocations() throws Exception {
     List<BaseServiceTest.ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     // getMpacks
-    MpacksService service = new TestMpackService("null");
+    MpacksService service = new TestMpacksService("null");
     Method m = service.getClass().getMethod("getMpacks", String.class, HttpHeaders.class, UriInfo.class);
     Object[] args = new Object[]{null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getMpack
-    service = new TestMpackService("1");
+    service = new TestMpacksService("1");
     m = service.getClass().getMethod("getMpack", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[]{null, getHttpHeaders(), getUriInfo(), ""};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createMpacks
-    service = new TestMpackService(null);
+    service = new TestMpacksService(null);
     m = service.getClass().getMethod("createMpacks", String.class, HttpHeaders.class, UriInfo.class);
     args = new Object[]{"body", getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
     return listInvocations;
   }
-  private class TestMpackService extends MpacksService {
+  private class TestMpacksService extends MpacksService {
 
     private String m_mpackId;
 
-    private TestMpackService(String mpackId) {
+    private TestMpacksService(String mpackId) {
       super(ApiVersion.Default);
       m_mpackId = mpackId;
     }

@@ -31,10 +31,11 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * The {@link UpgradeCatalog251} upgrades Ambari from 2.5.0 to 2.5.1.

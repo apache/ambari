@@ -90,6 +90,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new GroupPrivilegeResourceProvider();
       case Alert:
         return new AlertResourceProvider(managementController);
+      case Registry:
+        return new RegistryResourceProvider(managementController);
       case Mpack:
         return new MpackResourceProvider(managementController);
       case AlertDefinition:

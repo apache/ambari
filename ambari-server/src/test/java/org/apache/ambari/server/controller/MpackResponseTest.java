@@ -17,12 +17,13 @@
  */
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.Mpacks;
-import org.apache.ambari.server.state.Packlet;
-import org.junit.Test;
-import org.junit.Assert;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.Packlet;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for MpackResponse
@@ -30,25 +31,25 @@ import java.util.HashMap;
 public class MpackResponseTest {
   @Test
   public void testBasicGetAndSet() {
-    MpackResponse mpackResponse = new MpackResponse(setupMpacks());
-    Assert.assertEquals(new Long(100), mpackResponse.getMpackId());
-    Assert.assertEquals("100",mpackResponse.getRegistryId());
+    MpackResponse mpackResponse = new MpackResponse(setupMpack());
+    Assert.assertEquals((Long)100L, mpackResponse.getMpackId());
+    Assert.assertEquals((Long)100L, mpackResponse.getRegistryId());
     Assert.assertEquals("3.0",mpackResponse.getMpackVersion());
     Assert.assertEquals("abc.tar.gz",mpackResponse.getMpackUri());
     Assert.assertEquals("testMpack", mpackResponse.getMpackName());
 
   }
-  public Mpacks setupMpacks(){
-    Mpacks mpacks = new Mpacks();
-    mpacks.setMpackId((long)100);
-    mpacks.setPacklets(new ArrayList<Packlet>());
-    mpacks.setPrerequisites(new HashMap<String, String>());
-    mpacks.setRegistryId(new Long(100));
-    mpacks.setVersion("3.0");
-    mpacks.setMpacksUri("abc.tar.gz");
-    mpacks.setDescription("Test mpacks");
-    mpacks.setName("testMpack");
+  public Mpack setupMpack() {
+    Mpack mpack = new Mpack();
+    mpack.setMpackId(100L);
+    mpack.setPacklets(new ArrayList<Packlet>());
+    mpack.setPrerequisites(new HashMap<String, String>());
+    mpack.setRegistryId(100L);
+    mpack.setVersion("3.0");
+    mpack.setMpackUri("abc.tar.gz");
+    mpack.setDescription("Test mpack");
+    mpack.setName("testMpack");
 
-    return mpacks;
+    return mpack;
   }
 }

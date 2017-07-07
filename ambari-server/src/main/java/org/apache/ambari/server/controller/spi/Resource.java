@@ -90,6 +90,7 @@ public interface Resource {
     User,
     Group,
     Member,
+    Registry,
     Mpack,
     Stack,
     StackVersion,
@@ -212,6 +213,7 @@ public interface Resource {
     public static final Type User = InternalType.User.getType();
     public static final Type Group = InternalType.Group.getType();
     public static final Type Member = InternalType.Member.getType();
+    public static final Type Registry = InternalType.Registry.getType();
     public static final Type Mpack = InternalType.Mpack.getType();
     public static final Type Stack = InternalType.Stack.getType();
     public static final Type StackVersion = InternalType.StackVersion.getType();

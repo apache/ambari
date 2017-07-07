@@ -17,19 +17,22 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Injector;
-import com.google.inject.Guice;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.persist.UnitOfWork;
 
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Tests {@link MpackDAO}.

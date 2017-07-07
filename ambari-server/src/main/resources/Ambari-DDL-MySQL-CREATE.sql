@@ -36,24 +36,25 @@ prepare statement from @engine_stmt;
 execute statement;
 DEALLOCATE PREPARE statement;
 
-CREATE TABLE registries(
+CREATE TABLE registries (
  id BIGINT NOT NULL,
- registy_name VARCHAR(255) NOT NULL,
+ registry_name VARCHAR(255) NOT NULL,
  registry_type VARCHAR(255) NOT NULL,
  registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id));
+ CONSTRAINT PK_registries PRIMARY KEY (id),
+ CONSTRAINT UQ_registry_name UNIQUE (registry_name));
 
-CREATE TABLE mpacks(
+CREATE TABLE mpacks (
  id BIGINT NOT NULL,
  mpack_name VARCHAR(255) NOT NULL,
  mpack_version VARCHAR(255) NOT NULL,
  mpack_uri VARCHAR(255),
  registry_id BIGINT,
  CONSTRAINT PK_mpacks PRIMARY KEY (id),
- CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version),
+ CONSTRAINT UQ_mpack_name_version UNIQUE(mpack_name, mpack_version),
  CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
 
-CREATE TABLE stack(
+CREATE TABLE stack (
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(100) NOT NULL,
   stack_version VARCHAR(100) NOT NULL,
@@ -1124,6 +1125,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('upgrade_item_id_seq', 0),
   ('stack_id_seq', 0),
   ('mpack_id_seq', 0),
+  ('registry_id_seq', 0),
   ('extension_id_seq', 0),
   ('link_id_seq', 0),
   ('widget_id_seq', 0),

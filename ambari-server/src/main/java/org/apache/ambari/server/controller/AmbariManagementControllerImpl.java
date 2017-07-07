@@ -131,6 +131,8 @@ import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
+import org.apache.ambari.server.registry.Registry;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -153,40 +155,41 @@ import org.apache.ambari.server.stack.ExtensionHelper;
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ServiceComponentFactory;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.ConfigFactory;
-import org.apache.ambari.server.state.StackId;
+
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
-import org.apache.ambari.server.state.PropertyInfo.PropertyType;
-import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.ServiceOsSpecific;
-import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ExtensionInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.Packlet;
-import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
@@ -273,6 +276,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ActionMetadata actionMetadata;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  private RegistryManager registryManager;
   @Inject
   private Users users;
   @Inject
@@ -512,8 +517,54 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public MpackResponse registerMpack(MpackRequest request) throws IOException, AuthorizationException, ResourceAlreadyExistsException{
+  public RegistryResponse addRegistry(RegistryRequest request) {
+    Registry registry = registryManager.addRegistry(
+      request.getRegistryName(), request.getRegistryType(), request.getRegistryUri());
+    return new RegistryResponse(registry);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<RegistryResponse> getRegistries(Set<RegistryRequest> requests)
+    throws AmbariException {
+    Set<RegistryResponse> responses = new HashSet<>();
+    for (RegistryRequest request : requests) {
+      responses.addAll(getRegistries(request));
+    }
+    return responses;
+  }
+
+  private Set<RegistryResponse> getRegistries(RegistryRequest request)
+    throws AmbariException {
+    Set<RegistryResponse> responses;
+
+    Long registryId = request.getRegistryId();
+
+    if (registryId != null) {
+      Registry registry = registryManager.getRegistry(registryId);
+      responses = Collections.singleton(new RegistryResponse(registry));
+    } else {
+      Collection<Registry> registries = registryManager.getRegistries().values();
+      responses = new HashSet<>();
+      for (Registry registry: registries) {
+        responses.add(new RegistryResponse(registry));
+      }
+    }
+    return responses;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MpackResponse registerMpack(MpackRequest request)
+    throws IOException, AuthorizationException, ResourceAlreadyExistsException{
     MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
     updateStacks();
     return mpackResponse;

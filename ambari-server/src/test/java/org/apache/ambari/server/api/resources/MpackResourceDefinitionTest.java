@@ -20,6 +20,7 @@
 package org.apache.ambari.server.api.resources;
 
 import static junit.framework.Assert.assertEquals;
+
 import org.junit.Test;
 
 /**

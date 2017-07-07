@@ -17,15 +17,15 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents the state of an mpack.
  */
-public class Mpacks {
+public class Mpack {
 
   private Long mpackId;
 
@@ -49,7 +49,7 @@ public class Mpacks {
   @SerializedName("stack-id")
   private String stackId;
 
-  private String mpacksUri;
+  private String mpackUri;
 
   public Long getMpackId() {
     return mpackId;
@@ -67,12 +67,12 @@ public class Mpacks {
     this.registryId = registryId;
   }
 
-  public String getMpacksUri() {
-    return mpacksUri;
+  public String getMpackUri() {
+    return mpackUri;
   }
 
-  public void setMpacksUri(String mpacksUri) {
-    this.mpacksUri = mpacksUri;
+  public void setMpackUri(String mpackUri) {
+    this.mpackUri = mpackUri;
   }
 
   public String getName() {
@@ -139,7 +139,7 @@ public class Mpacks {
     result = prime * result + ((prerequisites == null) ? 0 : prerequisites.hashCode());
     result = prime * result + ((packlets == null) ? 0 : packlets.hashCode());
     result = prime * result + ((stackId == null) ? 0 : stackId.hashCode());
-    result = prime * result + ((mpacksUri == null) ? 0 : mpacksUri.hashCode());
+    result = prime * result + ((mpackUri == null) ? 0 : mpackUri.hashCode());
     return result;
   }
 
@@ -160,7 +160,7 @@ public class Mpacks {
       return false;
     }
 
-    Mpacks other = (Mpacks) obj;
+    Mpack other = (Mpack) obj;
 
     if (name != other.name) {
       return false;
@@ -214,11 +214,11 @@ public class Mpacks {
       return false;
     }
 
-    if (mpacksUri == null) {
-      if (other.mpacksUri != null) {
+    if (mpackUri == null) {
+      if (other.mpackUri != null) {
         return false;
       }
-    } else if (!mpacksUri.equals(other.mpacksUri)) {
+    } else if (!mpackUri.equals(other.mpackUri)) {
       return false;
     }
 
@@ -249,7 +249,7 @@ public class Mpacks {
     return sb.toString();
   }
 
-  public void copyFrom(Mpacks mpack) {
+  public void copyFrom(Mpack mpack) {
     if (this.name == null)
       this.name = mpack.getName();
     if (this.mpackId == null)

@@ -17,20 +17,21 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.persistence.NamedQuery;
-import javax.persistence.NamedQueries;
-import javax.persistence.Table;
-import javax.persistence.Entity;
-import javax.persistence.TableGenerator;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Column;
-import java.util.Objects;
 
 /**
  * The {@link MpackEntity} class represents the mpack objects in the cluster.

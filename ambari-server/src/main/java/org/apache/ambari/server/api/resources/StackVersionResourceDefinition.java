@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.resources;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Resource;
 
 public class StackVersionResourceDefinition extends BaseResourceDefinition {

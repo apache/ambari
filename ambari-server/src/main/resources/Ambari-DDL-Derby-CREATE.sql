@@ -17,14 +17,15 @@
 --
 
 ------create tables and grant privileges to db user---------
-CREATE TABLE registries(
+CREATE TABLE registries (
  id BIGINT NOT NULL,
- registy_name VARCHAR(255) NOT NULL,
+ registry_name VARCHAR(255) NOT NULL,
  registry_type VARCHAR(255) NOT NULL,
  registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id));
+ CONSTRAINT PK_registries PRIMARY KEY (id),
+ CONSTRAINT UQ_registry_name UNIQUE (registry_name));
 
-CREATE TABLE mpacks(
+CREATE TABLE mpacks (
  id BIGINT NOT NULL,
  mpack_name VARCHAR(255) NOT NULL,
  mpack_version VARCHAR(255) NOT NULL,
@@ -32,9 +33,9 @@ CREATE TABLE mpacks(
  registry_id BIGINT,
  CONSTRAINT PK_mpacks PRIMARY KEY (id),
  CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id),
- CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version));
+ CONSTRAINT UQ_mpack_name_version UNIQUE(mpack_name, mpack_version));
 
-CREATE TABLE stack(
+CREATE TABLE stack (
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
@@ -1145,6 +1146,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'stack_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'mpack_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'registry_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'extension_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all

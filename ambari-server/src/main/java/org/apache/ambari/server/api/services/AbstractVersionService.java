@@ -349,6 +349,16 @@ public abstract class AbstractVersionService {
   }
 
   /**
+   * Handles /registries request.
+   *
+   * @return registry service
+   */
+  @Path("/registries")
+  public RegistryService getRegistryService(@PathParam("apiVersion") String apiVersion) {
+    return new RegistryService(ApiVersion.valueOf(apiVersion));
+  }
+
+  /**
    * Handles /mpacks request.
    *
    * @return mpacks service
@@ -357,6 +367,4 @@ public abstract class AbstractVersionService {
   public MpacksService getMpacksService(@PathParam("apiVersion") String apiVersion) {
     return new MpacksService(ApiVersion.valueOf(apiVersion));
   }
-
-
 }

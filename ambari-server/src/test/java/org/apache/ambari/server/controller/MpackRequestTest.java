@@ -18,8 +18,8 @@
 package org.apache.ambari.server.controller;
 
 
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for MpackRequest
@@ -28,15 +28,15 @@ public class MpackRequestTest {
   @Test
   public void testBasicGetAndSet() {
     MpackRequest mpackRequest =
-            new MpackRequest(new Long(1));
-    Assert.assertEquals("1", mpackRequest.getMpackId());
+            new MpackRequest(1L);
+    Assert.assertEquals((Long)1L, mpackRequest.getMpackId());
     mpackRequest.setMpackUri("abc.tar.gz");
-    mpackRequest.setRegistryId(new Long(1));
+    mpackRequest.setRegistryId(1L);
     mpackRequest.setMpackVersion("3.0");
     mpackRequest.setMpackName("testmpack");
 
     Assert.assertEquals("abc.tar.gz", mpackRequest.getMpackUri());
-    Assert.assertEquals("1", mpackRequest.getRegistryId());
+    Assert.assertEquals((Long)1L, mpackRequest.getRegistryId());
     Assert.assertEquals("3.0", mpackRequest.getMpackVersion());
     Assert.assertEquals("testmpack", mpackRequest.getMpackName());
 

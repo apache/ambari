@@ -6,33 +6,28 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.mpack;
 
-import java.io.File;
+package org.apache.ambari.server.exceptions;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
+import org.apache.ambari.server.ObjectNotFoundException;
 
-/**
- * The {@link MpackManagerFactory} is used along with {@link AssistedInject} to
- * build instances of {@link MpackManager}.
- */
-public interface MpackManagerFactory {
+@SuppressWarnings("serial")
+public class RegistryNotFoundException extends ObjectNotFoundException {
 
-  /**
-   * @param mpacksV2Staging
-   *        the folder location where mpack is downloaded. (not {@code null}).
-   * @param stackRoot
-   * @return a mpack manager instance.
-   */
-  MpackManager create(@Assisted("mpacksv2Staging") File mpacksV2Staging, @Assisted("stackRoot") File stackRoot);
+  public RegistryNotFoundException(String registryName) {
+    super("Software registry not found, registryName=" + registryName);
+  }
+
+  public RegistryNotFoundException(Long registryId) {
+    super("Software registry not found, registryId=" + registryId);
+  }
 }

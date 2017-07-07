@@ -17,42 +17,44 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.google.inject.Injector;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.util.Modules;
-import com.google.inject.Module;
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MpackRequest;
 import org.apache.ambari.server.controller.MpackResponse;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.MpackRequest;
-import org.apache.ambari.server.controller.utilities.*;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.state.Mpacks;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Packlet;
 import org.easymock.EasyMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.verify;
-import org.junit.Test;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 
-import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
 
 public class MpackResourceProviderTest {
 
@@ -212,7 +214,7 @@ public class MpackResourceProviderTest {
     MpackRequest mpackRequest = new MpackRequest();
     mpackRequest.setMpackUri("abc.tar.gz");
     Request request = createMock(Request.class);
-    MpackResponse response = new MpackResponse(setupMpacks());
+    MpackResponse response = new MpackResponse(setupMpack());
     Set<Map<String, Object>> properties = new HashSet<>();
     Map propertyMap = new HashMap();
     propertyMap.put(MpackResourceProvider.MPACK_URI,"abc.tar.gz");
@@ -253,18 +255,18 @@ public class MpackResourceProviderTest {
     verify(m_amc,request);
   }
 
-  public Mpacks setupMpacks(){
-    Mpacks mpacks = new Mpacks();
-    mpacks.setMpackId((long)100);
-    mpacks.setPacklets(new ArrayList<Packlet>());
-    mpacks.setPrerequisites(new HashMap<String, String>());
-    mpacks.setRegistryId(new Long(100));
-    mpacks.setVersion("3.0");
-    mpacks.setMpacksUri("abc.tar.gz");
-    mpacks.setDescription("Test mpacks");
-    mpacks.setName("testMpack");
+  public Mpack setupMpack() {
+    Mpack mpack = new Mpack();
+    mpack.setMpackId((long)100);
+    mpack.setPacklets(new ArrayList<Packlet>());
+    mpack.setPrerequisites(new HashMap<String, String>());
+    mpack.setRegistryId(new Long(100));
+    mpack.setVersion("3.0");
+    mpack.setMpackUri("abc.tar.gz");
+    mpack.setDescription("Test mpack");
+    mpack.setName("testMpack");
 
-    return mpacks;
+    return mpack;
   }
 
   /**

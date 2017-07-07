@@ -101,6 +101,11 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.registry.Registry;
+import org.apache.ambari.server.registry.RegistryFactory;
+import org.apache.ambari.server.registry.RegistryImpl;
+import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.registry.RegistryManagerImpl;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -347,6 +352,7 @@ public class ControllerModule extends AbstractModule {
     bind(SecureRandom.class).in(Scopes.SINGLETON);
 
     bind(Clusters.class).to(ClustersImpl.class);
+    bind(RegistryManager.class).to(RegistryManagerImpl.class);
     bind(AmbariCustomCommandExecutionHelper.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(
@@ -494,6 +500,8 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
     install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
     install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
+    install(new FactoryModuleBuilder().implement(
+      Registry.class, RegistryImpl.class).build(RegistryFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());

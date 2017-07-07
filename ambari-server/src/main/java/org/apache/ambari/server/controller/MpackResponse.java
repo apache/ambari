@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.Mpacks;
+import org.apache.ambari.server.state.Mpack;
 
 /**
  * Represents a mpack response.
@@ -31,13 +31,13 @@ public class MpackResponse {
   private Long registryId;
   private String stackId;
 
-  public MpackResponse(Mpacks mpacks) {
-    this.mpackId = mpacks.getMpackId();
-    this.mpackVersion = mpacks.getVersion();
-    this.mpackUri = mpacks.getMpacksUri();
-    this.mpackName = mpacks.getName();
-    this.registryId = mpacks.getRegistryId();
-    this.stackId = mpacks.getStackId();
+  public MpackResponse(Mpack mpack) {
+    this.mpackId = mpack.getMpackId();
+    this.mpackVersion = mpack.getVersion();
+    this.mpackUri = mpack.getMpackUri();
+    this.mpackName = mpack.getName();
+    this.registryId = mpack.getRegistryId();
+    this.stackId = mpack.getStackId();
   }
 
   public String getMpackVersion() {

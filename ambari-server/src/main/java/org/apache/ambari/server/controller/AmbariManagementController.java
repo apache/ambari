@@ -19,11 +19,11 @@
 package org.apache.ambari.server.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -62,7 +63,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
@@ -148,6 +148,13 @@ public interface AmbariManagementController {
    * @throws AmbariException when the members cannot be created.
    */
   void createMembers(Set<MemberRequest> requests) throws AmbariException;
+
+  /**
+   * Add a software registry.
+   *
+   * @param request the request object which defines the software registry to be added
+   */
+  RegistryResponse addRegistry(RegistryRequest request);
 
   /**
    * Register the mpack defined by the attributes in the given request object.
@@ -941,5 +948,17 @@ public interface AmbariManagementController {
    * @return List of packlets
    */
   ArrayList<Packlet> getPacklets(Long mpackId);
+
+  /**
+   * Get the software registries identified by the given request objects.
+   *
+   * @param requests  the request objects which identify the software registries to be returned
+   *
+   * @return a set of software registry responses
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
+  Set<RegistryResponse> getRegistries(Set<RegistryRequest> requests)
+    throws AmbariException;
 }
 

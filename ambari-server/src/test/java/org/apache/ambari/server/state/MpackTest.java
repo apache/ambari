@@ -17,29 +17,30 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.gson.Gson;
-import org.junit.Test;
-import org.junit.Assert;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MpacksTest {
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.gson.Gson;
+
+public class MpackTest {
   @Test
   public void testMpacks() {
-    Mpacks mpacks = new Mpacks();
-    mpacks.setName("name");
-    mpacks.setMpackId((long)100);
-    mpacks.setDescription("desc");
-    mpacks.setVersion("3.0");
-    mpacks.setMpacksUri("abc.tar.gz");
-    mpacks.setRegistryId(new Long(100));
+    Mpack mpack = new Mpack();
+    mpack.setName("name");
+    mpack.setMpackId((long)100);
+    mpack.setDescription("desc");
+    mpack.setVersion("3.0");
+    mpack.setMpackUri("abc.tar.gz");
+    mpack.setRegistryId(new Long(100));
 
-    Assert.assertEquals("name", mpacks.getName());
-    Assert.assertEquals(new Long(100), mpacks.getMpackId());
-    Assert.assertEquals("desc", mpacks.getDescription());
-    Assert.assertEquals("abc.tar.gz", mpacks.getMpacksUri());
-    Assert.assertEquals(new Long(100), mpacks.getRegistryId());
+    Assert.assertEquals("name", mpack.getName());
+    Assert.assertEquals(new Long(100), mpack.getMpackId());
+    Assert.assertEquals("desc", mpack.getDescription());
+    Assert.assertEquals("abc.tar.gz", mpack.getMpackUri());
+    Assert.assertEquals(new Long(100), mpack.getRegistryId());
 
   }
 
@@ -84,12 +85,12 @@ public class MpacksTest {
     expectedPacklets.add(streamline);
 
     Gson gson = new Gson();
-    Mpacks mpacks = gson.fromJson(mpackJsonContents, Mpacks.class);
-    Assert.assertEquals("hdf-ambari-mpack",mpacks.getName());
-    Assert.assertEquals("3.0.0.0-111", mpacks.getVersion());
-    Assert.assertEquals("HDF 3.0.0 Ambari Management Pack",mpacks.getDescription());
-    Assert.assertEquals(expectedPrereq, mpacks.getPrerequisites());
-    Assert.assertEquals(expectedPacklets.toString(), mpacks.getPacklets().toString());
+    Mpack mpack = gson.fromJson(mpackJsonContents, Mpack.class);
+    Assert.assertEquals("hdf-ambari-mpack", mpack.getName());
+    Assert.assertEquals("3.0.0.0-111", mpack.getVersion());
+    Assert.assertEquals("HDF 3.0.0 Ambari Management Pack", mpack.getDescription());
+    Assert.assertEquals(expectedPrereq, mpack.getPrerequisites());
+    Assert.assertEquals(expectedPacklets.toString(), mpack.getPacklets().toString());
   }
 
 }

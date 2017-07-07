@@ -59,7 +59,6 @@ import org.apache.ambari.server.mpack.MpackManager;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.stack.StackDirectory;
@@ -71,13 +70,13 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -278,8 +277,8 @@ public class AmbariMetaInfo {
 
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
 
-    String mpackV2StagingPath = conf.getMpacksV2StagingPath();
-    mpacksV2Staging = new File(mpackV2StagingPath);
+    String mpacksV2StagingPath = conf.getMpacksV2StagingPath();
+    mpacksV2Staging = new File(mpacksV2StagingPath);
 
   }
 

@@ -153,6 +153,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new MemberResourceDefinition();
         break;
 
+      case Registry:
+        resourceDefinition = new RegistryResourceDefinition();
+        break;
+
       case Mpack:
         resourceDefinition = new MpackResourceDefinition();
         break;

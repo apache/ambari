@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.junit.Test;
-import org.junit.Assert;
-
 import java.util.Objects;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests methods on {@link MpackEntity}.

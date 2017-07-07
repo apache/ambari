@@ -18,37 +18,38 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
-import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MpackRequest;
+import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.MpackResponse;
-import org.apache.ambari.server.controller.MpackRequest;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Packlet;
+
+import com.google.inject.Inject;
 
 /**
  * ResourceProvider for Mpack instances
@@ -113,8 +114,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   public RequestStatus createResources(final Request request)
-          throws SystemException, UnsupportedPropertyException,
-          ResourceAlreadyExistsException, NoSuchParentResourceException, IllegalArgumentException {
+    throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException,
+    NoSuchParentResourceException, IllegalArgumentException {
     Set<Resource> associatedResources = new HashSet<>();
     try {
       MpackRequest mpackRequest = getRequest(request);
@@ -169,8 +170,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
     Set<Resource> results = new LinkedHashSet<>();
     Long mpackId = null;
-    //Fetch all mpacks
     if (predicate == null) {
+      // Fetch all mpacks
       List<MpackEntity> entities = mpackDAO.findAll();
       if (null == entities) {
         entities = Collections.emptyList();
@@ -184,8 +185,9 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(REGISTRY_ID, entity.getRegistryId());
         results.add(resource);
       }
-    } //Fetch a particular mpack based on id
+    }
     else {
+      // Fetch a particular mpack based on id
       Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
       if (propertyMap.containsKey(STACK_NAME_PROPERTY_ID) && propertyMap.containsKey(STACK_VERSION_PROPERTY_ID)) {
         String stackName = (String) propertyMap.get(STACK_NAME_PROPERTY_ID);

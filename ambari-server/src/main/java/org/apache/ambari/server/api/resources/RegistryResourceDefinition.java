@@ -15,24 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.mpack;
+package org.apache.ambari.server.api.resources;
 
-import java.io.File;
-
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
- * The {@link MpackManagerFactory} is used along with {@link AssistedInject} to
- * build instances of {@link MpackManager}.
+ * Resource Definition for Registry Resource types.
  */
-public interface MpackManagerFactory {
+public class RegistryResourceDefinition extends BaseResourceDefinition {
 
-  /**
-   * @param mpacksV2Staging
-   *        the folder location where mpack is downloaded. (not {@code null}).
-   * @param stackRoot
-   * @return a mpack manager instance.
-   */
-  MpackManager create(@Assisted("mpacksv2Staging") File mpacksV2Staging, @Assisted("stackRoot") File stackRoot);
+    public RegistryResourceDefinition() {
+        super(Type.Registry);
+    }
+
+    @Override public String getPluralName() {
+        return "registries";
+    }
+
+    @Override public String getSingularName() {
+        return "registry";
+    }
 }
