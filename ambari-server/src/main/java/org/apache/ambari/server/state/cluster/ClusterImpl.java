@@ -1065,9 +1065,12 @@ public class ClusterImpl implements Cluster {
         }
       }
 
+      if (null != effectiveClusterVersion) {
+        effectiveClusterVersionId = effectiveClusterVersion.getId();
+      }
+
       // cache for later use, but only if the action is completed
       if (null != effectiveClusterVersion && updateCache) {
-        effectiveClusterVersionId = effectiveClusterVersion.getId();
         upgradeEffectiveVersionCache.put(upgradeId, effectiveClusterVersionId);
       }
     }

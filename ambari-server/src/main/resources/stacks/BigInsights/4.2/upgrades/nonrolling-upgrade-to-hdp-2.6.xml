@@ -37,12 +37,10 @@
   </prerequisite-checks>
 
   <order>
-    <!-- NOT SUPPORTED AT THIS TIME
     <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">
-      <direction>UPGRADE</direction>
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <parallel-scheduler/>
 
       <service name="FLUME">
@@ -122,9 +120,8 @@
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
-      <direction>UPGRADE</direction>
-      <skippable>true</skippable>
       <service-check>false</service-check>
+      <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
 
@@ -147,7 +144,6 @@
         <component>ZOOKEEPER_SERVER</component>
       </service>
     </group>
-    -->
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
