@@ -29,7 +29,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.hadoop.metrics2.sink.relocated.commons.lang.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
