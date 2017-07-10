@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -41,11 +40,8 @@ import org.apache.ambari.server.controller.spi.Resource;
  * any cluster specific information.  Updates are not permitted as blueprints are
  * immutable.
  */
+@Path("/blueprints/")
 public class BlueprintService extends BaseService {
-
-  public BlueprintService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
 
   /**
    * Handles: GET  /blueprints

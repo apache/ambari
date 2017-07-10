@@ -169,10 +169,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 @Singleton
 public class AmbariServer {
-  public static final String VIEWS_V1_URL_PATTERN = "/api/v1/views/*";
-  public static final String VIEWS_V2_URL_PATTERN = "/api/v2/views/*";
-  public static final String USERS_V1_URL_PATTERN = "/api/v1/users/*";
-  public static final String USERS_V2_URL_PATTERN = "/api/v2/users/*";
+  public static final String VIEWS_URL_PATTERN = "/api/v1/views/*";
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
 
   /**
@@ -394,25 +391,18 @@ public class AmbariServer {
 
       // The security header filter - conditionally adds security-related headers to the HTTP response for Ambari Views
       // requests.
-      root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsSecurityHeaderFilter.class)),
-              VIEWS_V1_URL_PATTERN,
-          DISPATCHER_TYPES);
-      root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsSecurityHeaderFilter.class)), VIEWS_V2_URL_PATTERN,
+      root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsSecurityHeaderFilter.class)), VIEWS_URL_PATTERN,
           DISPATCHER_TYPES);
 
       // since views share the REST API threadpool, a misbehaving view could
       // consume all of the available threads and effectively cause a loss of
       // service for Ambari
       root.addFilter(new FilterHolder(injector.getInstance(ViewThrottleFilter.class)),
-              VIEWS_V1_URL_PATTERN, DISPATCHER_TYPES);
-      root.addFilter(new FilterHolder(injector.getInstance(ViewThrottleFilter.class)),
-          VIEWS_V2_URL_PATTERN, DISPATCHER_TYPES);
+        VIEWS_URL_PATTERN, DISPATCHER_TYPES);
 
       // adds MDC info for views logging
       root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsMDCLoggingFilter.class)),
-              VIEWS_V1_URL_PATTERN, DISPATCHER_TYPES);
-      root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsMDCLoggingFilter.class)),
-          VIEWS_V2_URL_PATTERN, DISPATCHER_TYPES);
+        VIEWS_URL_PATTERN, DISPATCHER_TYPES);
 
       // session-per-request strategy for api
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
@@ -422,8 +412,7 @@ public class AmbariServer {
       root.addEventListener(new RequestContextListener());
 
       root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
-      root.addFilter(new FilterHolder(new UserNameOverrideFilter()), USERS_V1_URL_PATTERN, DISPATCHER_TYPES);
-      root.addFilter(new FilterHolder(new UserNameOverrideFilter()), USERS_V2_URL_PATTERN, DISPATCHER_TYPES);
+      root.addFilter(new FilterHolder(new UserNameOverrideFilter()), "/api/v1/users/*", DISPATCHER_TYPES);
 
       // session-per-request strategy for agents
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", DISPATCHER_TYPES);
@@ -460,7 +449,7 @@ public class AmbariServer {
           "org.apache.ambari.server.api");
 
       sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
-      root.addServlet(sh, "/api/*");
+      root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
       SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);

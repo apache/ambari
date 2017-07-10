@@ -30,7 +30,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for ServiceService.
@@ -134,13 +133,13 @@ public class ServiceServiceTest extends BaseServiceTest {
     private String m_artifact_id;
 
     private TestServiceService(String clusterId, String serviceId) {
-      super(ApiVersion.Default, clusterId);
+      super(clusterId);
       m_clusterId = clusterId;
       m_serviceId = serviceId;
     }
 
     private TestServiceService(String clusterId, String serviceId, String artifactId) {
-      super(ApiVersion.Default, clusterId);
+      super(clusterId);
       m_clusterId = clusterId;
       m_serviceId = serviceId;
       m_artifact_id = artifactId;

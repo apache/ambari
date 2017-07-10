@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -70,8 +69,7 @@ public class ViewExternalSubResourceService  extends BaseService {
 
   // ----- Constructors ------------------------------------------------------
 
-  public ViewExternalSubResourceService(ApiVersion apiVersion, Resource.Type type, ViewInstanceEntity viewInstanceDefinition) {
-    super(apiVersion);
+  public ViewExternalSubResourceService(Resource.Type type, ViewInstanceEntity viewInstanceDefinition) {
     ViewEntity viewEntity = viewInstanceDefinition.getViewEntity();
 
     this.type         = type;

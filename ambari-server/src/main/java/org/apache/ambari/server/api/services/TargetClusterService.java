@@ -33,17 +33,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * DR target cluster service.
  */
+@Path("/targets/")
 public class TargetClusterService extends BaseService {
-
-  public TargetClusterService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
 
   /**
    * Handles: GET /targets/{targetName}

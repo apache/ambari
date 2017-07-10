@@ -33,7 +33,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -50,8 +49,7 @@ public class MemberService extends BaseService {
    *
    * @param groupName name of the group
    */
-  public MemberService(ApiVersion apiVersion, String groupName) {
-    super(apiVersion);
+  public MemberService(String groupName) {
     this.groupName = groupName;
   }
 

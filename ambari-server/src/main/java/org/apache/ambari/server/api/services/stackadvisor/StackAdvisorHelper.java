@@ -31,7 +31,6 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.Configuration
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.configuration.Configuration;
 
 import com.google.inject.Inject;
@@ -83,10 +82,10 @@ public class StackAdvisorHelper {
       StackAdvisorRequestType requestType) throws StackAdvisorException {
     StackAdvisorCommand<ValidationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
-      command = new ComponentLayoutValidationCommand(ApiVersion.Default, recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
+      command = new ComponentLayoutValidationCommand(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
-      command = new ConfigurationValidationCommand(ApiVersion.Default, recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
+      command = new ConfigurationValidationCommand(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
@@ -118,13 +117,13 @@ public class StackAdvisorHelper {
       StackAdvisorRequestType requestType) throws StackAdvisorException {
     StackAdvisorCommand<RecommendationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
-      command = new ComponentLayoutRecommendationCommand(ApiVersion.Default, recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
+      command = new ComponentLayoutRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
-      command = new ConfigurationRecommendationCommand(ApiVersion.Default, recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
+      command = new ConfigurationRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES) {
-      command = new ConfigurationDependenciesRecommendationCommand(ApiVersion.Default, recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
+      command = new ConfigurationDependenciesRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",

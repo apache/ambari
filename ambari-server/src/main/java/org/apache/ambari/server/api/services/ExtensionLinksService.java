@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -44,11 +43,8 @@ import org.apache.ambari.server.controller.spi.Resource;
  * version to the current stack version allows the cluster to install the custom services contained in
  * the extension version.
  */
+@Path("/links/")
 public class ExtensionLinksService extends BaseService {
-
-  public ExtensionLinksService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
 
   @GET
   @Produces("text/plain")

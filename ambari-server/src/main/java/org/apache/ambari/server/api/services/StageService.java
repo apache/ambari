@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
@@ -61,8 +60,7 @@ public class StageService extends BaseService {
    * @param clusterName  cluster id
    * @param requestId    request id
    */
-  public StageService(ApiVersion apiVersion, String clusterName, String requestId) {
-    super(apiVersion);
+  public StageService(String clusterName, String requestId) {
     m_clusterName = clusterName;
     m_requestId = requestId;
   }
@@ -112,7 +110,7 @@ public class StageService extends BaseService {
    */
   @Path("{stageId}/tasks")
   public TaskService getTaskHandler(@PathParam("stageId") String stageId) {
-    return new TaskService(m_apiVersion, m_clusterName, m_requestId, stageId);
+    return new TaskService(m_clusterName, m_requestId, stageId);
   }
 
   /**

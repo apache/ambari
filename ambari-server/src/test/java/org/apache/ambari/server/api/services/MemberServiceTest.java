@@ -29,7 +29,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
@@ -85,7 +84,7 @@ public class MemberServiceTest extends BaseServiceTest {
 
   private class TestMemberService extends MemberService {
     public TestMemberService(String groupName) {
-      super(ApiVersion.Default, groupName);
+      super(groupName);
     }
 
     @Override

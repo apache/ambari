@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -49,8 +48,7 @@ public class ClusterStackVersionService extends BaseService {
    *
    * @param clusterName name of the cluster
    */
-  public ClusterStackVersionService(ApiVersion apiVersion, String clusterName) {
-    super(apiVersion);
+  public ClusterStackVersionService(String clusterName) {
     this.clusterName = clusterName;
   }
 
@@ -104,7 +102,7 @@ public class ClusterStackVersionService extends BaseService {
     final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ClusterStackVersion, stackVersion);
-    return new RepositoryVersionService(m_apiVersion, mapIds);
+    return new RepositoryVersionService(mapIds);
   }
 
 

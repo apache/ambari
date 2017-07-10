@@ -52,7 +52,6 @@ import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -1340,7 +1339,7 @@ public class ViewRegistry {
     ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition, this);
 
     ViewExternalSubResourceService externalSubResourceService =
-        new ViewExternalSubResourceService(ApiVersion.Default, viewDefinition.getExternalResourceType(), viewInstanceDefinition);
+        new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
 
     viewInstanceDefinition.addService(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME, externalSubResourceService);
 
@@ -1350,7 +1349,7 @@ public class ViewRegistry {
       Resource.Type type = resourceDefinition.getType();
       ResourceConfig resourceConfig = resourceDefinition.getResourceConfiguration();
 
-      ViewResourceHandler viewResourceService = new ViewSubResourceService(ApiVersion.Default, type, viewInstanceDefinition);
+      ViewResourceHandler viewResourceService = new ViewSubResourceService(type, viewInstanceDefinition);
 
       ClassLoader cl = viewDefinition.getClassLoader();
 

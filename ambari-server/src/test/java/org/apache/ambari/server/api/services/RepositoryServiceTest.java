@@ -30,7 +30,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
@@ -82,7 +81,7 @@ public class RepositoryServiceTest extends BaseServiceTest {
   private class TestRepositoryService extends RepositoryService {
 
     public TestRepositoryService() {
-      super(ApiVersion.Default, new HashMap<Type, String>());
+      super(new HashMap<Type, String>());
     }
 
     @Override

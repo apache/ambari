@@ -30,7 +30,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for CredentialService.
@@ -73,7 +72,7 @@ public class CredentialServiceTest extends BaseServiceTest {
     private String alias;
 
     private TestCredentialService(String alias) {
-      super(ApiVersion.Default, "C1");
+      super("C1");
       this.alias = alias;
     }
 

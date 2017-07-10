@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -30,36 +32,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Service responsible for preparing recommendations for host-layout and configurations.
+ * Service responsible for preparing recommendations for host-layout and
+ * configurations.
  */
+@Path("/stacks/{stackName}/versions/{stackVersion}/recommendations")
 public class RecommendationService extends BaseService {
-
-  /**
-   * Stack name.
-   */
-  private String m_stackName;
-
-  /**
-   * Stack version.
-   */
-  private String m_stackVersion;
-
-  /**
-   * Constructor.
-   *
-   * @param apiVersion API version
-   * @param stackName Stack name
-   * @param stackVersion Stack version
-   */
-  public RecommendationService(final ApiVersion apiVersion, String stackName, String stackVersion) {
-    super(apiVersion);
-    this.m_stackName = stackName;
-    this.m_stackVersion = stackVersion;
-  }
 
   /**
    * Returns host-layout recommendations for list of hosts and services.
@@ -67,13 +47,17 @@ public class RecommendationService extends BaseService {
    * @param body http body
    * @param headers http headers
    * @param ui uri info
+   * @param stackName stack name
+   * @param stackVersion stack version
    * @return recommendations for host-layout
    */
   @POST
   @Produces(MediaType.TEXT_PLAIN)
-  public Response getRecommendation(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getRecommendation(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+      @PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {
+
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createRecommendationResource(m_stackName, m_stackVersion));
+        createRecommendationResource(stackName, stackVersion));
   }
 
   ResourceInstance createRecommendationResource(String stackName, String stackVersion) {

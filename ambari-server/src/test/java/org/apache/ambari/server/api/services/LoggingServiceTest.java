@@ -26,7 +26,6 @@ import java.net.HttpURLConnection;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -126,7 +125,7 @@ public class LoggingServiceTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     LoggingService loggingService =
-      new LoggingService(ApiVersion.Default, expectedClusterName, controllerFactoryMock);
+      new LoggingService(expectedClusterName, controllerFactoryMock);
     loggingService.setLoggingRequestHelperFactory(helperFactoryMock);
 
     Response resource = loggingService.getSearchEngine("", null, uriInfoMock);

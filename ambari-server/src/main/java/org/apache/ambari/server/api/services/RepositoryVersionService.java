@@ -33,7 +33,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -49,11 +48,9 @@ public class RepositoryVersionService extends BaseService {
   /**
    * Constructor.
    *
-   * @param apiVersion API version
    * @param parentKeyProperties extra properties to be inserted into created resource
    */
-  public RepositoryVersionService(ApiVersion apiVersion, Map<Resource.Type, String> parentKeyProperties) {
-    super(apiVersion);
+  public RepositoryVersionService(Map<Resource.Type, String> parentKeyProperties) {
     this.parentKeyProperties = parentKeyProperties;
   }
 
@@ -144,7 +141,7 @@ public class RepositoryVersionService extends BaseService {
     final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.RepositoryVersion, repositoryVersionId);
-    return new OperatingSystemService(m_apiVersion, mapIds);
+    return new OperatingSystemService(mapIds);
   }
 
   /**

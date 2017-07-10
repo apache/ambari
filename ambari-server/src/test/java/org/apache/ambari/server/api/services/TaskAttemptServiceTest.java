@@ -28,7 +28,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for TaskAttemptService.
@@ -66,7 +65,7 @@ public class TaskAttemptServiceTest extends BaseServiceTest {
 
     public TestTaskAttemptService(String clusterName, String workflowId,
         String jobId) {
-      super(ApiVersion.Default, clusterName, workflowId, jobId);
+      super(clusterName, workflowId, jobId);
       this.clusterName = clusterName;
       this.workflowId = workflowId;
       this.jobId = jobId;

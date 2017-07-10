@@ -34,12 +34,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for hosts resource requests.
  */
+@Path("/hosts/")
 public class HostService extends BaseService {
 
   /**
@@ -50,8 +50,7 @@ public class HostService extends BaseService {
   /**
    * Constructor.
    */
-  public HostService(ApiVersion apiVersion) {
-    super(apiVersion);
+  public HostService() {
   }
 
   /**
@@ -59,8 +58,7 @@ public class HostService extends BaseService {
    *
    * @param clusterName cluster id
    */
-  public HostService(ApiVersion apiVersion, String clusterName) {
-    super(apiVersion);
+  public HostService(String clusterName) {
     m_clusterName = clusterName;
   }
 
@@ -213,7 +211,7 @@ public class HostService extends BaseService {
    */
   @Path("{hostName}/host_components")
   public HostComponentService getHostComponentHandler(@PathParam("hostName") String hostName) {
-    return new HostComponentService(m_apiVersion, m_clusterName, hostName);
+    return new HostComponentService(m_clusterName, hostName);
   }
 
   /**
@@ -224,7 +222,7 @@ public class HostService extends BaseService {
    */
   @Path("{hostName}/kerberos_identities")
   public HostKerberosIdentityService getHostKerberosIdentityHandler(@PathParam("hostName") String hostName) {
-    return new HostKerberosIdentityService(m_apiVersion, m_clusterName, hostName);
+    return new HostKerberosIdentityService(m_clusterName, hostName);
   }
 
   /**
@@ -235,7 +233,7 @@ public class HostService extends BaseService {
    */
   @Path("{hostName}/alerts")
   public AlertService getAlertHandler(@PathParam("hostName") String hostName) {
-    return new AlertService(m_apiVersion, m_clusterName, null, hostName);
+    return new AlertService(m_clusterName, null, hostName);
   }
 
   /**
@@ -253,7 +251,7 @@ public class HostService extends BaseService {
       @Context javax.ws.rs.core.Request request,
       @PathParam("hostName") String hostName) {
 
-    return new AlertHistoryService(m_apiVersion, m_clusterName, null, hostName);
+    return new AlertHistoryService(m_clusterName, null, hostName);
   }
 
   /**
@@ -270,7 +268,7 @@ public class HostService extends BaseService {
   public HostStackVersionService getHostStackVersionService(@Context javax.ws.rs.core.Request request,
       @PathParam("hostName") String hostName) {
 
-    return new HostStackVersionService(m_apiVersion, hostName, m_clusterName);
+    return new HostStackVersionService(hostName, m_clusterName);
   }
 
   /**

@@ -31,17 +31,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for user groups requests.
  */
+@Path("/groups/")
 public class GroupService extends BaseService {
-  public GroupService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
-
   /**
    * Gets all groups.
    * Handles: GET /groups requests.
@@ -131,7 +127,7 @@ public class GroupService extends BaseService {
    */
   @Path("{groupName}/members")
   public MemberService getMemberHandler(@PathParam("groupName") String groupName) {
-    return new MemberService(m_apiVersion, groupName);
+    return new MemberService(groupName);
   }
 
   /**
@@ -141,7 +137,7 @@ public class GroupService extends BaseService {
   public PrivilegeService getPrivilegeService(@Context javax.ws.rs.core.Request request,
                                               @PathParam ("groupName") String groupName) {
 
-    return new GroupPrivilegeService(m_apiVersion, groupName);
+    return new GroupPrivilegeService(groupName);
   }
 
 

@@ -36,6 +36,7 @@ import com.google.inject.Inject;
  * Service responsible for kerberos related resource requests.
  */
 @StaticallyInject
+@Path("/kdc_check/")
 public class KdcServerReachabilityCheck {
   private static final String REACHABLE = "REACHABLE";
   private static final String UNREACHABLE = "UNREACHABLE";

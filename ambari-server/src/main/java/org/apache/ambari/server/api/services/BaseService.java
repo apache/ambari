@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.services;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -37,7 +36,6 @@ import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.CsvSerializer;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.utils.RetryHelper;
@@ -50,12 +48,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class BaseService {
   public final static MediaType MEDIA_TYPE_TEXT_CSV_TYPE = new MediaType("text", "csv");
-
-  /**
-   * Regex for checking API version from the request URI
-   */
-  public static final Pattern API_VERSION_REGEX = Pattern.compile("^(/api/)(v[0-9\\.]+)");
-
 
   /**
    * Logger instance.
@@ -73,15 +65,6 @@ public abstract class BaseService {
   private ResultSerializer m_serializer = new JsonSerializer();
 
   protected static RequestAuditLogger requestAuditLogger;
-
-  /**
-   * Api version
-   */
-  protected ApiVersion m_apiVersion;
-
-  public BaseService(ApiVersion apiVersion) {
-    m_apiVersion = apiVersion;
-  }
 
   public static void init(RequestAuditLogger instance) {
     requestAuditLogger = instance;

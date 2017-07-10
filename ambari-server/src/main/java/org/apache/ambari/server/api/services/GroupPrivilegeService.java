@@ -27,7 +27,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -37,8 +36,7 @@ public class GroupPrivilegeService extends PrivilegeService {
 
   private final String groupName;
 
-  public GroupPrivilegeService(ApiVersion apiVersion, String groupName) {
-    super(apiVersion);
+  public GroupPrivilegeService(String groupName) {
     this.groupName = groupName;
   }
 

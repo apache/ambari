@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+@Path("/keys/")
 public class KeyService {
   private static final Logger log = LoggerFactory.getLogger(KeyService.class);
   private static PersistKeyValueImpl persistKeyVal;

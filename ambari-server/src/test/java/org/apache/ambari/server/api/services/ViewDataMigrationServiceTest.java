@@ -27,7 +27,6 @@ import static org.easymock.EasyMock.verify;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewDataMigrationUtility;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -55,7 +54,7 @@ public class ViewDataMigrationServiceTest {
     replay(viewRegistry);
     ViewRegistry.initInstance(viewRegistry);
 
-    ViewDataMigrationService service = new ViewDataMigrationService(ApiVersion.Default, viewName, version1, instanceName);
+    ViewDataMigrationService service = new ViewDataMigrationService(viewName, version1, instanceName);
 
     ViewDataMigrationUtility migrationUtility = createStrictMock(ViewDataMigrationUtility.class);
     migrationUtility.migrateData(anyObject(ViewInstanceEntity.class), anyObject(ViewInstanceEntity.class), eq(false));
@@ -74,7 +73,7 @@ public class ViewDataMigrationServiceTest {
     replay(viewRegistry);
     ViewRegistry.initInstance(viewRegistry);
 
-    ViewDataMigrationService service = new ViewDataMigrationService(ApiVersion.Default, viewName, version1, instanceName);
+    ViewDataMigrationService service = new ViewDataMigrationService(viewName, version1, instanceName);
 
     thrown.expect(WebApplicationException.class);
     service.migrateData(version2, instanceName);

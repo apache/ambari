@@ -19,6 +19,7 @@ package org.apache.ambari.server.api.services;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -36,6 +37,7 @@ import com.google.inject.Inject;
  * Service performing logout of current user
  */
 @StaticallyInject
+@Path("/logout")
 public class LogoutService {
 
   @Inject

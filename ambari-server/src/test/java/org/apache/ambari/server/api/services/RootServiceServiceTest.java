@@ -30,7 +30,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
 * Unit tests for RootServiceService.
@@ -94,7 +93,6 @@ public class RootServiceServiceTest extends BaseServiceTest {
     private String m_hostName;
 
     private TestRootServiceService(String serviceName, String componentName, String hostName) {
-      super(ApiVersion.Default);
       m_serviceName = serviceName;
       m_componentName = componentName;
       m_hostName = hostName;

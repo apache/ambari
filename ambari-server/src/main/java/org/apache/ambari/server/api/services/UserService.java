@@ -32,17 +32,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for user requests.
  */
+@Path("/users/")
 public class UserService extends BaseService {
-
-  public UserService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
 
   /**
    * Gets all users.
@@ -139,7 +135,7 @@ public class UserService extends BaseService {
   public PrivilegeService getPrivilegeService(@Context javax.ws.rs.core.Request request,
                                               @PathParam ("userName") String userName) {
 
-    return new UserPrivilegeService(m_apiVersion, userName);
+    return new UserPrivilegeService(userName);
   }
 
   /**
@@ -149,7 +145,7 @@ public class UserService extends BaseService {
   public ActiveWidgetLayoutService getWidgetLayoutService(@Context javax.ws.rs.core.Request request,
                                                     @PathParam ("userName") String userName) {
 
-    return new ActiveWidgetLayoutService(m_apiVersion, userName);
+    return new ActiveWidgetLayoutService(userName);
   }
 
   /**
@@ -162,7 +158,7 @@ public class UserService extends BaseService {
   @Path("{userName}/authorizations")
   public UserAuthorizationService getUserAuthorizations(
       @Context javax.ws.rs.core.Request request, @PathParam("userName") String username) {
-    return new UserAuthorizationService(m_apiVersion, username);
+    return new UserAuthorizationService(username);
   }
 
   /**

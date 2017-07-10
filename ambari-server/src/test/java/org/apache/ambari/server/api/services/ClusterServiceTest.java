@@ -30,7 +30,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -146,7 +145,7 @@ public class ClusterServiceTest extends BaseServiceTest {
     private String m_clusterId;
 
     private TestClusterService(Clusters clusters, String clusterId) {
-      super(ApiVersion.Default, clusters);
+      super(clusters);
       m_clusterId = clusterId;
     }
 

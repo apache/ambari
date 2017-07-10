@@ -23,7 +23,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewDataMigrationUtility;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -72,8 +71,7 @@ public class ViewDataMigrationService extends BaseService {
    * @param viewVersion    the current view version
    * @param instanceName   the current view instance name
    */
-  public ViewDataMigrationService(ApiVersion apiVersion, String viewName, String viewVersion, String instanceName) {
-    super(apiVersion);
+  public ViewDataMigrationService(String viewName, String viewVersion, String instanceName) {
     this.viewName = viewName;
     this.viewVersion = viewVersion;
     this.instanceName = instanceName;

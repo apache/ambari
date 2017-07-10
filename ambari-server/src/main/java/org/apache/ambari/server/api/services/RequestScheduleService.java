@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -49,8 +48,7 @@ public class RequestScheduleService extends BaseService {
    * Constructor
    * @param m_clusterName
    */
-  public RequestScheduleService(ApiVersion apiVersion, String m_clusterName) {
-    super(apiVersion);
+  public RequestScheduleService(String m_clusterName) {
     this.m_clusterName = m_clusterName;
   }
 

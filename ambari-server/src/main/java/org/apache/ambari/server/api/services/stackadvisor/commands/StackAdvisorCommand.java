@@ -45,7 +45,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.DateUtils;
@@ -110,9 +109,8 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private final AmbariMetaInfo metaInfo;
 
   @SuppressWarnings("unchecked")
-  public StackAdvisorCommand(ApiVersion apiVersion, File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
+  public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
       StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-    super(apiVersion);
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
 

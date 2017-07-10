@@ -39,7 +39,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.lang.StringUtils;
@@ -65,8 +64,7 @@ public class HostComponentService extends BaseService {
    * @param clusterName cluster id
    * @param hostName    host id
    */
-  public HostComponentService(ApiVersion apiVersion, String clusterName, String hostName) {
-    super(apiVersion);
+  public HostComponentService(String clusterName, String hostName) {
     m_clusterName = clusterName;
     m_hostName = hostName;
   }

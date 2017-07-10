@@ -29,7 +29,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
@@ -61,7 +60,7 @@ public class HostStackVersionServiceTest extends BaseServiceTest {
 
   private class TestHostStackVersionService extends HostStackVersionService {
     public TestHostStackVersionService(String hostName, String clusterName) {
-      super(ApiVersion.Default, hostName, clusterName);
+      super(hostName, clusterName);
     }
 
     @Override

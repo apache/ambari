@@ -34,13 +34,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
 /**
  * Service responsible for request resource requests.
  */
+@Path("/requests/")
 public class RequestService extends BaseService {
   /**
    * Parent cluster name.
@@ -48,8 +48,7 @@ public class RequestService extends BaseService {
   private String m_clusterName;
 
 
-  public RequestService(ApiVersion apiVersion) {
-    super(apiVersion);
+  public RequestService() {
   }
   
   /**
@@ -57,8 +56,7 @@ public class RequestService extends BaseService {
    *
    * @param clusterName cluster id
    */
-  public RequestService(ApiVersion apiVersion, String clusterName) {
-    super(apiVersion);
+  public RequestService(String clusterName) {
     m_clusterName = clusterName;
   }
 
@@ -104,7 +102,7 @@ public class RequestService extends BaseService {
    */
   @Path("{requestId}/stages")
   public StageService getStageHandler(@PathParam("requestId") String requestId) {
-    return new StageService(m_apiVersion, m_clusterName, requestId);
+    return new StageService(m_clusterName, requestId);
   }
 
   /**
@@ -112,7 +110,7 @@ public class RequestService extends BaseService {
    */
   @Path("{requestId}/tasks")
   public TaskService getTaskHandler(@PathParam("requestId") String requestId) {
-    return new TaskService(m_apiVersion, m_clusterName, requestId, null);
+    return new TaskService(m_clusterName, requestId, null);
   }
 
   /**

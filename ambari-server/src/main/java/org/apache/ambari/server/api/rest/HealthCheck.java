@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.rest;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -27,6 +28,7 @@ import javax.ws.rs.core.MediaType;
  * or not
  */
 
+@Path("/check")
 public class HealthCheck {
   private static final String status = "RUNNING";
   // This method is called if TEXT_PLAIN is request

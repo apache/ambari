@@ -33,18 +33,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
 /**
  * Service responsible for Remote Cluster resource requests.
  */
+@Path("/remoteclusters")
 public class RemoteClustersService extends BaseService {
-
-  public RemoteClustersService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
 
   /**
    * Get the list of all Remote Clusters

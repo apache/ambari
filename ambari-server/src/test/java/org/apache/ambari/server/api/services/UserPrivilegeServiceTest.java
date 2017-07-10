@@ -33,7 +33,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.easymock.EasyMock;
@@ -89,7 +88,7 @@ public class UserPrivilegeServiceTest extends BaseServiceTest {
   @Test
   public void testCreatePrivilegeResourcesWithUppercaseUsername() {
     // GIVEN
-    UserPrivilegeService userPrivilegeService = new UserPrivilegeService(ApiVersion.Default, "User");
+    UserPrivilegeService userPrivilegeService = new UserPrivilegeService("User");
     // WHEN
     ResourceInstance result = userPrivilegeService.createPrivilegeResource("test");
     // THEN
@@ -99,7 +98,7 @@ public class UserPrivilegeServiceTest extends BaseServiceTest {
   private class TestUserPrivilegeService extends UserPrivilegeService {
 
     public TestUserPrivilegeService() {
-      super(ApiVersion.Default, "user");
+      super("user");
     }
 
     @Override

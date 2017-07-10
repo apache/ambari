@@ -31,7 +31,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -48,14 +47,13 @@ public class ConfigurationService extends BaseService {
    *
    * @param clusterName cluster id
    */
-  public ConfigurationService(ApiVersion apiVersion, String clusterName) {
-    super(apiVersion);
+  public ConfigurationService(String clusterName) {
     m_clusterName = clusterName;
   }
 
   @Path("service_config_versions")
   public ServiceConfigVersionService getServiceConfigVersionService() {
-    return new ServiceConfigVersionService(m_apiVersion, m_clusterName);
+    return new ServiceConfigVersionService(m_clusterName);
   }
 
   /**

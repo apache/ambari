@@ -31,17 +31,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 
 /**
  * Service responsible for privilege requests.
  */
 public abstract class PrivilegeService extends BaseService {
-
-  public PrivilegeService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
 
   /**
    * Handles: GET /privileges/{privilegeID}

@@ -33,7 +33,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -43,8 +42,7 @@ public class WidgetLayoutService extends BaseService {
   
   private final String clusterName;
 
-  public  WidgetLayoutService(ApiVersion apiVersion, String clusterName) {
-    super(apiVersion);
+  public  WidgetLayoutService(String clusterName) {
     this.clusterName = clusterName;
   }
 

@@ -30,7 +30,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
@@ -46,8 +45,7 @@ public class UpgradeSummaryService extends BaseService {
    *
    * @param clusterName the cluster name (not {@code null}).
    */
-  UpgradeSummaryService(ApiVersion apiVersion, String clusterName) {
-    super(apiVersion);
+  UpgradeSummaryService(String clusterName) {
     m_clusterName = clusterName;
   }
 

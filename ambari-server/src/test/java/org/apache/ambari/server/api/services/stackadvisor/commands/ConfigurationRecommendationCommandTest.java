@@ -34,7 +34,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.junit.Test;
 
 public class ConfigurationRecommendationCommandTest {
@@ -44,7 +43,7 @@ public class ConfigurationRecommendationCommandTest {
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     File file = mock(File.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(ApiVersion.Default, file, "1w", "script", 1, saRunner, metaInfo);
+    ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(file, "1w", "script", 1, saRunner, metaInfo);
 
     StackAdvisorRequest request = mock(StackAdvisorRequest.class);
     Map<String, Set<String>> componentHostGroupMap = new HashMap<>();

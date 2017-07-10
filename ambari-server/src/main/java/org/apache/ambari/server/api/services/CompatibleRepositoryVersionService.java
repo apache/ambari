@@ -30,7 +30,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -48,8 +47,7 @@ public class CompatibleRepositoryVersionService extends BaseService {
    *
    * @param parentProperties extra properties to be inserted into created resource
    */
-  public CompatibleRepositoryVersionService(ApiVersion apiVersion, Map<Resource.Type, String> parentProperties) {
-    super(apiVersion);
+  public CompatibleRepositoryVersionService(Map<Resource.Type, String> parentProperties) {
     parentKeyProperties = parentProperties;
   }
 
@@ -96,7 +94,7 @@ public class CompatibleRepositoryVersionService extends BaseService {
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.CompatibleRepositoryVersion, repositoryVersionId);
 
-    return new OperatingSystemService(m_apiVersion, mapIds);
+    return new OperatingSystemService(mapIds);
   }
 
   /**

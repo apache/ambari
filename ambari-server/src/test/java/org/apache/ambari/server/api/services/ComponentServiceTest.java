@@ -32,7 +32,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for ComponentService.
@@ -93,7 +92,7 @@ public class ComponentServiceTest extends BaseServiceTest {
     private String m_componentId;
 
     private TestComponentService(String clusterId, String serviceId, String componentId) {
-      super(ApiVersion.Default, clusterId, serviceId);
+      super(clusterId, serviceId);
       m_clusterId = clusterId;
       m_serviceId = serviceId;
       m_componentId = componentId;

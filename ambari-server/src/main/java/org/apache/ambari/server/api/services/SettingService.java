@@ -33,19 +33,19 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for setting resource requests.
  */
+@Path("/settings/")
 public class SettingService extends BaseService {
 
   /**
    * Construct a SettingService.
    */
-  public SettingService(ApiVersion apiVersion) {
-    super(apiVersion);
+  public SettingService() {
+
   }
 
   /**

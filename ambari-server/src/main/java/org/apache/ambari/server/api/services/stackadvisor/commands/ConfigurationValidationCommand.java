@@ -25,16 +25,15 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * {@link StackAdvisorCommand} implementation for configuration validation.
  */
 public class ConfigurationValidationCommand extends StackAdvisorCommand<ValidationResponse> {
 
-  public ConfigurationValidationCommand(ApiVersion apiVersion, File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript,
+  public ConfigurationValidationCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript,
                                         int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-    super(apiVersion, recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
+    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override

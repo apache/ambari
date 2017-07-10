@@ -28,7 +28,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for JobService.
@@ -63,7 +62,7 @@ public class JobServiceTest extends BaseServiceTest {
     private String clusterName;
 
     public TestJobService(String clusterName, String workflowId) {
-      super(ApiVersion.Default, clusterName, workflowId);
+      super(clusterName, workflowId);
       this.clusterName = clusterName;
       this.workflowId = workflowId;
     }
