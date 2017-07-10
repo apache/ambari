@@ -17,13 +17,13 @@
  */
 package org.apache.ambari.server.checks;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.ambari.server.AmbariException;
@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,13 +96,13 @@ public class ServiceCheckValidityCheckTest {
       }
     };
 
-
     Cluster cluster = mock(Cluster.class);
     when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
     when(cluster.getClusterId()).thenReturn(CLUSTER_ID);
     when(cluster.getServices()).thenReturn(ImmutableMap.of(SERVICE_NAME, service));
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     when(service.getName()).thenReturn(SERVICE_NAME);
+    when(service.getDesiredStackId()).thenReturn(new StackId("HDP", "2.2"));
 
 
     serviceCheckValidityCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
@@ -115,6 +114,42 @@ public class ServiceCheckValidityCheckTest {
 
     when(ambariMetaInfo.isServiceWithNoConfigs(Mockito.anyString(), Mockito.anyString(),
         Mockito.anyString())).thenReturn(false);
+  }
+
+  @Test
+  public void testWithNullCommandDetailAtCommand() throws AmbariException {
+    ServiceComponent serviceComponent = mock(ServiceComponent.class);
+    when(serviceComponent.isVersionAdvertised()).thenReturn(true);
+
+    when(service.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
+    when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
+
+    ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
+    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
+
+    HostRoleCommandEntity hostRoleCommandEntity1 = new HostRoleCommandEntity();
+    hostRoleCommandEntity1.setRoleCommand(RoleCommand.SERVICE_CHECK);
+    hostRoleCommandEntity1.setCommandDetail(null);
+    hostRoleCommandEntity1.setStartTime(SERVICE_CHECK_START_TIME);
+    hostRoleCommandEntity1.setRole(Role.ZOOKEEPER_SERVER);
+
+    HostRoleCommandEntity hostRoleCommandEntity2 = new HostRoleCommandEntity();
+    hostRoleCommandEntity2.setRoleCommand(RoleCommand.SERVICE_CHECK);
+    hostRoleCommandEntity2.setCommandDetail(COMMAND_DETAIL);
+    hostRoleCommandEntity2.setStartTime(SERVICE_CHECK_START_TIME);
+    hostRoleCommandEntity2.setRole(Role.HDFS_SERVICE_CHECK);
+
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(asList(hostRoleCommandEntity1, hostRoleCommandEntity2));
+
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    try {
+      serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    } catch (NullPointerException ex){
+      Assert.fail("serviceCheckValidityCheck failed due to null at start_time were not handled");
+    }
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 
   @Test
@@ -189,7 +224,7 @@ public class ServiceCheckValidityCheckTest {
     hostRoleCommandEntity2.setRole(Role.HDFS_SERVICE_CHECK);
 
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
-    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(Arrays.asList(hostRoleCommandEntity1, hostRoleCommandEntity2));
+    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(asList(hostRoleCommandEntity1, hostRoleCommandEntity2));
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));

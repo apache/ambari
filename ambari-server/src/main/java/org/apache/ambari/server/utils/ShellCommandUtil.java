@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,15 +28,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * Logs OpenSsl command exit code with description
  */
 public class ShellCommandUtil {
-  private static final Log LOG = LogFactory.getLog(ShellCommandUtil.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ShellCommandUtil.class);
   private static final Object WindowsProcessLaunchLock = new Object();
   private static final String PASS_TOKEN = "pass:";
   private static final String KEY_TOKEN = "-key ";
@@ -163,10 +163,8 @@ public class ShellCommandUtil {
     if (LINUX) {
       try {
         result = runCommand(new String[]{"stat", "-c", "%a", path}).getStdout();
-      } catch (IOException e) {
+      } catch (IOException | InterruptedException e) {
         // Improbable
-        LOG.warn(String.format("Can not perform stat on %s", path), e);
-      } catch (InterruptedException e) {
         LOG.warn(String.format("Can not perform stat on %s", path), e);
       }
     } else {
@@ -187,10 +185,8 @@ public class ShellCommandUtil {
     if (LINUX) {
       try {
         runCommand(new String[]{"chmod", mode, path});
-      } catch (IOException e) {
+      } catch (IOException | InterruptedException e) {
         // Improbable
-        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
-      } catch (InterruptedException e) {
         LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
       }
     } else {
@@ -212,11 +208,8 @@ public class ShellCommandUtil {
       if (!StringUtils.isEmpty(ownerName)) {
         try {
           return runCommand(new String[]{"chown", ownerName, path}, null, null, true);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
           // Improbable
-          LOG.warn(String.format("Can not perform chown %s %s", ownerName, path), e);
-          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
-        } catch (InterruptedException e) {
           LOG.warn(String.format("Can not perform chown %s %s", ownerName, path), e);
           return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
         }
@@ -243,11 +236,8 @@ public class ShellCommandUtil {
       if (!StringUtils.isEmpty(groupName)) {
         try {
           return runCommand(new String[]{"chgrp", groupName, path}, null, null, true);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
           // Improbable
-          LOG.warn(String.format("Can not perform chgrp %s %s", groupName, path), e);
-          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
-        } catch (InterruptedException e) {
           LOG.warn(String.format("Can not perform chgrp %s %s", groupName, path), e);
           return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
         }
@@ -294,11 +284,8 @@ public class ShellCommandUtil {
 
       try {
         return runCommand(new String[]{"chmod", mode, path}, null, null, true);
-      } catch (IOException e) {
+      } catch (IOException | InterruptedException e) {
         // Improbable
-        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
-        return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
-      } catch (InterruptedException e) {
         LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
         return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
       }

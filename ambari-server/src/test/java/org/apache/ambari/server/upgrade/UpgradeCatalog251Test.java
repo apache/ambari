@@ -178,16 +178,26 @@ public class UpgradeCatalog251Test {
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
+    Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateKAFKAConfigs = UpgradeCatalog251.class.getDeclaredMethod("updateKAFKAConfigs");
+    Method updateSTORMConfigs = UpgradeCatalog251.class.getDeclaredMethod("updateSTORMConfigs");
 
     UpgradeCatalog251 upgradeCatalog251 = createMockBuilder(UpgradeCatalog251.class)
-        .addMockedMethod(updateKAFKAConfigs)
-        .createMock();
+            .addMockedMethod(addNewConfigurationsFromXml)
+            .addMockedMethod(updateKAFKAConfigs)
+            .addMockedMethod(updateSTORMConfigs)
+            .createMock();
+
+    upgradeCatalog251.addNewConfigurationsFromXml();
+    expectLastCall().once();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
     field.set(upgradeCatalog251, dbAccessor);
 
     upgradeCatalog251.updateKAFKAConfigs();
+    expectLastCall().once();
+    
+    upgradeCatalog251.updateSTORMConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog251, dbAccessor);

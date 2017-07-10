@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -51,8 +52,31 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 
+import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
+
 public class OutputSolr extends Output {
+
+  private static final String DEFAULT_SOLR_JAAS_FILE = "/etc/security/keytabs/logsearch_solr.service.keytab";
+  @LogSearchPropertyDescription(
+    name = "logfeeder.solr.jaas.file",
+    description = "The jaas file used for solr.",
+    examples = {"/etc/ambari-logsearch-logfeeder/conf/logfeeder_jaas.conf"},
+    defaultValue = DEFAULT_SOLR_JAAS_FILE,
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String SOLR_JAAS_FILE_PROPERTY = "logfeeder.solr.jaas.file";
+
   private static final Logger LOG = Logger.getLogger(OutputSolr.class);
+
+  private static final boolean DEFAULT_SOLR_KERBEROS_ENABLE = false;
+  @LogSearchPropertyDescription(
+    name = "logfeeder.solr.kerberos.enable",
+    description = "Enables using kerberos for accessing solr.",
+    examples = {"true"},
+    defaultValue = DEFAULT_SOLR_KERBEROS_ENABLE + "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String SOLR_KERBEROS_ENABLE_PROPERTY = "logfeeder.solr.kerberos.enable";
 
   private static final int DEFAULT_MAX_BUFFER_SIZE = 5000;
   private static final int DEFAULT_MAX_INTERVAL_MS = 3000;
@@ -127,8 +151,8 @@ public class OutputSolr extends Output {
 
 
   private void setupSecurity() {
-    String jaasFile = LogFeederUtil.getStringProperty("logfeeder.solr.jaas.file", "/etc/security/keytabs/logsearch_solr.service.keytab");
-    boolean securityEnabled = LogFeederUtil.getBooleanProperty("logfeeder.solr.kerberos.enable", false);
+    String jaasFile = LogFeederUtil.getStringProperty(SOLR_JAAS_FILE_PROPERTY, DEFAULT_SOLR_JAAS_FILE);
+    boolean securityEnabled = LogFeederUtil.getBooleanProperty(SOLR_KERBEROS_ENABLE_PROPERTY, DEFAULT_SOLR_KERBEROS_ENABLE);
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
       HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());

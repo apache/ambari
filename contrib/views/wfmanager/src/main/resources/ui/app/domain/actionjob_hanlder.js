@@ -243,6 +243,9 @@ var SparkActionJobHandler=ActionJobHandler.extend({
     ];
   },
   handleImport(actionNode,json){
+    if(json.master === "yarn-client") {
+           json.master = "yarn-cluster";
+         }
     this._super(actionNode,json);
   }
 });

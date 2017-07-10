@@ -433,7 +433,11 @@
       <fileMode>644</fileMode>
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
-      <scope>compile</scope>
+      <scope>runtime</scope>
+      <excludes>
+        <exclude>org.slf4j:slf4j-jdk14</exclude>
+        <exclude>org.slf4j:slf4j-nop</exclude>
+      </excludes>
     </dependencySet>
   </dependencySets>
 </assembly>

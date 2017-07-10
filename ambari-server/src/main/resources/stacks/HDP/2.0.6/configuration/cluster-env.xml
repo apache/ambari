@@ -220,6 +220,18 @@ gpgcheck=0</value>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <!-- Define stack_name property in the base stack. DO NOT override this property for each stack version -->
+  <property>
+    <name>stack_name</name>
+    <value>HDP</value>
+    <description>The name of the stack.</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <!-- Define stack_tools property in the base stack. DO NOT override this property for each stack version -->
   <property>
     <name>stack_tools</name>
@@ -252,8 +264,8 @@ gpgcheck=0</value>
   </property>
   <property>
     <name>stack_root</name>
-    <value>/usr/hdp</value>
-    <description>Stack root folder</description>
+    <value>{"HDP":"/usr/hdp"}</value>
+    <description>JSON which defines the stack root by stack name</description>
     <value-attributes>
       <read-only>true</read-only>
       <overridable>false</overridable>
@@ -317,5 +329,17 @@ gpgcheck=0</value>
       <visible>true</visible>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+  </property>
+  <property>
+    <name>namenode_rolling_restart_timeout</name>
+    <value>4200</value>
+    <description>Timeout for namenode rolling restart command.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>namenode_rolling_restart_safemode_exit_timeout</name>
+    <value>3600</value>
+    <description>Timeout for safemode exit, during namenode rolling restart</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

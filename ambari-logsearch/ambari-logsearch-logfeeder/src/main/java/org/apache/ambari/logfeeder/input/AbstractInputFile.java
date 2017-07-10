@@ -28,15 +28,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public abstract class AbstractInputFile extends Input {
-  protected static final Logger LOG = Logger.getLogger(AbstractInputFile.class);
-
   private static final int DEFAULT_CHECKPOINT_INTERVAL_MS = 5 * 1000;
 
   protected File[] logFiles;
@@ -45,15 +45,14 @@ public abstract class AbstractInputFile extends Input {
   protected String base64FileKey;
 
   protected boolean isReady;
-  private boolean isStartFromBegining = true;
 
   private String checkPointExtension;
-  private File checkPointFile;
-  private RandomAccessFile checkPointWriter;
-  private long lastCheckPointTimeMS;
   private int checkPointIntervalMS;
-  private Map<String, Object> jsonCheckPoint;
-  private InputMarker lastCheckPointInputMarker;
+  
+  private Map<String, File> checkPointFiles = new HashMap<>();
+  private Map<String, Long> lastCheckPointTimeMSs = new HashMap<>();
+  private Map<String, Map<String, Object>> jsonCheckPoints = new HashMap<>();
+  private Map<String, InputMarker> lastCheckPointInputMarkers = new HashMap<>();
 
   @Override
   protected String getStatMetricName() {
@@ -69,23 +68,17 @@ public abstract class AbstractInputFile extends Input {
   public void init() throws Exception {
     LOG.info("init() called");
     
-    checkPointExtension = LogFeederUtil.getStringProperty("logfeeder.checkpoint.extension", InputManager.DEFAULT_CHECKPOINT_EXTENSION);
+    checkPointExtension = LogFeederUtil.getStringProperty(InputManager.CHECKPOINT_EXTENSION_PROPERTY,
+        InputManager.DEFAULT_CHECKPOINT_EXTENSION);
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);
-    logPath = getStringValue("path");
-    tail = getBooleanValue("tail", tail);
-    checkPointIntervalMS = getIntValue("checkpoint.interval.ms", DEFAULT_CHECKPOINT_INTERVAL_MS);
+    logPath = inputDescriptor.getPath();
+    checkPointIntervalMS = (int) ObjectUtils.defaultIfNull(((InputFileBaseDescriptor)inputDescriptor).getCheckpointIntervalMs(), DEFAULT_CHECKPOINT_INTERVAL_MS);
 
     if (StringUtils.isEmpty(logPath)) {
       LOG.error("path is empty for file input. " + getShortDescription());
       return;
-    }
-
-    String startPosition = getStringValue("start_position");
-    if (StringUtils.isEmpty(startPosition) || startPosition.equalsIgnoreCase("beginning") ||
-        startPosition.equalsIgnoreCase("begining") || !tail) {
-      isStartFromBegining = true;
     }
 
     setFilePath(logPath);
@@ -96,12 +89,9 @@ public abstract class AbstractInputFile extends Input {
     super.init();
   }
 
-  protected void processFile(File logPathFile) throws FileNotFoundException, IOException {
+  protected void processFile(File logPathFile, boolean follow) throws FileNotFoundException, IOException {
     LOG.info("Monitoring logPath=" + logPath + ", logPathFile=" + logPathFile);
     BufferedReader br = null;
-    checkPointFile = null;
-    checkPointWriter = null;
-    jsonCheckPoint = null;
 
     int lineCount = 0;
     try {
@@ -109,9 +99,10 @@ public abstract class AbstractInputFile extends Input {
       
       br = openLogFile(logPathFile);
 
-      boolean resume = isStartFromBegining;
+      boolean resume = true;
       int resumeFromLineNumber = getResumeFromLineNumber();
       if (resumeFromLineNumber > 0) {
+        LOG.info("Resuming log file " + logPathFile.getAbsolutePath() + " from line number " + resumeFromLineNumber);
         resume = false;
       }
       
@@ -132,7 +123,7 @@ public abstract class AbstractInputFile extends Input {
             sleepIteration++;
             if (sleepIteration == 2) {
               flush();
-              if (!tail) {
+              if (!follow) {
                 LOG.info("End of file. Done with filePath=" + logPathFile.getAbsolutePath() + ", lineCount=" + lineCount);
                 break;
               }
@@ -211,16 +202,19 @@ public abstract class AbstractInputFile extends Input {
   private int getResumeFromLineNumber() {
     int resumeFromLineNumber = 0;
     
-    if (tail) {
-      try {
-        LOG.info("Checking existing checkpoint file. " + getShortDescription());
+    File checkPointFile = null;
+    try {
+      LOG.info("Checking existing checkpoint file. " + getShortDescription());
 
-        String checkPointFileName = base64FileKey + checkPointExtension;
-        File checkPointFolder = inputManager.getCheckPointFolderFile();
-        checkPointFile = new File(checkPointFolder, checkPointFileName);
-        checkPointWriter = new RandomAccessFile(checkPointFile, "rw");
-
-        try {
+      String checkPointFileName = base64FileKey + checkPointExtension;
+      File checkPointFolder = inputManager.getCheckPointFolderFile();
+      checkPointFile = new File(checkPointFolder, checkPointFileName);
+      checkPointFiles.put(base64FileKey, checkPointFile);
+      Map<String, Object> jsonCheckPoint = null;
+      if (!checkPointFile.exists()) {
+        LOG.info("Checkpoint file for log file " + filePath + " doesn't exist, starting to read it from the beginning");
+      } else {
+        try (RandomAccessFile checkPointWriter = new RandomAccessFile(checkPointFile, "rw")) {
           int contentSize = checkPointWriter.readInt();
           byte b[] = new byte[contentSize];
           int readSize = checkPointWriter.read(b, 0, contentSize);
@@ -235,21 +229,23 @@ public abstract class AbstractInputFile extends Input {
 
             LOG.info("CheckPoint. checkPointFile=" + checkPointFile + ", json=" + jsonCheckPointStr +
                 ", resumeFromLineNumber=" + resumeFromLineNumber);
-          }
+         }
         } catch (EOFException eofEx) {
           LOG.info("EOFException. Will reset checkpoint file " + checkPointFile.getAbsolutePath() + " for " +
-              getShortDescription());
+              getShortDescription(), eofEx);
         }
-        if (jsonCheckPoint == null) {
-          // This seems to be first time, so creating the initial checkPoint object
-          jsonCheckPoint = new HashMap<String, Object>();
-          jsonCheckPoint.put("file_path", filePath);
-          jsonCheckPoint.put("file_key", base64FileKey);
-        }
-
-      } catch (Throwable t) {
-        LOG.error("Error while configuring checkpoint file. Will reset file. checkPointFile=" + checkPointFile, t);
       }
+      if (jsonCheckPoint == null) {
+        // This seems to be first time, so creating the initial checkPoint object
+        jsonCheckPoint = new HashMap<String, Object>();
+        jsonCheckPoint.put("file_path", filePath);
+        jsonCheckPoint.put("file_key", base64FileKey);
+      }
+      
+      jsonCheckPoints.put(base64FileKey, jsonCheckPoint);
+
+    } catch (Throwable t) {
+      LOG.error("Error while configuring checkpoint file. Will reset file. checkPointFile=" + checkPointFile, t);
     }
     
     return resumeFromLineNumber;
@@ -257,49 +253,59 @@ public abstract class AbstractInputFile extends Input {
 
   @Override
   public synchronized void checkIn(InputMarker inputMarker) {
-    if (checkPointWriter != null) {
-      try {
-        int lineNumber = LogFeederUtil.objectToInt(jsonCheckPoint.get("line_number"), 0, "line_number");
-        if (lineNumber > inputMarker.lineNumber) {
-          // Already wrote higher line number for this input
-          return;
-        }
-        // If interval is greater than last checkPoint time, then write
-        long currMS = System.currentTimeMillis();
-        if (!isClosed() && (currMS - lastCheckPointTimeMS) < checkPointIntervalMS) {
-          // Let's save this one so we can update the check point file on flush
-          lastCheckPointInputMarker = inputMarker;
-          return;
-        }
-        lastCheckPointTimeMS = currMS;
-
-        jsonCheckPoint.put("line_number", "" + new Integer(inputMarker.lineNumber));
-        jsonCheckPoint.put("last_write_time_ms", "" + new Long(currMS));
-        jsonCheckPoint.put("last_write_time_date", new Date());
-
-        String jsonStr = LogFeederUtil.getGson().toJson(jsonCheckPoint);
-
-        // Let's rewind
-        checkPointWriter.seek(0);
-        checkPointWriter.writeInt(jsonStr.length());
-        checkPointWriter.write(jsonStr.getBytes());
-
-        if (isClosed()) {
-          String logMessageKey = this.getClass().getSimpleName() + "_FINAL_CHECKIN";
-          LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Wrote final checkPoint, input=" + getShortDescription() +
-              ", checkPointFile=" + checkPointFile.getAbsolutePath() + ", checkPoint=" + jsonStr, null, LOG, Level.INFO);
-        }
-      } catch (Throwable t) {
-        String logMessageKey = this.getClass().getSimpleName() + "_CHECKIN_EXCEPTION";
-        LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Caught exception checkIn. , input=" + getShortDescription(), t,
-            LOG, Level.ERROR);
+    try {
+      Map<String, Object> jsonCheckPoint = jsonCheckPoints.get(inputMarker.base64FileKey);
+      File checkPointFile = checkPointFiles.get(inputMarker.base64FileKey);
+      
+      int lineNumber = LogFeederUtil.objectToInt(jsonCheckPoint.get("line_number"), 0, "line_number");
+      if (lineNumber > inputMarker.lineNumber) {
+        // Already wrote higher line number for this input
+        return;
       }
+      // If interval is greater than last checkPoint time, then write
+      long currMS = System.currentTimeMillis();
+      long lastCheckPointTimeMs = lastCheckPointTimeMSs.containsKey(inputMarker.base64FileKey) ?
+          lastCheckPointTimeMSs.get(inputMarker.base64FileKey) : 0;
+      if (!isClosed() && (currMS - lastCheckPointTimeMs < checkPointIntervalMS)) {
+        // Let's save this one so we can update the check point file on flush
+        lastCheckPointInputMarkers.put(inputMarker.base64FileKey, inputMarker);
+        return;
+      }
+      lastCheckPointTimeMSs.put(inputMarker.base64FileKey, currMS);
+
+      jsonCheckPoint.put("line_number", "" + new Integer(inputMarker.lineNumber));
+      jsonCheckPoint.put("last_write_time_ms", "" + new Long(currMS));
+      jsonCheckPoint.put("last_write_time_date", new Date());
+
+      String jsonStr = LogFeederUtil.getGson().toJson(jsonCheckPoint);
+
+      File tmpCheckPointFile = new File(checkPointFile.getAbsolutePath() + ".tmp");
+      if (tmpCheckPointFile.exists()) {
+        tmpCheckPointFile.delete();
+      }
+      RandomAccessFile tmpRaf = new RandomAccessFile(tmpCheckPointFile, "rws");
+      tmpRaf.writeInt(jsonStr.length());
+      tmpRaf.write(jsonStr.getBytes());
+      tmpRaf.getFD().sync();
+      tmpRaf.close();
+      
+      FileUtil.move(tmpCheckPointFile, checkPointFile);
+
+      if (isClosed()) {
+        String logMessageKey = this.getClass().getSimpleName() + "_FINAL_CHECKIN";
+        LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Wrote final checkPoint, input=" + getShortDescription() +
+            ", checkPointFile=" + checkPointFile.getAbsolutePath() + ", checkPoint=" + jsonStr, null, LOG, Level.INFO);
+      }
+    } catch (Throwable t) {
+      String logMessageKey = this.getClass().getSimpleName() + "_CHECKIN_EXCEPTION";
+      LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Caught exception checkIn. , input=" + getShortDescription(), t,
+          LOG, Level.ERROR);
     }
   }
 
   @Override
   public void lastCheckIn() {
-    if (lastCheckPointInputMarker != null) {
+    for (InputMarker lastCheckPointInputMarker : lastCheckPointInputMarkers.values()) {
       checkIn(lastCheckPointInputMarker);
     }
   }
@@ -309,11 +315,12 @@ public abstract class AbstractInputFile extends Input {
     super.close();
     LOG.info("close() calling checkPoint checkIn(). " + getShortDescription());
     lastCheckIn();
+    isClosed = true;
   }
 
   @Override
   public String getShortDescription() {
-    return "input:source=" + getStringValue("source") + ", path=" +
+    return "input:source=" + inputDescriptor.getSource() + ", path=" +
         (!ArrayUtils.isEmpty(logFiles) ? logFiles[0].getAbsolutePath() : logPath);
   }
 }

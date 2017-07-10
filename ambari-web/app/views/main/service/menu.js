@@ -69,10 +69,6 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       return this.get('content.id') === this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
 
-    alertsCount: function () {
-      return this.get('content.alertsCount') > 99 ? "99+" : this.get('content.alertsCount');
-    }.property('content.alertsCount'),
-
     hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
 
     isConfigurable: Em.computed.notExistsInByKey('content.serviceName', 'App.services.noConfigTypes'),

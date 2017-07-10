@@ -60,7 +60,9 @@ user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 # shared configs
-java64_home = config['hostLevelParams']['java_home']
+java_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+java64_home = ambari_java_home if ambari_java_home is not None else java_home
 java_exec = format("{java64_home}/bin/java")
 zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts_list.sort()
@@ -77,6 +79,9 @@ solr_dir = '/usr/lib/ambari-infra-solr'
 solr_client_dir = '/usr/lib/ambari-infra-solr-client'
 solr_bindir = solr_dir + '/bin'
 cloud_scripts = solr_dir + '/server/scripts/cloud-scripts'
+
+logsearch_hosts = default("/clusterHostInfo/logsearch_server_hosts", [])
+has_logsearch = len(logsearch_hosts) > 0
 
 if "infra-solr-env" in config['configurations']:
   infra_solr_hosts = config['clusterHostInfo']['infra_solr_hosts']

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -36,6 +36,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -71,6 +73,20 @@ public class ServiceInfo implements Validable{
   private String comment;
   private String serviceType;
   private Selection selection;
+
+  /**
+   * Default to Python if not specified.
+   */
+
+  @XmlEnum
+  public enum ServiceAdvisorType {
+    @XmlEnumValue("PYTHON")
+    PYTHON,
+    @XmlEnumValue("JAVA")
+    JAVA
+  }
+  @XmlElement(name="service_advisor_type")
+  private ServiceAdvisorType serviceAdvisorType = null;
 
   @XmlTransient
   private List<PropertyInfo> properties;
@@ -341,6 +357,14 @@ public class ServiceInfo implements Validable{
     this.displayName = displayName;
   }
 
+  public void setServiceAdvisorType(ServiceAdvisorType type) {
+    this.serviceAdvisorType = type;
+  }
+
+  public ServiceAdvisorType getServiceAdvisorType() {
+    return serviceAdvisorType;
+  }
+
   public String getServiceType() {
 	return serviceType;
   }
@@ -349,7 +373,7 @@ public class ServiceInfo implements Validable{
 	this.serviceType = serviceType;
   }
 
-public String getVersion() {
+  public String getVersion() {
     return version;
   }
 

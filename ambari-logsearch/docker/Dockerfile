@@ -22,9 +22,9 @@ RUN yum -y install glibc-common
 ENV HOME /root
 
 #Install JAVA
-ENV JAVA_VERSION 8u31
-ENV BUILD_VERSION b13
-RUN wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-$BUILD_VERSION/jdk-$JAVA_VERSION-linux-x64.rpm" -O jdk-8-linux-x64.rpm
+ENV JAVA_VERSION 8u131
+ENV BUILD_VERSION b11
+RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-$BUILD_VERSION/d54c1d3a095b4ff2b6607d096fa80163/jdk-$JAVA_VERSION-linux-x64.rpm -O jdk-8-linux-x64.rpm
 RUN rpm -ivh jdk-8-linux-x64.rpm
 ENV JAVA_HOME /usr/java/default/
 
@@ -60,7 +60,7 @@ RUN npm install -g npm@2.1.11
 RUN npm install -g brunch@1.7.20
 
 # Install Solr
-ENV SOLR_VERSION 5.5.2
+ENV SOLR_VERSION 6.6.0
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 ADD bin/start.sh /root/start.sh

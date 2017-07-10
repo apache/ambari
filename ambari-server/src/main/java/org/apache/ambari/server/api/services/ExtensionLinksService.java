@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,6 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -46,14 +47,14 @@ import org.apache.ambari.server.controller.spi.Resource;
 @Path("/links/")
 public class ExtensionLinksService extends BaseService {
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getExtensionLinks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.GET, createExtensionLinkResource(null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{linkId}")
   @Produces("text/plain")
   public Response getExtensionLink(String body, @Context HttpHeaders headers,
@@ -62,13 +63,13 @@ public class ExtensionLinksService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.GET, createExtensionLinkResource(linkId));
   }
 
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createExtensionLink(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST, createExtensionLinkResource(null));
   }
 
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{linkId}")
   @Produces("text/plain")
   public Response deleteExtensionLink(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -77,13 +78,13 @@ public class ExtensionLinksService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.DELETE, createExtensionLinkResource(linkId));
   }
 
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updateExtensionLink(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.PUT, createExtensionLinkResource(null));
   }
 
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{linkId}")
   @Produces("text/plain")
   public Response updateExtensionLink(String body, @Context HttpHeaders headers, @Context UriInfo ui,

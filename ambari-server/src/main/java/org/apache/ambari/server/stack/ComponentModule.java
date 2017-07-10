@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -117,6 +117,10 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
 
       if (componentInfo.getReassignAllowed() == null) {
         componentInfo.setReassignAllowed(parentInfo.getReassignAllowed());
+      }
+
+      if (componentInfo.getTimelineAppid() == null) {
+        componentInfo.setTimelineAppid(parentInfo.getTimelineAppid());
       }
 
       mergeComponentDependencies(parentInfo.getDependencies(),

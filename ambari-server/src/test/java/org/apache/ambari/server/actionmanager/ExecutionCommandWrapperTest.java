@@ -36,6 +36,8 @@ import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -45,13 +47,12 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import junit.framework.Assert;
 
 public class ExecutionCommandWrapperTest {
 
@@ -164,6 +165,12 @@ public class ExecutionCommandWrapperTest {
   @Test
   public void testGetExecutionCommand() throws JSONException, AmbariException {
 
+    Cluster cluster = clusters.getCluster(CLUSTER1);
+
+    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+
+    cluster.addService("HDFS", repositoryVersion);
 
     Map<String, Map<String, String>> confs = new HashMap<>();
     Map<String, String> configurationsGlobal = new HashMap<>();

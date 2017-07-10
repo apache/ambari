@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -146,7 +146,6 @@ public class RepositoryXml implements Validable{
     private String mirrorslist = null;
     private String repoid = null;
     private String reponame = null;
-    private String latest = null;
     private boolean unique = false;
 
     private Repo() {
@@ -178,10 +177,6 @@ public class RepositoryXml implements Validable{
      */
     public String getRepoName() {
       return reponame;
-    }
-
-    public String getLatestUri() {
-      return latest;
     }
 
     /**
@@ -217,7 +212,6 @@ public class RepositoryXml implements Validable{
           ri.setOsType(os.trim());
           ri.setRepoId(r.getRepoId());
           ri.setRepoName(r.getRepoName());
-          ri.setLatestBaseUrl(r.getBaseUrl());
           ri.setUnique(r.isUnique());
 
           repos.add(ri);

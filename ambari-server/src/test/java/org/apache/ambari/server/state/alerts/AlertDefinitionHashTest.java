@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -379,10 +379,10 @@ public class AlertDefinitionHashTest extends TestCase {
     ActionQueue actionQueue = m_injector.getInstance(ActionQueue.class);
 
     AlertDefinitionCommand definitionCommand1 = new AlertDefinitionCommand(
-        CLUSTERNAME, HOSTNAME, "12345", null);
+        CLUSTERNAME, HOSTNAME, HOSTNAME, "12345", null);
 
     AlertDefinitionCommand definitionCommand2 = new AlertDefinitionCommand(
-        CLUSTERNAME, "anotherHost", "67890", null);
+        CLUSTERNAME, "anotherHost", "anotherHost", "67890", null);
 
     AlertExecutionCommand executionCommand = new AlertExecutionCommand(
         CLUSTERNAME, HOSTNAME, null);

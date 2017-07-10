@@ -22,12 +22,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputFileDescriptorImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.easymock.EasyMock;
@@ -78,15 +77,13 @@ public class InputFileTest {
   }
 
   public void init(String path) throws Exception {
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("source", "file");
-    config.put("tail", "true");
-    config.put("gen_event_md5", "true");
-    config.put("start_position", "beginning");
-
-    config.put("type", "hdfs_datanode");
-    config.put("rowtype", "service");
-    config.put("path", path);
+    InputFileDescriptorImpl inputFileDescriptor = new InputFileDescriptorImpl();
+    inputFileDescriptor.setSource("file");
+    inputFileDescriptor.setTail(true);
+    inputFileDescriptor.setGenEventMd5(true);
+    inputFileDescriptor.setType("hdfs_datanode");
+    inputFileDescriptor.setRowtype("service");
+    inputFileDescriptor.setPath(path);
 
     Filter capture = new Filter() {
       @Override
@@ -104,7 +101,7 @@ public class InputFileTest {
     };
 
     inputFile = new InputFile();
-    inputFile.loadConfig(config);
+    inputFile.loadConfig(inputFileDescriptor);
     inputFile.addFilter(capture);
     inputFile.init();
   }

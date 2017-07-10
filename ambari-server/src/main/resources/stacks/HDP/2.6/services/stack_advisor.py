@@ -180,6 +180,26 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     super(HDP26StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if 'HIVE' in servicesList and "yarn-site" in services["configurations"] and "yarn.nodemanager.kill-escape.user" in \
+                services["configurations"]["yarn-site"]["properties"] and 'hive-env' in services['configurations'] and \
+                'hive_user' in services['configurations']['hive-env']['properties']:
+      hive_user_name = services['configurations']['hive-env']['properties']['hive_user']
+      old_hive_user_name = self.getOldValue(services, "hive-env", "hive_user")
+      yarn_nm_kill_escape_user = services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.kill-escape.user"]
+      if not hive_user_name in yarn_nm_kill_escape_user:
+        if not yarn_nm_kill_escape_user or yarn_nm_kill_escape_user.strip() == "":
+          yarn_nm_kill_escape_user = hive_user_name
+        else:
+          escape_user_names = yarn_nm_kill_escape_user.split(",")
+          if old_hive_user_name in escape_user_names:
+            escape_user_names.remove(old_hive_user_name)
+          escape_user_names.append(hive_user_name)
+          yarn_nm_kill_escape_user = ",".join(escape_user_names)
+
+        putYarnSiteProperty("yarn.nodemanager.kill-escape.user", yarn_nm_kill_escape_user)
+
 
     if "yarn-site" in services["configurations"] and \
                     "yarn.resourcemanager.scheduler.monitor.enable" in services["configurations"]["yarn-site"]["properties"]:
@@ -391,6 +411,18 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
   def validateYarnSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
       validationItems = []
       siteProperties = services["configurations"]["yarn-site"]["properties"]
+      servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+      if 'HIVE' in servicesList and "yarn-site" in services["configurations"] and "yarn.nodemanager.kill-escape.user" in \
+          services["configurations"]["yarn-site"]["properties"] and 'hive-env' in services['configurations'] and \
+                  'hive_user' in services['configurations']['hive-env']['properties']:
+        hive_user = services['configurations']['hive-env']['properties']['hive_user']
+        yarn_nm_kill_escape_user = services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.kill-escape.user"]
+        if not hive_user in yarn_nm_kill_escape_user:
+          validationItems.append(
+            {"config-name": "yarn.nodemanager.kill-escape.user",
+             "item": self.getWarnItem("Value should contain %s" % hive_user)})
+
       if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
          webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
          propertyValue = "http://"+webapp_address+"/ws/v1/applicationhistory"
@@ -399,9 +431,9 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
          propertyValue = "https://"+webapp_address+"/ws/v1/applicationhistory"
       self.logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
       if services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"] != propertyValue:
-         validationItems = [
+         validationItems.append(
               {"config-name": "yarn.log.server.web-service.url",
-               "item": self.getWarnItem("Value should be %s" % propertyValue)}]
+               "item": self.getWarnItem("Value should be %s" % propertyValue)})
       return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateDruidHistoricalConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -515,6 +547,9 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    putHiveAtlasHookProperty = self.putProperty(configurations, "hive-atlas-application.properties", services)
+    putHiveAtlasHookPropertyAttribute = self.putPropertyAttribute(configurations,"hive-atlas-application.properties")
+
     if 'hive-env' in services['configurations'] and 'hive_user' in services['configurations']['hive-env']['properties']:
       hive_user = services['configurations']['hive-env']['properties']['hive_user']
     else:
@@ -533,6 +568,24 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerHivePluginProperty("REPOSITORY_CONFIG_USERNAME",hive_user)
     else:
       self.logger.info("Not setting Hive Repo user for Ranger.")
+
+    security_enabled = self.isSecurityEnabled(services)
+    enable_atlas_hook = False
+
+    if 'hive-env' in configurations and 'hive.atlas.hook' in configurations['hive-env']['properties']:
+      enable_atlas_hook = configurations['hive-env']['properties']['hive.atlas.hook'].lower() == 'true'
+    elif 'hive-env' in services['configurations'] and 'hive.atlas.hook' in services['configurations']['hive-env']['properties']:
+      enable_atlas_hook = services['configurations']['hive-env']['properties']['hive.atlas.hook'].lower() == 'true'
+
+    if 'hive-atlas-application.properties' in services['configurations']:
+      if security_enabled and enable_atlas_hook:
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'required')
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'com.sun.security.auth.module.Krb5LoginModule')
+        putHiveAtlasHookProperty('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'true')
+      else:
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'delete', 'true')
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'delete', 'true')
+        putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'delete', 'true')
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)

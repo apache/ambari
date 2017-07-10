@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,6 +32,15 @@ public class ClientConfigFileDefinition {
   private String type;
   private String fileName;
   private String dictionaryName;
+  private boolean optional = false;
+
+  public boolean isOptional() {
+    return optional;
+  }
+
+  public void setOptional(boolean optional) {
+    this.optional = optional;
+  }
 
   public void setType(String type) {
     this.type = type;
@@ -73,7 +82,8 @@ public class ClientConfigFileDefinition {
     return new EqualsBuilder().
             append(type, rhs.type).
             append(fileName, rhs.fileName).
-            append(dictionaryName, rhs.dictionaryName).isEquals();
+        append(dictionaryName, rhs.dictionaryName).
+        append(optional, rhs.optional).isEquals();
   }
 
   @Override
@@ -81,6 +91,7 @@ public class ClientConfigFileDefinition {
     return new HashCodeBuilder(17, 31).
             append(type).
             append(fileName).
-            append(dictionaryName).toHashCode();
+        append(dictionaryName).
+        append(optional).toHashCode();
   }
 }

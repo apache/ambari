@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,6 +31,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -61,7 +62,7 @@ public class ClusterStackVersionService extends BaseService {
    *
    * @return information regarding all cluster stack versions
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getClusterStackVersions(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
@@ -77,14 +78,13 @@ public class ClusterStackVersionService extends BaseService {
    *
    * @return information regarding the specific cluster stack version
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{stackVersionId}")
   @Produces("text/plain")
   public Response getClusterStackVersion(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("stackVersionId") String stackVersionId) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(stackVersionId));
   }
-
 
   /**
    * Gets the cluster stack versions service.
@@ -105,7 +105,6 @@ public class ClusterStackVersionService extends BaseService {
     return new RepositoryVersionService(mapIds);
   }
 
-
   /**
    * Handles: POST /{clustername}/stack_versions requests
    * Distribute repositories/install packages.
@@ -115,12 +114,11 @@ public class ClusterStackVersionService extends BaseService {
    * @param ui          uri info
    * @return information regarding the created services
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(null));
   }
-
 
   /**
    * Handles: POST /{clustername}/stack_versions requests
@@ -131,7 +129,7 @@ public class ClusterStackVersionService extends BaseService {
    * @param ui          uri info
    * @return information regarding the created services
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updateRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.PUT, createResource(null));

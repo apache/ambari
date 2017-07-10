@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -75,8 +74,6 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
       return;
     }
 
-    final ClusterVersionEntity clusterVersion = clusterVersionDAOProvider.get().findByClusterAndStackAndVersion(
-        clusterName, targetStackId, repoVersion);
     final Set<String> failedHosts = new HashSet<>();
 
     for (Host host : cluster.getHosts()) {
@@ -98,16 +95,9 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedHosts));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(message);
-    } else if (clusterVersion.getState() == RepositoryVersionState.INSTALL_FAILED) {
-      String message = MessageFormat.format("Cluster [{0},{1},{2},{3}] is in INSTALL_FAILED state because " +
-              "Install Packages failed. Please re-run Install Packages even if you placed the failed hosts " +
-              "in Maintenance mode.", cluster.getClusterName(), targetStackId.getStackName(),
-          targetStackId.getStackVersion(), repoVersion);
-      LinkedHashSet<String> failedOn = new LinkedHashSet<>();
-      failedOn.add(cluster.getClusterName());
-      prerequisiteCheck.setFailedOn(failedOn);
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(message);
+      return;
     }
+
+    prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
   }
 }

@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.ambari.logfeeder.util.S3Util;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.solr.common.util.Base64;
 
@@ -58,18 +59,17 @@ public class InputS3File extends AbstractInputFile {
       return;
     }
 
-    if (tail) {
-      processFile(logFiles[0]);
-    } else {
-      for (File s3FilePath : logFiles) {
+    for (int i = logFiles.length - 1; i >= 0; i--) {
+      File file = logFiles[i];
+      if (i == 0 || !tail) {
         try {
-          processFile(s3FilePath);
+          processFile(file, i == 0);
           if (isClosed() || isDrain()) {
             LOG.info("isClosed or isDrain. Now breaking loop.");
             break;
           }
         } catch (Throwable t) {
-          LOG.error("Error processing file=" + s3FilePath, t);
+          LOG.error("Error processing file=" + file.getAbsolutePath(), t);
         }
       }
     }
@@ -78,8 +78,8 @@ public class InputS3File extends AbstractInputFile {
 
   @Override
   protected BufferedReader openLogFile(File logPathFile) throws IOException {
-    String s3AccessKey = getStringValue("s3_access_key");
-    String s3SecretKey = getStringValue("s3_secret_key");
+    String s3AccessKey = ((InputS3FileDescriptor)inputDescriptor).getS3AccessKey();
+    String s3SecretKey = ((InputS3FileDescriptor)inputDescriptor).getS3SecretKey();
     BufferedReader br = S3Util.getReader(logPathFile.getPath(), s3AccessKey, s3SecretKey);
     fileKey = getFileKey(logPathFile);
     base64FileKey = Base64.byteArrayToBase64(fileKey.toString().getBytes());
@@ -90,5 +90,11 @@ public class InputS3File extends AbstractInputFile {
   @Override
   protected Object getFileKey(File logFile) {
     return logFile.getPath();
+  }
+  
+  @Override
+  public void close() {
+    super.close();
+    isClosed = true;
   }
 }

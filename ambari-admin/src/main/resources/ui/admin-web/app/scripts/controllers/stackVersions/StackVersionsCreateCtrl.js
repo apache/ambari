@@ -34,7 +34,6 @@ angular.module('ambariAdminConsole')
   $scope.useRedhatSatellite = false;
 
   $scope.clusterName = $routeParams.clusterName;
-  $scope.subversionPattern = /^\d+\.\d+(-\d+)?$/;
   $scope.upgradeStack = {
     stack_name: '',
     stack_version: '',

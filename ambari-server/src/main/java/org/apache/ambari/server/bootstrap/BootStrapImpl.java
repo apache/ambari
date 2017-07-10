@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,8 +27,8 @@ import java.util.List;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.bootstrap.BSResponse.BSRunStat;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -44,7 +44,7 @@ public class BootStrapImpl {
   private String masterHostname;
   long timeout;
 
-  private static Log LOG = LogFactory.getLog(BootStrapImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BootStrapImpl.class);
 
   /* Monotonically increasing requestid for the bootstrap api to query on */
   int requestId = 0;

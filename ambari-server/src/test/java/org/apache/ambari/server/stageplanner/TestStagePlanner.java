@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,6 +35,7 @@ import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
@@ -43,12 +44,18 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+import junit.framework.Assert;
+
 public class TestStagePlanner {
+  private static final Logger log = LoggerFactory.getLogger(TestStagePlanner.class);
 
   private Injector injector;
 
@@ -86,7 +93,7 @@ public class TestStagePlanner {
     rg.build(stage);
     List<Stage> outStages = rg.getStages();
     for (Stage s: outStages) {
-      System.out.println(s.toString());
+      log.info(s.toString());
     }
     assertEquals(1, outStages.size());
     assertEquals(stage.getExecutionCommands(hostname), outStages.get(0)
@@ -94,9 +101,20 @@ public class TestStagePlanner {
   }
 
   @Test
-  public void testMultiStagePlan() {
+  public void testSCCInGraphDetectedShort() {
     ClusterImpl cluster = mock(ClusterImpl.class);
-    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6.1"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .build());
+
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
@@ -107,24 +125,191 @@ public class TestStagePlanner {
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
         RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
             "host3", now), "cluster1", "ZOOKEEPER", false, false);
-    System.out.println(stage.toString());
+    log.info("Build and ready to detect circular dependencies - short chain");
+    rg.build(stage);
+    boolean exceptionThrown = false;
+    try {
+      List<Stage> outStages = rg.getStages();
+    } catch (AmbariException e) {
+      exceptionThrown = true;
+    }
+    Assert.assertTrue(exceptionThrown);
+  }
+
+  @Test
+  public void testSCCInGraphDetectedLong() {
+    ClusterImpl cluster = mock(ClusterImpl.class);
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6.1"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    Service yarnService = mock(Service.class);
+    when(yarnService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .put("YARN", yarnService)
+        .build());
+
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
+    long now = System.currentTimeMillis();
+    Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
+    stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
+        RoleCommand.STOP, new ServiceComponentHostStartEvent("HBASE_MASTER",
+            "host2", now), "cluster1", "HBASE", false, false);
+    stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
+        RoleCommand.STOP, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
+            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+    stage.addHostRoleExecutionCommand("host2", Role.RESOURCEMANAGER,
+        RoleCommand.STOP, new ServiceComponentHostStartEvent("RESOURCEMANAGER",
+            "host4", now), "cluster1", "YARN", false, false);
+
+    log.info("Build and ready to detect circular dependencies - long chain");
+    rg.build(stage);
+    boolean exceptionThrown = false;
+    try {
+      List<Stage> outStages = rg.getStages();
+    } catch (AmbariException e) {
+      exceptionThrown = true;
+    }
+    Assert.assertTrue(exceptionThrown);
+  }
+
+  @Test
+  public void testSCCInGraphDetectedLongTwo() {
+    ClusterImpl cluster = mock(ClusterImpl.class);
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6.1"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .build());
+
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
+    long now = System.currentTimeMillis();
+    Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
+    stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
+        RoleCommand.UPGRADE, new ServiceComponentHostStartEvent("HBASE_MASTER",
+            "host2", now), "cluster1", "HBASE", false, false);
+    stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
+        RoleCommand.UPGRADE, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
+            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+    stage.addHostRoleExecutionCommand("host2", Role.HBASE_REGIONSERVER,
+        RoleCommand.UPGRADE, new ServiceComponentHostStartEvent("HBASE_REGIONSERVER",
+            "host4", now), "cluster1", "HBASE", false, false);
+
+    log.info("Build and ready to detect circular dependencies - long chain");
+    rg.build(stage);
+    boolean exceptionThrown = false;
+    try {
+      List<Stage> outStages = rg.getStages();
+    } catch (AmbariException e) {
+      exceptionThrown = true;
+    }
+    Assert.assertTrue(exceptionThrown);
+  }
+
+  @Test
+  public void testNoSCCInGraphDetected() {
+    ClusterImpl cluster = mock(ClusterImpl.class);
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .build());
+
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
+    long now = System.currentTimeMillis();
+    Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
+    stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
+        RoleCommand.STOP, new ServiceComponentHostStartEvent("HBASE_MASTER",
+            "host2", now), "cluster1", "HBASE", false, false);
+    stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
+        RoleCommand.STOP, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
+            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+    stage.addHostRoleExecutionCommand("host2", Role.HBASE_REGIONSERVER,
+        RoleCommand.STOP, new ServiceComponentHostStartEvent("HBASE_REGIONSERVER",
+            "host4", now), "cluster1", "HBASE", false, false);
+    log.info("Build and ready to detect circular dependencies");
+    rg.build(stage);
+    boolean exceptionThrown = false;
+    try {
+      List<Stage> outStages = rg.getStages();
+    } catch (AmbariException e) {
+      exceptionThrown = true;
+    }
+    Assert.assertFalse(exceptionThrown);
+  }
+
+  @Test
+  public void testMultiStagePlan() throws Throwable {
+    ClusterImpl cluster = mock(ClusterImpl.class);
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .build());
+
+
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
+    long now = System.currentTimeMillis();
+    Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
+    stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
+        RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_MASTER",
+            "host2", now), "cluster1", "HBASE", false, false);
+    stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
+        RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
+            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+    log.info(stage.toString());
 
     rg.build(stage);
-    System.out.println(rg.stringifyGraph());
+    log.info(rg.stringifyGraph());
     List<Stage> outStages = rg.getStages();
     for (Stage s: outStages) {
-      System.out.println(s.toString());
+      log.info(s.toString());
     }
     assertEquals(3, outStages.size());
   }
 
   @Test
-  public void testRestartStagePlan() {
+  public void testRestartStagePlan() throws Throwable {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hiveService = mock(Service.class);
+    when(hiveService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HIVE", hiveService)
+        .build());
+
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
-    long now = System.currentTimeMillis();
+
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "execution command wrapper test",
       "commandParamsStage", "hostParamsStage");
     stage.setStageId(1);
@@ -136,21 +321,54 @@ public class TestStagePlanner {
       RoleCommand.CUSTOM_COMMAND, "cluster1",
       new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
       null, "command detail", null, null, false, false);
-    System.out.println(stage.toString());
+    log.info(stage.toString());
 
     rg.build(stage);
-    System.out.println(rg.stringifyGraph());
+    log.info(rg.stringifyGraph());
     List<Stage> outStages = rg.getStages();
     for (Stage s: outStages) {
-      System.out.println(s.toString());
+      log.info(s.toString());
     }
     assertEquals(2, outStages.size());
   }
 
   @Test
-  public void testManyStages() {
+  public void testManyStages() throws Throwable {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hdfsService = mock(Service.class);
+    when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service mrService = mock(Service.class);
+    when(mrService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service oozieService = mock(Service.class);
+    when(oozieService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service webhcatService = mock(Service.class);
+    when(webhcatService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service gangliaService = mock(Service.class);
+    when(gangliaService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", hdfsService)
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .put("MAPREDUCE", mrService)
+        .put("OOZIE", oozieService)
+        .put("WEBHCAT", webhcatService)
+        .put("GANGLIA", gangliaService)
+        .build());
+
+
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
@@ -188,18 +406,19 @@ public class TestStagePlanner {
     stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
         "host9", now), "cluster1", "GANGLIA", false, false);
-    System.out.println(stage.toString());
+
+    log.info(stage.toString());
     rg.build(stage);
-    System.out.println(rg.stringifyGraph());
+    log.info(rg.stringifyGraph());
     List<Stage> outStages = rg.getStages();
     for (Stage s : outStages) {
-      System.out.println(s.toString());
+      log.info(s.toString());
     }
     assertEquals(4, outStages.size());
   }
 
   @Test
-  public void testDependencyOrderedStageCreate() {
+  public void testDependencyOrderedStageCreate() throws Throwable {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
@@ -240,12 +459,12 @@ public class TestStagePlanner {
     stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
         "host9", now), "cluster1", "GANGLIA", false, false);
-    System.out.println(stage.toString());
+    log.info(stage.toString());
     rg.build(stage);
-    System.out.println(rg.stringifyGraph());
+    log.info(rg.stringifyGraph());
     List<Stage> outStages = rg.getStages();
     for (Stage s : outStages) {
-      System.out.println(s.toString());
+      log.info(s.toString());
     }
     assertEquals(1, outStages.size());
   }

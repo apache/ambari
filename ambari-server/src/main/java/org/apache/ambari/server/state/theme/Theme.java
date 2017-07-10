@@ -18,14 +18,16 @@
 
 package org.apache.ambari.server.state.theme;
 
-
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
+
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Theme{
+public class Theme implements ApiModel{
 	@JsonProperty("description")
 	private String description;
 	@JsonProperty("name")
@@ -33,6 +35,7 @@ public class Theme{
   @JsonProperty("configuration")
 	private ThemeConfiguration themeConfiguration;
 
+  @ApiModelProperty(name = "description")
   public String getDescription() {
     return description;
   }
@@ -41,6 +44,7 @@ public class Theme{
     this.description = description;
   }
 
+  @ApiModelProperty(name = "name")
   public String getName() {
     return name;
   }
@@ -49,6 +53,7 @@ public class Theme{
     this.name = name;
   }
 
+  @ApiModelProperty(name ="configuration")
   public ThemeConfiguration getThemeConfiguration() {
     return themeConfiguration;
   }

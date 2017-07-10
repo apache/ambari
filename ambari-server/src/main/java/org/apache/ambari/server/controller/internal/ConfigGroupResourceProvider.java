@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -95,6 +96,8 @@ public class ConfigGroupResourceProvider extends
     .getPropertyId("ConfigGroup", "hosts");
   public static final String CONFIGGROUP_CONFIGS_PROPERTY_ID =
     PropertyHelper.getPropertyId("ConfigGroup", "desired_configs");
+  public static final String CONFIGGROUP_VERSION_TAGS_PROPERTY_ID =
+    PropertyHelper.getPropertyId("ConfigGroup", "version_tags");
 
   private static Set<String> pkPropertyIds = new HashSet<>(Arrays
     .asList(new String[]{CONFIGGROUP_ID_PROPERTY_ID}));
@@ -216,9 +219,23 @@ public class ConfigGroupResourceProvider extends
 
     RequestStatus status = updateResources(requests);
 
+    Set<Resource> associatedResources = new HashSet<>();
+    for (ConfigGroupRequest configGroupRequest : requests) {
+      ConfigGroupResponse configGroupResponse = getManagementController().getConfigGroupUpdateResults(configGroupRequest);
+      Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
+
+      resource.setProperty(CONFIGGROUP_ID_PROPERTY_ID, configGroupResponse.getId());
+      resource.setProperty(CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, configGroupResponse.getClusterName());
+      resource.setProperty(CONFIGGROUP_NAME_PROPERTY_ID, configGroupResponse.getGroupName());
+      resource.setProperty(CONFIGGROUP_TAG_PROPERTY_ID, configGroupResponse.getTag());
+      resource.setProperty(CONFIGGROUP_VERSION_TAGS_PROPERTY_ID, configGroupResponse.getVersionTags());
+
+      associatedResources.add(resource);
+    }
+
     notifyUpdate(Resource.Type.ConfigGroup, request, predicate);
 
-    return status;
+    return getRequestStatus(null, associatedResources);
   }
 
   @Override
@@ -313,11 +330,8 @@ public class ConfigGroupResourceProvider extends
     Set<ConfigGroupResponse> responses = new HashSet<>();
     if (requests != null) {
       for (ConfigGroupRequest request : requests) {
-        LOG.debug("Received a Config group request with"
-          + ", clusterName = " + request.getClusterName()
-          + ", groupId = " + request.getId()
-          + ", groupName = " + request.getGroupName()
-          + ", tag = " + request.getTag());
+        LOG.debug("Received a Config group request with, clusterName = {}, groupId = {}, groupName = {}, tag = {}",
+          request.getClusterName(), request.getId(), request.getGroupName(), request.getTag());
 
         if (request.getClusterName() == null) {
           LOG.warn("Cluster name is a required field.");
@@ -452,11 +466,6 @@ public class ConfigGroupResourceProvider extends
         "Attempted to delete a config group from a cluster which doesn't " +
           "exist", e);
     }
-
-    configLogger.info("User {} is deleting configuration group {} for tag {} in cluster {}",
-      getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
-      cluster.getClusterName());
-
     ConfigGroup configGroup = cluster.getConfigGroups().get(request.getId());
 
     if (configGroup == null) {
@@ -475,6 +484,9 @@ public class ConfigGroupResourceProvider extends
       }
     }
 
+    configLogger.info("(configchange) Deleting configuration group. cluster: '{}', changed by: '{}', config group: '{}', config group id: '{}'",
+        cluster.getClusterName(), getManagementController().getAuthName(), configGroup.getName(), request.getId());
+
     cluster.deleteConfigGroup(request.getId());
   }
 
@@ -486,9 +498,8 @@ public class ConfigGroupResourceProvider extends
       || request.getTag() == null
       || request.getTag().isEmpty()) {
 
-      LOG.debug("Received a config group request with cluster name = " +
-        request.getClusterName() + ", group name = " + request.getGroupName()
-        + ", tag = " + request.getTag());
+      LOG.debug("Received a config group request with cluster name = {}, group name = {}, tag = {}",
+        request.getClusterName(), request.getGroupName(), request.getTag());
 
       throw new IllegalArgumentException("Cluster name, group name and tag need to be provided.");
 
@@ -573,18 +584,15 @@ public class ConfigGroupResourceProvider extends
         }
       }
 
-      configLogger.info("User {} is creating new configuration group {} for tag {} in cluster {}",
-          getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
-          cluster.getClusterName());
+      configLogger.info("(configchange) Creating new configuration group. cluster: '{}', changed by: '{}', config group: '{}', tag: '{}'",
+          cluster.getClusterName(), getManagementController().getAuthName(), request.getGroupName(), request.getTag());
 
       verifyConfigs(request.getConfigs(), cluster.getClusterName());
 
-      ConfigGroup configGroup = configGroupFactory.createNew(cluster,
+      ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceName,
         request.getGroupName(),
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
-
-      configGroup.setServiceName(serviceName);
 
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {
@@ -637,12 +645,9 @@ public class ConfigGroupResourceProvider extends
                                  + ", groupId = " + request.getId());
       }
 
-      configLogger.info("User {} is updating configuration group {} for tag {} in cluster {}",
-          getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
-          cluster.getClusterName());
-
       String serviceName = configGroup.getServiceName();
       String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+
       if (StringUtils.isEmpty(serviceName) && StringUtils.isEmpty(requestServiceName)) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
             RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
@@ -654,13 +659,34 @@ public class ConfigGroupResourceProvider extends
           throw new AuthorizationException("The authenticated user is not authorized to update config groups");
         }
       }
-      if (serviceName != null && requestServiceName !=null && !StringUtils.equals(serviceName, requestServiceName)) {
+
+      if (serviceName != null && requestServiceName != null && !StringUtils.equals(serviceName, requestServiceName)) {
         throw new IllegalArgumentException("Config group " + configGroup.getId() +
             " is mapped to service " + serviceName + ", " +
             "but request contain configs from service " + requestServiceName);
       } else if (serviceName == null && requestServiceName != null) {
         configGroup.setServiceName(requestServiceName);
         serviceName = requestServiceName;
+      }
+
+      int numHosts = (null != configGroup.getHosts()) ? configGroup.getHosts().size() : 0;
+      configLogger.info("(configchange) Updating configuration group host membership or config value. cluster: '{}', changed by: '{}', " +
+              "service_name: '{}', config group: '{}', tag: '{}', num hosts in config group: '{}', note: '{}'",
+          cluster.getClusterName(), getManagementController().getAuthName(),
+          serviceName, request.getGroupName(), request.getTag(), numHosts, request.getServiceConfigVersionNote());
+
+      if (!request.getConfigs().isEmpty()) {
+        List<String> affectedConfigTypeList = new ArrayList(request.getConfigs().keySet());
+        Collections.sort(affectedConfigTypeList);
+        String affectedConfigTypesString = "(" + StringUtils.join(affectedConfigTypeList, ", ") + ")";
+        configLogger.info("(configchange)    Affected configs: {}", affectedConfigTypesString);
+
+        for (Config config : request.getConfigs().values()) {
+          List<String> sortedConfigKeys = new ArrayList(config.getProperties().keySet());
+          Collections.sort(sortedConfigKeys);
+          String sortedConfigKeysString = StringUtils.join(sortedConfigKeys, ", ");
+          configLogger.info("(configchange)    Config type '{}' was  modified with the following keys, {}", config.getType(), sortedConfigKeysString);
+        }
       }
 
       // Update hosts
@@ -691,7 +717,18 @@ public class ConfigGroupResourceProvider extends
 
       if (serviceName != null) {
         cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
-          request.getServiceConfigVersionNote(), configGroup);
+                request.getServiceConfigVersionNote(), configGroup);
+
+        ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(configGroup.getId(), cluster.getClusterName(), configGroup.getName(),
+                request.getTag(), "", new HashSet<Map<String, Object>>(), new HashSet<Map<String, Object>>());
+        Set<Map<String, Object>> versionTags = new HashSet<Map<String, Object>>();
+        Map<String, Object> tagsMap = new HashMap<String, Object>();
+        for (Config config : configGroup.getConfigurations().values()) {
+          tagsMap.put(config.getType(), config.getTag());
+        }
+        versionTags.add(tagsMap);
+        configGroupResponse.setVersionTags(versionTags);
+        getManagementController().saveConfigGroupUpdate(request, configGroupResponse);
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());

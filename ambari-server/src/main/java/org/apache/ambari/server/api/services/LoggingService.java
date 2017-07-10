@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,6 +34,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -72,7 +73,6 @@ public class LoggingService extends BaseService {
   @Inject
   private LoggingRequestHelperFactory helperFactory;
 
-
   private final String clusterName;
 
   public LoggingService(String clusterName) {
@@ -84,7 +84,7 @@ public class LoggingService extends BaseService {
     this.controllerFactory = controllerFactory;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("searchEngine")
   @Produces("text/plain")
   public Response getSearchEngine(String body, @Context HttpHeaders headers, @Context UriInfo uri) throws AuthorizationException {
@@ -149,7 +149,6 @@ public class LoggingService extends BaseService {
     Map<String, String> enumeratedQueryParameters =
       new HashMap<>();
 
-
     for (String queryName : queryParameters.keySet()) {
       List<String> queryValue = queryParameters.get(queryName);
       for (String value : queryValue) {
@@ -187,7 +186,6 @@ public class LoggingService extends BaseService {
 
         Response.ResponseBuilder builder = Response.status(result.getStatus().getStatusCode()).entity(
           serializer.serialize(result));
-
 
         if (mediaType != null) {
           builder.type(mediaType);

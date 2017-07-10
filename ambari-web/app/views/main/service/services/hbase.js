@@ -58,7 +58,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   activeMasterTitle: Em.I18n.t('service.hbase.activeMaster'),
 
   masterServerHeapSummary: App.MainDashboardServiceView.formattedHeap('dashboard.services.hbase.masterServerHeap.summary', 'service.heapMemoryUsed', 'service.heapMemoryMax'),
-
+  masterServerHeapSummaryPercent: App.MainDashboardServiceView.formattedHeapPercent('dashboard.services.hbase.masterServerHeap.percent', 'service.heapMemoryUsed', 'service.heapMemoryMax'),
   summaryHeader: function () {
     var avgLoad = this.get('service.averageLoad');
     if (isNaN(avgLoad)) {

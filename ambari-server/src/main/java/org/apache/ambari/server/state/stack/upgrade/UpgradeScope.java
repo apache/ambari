@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -48,13 +48,4 @@ public enum UpgradeScope {
   @XmlEnumValue("ANY")
   @SerializedName("any")
   ANY;
-
-  public boolean isScoped(UpgradeScope scope) {
-    if (ANY == this || ANY == scope) {
-      return true;
-    }
-
-    return this == scope;
-  }
-
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @XmlType(name="stop")
 public class StopGrouping extends Grouping implements UpgradeFunction {
 
-  private static Logger LOG = LoggerFactory.getLogger(StopGrouping.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StopGrouping.class);
 
   @Override
   public Task.Type getFunction() {

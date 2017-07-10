@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,8 +19,10 @@ package org.apache.ambari.server.state;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +30,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -46,7 +51,10 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -174,25 +182,46 @@ public class UpgradeHelper {
    * {@link StageWrapperBuilder} has finished building out all of the stages.
    */
   @Inject
-  private Provider<ConfigHelper> m_configHelper;
+  Provider<ConfigHelper> m_configHelperProvider;
 
   @Inject
-  private Provider<AmbariMetaInfo> m_ambariMetaInfo;
+  private Provider<AmbariMetaInfo> m_ambariMetaInfoProvider;
 
   @Inject
-  private Provider<Clusters> clusters;
+  private Provider<Clusters> m_clusters;
 
   @Inject
-  private Provider<RepositoryVersionDAO> s_repoVersionDAO;
+  private Provider<RepositoryVersionDAO> m_repoVersionProvider;
 
   /**
-   * Get right Upgrade Pack, depends on stack, direction and upgrade type information
-   * @param clusterName The name of the cluster
-   * @param upgradeFromVersion Current stack version
-   * @param upgradeToVersion Target stack version
-   * @param direction {@code Direction} of the upgrade
-   * @param upgradeType The {@code UpgradeType}
-   * @param preferredUpgradePackName For unit test, need to prefer an upgrade pack since multiple matches can be found.
+   * Used to update the configuration properties.
+   */
+  @Inject
+  private Provider<AmbariManagementController> m_controllerProvider;
+
+  /**
+   * Used to get configurations by service name.
+   */
+  @Inject
+  ServiceConfigDAO m_serviceConfigDAO;
+
+  /**
+   * Get right Upgrade Pack, depends on stack, direction and upgrade type
+   * information
+   *
+   * @param clusterName
+   *          The name of the cluster
+   * @param upgradeFromVersion
+   *          Current stack version
+   * @param upgradeToVersion
+   *          Target stack version
+   * @param direction
+   *          {@code Direction} of the upgrade
+   * @param upgradeType
+   *          The {@code UpgradeType}
+   * @param preferredUpgradePackName
+   *          For unit test, need to prefer an upgrade pack since multiple
+   *          matches can be found.
    * @return {@code UpgradeType} object
    * @throws AmbariException
    */
@@ -200,7 +229,7 @@ public class UpgradeHelper {
     Direction direction, UpgradeType upgradeType, String preferredUpgradePackName) throws AmbariException {
 
     // Find upgrade packs based on current stack. This is where to upgrade from
-    Cluster cluster = clusters.get().getCluster(clusterName);
+    Cluster cluster = m_clusters.get().getCluster(clusterName);
     StackId stack =  cluster.getCurrentStackVersion();
 
     String repoVersion = upgradeToVersion;
@@ -210,13 +239,14 @@ public class UpgradeHelper {
       repoVersion = upgradeFromVersion;
     }
 
-    RepositoryVersionEntity versionEntity = s_repoVersionDAO.get().findByStackNameAndVersion(stack.getStackName(), repoVersion);
+    RepositoryVersionEntity versionEntity = m_repoVersionProvider.get().findByStackNameAndVersion(
+        stack.getStackName(), repoVersion);
 
     if (versionEntity == null) {
       throw new AmbariException(String.format("Repository version %s was not found", repoVersion));
     }
 
-    Map<String, UpgradePack> packs = m_ambariMetaInfo.get().getUpgradePacks(stack.getStackName(), stack.getStackVersion());
+    Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(stack.getStackName(), stack.getStackVersion());
     UpgradePack pack = null;
 
     if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
@@ -260,7 +290,6 @@ public class UpgradeHelper {
   public List<UpgradeGroupHolder> createSequence(UpgradePack upgradePack,
       UpgradeContext context) throws AmbariException {
 
-    context.setAmbariMetaInfo(m_ambariMetaInfo.get());
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
 
@@ -538,7 +567,6 @@ public class UpgradeHelper {
   private String tokenReplace(UpgradeContext ctx, String source, String service, String component) {
     Cluster cluster = ctx.getCluster();
     MasterHostResolver mhr = ctx.getResolver();
-    String version = ctx.getVersion();
 
     String result = source;
 
@@ -575,7 +603,7 @@ public class UpgradeHelper {
           break;
         }
         case VERSION:
-          value = version;
+          value = ctx.getRepositoryVersion().getVersion();
           break;
         case DIRECTION_VERB:
         case DIRECTION_VERB_PROPER:
@@ -594,7 +622,7 @@ public class UpgradeHelper {
           value = ctx.getDirection().getText(p == Placeholder.DIRECTION_TEXT_PROPER);
           break;
         default:
-          value = m_configHelper.get().getPlaceholderValueFromDesiredConfigurations(
+          value = m_configHelperProvider.get().getPlaceholderValueFromDesiredConfigurations(
               cluster, token);
           break;
       }
@@ -700,7 +728,7 @@ public class UpgradeHelper {
   private void setDisplayNames(UpgradeContext context, String service, String component) {
     StackId stackId = context.getCluster().getDesiredStackVersion();
     try {
-      ServiceInfo serviceInfo = m_ambariMetaInfo.get().getService(stackId.getStackName(),
+      ServiceInfo serviceInfo = m_ambariMetaInfoProvider.get().getService(stackId.getStackName(),
           stackId.getStackVersion(), service);
       context.setServiceDisplay(service, serviceInfo.getDisplayName());
 
@@ -713,6 +741,32 @@ public class UpgradeHelper {
   }
 
   /**
+   * Updates the various repositories and configurations for services
+   * participating in the upgrade or downgrade. The following actions are
+   * performed in order:
+   * <ul>
+   * <li>The desired repository for every service and component is changed<
+   * <li>The {@link UpgradeState} of every component host is moved to either
+   * {@link UpgradeState#IN_PROGRESS} or {@link UpgradeState#NONE}.
+   * <li>In the case of an upgrade, new configurations and service
+   * configurations are created if necessary. In the case of a downgrade, any
+   * configurations created by the upgrade are reverted.
+   * </ul>
+   *
+   * @param upgradeContext
+   *          the upgrade context holding all relevent upgrade information (not
+   *          {@code null}).
+   * @throws AmbariException
+   */
+  @Transactional
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+  public void updateDesiredRepositoriesAndConfigs(UpgradeContext upgradeContext)
+      throws AmbariException {
+    setDesiredRepositories(upgradeContext);
+    processConfigurationsIfRequired(upgradeContext);
+  }
+
+  /**
    * Transitions all affected components to {@link UpgradeState#IN_PROGRESS}.
    * Transition is performed only for components that advertise their version.
    * Additionally sets the service component desired version to the specified
@@ -722,25 +776,25 @@ public class UpgradeHelper {
    * the upgrade state individually, we wrap this method inside of a transaction
    * to prevent 1000's of transactions from being opened and committed.
    *
-   * @param version
-   *          desired version (like 2.2.1.0-1234) for upgrade
-   * @param targetServices
-   *          targets for upgrade
-   * @param targetStack
-   *          the target stack for the components.  Express and Rolling upgrades determine
-   *          the "correct" stack differently, so the component's desired stack id is not
-   *          a reliable indicator.
+   * @param upgradeContext
+   *          the upgrade context (not {@code null}).
    */
-  @Transactional
-  public void putComponentsToUpgradingState(String version,
-      Map<Service, Set<ServiceComponent>> targetServices, StackId targetStack) throws AmbariException {
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+  private void setDesiredRepositories(UpgradeContext upgradeContext) throws AmbariException {
+    Cluster cluster = upgradeContext.getCluster();
+    Set<String> services = upgradeContext.getSupportedServices();
 
-    for (Map.Entry<Service, Set<ServiceComponent>> entry: targetServices.entrySet()) {
-      for (ServiceComponent serviceComponent: entry.getValue()) {
+    for (String serviceName : services) {
+      Service service = cluster.getService(serviceName);
+      RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
+      StackId targetStack = targetRepositoryVersion.getStackId();
+      service.setDesiredRepositoryVersion(targetRepositoryVersion);
 
+      Collection<ServiceComponent> components = service.getServiceComponents().values();
+      for (ServiceComponent serviceComponent : components) {
         boolean versionAdvertised = false;
         try {
-          ComponentInfo ci = m_ambariMetaInfo.get().getComponent(targetStack.getStackName(),
+          ComponentInfo ci = m_ambariMetaInfoProvider.get().getComponent(targetStack.getStackName(),
               targetStack.getStackVersion(), serviceComponent.getServiceName(),
               serviceComponent.getName());
 
@@ -751,25 +805,224 @@ public class UpgradeHelper {
               StackVersionListener.UNKNOWN_VERSION);
         }
 
-        UpgradeState upgradeState = UpgradeState.IN_PROGRESS;
-        String desiredVersion = version;
-
+        UpgradeState upgradeStateToSet = UpgradeState.IN_PROGRESS;
         if (!versionAdvertised) {
-          upgradeState = UpgradeState.NONE;
-          desiredVersion = StackVersionListener.UNKNOWN_VERSION;
+          upgradeStateToSet = UpgradeState.NONE;
         }
 
-        for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
-          serviceComponentHost.setUpgradeState(upgradeState);
+        for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
+          if (serviceComponentHost.getUpgradeState() != upgradeStateToSet) {
+            serviceComponentHost.setUpgradeState(upgradeStateToSet);
+          }
 
-          // !!! if we aren't version advertised, but there IS a version, set it.
-          if (!versionAdvertised &&
-              !serviceComponentHost.getVersion().equals(StackVersionListener.UNKNOWN_VERSION)) {
+          // !!! if we aren't version advertised, but there IS a version, set
+          // it.
+          if (!versionAdvertised && !StringUtils.equals(StackVersionListener.UNKNOWN_VERSION,
+              serviceComponentHost.getVersion())) {
             serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
           }
         }
-        serviceComponent.setDesiredVersion(desiredVersion);
 
+        // set component desired repo
+        serviceComponent.setDesiredRepositoryVersion(targetRepositoryVersion);
+      }
+    }
+  }
+
+  /**
+   * Handles the creation or resetting of configurations based on whether an
+   * upgrade or downgrade is occurring. This method will not do anything when
+   * the service is not crossing major stack versions, since, by definition, no
+   * new configurations are automatically created when upgrading with the same
+   * stack (ie HDP 2.2.0.0 -> HDP 2.2.1.0).
+   * <p/>
+   * When upgrading or downgrade between stacks (HDP 2.2.0.0 -> HDP 2.3.0.0)
+   * then this will perform the following:
+   * <ul>
+   * <li>Upgrade: Create new configurations that are a merge between the source
+   * stack and the target stack. If a value has changed between stacks, then the
+   * target stack value should be taken unless the cluster's value differs from
+   * the old stack. This can occur if a property has been customized after
+   * installation.</li>
+   * <li>Downgrade: Reset the latest configurations from the service's original
+   * stack. The new configurations that were created on upgrade must be left
+   * intact until all components have been reverted, otherwise heartbeats will
+   * fail due to missing configurations.</li>
+   * </ul>
+   *
+   * @param upgradeContext
+   *          the upgrade context (not {@code null}).
+   * @throws AmbariException
+   */
+  private void processConfigurationsIfRequired(UpgradeContext upgradeContext)
+      throws AmbariException {
+
+    AmbariManagementController controller = m_controllerProvider.get();
+
+    Cluster cluster = upgradeContext.getCluster();
+    Direction direction = upgradeContext.getDirection();
+    String userName = controller.getAuthName();
+    Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
+
+    // merge or revert configurations for any service that needs it
+    for( String serviceName : servicesInUpgrade ){
+      RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
+      RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
+      StackId sourceStackId = sourceRepositoryVersion.getStackId();
+      StackId targetStackId = targetRepositoryVersion.getStackId();
+
+      // only work with configurations when crossing stacks
+      if (sourceStackId.equals(targetStackId)) {
+        RepositoryVersionEntity associatedRepositoryVersion = upgradeContext.getRepositoryVersion();
+        LOG.info(
+            "The {} {} {} will not change stack configurations for {} since the source and target are both {}",
+            direction.getText(false), direction.getPreposition(),
+            associatedRepositoryVersion.getVersion(), serviceName, targetStackId);
+
+        continue;
+      }
+
+      ConfigHelper configHelper = m_configHelperProvider.get();
+
+      // downgrade is easy - just remove the new and make the old current
+      if (direction == Direction.DOWNGRADE) {
+        cluster.applyLatestConfigurations(targetStackId, serviceName);
+        return;
+      }
+
+      // upgrade is a bit harder - we have to merge new stack configurations in
+
+      // populate a map of default configurations for the service on the old
+      // stack (this is used when determining if a property has been
+      // customized and should be overriden with the new stack value)
+      Map<String, Map<String, String>> oldServiceDefaultConfigsByType = configHelper.getDefaultProperties(
+          sourceStackId, serviceName);
+
+      // populate a map with default configurations from the new stack
+      Map<String, Map<String, String>> newServiceDefaultConfigsByType = configHelper.getDefaultProperties(
+          targetStackId, serviceName);
+
+      // find the current, existing configurations for the service
+      List<Config> existingServiceConfigs = new ArrayList<>();
+      List<ServiceConfigEntity> latestServiceConfigs = m_serviceConfigDAO.getLastServiceConfigsForService(
+          cluster.getClusterId(), serviceName);
+
+      for (ServiceConfigEntity serviceConfig : latestServiceConfigs) {
+        List<ClusterConfigEntity> existingConfigurations = serviceConfig.getClusterConfigEntities();
+        for (ClusterConfigEntity currentServiceConfig : existingConfigurations) {
+          String configurationType = currentServiceConfig.getType();
+          Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
+          existingServiceConfigs.add(currentClusterConfigForService);
+        }
+      }
+
+      // now that we have found, old, new, and existing confgs, overlay the
+      // existing on top of the new
+      for (Config existingServiceConfig : existingServiceConfigs) {
+        String configurationType = existingServiceConfig.getType();
+
+        // get current stack default configurations on install
+        Map<String, String> oldServiceDefaultConfigs = oldServiceDefaultConfigsByType.get(
+            configurationType);
+
+        // NPE sanity for current stack defaults
+        if (null == oldServiceDefaultConfigs) {
+          oldServiceDefaultConfigs = Collections.emptyMap();
+        }
+
+        // get the existing configurations
+        Map<String, String> existingConfigurations = existingServiceConfig.getProperties();
+
+        // get the new configurations
+        Map<String, String> newDefaultConfigurations = newServiceDefaultConfigsByType.get(
+            configurationType);
+
+        // if the new stack configurations don't have the type, then simply add
+        // all of the existing in
+        if (null == newDefaultConfigurations) {
+          newServiceDefaultConfigsByType.put(configurationType, existingConfigurations);
+          continue;
+        } else {
+          // Remove any configs in the new stack whose value is NULL, unless
+          // they currently exist and the value is not NULL.
+          Iterator<Map.Entry<String, String>> iter = newDefaultConfigurations.entrySet().iterator();
+          while (iter.hasNext()) {
+            Map.Entry<String, String> entry = iter.next();
+            if (entry.getValue() == null) {
+              iter.remove();
+            }
+          }
+        }
+
+        // process every existing configuration property for this configuration
+        // type
+        for (Map.Entry<String, String> existingConfigurationEntry : existingConfigurations.entrySet()) {
+          String existingConfigurationKey = existingConfigurationEntry.getKey();
+          String existingConfigurationValue = existingConfigurationEntry.getValue();
+
+          // if there is already an entry, we now have to try to determine if
+          // the value was customized after stack installation
+          if (newDefaultConfigurations.containsKey(existingConfigurationKey)) {
+            String newDefaultConfigurationValue = newDefaultConfigurations.get(
+                existingConfigurationKey);
+
+            if (!StringUtils.equals(existingConfigurationValue, newDefaultConfigurationValue)) {
+              // the new default is different from the existing cluster value;
+              // only override the default value if the existing value differs
+              // from the original stack
+              String oldDefaultValue = oldServiceDefaultConfigs.get(existingConfigurationKey);
+
+              if (!StringUtils.equals(existingConfigurationValue, oldDefaultValue)) {
+                // at this point, we've determined that there is a
+                // difference
+                // between default values between stacks, but the value was
+                // also customized, so keep the customized value
+                newDefaultConfigurations.put(existingConfigurationKey, existingConfigurationValue);
+              }
+            }
+          } else {
+            // there is no entry in the map, so add the existing key/value
+            // pair
+            newDefaultConfigurations.put(existingConfigurationKey, existingConfigurationValue);
+          }
+        }
+
+        /*
+        for every new configuration which does not exist in the existing
+        configurations, see if it was present in the current stack
+
+        stack 2.x has foo-site/property (on-ambari-upgrade is false)
+        stack 2.y has foo-site/property
+        the current cluster (on 2.x) does not have it
+
+        In this case, we should NOT add it back as clearly stack advisor has removed it
+        */
+        Iterator<Map.Entry<String, String>> newDefaultConfigurationsIterator = newDefaultConfigurations.entrySet().iterator();
+        while (newDefaultConfigurationsIterator.hasNext()) {
+          Map.Entry<String, String> newConfigurationEntry = newDefaultConfigurationsIterator.next();
+          String newConfigurationPropertyName = newConfigurationEntry.getKey();
+          if (oldServiceDefaultConfigs.containsKey(newConfigurationPropertyName)
+              && !existingConfigurations.containsKey(newConfigurationPropertyName)) {
+            LOG.info(
+                "The property {}/{} exists in both {} and {} but is not part of the current set of configurations and will therefore not be included in the configuration merge",
+                configurationType, newConfigurationPropertyName, sourceStackId, targetStackId);
+
+            // remove the property so it doesn't get merged in
+            newDefaultConfigurationsIterator.remove();
+          }
+        }
+      }
+
+      if (null != newServiceDefaultConfigsByType) {
+        Set<String> configTypes = newServiceDefaultConfigsByType.keySet();
+        LOG.info("The upgrade will create the following configurations for stack {}: {}",
+            targetStackId, StringUtils.join(configTypes, ','));
+
+        String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
+            direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
+
+        configHelper.createConfigTypes(cluster, targetStackId, controller,
+            newServiceDefaultConfigsByType, userName, serviceVersionNote);
       }
     }
   }

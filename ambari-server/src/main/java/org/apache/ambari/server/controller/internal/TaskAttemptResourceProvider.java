@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,15 +42,15 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Resource provider for task attempt resources.
  */
 public class TaskAttemptResourceProvider extends
     AbstractJDBCResourceProvider<TaskAttemptResourceProvider.TaskAttemptFields> {
-  private static Log LOG = LogFactory.getLog(TaskAttemptResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TaskAttemptResourceProvider.class);
 
   protected static final String TASK_ATTEMPT_CLUSTER_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("TaskAttempt", "cluster_name");

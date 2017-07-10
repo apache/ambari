@@ -23,7 +23,6 @@ import java.util.Map;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -91,9 +90,6 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     Map<String, Service> services = new HashMap<>();
     Mockito.when(cluster.getServices()).thenReturn(services);
 
-    ClusterVersionEntity clusterVersionEntity = Mockito.mock(ClusterVersionEntity.class);
-    Mockito.when(cluster.getCurrentClusterVersion()).thenReturn(clusterVersionEntity);
-
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setTargetStackId(new StackId("HDP", "2.3.1.1"));
     request.setSourceStackId(new StackId("HDP", "2.3.0.0"));
@@ -156,10 +152,7 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
       }
     });
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("MYSTACK-12.2"));
-    ClusterVersionEntity clusterVersionEntity = Mockito.mock(ClusterVersionEntity.class);
-    Mockito.when(cluster.getCurrentClusterVersion()).thenReturn(clusterVersionEntity);
     RepositoryVersionEntity repositoryVersionEntity = Mockito.mock(RepositoryVersionEntity.class);
-    Mockito.when(clusterVersionEntity.getRepositoryVersion()).thenReturn(repositoryVersionEntity);
     Mockito.when(m_clusters.getCluster("c1")).thenReturn(cluster);
     PrereqCheckRequest request = new PrereqCheckRequest("c1");
 

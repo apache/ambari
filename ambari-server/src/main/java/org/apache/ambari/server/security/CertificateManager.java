@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -90,9 +90,9 @@ public class CertificateManager {
     String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey());
     String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME.getKey());
     File certFile = new File(srvrKstrDir + File.separator + srvrCrtName);
-    LOG.debug("srvrKstrDir = " + srvrKstrDir);
-    LOG.debug("srvrCrtName = " + srvrCrtName);
-    LOG.debug("certFile = " + certFile.getAbsolutePath());
+    LOG.debug("srvrKstrDir = {}", srvrKstrDir);
+    LOG.debug("srvrCrtName = {}", srvrCrtName);
+    LOG.debug("certFile = {}", certFile.getAbsolutePath());
 
     return certFile.exists();
   }

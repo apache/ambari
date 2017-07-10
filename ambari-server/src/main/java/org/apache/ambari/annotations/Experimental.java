@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -39,4 +39,9 @@ public @interface Experimental {
    * @return
    */
   ExperimentalFeature feature();
+
+  /**
+   * Any notes to why the annotation is used or any other action that may be useful.
+   */
+  String comment() default "";
 }

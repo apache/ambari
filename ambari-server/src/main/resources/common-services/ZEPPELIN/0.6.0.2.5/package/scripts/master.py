@@ -217,9 +217,7 @@ class Master(Script):
     # if first_setup:
     if not glob.glob(params.conf_dir + "/interpreter.json") and \
       not os.path.exists(params.conf_dir + "/interpreter.json"):
-      Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh start >> '
-              + params.zeppelin_log_file, user=params.zeppelin_user)
-      self.check_zeppelin_server()
+      self.create_interpreter_json()
       self.update_zeppelin_interpreter()
 
     self.update_kerberos_properties()
@@ -302,7 +300,7 @@ class Master(Script):
                                                        params.hbase_zookeeper_quorum + ':' + \
                                                        params.zookeeper_znode_parent
         else:
-          interpreter['properties']['zeppelin.jdbc.auth.type'] = ""
+          interpreter['properties']['zeppelin.jdbc.auth.type'] = "SIMPLE"
           interpreter['properties']['zeppelin.jdbc.principal'] = ""
           interpreter['properties']['zeppelin.jdbc.keytab.location'] = ""
       elif interpreter['group'] == 'sh':
@@ -354,6 +352,7 @@ class Master(Script):
           interpreter['properties']['hive.driver'] = 'org.apache.hive.jdbc.HiveDriver'
           interpreter['properties']['hive.user'] = 'hive'
           interpreter['properties']['hive.password'] = ''
+          interpreter['properties']['hive.proxy.user.property'] = 'hive.server2.proxy.user'
           if params.hive_server2_support_dynamic_service_discovery:
             interpreter['properties']['hive.url'] = 'jdbc:hive2://' + \
                                                  params.hive_zookeeper_quorum + \
@@ -367,6 +366,7 @@ class Master(Script):
           interpreter['properties'][hive_interactive_properties_key + '.driver'] = 'org.apache.hive.jdbc.HiveDriver'
           interpreter['properties'][hive_interactive_properties_key + '.user'] = 'hive'
           interpreter['properties'][hive_interactive_properties_key + '.password'] = ''
+          interpreter['properties'][hive_interactive_properties_key + '.proxy.user.property'] = 'hive.server2.proxy.user'
           if params.hive_server2_support_dynamic_service_discovery:
             interpreter['properties'][hive_interactive_properties_key + '.url'] = 'jdbc:hive2://' + \
                                                     params.hive_zookeeper_quorum + \
@@ -377,6 +377,25 @@ class Master(Script):
                                                     params.hive_server_interactive_hosts + \
                                                     ':' + params.hive_server_port
 
+        if params.spark_thrift_server_hosts:
+          interpreter['properties']['spark.driver'] = 'org.apache.hive.jdbc.HiveDriver'
+          interpreter['properties']['spark.user'] = 'hive'
+          interpreter['properties']['spark.password'] = ''
+          interpreter['properties']['spark.proxy.user.property'] = 'hive.server2.proxy.user'
+          interpreter['properties']['spark.url'] = 'jdbc:hive2://' + \
+              params.spark_thrift_server_hosts + ':' + params.spark_hive_thrift_port + '/'
+          if params.spark_hive_principal:
+            interpreter['properties']['spark.url'] += ';principal=' + params.spark_hive_principal
+
+        if params.spark2_thrift_server_hosts:
+          interpreter['properties']['spark2.driver'] = 'org.apache.hive.jdbc.HiveDriver'
+          interpreter['properties']['spark2.user'] = 'hive'
+          interpreter['properties']['spark2.password'] = ''
+          interpreter['properties']['spark2.proxy.user.property'] = 'hive.server2.proxy.user'
+          interpreter['properties']['spark2.url'] = 'jdbc:hive2://' + \
+              params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
+          if params.spark_hive_principal:
+            interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
@@ -419,14 +438,13 @@ class Master(Script):
 
     self.set_interpreter_settings(config_data)
 
-  @retry(times=30, sleep_time=5, err_class=Fail)
-  def check_zeppelin_server(self):
+  def create_interpreter_json(self):
+    import interpreter_json_template
     import params
-    path = params.conf_dir + "/interpreter.json"
-    if os.path.exists(path) and os.path.getsize(path):
-      Logger.info("interpreter.json found. Zeppelin server started.")
-    else:
-      raise Fail("interpreter.json not found. waiting for Zeppelin server to start...")
+
+    interpreter_json = interpreter_json_template.template
+    File(format("{params.conf_dir}/interpreter.json"), content=interpreter_json,
+         owner=params.zeppelin_user, group=params.zeppelin_group)
 
   def get_zeppelin_spark_dependencies(self):
     import params

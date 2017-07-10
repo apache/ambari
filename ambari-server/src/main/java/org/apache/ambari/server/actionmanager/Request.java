@@ -84,10 +84,10 @@ public class Request {
   @Inject
   private static HostDAO hostDAO;
 
-  @AssistedInject
   /**
    * Construct new entity
    */
+  @AssistedInject
   public Request(@Assisted long requestId, @Assisted("clusterId") Long clusterId, Clusters clusters) {
     this.requestId = requestId;
     this.clusterId = clusterId.longValue();
@@ -107,10 +107,10 @@ public class Request {
     }
   }
 
-  @AssistedInject
   /**
    * Construct new entity from stages provided
    */
+  @AssistedInject
   //TODO remove when not needed
   public Request(@Assisted Collection<Stage> stages, @Assisted String clusterHostInfo, Clusters clusters){
     if (stages != null && !stages.isEmpty()) {
@@ -141,10 +141,10 @@ public class Request {
     }
   }
 
-  @AssistedInject
   /**
    * Construct new entity from stages provided
    */
+  @AssistedInject
   //TODO remove when not needed
   public Request(@Assisted Collection<Stage> stages, @Assisted String clusterHostInfo, @Assisted ExecuteActionRequest actionRequest,
                  Clusters clusters, Gson gson) throws AmbariException {
@@ -159,10 +159,10 @@ public class Request {
     }
   }
 
-  @AssistedInject
   /**
    * Load existing request from database
    */
+  @AssistedInject
   public Request(@Assisted RequestEntity entity, final StageFactory stageFactory, Clusters clusters){
     if (entity == null) {
       throw new RuntimeException("Request entity cannot be null.");

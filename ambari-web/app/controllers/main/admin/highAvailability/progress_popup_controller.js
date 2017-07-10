@@ -83,7 +83,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
   initPopup: function (popupTitle, requestIds, progressController, showSpinner, stageId) {
     if (showSpinner) {
       var loadingPopup = App.ModalPopup.show({
-        header: Em.I18n.t('jobs.loadingTasks'),
+        header: Em.I18n.t('common.loading.eclipses'),
         primary: false,
         secondary: false,
         bodyClass: Ember.View.extend({

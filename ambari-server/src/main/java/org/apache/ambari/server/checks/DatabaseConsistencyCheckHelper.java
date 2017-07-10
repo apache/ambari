@@ -57,6 +57,9 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.state.ClientConfigFileDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.State;
@@ -165,7 +168,7 @@ public class DatabaseConsistencyCheckHelper {
       LOG.error("Exception occurred during connection close procedure: ", e);
     }
   }
-  
+
   public static DatabaseConsistencyCheckResult runAllDBChecks(boolean fixIssues) throws Throwable {
     LOG.info("******************************* Check database started *******************************");
     try {
@@ -288,7 +291,7 @@ public class DatabaseConsistencyCheckHelper {
 
         if (tableSizeInMB != null && tableSizeInMB > TABLE_SIZE_LIMIT_MB) {
           warning("The database table {} is currently {} MB (limit is {}) and may impact performance. It is recommended " +
-                  "that you reduce its size by executing \"ambari-server db-cleanup\".",
+                  "that you reduce its size by executing \"ambari-server db-purge-history\".",
                   tableName, tableSizeInMB, TABLE_SIZE_LIMIT_MB);
         } else if (tableSizeInMB != null && tableSizeInMB < TABLE_SIZE_LIMIT_MB) {
           LOG.info(String.format("The database table %s is currently %.3f MB and is within normal limits (%.3f)",
@@ -308,7 +311,7 @@ public class DatabaseConsistencyCheckHelper {
 
           if (tableRowCount > TABLE_ROW_COUNT_LIMIT) {
             warning("The database table {} currently has {} rows (limit is {}) and may impact performance. It is " +
-                    "recommended that you reduce its size by executing \"ambari-server db-cleanup\".",
+                    "recommended that you reduce its size by executing \"ambari-server db-purge-history\".",
                     tableName, tableRowCount, TABLE_ROW_COUNT_LIMIT);
           } else if (tableRowCount != -1 && tableRowCount < TABLE_ROW_COUNT_LIMIT) {
             LOG.info(String.format("The database table %s currently has %d rows and is within normal limits (%d)", tableName, tableRowCount, TABLE_ROW_COUNT_LIMIT));
@@ -710,6 +713,8 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     for (HostComponentDesiredStateEntity hostComponentDesiredStateEntity : missedHostComponentDesiredStates) {
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = hostComponentDesiredStateEntity.getServiceComponentDesiredStateEntity();
+
       HostComponentStateEntity stateEntity = new HostComponentStateEntity();
       stateEntity.setClusterId(hostComponentDesiredStateEntity.getClusterId());
       stateEntity.setComponentName(hostComponentDesiredStateEntity.getComponentName());
@@ -718,7 +723,6 @@ public class DatabaseConsistencyCheckHelper {
       stateEntity.setHostEntity(hostComponentDesiredStateEntity.getHostEntity());
       stateEntity.setCurrentState(State.UNKNOWN);
       stateEntity.setUpgradeState(UpgradeState.NONE);
-      stateEntity.setCurrentStack(hostComponentDesiredStateEntity.getDesiredStack());
       stateEntity.setSecurityState(SecurityState.UNKNOWN);
       stateEntity.setServiceComponentDesiredStateEntity(hostComponentDesiredStateEntity.getServiceComponentDesiredStateEntity());
 
@@ -734,7 +738,6 @@ public class DatabaseConsistencyCheckHelper {
       stateEntity.setServiceName(missedHostComponentState.getServiceName());
       stateEntity.setHostEntity(missedHostComponentState.getHostEntity());
       stateEntity.setDesiredState(State.UNKNOWN);
-      stateEntity.setDesiredStack(missedHostComponentState.getCurrentStack());
       stateEntity.setServiceComponentDesiredStateEntity(missedHostComponentState.getServiceComponentDesiredStateEntity());
 
       LOG.error("Trying to add missing record in hostcomponentdesiredstate: {}", stateEntity);
@@ -1021,10 +1024,22 @@ public class DatabaseConsistencyCheckHelper {
             Multimap<String, String> dbServiceConfigs = dbServiceVersionConfigs.get(serviceVersion);
             if (dbServiceConfigs != null) {
               for (String serviceName : dbServiceConfigs.keySet()) {
+                ServiceInfo serviceInfo = serviceInfoMap.get(serviceName);
                 Collection<String> serviceConfigsFromStack = stackServiceConfigs.get(serviceName);
                 Collection<String> serviceConfigsFromDB = dbServiceConfigs.get(serviceName);
                 if (serviceConfigsFromDB != null && serviceConfigsFromStack != null) {
                   serviceConfigsFromStack.removeAll(serviceConfigsFromDB);
+                  if (serviceInfo != null && serviceInfo.getComponents() != null) {
+                    for (ComponentInfo componentInfo : serviceInfo.getComponents()) {
+                      if (componentInfo.getClientConfigFiles() != null) {
+                        for (ClientConfigFileDefinition clientConfigFileDefinition : componentInfo.getClientConfigFiles()) {
+                          if (clientConfigFileDefinition.isOptional()) {
+                            serviceConfigsFromStack.remove(clientConfigFileDefinition.getDictionaryName());
+                          }
+                        }
+                      }
+                    }
+                  }
 
                   // skip ranger-{service_name}-* from being checked, unless ranger is installed
                   if(!dbServiceConfigs.containsKey("RANGER")) {
@@ -1073,9 +1088,7 @@ public class DatabaseConsistencyCheckHelper {
           error("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
         }
       }
-    } catch (SQLException e) {
-      LOG.error("Exception occurred during complex service check procedure: ", e);
-    } catch (AmbariException e) {
+    } catch (SQLException | AmbariException e) {
       LOG.error("Exception occurred during complex service check procedure: ", e);
     } finally {
       if (rs != null) {

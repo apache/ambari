@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -38,6 +38,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -78,7 +79,7 @@ public class HostComponentService extends BaseService {
    * @param hostComponentName host_component id
    * @return host_component resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{hostComponentName}")
   @Produces("text/plain")
   public Response getHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -107,7 +108,7 @@ public class HostComponentService extends BaseService {
    * @param ui      uri info
    * @return host_component collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui, @QueryParam("format") String format) {
     if (format != null && format.equals("client_config_tar")) {
@@ -128,7 +129,7 @@ public class HostComponentService extends BaseService {
    *
    * @return status code only, 201 if successful
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -147,7 +148,7 @@ public class HostComponentService extends BaseService {
    *
    * @return host_component resource representation
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{hostComponentName}")
   @Produces("text/plain")
   public Response createHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -168,7 +169,7 @@ public class HostComponentService extends BaseService {
    *
    * @return information regarding updated host_component
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{hostComponentName}")
   @Produces("text/plain")
   public Response updateHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -188,7 +189,7 @@ public class HostComponentService extends BaseService {
    *
    * @return information regarding updated host_component resources
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public Response updateHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -206,7 +207,7 @@ public class HostComponentService extends BaseService {
    *
    * @return host_component resource representation
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{hostComponentName}")
   @Produces("text/plain")
   public Response deleteHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -225,7 +226,7 @@ public class HostComponentService extends BaseService {
    *
    * @return host_component resource representation
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Produces("text/plain")
   public Response deleteHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -233,7 +234,7 @@ public class HostComponentService extends BaseService {
         createHostComponentResource(m_clusterName, m_hostName, null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{hostComponentName}/processes")
   @Produces("text/plain")
   public Response getProcesses(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -272,7 +273,6 @@ public class HostComponentService extends BaseService {
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Host, m_hostName);
     mapIds.put(Resource.Type.Component, hostComponentName);
-
 
     Response response = handleRequest(headers, body, ui, Request.Type.GET,
             createResource(Resource.Type.ClientConfig, mapIds));

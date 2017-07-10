@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,6 +31,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -44,7 +45,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 @Path("/extensions/")
 public class ExtensionsService extends BaseService {
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getExtensions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
@@ -52,7 +53,7 @@ public class ExtensionsService extends BaseService {
         createExtensionResource(null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{extensionName}")
   @Produces("text/plain")
   public Response getExtension(String body, @Context HttpHeaders headers,
@@ -63,7 +64,7 @@ public class ExtensionsService extends BaseService {
         createExtensionResource(extensionName));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{extensionName}/versions")
   @Produces("text/plain")
   public Response getExtensionVersions(String body,
@@ -74,7 +75,7 @@ public class ExtensionsService extends BaseService {
         createExtensionVersionResource(extensionName, null));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{extensionName}/versions/{extensionVersion}")
   @Produces("text/plain")
   public Response getExtensionVersion(String body,
@@ -86,7 +87,7 @@ public class ExtensionsService extends BaseService {
         createExtensionVersionResource(extensionName, extensionVersion));
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{extensionName}/versions/{extensionVersion}/links")
   @Produces("text/plain")
   public Response getExtensionVersionLinks(String body,

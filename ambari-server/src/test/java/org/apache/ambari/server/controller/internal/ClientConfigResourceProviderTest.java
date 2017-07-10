@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -249,7 +249,9 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, publicHostname,desiredState, "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+        componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
+        null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
     responses.add(shr1);
@@ -269,7 +271,11 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn(stackRoot);
+    expect(configuration.getJavaHome()).andReturn("dummy_java_home");
+    expect(configuration.getJDKName()).andReturn(null);
+    expect(configuration.getJCEName()).andReturn(null);
     expect(configuration.getJavaVersion()).andReturn(8);
+    expect(configuration.getStackJavaHome()).andReturn(null);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
@@ -281,7 +287,6 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
     Map<String, Set<String>> clusterHostInfo = new HashMap<>();
@@ -316,6 +321,10 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getType()).andReturn("hive-site").anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
+
+    expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
+    expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
@@ -497,7 +506,9 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+        componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
+        null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
     responses.add(shr1);
@@ -517,7 +528,11 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn("/var/lib/ambari-server/src/main/resources");
+    expect(configuration.getJavaHome()).andReturn("dummy_java_home");
+    expect(configuration.getJDKName()).andReturn(null);
+    expect(configuration.getJCEName()).andReturn(null);
     expect(configuration.getJavaVersion()).andReturn(8);
+    expect(configuration.getStackJavaHome()).andReturn(null);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
@@ -530,7 +545,6 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
     Map<String, Set<String>> clusterHostInfo = new HashMap<>();
@@ -566,6 +580,10 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
 
+    expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
+    expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
+
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
@@ -576,10 +594,10 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
     PowerMock.mockStatic(File.class);
+    expect(mockFile.exists()).andReturn(true);
     expect(File.createTempFile(anyString(), anyString(), anyObject(File.class))).andReturn(PowerMock.createNiceMock(File.class));
     PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
     PowerMock.mockStatic(Runtime.class);
-    expect(mockFile.exists()).andReturn(true);
     String commandLine = "ambari-python-wrap " + commonServicesPath + "/PIG/package/null generate_configs null " +
             commonServicesPath + "/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
             "INFO /var/lib/ambari-server/tmp";

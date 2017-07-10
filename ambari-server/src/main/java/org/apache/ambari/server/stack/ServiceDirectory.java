@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -421,7 +421,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
       roleCommandOrder = new StackRoleCommandOrder(result);
 
       if (LOG.isDebugEnabled() && rcoFile != null) {
-        LOG.debug("Role Command Order for " + rcoFile.getAbsolutePath());
+        LOG.debug("Role Command Order for {}", rcoFile.getAbsolutePath());
         roleCommandOrder.printRoleCommandOrder(LOG);
       }
     } catch (IOException e) {

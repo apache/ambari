@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,15 +32,15 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author ncole
  *
  */
 class BSRunner extends Thread {
-  private static Log LOG = LogFactory.getLog(BSRunner.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BSRunner.class);
 
   private static final String DEFAULT_USER = "root";
   private static final String DEFAULT_SSHPORT = "22";
@@ -212,8 +212,7 @@ class BSRunner extends Thread {
       if (LOG.isDebugEnabled()) {
         // FIXME needs to be removed later
         // security hole
-        LOG.debug("Using ssh key=\""
-            + sshHostInfo.getSshKey() + "\"");
+        LOG.debug("Using ssh key=\"{}\"", sshHostInfo.getSshKey());
       }
 
       String password = sshHostInfo.getPassword();
@@ -338,8 +337,7 @@ class BSRunner extends Thread {
             pendingHosts = true;
           }
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Whether hosts status yet to be updated, pending="
-                + pendingHosts);
+            LOG.debug("Whether hosts status yet to be updated, pending={}", pendingHosts);
           }
           if (!pendingHosts) {
             break;
@@ -441,7 +439,7 @@ class BSRunner extends Thread {
         }
       }
     } catch (FileNotFoundException ex) {
-      LOG.error(ex);
+      LOG.error(ex.toString());
     } finally {
       if (setupAgentDoneWriter != null) {
         setupAgentDoneWriter.close();

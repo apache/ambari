@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -82,7 +82,7 @@ import com.google.common.base.Objects;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ConfigUpgradeChangeDefinition {
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigUpgradeChangeDefinition.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigUpgradeChangeDefinition.class);
 
   /**
    * The key that represents the configuration type to change (ie hdfs-site).

@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +76,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String CLUSTER_CONFIG_MAPPING_TABLE = "clusterconfigmapping";
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
+  protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
 
   @Inject
   DaoUtils daoUtils;
@@ -111,7 +113,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getSourceVersion() {
-    return "2.5.0";
+    return "2.5.2";
   }
 
   /**
@@ -180,10 +182,11 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   protected void addServiceComponentColumn() throws SQLException {
-    dbAccessor.addColumn(UpgradeCatalog250.COMPONENT_TABLE,
-        new DBColumnInfo("repo_state", String.class, 255, RepositoryVersionState.INIT.name(), false));
-
+    dbAccessor.addColumn(COMPONENT_TABLE,
+        new DBColumnInfo("repo_state", String.class, 255,
+            RepositoryVersionState.NOT_REQUIRED.name(), false));
   }
+
   protected void setStatusOfStagesAndRequests() {
     executeInTransaction(new Runnable() {
       @Override
@@ -335,18 +338,54 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
             removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
           }
-          
+
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
           Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
           if (logSearchProperties != null && logFeederProperties != null) {
             String defaultLogLevels = logSearchProperties.getProperties().get("logsearch.logfeeder.include.default.level");
-            
+
             Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
             removeConfigurationPropertiesFromCluster(cluster, "logsearch-properties", removeProperties);
-            
+
             Map<String, String> newProperties = new HashMap<>();
             newProperties.put("logfeeder.include.default.level", defaultLogLevels);
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newProperties, true, true);
+          }
+
+          Config logfeederLog4jProperties = cluster.getDesiredConfigByType("logfeeder-log4j");
+          if (logfeederLog4jProperties != null) {
+            String content = logfeederLog4jProperties.getProperties().get("content");
+            if (content.contains("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">")) {
+              content = content.replace("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
+              updateConfigurationPropertiesForCluster(cluster, "logfeeder-log4j", Collections.singletonMap("content", content), true, true);
+            }
+          }
+
+          Config logsearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
+          if (logsearchLog4jProperties != null) {
+            String content = logsearchLog4jProperties.getProperties().get("content");
+            if (content.contains("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">")) {
+              content = content.replace("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", Collections.singletonMap("content", content), true, true);
+            }
+          }
+
+          Config logsearchServiceLogsConfig = cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig");
+          if (logsearchServiceLogsConfig != null) {
+            String content = logsearchServiceLogsConfig.getProperties().get("content");
+            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
+              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-service_logs-solrconfig", Collections.singletonMap("content", content), true, true);
+            }
+          }
+
+          Config logsearchAuditLogsConfig = cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig");
+          if (logsearchAuditLogsConfig != null) {
+            String content = logsearchAuditLogsConfig.getProperties().get("content");
+            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
+              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-audit_logs-solrconfig", Collections.singletonMap("content", content), true, true);
+            }
           }
         }
       }

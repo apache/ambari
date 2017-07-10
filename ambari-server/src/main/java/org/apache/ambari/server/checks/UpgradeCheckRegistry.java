@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -43,7 +43,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class UpgradeCheckRegistry {
-  private static Logger LOG = LoggerFactory.getLogger(UpgradeCheckRegistry.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCheckRegistry.class);
 
   /**
    * The list of upgrade checks to run through.
@@ -97,7 +97,7 @@ public class UpgradeCheckRegistry {
         try {
           URL url = jar.toURI().toURL();
           urls.add(url);
-          LOG.debug("Adding service check jar to classpath: {}", url.toString());
+          LOG.debug("Adding service check jar to classpath: {}", url);
         }
         catch (Exception e) {
           LOG.error("Failed to add service check jar to classpath: {}", jar.getAbsolutePath(), e);

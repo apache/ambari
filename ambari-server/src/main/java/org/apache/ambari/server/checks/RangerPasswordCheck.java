@@ -32,7 +32,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -83,10 +83,10 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
       return false;
     }
 
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+    Service service = getCluster(request).getService("RANGER");
 
-    StackId clusterStackId = cluster.getCurrentStackVersion();
-    if (clusterStackId.getStackName().equals("HDP")) {
+    StackId stackId = service.getDesiredStackId();
+    if (stackId.getStackName().equals("HDP")) {
       String sourceVersion = request.getSourceStackId().getStackVersion();
 
       return VersionUtils.compareVersions(sourceVersion, "2.3.0.0") >= 0;

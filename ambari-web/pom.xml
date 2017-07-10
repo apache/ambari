@@ -88,42 +88,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <id>clean-rmdir</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${executable.rmdir}</executable>
-              <workingDirectory>${basedir}</workingDirectory>
-              <commandlineArgs>${args.rm.clean} public ${nodemodules.dir}</commandlineArgs>
-              <successCodes>
-                <successCode>0</successCode>
-                <successCode>1</successCode>
-                <successCode>2</successCode>
-              </successCodes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>clean-mkdir</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${executable.mkdir}</executable>
-              <workingDirectory>${basedir}</workingDirectory>
-              <commandlineArgs>${args.mkdir} public</commandlineArgs>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <version>1.4</version>
@@ -163,6 +127,35 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.2.1</version>
         <executions>
+          <execution>
+            <id>clean-rmdir</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.rmdir}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.rm.clean} public ${nodemodules.dir}</commandlineArgs>
+              <successCodes>
+                <successCode>0</successCode>
+                <successCode>1</successCode>
+                <successCode>2</successCode>
+              </successCodes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>clean-mkdir</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.mkdir}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.mkdir} public</commandlineArgs>
+            </configuration>
+          </execution>
           <execution>
             <id>Brunch build</id>
             <phase>generate-resources</phase>
@@ -268,6 +261,7 @@
             <exclude>public/**</exclude>
             <exclude>public-static/**</exclude>
             <exclude>app/assets/**</exclude>
+            <exclude>api-docs/**</exclude>
             <exclude>vendor/**</exclude>
             <exclude>node_modules/**</exclude>
             <exclude>node/**</exclude>

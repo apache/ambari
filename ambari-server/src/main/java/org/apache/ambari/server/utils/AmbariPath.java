@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AmbariPath {
-  private static Logger LOG = LoggerFactory.getLogger(AmbariPath.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariPath.class);
   
   public static final String AMBARI_SERVER_ROOT_ENV_VARIABLE = "ROOT";
   public static final String rootDirectory = System.getenv(AMBARI_SERVER_ROOT_ENV_VARIABLE);

@@ -409,7 +409,13 @@ def fill_conf_dir(component_conf_dir):
            owner=params.hive_user,
            content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
       )
-    pass # if params.log4j_version == '1'
+
+  if params.parquet_logging_properties is not None:
+    File(format("{component_conf_dir}/parquet-logging.properties"),
+      mode = mode_identified_for_file,
+      group = params.user_group,
+      owner = params.hive_user,
+      content = params.parquet_logging_properties)
 
 
 def jdbc_connector(target, hive_previous_jdbc_jar):

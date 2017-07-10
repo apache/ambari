@@ -50,9 +50,15 @@ public class PrincipalTypeEntity {
   public static final int GROUP_PRINCIPAL_TYPE = 2;
   public static final int ROLE_PRINCIPAL_TYPE = 8;
 
-  public static final String USER_PRINCIPAL_TYPE_NAME  = "USER";
-  public static final String GROUP_PRINCIPAL_TYPE_NAME = "GROUP";
-  public static final String ROLE_PRINCIPAL_TYPE_NAME = "ROLE";
+  public static final String USER_PRINCIPAL_TYPE_NAME  = PrincipalType.USER.toString();
+  public static final String GROUP_PRINCIPAL_TYPE_NAME = PrincipalType.GROUP.toString();
+  public static final String ROLE_PRINCIPAL_TYPE_NAME = PrincipalType.ROLE.toString();
+
+  public enum PrincipalType {
+    USER,
+    GROUP,
+    ROLE;
+  }
 
   /**
    * The type id.

@@ -24,6 +24,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.LogoutAuditEvent;
@@ -43,7 +44,7 @@ public class LogoutService {
   @Inject
   private static AuditLogger auditLogger;
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response performLogout(@Context HttpServletRequest servletRequest) {
     auditLog(servletRequest);

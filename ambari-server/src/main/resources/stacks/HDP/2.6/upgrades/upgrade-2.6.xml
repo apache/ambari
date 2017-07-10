@@ -168,7 +168,7 @@
         <component>HBASE_MASTER</component>
       </service>
     </group>
-    
+
     <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -184,7 +184,7 @@
         <service>LOGSEARCH</service>
       </exclude>
     </group>
-    
+
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -192,7 +192,7 @@
         <component>DATANODE</component>
         <component>NFS_GATEWAY</component>
       </service>
-      
+
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
         <component>PHOENIX_QUERY_SERVER</component>
@@ -208,7 +208,7 @@
         <message>The initial batch of {{components}} hosts have been {{direction.past}}. You are advised to check the hosts and perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
       </batch>
     </group>
-    
+
     <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -460,7 +460,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -469,7 +469,7 @@
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      
+
       <execute-stage title="Confirm Finalize">
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
@@ -493,7 +493,7 @@
           <function>finalize_rolling_upgrade</function>
         </task>
       </execute-stage>
-      
+
       <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
@@ -544,7 +544,7 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -645,7 +645,7 @@
         </upgrade>
       </component>
     </service>
-    
+
     <service name="SLIDER">
       <component name="SLIDER">
         <upgrade>
@@ -667,7 +667,7 @@
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -696,7 +696,6 @@
 
       <component name="NODEMANAGER">
         <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env"/>
           <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
@@ -749,9 +748,9 @@
             <summary>Verifying LZO codec path for Tez</summary>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
-        
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -792,6 +791,8 @@
       <component name="HIVE_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes"/>
+          <task xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
@@ -831,6 +832,10 @@
         </upgrade>
       </component>
       <component name="SPARK_THRIFTSERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_0_0_spark_thriftserver"/>
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -854,6 +859,10 @@
         </upgrade>
       </component>
       <component name="SPARK2_THRIFTSERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver"/>
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

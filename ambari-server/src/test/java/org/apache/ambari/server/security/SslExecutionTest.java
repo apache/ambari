@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,12 +26,12 @@ import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -40,7 +40,7 @@ import com.google.inject.Injector;
 
 public class SslExecutionTest {
 
-  private static Log LOG = LogFactory.getLog(SslExecutionTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SslExecutionTest.class);
   public TemporaryFolder temp = new TemporaryFolder();
 
   Injector injector;

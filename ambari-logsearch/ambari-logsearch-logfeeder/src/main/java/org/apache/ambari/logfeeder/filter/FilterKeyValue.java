@@ -24,17 +24,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterKeyValueDescriptor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public class FilterKeyValue extends Filter {
-  private static final Logger LOG = Logger.getLogger(FilterKeyValue.class);
-
   private String sourceField = null;
   private String valueSplit = "=";
   private String fieldSplit = "\t";
@@ -46,10 +44,10 @@ public class FilterKeyValue extends Filter {
   public void init() throws Exception {
     super.init();
 
-    sourceField = getStringValue("source_field");
-    valueSplit = getStringValue("value_split", valueSplit);
-    fieldSplit = getStringValue("field_split", fieldSplit);
-    valueBorders = getStringValue("value_borders");
+    sourceField = filterDescriptor.getSourceField();
+    valueSplit = StringUtils.defaultString(((FilterKeyValueDescriptor)filterDescriptor).getValueSplit(), valueSplit);
+    fieldSplit = StringUtils.defaultString(((FilterKeyValueDescriptor)filterDescriptor).getFieldSplit(), fieldSplit);
+    valueBorders = ((FilterKeyValueDescriptor)filterDescriptor).getValueBorders();
 
     LOG.info("init() done. source_field=" + sourceField + ", value_split=" + valueSplit + ", " + ", field_split=" +
         fieldSplit + ", " + getShortDescription());
@@ -60,12 +58,12 @@ public class FilterKeyValue extends Filter {
   }
 
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException {
     apply(LogFeederUtil.toJSONObject(inputStr), inputMarker);
   }
 
   @Override
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogFeederException {
     if (sourceField == null) {
       return;
     }

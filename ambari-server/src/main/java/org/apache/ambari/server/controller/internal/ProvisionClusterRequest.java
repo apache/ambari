@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -202,7 +203,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
     InvalidTopologyTemplateException {
     HashMap<String, Credential> credentialHashMap = new HashMap<>();
-    Set<Map<String, String>> credentialsSet = (Set<Map<String, String>>) properties.get(ClusterResourceProvider.CREDENTIALS_PROPERTY_ID);
+    Set<Map<String, String>> credentialsSet = (Set<Map<String, String>>) properties.get(ClusterResourceProvider.CREDENTIALS);
     if (credentialsSet != null) {
       for (Map<String, String> credentialMap : credentialsSet) {
         String alias = Strings.emptyToNull(credentialMap.get("alias"));
@@ -223,7 +224,9 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
         }
         CredentialStoreType type = Enums.getIfPresent(CredentialStoreType.class, typeString.toUpperCase()).orNull();
         if (type == null) {
-          throw new InvalidTopologyTemplateException("credential.type is invalid.");
+          throw new InvalidTopologyTemplateException(
+              String.format("credential.type [%s] is invalid. acceptable values: %s", typeString.toUpperCase(),
+                  Arrays.toString(CredentialStoreType.values())));
         }
         credentialHashMap.put(alias, new Credential(alias, principal, key, type));
       }
@@ -275,7 +278,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * @throws NoSuchBlueprintException if specified blueprint doesn't exist
    */
   private void parseBlueprint(Map<String, Object> properties) throws NoSuchStackException, NoSuchBlueprintException {
-    String blueprintName = String.valueOf(properties.get(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID));
+    String blueprintName = String.valueOf(properties.get(ClusterResourceProvider.BLUEPRINT));
     // set blueprint field
     setBlueprint(getBlueprintFactory().getBlueprint(blueprintName));
 

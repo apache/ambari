@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -32,8 +33,10 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +102,20 @@ public class ConfigImpl implements Config {
   ConfigImpl(@Assisted Cluster cluster, @Assisted("type") String type,
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
-      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+      ClusterDAO clusterDAO, StackDAO stackDAO,
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+    this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
+        clusterDAO, stackDAO, gson, eventPublisher, lockFactory);
+  }
+
+
+  @AssistedInject
+  ConfigImpl(@Assisted @Nullable StackId stackId, @Assisted Cluster cluster, @Assisted("type") String type,
+      @Assisted("tag") @Nullable String tag,
+      @Assisted Map<String, String> properties,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+      ClusterDAO clusterDAO, StackDAO stackDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
@@ -118,10 +134,11 @@ public class ConfigImpl implements Config {
     version = cluster.getNextConfigVersion(type);
 
     // tag is nullable from factory but not in the DB, so ensure we generate something
-    tag = StringUtils.isBlank(tag) ? GENERATED_TAG_PREFIX + version : tag;
+    tag = StringUtils.isBlank(tag) ? UUID.randomUUID().toString() : tag;
     this.tag = tag;
 
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
 
     ClusterConfigEntity entity = new ClusterConfigEntity();
     entity.setClusterEntity(clusterEntity);
@@ -130,7 +147,7 @@ public class ConfigImpl implements Config {
     entity.setVersion(version);
     entity.setTag(this.tag);
     entity.setTimestamp(System.currentTimeMillis());
-    entity.setStack(clusterEntity.getDesiredStack());
+    entity.setStack(stackEntity);
     entity.setData(gson.toJson(properties));
 
     if (null != propertiesAttributes) {
@@ -139,7 +156,7 @@ public class ConfigImpl implements Config {
 
     // when creating a brand new config without a backing entity, use the
     // cluster's desired stack as the config's stack
-    stackId = cluster.getDesiredStackVersion();
+    this.stackId = stackId;
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
     persist(entity);
 

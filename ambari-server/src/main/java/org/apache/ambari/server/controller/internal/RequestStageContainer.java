@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -218,7 +218,7 @@ public class RequestStageContainer {
 
       if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("Triggering Action Manager, request=%s", request));
+          LOG.debug("Triggering Action Manager, request={}", request);
         }
         actionManager.sendActions(request, actionRequest);
       }

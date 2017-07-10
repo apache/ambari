@@ -463,20 +463,44 @@ class Script(object):
 
     return Script.stack_version_from_distro_select
 
+
+  def get_package_from_available(self, name, available_packages_in_repos):
+    """
+    This function matches package names with ${stack_version} placeholder to actual package names from
+    Ambari-managed repository.
+    Package names without ${stack_version} placeholder are returned as is.
+    """
+    if STACK_VERSION_PLACEHOLDER not in name:
+      return name
+    package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+    package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter))
+    for package in available_packages_in_repos:
+      if re.match(package_regex, package):
+        return package
+
+
   def format_package_name(self, name):
     from resource_management.libraries.functions.default import default
     """
-    This function replaces ${stack_version} placeholder into actual version.  If the package
+    This function replaces ${stack_version} placeholder with actual version.  If the package
     version is passed from the server, use that as an absolute truth.
     """
 
-    # two different command types put things in different objects.  WHY.
-    # package_version is the form W_X_Y_Z_nnnn
-    package_version = default("roleParams/package_version", None)
-    if not package_version:
-      package_version = default("hostLevelParams/package_version", None)
-
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+
+    # repositoryFile is the truth
+    # package_version should be made to the form W_X_Y_Z_nnnn
+    package_version = default("repositoryFile/repoVersion", None)
+    if package_version is not None:
+      package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
+
+    # TODO remove legacy checks
+    if package_version is None:
+      package_version = default("roleParams/package_version", None)
+
+    # TODO remove legacy checks
+    if package_version is None:
+      package_version = default("hostLevelParams/package_version", None)
 
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but
@@ -573,7 +597,11 @@ class Script(object):
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    return default("/hostLevelParams/stack_name", "HDP")
+    stack_name = default("/hostLevelParams/stack_name", None)
+    if stack_name is None:
+      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
+
+    return stack_name
 
   @staticmethod
   def get_stack_root():
@@ -583,7 +611,18 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
     stack_name = Script.get_stack_name()
-    return default("/configurations/cluster-env/stack_root", "/usr/{0}".format(stack_name.lower()))
+    stack_root_json = default("/configurations/cluster-env/stack_root", None)
+
+    if stack_root_json is None:
+      return "/usr/{0}".format(stack_name.lower())
+
+    stack_root = json.loads(stack_root_json)
+
+    if stack_name not in stack_root:
+      Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
+      return "/usr/{0}".format(stack_name.lower())
+
+    return stack_root[stack_name]
 
   @staticmethod
   def get_stack_version():
@@ -695,12 +734,15 @@ class Script(object):
       package_list_str = config['hostLevelParams']['package_list']
       agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
       agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
-
+      try:
+        available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+      except Exception as err:
+        available_packages_in_repos = []
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           if self.check_package_condition(package):
-            name = self.format_package_name(package['name'])
+            name = self.get_package_from_available(package['name'], available_packages_in_repos)
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.

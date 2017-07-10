@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -111,12 +111,10 @@ public class AlertMaintenanceModeListenerTest {
     EasyMock.verify(hostAlert, serviceAlert, componentAlert, host, m_alertsDAO);
   }
 
-  @Test
   /**
    * Tests that only the service alert has its maintenance mode changed.
-   *
-   * @throws Exception
    */
+  @Test
   public void testServiceMaintenanceMode() throws Exception {
     List<AlertCurrentEntity> alerts = getMockAlerts("SERVICE");
 

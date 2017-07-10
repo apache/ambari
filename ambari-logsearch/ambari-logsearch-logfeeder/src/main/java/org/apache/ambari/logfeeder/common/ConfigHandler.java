@@ -41,30 +41,58 @@ import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logfeeder.util.AliasUtil;
-import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterDescriptorImpl;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.reflect.TypeToken;
+
+import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
 
 public class ConfigHandler implements InputConfigMonitor {
   private static final Logger LOG = Logger.getLogger(ConfigHandler.class);
 
+  @LogSearchPropertyDescription(
+    name = "logfeeder.config.files",
+    description = "Comma separated list of the config files containing global / output configurations.",
+    examples = {"global.json,output.json", "/etc/ambari-logsearch-logfeeder/conf/global.json"},
+    defaultValue = "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String CONFIG_FILES_PROPERTY = "logfeeder.config.files";
+
+  private static final int DEFAULT_SIMULATE_INPUT_NUMBER = 0;
+  @LogSearchPropertyDescription(
+    name = "logfeeder.simulate.input_number",
+    description = "The number of the simulator instances to run with. O means no simulation.",
+    examples = {"10"},
+    defaultValue = DEFAULT_SIMULATE_INPUT_NUMBER + "",
+    sources = {LOGFEEDER_PROPERTIES_FILE}
+  )
+  private static final String SIMULATE_INPUT_NUMBER_PROPERTY = "logfeeder.simulate.input_number";
+
   private final OutputManager outputManager = new OutputManager();
   private final InputManager inputManager = new InputManager();
 
-  public static Map<String, Object> globalConfigs = new HashMap<>();
+  private final Map<String, Object> globalConfigs = new HashMap<>();
+  private final List<String> globalConfigJsons = new ArrayList<String>();
 
-  private final List<Map<String, Object>> inputConfigList = new ArrayList<>();
-  private final List<Map<String, Object>> filterConfigList = new ArrayList<>();
+  private final List<InputDescriptor> inputConfigList = new ArrayList<>();
+  private final List<FilterDescriptor> filterConfigList = new ArrayList<>();
   private final List<Map<String, Object>> outputConfigList = new ArrayList<>();
   
   private boolean simulateMode = false;
@@ -100,24 +128,10 @@ public class ConfigHandler implements InputConfigMonitor {
   private List<String> getConfigFiles() {
     List<String> configFiles = new ArrayList<>();
     
-    String logfeederConfigFilesProperty = LogFeederUtil.getStringProperty("logfeeder.config.files");
-    LOG.info("logfeeder.config.files=" + logfeederConfigFilesProperty);
-    if (logfeederConfigFilesProperty != null) {
-      configFiles.addAll(Arrays.asList(logfeederConfigFilesProperty.split(",")));
-    }
-
-    String inputConfigDir = LogFeederUtil.getStringProperty("input_config_dir");
-    if (StringUtils.isNotEmpty(inputConfigDir)) {
-      File configDirFile = new File(inputConfigDir);
-      List<File> inputConfigFiles = FileUtil.getAllFileFromDir(configDirFile, "json", false);
-      for (File inputConfigFile : inputConfigFiles) {
-        configFiles.add(inputConfigFile.getAbsolutePath());
-      }
-    }
-    
-    if (CollectionUtils.isEmpty(configFiles)) {
-      String configFileProperty = LogFeederUtil.getStringProperty("config.file", "config.json");
-      configFiles.addAll(Arrays.asList(configFileProperty.split(",")));
+    String logFeederConfigFilesProperty = LogFeederUtil.getStringProperty(CONFIG_FILES_PROPERTY);
+    LOG.info("logfeeder.config.files=" + logFeederConfigFilesProperty);
+    if (logFeederConfigFilesProperty != null) {
+      configFiles.addAll(Arrays.asList(logFeederConfigFilesProperty.split(",")));
     }
     
     return configFiles;
@@ -141,11 +155,12 @@ public class ConfigHandler implements InputConfigMonitor {
   }
   
   @Override
-  public void loadInputConfigs(String serviceName, String inputConfigData) throws Exception {
+  public void loadInputConfigs(String serviceName, InputConfig inputConfig) throws Exception {
     inputConfigList.clear();
     filterConfigList.clear();
     
-    loadConfigs(inputConfigData);
+    inputConfigList.addAll(inputConfig.getInput());
+    filterConfigList.addAll(inputConfig.getFilter());
     
     if (simulateMode) {
       InputSimulate.loadTypeToFilePath(inputConfigList);
@@ -163,6 +178,31 @@ public class ConfigHandler implements InputConfigMonitor {
     inputManager.removeInputsForService(serviceName);
   }
 
+  public Input getTestInput(InputConfig inputConfig, String logId) {
+    for (InputDescriptor inputDescriptor : inputConfig.getInput()) {
+      if (inputDescriptor.getType().equals(logId)) {
+        inputConfigList.add(inputDescriptor);
+        break;
+      }
+    }
+    if (inputConfigList.isEmpty()) {
+      throw new IllegalArgumentException("Log Id " + logId + " was not found in shipper configuriaton");
+    }
+    
+    for (FilterDescriptor filterDescriptor : inputConfig.getFilter()) {
+      if ("grok".equals(filterDescriptor.getFilter())) {
+        // Thus ensure that the log entry passed will be parsed immediately
+        ((FilterGrokDescriptor)filterDescriptor).setMultilinePattern(null);
+      }
+      filterConfigList.add(filterDescriptor);
+    }
+    loadInputs("test");
+    loadFilters("test");
+    List<Input> inputList = inputManager.getInputList("test");
+    
+    return inputList != null && inputList.size() == 1 ? inputList.get(0) : null;
+  }
+
   @SuppressWarnings("unchecked")
   public void loadConfigs(String configData) throws Exception {
     Type type = new TypeToken<Map<String, Object>>() {}.getType();
@@ -173,14 +213,7 @@ public class ConfigHandler implements InputConfigMonitor {
       switch (key) {
         case "global" :
           globalConfigs.putAll((Map<String, Object>) configMap.get(key));
-          break;
-        case "input" :
-          List<Map<String, Object>> inputConfig = (List<Map<String, Object>>) configMap.get(key);
-          inputConfigList.addAll(inputConfig);
-          break;
-        case "filter" :
-          List<Map<String, Object>> filterConfig = (List<Map<String, Object>>) configMap.get(key);
-          filterConfigList.addAll(filterConfig);
+          globalConfigJsons.add(configData);
           break;
         case "output" :
           List<Map<String, Object>> outputConfig = (List<Map<String, Object>>) configMap.get(key);
@@ -192,21 +225,28 @@ public class ConfigHandler implements InputConfigMonitor {
     }
   }
   
+  @Override
+  public List<String> getGlobalConfigJsons() {
+    return globalConfigJsons;
+  }
+  
   private void simulateIfNeeded() throws Exception {
-    int simulatedInputNumber = LogFeederUtil.getIntProperty("logfeeder.simulate.input_number", 0);
+    int simulatedInputNumber = LogFeederUtil.getIntProperty(SIMULATE_INPUT_NUMBER_PROPERTY, DEFAULT_SIMULATE_INPUT_NUMBER);
     if (simulatedInputNumber == 0)
       return;
     
-    List<Map<String, Object>> simulateInputConfigList = new ArrayList<>();
+    InputConfigImpl simulateInputConfig = new InputConfigImpl();
+    List<InputDescriptorImpl> inputConfigDescriptors = new ArrayList<>();
+    simulateInputConfig.setInput(inputConfigDescriptors);
+    simulateInputConfig.setFilter(new ArrayList<FilterDescriptorImpl>());
     for (int i = 0; i < simulatedInputNumber; i++) {
-      HashMap<String, Object> mapList = new HashMap<String, Object>();
-      mapList.put("source", "simulate");
-      mapList.put("rowtype", "service");
-      simulateInputConfigList.add(mapList);
+      InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
+      inputDescriptor.setSource("simulate");
+      inputDescriptor.setRowtype("service");
+      inputDescriptor.setAddFields(new HashMap<String, String>());
+      inputConfigDescriptors.add(inputDescriptor);
     }
     
-    Map<String, List<Map<String, Object>>> simulateInputConfigMap = ImmutableMap.of("input", simulateInputConfigList);
-    String simulateInputConfig = LogFeederUtil.getGson().toJson(simulateInputConfigMap);
     loadInputConfigs("Simulation", simulateInputConfig);
     
     simulateMode = true;
@@ -233,7 +273,7 @@ public class ConfigHandler implements InputConfigMonitor {
       output.loadConfig(map);
 
       // We will only check for is_enabled out here. Down below we will check whether this output is enabled for the input
-      if (output.getBooleanValue("is_enabled", true)) {
+      if (output.isEnabled()) {
         output.logConfigs(Level.INFO);
         outputManager.add(output);
       } else {
@@ -243,24 +283,23 @@ public class ConfigHandler implements InputConfigMonitor {
   }
 
   private void loadInputs(String serviceName) {
-    for (Map<String, Object> map : inputConfigList) {
-      if (map == null) {
+    for (InputDescriptor inputDescriptor : inputConfigList) {
+      if (inputDescriptor == null) {
         continue;
       }
-      mergeBlocks(globalConfigs, map);
 
-      String value = (String) map.get("source");
-      if (StringUtils.isEmpty(value)) {
+      String source = (String) inputDescriptor.getSource();
+      if (StringUtils.isEmpty(source)) {
         LOG.error("Input block doesn't have source element");
         continue;
       }
-      Input input = (Input) AliasUtil.getClassInstance(value, AliasType.INPUT);
+      Input input = (Input) AliasUtil.getClassInstance(source, AliasType.INPUT);
       if (input == null) {
         LOG.error("Input object could not be found");
         continue;
       }
-      input.setType(value);
-      input.loadConfig(map);
+      input.setType(source);
+      input.loadConfig(inputDescriptor);
 
       if (input.isEnabled()) {
         input.setOutputManager(outputManager);
@@ -278,13 +317,20 @@ public class ConfigHandler implements InputConfigMonitor {
 
     List<Input> toRemoveInputList = new ArrayList<Input>();
     for (Input input : inputManager.getInputList(serviceName)) {
-      for (Map<String, Object> map : filterConfigList) {
-        if (map == null) {
+      for (FilterDescriptor filterDescriptor : filterConfigList) {
+        if (filterDescriptor == null) {
           continue;
         }
-        mergeBlocks(globalConfigs, map);
+        if (BooleanUtils.isFalse(filterDescriptor.isEnabled())) {
+          LOG.debug("Ignoring filter " + filterDescriptor.getFilter() + " because it is disabled");
+          continue;
+        }
+        if (!input.isFilterRequired(filterDescriptor)) {
+          LOG.debug("Ignoring filter " + filterDescriptor.getFilter() + " for input " + input.getShortDescription());
+          continue;
+        }
 
-        String value = (String) map.get("filter");
+        String value = filterDescriptor.getFilter();
         if (StringUtils.isEmpty(value)) {
           LOG.error("Filter block doesn't have filter element");
           continue;
@@ -294,16 +340,12 @@ public class ConfigHandler implements InputConfigMonitor {
           LOG.error("Filter object could not be found");
           continue;
         }
-        filter.loadConfig(map);
+        filter.loadConfig(filterDescriptor);
         filter.setInput(input);
 
-        if (filter.isEnabled()) {
-          filter.setOutputManager(outputManager);
-          input.addFilter(filter);
-          filter.logConfigs(Level.INFO);
-        } else {
-          LOG.debug("Ignoring filter " + filter.getShortDescription() + " for input " + input.getShortDescription());
-        }
+        filter.setOutputManager(outputManager);
+        input.addFilter(filter);
+        filter.logConfigs(Level.INFO);
       }
       
       if (input.getFirstFilter() == null) {
@@ -318,43 +360,25 @@ public class ConfigHandler implements InputConfigMonitor {
   }
 
   private void sortFilters() {
-    Collections.sort(filterConfigList, new Comparator<Map<String, Object>>() {
-
+    Collections.sort(filterConfigList, new Comparator<FilterDescriptor>() {
       @Override
-      public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-        Object o1Sort = o1.get("sort_order");
-        Object o2Sort = o2.get("sort_order");
+      public int compare(FilterDescriptor o1, FilterDescriptor o2) {
+        Integer o1Sort = o1.getSortOrder();
+        Integer o2Sort = o2.getSortOrder();
         if (o1Sort == null || o2Sort == null) {
           return 0;
         }
         
-        int o1Value = parseSort(o1, o1Sort);
-        int o2Value = parseSort(o2, o2Sort);
-        
-        return o1Value - o2Value;
+        return o1Sort - o2Sort;
       }
-
-      private int parseSort(Map<String, Object> map, Object o) {
-        if (!(o instanceof Number)) {
-          try {
-            return (new Double(Double.parseDouble(o.toString()))).intValue();
-          } catch (Throwable t) {
-            LOG.error("Value is not of type Number. class=" + o.getClass().getName() + ", value=" + o.toString()
-              + ", map=" + map.toString());
-            return 0;
-          }
-        } else {
-          return ((Number) o).intValue();
-        }
-      }
-    });
+    } );
   }
 
   private void assignOutputsToInputs(String serviceName) {
     Set<Output> usedOutputSet = new HashSet<Output>();
     for (Input input : inputManager.getInputList(serviceName)) {
       for (Output output : outputManager.getOutputs()) {
-        if (LogFeederUtil.isEnabled(output.getConfigs(), input.getConfigs())) {
+        if (input.isOutputRequired(output)) {
           usedOutputSet.add(output);
           input.addOutput(output);
         }
@@ -414,10 +438,6 @@ public class ConfigHandler implements InputConfigMonitor {
   public void addMetrics(List<MetricData> metricsList) {
     inputManager.addMetricsContainers(metricsList);
     outputManager.addMetricsContainers(metricsList);
-  }
-
-  public void waitOnAllInputs() {
-    inputManager.waitOnAllInputs();
   }
 
   public void close() {

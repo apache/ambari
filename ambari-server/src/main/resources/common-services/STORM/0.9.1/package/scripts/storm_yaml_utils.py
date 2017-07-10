@@ -27,7 +27,10 @@ from resource_management.core.resources.system import File
 def replace_jaas_placeholder(name, security_enabled, conf_dir):
   if name.find('_JAAS_PLACEHOLDER') > -1:
     if security_enabled:
-      return name.replace('_JAAS_PLACEHOLDER', '-Djava.security.auth.login.config=' + conf_dir + '/storm_jaas.conf')
+      if name.find('Nimbus_JVM') > -1:
+        return name.replace('_JAAS_PLACEHOLDER', '-Djava.security.auth.login.config=' + conf_dir + '/storm_jaas.conf -Djavax.security.auth.useSubjectCredsOnly=false')
+      else:
+        return name.replace('_JAAS_PLACEHOLDER', '-Djava.security.auth.login.config=' + conf_dir + '/storm_jaas.conf')
     else:
       return name.replace('_JAAS_PLACEHOLDER', '')
   else:

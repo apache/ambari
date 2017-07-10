@@ -33,6 +33,13 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>zeppelin.server.ssl.port</name>
+    <value>9995</value>
+    <description>Server ssl port. (used when ssl property is set to true)
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>zeppelin.notebook.dir</name>
     <value>notebook</value>
     <description>notebook persist</description>

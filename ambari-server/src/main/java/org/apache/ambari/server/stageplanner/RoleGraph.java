@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,10 +19,12 @@ package org.apache.ambari.server.stageplanner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
@@ -40,7 +42,7 @@ import com.google.inject.assistedinject.AssistedInject;
 
 public class RoleGraph {
 
-  private static Logger LOG = LoggerFactory.getLogger(RoleGraph.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RoleGraph.class);
 
   Map<String, RoleGraphNode> graph = null;
   private RoleCommandOrder roleDependencies;
@@ -165,10 +167,15 @@ public class RoleGraph {
    * Returns a list of stages that need to be executed one after another
    * to execute the DAG generated in the last {@link #build(Stage)} call.
    */
-  public List<Stage> getStages() {
+  public List<Stage> getStages() throws AmbariException {
     long initialStageId = initialStage.getStageId();
     List<Stage> stageList = new ArrayList<>();
     List<RoleGraphNode> firstStageNodes = new ArrayList<>();
+    if(!graph.isEmpty()){
+      LOG.info("Detecting cycle graphs");
+      LOG.info(stringifyGraph());
+      breakCycleGraph();
+    }
     while (!graph.isEmpty()) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(stringifyGraph());
@@ -312,5 +319,45 @@ public class RoleGraph {
       builder.append("\n");
     }
     return builder.toString();
+  }
+
+  /**
+   * Cycle graphs indicate circular dependencies such as the following example
+   * that can cause Ambari enter an infinite loop while building stages.
+   *   (DATANODE, START, 2) --> (NAMENODE, START, 2) --> (SECONDARY_NAMENODE, START, 3)
+   *   (HDFS_CLIENT, INSTALL, 0) --> (DATANODE, START, 2) --> (NAMENODE, START, 2) --> (SECONDARY_NAMENODE, START, 3)
+   *   (NAMENODE, START, 2) --> (DATANODE, START, 2) --> (SECONDARY_NAMENODE, START, 3)
+   *   (SECONDARY_NAMENODE, START, 3)
+   * It is important to safe guard against cycle graphs,
+   * when Ambari supports mpacks, custom services and service level role command order.
+   * */
+  public void breakCycleGraph() throws AmbariException{
+    List<String> edges = new ArrayList<String>();
+    for (String role : graph.keySet()){
+      RoleGraphNode fromNode = graph.get(role);
+      String fnRole = fromNode.getRole().name();
+      String fnCommand = fromNode.getCommand().name();
+
+      Iterator<RoleGraphNode> it = fromNode.getEdges().iterator();
+      while(it.hasNext()){
+        RoleGraphNode toNode = it.next();
+        String tnRole = toNode.getRole().name();
+        String tnCommand = toNode.getCommand().name();
+        //Check if the reversed edge exists in the list already
+        //If the edit exists, print an error message and break the edge
+        String format = "%s:%s --> %s:%s";
+        String edge = String.format(format, fnRole, fnCommand, tnRole, tnCommand);
+        String reversedEdge = String.format(format, tnRole, tnCommand, fnRole, fnCommand);
+        if (edges.contains(reversedEdge)){
+          String msg = String.format(
+              "Circular dependencies detected between %s and %s for %s. "
+              + "%s already exists in the role command order.", fnRole, tnRole, edge, reversedEdge);
+          LOG.error(msg);
+          throw new AmbariException(msg);
+        } else {
+          edges.add(edge);
+        }
+      }
+    }
   }
 }

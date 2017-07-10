@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.security.unsecured.rest;
 
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -27,16 +26,17 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SignCertResponse;
 import org.apache.ambari.server.security.SignMessage;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 @Path("/certs")
 public class CertificateSign {
-  private static Log LOG = LogFactory.getLog(CertificateSign.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CertificateSign.class);
   private static CertificateManager certMan;
 
   @Inject
@@ -55,7 +55,7 @@ public class CertificateSign {
    * @throws Exception
    */
   @Path("{hostName}")
-  @POST
+  @POST @ApiIgnore // until documented
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public SignCertResponse signAgentCrt(@PathParam("hostName") String hostname,

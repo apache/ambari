@@ -154,7 +154,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (this.get('isDowngrade')) {
       return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(this.get('upgradeVersion'));
     }
-    return Em.I18n.t('admin.stackUpgrade.dialog.header').format(this.get('upgradeTypeDisplayName'), this.get('upgradeVersion'));
+    return Em.I18n.t('admin.stackUpgrade.dialog.header').format(this.get('upgradeVersion'));
   }.property('upgradeTypeDisplayName', 'upgradeVersion', 'isDowngrade'),
 
   /**
@@ -414,7 +414,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (currentVersion) {
       this.set('currentVersion', {
         repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
-        repository_name: currentVersion.get('repositoryVersion.displayName')
+        repository_name: currentVersion.get('repositoryVersion.displayName'),
+        id: currentVersion.get('repositoryVersion.id')
       });
     }
   },
@@ -733,9 +734,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       name: 'admin.downgrade.start',
       sender: this,
       data: {
-        from: App.RepositoryVersion.find().findProperty('displayName', this.get('upgradeVersion')).get('repositoryVersion'),
         value: currentVersion.repository_version,
         label: currentVersion.repository_name,
+        id: currentVersion.id,
         isDowngrade: true,
         upgradeType: this.get('upgradeType')
       },
@@ -895,7 +896,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeSuccessCallback: function (data, opt, params) {
     this.set('upgradeData', null);
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
-    this.set('fromVersion', data.resources[0].Upgrade.from_version);
+    this.set('fromVersion', params.isDowngrade ? data.resources[0].Upgrade.associated_version : null);
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
     var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type),
@@ -919,7 +920,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.setDBProperties({
       upgradeVersion: params.label,
       upgradeId: data.resources[0].Upgrade.request_id,
-      fromVersion: data.resources[0].Upgrade.from_version,
+      fromVersion: params.isDowngrade ? data.resources[0].Upgrade.associated_version : null,
       upgradeState: 'PENDING',
       isDowngrade: !!params.isDowngrade,
       upgradeType: upgradeType,
@@ -1174,13 +1175,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           version.skipComponentFailures = this.get('skipComponentFailures');
           version.skipSCFailures = this.get('skipSCFailures');
 
-          var fromVersion = self.get('upgradeVersion') || App.RepositoryVersion.find().findProperty('status', 'CURRENT').get('displayName');
           var toVersion = version.get('displayName');
           var bodyMessage = Em.Object.create({
             confirmButton: Em.I18n.t('yes'),
             confirmMsg: upgradeMethod.get('type') === 'ROLLING' ?
-              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg').format(fromVersion, toVersion) :
-              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg').format(fromVersion, toVersion)
+              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg').format(toVersion) :
+              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg').format(toVersion)
           });
           return App.showConfirmationFeedBackPopup(function (query) {
             return self.runPreUpgradeCheck.call(self, version);
@@ -1379,7 +1379,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
-      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
+      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false',
+      id: version.get('id')
     };
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);
@@ -1698,13 +1699,27 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   showProgressPopup: function(version) {
     var popupTitle = Em.I18n.t('admin.stackVersions.details.install.hosts.popup.title').format(version.get('displayName'));
-    var requestIds = App.get('testMode') ? [1] : App.db.get('repoVersionInstall', 'id');
+    var requestIds = this.getRepoVersionInstallId();
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
     hostProgressPopupController.initPopup(popupTitle, requestIds, this);
   },
 
+  getRepoVersionInstallId: function() {
+    if (App.get('testMode')) return [1];
+
+    var requestIds = App.db.get('repoVersionInstall', 'id');
+    var lastRepoVersionInstall = App.router.get('backgroundOperationsController.services').find(function(request) {
+      return request.get('name').startsWith('Install version');
+    });
+    if (!requestIds ||
+      (lastRepoVersionInstall && !requestIds.contains(lastRepoVersionInstall.get('id')))) {
+      requestIds = [lastRepoVersionInstall.get('id')];
+    }
+    return requestIds;
+  },
+
   /**
-   * reset upgradeState to INIT when upgrade is COMPLETED
+   * reset upgradeState to NOT_REQUIRED when upgrade is COMPLETED
    * and clean auxiliary data
    */
   finish: function () {
@@ -1712,7 +1727,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.setDBProperties({
       fromVersion: undefined,
       upgradeId: undefined,
-      upgradeState: 'INIT',
+      upgradeState: 'NOT_REQUIRED',
       upgradeVersion: undefined,
       currentVersion: undefined,
       upgradeTypeDisplayName: undefined,
@@ -1729,7 +1744,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (upgradeVersion && upgradeVersion[0]) {
       App.set('currentStackVersion', upgradeVersion[0]);
     }
-    App.set('upgradeState', 'INIT');
+    App.set('upgradeState', 'NOT_REQUIRED');
   },
 
   /**
@@ -1862,7 +1877,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * get the installed repositories of HDP from server
    */
   loadRepositories: function () {
-    if (App.router.get('clusterController.isLoaded')) {
+    if (App.router.get('clusterController.isLoaded') && App.get('currentStackVersion')) {
       var nameVersionCombo = App.get('currentStackVersion');
       var stackName = nameVersionCombo.split('-')[0];
       var stackVersion = nameVersionCombo.split('-')[1];
@@ -1951,11 +1966,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   restoreLastUpgrade: function(lastUpgradeData) {
     var self = this;
     var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
-
+    const isDowngrade = lastUpgradeData.Upgrade.direction === 'DOWNGRADE';
     this.setDBProperties({
-      fromVersion: lastUpgradeData.Upgrade.from_version,
+      fromVersion: isDowngrade ? lastUpgradeData.Upgrade.associated_version : null,
       upgradeId: lastUpgradeData.Upgrade.request_id,
-      isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
+      isDowngrade,
       upgradeState: lastUpgradeData.Upgrade.request_status,
       upgradeType: lastUpgradeData.Upgrade.upgrade_type,
       isWizardRestricted: upgradeType.get('isWizardRestricted'),
@@ -1967,7 +1982,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       })
     });
     this.loadRepoVersionsToModel().done(function () {
-      var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
+      var toVersion = isDowngrade ? null : App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
       self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
       self.initDBProperties();
       self.loadUpgradeData(true);

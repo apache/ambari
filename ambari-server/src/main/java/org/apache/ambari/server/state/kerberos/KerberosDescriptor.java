@@ -20,11 +20,15 @@ package org.apache.ambari.server.state.kerberos;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * KerberosDescriptor is an implementation of an AbstractKerberosDescriptorContainer that
@@ -417,5 +421,44 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     }
 
     return authToLocalProperties;
+  }
+
+  /**
+   * Get a map of principals, where the key is the principal path (SERVICE/COMPONENT/principal_name or SERVICE/principal_name) and the value is the principal.
+   *
+   * For example if the kerberos principal of the HISTORYSERVER is defined in the kerberos.json:
+   * "name": "history_server_jhs",
+   *   "principal": {
+   *   "value": "jhs/_HOST@${realm}",
+   *   "type" : "service",
+   * },
+   * Then "jhs/_HOST@EXAMPLE.COM" will be put into the map under the "MAPREDUCE2/HISTORYSERVER/history_server_jhs" key.
+   */
+  public Map<String, String> principals() throws AmbariException {
+    Map<String,String> result = new HashMap<>();
+    for (AbstractKerberosDescriptorContainer each : nullToEmpty(getChildContainers())) {
+      if ((each instanceof KerberosServiceDescriptor)) {
+        collectFromComponents(each.getName(), nullToEmpty(((KerberosServiceDescriptor) each).getComponents()).values(), result);
+        collectFromIdentities(each.getName(), "", nullToEmpty(each.getIdentities()), result);
+      }
+    }
+    return result;
+  }
+
+  private static void collectFromComponents(String service, Collection<KerberosComponentDescriptor> components, Map<String, String> result) {
+    for (KerberosComponentDescriptor each : components) {
+      collectFromIdentities(service, each.getName(), nullToEmpty(each.getIdentities()), result);
+    }
+  }
+
+  private static void collectFromIdentities(String service, String component, Collection<KerberosIdentityDescriptor> identities, Map<String, String> result) {
+    for (KerberosIdentityDescriptor each : identities) {
+      if (each.getPrincipalDescriptor() != null && !each.getReferencedServiceName().isPresent() && !each.getName().startsWith("/")) {
+        String path = StringUtils.isBlank(component)
+          ? String.format("%s/%s", service, each.getName())
+          : String.format("%s/%s/%s", service, component, each.getName());
+        result.put(path, each.getPrincipalDescriptor().getName());
+      }
+    }
   }
 }

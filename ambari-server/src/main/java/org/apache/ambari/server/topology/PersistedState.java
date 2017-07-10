@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -81,8 +81,9 @@ public interface PersistedState {
   LogicalRequest getProvisionRequest(long clusterId);
 
   /**
-   *
-   * @param hostRequests
+   * Remove the given host requests (must belong to the same topology request),
+   * and also the topology request if it does not have any host requests left.
    */
-  void removeHostRequests(Collection<HostRequest> hostRequests);
+  void removeHostRequests(long logicalRequestId, Collection<HostRequest> hostRequests);
+
 }

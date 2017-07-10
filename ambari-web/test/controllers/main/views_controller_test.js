@@ -143,17 +143,23 @@ describe('MainViewsController', function () {
   });
 
   describe("#setView", function () {
+    var mock = {
+      document: {
+        write: Em.K
+      },
+      focus: Em.K
+    };
 
     beforeEach(function () {
-      sinon.stub(App.router, 'route');
+      sinon.stub(window, 'open').returns(mock);
     });
     afterEach(function () {
-      App.router.route.restore();
+      window.open.restore();
     });
 
     it("no context", function () {
       mainViewsController.setView({});
-      expect(App.router.route.called).to.be.false;
+      expect(window.open.called).to.be.false;
     });
 
     it("context exist", function () {
@@ -164,7 +170,7 @@ describe('MainViewsController', function () {
           instanceName: 'instance1'
         })
       });
-      expect(App.router.route.calledWith('main/views/view1/1/instance1')).to.be.true;
+      expect(window.open.called).to.be.true;
     });
   });
 

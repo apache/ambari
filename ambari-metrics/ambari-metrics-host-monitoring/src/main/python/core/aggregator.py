@@ -42,9 +42,10 @@ class Aggregator(threading.Thread):
     ams_log_file = "ambari-metrics-aggregator.log"
     additional_classpath = ':{0}'.format(config_dir)
     ams_log_dir = self._config.ams_monitor_log_dir()
+    hostname = self._config.get_hostname_config()
     logger.info('Starting Aggregator thread.')
-    cmd = "{0}/bin/java {1} -Dams.log.dir={2} -Dams.log.file={3} -cp /var/lib/ambari-metrics-monitor/lib/*{4} {5} {6}"\
-      .format(java_home, jvm_agrs, ams_log_dir, ams_log_file, additional_classpath, class_name, collector_hosts)
+    cmd = "{0}/bin/java {1} -Dams.log.dir={2} -Dams.log.file={3} -cp /var/lib/ambari-metrics-monitor/lib/*{4} {5} {6} {7}"\
+      .format(java_home, jvm_agrs, ams_log_dir, ams_log_file, additional_classpath, class_name, hostname, collector_hosts)
 
     logger.info("Executing : {0}".format(cmd))
 
@@ -60,6 +61,7 @@ class Aggregator(threading.Thread):
     if self._aggregator_process :
       logger.info('Stopping Aggregator thread.')
       self._aggregator_process.terminate()
+      self._aggregator_process = None
 
 class AggregatorWatchdog(threading.Thread):
   SLEEP_TIME = 30

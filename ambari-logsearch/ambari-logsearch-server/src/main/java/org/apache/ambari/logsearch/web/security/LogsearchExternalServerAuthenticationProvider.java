@@ -25,7 +25,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.ambari.logsearch.common.ExternalServerClient;
-import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -45,8 +44,6 @@ import org.springframework.security.core.AuthenticationException;
 public class LogsearchExternalServerAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
   private static Logger LOG = Logger.getLogger(LogsearchExternalServerAuthenticationProvider.class);
-
-  private static final String ALLOWED_ROLE_PROP = "logsearch.roles.allowed";
 
   private static enum PrivilegeInfo {
     PERMISSION_LABEL("permission_label"),
@@ -118,23 +115,13 @@ public class LogsearchExternalServerAuthenticationProvider extends LogsearchAbst
    * Return true/false based on PEMISSION NAME return boolean
    */
   private boolean isAllowedRole(String responseJson) {
-    String allowedRoleList[] = PropertiesHelper.getPropertyStringList(ALLOWED_ROLE_PROP);
 
-    List<String> values = new ArrayList<>();
-    JSONUtil.getValuesOfKey(responseJson, PrivilegeInfo.PERMISSION_NAME.toString(), values);
-    if (values.isEmpty()) {
+    List<String> permissionNames = new ArrayList<>();
+    JSONUtil.getValuesOfKey(responseJson, PrivilegeInfo.PERMISSION_NAME.toString(), permissionNames);
+    List<String> allowedRoleList = authPropsConfig.getAllowedRoles();
+    if (permissionNames.isEmpty() || allowedRoleList.size() < 1 || responseJson == null) {
       return false;
     }
-    
-    if (allowedRoleList.length > 0 && responseJson != null) {
-      for (String allowedRole : allowedRoleList) {
-        for (String role : values) {
-          if (role.equals(allowedRole)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
+    return permissionNames.stream().anyMatch(allowedRoleList::contains);
   }
 }

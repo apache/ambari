@@ -75,7 +75,7 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
-      
+
       <service name="ACCUMULO">
         <component>ACCUMULO_TRACER</component>
         <component>ACCUMULO_GC</component>
@@ -284,7 +284,7 @@
       </execute-stage>
     </group>
 
-    
+
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
       <direction>UPGRADE</direction> <!--  prevent config changes on downgrade -->
       <skippable>true</skippable> <!-- May fix configuration problems manually -->
@@ -301,6 +301,16 @@
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating hive atlas application properties">
+        <task xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook">
+          <summary>Updating hive atlas application properties</summary>
+        </task>
       </execute-stage>
 
       <!-- HBASE -->
@@ -322,16 +332,9 @@
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for Ranger Yarn plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name"/>
       </execute-stage>
-      
+
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for YARN Preemption">
         <task xsi:type="configure" id="hdp_2_6_yarn_preemption"/>
-      </execute-stage>
-
-      <!-- YARN -->
-      <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM admin env">
-        <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env">
-          <summary>Updating YARN NodeManager admin env config</summary>
-        </task>
       </execute-stage>
 
       <!-- YARN -->
@@ -360,8 +363,18 @@
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>
       </execute-stage>
 
+      <!--SPARK-->
+      <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark ThriftServer">
+        <task xsi:type="configure" id="hdp_2_6_0_0_spark_thriftserver"/>
+      </execute-stage>
+
+      <!--SPARK2-->
+      <execute-stage service="SPARK2" component="SPARK2_THRIFTSERVER" title="Apply config changes for Spark2 ThriftServer">
+        <task xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver"/>
+      </execute-stage>
+
     </group>
-    
+
 
     <!--
     After processing this group, the user-specified Kerberos descriptor will be updated to work with
@@ -390,7 +403,7 @@
         </task>
       </execute-stage>
     </group>
-    
+
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
@@ -754,7 +767,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -797,7 +810,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -877,7 +890,7 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>

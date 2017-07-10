@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class TestActionQueue {
 
-  private static Logger LOG = LoggerFactory.getLogger(TestActionQueue.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestActionQueue.class);
 
   private static int threadCount = 100;
   static class ActionQueueOperation implements Runnable {

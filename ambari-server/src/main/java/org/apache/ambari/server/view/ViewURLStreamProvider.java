@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,16 +37,16 @@ import org.apache.ambari.view.URLConnectionProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wrapper around an internal URL stream provider.
  */
 public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamProvider, URLConnectionProvider {
 
-  private static final Log LOG = LogFactory.getLog(ViewContextImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewContextImpl.class);
 
   /**
    * The key for the "doAs" header.
@@ -270,7 +270,7 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
 
     public HostPortRestrictionHandler(String allowedHostPortsValue) {
       this.allowedHostPortsValue = allowedHostPortsValue;
-      LOG.debug("Proxy restriction will be derived from " + allowedHostPortsValue);
+      LOG.debug("Proxy restriction will be derived from {}", allowedHostPortsValue);
     }
 
     /**
@@ -282,7 +282,7 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
      * @return if the host and port combination is allowed
      */
     public boolean allowProxy(String host, String port) {
-      LOG.debug("Checking host " + host + " port " + port + " against allowed list.");
+      LOG.debug("Checking host {} port {} against allowed list.", host, port);
       if (StringUtils.isNotBlank(host)) {
         String hostToCompare = host.trim().toLowerCase();
         if (allowedHostPorts == null) {
@@ -327,13 +327,13 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
                 allowed.put(hostAndPort[0], new HashSet<String>());
               }
               allowed.get(hostAndPort[0]).add("*");
-              LOG.debug("Allow proxy to host " + hostAndPort[0] + " and all ports.");
+              LOG.debug("Allow proxy to host {} and all ports.", hostAndPort[0]);
             } else {
               if (!allowed.containsKey(hostAndPort[0])) {
                 allowed.put(hostAndPort[0], new HashSet<String>());
               }
               allowed.get(hostAndPort[0]).add(hostAndPort[1]);
-              LOG.debug("Allow proxy to host " + hostAndPort[0] + " and port " + hostAndPort[1]);
+              LOG.debug("Allow proxy to host {} and port {}", hostAndPort[0], hostAndPort[1]);
             }
           }
         }

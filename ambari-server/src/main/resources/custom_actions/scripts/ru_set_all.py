@@ -27,7 +27,6 @@ from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_tools
-from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.core import shell
@@ -36,13 +35,14 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Link, Directory
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.decorator import experimental
 
 class UpgradeSetAll(Script):
   """
   This script is a part of stack upgrade workflow and is used to set the
   all of the component versions as a final step in the upgrade process
   """
-
+  @experimental(feature="PATCH_UPGRADES", disable = True, comment = "Skipping stack-select set all")
   def actionexecute(self, env):
     version = default('/commandParams/version', None)
 
@@ -77,51 +77,6 @@ class UpgradeSetAll(Script):
       for k, v in conf_select.get_package_dirs().iteritems():
         for dir_def in v:
           link_config(dir_def['conf_dir'], dir_def['current_dir'])
-
-
-  def unlink_all_configs(self, env):
-    """
-    Reverses the work performed in link_config. This should only be used when downgrading from
-    HDP 2.3 to 2.2 in order to under the symlink work required for 2.3.
-    """
-    stack_name = default('/hostLevelParams/stack_name', "").upper()
-    downgrade_to_version = default('/commandParams/version', None)
-    downgrade_from_version = default('/commandParams/downgrade_from_version', None)
-    upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
-
-    # downgrade only
-    if upgrade_direction != Direction.DOWNGRADE:
-      Logger.warning("Unlinking configurations should only be performed on a downgrade.")
-      return
-
-    if downgrade_to_version is None or downgrade_from_version is None:
-      Logger.warning("Both 'commandParams/version' and 'commandParams/downgrade_from_version' must be specified to unlink configs on downgrade.")
-      return
-
-    Logger.info("Unlinking all configs when downgrading from {0} {1} to {2}".format(
-        stack_name, downgrade_from_version, downgrade_to_version))
-
-    # normalize the versions
-    downgrade_to_version = format_stack_version(downgrade_to_version)
-    downgrade_from_version = format_stack_version(downgrade_from_version)
-
-    # downgrade-to-version must be 2.2 (less than 2.3)
-    if downgrade_to_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, downgrade_to_version):
-      Logger.warning("Unlinking configurations should not be performed when downgrading {0} {1} to {2}".format(
-          stack_name, downgrade_from_version, downgrade_to_version))
-      return
-
-    # downgrade-from-version must be 2.3+
-    if not( downgrade_from_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, downgrade_from_version) ):
-      Logger.warning("Unlinking configurations should not be performed when downgrading {0} {1} to {2}".format(
-          stack_name, downgrade_from_version, downgrade_to_version))
-      return
-
-    # iterate through all directory conf mappings and undo the symlinks
-    for key, value in conf_select.get_package_dirs().iteritems():
-      for directory_mapping in value:
-        original_config_directory = directory_mapping['conf_dir']
-        self._unlink_config(original_config_directory)
 
 
   def _unlink_config(self, original_conf_directory):

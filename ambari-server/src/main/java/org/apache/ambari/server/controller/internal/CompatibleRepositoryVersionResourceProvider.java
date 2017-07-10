@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -52,6 +52,7 @@ import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -90,14 +91,12 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
     REPOSITORY_VERSION_SERVICES,
     REPOSITORY_VERSION_STACK_SERVICES);
 
-  static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
-      put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
-      put(Type.Upgrade, REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID);
-      put(Type.CompatibleRepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID);
-    }
-  };
+  static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
+    .put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID)
+    .put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)
+    .put(Type.Upgrade, REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID)
+    .put(Type.CompatibleRepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID)
+    .build();
 
   @Inject
   private static RepositoryVersionDAO s_repositoryVersionDAO;
@@ -109,7 +108,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
    * Create a new resource provider.
    */
   public CompatibleRepositoryVersionResourceProvider(AmbariManagementController amc) {
-    super(propertyIds, keyPropertyIds, amc);
+    super(Type.CompatibleRepositoryVersion, propertyIds, keyPropertyIds, amc);
   }
 
   @Override
@@ -166,7 +165,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
           if (compatibleRepositoryVersionsMap.containsKey(repositoryVersionEntity.getId())) {
             compatibleRepositoryVersionsMap.get(repositoryVersionEntity.getId()).addUpgradePackType(up.getType());
             if (LOG.isDebugEnabled()) {
-              LOG.debug("Stack id: {} exists in map.  Appended new upgrade type {}" + repositoryVersionEntity.getId(), up.getType());
+              LOG.debug("Stack id: {} exists in map.  Appended new upgrade type {}{}", up.getType(), repositoryVersionEntity.getId());
             }
           } else {
             CompatibleRepositoryVersion compatibleRepositoryVersionEntity = new CompatibleRepositoryVersion(repositoryVersionEntity);

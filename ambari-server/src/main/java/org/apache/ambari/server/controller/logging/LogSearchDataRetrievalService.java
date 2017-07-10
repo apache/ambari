@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -68,7 +68,7 @@ import com.google.inject.Injector;
 @AmbariService
 public class LogSearchDataRetrievalService extends AbstractService {
 
-  private static Logger LOG = LoggerFactory.getLogger(LogSearchDataRetrievalService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LogSearchDataRetrievalService.class);
 
   /**
    * Maximum number of failed attempts that the LogSearch integration code will attempt for
@@ -147,7 +147,7 @@ public class LogSearchDataRetrievalService extends AbstractService {
     final int maxTimeoutForCacheInHours =
       ambariServerConfiguration.getLogSearchMetadataCacheExpireTimeout();
 
-    LOG.debug("Caches configured with a max expire timeout of " + maxTimeoutForCacheInHours + " hours.");
+    LOG.debug("Caches configured with a max expire timeout of {} hours.", maxTimeoutForCacheInHours);
 
     // initialize the log file name cache
     logFileNameCache = CacheBuilder.newBuilder().expireAfterWrite(maxTimeoutForCacheInHours, TimeUnit.HOURS).build();

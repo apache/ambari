@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,6 +31,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -60,7 +61,7 @@ public class RequestScheduleService extends BaseService {
    * @param ui
    * @return
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getRequestSchedules(String body,
                                       @Context HttpHeaders headers,
@@ -75,7 +76,7 @@ public class RequestScheduleService extends BaseService {
    *
    * @return
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{requestScheduleId}")
   @Produces("text/plain")
   public Response getRequestSchedule(String body,
@@ -95,7 +96,7 @@ public class RequestScheduleService extends BaseService {
    * @param ui
    * @return
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response createRequestSchedule(String body,
                                         @Context HttpHeaders headers,
@@ -113,7 +114,7 @@ public class RequestScheduleService extends BaseService {
    * @param requestScheduleId
    * @return
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{requestScheduleId}")
   @Produces("text/plain")
   public Response deleteRequestSchedule(@Context HttpHeaders headers,
@@ -122,8 +123,6 @@ public class RequestScheduleService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.DELETE,
       createRequestSchedule(m_clusterName, requestScheduleId));
   }
-
-
 
   /**
    * Create a request schedule resource instance

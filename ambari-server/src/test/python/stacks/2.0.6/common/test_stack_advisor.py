@@ -191,6 +191,159 @@ class TestHDP206StackAdvisor(TestCase):
     ]
     self.assertValidationResult(expectedItems, result)
 
+
+  def test_handleComponentDependencies(self):
+    services = {
+      "Versions":
+        {
+          "stack_name":"HDP",
+          "stack_version":"2.0.6"
+        },
+      "services" : [
+        {
+          "StackServices" : {
+            "service_name" : "HDFS",
+            "service_version" : "2.0.6",
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "stack_version": "2.0.6",
+                "stack_name": "HDP",
+                "component_category": "MASTER",
+                "is_client": False,
+                "is_master": True,
+                "service_name": "HDFS",
+                "cardinality": "1-2",
+                "hostnames": [],
+                "component_name": "NAMENODE",
+                "display_name": "NameNode"
+              },
+              "dependencies": [
+                {
+                  "Dependencies": {
+                    "stack_name": "HDP",
+                    "stack_version": "2.0.6",
+                    "scope": "cluster",
+                    "conditions": [
+                      {
+                        "configType": "hdfs-site",
+                        "property": "dfs.nameservices",
+                        "type": "PropertyExists",
+                      }
+                    ],
+                    "dependent_service_name": "HDFS",
+                    "dependent_component_name": "NAMENODE",
+                    "component_name": "ZOOKEEPER_SERVER"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "StackServices" : {
+            "service_name" : "ZOOKEEPER",
+            "service_version" : "2.0.6",
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "stack_version": "2.0.6",
+                "stack_name": "HDP",
+                "component_category": "MASTER",
+                "is_client": False,
+                "is_master": True,
+                "service_name": "HDFS",
+                "cardinality": "1-2",
+                "hostnames": [],
+                "component_name": "ZOOKEEPER_SERVER",
+                "display_name": "ZooKeeper Server"
+              },
+              "dependencies": []
+            }
+          ]
+        }
+      ]
+    }
+
+    nameNodeDependencies = services["services"][0]["components"][0]["dependencies"][0]["Dependencies"]
+
+    # Tests for master component with dependencies
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org", "c6404.ambari.apache.org"])
+    services["services"][1]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are ignored when there are conditions and cluster scope
+    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+
+    nameNodeDependencies["scope"] = "host"
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are ignored when there are conditions (even for host scope)
+    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+
+    nameNodeDependencies["scope"] = "cluster"
+    originalConditions = nameNodeDependencies["conditions"]
+    nameNodeDependencies["conditions"] = []
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are ignored when scope is cluster
+    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+
+    nameNodeDependencies["scope"] = "host"
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are enforced for host scope without conditions
+    #self.assertEquals(recommendations, "")
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][0]['components']), 2)
+
+    services["services"][1]["components"][0]["StackServiceComponents"]["is_master"] = False
+    services["services"][1]["components"][0]["StackServiceComponents"]["component_category"] = "CLIENT"
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are ignored when depending on client components
+    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+
+    # Tests for slave component with dependencies
+    services["services"][0]["components"][0]["StackServiceComponents"]["component_category"] = "SLAVE"
+    services["services"][0]["components"][0]["StackServiceComponents"]["is_master"] = False
+    services["services"][1]["components"][0]["StackServiceComponents"]["component_category"] = "MASTER"
+    services["services"][1]["components"][0]["StackServiceComponents"]["is_master"] = True
+
+    nameNodeDependencies["scope"] = "cluster"
+    nameNodeDependencies["conditions"] = originalConditions
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are ignored when there are conditions and cluster scope
+    self.assertEquals(recommendations['blueprint']['host_groups'][2]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
+    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+
+    nameNodeDependencies["scope"] = "host"
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are ignored when there are conditions (even for host scope)
+    self.assertEquals(recommendations['blueprint']['host_groups'][2]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
+    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+
+    nameNodeDependencies["scope"] = "cluster"
+    nameNodeDependencies["conditions"] = []
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are ignored when scope is cluster
+    self.assertEquals(recommendations['blueprint']['host_groups'][2]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
+    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+
+    nameNodeDependencies["scope"] = "host"
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    # Assert that dependencies are enforced when host scope and no conditions
+    self.assertEquals(recommendations['blueprint']['host_groups'][1]['components'][1]['name'], 'NAMENODE')
+    self.assertEquals(len(recommendations['blueprint']['host_groups'][1]['components']), 2)
+
+
   def test_validateRequiredComponentsPresent(self):
     services = {
       "Versions":
@@ -381,7 +534,7 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = self.prepareHosts([])
     result = self.stackAdvisor.validateConfigurations(services, hosts)
     expectedItems = [
-      {'message': 'Queue is not exist or not corresponds to existing YARN leaf queue', 'level': 'ERROR'}
+      {'message': 'Queue does not exist or correspond to an existing YARN leaf queue', 'level': 'ERROR'}
     ]
     self.assertValidationResult(expectedItems, result)
     services["configurations"]["yarn-env"]["properties"]["service_check.queue.name"] = "ndfqueue"

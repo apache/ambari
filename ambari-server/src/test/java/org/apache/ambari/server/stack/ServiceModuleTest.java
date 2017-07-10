@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -436,6 +436,37 @@ public class ServiceModuleTest {
 
     resolveService(child, parent);
     assertEquals(kerberosDescriptorFile, child.getModuleInfo().getKerberosDescriptorFile());
+  }
+
+  @Test
+  public void testResolveServiceAdvisor() throws Exception {
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    ServiceModule child = createServiceModule(info);
+    ServiceModule parent = createServiceModule(parentInfo);
+
+    // Parent is NULL, Child is NULL => Child defaults to PYTHON
+    parent.getModuleInfo().setServiceAdvisorType(null);
+    child.getModuleInfo().setServiceAdvisorType(null);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.PYTHON, child.getModuleInfo().getServiceAdvisorType());
+
+    // Parent is NULL, Child is JAVA => Child is JAVA
+    child.getModuleInfo().setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.JAVA);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.JAVA, child.getModuleInfo().getServiceAdvisorType());
+
+    // Parent is JAVA, Child is NULL => Child inherits JAVA
+    parent.getModuleInfo().setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.JAVA);
+    child.getModuleInfo().setServiceAdvisorType(null);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.JAVA, child.getModuleInfo().getServiceAdvisorType());
+
+    // Parent is JAVA, Child is PYTHON => Child overrides and keeps PYTHON
+    parent.getModuleInfo().setServiceAdvisorType(null);
+    child.getModuleInfo().setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.PYTHON);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.PYTHON, child.getModuleInfo().getServiceAdvisorType());
   }
 
   @Test

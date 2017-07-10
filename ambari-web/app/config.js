@@ -55,7 +55,8 @@ App.isManagedMySQLForHiveEnabled = false;
 App.isStormMetricsSupported = true;
 App.healthStatusRed = '#EF6162';
 App.healthStatusGreen = '#1EB475';
-App.healthStatusOrange = '#E98A41';
+App.healthStatusOrange = '#E98A40';
+App.widgetContentColor = '#666666';
 App.inactivityRemainTime = 60; // in seconds
 App.enableLogger = true;
 App.stackVersionsAvailable = true;
@@ -86,9 +87,11 @@ App.supports = {
   addingNewRepository: false,
   kerberosStackAdvisor: true,
   logCountVizualization: false,
-  manageJournalNode: true,
   createAlerts: false,
-  enabledWizardForHostOrderedUpgrade: true
+  enabledWizardForHostOrderedUpgrade: true,
+  manageJournalNode: true,
+  enableToggleKerberos: true,
+  enableAddDeleteServices: true
 };
 
 if (App.enableExperimental) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,6 +42,8 @@ public class Setting {
   public static final String SETTING_NAME_SKIP_FAILURE = "skip_failure";
 
   public static final String SETTING_NAME_NAME = "name";
+
+  public static final String SETTING_NAME_REPOSITORY_SETTINGS = "repository_settings";
 
   /**
    * When specified under the "service_settings" section, it indicates whether credential store

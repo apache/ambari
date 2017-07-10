@@ -1,0 +1,409 @@
+{
+  "name": "default",
+  "description": "Default theme for Ranger KMS service",
+  "configuration": {
+    "layouts": [
+    {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "db_settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "2",
+              "sections": [
+                {
+                  "name": "section-db-settings",
+                  "display-name": "",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "4",
+                  "column-span": "2",
+                  "section-columns": "2",
+                  "section-rows": "4",
+                  "subsections": [
+                    {
+                      "name": "subsection-kms-db-row1-col1",
+                      "display-name": "Ranger KMS DB",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-kms-db-row1-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-kms-create-db-user-row2-col",
+                      "display-name": "Setup Database and Database User",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "2"
+                    },
+                    {
+                      "name": "subsection-kms-db-root-user-row3-col1",
+                      "display-name": "Ranger KMS Root DB",
+                      "row-index": "2",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "depends-on": [
+                        {
+                          "configs":[
+                            "kms-env/create_db_user"
+                          ],
+                          "if": "${kms-env/create_db_user}",
+                          "then": {
+                            "property_value_attributes": {
+                              "visible": true
+                            }
+                          },
+                          "else": {
+                            "property_value_attributes": {
+                              "visible": false
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "subsection-kms-db-root-user-row3-col2",
+                      "row-index": "2",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "depends-on": [
+                        {
+                          "configs":[
+                            "kms-env/create_db_user"
+                          ],
+                          "if": "${kms-env/create_db_user}",
+                          "then": {
+                            "property_value_attributes": {
+                              "visible": true
+                            }
+                          },
+                          "else": {
+                            "property_value_attributes": {
+                              "visible": false
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "subsection-kms-master-row4-col",
+                      "display-name": "KMS Master Secret Password",
+                      "row-index": "3",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "kms_hsm",
+            "display-name": "KMS HSM",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-kms-hms",
+                  "display-name": "",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "2",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "subsection-kms-hsm-row1-col1",
+                      "display-name": "Ranger KMS HSM Enabled",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-kms-hsm-row2-col1",
+                      "display-name": "Configuration Settings",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "depends-on": [
+                        {
+                          "configs": [
+                            "dbks-site/ranger.ks.hsm.enabled"
+                          ],
+                          "if": "${dbks-site/ranger.ks.hsm.enabled}",
+                          "then": {
+                            "property_value_attributes": {
+                              "visible": true
+                            }
+                          },
+                          "else": {
+                            "property_value_attributes": {
+                              "visible": false
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "kms-properties/DB_FLAVOR",
+          "subsection-name": "subsection-kms-db-row1-col1"
+        },
+        {
+          "config": "kms-properties/db_name",
+          "subsection-name": "subsection-kms-db-row1-col1"
+        },
+        {
+          "config": "dbks-site/ranger.ks.jpa.jdbc.url",
+          "subsection-name": "subsection-kms-db-row1-col1"
+        },
+        {
+          "config": "kms-properties/db_user",
+          "subsection-name": "subsection-kms-db-row1-col1"
+        },
+        {
+          "config": "kms-properties/db_host",
+          "subsection-name": "subsection-kms-db-row1-col2"
+        },
+        {
+          "config": "kms-properties/SQL_CONNECTOR_JAR",
+          "subsection-name": "subsection-kms-db-row1-col2",
+          "depends-on" : [
+            {
+              "configs":[
+                "kms-properties/DB_FLAVOR"
+              ],
+              "if": "${kms-properties/DB_FLAVOR} === SQLA",
+              "then": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "dbks-site/ranger.ks.jpa.jdbc.driver",
+          "subsection-name": "subsection-kms-db-row1-col2"
+        },
+        {
+          "config": "kms-properties/db_password",
+          "subsection-name": "subsection-kms-db-row1-col2"
+        },
+        {
+          "config": "kms-properties/db_root_user",
+          "subsection-name": "subsection-kms-db-root-user-row3-col1"
+        },
+        {
+          "config": "kms-properties/db_root_password",
+          "subsection-name": "subsection-kms-db-root-user-row3-col2"
+        },
+        {
+          "config": "kms-properties/KMS_MASTER_KEY_PASSWD",
+          "subsection-name": "subsection-kms-master-row4-col"
+        },
+        {
+          "config" : "kms-env/create_db_user",
+          "subsection-name": "subsection-kms-create-db-user-row2-col"
+        },
+        {
+          "config": "kms-env/test_db_kms_connection",
+          "subsection-name": "subsection-kms-create-db-user-row2-col",
+          "property_value_attributes": {
+            "ui_only_property": true
+          },
+          "depends-on": [
+            {
+              "configs":[
+                "kms-env/create_db_user"
+              ],
+              "if": "${kms-env/create_db_user}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "dbks-site/ranger.ks.hsm.enabled",
+          "subsection-name": "subsection-kms-hsm-row1-col1"
+        },
+        {
+          "config": "dbks-site/ranger.ks.hsm.type",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.ks.hsm.partition.name",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.ks.hsm.partition.password.alias",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        },
+        {
+          "config": "kms-env/hsm_partition_password",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "kms-properties/DB_FLAVOR",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "kms-properties/db_user",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "kms-properties/db_name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "kms-properties/SQL_CONNECTOR_JAR",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "kms-properties/db_root_user",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "kms-properties/db_host",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "kms-properties/db_password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "kms-properties/db_root_password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "kms-properties/KMS_MASTER_KEY_PASSWD",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "kms-env/create_db_user",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "kms-env/test_db_kms_connection",
+        "widget": {
+          "type": "test-db-connection",
+          "display-name": "Test Connection",
+          "required-properties": {
+            "jdbc.driver.class": "dbks-site/ranger.ks.jpa.jdbc.driver",
+            "jdbc.driver.url": "dbks-site/ranger.ks.jpa.jdbc.url",
+            "db.connection.source.host": "ranger_kms-site/ranger_kms_server_hosts",
+            "db.type": "kms-properties/DB_FLAVOR",
+            "db.connection.destination.host": "kms-properties/db_host",
+            "db.connection.user": "kms-properties/db_user",
+            "db.connection.password": "kms-properties/db_password"
+          }
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.jpa.jdbc.driver",
+        "widget" : {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.jpa.jdbc.url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.hsm.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.hsm.type",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.hsm.partition.name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.hsm.partition.password.alias",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "kms-env/hsm_partition_password",
+        "widget": {
+          "type": "password"
+        }
+      }
+    ]
+  }
+}

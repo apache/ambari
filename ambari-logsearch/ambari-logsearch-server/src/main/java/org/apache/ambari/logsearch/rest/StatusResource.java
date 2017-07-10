@@ -34,7 +34,7 @@ import java.util.Map;
 import static org.apache.ambari.logsearch.doc.DocConstants.StatusOperationDescriptions.AUDIT_LOGS_STATUS_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.StatusOperationDescriptions.SERVICE_LOGS_STATUS_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.StatusOperationDescriptions.STATUS_OD;
-import static org.apache.ambari.logsearch.doc.DocConstants.StatusOperationDescriptions.USER_CONFIG_STATUS_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.StatusOperationDescriptions.EVENT_HISTORY_STATUS_OD;
 
 @Api(value = "status", description = "Status Operations")
 @Path("status")
@@ -51,8 +51,8 @@ public class StatusResource {
   private SolrCollectionState solrAuditLogsState;
 
   @Inject
-  @Named("solrUserConfigState")
-  private SolrCollectionState solrUserConfigState;
+  @Named("solrEventHistoryState")
+  private SolrCollectionState solrEventHistoryState;
 
   @GET
   @Produces({"application/json"})
@@ -61,7 +61,7 @@ public class StatusResource {
     Map<String, SolrCollectionState> response = new HashMap<>();
     response.put("serviceLogs", solrServiceLogsState);
     response.put("auditLogs", solrAuditLogsState);
-    response.put("userConfig", solrUserConfigState);
+    response.put("eventHistory", solrEventHistoryState);
     return response;
   }
 
@@ -82,10 +82,10 @@ public class StatusResource {
   }
 
   @GET
-  @Path("/userconfig")
+  @Path("/history")
   @Produces({"application/json"})
-  @ApiOperation(USER_CONFIG_STATUS_OD)
-  public SolrCollectionState getSolrUserConfigStatus() {
-    return solrUserConfigState;
+  @ApiOperation(EVENT_HISTORY_STATUS_OD)
+  public SolrCollectionState getSolrEventHistoryStatus() {
+    return solrEventHistoryState;
   }
 }

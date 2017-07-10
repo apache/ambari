@@ -206,14 +206,6 @@
           </definition>
         </changes>
       </component>
-      <component name="NODEMANAGER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env">
-            <type>yarn-site</type>
-            <insert key="yarn.nodemanager.admin-env" value=",PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:$PATH" insert-type="append" newline-before="false" newline-after="false" />
-          </definition>
-        </changes>
-      </component>
     </service>
 
     <service name="MAPREDUCE2">
@@ -442,7 +434,15 @@
             <regex-replace key="content" find="property.llap.daemon.log.maxfilesize = ([0-9]+)MB" replace-with="property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB"/>
             <regex-replace key="content" find="property.llap.daemon.log.maxbackupindex = ([0-9]+)" replace-with="property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}"/>
           </definition>
-
+          <definition xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook" summary="Updating hive atlas application properties">
+            <type>hive-atlas-application.properties</type>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag" value="required"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.loginModuleName" value="com.sun.security.auth.module.Krb5LoginModule"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+            <set key ="atlas.jaas.ticketBased-KafkaClient.option.useTicketCache" value="true"
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+          </definition>
 
           <definition xsi:type="configure" id="hdp_2_6_0_0_hive_set_hive_enforce_bucketing_property">
             <type>hive-site</type>
@@ -503,6 +503,8 @@
             <set key="tez.session.am.dag.submit.timeout.secs" value="1209600"/>
             <set key="tez.runtime.enable.final-merge.in.output" value="false"/>
             <set key="tez.am.task.reschedule.higher.priority" value="false"/>
+            <set key="tez.runtime.shuffle.connect.timeout" value ="30000"/>
+            <set key="tez.runtime.shuffle.read.timeout" value="30000"/>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_6_0_0_copy_hive_tez_container_size_to_hiveInteractive">

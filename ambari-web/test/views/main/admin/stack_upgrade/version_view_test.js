@@ -44,7 +44,7 @@ describe('App.mainAdminStackVersionsView', function () {
   describe("#filterBy()", function () {
     var versions = [
         Em.Object.create({
-          status: "INIT",
+          status: "NOT_REQUIRED",
           repositoryVersion: "2.2.1.1"
         }),
         Em.Object.create({
@@ -88,7 +88,7 @@ describe('App.mainAdminStackVersionsView', function () {
           }),
           filteredVersions: [
             Em.Object.create({
-              status: "INIT",
+              status: "NOT_REQUIRED",
               repositoryVersion: "2.2.1.1"
             }),
             Em.Object.create({
@@ -128,7 +128,7 @@ describe('App.mainAdminStackVersionsView', function () {
           }),
           filteredVersions: [
             Em.Object.create({
-              status: "INIT",
+              status: "NOT_REQUIRED",
               repositoryVersion: "2.2.1.1"
             }),
             Em.Object.create({

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -89,6 +89,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID   = "ServiceComponentInfo/unknown_count";
   protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = "ServiceComponentInfo/install_failed_count";
   protected static final String COMPONENT_RECOVERY_ENABLED_ID         = "ServiceComponentInfo/recovery_enabled";
+  protected static final String COMPONENT_DESIRED_STACK               = "ServiceComponentInfo/desired_stack";
   protected static final String COMPONENT_DESIRED_VERSION             = "ServiceComponentInfo/desired_version";
   protected static final String COMPONENT_REPOSITORY_STATE            = "ServiceComponentInfo/repository_state";
 
@@ -102,6 +103,44 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           COMPONENT_SERVICE_NAME_PROPERTY_ID,
           COMPONENT_COMPONENT_NAME_PROPERTY_ID);
 
+  /**
+   * The property ids for an servce resource.
+   */
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
+
+  /**
+   * The key property ids for an service resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_SERVICE_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_DISPLAY_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_STATE_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_CATEGORY_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_TOTAL_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_STARTED_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+
+    PROPERTY_IDS.add(COMPONENT_INIT_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_RECOVERY_ENABLED_ID);
+    PROPERTY_IDS.add(COMPONENT_DESIRED_STACK);
+    PROPERTY_IDS.add(COMPONENT_DESIRED_VERSION);
+    PROPERTY_IDS.add(COMPONENT_REPOSITORY_STATE);
+
+    PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.Component, COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, COMPONENT_SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+  }
+
   private MaintenanceStateHelper maintenanceStateHelper;
 
   // ----- Constructors ----------------------------------------------------
@@ -109,16 +148,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   /**
    * Create a new resource provider for the given management controller.
    *
-   * @param propertyIds           the property ids
-   * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
   @AssistedInject
-  ComponentResourceProvider(@Assisted Set<String> propertyIds,
-                            @Assisted Map<Resource.Type, String> keyPropertyIds,
-                            @Assisted AmbariManagementController managementController,
-                            MaintenanceStateHelper maintenanceStateHelper) {
-    super(propertyIds, keyPropertyIds, managementController);
+  ComponentResourceProvider(@Assisted AmbariManagementController managementController,
+      MaintenanceStateHelper maintenanceStateHelper) {
+    super(Resource.Type.Component, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES, RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));
@@ -189,6 +224,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_INIT_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("initCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_UNKNOWN_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
+      setResourceProperty(resource, COMPONENT_DESIRED_STACK, response.getDesiredStackId(), requestedIds);
       setResourceProperty(resource, COMPONENT_DESIRED_VERSION, response.getDesiredVersion(), requestedIds);
       setResourceProperty(resource, COMPONENT_REPOSITORY_STATE, response.getRepositoryState(), requestedIds);
 
@@ -297,6 +333,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       if (!componentNames.containsKey(request.getClusterName())) {
         componentNames.put(request.getClusterName(), new HashMap<String, Set<String>>());
       }
+
       Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
       if (!serviceComponents.containsKey(request.getServiceName())) {
         serviceComponents.put(request.getServiceName(), new HashSet<String>());
@@ -327,12 +364,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         // Expected
       }
 
-      StackId stackId = s.getDesiredStackVersion();
+      StackId stackId = s.getDesiredStackId();
       if (!ambariMetaInfo.isValidServiceComponent(stackId.getStackName(),
           stackId.getStackVersion(), s.getName(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
             + " in stack stackInfo=" + stackId.getStackId()
-            + " request=" + request.toString());
+            + " request=" + request);
       }
     }
 
@@ -352,7 +389,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName());
-      sc.setDesiredStackVersion(s.getDesiredStackVersion());
+      sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
@@ -361,7 +398,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setDesiredState(s.getDesiredState());
       }
 
-      /**
+      /*
        * If request does not have recovery_enabled field,
        * then get the default from the stack definition.
        */
@@ -370,12 +407,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setRecoveryEnabled(recoveryEnabled);
         LOG.info("Component: {}, recovery_enabled from request: {}", request.getComponentName(), recoveryEnabled);
       } else {
-        StackId stackId = s.getDesiredStackVersion();
+        StackId stackId = s.getDesiredStackId();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), s.getName(), request.getComponentName());
         if (componentInfo == null) {
             throw new AmbariException("Could not get component information from stack definition: Stack=" +
-                stackId.toString() + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
+              stackId + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
         }
         sc.setRecoveryEnabled(componentInfo.isRecoveryEnabled());
         LOG.info("Component: {}, recovery_enabled from stack definition:{}", componentInfo.getName(),
@@ -413,7 +450,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     Set<ServiceComponentResponse> response = new HashSet<>();
     String category = null;
 
-    StackId stackId = cluster.getDesiredStackVersion();
 
     if (request.getComponentName() != null) {
       setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
@@ -421,6 +457,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final Service s = getServiceFromCluster(request, cluster);
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
+
+      StackId stackId = sc.getDesiredStackId();
 
       try {
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
@@ -452,6 +490,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           // skip non matching state
           continue;
         }
+
+        StackId stackId = sc.getDesiredStackId();
 
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {
@@ -738,7 +778,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         throw new AmbariException("Found non removable host component when trying to delete service component." +
             " To remove host component, it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN" +
             "/UNINSTALLED/INSTALLING state."
-            + ", request=" + request.toString()
+            + ", request=" + request
             + ", current state=" + sc.getDesiredState() + ".");
 
       }
@@ -790,17 +830,17 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                                       final Cluster cluster,
                                       final AmbariMetaInfo ambariMetaInfo) throws AmbariException {
     if (StringUtils.isEmpty(request.getServiceName())) {
-      StackId stackId = cluster.getDesiredStackVersion();
+
       String componentName = request.getComponentName();
-      String serviceName = ambariMetaInfo.getComponentToService(stackId.getStackName(),
-              stackId.getStackVersion(), componentName);
+
+      String serviceName = getManagementController().findServiceName(cluster, componentName);
+
       debug("Looking up service name for component, componentName={}, serviceName={}", componentName, serviceName);
 
       if (StringUtils.isEmpty(serviceName)) {
         throw new AmbariException("Could not find service for component"
                 + ", componentName=" + request.getComponentName()
-                + ", clusterName=" + cluster.getClusterName()
-                + ", stackInfo=" + stackId.getStackId());
+                + ", clusterName=" + cluster.getClusterName());
       }
       request.setServiceName(serviceName);
     }

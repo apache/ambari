@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ public class ConfigGroupResponse {
   private String description;
   private Set<Map<String, Object>> hosts;
   private Set<Map<String, Object>> configVersions;
+  private Set<Map<String, Object>> versionTags =  new HashSet<Map<String, Object>>();
 
   public ConfigGroupResponse(Long id, String clusterName,
           String groupName, String tag, String description,
@@ -96,5 +98,13 @@ public class ConfigGroupResponse {
 
   public void setConfigurations(Set<Map<String, Object>> configurations) {
     this.configVersions = configurations;
+  }
+
+  public Set<Map<String, Object>> getVersionTags() {
+    return versionTags;
+  }
+
+  public void setVersionTags(Set<Map<String, Object>> versionTags) {
+    this.versionTags = versionTags;
   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class StackConfigurationDependencyResponse {
 
@@ -40,6 +42,7 @@ public class StackConfigurationDependencyResponse {
     this.dependencyType = dependencyType;
   }
 
+  @ApiModelProperty(name = "stack_name")
   public String getStackName() {
     return stackName;
   }
@@ -48,6 +51,7 @@ public class StackConfigurationDependencyResponse {
     this.stackName = stackName;
   }
 
+  @ApiModelProperty(name = "stack_version")
   public String getStackVersion() {
     return stackVersion;
   }
@@ -56,6 +60,7 @@ public class StackConfigurationDependencyResponse {
     this.stackVersion = stackVersion;
   }
 
+  @ApiModelProperty(name = "service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -64,6 +69,7 @@ public class StackConfigurationDependencyResponse {
     this.serviceName = serviceName;
   }
 
+  @ApiModelProperty(name = "property_name")
   public String getPropertyName() {
     return propertyName;
   }
@@ -72,6 +78,7 @@ public class StackConfigurationDependencyResponse {
     this.propertyName = propertyName;
   }
 
+  @ApiModelProperty(name = "dependency_name")
   public String getDependencyName() {
     return dependencyName;
   }
@@ -80,6 +87,7 @@ public class StackConfigurationDependencyResponse {
     this.dependencyName = dependencyName;
   }
 
+  @ApiModelProperty(name = "dependency_type")
   public String getDependencyType() {
     return dependencyType;
   }
@@ -87,4 +95,13 @@ public class StackConfigurationDependencyResponse {
   public void setDependencyType(String dependencyType) {
     this.dependencyType = dependencyType;
   }
+
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface StackConfigurationDependencyResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "StackConfigurationDependency")
+    public StackConfigurationDependencyResponse getStackConfigurationDependencyResponse();
+  }
+
 }

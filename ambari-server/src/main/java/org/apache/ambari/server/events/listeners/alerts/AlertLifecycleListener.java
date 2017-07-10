@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -53,7 +53,7 @@ public class AlertLifecycleListener {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertLifecycleListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertLifecycleListener.class);
 
   /**
    * Used for quick lookups of aggregate alerts.

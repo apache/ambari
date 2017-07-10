@@ -355,7 +355,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
     if (propertyMaps.isEmpty()) {
-      List<RepositoryVersionEntity> versions = s_repoVersionDAO.findAllDefinitions();
+      List<RepositoryVersionEntity> versions = s_repoVersionDAO.findRepositoriesWithVersionDefinitions();
 
       for (RepositoryVersionEntity entity : versions) {
         results.add(toResource(entity, requestPropertyIds));
@@ -393,7 +393,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
               results.add(res);
             }
           } else {
-            List<RepositoryVersionEntity> versions = s_repoVersionDAO.findAllDefinitions();
+            List<RepositoryVersionEntity> versions = s_repoVersionDAO.findRepositoriesWithVersionDefinitions();
 
             for (RepositoryVersionEntity entity : versions) {
               results.add(toResource(entity, requestPropertyIds));

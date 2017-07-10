@@ -171,13 +171,14 @@ public class ConfigGroupResourceProviderTest {
     expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
 
     Capture<Cluster> clusterCapture = newCapture();
+    Capture<String> serviceName = newCapture();
     Capture<String> captureName = newCapture();
     Capture<String> captureDesc = newCapture();
     Capture<String> captureTag = newCapture();
     Capture<Map<String, Config>> captureConfigs = newCapture();
     Capture<Map<Long, Host>> captureHosts = newCapture();
 
-    expect(configGroupFactory.createNew(capture(clusterCapture),
+    expect(configGroupFactory.createNew(capture(clusterCapture), capture(serviceName),
         capture(captureName), capture(captureTag), capture(captureDesc),
         capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
 
@@ -282,7 +283,7 @@ public class ConfigGroupResourceProviderTest {
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(cluster.getConfigGroups()).andReturn(configGroupMap);
 
-    expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(),
+    expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject(), EasyMock.<Map<String, Config>>anyObject(),
         EasyMock.<Map<Long, Host>>anyObject())).andReturn(configGroup).anyTimes();
 
@@ -494,6 +495,8 @@ public class ConfigGroupResourceProviderTest {
     expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
     expect(h1.getHostId()).andReturn(1L).anyTimes();
     expect(h2.getHostId()).andReturn(2L).anyTimes();
+    expect(managementController.getConfigGroupUpdateResults((ConfigGroupRequest)anyObject())).
+            andReturn(new ConfigGroupResponse(1L, "", "", "", "", new HashSet<Map<String, Object>>(), new HashSet<Map<String, Object>>())).atLeastOnce();
 
     expect(configGroup.getName()).andReturn("test-1").anyTimes();
     expect(configGroup.getId()).andReturn(25L).anyTimes();

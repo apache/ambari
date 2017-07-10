@@ -18,22 +18,53 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 @Configuration
 public class LogSearchHttpHeaderConfig {
 
   @Value("${logsearch.http.header.access-control-allow-origin:*}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.http.header.access-control-allow-origin",
+    description = "Access-Control-Allow-Origin header for Log Search Server.",
+    examples = {"*", "http://c6401.ambari.apache.org"},
+    defaultValue = "*",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String accessControlAllowOrigin;
 
   @Value("${logsearch.http.header.access-control-allow-headers:origin, content-type, accept, authorization}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.http.header.access-control-allow-headers",
+    description = "Access-Control-Allow-Headers header for Log Search Server.",
+    examples = {"content-type, authorization"},
+    defaultValue = "origin, content-type, accept, authorization",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String accessControlAllowHeaders;
 
   @Value("${logsearch.http.header.access-control-allow-credentials:true}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.http.header.access-control-allow-credentials",
+    description = "Access-Control-Allow-Credentials header for Log Search Server.",
+    examples = {"true", "false"},
+    defaultValue = "true",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String accessControlAllowCredentials;
 
   @Value("${logsearch.http.header.access-control-allow-methods:GET, POST, PUT, DELETE, OPTIONS, HEAD}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.http.header.access-control-allow-methods",
+    description = "Access-Control-Allow-Methods header for Log Search Server.",
+    examples = {"GET, POST"},
+    defaultValue = "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String accessControlAllowMethods;
 
   public String getAccessControlAllowOrigin() {

@@ -160,7 +160,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
             return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) < 1;
           }
         } else if (filter.get('value') === 'NOT_INSTALLED') {
-          return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(status);
+          return ['NOT_REQUIRED', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(status);
         } else {
           return status === filter.get('value');
         }

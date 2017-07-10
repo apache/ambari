@@ -59,7 +59,7 @@ public class AbstractJDBCResourceProviderTest {
     AbstractJDBCResourceProvider<TestFields> provider = new TestAbstractJDBCResourceProviderImpl(
         requestedIds, null);
     Assert.assertEquals(
-        TestFields.field1.toString() + "," + TestFields.field2.toString(),
+        TestFields.field1 + "," + TestFields.field2,
         provider.getDBFieldString(requestedIds));
     Assert.assertEquals(TestFields.field1.toString(),
         provider.getDBFieldString(Collections.singleton(property1)));

@@ -53,7 +53,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class StackAdvisorBlueprintProcessor {
 
-  private static Logger LOG = LoggerFactory.getLogger(StackAdvisorBlueprintProcessor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StackAdvisorBlueprintProcessor.class);
 
   private static StackAdvisorHelper stackAdvisorHelper;
 

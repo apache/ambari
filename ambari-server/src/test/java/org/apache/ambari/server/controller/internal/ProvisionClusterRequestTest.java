@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,6 +33,7 @@ import static org.powermock.api.easymock.PowerMock.reset;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilderTest;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
@@ -52,7 +54,9 @@ import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.Sets;
 
@@ -71,6 +75,9 @@ public class ProvisionClusterRequestTest {
   private static final Configuration blueprintConfig = new Configuration(
       Collections.<String, Map<String, String>>emptyMap(),
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Before
   public void setUp() throws Exception {
@@ -303,8 +310,12 @@ public class ProvisionClusterRequestTest {
   }
 
 
-  @Test(expected=InvalidTopologyTemplateException.class)
+  @Test
   public void test_CreditentialsInvalidType() throws Exception {
+    expectedException.expect(InvalidTopologyTemplateException.class);
+    expectedException.expectMessage("credential.type [TESTTYPE] is invalid. acceptable values: " +
+        Arrays.toString(CredentialStoreType.values()));
+
     Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     HashMap<String, String> credentialHashMap = new HashMap<>();
     credentialHashMap.put("alias", "testAlias");
@@ -466,7 +477,7 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
     properties.put("host_groups", hostGroups);
@@ -521,7 +532,7 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
     properties.put("host_groups", hostGroups);
@@ -560,7 +571,7 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
     properties.put("host_groups", hostGroups);

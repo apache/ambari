@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -70,5 +70,15 @@ public class H2Helper extends GenericDbmsHelper {
       .append(" FROM SYS.SYSCONSTRAINTS AS C, SYS.SYSTABLES AS T")
       .append(" WHERE C.TABLEID = T.TABLEID AND T.TABLENAME = '").append(tableName).append("'");
     return statement.toString();
+  }
+
+  /**
+   {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+                                                     String sourceIDColumnName, String targetTable, String targetColumnName, String targetIDColumnName) {
+    return String.format("UPDATE %1$s a SET %3$s = (SELECT b.%4$s FROM %2$s b WHERE b.%6$s = a.%5$s LIMIT 1)",
+      targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName, sourceIDColumnName);
   }
 }

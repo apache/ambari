@@ -44,9 +44,5 @@ public class SampleServiceCheck extends AbstractCheckDescriptor {
     prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
   }
 
-  @Override
-  public boolean isStackUpgradeAllowedToBypassPreChecks() {
-    return false;
-  }
 
 }

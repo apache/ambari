@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -205,6 +205,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getDisplayName() == null) {
       serviceInfo.setDisplayName(parent.getDisplayName());
     }
+    if (serviceInfo.getServiceAdvisorType() == null) {
+      ServiceInfo.ServiceAdvisorType serviceAdvisorType = parent.getServiceAdvisorType();
+      serviceInfo.setServiceAdvisorType(serviceAdvisorType == null ? ServiceInfo.ServiceAdvisorType.PYTHON : serviceAdvisorType);
+    }
     if (serviceInfo.getVersion() == null) {
       serviceInfo.setVersion(parent.getVersion());
     }
@@ -266,7 +270,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setChecksFolder(parent.getChecksFolder());
     }
 
-    /**
+    /*
      * If current stack version does not specify the credential store information
      * for the service, then use parent definition.
      */
@@ -629,9 +633,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Ensure that all default type attributes are set.
    */
   private void finalizeConfiguration() {
-    LOG.debug(String.format("Finalize config, number of configuration modules %s", configurationModules.size()));
+    LOG.debug("Finalize config, number of configuration modules {}", configurationModules.size());
     hasConfigs = !(configurationModules.isEmpty());
-    LOG.debug(String.format("Finalize config, hasConfigs %s", hasConfigs));
+    LOG.debug("Finalize config, hasConfigs {}", hasConfigs);
 
     for (ConfigurationModule config : configurationModules.values()) {
       ConfigurationInfo configInfo = config.getModuleInfo();

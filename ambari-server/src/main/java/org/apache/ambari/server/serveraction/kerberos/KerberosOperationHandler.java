@@ -19,7 +19,6 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -681,11 +680,6 @@ public abstract class KerberosOperationHandler {
         fos = new FileOutputStream(tempFile);
         fos.write(Base64.decodeBase64(keytabData));
         success = true;
-      } catch (FileNotFoundException e) {
-        String message = String.format("Failed to write to temporary keytab file %s: %s",
-            tempFile.getAbsolutePath(), e.getLocalizedMessage());
-        LOG.error(message, e);
-        throw new KerberosOperationException(message, e);
       } catch (IOException e) {
         String message = String.format("Failed to write to temporary keytab file %s: %s",
             tempFile.getAbsolutePath(), e.getLocalizedMessage());

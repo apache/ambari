@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,6 +32,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
+import org.apache.ambari.server.state.ServiceInfo;
 
 /**
  * {@link StackAdvisorCommand} implementation for
@@ -40,9 +41,13 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 public class ConfigurationDependenciesRecommendationCommand extends
     StackAdvisorCommand<RecommendationResponse> {
 
-  public ConfigurationDependenciesRecommendationCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
-                                                        StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
+  public ConfigurationDependenciesRecommendationCommand(File recommendationsDir,
+                                                        String recommendationsArtifactsLifetime,
+                                                        ServiceInfo.ServiceAdvisorType serviceAdvisorType,
+                                                        int requestId,
+                                                        StackAdvisorRunner saRunner,
+                                                        AmbariMetaInfo metaInfo) {
+    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo);
   }
 
   @Override

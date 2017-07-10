@@ -101,18 +101,21 @@ public class DocConstants {
   }
 
   public class PublicOperationDescriptions {
-    public static final String OBTAIN_GENERAL_CONFIG_OD = "Obtain general config";
+    public static final String GET_AUTH_DETAILS_OD = "Get authentication details.";
+    public static final String GET_ALL_PROPERTIES_INFO_OD = "List all available properties for Log Search and Log Feeder";
+    public static final String GET_LOGSEARCH_PROPERTIES_INFO_OD = "List all available properties for Log Search property file (e.g: logsearch.properties/logfeeder.properties)";
+    public static final String GET_ALL_SHIPPER_CONFIG_INFO_OD = "List all available shipper configuration element";
   }
 
-  public class UserConfigDescriptions {
+  public class EventHistoryDescriptions {
     public static final String FILTER_NAME_D = "The saved query as filter in Solr, search is sopprted by this param";
     public static final String ROW_TYPE_D = "Row type is solr to identify as filter query";
   }
 
-  public class UserConfigOperationDescriptions {
-    public static final String SAVE_USER_CONFIG_OD = "Save user config";
-    public static final String DELETE_USER_CONFIG_OD = "Delete user config";
-    public static final String GET_USER_CONFIG_OD = "Get user config";
+  public class EventHistoryOperationDescriptions {
+    public static final String SAVE_EVENT_HISTORY_DATA_OD = "Save event history data";
+    public static final String DELETE_EVENT_HISTORY_DATA_OD = "Delete event history data";
+    public static final String GET_EVENT_HISTORY_DATA_OD = "Get event history data";
     public static final String GET_ALL_USER_NAMES_OD = "Get all user names";
   }
 
@@ -120,6 +123,7 @@ public class DocConstants {
     public static final String GET_SERVICE_NAMES_OD = "Get service names";
     public static final String GET_SHIPPER_CONFIG_OD = "Get shipper config";
     public static final String SET_SHIPPER_CONFIG_OD = "Set shipper config";
+    public static final String TEST_SHIPPER_CONFIG_OD = "Test shipper config";
     public static final String GET_LOG_LEVEL_FILTER_OD = "Get log level filter";
     public static final String UPDATE_LOG_LEVEL_FILTER_OD = "Update log level filter";
   }
@@ -128,6 +132,6 @@ public class DocConstants {
     public static final String STATUS_OD = "Get statuses for collections (not health state - show true if something already done)";
     public static final String SERVICE_LOGS_STATUS_OD = "Get statuses for service log collection (not health state - show true if something already done)";
     public static final String AUDIT_LOGS_STATUS_OD = "Get statuses for collections (not health state - show true if something already done)";
-    public static final String USER_CONFIG_STATUS_OD = "Get statuses for userconfig collection (not health state - show true if something already done)";
+    public static final String EVENT_HISTORY_STATUS_OD = "Get statuses for history collection (not health state - show true if something already done)";
   }
 }

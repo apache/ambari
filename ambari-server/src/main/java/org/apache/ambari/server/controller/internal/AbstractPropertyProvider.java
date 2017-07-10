@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -174,7 +174,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
       }
     }
     if(LOG.isDebugEnabled()) {
-      LOG.debug("Retrieved Cluster Ids = " + clusterResId.toString());
+      LOG.debug("Retrieved Cluster Ids = {}", clusterResId);
     }
     return clusterResId;
   }
@@ -204,7 +204,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     }
 
     if(LOG.isDebugEnabled()) {
-      LOG.debug("Retrieved cluster's Resource Id = " + clusterResIds + ", Resource Type = " + resType);
+      LOG.debug("Retrieved cluster's Resource Id = {}, Resource Type = {}", clusterResIds, resType);
     }
     Iterator<Long> clusResIdsItr = clusterResIds.iterator();
     while (clusResIdsItr.hasNext()) {

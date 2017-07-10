@@ -184,7 +184,7 @@ def generate_child_process_param_list(ambari_user, java_exe, class_path,
     # from subprocess, we have to skip --login option of su command. That's why
     # we change dir to / (otherwise subprocess can face with 'permission denied'
     # errors while trying to list current directory
-    cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c 'source {ambari_env_file} ; {command}'".format(ulimit_cmd=ulimit_cmd,
+    cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c '. {ambari_env_file} && {command}'".format(ulimit_cmd=ulimit_cmd,
                                                                                 su=locate_file('su', '/bin'), ambari_user=ambari_user,
                                                                                 sh_shell=locate_file('sh', '/bin'), command=command,
                                                                                 ambari_env_file=AMBARI_ENV_FILE)

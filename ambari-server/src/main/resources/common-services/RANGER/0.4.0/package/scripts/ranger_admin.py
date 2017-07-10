@@ -29,7 +29,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
-from setup_ranger_xml import setup_ranger_audit_solr, setup_ranger_admin_passwd_change
+from setup_ranger_xml import setup_ranger_audit_solr, setup_ranger_admin_passwd_change, update_password_configs
 from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
@@ -45,6 +45,14 @@ class RangerAdmin(Script):
     self.install_packages(env)
     import params
     env.set_params(params)
+
+    # taking backup of install.properties file
+    Execute(('cp', '-f', format('{ranger_home}/install.properties'), format('{ranger_home}/install-backup.properties')),
+      not_if = format('ls {ranger_home}/install-backup.properties'),
+      only_if = format('ls {ranger_home}/install.properties'),
+      sudo = True
+    )
+
     # call config and setup db only in case of HDP version < 2.6
     if not params.stack_supports_ranger_setup_db_on_start:
       self.configure(env, setup_db=True)
@@ -92,6 +100,7 @@ class RangerAdmin(Script):
       solr_cloud_util.setup_solr_client(params.config, custom_log4j = params.custom_log4j)
       setup_ranger_audit_solr()
 
+    update_password_configs()
     ranger_service('ranger_admin')
 
 

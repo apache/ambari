@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TaskWrapperBuilder {
 
-  private static Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
 
   /**
    * Creates a collection of task wrappers based on the set of hosts they are allowed to run on

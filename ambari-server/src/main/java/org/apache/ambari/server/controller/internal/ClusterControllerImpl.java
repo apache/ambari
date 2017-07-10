@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -130,9 +130,7 @@ public class ClusterControllerImpl implements ClusterController {
 
     if (provider != null) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Using resource provider "
-            + provider.getClass().getName()
-            + " for request type " + type.toString());
+        LOG.debug("Using resource provider {} for request type {}", provider.getClass().getName(), type);
       }
       // make sure that the providers can satisfy the request
       checkProperties(type, request, predicate);

@@ -70,6 +70,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -994,9 +995,9 @@ public class HostRoleCommandDAO {
     }
   }
 
-  public List<Long> findTaskIdsByRequestStageIds(List<RequestDAO.StageEntityPK> requestStageIds) {
+  public Set<Long> findTaskIdsByRequestStageIds(List<RequestDAO.StageEntityPK> requestStageIds) {
     EntityManager entityManager = entityManagerProvider.get();
-    List<Long> taskIds = new ArrayList<Long>();
+    List<Long> taskIds = new ArrayList<>();
     for (RequestDAO.StageEntityPK requestIds : requestStageIds) {
       TypedQuery<Long> hostRoleCommandQuery =
               entityManager.createNamedQuery("HostRoleCommandEntity.findTaskIdsByRequestStageIds", Long.class);
@@ -1007,6 +1008,6 @@ public class HostRoleCommandDAO {
       taskIds.addAll(daoUtils.selectList(hostRoleCommandQuery));
     }
 
-    return taskIds;
+    return Sets.newHashSet(taskIds);
   }
 }

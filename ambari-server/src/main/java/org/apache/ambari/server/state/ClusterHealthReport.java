@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,10 +20,23 @@ package org.apache.ambari.server.state;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Cluster Health Report (part of Clusters API response)
  */
 public class ClusterHealthReport {
+
+  private static final String HOST_STALE_CONFIG = "Host/stale_config";
+  private static final String HOST_MAINTENANCE_STATE = "Host/maintenance_state";
+  private static final String HOST_HOST_STATE_HEALTHY = "Host/host_state/HEALTHY";
+  private static final String HOST_HOST_STATE_UNHEALTHY = "Host/host_state/UNHEALTHY";
+  private static final String HOST_HOST_STATE_INIT = "Host/host_state/INIT";
+  private static final String HOST_HOST_STATUS_HEALTHY = "Host/host_status/HEALTHY";
+  private static final String HOST_HOST_STATUS_UNHEALTHY = "Host/host_status/UNHEALTHY";
+  private static final String HOST_HOST_STATUS_UNKNOWN = "Host/host_status/UNKNOWN";
+  private static final String HOST_HOST_STATUS_ALERT = "Host/host_status/ALERT";
+  private static final String HOST_HOST_STATE_HEARTBEAT_LOST = "Host/host_state/HEARTBEAT_LOST";
 
   private int staleConfigsHosts;
   private int maintenanceStateHosts;
@@ -41,7 +54,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having stale_config set to true
    */
-  @JsonProperty("Host/stale_config")
+  @JsonProperty(HOST_STALE_CONFIG)
+  @ApiModelProperty(name = HOST_STALE_CONFIG)
   public int getStaleConfigsHosts() {
     return staleConfigsHosts;
   }
@@ -56,7 +70,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having maintenance state on
    */
-  @JsonProperty("Host/maintenance_state")
+  @JsonProperty(HOST_MAINTENANCE_STATE)
+  @ApiModelProperty(name = HOST_MAINTENANCE_STATE)
   public int getMaintenanceStateHosts() {
     return maintenanceStateHosts;
   }
@@ -71,7 +86,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host state HEALTHY
    */
-  @JsonProperty("Host/host_state/HEALTHY")
+  @JsonProperty(HOST_HOST_STATE_HEALTHY)
+  @ApiModelProperty(name = HOST_HOST_STATE_HEALTHY)
   public int getHealthyStateHosts() {
     return healthyStateHosts;
   }
@@ -86,7 +102,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host state UNHEALTHY
    */
-  @JsonProperty("Host/host_state/UNHEALTHY")
+  @JsonProperty(HOST_HOST_STATE_UNHEALTHY)
+  @ApiModelProperty(name = HOST_HOST_STATE_UNHEALTHY)
   public int getUnhealthyStateHosts() {
     return unhealthyStateHosts;
   }
@@ -101,7 +118,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host state INIT
    */
-  @JsonProperty("Host/host_state/INIT")
+  @JsonProperty(HOST_HOST_STATE_INIT)
+  @ApiModelProperty(name = HOST_HOST_STATE_INIT)
   public int getInitStateHosts() {
     return initStateHosts;
   }
@@ -116,7 +134,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host status HEALTHY
    */
-  @JsonProperty("Host/host_status/HEALTHY")
+  @JsonProperty(HOST_HOST_STATUS_HEALTHY)
+  @ApiModelProperty(name = HOST_HOST_STATUS_HEALTHY)
   public int getHealthyStatusHosts() {
     return healthyStatusHosts;
   }
@@ -131,7 +150,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host status UNHEALTHY
    */
-  @JsonProperty("Host/host_status/UNHEALTHY")
+  @JsonProperty(HOST_HOST_STATUS_UNHEALTHY)
+  @ApiModelProperty(name = HOST_HOST_STATUS_UNHEALTHY)
   public int getUnhealthyStatusHosts() {
     return unhealthyStatusHosts;
   }
@@ -146,7 +166,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host status UNKNOWN
    */
-  @JsonProperty("Host/host_status/UNKNOWN")
+  @JsonProperty(HOST_HOST_STATUS_UNKNOWN)
+  @ApiModelProperty(name = HOST_HOST_STATUS_UNKNOWN)
   public int getUnknownStatusHosts() {
     return unknownStatusHosts;
   }
@@ -161,7 +182,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host status ALERT
    */
-  @JsonProperty("Host/host_status/ALERT")
+  @JsonProperty(HOST_HOST_STATUS_ALERT)
+  @ApiModelProperty(name = HOST_HOST_STATUS_ALERT)
   public int getAlertStatusHosts() {
     return alertStatusHosts;
   }
@@ -176,7 +198,8 @@ public class ClusterHealthReport {
   /**
    * @return number of hosts having host status HEARTBEAT_LOST
    */
-  @JsonProperty("Host/host_state/HEARTBEAT_LOST")
+  @JsonProperty(HOST_HOST_STATE_HEARTBEAT_LOST)
+  @ApiModelProperty(name = HOST_HOST_STATE_HEARTBEAT_LOST)
   public int getHeartbeatLostStateHosts() {
     return heartbeatLostStateHosts;
   }

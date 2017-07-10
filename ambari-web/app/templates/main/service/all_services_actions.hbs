@@ -22,12 +22,14 @@
   </div>
   <ul class="dropdown-menu">
     {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
-      <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}>
+      {{#if App.supports.enableAddDeleteServices}}
+        <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}>
         <a href="#"
           {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}
           {{action gotoAddService target="view.serviceController"}}>
           <i class="glyphicon glyphicon-plus"></i> {{t services.service.add}}</a>
-      </li>
+        </li>
+      {{/if}}
     {{/isAuthorized}}
     {{#isAuthorized "SERVICE.START_STOP"}}
       <li class="divider"></li>

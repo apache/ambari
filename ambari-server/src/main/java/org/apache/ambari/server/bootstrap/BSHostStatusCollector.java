@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,8 +27,8 @@ import java.util.List;
 
 import org.apache.ambari.server.utils.Closeables;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Runnable class that gets the hoststatus output by looking at the files
@@ -39,7 +39,7 @@ class BSHostStatusCollector {
   private List<BSHostStatus> hostStatus;
   public static final String logFileFilter = ".log";
   public static final String doneFileFilter = ".done";
-  private static Log LOG = LogFactory.getLog(BSHostStatusCollector.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BSHostStatusCollector.class);
 
   private List<String> hosts;
 
@@ -68,11 +68,7 @@ class BSHostStatusCollector {
       done = new File(requestIdDir, host + doneFileFilter);
       log = new File(requestIdDir, host + logFileFilter);
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Polling bootstrap status for host"
-            + ", requestDir=" + requestIdDir
-            + ", host=" + host
-            + ", doneFileExists=" + done.exists()
-            + ", logFileExists=" + log.exists());
+        LOG.debug("Polling bootstrap status for host, requestDir={}, host={}, doneFileExists={}, logFileExists={}", requestIdDir, host, done.exists(), log.exists());
       }
       if (!done.exists()) {
         status.setStatus("RUNNING");

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -99,53 +99,6 @@ public class LatestRepoCallable implements Callable<Void> {
       LOG.info("Could not load the URI for stack {}-{} from {}, ({}).  Using default repository values",
           stack.getName(), stack.getVersion(), sourceUri, e.getMessage());
       throw e;
-    }
-
-    // !!! process latest overrides
-    if (null != latestUrlMap) {
-      for (RepositoryInfo ri : stack.getRepositories()) {
-        if (latestUrlMap.containsKey(ri.getRepoId())) {
-
-          Map<String, Object> valueMap = latestUrlMap.get(ri.getRepoId());
-
-          if (valueMap.containsKey("latest")) {
-
-            @SuppressWarnings("unchecked")
-            Map<String, String> osMap = (Map<String, String>) valueMap.get("latest");
-
-            String baseUrl = resolveOsUrl(ri.getOsType(), osMap);
-            if (null != baseUrl) {
-              // !!! in the case where <name>.repo is defined with the base url, strip that off.
-              // Agents do the reverse action (take the base url, and append <name>.repo)
-
-              String repo_file_format;
-
-              if(os_family.isUbuntuFamily(ri.getOsType())) {
-                repo_file_format = "list";
-              } else {
-                repo_file_format = "repo";
-              }
-
-              String repoFileName = stack.getName().toLowerCase() + "." + repo_file_format;
-              int idx = baseUrl.toLowerCase().indexOf(repoFileName);
-
-              if (-1 != idx && baseUrl.toLowerCase().endsWith(repoFileName)) {
-                baseUrl = baseUrl.substring(0, idx);
-              }
-
-              if ('/' == baseUrl.charAt(baseUrl.length()-1)) {
-                baseUrl = baseUrl.substring(0, baseUrl.length()-1);
-              }
-
-              ri.setLatestBaseUrl(baseUrl);
-              if (ri.getBaseUrl() != null && !ri.isRepoSaved()) {
-                // Override baseUrl with the latestBaseUrl.
-                ri.setBaseUrl(baseUrl);
-              }
-            }
-          }
-        }
-      }
     }
 
     StackId stackId = new StackId(stack);

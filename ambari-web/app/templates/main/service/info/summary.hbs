@@ -47,35 +47,80 @@
 {{/if}}
 
 <div class="service-block">
-  <div class="panel panel-default">
-    <div class="panel-heading summary-box-header">
-      <div class="row">
-        <div class="col-md-8 col-lg-8">
-          <h4 class="panel-title">{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
+  <div class="summary-links-block">
+    <div class="panel panel-default summary-block">
+      <div class="panel-heading summary-box-header">
+        <div class="row">
+          <div class="col-md-8 col-lg-8">
+            <h4 class="panel-title">{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
+          </div>
+          <div class="col-md-4 col-lg-4 service-alerts">
+            {{#if view.hasAlertDefinitions}}
+              <span {{action "showServiceAlertsPopup" controller.content target="controller"}} class="pull-right">
+                <i class="glyphicon glyphicon-bell"></i>
+                {{#if view.alertsCount}}
+                  <span {{bindAttr class=":label view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
+                    {{view.alertsCount}}</span>
+                {{else}}
+                  <span class="label no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+                {{/if}}
+              </span>
+            {{/if}}
+          </div>
         </div>
-        <div class="col-md-4 col-lg-4">
-          {{#if view.hasAlertDefinitions}}
-            {{#if view.alertsCount}}
-              <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
-                {{bindAttr class=":label :pull-right view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-            {{view.alertsCount}} {{pluralize view.alertsCount singular="alert" plural="alerts"}}</span>
+      </div>
+      <div class="panel-body">
+        {{#if view.serviceSummaryView}}
+          {{view view.serviceSummaryView}}
+        {{else}}
+          {{view App.SpinnerView}}
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="panel panel-default quick-links-block">
+      {{#view App.QuickLinksView contentBinding="view.svc"}}
+        <div class="panel-heading">
+          <div class="row col-md-8 col-lg-12">
+            <h4 class="panel-title">{{t common.quickLinks}}</h4>
+          </div>
+        </div>
+        <div class="panel-body">
+          {{#if view.showQuickLinks}}
+            {{#if view.isLoaded}}
+              {{#if view.quickLinksArray}}
+                <!--there are multiple masters eg, HBase multiple masters or HDFS HA enabled-->
+                {{#each quickLinks in view.quickLinksArray}}
+                  <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
+                  {{#each quickLinks}}
+                    <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                  {{/each}}
+                {{/each}}
+              {{else}}
+                {{#if view.quickLinks}}
+                  {{#each view.quickLinks}}
+                    <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                  {{/each}}
+                {{else}}
+                  <div class="alert alert-danger">
+                    <small>{{t quick.links.error.quicklinks.unavailable.label}}</small>
+                  </div>
+                {{/if}}
+              {{/if}}
             {{else}}
-              <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
-                class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+              {{view App.SpinnerView}}
+            {{/if}}
+          {{else}}
+            {{#if view.showNoLinks}}
+              {{t common.noLink}}
+            {{else}}
+              {{view App.SpinnerView}}
             {{/if}}
           {{/if}}
         </div>
-      </div>
-    </div>
-    <div class="panel-body">
-      {{#if view.serviceSummaryView}}
-        {{view view.serviceSummaryView}}
-      {{else}}
-        {{view App.SpinnerView}}
-      {{/if}}
+      {{/view}}
     </div>
   </div>
-
   {{! widgets in the metrics panel are loaded seperately from summary page text information
       and does not get block due to any global API poller information }}
   {{#if view.isServiceMetricLoaded}}
@@ -136,7 +181,7 @@
               {{#if isAmbariMetricsInstalled}}
                 <div class="span2p4">
                   <button id="add-widget-action-box"
-                          {{action "goToWidgetsBrowser" controller.content target="controller"}}
+                    {{action "goToWidgetsBrowser" controller.content target="controller"}}
                           rel="add-widget-tooltip" {{translateAttr data-original-title="dashboard.widgets.addButton.tooltip"}}>
                     <i class="glyphicon glyphicon-plus"></i></button>
                 </div>

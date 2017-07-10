@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  * and then it schedules the follow-up job.
  */
 public abstract class AbstractLinearExecutionJob implements ExecutionJob {
-  private static Logger LOG = LoggerFactory.getLogger(AbstractLinearExecutionJob.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractLinearExecutionJob.class);
   protected ExecutionScheduleManager executionScheduleManager;
 
   public AbstractLinearExecutionJob(ExecutionScheduleManager executionScheduleManager) {
@@ -69,7 +69,7 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
     JobKey jobKey = context.getJobDetail().getKey();
-    LOG.debug("Executing linear job: " + jobKey);
+    LOG.debug("Executing linear job: {}", jobKey);
     JobDataMap jobDataMap = context.getMergedJobDataMap();
 
     if (!executionScheduleManager.continueOnMisfire(context)) {
@@ -109,7 +109,7 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
       }
     }
 
-    LOG.debug("Finished linear job: " + jobKey);
+    LOG.debug("Finished linear job: {}", jobKey);
 
     String nextJobName = jobDataMap.getString(NEXT_EXECUTION_JOB_NAME_KEY);
     String nextJobGroup = jobDataMap.getString(NEXT_EXECUTION_JOB_GROUP_KEY);

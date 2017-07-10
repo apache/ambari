@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -206,6 +206,18 @@ public class OsFamily {
 
     private boolean isFamilyExtendedByFamily(String currentFamily, String family) {
       return (currentFamily.equals(family) || getOsFamilyParent(currentFamily)!=null && isFamilyExtendedByFamily(getOsFamilyParent(currentFamily), family));
+    }
+
+    public boolean isVersionedOsFamilyExtendedByVersionedFamily(String currentVersionedFamily, String versionedFamily) {
+      Map<String,String> pos = this.parse_os(currentVersionedFamily);
+      String currentFamily = pos.get(OS_DISTRO);
+      String currentFamilyVersion = pos.get(OS_VERSION);
+
+      pos = this.parse_os(versionedFamily);
+      String family = pos.get(OS_DISTRO);
+      String familyVersion = pos.get(OS_VERSION);
+
+      return currentFamilyVersion.equals(familyVersion) && isFamilyExtendedByFamily(currentFamily, family);
     }
 
     private String getOsFamilyParent(String osFamily) {

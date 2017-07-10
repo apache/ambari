@@ -43,7 +43,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   installProgress: function() {
     if (App.get('testMode')) return 100;
 
-    var installRequest, requestIds = App.db.get('repoVersionInstall', 'id');
+    var installRequest, requestIds = this.get('controller').getRepoVersionInstallId();
     if (requestIds) {
       installRequest = App.router.get('backgroundOperationsController.services').findProperty('id', requestIds[0]);
     }
@@ -57,11 +57,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
   isUpgrading: function () {
     return (this.get('controller.upgradeVersion') === this.get('content.displayName') ||
             this.get('controller.fromVersion') === this.get('content.repositoryVersion'))
-            && App.get('upgradeState') !== 'INIT';
+            && App.get('upgradeState') !== 'NOT_REQUIRED';
   }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
 
   isRepoUrlsEditDisabled: function () {
-    return ['INSTALLING', 'UPGRADING'].contains(this.get('content.status')) || this.get('isUpgrading') || (!App.isAuthorized('AMBARI.MANAGE_STACK_VERSIONS') && this.get('content.status') === 'CURRENT');
+    return ['INSTALLING', 'UPGRADING'].contains(this.get('content.status')) || this.get('isUpgrading') || (!App.isAuthorized('AMBARI.MANAGE_STACK_VERSIONS'));
   }.property('content.status', 'isUpgrading'),
 
   /**
@@ -119,7 +119,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       text: Em.I18n.t('common.current'),
       class: 'label label-success'
     },
-    'INIT': {
+    'NOT_REQUIRED': {
       isButton: true,
       text: Em.I18n.t('admin.stackVersions.version.installNow'),
       action: 'installRepoVersionConfirmation'
@@ -170,7 +170,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     if (['INSTALLING', 'CURRENT'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
     }
-    else if (status === 'INIT') {
+    else if (status === 'NOT_REQUIRED') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
       element.set('isDisabled', this.isDisabledOnInit());
     }
@@ -231,7 +231,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('isDisabled', this.get('controller.requestInProgress'));
     }
     //For restricted upgrade wizard should be disabled in any state
-    if (this.get('controller.isWizardRestricted')) {
+    if (this.get('controller.isWizardRestricted') || (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK'))) {
       element.set('isDisabled', true);
     }
     return element;
@@ -245,7 +245,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   ),
 
   /**
-   * check if actions of INIT stack version disabled
+   * check if actions of NOT_REQUIRED stack version disabled
    * @returns {boolean}
    */
   isDisabledOnInit: function() {

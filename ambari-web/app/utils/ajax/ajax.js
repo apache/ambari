@@ -1353,11 +1353,11 @@ var urls = {
     }
   },
   'cluster.load_cluster_name': {
-    'real': '/clusters?fields=Clusters/security_type',
+    'real': '/clusters?fields=Clusters/security_type,Clusters/version',
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
-    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/to_version,Upgrade/from_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures',
+    'real': `/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/versions,Upgrade/associated_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures`,
     'mock': '/data/stack_versions/upgrades.json'
   },
   'cluster.update_upgrade_version': {
@@ -1712,7 +1712,7 @@ var urls = {
         timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version": data.value,
+            "repository_version_id": data.id,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
             "skip_service_check_failures": data.skipSCFailures,
@@ -1730,8 +1730,6 @@ var urls = {
       return {
         data: JSON.stringify({
           "Upgrade": {
-            "from_version": data.from,
-            "repository_version": data.value,
             "upgrade_type": data.upgradeType,
             "direction": "DOWNGRADE"
           }
@@ -3103,7 +3101,7 @@ var ajax = Em.Object.extend({
   MAX_GET_URL_LENGTH: 2048,
 
   consoleMsg: function(name, url) {
-    return Em.I18n.t('app.logger.ajax').format(name, url.substr(7, 100));
+    return Em.I18n.t('app.logger.ajax').format(name, url ? url.substr(7, 100) : '');
   },
 
   /**
@@ -3133,7 +3131,7 @@ var ajax = Em.Object.extend({
     if(config.hasOwnProperty("showLoadingPopup") && config.showLoadingPopup === true) {
       loadingPopupTimeout = setTimeout(function() {
         loadingPopup = App.ModalPopup.show({
-          header: Em.I18n.t('jobs.loadingTasks'),
+          header: Em.I18n.t('common.loading.eclipses'),
           backdrop: false,
           primary: false,
           secondary: false,

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -95,45 +95,45 @@ public class ClusterServiceTest extends BaseServiceTest {
     args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, null));
 
-    //createArtifact
+    //createClusterArtifact
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("createArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    m = clusterService.getClass().getMethod("createClusterArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifactName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.POST, clusterService, m, args, "body"));
 
-    //getArtifact
+    //getClusterArtifact
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("getArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    m = clusterService.getClass().getMethod("getClusterArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifact_name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, "body"));
 
-    //getArtifacts
+    //getClusterArtifacts
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("getArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    m = clusterService.getClass().getMethod("getClusterArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, "body"));
 
-    //updateArtifact
+    //updateClusterArtifact
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("updateArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    m = clusterService.getClass().getMethod("updateClusterArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifactName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, clusterService, m, args, "body"));
 
-    //updateArtifacts
+    //updateClusterArtifacts
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("updateArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    m = clusterService.getClass().getMethod("updateClusterArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, clusterService, m, args, "body"));
 
-    //deleteArtifact
+    //deleteClusterArtifact
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("deleteArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    m = clusterService.getClass().getMethod("deleteClusterArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifactName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, "body"));
 
-    //deleteArtifacts
+    //deleteClusterArtifacts
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("deleteArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    m = clusterService.getClass().getMethod("deleteClusterArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, "body"));
 

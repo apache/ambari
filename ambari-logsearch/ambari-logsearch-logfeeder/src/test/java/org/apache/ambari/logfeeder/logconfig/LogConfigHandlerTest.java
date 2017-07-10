@@ -21,13 +21,10 @@ package org.apache.ambari.logfeeder.logconfig;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
-import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.loglevelfilter.FilterLogData;
@@ -36,6 +33,7 @@ import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,16 +42,18 @@ public class LogConfigHandlerTest {
   private static InputMarker inputMarkerAudit;
   private static InputMarker inputMarkerService;
   static {
-    Map<String, Object> auditMap = new HashMap<String, Object>();
-    auditMap.put(LogFeederConstants.ROW_TYPE, "audit");
+    InputDescriptorImpl auditInputDescriptor = new InputDescriptorImpl() {};
+    auditInputDescriptor.setRowtype("audit");
+    
     Input auditInput = strictMock(Input.class);
-    expect(auditInput.getConfigs()).andReturn(auditMap).anyTimes();
+    expect(auditInput.getInputDescriptor()).andReturn(auditInputDescriptor).anyTimes();
     inputMarkerAudit = new InputMarker(auditInput, null, 0);
     
-    Map<String, Object> serviceMap = new HashMap<String, Object>();
-    serviceMap.put(LogFeederConstants.ROW_TYPE, "service");
+    InputDescriptorImpl serviceInputDescriptor = new InputDescriptorImpl() {};
+    serviceInputDescriptor.setRowtype("service");
+    
     Input serviceInput = strictMock(Input.class);
-    expect(serviceInput.getConfigs()).andReturn(serviceMap).anyTimes();
+    expect(serviceInput.getInputDescriptor()).andReturn(serviceInputDescriptor).anyTimes();
     inputMarkerService = new InputMarker(serviceInput, null, 0);
     
     replay(auditInput, serviceInput);
@@ -61,7 +61,7 @@ public class LogConfigHandlerTest {
   
   @BeforeClass
   public static void init() throws Exception {
-    LogFeederUtil.loadProperties("logfeeder.properties", null);
+    LogFeederUtil.loadProperties("logfeeder.properties");
     
     LogSearchConfig config = strictMock(LogSearchConfig.class);
     config.createLogLevelFilter(anyString(), anyString(), anyObject(LogLevelFilter.class));

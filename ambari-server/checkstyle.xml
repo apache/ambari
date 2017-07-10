@@ -11,8 +11,13 @@
   "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
   "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 <module name="Checker">
+  <!-- Checkstyle binds to phase "validate" by default.
+  Run independently as, cd ambari-server ; mvn checkstyle:checkstyle
+  Or can skip as, mvn ... -Dcheckstyle.skip
+  -->
   <module name="TreeWalker">
     <module name="AvoidTransactionalOnPrivateMethodsCheck"/>
+    <module name="UndocumentedRestApiOperationCheck"/> <!-- Swagger -->
 
     <module name="FallThrough"/>
 

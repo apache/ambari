@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,13 +37,15 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
-  
-  public static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
-      .getPropertyId("RootService", "service_name");
+import com.google.common.collect.ImmutableSet;
 
-  private Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{SERVICE_NAME_PROPERTY_ID}));
+public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
+
+  public static final String RESPONSE_KEY = "RootService";
+  public static final String SERVICE_NAME = "service_name";
+  public static final String SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_NAME;
+
+  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(SERVICE_NAME_PROPERTY_ID);
 
   protected RootServiceResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -80,10 +81,7 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
 
     for (RootServiceResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RootService);
-
-      setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
-          response.getServiceName(), requestedIds);
-
+      setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
       resources.add(resource);
     }
 
@@ -96,7 +94,7 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds ;
+    return PK_PROPERTY_IDS;
   }
 
 }

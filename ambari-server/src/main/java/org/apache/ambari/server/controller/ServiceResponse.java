@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,36 +18,45 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class ServiceResponse {
 
   private Long clusterId;
   private String clusterName;
   private String serviceName;
-  private String desiredStackVersion;
+  private StackId desiredStackId;
+  private String desiredRepositoryVersion;
+  private RepositoryVersionState repositoryVersionState;
   private String desiredState;
   private String maintenanceState;
   private boolean credentialStoreSupported;
   private boolean credentialStoreEnabled;
 
-  public ServiceResponse(Long clusterId, String clusterName,
-                         String serviceName,
-                         String desiredStackVersion, String desiredState,
-                         boolean credentialStoreSupported, boolean credentialStoreEnabled) {
+  public ServiceResponse(Long clusterId, String clusterName, String serviceName,
+      StackId desiredStackId, String desiredRepositoryVersion,
+      RepositoryVersionState repositoryVersionState, String desiredState,
+      boolean credentialStoreSupported, boolean credentialStoreEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    this.setDesiredStackVersion(desiredStackVersion);
-    this.setDesiredState(desiredState);
+    this.desiredStackId = desiredStackId;
+    this.repositoryVersionState = repositoryVersionState;
+    setDesiredState(desiredState);
+    this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
   }
-  
-  
+
+
 
   /**
    * @return the serviceName
    */
+  @ApiModelProperty(name = "service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -62,6 +71,7 @@ public class ServiceResponse {
   /**
    * @return the clusterId
    */
+  @ApiModelProperty(hidden = true)
   public Long getClusterId() {
     return clusterId;
   }
@@ -76,6 +86,7 @@ public class ServiceResponse {
   /**
    * @return the clusterName
    */
+  @ApiModelProperty(name = "cluster_name")
   public String getClusterName() {
     return clusterName;
   }
@@ -90,6 +101,7 @@ public class ServiceResponse {
   /**
    * @return the desiredState
    */
+  @ApiModelProperty(name = "state")
   public String getDesiredState() {
     return desiredState;
   }
@@ -102,23 +114,41 @@ public class ServiceResponse {
   }
 
   /**
-   * @return the desiredStackVersion
+   * @return the desired stack ID.
    */
-  public String getDesiredStackVersion() {
-    return desiredStackVersion;
+  @ApiModelProperty(hidden = true)
+  public String getDesiredStackId() {
+    return desiredStackId.getStackId();
+ 
   }
 
   /**
-   * @param desiredStackVersion the desiredStackVersion to set
+   * Gets the desired repository version.
+   *
+   * @return the desired repository version.
    */
-  public void setDesiredStackVersion(String desiredStackVersion) {
-    this.desiredStackVersion = desiredStackVersion;
+  public String getDesiredRepositoryVersion() {
+    return desiredRepositoryVersion;
+  }
+
+  /**
+   * Gets the calculated repository version state from the components of this
+   * service.
+   *
+   * @return the desired repository version state
+   */
+  public RepositoryVersionState getRepositoryVersionState() {
+    return repositoryVersionState;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceResponse that = (ServiceResponse) o;
 
@@ -137,11 +167,12 @@ public class ServiceResponse {
 
     return true;
   }
-  
+
   public void setMaintenanceState(String state) {
     maintenanceState = state;
   }
-  
+
+  @ApiModelProperty(name = "maintenance_state")
   public String getMaintenanceState() {
     return maintenanceState;
   }
@@ -152,6 +183,7 @@ public class ServiceResponse {
    *
    * @return true or false
    */
+  @ApiModelProperty(name = "credential_store_supported")
   public boolean isCredentialStoreSupported() {
     return credentialStoreSupported;
   }
@@ -172,6 +204,7 @@ public class ServiceResponse {
    *
    * @return true or false
    */
+  @ApiModelProperty(name = "credential_store_enabled")
   public boolean isCredentialStoreEnabled() {
     return credentialStoreEnabled;
   }
@@ -194,4 +227,11 @@ public class ServiceResponse {
     return result;
   }
 
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface ServiceResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "ServiceInfo")
+    ServiceResponse getServiceResponse();
+  }
 }

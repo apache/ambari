@@ -26,6 +26,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.xml.bind.JAXBException;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,7 @@ public class KeyService {
   }
 
   @Path("{number}")
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public String getKeys(@PathParam("number") int number) throws IOException, JAXBException {
     Collection<String> keys = persistKeyVal.generateKeys(number);

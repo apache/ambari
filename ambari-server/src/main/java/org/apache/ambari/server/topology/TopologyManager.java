@@ -33,8 +33,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -80,6 +78,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
@@ -114,6 +114,9 @@ public class TopologyManager {
   private final Collection<LogicalRequest> outstandingRequests = new ArrayList<>();
   //todo: currently only support a single cluster
   private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<>();
+
+  @Inject
+  private Injector injector;
 
   @Inject
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
@@ -290,6 +293,7 @@ public class TopologyManager {
 
     topologyValidatorService.validateTopologyConfiguration(topology);
 
+
     // create resources
     ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
 
@@ -323,7 +327,6 @@ public class TopologyManager {
 
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true,
       stackAdvisorBlueprintProcessor, securityType == SecurityType.KERBEROS));
-
 
     // Notify listeners that cluster configuration finished
     executor.submit(new Callable<Boolean>() {
@@ -523,8 +526,11 @@ public class TopologyManager {
     if (!logicalRequest.hasPendingHostRequests()) {
       outstandingRequests.remove(logicalRequest);
     }
+    if (logicalRequest.getHostRequests().isEmpty()) {
+      allRequests.remove(requestId);
+    }
 
-    persistedState.removeHostRequests(pendingHostRequests);
+    persistedState.removeHostRequests(requestId, pendingHostRequests);
 
     // set current host count to number of currently connected hosts
     for (HostGroupInfo currentHostGroupInfo : topology.getHostGroupInfo().values()) {
@@ -532,6 +538,31 @@ public class TopologyManager {
     }
 
     LOG.info("TopologyManager.removePendingHostRequests: Exit");
+  }
+
+  /**
+   * Removes topology host requests matched to the given host.  If the parent
+   * request has no more child host requests, then it is also removed.
+   * This is used when hosts are deleted from the cluster.
+   *
+   * @param hostName the host name for which requests should be removed
+   */
+  public void removeHostRequests(String hostName) {
+    ensureInitialized();
+
+    for (Iterator<LogicalRequest> iter = allRequests.values().iterator(); iter.hasNext(); ) {
+      LogicalRequest logicalRequest = iter.next();
+      Collection<HostRequest> removed = logicalRequest.removeHostRequestByHostName(hostName);
+      if (!logicalRequest.hasPendingHostRequests()) {
+        outstandingRequests.remove(logicalRequest);
+      }
+      if (logicalRequest.getHostRequests().isEmpty()) {
+        iter.remove();
+      }
+      if (!removed.isEmpty()) {
+        persistedState.removeHostRequests(logicalRequest.getRequestId(), removed);
+      }
+    }
   }
 
   /**
@@ -893,11 +924,8 @@ public class TopologyManager {
       // update the host with the rack info if applicable
       updateHostWithRackInfo(topology, response, host);
 
-    } catch (InvalidTopologyException e) {
+    } catch (InvalidTopologyException | NoSuchHostGroupException e) {
       // host already registered
-      throw new RuntimeException("An internal error occurred while performing request host registration: " + e, e);
-    } catch (NoSuchHostGroupException e) {
-      // invalid host group
       throw new RuntimeException("An internal error occurred while performing request host registration: " + e, e);
     }
 

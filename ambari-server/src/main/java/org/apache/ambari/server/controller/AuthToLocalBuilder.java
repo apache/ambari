@@ -242,6 +242,9 @@ public class AuthToLocalBuilder implements Cloneable {
         case SPACES:
           stringBuilder.append(" ");
           break;
+        case COMMA:
+          stringBuilder.append(",");
+          break;
         default:
           throw new UnsupportedOperationException(String.format("The auth-to-local rule concatenation type is not supported: %s",
               concatenationType.name()));
@@ -661,8 +664,11 @@ public class AuthToLocalBuilder implements Cloneable {
     /**
      * Each rule is appended to the set of rules using a space - the ruleset exists on a single line
      */
-    SPACES;
-
+    SPACES,
+    /**
+     * Each rule is appended to the set of rules using comma - the ruleset exists on a single line.
+     */
+    COMMA;
     /**
      * Translate a string declaring a concatenation type to the enumerated value.
      * <p/>

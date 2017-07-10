@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -50,7 +50,6 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -97,10 +96,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "state");
   public static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_state");
-  public static final String HOST_COMPONENT_STACK_ID_PROPERTY_ID
-      = PropertyHelper.getPropertyId("HostRoles", "stack_id");
+  public static final String HOST_COMPONENT_VERSION_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "version");
   public static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_stack_id");
+  public static final String HOST_COMPONENT_DESIRED_REPOSITORY_VERSION
+    = PropertyHelper.getPropertyId("HostRoles", "desired_repository_version");
   public static final String HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "actual_configs");
   public static final String HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID
@@ -109,8 +110,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "desired_admin_state");
   public static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID
       = "HostRoles/maintenance_state";
-  public static final String HOST_COMPONENT_HDP_VERSION_PROPERTY_ID
-      = PropertyHelper.getPropertyId("HostRoles", "hdp_version");
   public static final String HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID = "HostRoles/upgrade_state";
 
   //Parameters from the predicate
@@ -237,8 +236,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.getLiveState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID,
               response.getDesiredState(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_STACK_ID_PROPERTY_ID,
-              response.getStackVersion(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_VERSION_PROPERTY_ID, response.getVersion(),
+          requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID,
               response.getDesiredStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID,
@@ -247,15 +246,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.isStaleConfig(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID,
               response.getUpgradeState(), requestedIds);
-
-      if (requestedIds.contains(HOST_COMPONENT_HDP_VERSION_PROPERTY_ID)) {
-        HostVersionEntity versionEntity = hostVersionDAO.
-            findByHostAndStateCurrent(response.getClusterName(), response.getHostname());
-        if (versionEntity != null) {
-          setResourceProperty(resource, HOST_COMPONENT_HDP_VERSION_PROPERTY_ID,
-              versionEntity.getRepositoryVersion().getDisplayName(), requestedIds);
-        }
-      }
+      setResourceProperty(resource, HOST_COMPONENT_DESIRED_REPOSITORY_VERSION,
+          response.getDesiredRepositoryVersion(), requestedIds);
 
       if (response.getAdminState() != null) {
         setResourceProperty(resource, HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
@@ -562,7 +554,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         // throw exception if desired state isn't a valid desired state (static check)
         if (!newState.isValidDesiredState()) {
           throw new IllegalArgumentException("Invalid arguments, invalid"
-              + " desired state, desiredState=" + newState.toString());
+              + " desired state, desiredState=" + newState);
         }
       }
 
@@ -684,7 +676,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
     serviceComponentHostRequest.setState((String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
-    serviceComponentHostRequest.setDesiredStackId((String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
     if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setStaleConfig(
           properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
@@ -724,8 +715,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     if (properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setDesiredState((String)properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
     }
-    serviceComponentHostRequest.setDesiredStackId(
-            (String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
     if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setStaleConfig(
               properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());

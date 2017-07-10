@@ -211,7 +211,9 @@ search_backend_solr = atlas_search_backend.startswith('solr')
 infra_solr_znode = default("/configurations/infra-solr-env/infra_solr_znode", None)
 infra_solr_hosts = default("/clusterHostInfo/infra_solr_hosts", [])
 infra_solr_replication_factor = 2 if len(infra_solr_hosts) > 1 else 1
-atlas_solr_shards = default("/configurations/atlas-env/atlas_solr-shards", 1)
+if 'atlas_solr_replication_factor' in config['configurations']['atlas-env']:
+  infra_solr_replication_factor = int(default("/configurations/atlas-env/atlas_solr_replication_factor", 1))
+atlas_solr_shards = default("/configurations/atlas-env/atlas_solr_shards", 1)
 has_infra_solr = len(infra_solr_hosts) > 0
 infra_solr_role_atlas = default('configurations/infra-solr-security-json/infra_solr_role_atlas', 'atlas_user')
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')

@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.LogDefinition;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
@@ -196,14 +197,17 @@ public class LoggingSearchPropertyProviderTest {
       LogDefinition logDefinitionMock =
           mockSupport.createMock(LogDefinition.class);
 
+      Service serviceMock = mockSupport.createNiceMock(Service.class);
+      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
+      expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
+
       expect(controllerMock.getAmbariServerURI(expectedSearchEnginePath)).
           andReturn(expectedAmbariURL + expectedSearchEnginePath).atLeastOnce();
       expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();
-      expect(metaInfoMock.getComponentToService(expectedStackName, expectedStackVersion, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(metaInfoMock.getComponent(expectedStackName, expectedStackVersion, expectedServiceName, expectedComponentName)).andReturn(componentInfoMock).atLeastOnce();
       expect(stackIdMock.getStackName()).andReturn(expectedStackName).atLeastOnce();
       expect(stackIdMock.getStackVersion()).andReturn(expectedStackVersion).atLeastOnce();
-      expect(clusterMock.getCurrentStackVersion()).andReturn(stackIdMock).atLeastOnce();
 
       expect(componentInfoMock.getLogs()).andReturn(Collections.singletonList(logDefinitionMock)).atLeastOnce();
       expect(logDefinitionMock.getLogId()).andReturn(expectedLogSearchComponentName).atLeastOnce();
@@ -401,6 +405,11 @@ public class LoggingSearchPropertyProviderTest {
       LoggingRequestHelper loggingRequestHelperMock =
           mockSupport.createMock(LoggingRequestHelper.class);
 
+      Service serviceMock = mockSupport.createNiceMock(Service.class);
+      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
+      expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
+
       expect(dataRetrievalServiceMock.getLogFileNames(expectedLogSearchComponentName, "c6401.ambari.apache.org", "clusterone")).andReturn(Collections.singleton(expectedLogFilePath)).atLeastOnce();
       // return null, to simulate the case when the LogSearch service goes down, and the helper object
       // is not available to continue servicing the request.
@@ -413,7 +422,6 @@ public class LoggingSearchPropertyProviderTest {
           andReturn(expectedAmbariURL + expectedSearchEnginePath).atLeastOnce();
       expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();
 
-      expect(metaInfoMock.getComponentToService(expectedStackName, expectedStackVersion, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(metaInfoMock.getComponent(expectedStackName, expectedStackVersion, expectedServiceName, expectedComponentName)).andReturn(componentInfoMock).atLeastOnce();
 
       expect(componentInfoMock.getLogs()).andReturn(Collections.singletonList(logDefinitionMock)).atLeastOnce();
@@ -421,9 +429,8 @@ public class LoggingSearchPropertyProviderTest {
 
       expect(stackIdMock.getStackName()).andReturn(expectedStackName).atLeastOnce();
       expect(stackIdMock.getStackVersion()).andReturn(expectedStackVersion).atLeastOnce();
-      expect(clusterMock.getCurrentStackVersion()).andReturn(stackIdMock).atLeastOnce();
     }
-    
+
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster("clusterone")).andReturn(clusterMock).atLeastOnce();
     expect(clusterMock.getResourceId()).andReturn(4L).atLeastOnce();
@@ -502,7 +509,7 @@ public class LoggingSearchPropertyProviderTest {
   public void testCheckWhenLogSearchNotAvailableAsClusterUser() throws Exception {
     testCheckWhenLogSearchNotAvailable(TestAuthenticationFactory.createClusterUser(), false);
   }
-  
+
   /**
    * Verifies that this property provider implementation will
    * properly handle the case of LogSearch not being deployed in
@@ -565,12 +572,16 @@ public class LoggingSearchPropertyProviderTest {
       LoggingRequestHelper loggingRequestHelperMock =
           mockSupport.createMock(LoggingRequestHelper.class);
 
+      Service serviceMock = mockSupport.createNiceMock(Service.class);
+      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
+      expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
+
+
       expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();
       expect(stackIdMock.getStackName()).andReturn(expectedStackName).atLeastOnce();
       expect(stackIdMock.getStackVersion()).andReturn(expectedStackVersion).atLeastOnce();
-      expect(clusterMock.getCurrentStackVersion()).andReturn(stackIdMock).atLeastOnce();
 
-      expect(metaInfoMock.getComponentToService(expectedStackName, expectedStackVersion, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(metaInfoMock.getComponent(expectedStackName, expectedStackVersion, expectedServiceName, expectedComponentName)).andReturn(componentInfoMock).atLeastOnce();
 
       // simulate the case when LogSearch is not deployed, or is not available for some reason

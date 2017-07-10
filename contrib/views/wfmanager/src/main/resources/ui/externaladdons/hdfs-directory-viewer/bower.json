@@ -10,7 +10,6 @@
     "loader.js": "^3.5.0",
     "qunit": "~1.20.0",
     "bootstrap": "~3.3.6",
-    "bootstrap-treeview": "~1.2.0",
     "font-awesome": "~4.5.0"
   },
   "resolutions": {

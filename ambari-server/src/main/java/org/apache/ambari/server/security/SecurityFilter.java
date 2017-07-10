@@ -1,4 +1,4 @@
-/**
+/*
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -31,8 +31,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SecurityFilter implements Filter {
 
@@ -40,7 +40,7 @@ public class SecurityFilter implements Filter {
   private static String CA = "/ca";
 
   private static Configuration config;
-  private final static Log LOG = LogFactory.getLog(SecurityFilter.class);
+  private final static Logger LOG = LoggerFactory.getLogger(SecurityFilter.class);
 
   @Override
   public void destroy() {
@@ -53,7 +53,7 @@ public class SecurityFilter implements Filter {
     HttpServletRequest req = (HttpServletRequest) serReq;
     String reqUrl = req.getRequestURL().toString();
 
-    LOG.debug("Filtering " + reqUrl + " for security purposes");
+    LOG.debug("Filtering {} for security purposes", reqUrl);
     if (serReq.getLocalPort() != config.getTwoWayAuthPort()) {
       if (isRequestAllowed(reqUrl)) {
         filtCh.doFilter(serReq, serResp);
@@ -63,7 +63,7 @@ public class SecurityFilter implements Filter {
       }
     }
 	  else {
-      LOG.debug("Request can continue on secure port " + serReq.getLocalPort());
+      LOG.debug("Request can continue on secure port {}", serReq.getLocalPort());
       filtCh.doFilter(serReq, serResp);
     }
   }
@@ -98,7 +98,7 @@ public class SecurityFilter implements Filter {
 
     } catch (Exception e) {
       LOG.warn("Exception while validating if request is secure " +
-        e.toString());
+        e);
     }
     LOG.warn("Request " + reqUrl + " doesn't match any pattern.");
     return false;

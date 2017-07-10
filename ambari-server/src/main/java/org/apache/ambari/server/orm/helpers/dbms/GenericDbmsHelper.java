@@ -120,7 +120,7 @@ public class GenericDbmsHelper implements DbmsHelper {
       // no writing to file
     }
 
-    builder.append(writer.toString());
+    builder.append(writer);
 
     return builder;
   }
@@ -270,6 +270,18 @@ public class GenericDbmsHelper implements DbmsHelper {
     return createIndex;
   }
 
+  /**
+   * Generating update SQL statement for {@link DBAccessor#executePreparedUpdate}
+   *
+   * @param tableName name of the table
+   * @param setColumnName column name, value of which need to be set
+   * @param conditionColumnName column name for the condition
+   * @return
+   */
+  @Override
+  public String getColumnUpdateStatementWhereColumnIsNull(String tableName, String setColumnName, String conditionColumnName){
+    return "UPDATE " + tableName + " SET " + setColumnName + "=? WHERE " + conditionColumnName + " IS NULL";
+  }
 
   /**
    * {@inheritDoc}
@@ -435,7 +447,7 @@ public class GenericDbmsHelper implements DbmsHelper {
     Object dbValue = databasePlatform.convertToDatabaseType(value);
     String valueString = value.toString();
     if (dbValue instanceof String || dbValue instanceof Enum) {
-      valueString = "'" + value.toString() + "'";
+      valueString = "'" + value + "'";
     }
 
     return valueString;

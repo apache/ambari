@@ -288,7 +288,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
               }
             } else {
-              LOG.debug(String.format("Skipping previously processed keytab for %s on host %s", evaluatedPrincipal, hostName));
+              LOG.debug("Skipping previously processed keytab for {} on host {}", evaluatedPrincipal, hostName);
             }
           }
         }
@@ -320,7 +320,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
   public Keytab createKeytab(String principal, String password, Integer keyNumber,
                              KerberosOperationHandler operationHandler, boolean checkCache,
                              boolean canCache, ActionLog actionLog) throws AmbariException {
-    LOG.debug("Creating keytab for " + principal + " with kvno " + keyNumber);
+    LOG.debug("Creating keytab for {} with kvno {}", principal, keyNumber);
     Keytab keytab = null;
 
     // Possibly get the keytab from the cache
@@ -366,7 +366,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
             if (previousCachedFilePath != null) {
               if (!new File(previousCachedFilePath).delete()) {
-                LOG.debug(String.format("Failed to remove orphaned cache file %s", previousCachedFilePath));
+                LOG.debug("Failed to remove orphaned cache file {}", previousCachedFilePath);
               }
             }
           }

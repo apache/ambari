@@ -15,7 +15,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+{{#if view.disableKerberos}}
+<div id="common-progress-page" class="wizard-content col-md-12">
+{{else}}
 <div id="common-progress-page" class="wizard-content col-md-9">
+{{/if}}
   <h4 class="step-title">{{view.headerTitle}}</h4>
 
   <div {{bindAttr class="view.noticeClass"}}>{{{view.notice}}}

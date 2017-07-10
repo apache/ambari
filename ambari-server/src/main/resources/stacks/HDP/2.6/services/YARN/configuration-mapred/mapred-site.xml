@@ -19,7 +19,7 @@
 <configuration supports_final="true">
     <property>
         <name>yarn.app.mapreduce.client.job.max-retries</name>
-        <value>30</value>
+        <value>60</value>
         <description>
             The number of retries the client will make for getJob and dependent calls.
         </description>

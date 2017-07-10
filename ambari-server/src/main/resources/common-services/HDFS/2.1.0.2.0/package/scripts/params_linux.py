@@ -54,6 +54,8 @@ architecture = get_architecture()
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+rolling_restart = default("/commandParams/rolling_restart", False)
+rolling_restart_safemode_exit_timeout = default("/configurations/cluster-env/namenode_rolling_restart_safemode_exit_timeout", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
@@ -168,6 +170,7 @@ klist_path_local = get_klist_path(default('/configurations/kerberos-env/executab
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 #hosts
 hostname = config["hostname"]
+public_hostname = config["public_hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
@@ -303,6 +306,9 @@ if dfs_ha_enabled:
   for nn_id in dfs_ha_namemodes_ids_list:
     nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
     if hostname.lower() in nn_host.lower():
+      namenode_id = nn_id
+      namenode_rpc = nn_host
+    elif public_hostname.lower() in nn_host.lower():
       namenode_id = nn_id
       namenode_rpc = nn_host
   # With HA enabled namenode_address is recomputed

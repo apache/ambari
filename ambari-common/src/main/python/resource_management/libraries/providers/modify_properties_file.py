@@ -37,6 +37,7 @@ class ModifyPropertiesFileProvider(Provider):
     properties = self.resource.properties
     unsaved_values = properties.keys()
     new_content_lines = []
+    final_content_lines = ""
     
     if sudo.path_isfile(filename):
       file_content = sudo.read_file(filename, encoding=self.resource.encoding)
@@ -62,9 +63,13 @@ class ModifyPropertiesFileProvider(Provider):
       value = InlineTemplate(unicode(properties[property_name])).get_content()
       line = u"{0}{1}{2}".format(unicode(property_name), delimiter, value)
       new_content_lines.append(line)
-          
+
+    final_content_lines = u"\n".join(new_content_lines)
+    if not final_content_lines.endswith("\n"):
+      final_content_lines = final_content_lines + "\n"
+
     File (filename,
-          content = u"\n".join(new_content_lines) + "\n",
+          content = final_content_lines,
           owner = self.resource.owner,
           group = self.resource.group,
           mode = self.resource.mode,

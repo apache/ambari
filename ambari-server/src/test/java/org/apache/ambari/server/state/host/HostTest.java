@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -55,14 +55,13 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -73,7 +72,7 @@ public class HostTest {
   private Clusters clusters;
   private HostDAO hostDAO;
   private OrmTestHelper helper;
-  private static Log LOG = LogFactory.getLog(HostTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HostTest.class);
 
   @Before
    public void setup() throws AmbariException{
@@ -367,8 +366,7 @@ public class HostTest {
     Cluster c1 = clusters.getCluster("c1");
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+
     Assert.assertEquals("c1", c1.getClusterName());
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -434,8 +432,6 @@ public class HostTest {
     host.setHostAttributes(hostAttributes);
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
     c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
 

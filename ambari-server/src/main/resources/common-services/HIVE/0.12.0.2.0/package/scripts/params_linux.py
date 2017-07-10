@@ -399,7 +399,7 @@ hive_conf_dirs_list = [hive_client_conf_dir]
 ranger_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP['HIVE_SERVER']
 if status_params.role == "HIVE_METASTORE" and hive_metastore_hosts is not None and hostname in hive_metastore_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
-elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and hostname in hive_server_host:
+elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and hostname in hive_server_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
 elif status_params.role == "HIVE_SERVER_INTERACTIVE" and hive_server_interactive_hosts is not None and hostname in hive_server_interactive_hosts:
   hive_conf_dirs_list.append(status_params.hive_server_interactive_conf_dir)
@@ -493,6 +493,11 @@ if (('hive-exec-log4j' in config['configurations']) and ('content' in config['co
   log4j_exec_props = config['configurations']['hive-exec-log4j']['content']
 else:
   log4j_exec_props = None
+
+# parquet-logging.properties
+parquet_logging_properties = None
+if 'parquet-logging' in config['configurations']:
+  parquet_logging_properties = config['configurations']['parquet-logging']['content']
 
 daemon_name = status_params.daemon_name
 process_name = status_params.process_name

@@ -18,46 +18,122 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.zookeeper.data.ACL;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
+
 @Configuration
 public class SolrAuditLogPropsConfig implements SolrPropsConfig {
 
   @Value("${logsearch.solr.audit.logs.url:}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.audit.logs.url",
+    description = "URL of Solr (non cloud mode) - currently unsupported.",
+    examples = {"localhost1:8868"},
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String solrUrl;
 
   @Value("${logsearch.solr.audit.logs.zk_connect_string:}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.audit.logs.zk_connect_string",
+    description = "Zookeeper connection string for Solr (used for audit log collection).",
+    examples = {"localhost1:2181,localhost2:2181/mysolr_znode"},
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String zkConnectString;
 
   @Value("${logsearch.solr.collection.audit.logs:audit_logs}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.collection.audit.logs",
+    description = "Name of Log Search audit collection.",
+    examples = {"audit_logs"},
+    defaultValue = "audit_logs",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String collection;
 
   @Value("${logsearch.ranger.audit.logs.collection.name:}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.ranger.audit.logs.collection.name",
+    description = "Name of Ranger audit collections (can be used if ranger audits managed by the same Solr which is used for Log Search).",
+    examples = {"ranger_audits"},
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String rangerCollection;
 
   @Value("${logsearch.solr.audit.logs.config.name:audit_logs}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.audit.logs.config.name",
+    description = "Solr configuration name of the audit collection.",
+    examples = {"audit_logs"},
+    defaultValue = "audit_logs",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String configName;
 
   @Value("${logsearch.solr.audit.logs.alias.name:audit_logs_alias}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.audit.logs.alias.name",
+    description = "Alias name for audit log collection (can be used for Log Search audit collection and ranger collection as well).",
+    examples = {"audit_logs_alias"},
+    defaultValue = "audit_logs_alias",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String aliasNameIn;
 
   @Value("${logsearch.audit.logs.split.interval.mins:none}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.audit.logs.split.interval.mins",
+    description = "Will create multiple collections and use alias. (not supported right now, use implicit routingif the value is not none)",
+    examples = {"none", "15"},
+    defaultValue = "none",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String splitInterval;
 
   @Value("${logsearch.collection.audit.logs.numshards:1}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.collection.audit.logs.numshards",
+    description = "Number of Solr shards for audit collection (bootstrapping).",
+    examples = {"2"},
+    defaultValue = "1",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private Integer numberOfShards;
 
   @Value("${logsearch.collection.audit.logs.replication.factor:1}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.collection.audit.logs.replication.factor",
+    description = "Solr replication factor for audit collection (bootstrapping).",
+    examples = {"2"},
+    defaultValue = "1",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private Integer replicationFactor;
 
   @Value("#{ACLPropertiesSplitter.parseAcls('${logsearch.solr.audit.logs.zk.acls:}')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.audit.logs.zk.acls",
+    description = "List of Zookeeper ACLs for Log Search audit collection (Log Search and Solr must be able to read/write collection details)",
+    examples = {"world:anyone:r,sasl:solr:cdrwa,sasl:logsearch:cdrwa"},
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private List<ACL> zkAcls;
 
   @Value("${logsearch.solr.audit.logs.config_set.folder:/etc/ambari-logsearch-portal/conf/solr_configsets}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.audit.logs.config_set.folder",
+    description = "Location of Log Search audit collection configs for Solr.",
+    examples = {"/etc/ambari-logsearch-portal/conf/solr_configsets"},
+    defaultValue = "/etc/ambari-logsearch-portal/conf/solr_configsets",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private String configSetFolder;
 
   @Override

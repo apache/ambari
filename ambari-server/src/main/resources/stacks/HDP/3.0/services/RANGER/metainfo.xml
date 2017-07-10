@@ -20,8 +20,8 @@
     <services>
         <service>
             <name>RANGER</name>
-            <version>0.7.0.3.0</version>
-            <extends>common-services/RANGER/0.7.0.3.0</extends>
+            <version>1.0.0.3.0</version>
+            <extends>common-services/RANGER/1.0.0.3.0</extends>
         </service>
     </services>
 </metainfo>

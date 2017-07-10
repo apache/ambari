@@ -21,27 +21,81 @@ import layout from '../templates/components/directory-viewer';
 
 export default Ember.Component.extend({
   layout,
+  counter: 0,
   config: Ember.Object.create({}),
   classNames: ['directory-viewer'],
   startPath: '/',
-  treeData: Ember.A(),
+  folderName:'',
+  isDirectory: true,
+  isFile: true,
+  fileBrowserHeight: '850',
+  fileBrowserWidth: '650',
+  maxBreadCrumbsCount: 3,
+  elipsisLength: 8,
+  isFolderCreationSuccess: null,
+  isFolderCreationFailure: null,
+  isFolderCreationprogress:false,
+  // homeDirectory: '/app-logs/cstm-hdfs/logs',
+  fileSystem: Ember.A(),
   currentPath: Ember.computed.oneWay('startPath'),
-  currentQueryParam: Ember.computed('currentPath', function() {
+  currentPathArray: [{'path':'/'}],
+  breadCrumbs: {},
+  isCreateFolder : false,
+  folderAccessError: {},
+  createFolderError: {},
+  filteredFileSytemInfo: Ember.computed('fileSystem', 'isDirectory', 'isFile', function() {
+    return this.get('fileSystem').filter( (record) => {
+      if(record.traverse) {
+         return true;
+      }
+      if(this.get('isDirectory') && this.get('isFile')) {
+         return record.isDirectory || !record.isDirectory;
+      }
+      if(this.get('isDirectory')) {
+         return record.isDirectory;
+      }
+      if(this.get('isFile')) {
+         return !record.isDirectory;
+      }
+      return;
+  });
+  }),
+  currentQueryParam: Ember.computed('currentPath', 'homeDirectory', function() {
+    if(this.get('counter') === 1 && this.get('homeDirectory')){
+      this.set('currentPath', this.get('homeDirectory'));
+    }
     return Ember.$.param({path: this.get('currentPath')});
   }),
-
+  createFolderQueryParam: Ember.computed('currentPath', 'homeDirectory', 'folderName', function() {
+    return {path: this.get('currentPath')+"/"+this.get('folderName')};
+  }),
+  isDataLoading: true,
   startFetch: Ember.on('didInitAttrs', function() {
+    if(this.get('width')) {
+      this.set('fileBrowserWidth', this.get('width'));
+    }
+    if(this.get('height')) {
+      this.set('fileBrowserHeight', this.get('height'));
+    }
     this.fetchData();
   }),
-
-
+  setFileBroswerHeightAndWidth: Ember.on('didInsertElement', function() {
+    Ember.$('.top-header, #file-view-unix').css('width', this.get('fileBrowserWidth'));
+  }),
   fetchData: function() {
+    this.incrementProperty('counter');
+    this.startFileSystemFetchProgress();
+    this.set('folderAccessError', {});
     this.listPath(this.get('currentQueryParam')).then(
       (response) => {
         let list = this.filterDirectoriesIfRequired(response.files);
-        this.modifyTreeViewData(list);
+        this.stopFileSystemFetchProgress();
+        this.modifyFileSystemData(list);
       }, (error) => {
+        this.set('folderAccessError', error.responseJSON);
         this.sendAction('errorAction', error);
+        this.set('errorMsg', 'Error while accessing.Please try again.');
+        this.stopFileSystemFetchProgress();
       }
     );
   },
@@ -57,7 +111,29 @@ export default Ember.Component.extend({
       headers: headers
     });
   },
-
+  createFolder() {
+    let deferred = Ember.RSVP.defer();
+    let config = this.get('config');
+    let listUrl = config.createDirectoryUrl();
+    let headers = config.getHeaders();
+    headers = this.setHeadersForMkdir(headers);
+    Ember.$.ajax(listUrl, {
+      headers: headers,
+      method:'PUT',
+      data:JSON.stringify(this.get('createFolderQueryParam'))
+    }).done(function(data){
+        deferred.resolve(data);
+    }).fail(function(data){
+        deferred.reject(data);
+    });
+    return deferred.promise;
+  },
+  setHeadersForMkdir(headers) {
+    headers['Accept'] = 'application/json';
+    headers.dataType = 'json';
+    headers['Content-Type'] = 'application/json; charset=UTF-8';
+    return headers;
+  },
   filterDirectoriesIfRequired: function(files) {
     let showOnlyDirectories = this.get('config.showOnlyDirectories');
     return files.filter((entry) => {
@@ -65,7 +141,7 @@ export default Ember.Component.extend({
     });
   },
 
-  modifyTreeViewData: function(response) {
+  modifyFileSystemData: function(response) {
     let paths = response.map((entry) => {
       let isDirectory = entry.isDirectory;
       let icon = isDirectory ? this.get('config.folderIcon') : this.get('config.fileIcon');
@@ -74,122 +150,160 @@ export default Ember.Component.extend({
         pathSegment: this.getNameForPath(entry.path),
         isDirectory: isDirectory,
         icon: icon,
-        text: this.getNameForPath(entry.path)
+        permission: entry.permission,
+        text: this.getNameForPath(entry.path),
+        selectedClass: ''
       };
       if(isDirectory) {
         data.nodes = Ember.A();
       }
       return data;
     });
-
-    var currentPath = this.get('currentPath');
-    var newTreeData = Ember.copy(this.get('treeData'), true);
-    if(currentPath === '/') {
-      newTreeData = paths;
-    } else {
-      this.insertPathToTreeData(newTreeData, paths, currentPath.substring(1));
-    }
-
-    this.set('treeData', newTreeData);
-    this.send('refreshTreeView');
+    this.setCurrentPathAsList();
+    paths = this.insertRootAsFirstPath(paths, this.get('currentPath'));
+    this.setBreadCrumbsAndListMenu();
+    this.set('fileSystem', paths);
+    this.set('errorMsg', null);
+    this.stopFileSystemFetchProgress();
   },
-
-  insertPathToTreeData(treeData, paths, pathSegment) {
-    let firstPathSegment;
-    if (pathSegment.indexOf('/') !== -1) {
-      firstPathSegment = pathSegment.substring(0, pathSegment.indexOf('/'));
-    } else {
-      firstPathSegment = pathSegment;
+  insertRootAsFirstPath(paths, currentPath) {
+    if(currentPath !== '/') {
+       paths.unshift({traverse:true, path: this.get('currentPathArray')[this.get('currentPathArray').length-2 >=0 ?this.get('currentPathArray').length-2:this.get('currentPathArray').length-1].path});
     }
-
-    if(treeData.length === 0) {
-      treeData.pushObjects(paths);
+    return paths;
+  },
+  setBreadCrumbsAndListMenu() {
+    let currentPathArray = this.get('currentPathArray');
+    if(currentPathArray.length > this.get('maxBreadCrumbsCount')){
+       this.set("breadCrumbs", {'dropDownMenu': currentPathArray.splice(0, currentPathArray.length - this.get('maxBreadCrumbsCount')), 'breadCrumbsMenu': currentPathArray.splice(0, currentPathArray.length)});
     } else {
-      treeData.forEach((entry) => {
-        entry.state = {};
-        if (entry.pathSegment === firstPathSegment) {
-          entry.state.expanded = true;
-          if(entry.nodes.length === 0) {
-            paths.forEach((pathEntry) => {
-              entry.nodes.push(pathEntry);
-            });
-          } else {
-            this.insertPathToTreeData(entry.nodes, paths, pathSegment.substring(pathSegment.indexOf('/') + 1));
-          }
-        } else {
-          this.collapseAll(entry);
+       this.set("breadCrumbs", {'breadCrumbsMenu': currentPathArray});
+    }
+  },
+  shortenName(name) {
+    return name.length > this.get('elipsisLength') ? name.substring(0, this.get('elipsisLength'))+'...':name;
+  },
+  setCurrentPathAsList() {
+    let currentPath = this.get('currentPath'), relPath = "", currentPathArr = currentPath.split('/');
+    if(currentPath === "/") {
+      currentPathArr = [""];
+    }
+    this.set('currentPathArray', []);
+    currentPathArr.forEach(function(item, i) {
+        if(i !== 1) {
+         relPath = relPath + "/"+ item;
+        } else if(i === 1){
+         relPath = relPath + currentPathArr[i];
         }
-      });
-    }
+        console.log(relPath+" is relPath");
+        if(i === currentPathArr.length-1){
+           if(0 === currentPathArr.length-1) {
+             this.get('currentPathArray').push({'path':relPath, 'fullFileName' : item, 'name':item?this.shortenName(item):'root', isCurrentFolder: true, isRoot:true});
+           } else{
+             this.get('currentPathArray').push({'path':relPath, 'fullFileName' : item, 'name':item?this.shortenName(item):'root', isCurrentFolder: true});
+           }
+        } else if(i === 0){
+           this.get('currentPathArray').push({'path':relPath, 'fullFileName' : item, 'name':item?this.shortenName(item):'root', isRoot:true});
+        } else {
+           this.get('currentPathArray').push({'path':relPath ,'fullFileName' : item,  'name':item?this.shortenName(item):'root'});
+        }
+    }.bind(this));
   },
-
-  collapseAll: function(node) {
-    if (Ember.isNone(node.state)) {
-      node.state = {};
-    }
-    node.state.expanded = false;
-    if(!Ember.isNone(node.nodes)) {
-      node.nodes.forEach((entry) => {
-        this.collapseAll(entry);
-      });
-    }
-  },
-
   getNameForPath: function(path) {
     return path.substring(path.lastIndexOf("/") + 1);
   },
-
-  collapseAllExceptPath: function(pathSegment) {
-    let collapseAll = function(nodes, pathSegment) {
-      var firstPathSegment;
-      if (pathSegment.indexOf('/') !== -1) {
-        firstPathSegment = pathSegment.substring(0, pathSegment.indexOf('/'));
-      } else {
-        firstPathSegment = pathSegment;
-      }
-
-      nodes.forEach((entry) => {
-        if (Ember.isNone(entry.state)) {
-          entry.state = {};
-        }
-        if(firstPathSegment !== entry.pathSegment) {
-          entry.state.expanded = false;
-        } else {
-          entry.state.expanded = true;
-          collapseAll(entry.nodes, pathSegment.substring(pathSegment.indexOf('/') + 1));
-        }
-      });
-    };
-    var newTreeData = this.get('treeData');
-    collapseAll(newTreeData, pathSegment);
-    this.set('treeData', newTreeData);
-    this.send('refreshTreeView');
+  stopFolderCreationProgress() {
+    this.set('isFolderCreationprogress', false);
   },
-
+  startFolderCreationProgress() {
+    this.set('isFolderCreationprogress', true);
+  },
+  stopFileSystemFetchProgress() {
+    this.set('isDataLoading', false);
+  },
+  startFileSystemFetchProgress() {
+    this.set('isDataLoading', true);
+  },
+  resetFolderCreationMenuValidation() {
+    this.set('isFolderCreationSuccess', false);
+    this.set('isFolderCreationFailure', false);
+  },
+  folderCreationSuccess() {
+    this.set('createFolderError', {});
+    this.set('isFolderCreationSuccess', true);
+    this.set('isFolderCreationFailure', false);
+  },
+  folderCreationFailure() {
+    this.set('isFolderCreationSuccess', false);
+    this.set('isFolderCreationFailure', true);
+  },
+  resetGoToPathMenuValidation() {
+    this.set('isGoToFolderSuccess', false);
+    this.set('isGoToFolderFailure', false);
+  },
+  hideGoToPathMenu() {
+    this.set('isGoToFolder', false);
+  },
+  hideCreateFolderMenu() {
+    this.set('isCreateFolder', false);
+  },
   actions: {
-    refreshTreeView() {
-      Ember.run.later(() => {
-        this.$().treeview({
-          data: this.get('treeData'),
-          expandIcon: this.get('config.expandIcon'),
-          collapseIcon: this.get('config.collapseIcon'),
-          //emptyIcon: "fa",
-          showBorder: false,
-          onNodeSelected: (event, data) => {
-            this.set('currentPath', data.path);
-            this.sendAction('pathSelectAction', {path: data.path, isDirectory: data.isDirectory});
-          },
-          onNodeExpanded: (event, data) => {
-            this.set('currentPath', data.path);
-            if (!Ember.isNone(data.nodes) && data.nodes.length === 0) {
-              var node = this.$().treeview('getNode', data.nodeId);
-              node.icon = "fa fa-refresh fa-spin";
-              this.fetchData();
-            } else {
-              this.collapseAllExceptPath(data.path.substring(1));
-            }
+    toggleCreateFolderMenu() {
+      if(this.get('isGoToFolder')) {
+        this.hideGoToPathMenu();
+      }
+      this.toggleProperty('isCreateFolder');
+      this.resetFolderCreationMenuValidation();
+    },
+    toggleGoToFolderMenu() {
+      if(this.get('isCreateFolder')) {
+        this.hideCreateFolderMenu();
+      }
+      this.toggleProperty('isGoToFolder');
+      this.resetGoToPathMenuValidation();
+    },
+    createFolder() {
+      if(Ember.isBlank(this.get('currentPath'))) {
+        return true;
+      }
+      this.startFolderCreationProgress();
+      this.set('createFolderError', {});
+      this.createFolder().then(function() {
+         this.send('drillToPath', this.get('currentPath'));
+         this.folderCreationSuccess();
+         this.stopFolderCreationProgress();
+      }.bind(this)).catch(function(e) {
+         this.set('createFolderError', e.responseJSON);
+         this.folderCreationFailure();
+         this.stopFolderCreationProgress();
+         console.error(e);
+      }.bind(this));
+    },
+    goToFolder() {
+      if(Ember.isBlank(this.get('currentPath'))) {
+        return true;
+      }
+      this.send('drillToPath', this.get('currentPath'));
+    },
+    drillToPath(path, fileItem) {
+       if(fileItem) {
+        this.sendAction('pathSelectAction', fileItem);
+       }
+       if(path.indexOf('/') !== 0){
+         this.set('errorMsg', 'Invalid path.');
+         return;
+       }
+       this.set('currentPath', path);
+       this.fetchData();
+    },
+    selectRow(index, fileItem) {
+       this.sendAction('pathSelectAction', fileItem);
+       this.get('fileSystem').forEach(function(item, i) {
+          if(index === i && !item.traverse){
+            Ember.set(item, "selectedClass", "row-selected");
+          } else {
+            Ember.set(item, "selectedClass", "");
           }
-        });
       });
     }
   }

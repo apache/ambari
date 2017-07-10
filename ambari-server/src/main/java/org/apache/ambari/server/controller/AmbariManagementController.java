@@ -61,6 +61,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
@@ -118,7 +119,7 @@ public interface AmbariManagementController {
    * TODO move this method to Cluster? doesn't seem to be on its place
    * @return config created
    */
-  Config createConfig(Cluster cluster, String type, Map<String, String> properties,
+  Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
                       String versionTag, Map<String, Map<String, String>> propertiesAttributes);
 
   /**
@@ -447,15 +448,6 @@ public interface AmbariManagementController {
    * @throws  AmbariException if the resources cannot be read
    */
   Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests) throws AmbariException;
-
-  /**
-   * Updates repositories by stack name, version and operating system.
-   *
-   * @param requests the repositories
-   *
-   * @throws AmbariException
-   */
-  void updateRepositories(Set<RepositoryRequest> requests) throws AmbariException;
 
   /**
    * Verifies repositories' base urls.
@@ -938,6 +930,10 @@ public interface AmbariManagementController {
    * based on the actual quick links profile. If no profile is set, all links will be shown.
    */
   QuickLinkVisibilityController getQuicklinkVisibilityController();
+
+  ConfigGroupResponse getConfigGroupUpdateResults(ConfigGroupRequest configGroupRequest);
+
+  void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse);
 
   /**
    * Fetch the packlet info for a given mpack.

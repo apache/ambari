@@ -21,24 +21,21 @@ package org.apache.ambari.logfeeder.filter;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.log4j.Logger;
 
 public class FilterJSON extends Filter {
   
-  private static final Logger LOG  = Logger.getLogger(FilterJSON.class);
-
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException {
     Map<String, Object> jsonMap = null;
     try {
       jsonMap = LogFeederUtil.toJSONObject(inputStr);
     } catch (Exception e) {
       LOG.error(e.getLocalizedMessage());
-      throw new LogfeederException("Json parsing failed for inputstr = " + inputStr ,e.getCause());
+      throw new LogFeederException("Json parsing failed for inputstr = " + inputStr ,e.getCause());
     }
     Double lineNumberD = (Double) jsonMap.get("line_number");
     if (lineNumberD != null) {

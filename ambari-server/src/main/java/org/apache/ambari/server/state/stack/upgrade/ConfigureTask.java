@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -60,7 +60,7 @@ import com.google.gson.Gson;
 @XmlType(name="configure")
 public class ConfigureTask extends ServerSideActionTask {
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigureTask.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigureTask.class);
 
   /**
    * The key that represents the configuration type to change (ie hdfs-site).

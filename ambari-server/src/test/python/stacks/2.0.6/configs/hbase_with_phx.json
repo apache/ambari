@@ -28,6 +28,18 @@
     "roleParams": {}, 
     "serviceName": "HIVE",
     "role": "HIVE_SERVER",
+    "repositoryFile": {
+      "stackName": "HDP",
+      "repoVersionId": 1,
+      "repoVersion": "2",
+      "repositories": [
+        {
+          "repoName": "HDP",
+          "baseUrl": "testurl",
+          "repoId": "testrepo"
+        }
+      ]
+    },
     "commandParams": {
         "command_timeout": "300", 
         "service_package_folder": "OOZIE",

@@ -58,6 +58,7 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
           'yarn.resourcemanager.resource-tracker.address': '<replace-value>:8025',
           'yarn.resourcemanager.scheduler.address': '<replace-value>:8030',
           'yarn.resourcemanager.webapp.address': '<replace-value>:8088',
+          'yarn.resourcemanager.webapp.https.address': '<replace-value>:8090',
           'yarn.resourcemanager.hostname': '<replace-value>'
         }
       }

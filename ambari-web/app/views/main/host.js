@@ -246,8 +246,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     }
     this.combineSelectedFilter();
     //10 is an index of selected column
-    var controllerName = this.get('controller.name');
-    App.db.setSelectedHosts(controllerName, this.get('selectedHosts'));
+    App.db.setSelectedHosts(this.get('selectedHosts'));
 
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
   },
@@ -255,8 +254,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * combine selected hosts on page with selected hosts which are filtered out but added to cluster
    */
   combineSelectedFilter: function () {
-    var controllerName = this.get('controller.name');
-    var previouslySelectedHosts = App.db.getSelectedHosts(controllerName);
+    var previouslySelectedHosts = App.db.getSelectedHosts();
     var selectedHosts = [];
     var hostsOnPage = this.get('pageContent').mapProperty('hostName');
     selectedHosts = this.get('pageContent').filterProperty('selected').mapProperty('hostName');
@@ -306,7 +304,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   clearSelection: function() {
     this.get('pageContent').setEach('selected', false);
     this.set('selectAllHosts', false);
-    App.db.setSelectedHosts(this.get('controller.name'), []);
+    App.db.setSelectedHosts([]);
     this.get('selectedHosts').clear();
     this.filterSelected();
   },

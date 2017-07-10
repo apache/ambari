@@ -187,7 +187,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  * Used for injection purposes.
  */
 public class ControllerModule extends AbstractModule {
-  private static Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
   private static final String AMBARI_PACKAGE = "org.apache.ambari.server";
 
   private final Configuration configuration;

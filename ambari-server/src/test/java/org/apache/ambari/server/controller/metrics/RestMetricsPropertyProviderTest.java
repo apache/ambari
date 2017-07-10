@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -52,6 +52,8 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -115,8 +117,20 @@ public class RestMetricsPropertyProviderTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+
+
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.1.1");
+    stackDAO.create(stackEntity);
+
+
     clusters.addCluster("c1", new StackId("HDP-2.1.1"));
     c1 = clusters.getCluster("c1");
+
+
+
 
     // disable request TTL for these tests
     Configuration configuration = injector.getInstance(Configuration.class);

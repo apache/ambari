@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -333,17 +333,17 @@ public class ClusterResourceProviderTest {
     Clusters clusters = createMock(Clusters.class);
 
     Set<ClusterResponse> allResponse = new HashSet<>();
-    allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(101L, "Cluster101", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(104L, "Cluster104", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(101L, "Cluster101", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(104L, "Cluster104", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
     Set<ClusterResponse> nameResponse = new HashSet<>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
     Set<ClusterResponse> idResponse = new HashSet<>();
-    idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
     // set expectations
     Capture<Set<ClusterRequest>> captureClusterRequests = EasyMock.newCapture();
@@ -456,7 +456,7 @@ public class ClusterResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
     propertySet.add(properties);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
@@ -594,7 +594,7 @@ public class ClusterResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INIT, SecurityType.NONE, null, null, null, null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INIT, SecurityType.NONE, null, 0, null, null));
 
     Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
@@ -662,7 +662,7 @@ public class ClusterResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<>();
-    nameResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    nameResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
     Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");

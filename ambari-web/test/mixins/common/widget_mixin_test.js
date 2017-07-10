@@ -281,6 +281,7 @@ describe('App.WidgetMixin', function () {
     cases.forEach(function (item) {
       describe(item.title, function () {
         beforeEach(function() {
+          sinon.stub(mixinObject, 'loadMetrics');
           mixinObject.setProperties({
             isExportButtonHidden: false,
             childViews: item.childViews,
@@ -306,6 +307,7 @@ describe('App.WidgetMixin', function () {
         });
 
         afterEach(function() {
+          mixinObject.loadMetrics.restore();
           graph._showMessage.restore();
         });
 

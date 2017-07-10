@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +18,21 @@
 
 package org.apache.ambari.server.controller;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Used to perform CRUD operations of Action
  */
 public class ActionRequest {
+
+  static final String ACTION_NAME = "action_name";
+  static final String ACTION_TYPE = "action_type";
+  static final String INPUTS = "inputs";
+  static final String TARGET_SERVICE = "target_service";
+  static final String TARGET_COMPONENT = "target_component";
+  static final String DESCRIPTION = "description";
+  static final String TARGET_TYPE = "target_type";
+  static final String DEFAULT_TIMEOUT = "default_timeout";
 
   private String actionName;  //CRUD
   private String actionType;  //C
@@ -55,6 +66,7 @@ public class ActionRequest {
     return new ActionRequest(null, null, null, null, null, null, null, null);
   }
 
+  @ApiModelProperty(name = ACTION_NAME)
   public String getActionName() {
     return actionName;
   }
@@ -63,6 +75,7 @@ public class ActionRequest {
     this.actionName = actionName;
   }
 
+  @ApiModelProperty(name = ACTION_TYPE)
   public String getActionType() {
     return actionType;
   }
@@ -71,6 +84,7 @@ public class ActionRequest {
     this.actionType = actionType;
   }
 
+  @ApiModelProperty(name = INPUTS)
   public String getInputs() {
     return inputs;
   }
@@ -79,6 +93,7 @@ public class ActionRequest {
     this.inputs = inputs;
   }
 
+  @ApiModelProperty(name = TARGET_SERVICE)
   public String getTargetService() {
     return targetService;
   }
@@ -87,6 +102,7 @@ public class ActionRequest {
     this.targetService = targetService;
   }
 
+  @ApiModelProperty(name = TARGET_COMPONENT)
   public String getTargetComponent() {
     return targetComponent;
   }
@@ -95,6 +111,7 @@ public class ActionRequest {
     this.targetComponent = targetComponent;
   }
 
+  @ApiModelProperty(name = DESCRIPTION)
   public String getDescription() {
     return description;
   }
@@ -103,6 +120,7 @@ public class ActionRequest {
     this.description = description;
   }
 
+  @ApiModelProperty(name = TARGET_TYPE)
   public String getTargetType() {
     return targetType;
   }
@@ -111,6 +129,7 @@ public class ActionRequest {
     this.targetType = targetType;
   }
 
+  @ApiModelProperty(name = DEFAULT_TIMEOUT)
   public String getDefaultTimeout() {
     return defaultTimeout;
   }

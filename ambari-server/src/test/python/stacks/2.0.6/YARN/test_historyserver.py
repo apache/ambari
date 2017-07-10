@@ -328,7 +328,6 @@ class TestHistoryServer(RMFTestCase):
         security_enabled = False,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = UnknownConfigurationMock(),
-        change_permissions_for_parents = True,
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         dfs_type = '',
@@ -595,7 +594,6 @@ class TestHistoryServer(RMFTestCase):
         security_enabled = True,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        change_permissions_for_parents = True,
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         dfs_type = '',
@@ -712,6 +710,16 @@ class TestHistoryServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn_jaas.conf',
                               content = Template('yarn_jaas.conf.j2'),
                               owner = 'yarn',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn_nm_jaas.conf',
+                              content = Template('yarn_nm_jaas.conf.j2'),
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred_jaas.conf',
+                              content = Template('mapred_jaas.conf.j2'),
+                              owner = 'mapred',
                               group = 'hadoop',
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',

@@ -1407,7 +1407,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')|(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')|(type=kms-env&tag=' + data.Clusters.desired_configs['kms-env'].tag + ')'
+        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')|' +
+        '(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')|' +
+        '(type=kms-env&tag=' + data.Clusters.desired_configs['kms-env'].tag + ')|' +
+        '(type=kms-site&tag=' + data.Clusters.desired_configs['kms-site'].tag + ')'
       },
       success: params.callback
     });
@@ -1420,7 +1423,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method onLoadRangerConfigs
    */
   onLoadRangerConfigs: function (data) {
-    var properties = [
+    var hdfsProperties = [
         {
           type: 'core-site',
           name: 'hadoop.security.key.provider.path'
@@ -1430,12 +1433,47 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           name: 'dfs.encryption.key.provider.uri'
         }
       ],
+      kmsSiteProperties = [
+        {
+          name: 'hadoop.kms.cache.enable',
+          notHaValue: 'true',
+          haValue: 'false'
+        },
+        {
+          name: 'hadoop.kms.cache.timeout.ms',
+          notHaValue: '600000',
+          haValue: '0'
+        },
+        {
+          name: 'hadoop.kms.current.key.cache.timeout.ms',
+          notHaValue: '30000',
+          haValue: '0'
+        },
+        {
+          name: 'hadoop.kms.authentication.signer.secret.provider',
+          notHaValue: 'random',
+          haValue: 'zookeeper'
+        },
+        {
+          name: 'hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type',
+          notHaValue: 'kerberos',
+          haValue: 'none'
+        },
+        {
+          name: 'hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string',
+          notHaValue: '#HOSTNAME#:#PORT#,...',
+          haValue: this.getZookeeperConnectionString()
+        }
+      ],
       hostToInstall = this.get('rangerKMSServerHost'),
-      rkmsHosts = this.getRangerKMSServerHosts().join(';'),
+      rkmsHosts = this.getRangerKMSServerHosts(),
+      rkmsHostsStr = rkmsHosts.join(';'),
+      isHA = rkmsHosts.length > 1,
       rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'],
-      newValue = 'kms://http@' + rkmsHosts + ':' + rkmsPort + '/kms',
+      newValue = 'kms://http@' + rkmsHostsStr + ':' + rkmsPort + '/kms',
       coreSiteConfigs = data.items.findProperty('type', 'core-site'),
       hdfsSiteConfigs = data.items.findProperty('type', 'hdfs-site'),
+      kmsSiteConfigs = data.items.findProperty('type', 'kms-site'),
       groups = [
         {
           properties: {
@@ -1446,19 +1484,27 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
             'core-site': coreSiteConfigs.properties_attributes,
             'hdfs-site': hdfsSiteConfigs.properties_attributes
           }
+        },
+        {
+          properties: {
+            'kms-site': kmsSiteConfigs.properties
+          },
+          properties_attributes: {
+            'kms-site': kmsSiteConfigs.properties_attributes
+          }
         }
       ],
       propertiesToChange = this.get('allPropertiesToChange');
 
     this.saveLoadedConfigs(data);
 
-    properties.forEach(function (property) {
+    hdfsProperties.forEach(function (property) {
       var typeConfigs = data.items.findProperty('type', property.type).properties,
         currentValue = typeConfigs[property.name],
         pattern = new RegExp('^kms:\\/\\/http@(.+):' + rkmsPort + '\\/kms$'),
         patternMatch = currentValue && currentValue.match(pattern),
         currentHostsList = patternMatch && patternMatch[1].split(';').sort().join(';');
-      if (currentHostsList !== rkmsHosts) {
+      if (currentHostsList !== rkmsHostsStr) {
         typeConfigs[property.name] = newValue;
         if (this.get('isReconfigureRequired')) {
           var service = App.config.get('serviceByConfigTypeMap')[property.type];
@@ -1473,6 +1519,22 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     }, this);
+
+    kmsSiteProperties.forEach(function (property) {
+      var currentValue = kmsSiteConfigs.properties[property.name];
+      var newValue = isHA ? property.haValue : property.notHaValue;
+      kmsSiteConfigs.properties[property.name] = newValue;
+
+      propertiesToChange.pushObject({
+        propertyFileName: 'kms-site',
+        propertyName: property.name,
+        serviceDisplayName: App.Service.find().findProperty('serviceName', 'RANGER_KMS').get('displayName'),
+        initialValue: currentValue,
+        recommendedValue: newValue,
+        saveRecommended: true
+      });
+    });
+
     if (this.get('isReconfigureRequired')) {
       this.setConfigsChanges(groups);
     } else {
@@ -1492,15 +1554,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
     if (!!rangerKMSServerHost) {
       rkmsHosts.push(rangerKMSServerHost);
-      this.set('rangerKMSServerHost', '');
     }
 
     if (this.get('fromDeleteHost') || this.get('deleteRangerKMSServer')) {
-      this.set('deleteRangerKMSServer', false);
-      this.set('fromDeleteHost', false);
       return rkmsHosts.without(this.get('content.hostName'));
     }
     return rkmsHosts.sort();
+  },
+
+  getZookeeperConnectionString: function () {
+    return this.getRangerKMSServerHosts().map(function (host) {
+      return host + ':2181';
+    }).join(',');
   },
 
   /**
@@ -2613,7 +2678,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         var popup = this;
         var completeCallback = function () {
           var remainingHosts = App.db.getSelectedHosts('mainHostController').removeObject(self.get('content.hostName'));
-          App.db.setSelectedHosts('mainHostController', remainingHosts);
+          App.db.setSelectedHosts(remainingHosts);
           popup.hide();
         };
         self.doDeleteHost(completeCallback);

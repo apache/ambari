@@ -38,7 +38,7 @@ App.RepositoryVersion = DS.Model.extend({
    * status used until corresponding stack version get created
    * @type {string}
    */
-  defaultStatus: 'INIT',
+  defaultStatus: 'NOT_REQUIRED',
 
   /**
    * @type {boolean}
