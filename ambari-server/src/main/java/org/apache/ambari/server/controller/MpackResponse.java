@@ -17,7 +17,11 @@
  */
 package org.apache.ambari.server.controller;
 
+
 import org.apache.ambari.server.state.Mpacks;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Represents a mpack response.
@@ -105,5 +109,11 @@ public class MpackResponse {
     }
     MpackResponse MpackResponse = (MpackResponse) obj;
     return getMpackId().equals(MpackResponse.getMpackId());
+  }
+
+  public interface MpackResponseWrapper extends ApiModel {
+    @ApiModelProperty(name = MpackResourceProvider.RESPONSE_KEY)
+    @SuppressWarnings("unused")
+    MpackResponse getMpackResponse();
   }
 }
