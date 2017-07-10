@@ -29,7 +29,18 @@
         </changes>
       </component>
     </service>
-    
+
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
+            <type>yarn-site</type>
+            <find key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
         <changes>
@@ -46,6 +57,7 @@
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_server_configure_authentication" summary="Configuring hive authentication">
             <type>hive-site</type>
+            <transfer operation="delete" delete-key="hive.metastore.event.listeners" if-key="hive.metastore.event.listeners" if-type="hive-site" if-value="com.ibm.biginsights.bigsql.sync.BIEventListener">
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
             <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>

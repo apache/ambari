@@ -30,6 +30,17 @@
       </component>
     </service>
     
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
+            <type>yarn-site</type>
+            <find key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
         <changes>
