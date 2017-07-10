@@ -19,32 +19,15 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
-import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
 import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
-import org.apache.ambari.logsearch.config.api.model.inputconfig.Conditions;
-
-import com.google.gson.annotations.Expose;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
 
 @ShipperConfigTypeDescription(
-  name = "Conditions",
-  description = "Describes the conditions that should be met in order to match a filter to an input element.\n" +
-                "\n" +
-                "It has the following attributes:"
-)
-public class ConditionsImpl implements Conditions {
-  @ShipperConfigElementDescription(
-    path = "/filter/[]/conditions/fields",
-    type = "json object",
-    description = "The fields in the input element of which's value should be met."
+    name = "Post Map Values",
+    description = "The Post Map Values element in the [filter](filter.md) field names as keys, the values are lists of sets of " +
+                  "post map values, each describing one mapping done on a field named before obtained after filtering.\n" +
+                  "\n" +
+                  "Currently there are four kind of mappings are supported:"
   )
-  @Expose
-  private FieldsImpl fields;
-
-  public FieldsImpl getFields() {
-    return fields;
-  }
-
-  public void setFields(FieldsImpl fields) {
-    this.fields = fields;
-  }
+public abstract class MapFieldDescriptorImpl implements MapFieldDescriptor {
 }

@@ -104,6 +104,7 @@ public class DocConstants {
     public static final String GET_AUTH_DETAILS_OD = "Get authentication details.";
     public static final String GET_ALL_PROPERTIES_INFO_OD = "List all available properties for Log Search and Log Feeder";
     public static final String GET_LOGSEARCH_PROPERTIES_INFO_OD = "List all available properties for Log Search property file (e.g: logsearch.properties/logfeeder.properties)";
+    public static final String GET_ALL_SHIPPER_CONFIG_INFO_OD = "List all available shipper configuration element";
   }
 
   public class EventHistoryDescriptions {

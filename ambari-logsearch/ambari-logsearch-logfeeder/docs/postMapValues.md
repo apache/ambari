@@ -67,4 +67,4 @@ The name of the mapping element should be map\_anonymize. The value json element
 | Field      | Description                                                                                                     |
 |------------|-----------------------------------------------------------------------------------------------------------------|
 | pattern    | The pattern to use to identify parts to anonymize. The parts to hide should be marked with the "<hide>" string. |
-| hide\_char | The character to hide with, if it is not specified then the default is 'X'                                      |
+| hide\_char | The character to hide with, if it is not specified then the default is '*'                                      |

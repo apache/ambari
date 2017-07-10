@@ -21,11 +21,25 @@ package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
 import java.util.Set;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Fields;
 
 import com.google.gson.annotations.Expose;
 
+@ShipperConfigTypeDescription(
+    name = "Fields",
+    description = "Describes a the fields which's value should be met in order to match a filter to an input element.\n" +
+                  "\n" +
+                  "It has the following attributes:"
+  )
 public class FieldsImpl implements Fields {
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/conditions/fields/type",
+    type = "list of strings",
+    description = "The acceptable values for the type field in the input element.",
+    examples = {"ambari_server", "\"spark_jobhistory_server\", \"spark_thriftserver\", \"livy_server\""}
+  )
   @Expose
   private Set<String> type;
 

@@ -25,7 +25,9 @@ import java.util.Map;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.common.PropertyDescriptionStorage;
+import org.apache.ambari.logsearch.common.ShipperConfigDescriptionStorage;
 import org.apache.ambari.logsearch.model.response.PropertyDescriptionData;
+import org.apache.ambari.logsearch.model.response.ShipperConfigDescriptionData;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,6 +40,9 @@ public class InfoManager extends JsonManagerBase {
 
   @Inject
   private PropertyDescriptionStorage propertyDescriptionStore;
+
+  @Inject
+  private ShipperConfigDescriptionStorage shipperConfigDescriptionStore;
 
   public Map<String, Boolean> getAuthMap() {
     Map<String, Boolean> authMap = new HashMap<>();
@@ -55,5 +60,9 @@ public class InfoManager extends JsonManagerBase {
 
   public List<PropertyDescriptionData> getLogSearchPropertyDescriptions(String propertiesFile) {
     return getPropertyDescriptions().get(propertiesFile);
+  }
+  
+  public List<ShipperConfigDescriptionData> getLogSearchShipperConfigDescription() {
+    return shipperConfigDescriptionStore.getShipperConfigDescription();
   }
 }
