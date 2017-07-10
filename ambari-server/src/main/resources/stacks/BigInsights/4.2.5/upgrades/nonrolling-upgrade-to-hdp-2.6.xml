@@ -177,6 +177,11 @@
       </execute-stage>
 
       <!-- YARN -->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Update Yarn configurations">
+        <task xsi:type="configure" id="biginsights_4_2_yarn_config_update" />
+      </execute-stage>
+
+      <!-- YARN -->
       <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
         <task xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" />
       </execute-stage>
