@@ -243,6 +243,22 @@ App.MainAdminStackVersionsView = Em.View.extend({
         self.doPolling();
       });
     }
+  },
+
+  showRemoveIopSelect: function() {
+    return App.get('currentStackName') === 'BigInsights' && !App.get('upgradeIsRunning');
+  }.property('App.currentStackName', 'App.upgradeIsRunning'),
+
+  removeIopSelect: function() {
+    return App.showConfirmationPopup(function () {
+      App.ajax.send({
+        name: 'admin.stack_versions.removeIopSelect',
+        sender: this,
+        data: {
+          hosts: App.get('allHostNames').join(',')
+        }
+      });
+    });
   }
 
 });

@@ -485,4 +485,46 @@ describe('App.mainAdminStackVersionsView', function () {
       expect(view.get('controller').load.called).to.be.false;
     });
   });
+
+  describe('#showRemoveIopSelect', function() {
+    beforeEach(function() {
+      this.mockApp = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mockApp.restore();
+    });
+
+    it('should be true when BigInsights stack and upgrade not running', function() {
+      this.mockApp.withArgs('currentStackName').returns('BigInsights');
+      this.mockApp.withArgs('upgradeIsRunning').returns(false);
+      expect(view.get('showRemoveIopSelect')).to.be.true;
+    });
+
+    it('should be false when BigInsights stack and upgrade running', function() {
+      this.mockApp.withArgs('currentStackName').returns('BigInsights');
+      this.mockApp.withArgs('upgradeIsRunning').returns(true);
+      expect(view.get('showRemoveIopSelect')).to.be.false;
+    });
+
+    it('should be false when HDP stack and upgrade not running', function() {
+      this.mockApp.withArgs('currentStackName').returns('HDP');
+      this.mockApp.withArgs('upgradeIsRunning').returns(false);
+      expect(view.get('showRemoveIopSelect')).to.be.false;
+    });
+  });
+
+  describe('#removeIopSelect', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'showConfirmationPopup', Em.clb);
+    });
+    afterEach(function() {
+      App.showConfirmationPopup.restore();
+    });
+
+    it('App.ajax.send should be called', function() {
+      view.removeIopSelect();
+      var args = testHelpers.findAjaxRequest('name', 'admin.stack_versions.removeIopSelect');
+      expect(args[0]).exists;
+    });
+  });
 });
