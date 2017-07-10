@@ -23,6 +23,7 @@ limitations under the License.
     <name>hive.security.authenticator.manager</name>
     <value>org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator</value>
     <description>Hive client authenticator manager class name. The user-defined authenticator class should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>hive-env</type>
@@ -36,6 +37,7 @@ limitations under the License.
     <value>org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory</value>
     <description>the hive client authorization manager class name.
       The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>hive-env</type>
@@ -49,6 +51,7 @@ limitations under the License.
     <value>false</value>
     <description>enable or disable the Hive client authorization</description>
     <display-name>Enable Authorization</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>

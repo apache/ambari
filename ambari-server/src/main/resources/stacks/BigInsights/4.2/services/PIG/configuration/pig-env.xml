@@ -33,6 +33,7 @@ HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
 #  PIG_OPTS="$PIG_OPTS -Dmapreduce.framework.name=yarn"
 #fi
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
   
 </configuration>

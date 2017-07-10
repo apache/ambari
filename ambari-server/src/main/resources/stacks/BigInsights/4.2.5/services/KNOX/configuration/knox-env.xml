@@ -25,6 +25,7 @@
     <display-name>Knox Logs dir</display-name>
     <value>/var/log/knox</value>
     <description>Knox Log dir.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>

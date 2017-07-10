@@ -26,6 +26,7 @@
     <value>MYSQL</value>
     <display-name>DB FLAVOR</display-name>
     <description>The database type to be used (mysql/oracle)</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
       <type>value-list</type>
@@ -59,6 +60,7 @@
   <property>
     <name>SQL_COMMAND_INVOKER</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
   -->
   
@@ -67,6 +69,7 @@
     <display-name>Location of Sql Connector Jar</display-name>
     <value>/usr/share/java/mysql-connector-java.jar</value>
     <description>Location of DB client library (please check the location of the jar file)</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -77,6 +80,7 @@
     <value>root</value>
     <display-name>Database Administrator (DBA) username</display-name>
     <description>Database admin user. This user should have DBA permission to create the Ranger Database and Ranger Database User</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -88,6 +92,7 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Database password for the database admin user-id</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -98,6 +103,7 @@
     <display-name>Ranger DB host</display-name>
     <value></value>
     <description>Database host</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -108,6 +114,7 @@
     <display-name>Ranger DB name</display-name>
     <value>ranger</value>
     <description>Database name</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -118,6 +125,7 @@
     <display-name>Ranger DB username</display-name>
     <value>rangeradmin</value>
     <description>Database username used for the Ranger schema</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -129,6 +137,7 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Database password for the Ranger schema</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -142,6 +151,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -152,6 +162,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property require-input="true">
@@ -163,6 +174,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -170,6 +182,7 @@
     <display-name>External URL</display-name>
     <value></value>
     <description>Policy Manager external url eg: http://RANGER_HOST:6080</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -197,6 +210,7 @@
     <display-name>HTTP enabled</display-name>
     <value>true</value>
     <description>HTTP Enabled</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -206,56 +220,67 @@
   <property>
     <name>authentication_method</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>remoteLoginEnabled</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>authServiceHostName</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>authServicePort</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xa_ldap_url</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xa_ldap_userDNpattern</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xa_ldap_groupSearchBase</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xa_ldap_groupSearchFilter</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xa_ldap_groupRoleAttribute</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xa_ldap_ad_domain</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xa_ldap_ad_url</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
   -->
   

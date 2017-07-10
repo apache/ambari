@@ -24,6 +24,7 @@
     <name>kms_user</name>
     <display-name>Kms User</display-name>
     <value>kms</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Kms username</description>
   </property>
@@ -32,6 +33,7 @@
     <name>kms_group</name>
     <display-name>Kms group</display-name>
     <value>kms</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>GROUP</property-type>
     <description>Kms group</description>
   </property>
@@ -40,12 +42,14 @@
     <name>kms_log_dir</name>
     <value>/var/log/ranger/kms</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>kms_port</name>
     <value>9292</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>  

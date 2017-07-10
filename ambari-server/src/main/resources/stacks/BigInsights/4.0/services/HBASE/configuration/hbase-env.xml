@@ -26,6 +26,7 @@
     <display-name>HBase Log Dir Prefix</display-name>
     <value>/var/log/hbase</value>
     <description>Log Directories for HBase.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -37,6 +38,7 @@
     <display-name>HBase PID Dir</display-name>
     <value>/var/run/hbase</value>
     <description>Pid Directory for HBase.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -48,6 +50,7 @@
     <value>2048</value>
     <description>Maximum amount of memory each HBase RegionServer can use.</description>
     <display-name>HBase RegionServer Maximum Memory</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>1024</minimum>
@@ -64,6 +67,7 @@
 		and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     </description>
     <display-name>RegionServers maximum value for -Xmn</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
@@ -74,6 +78,7 @@
     <display-name>RegionServers -Xmn in -Xmx ratio</display-name>
     <value>0.2</value>
     <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>float</type>
     </value-attributes>
@@ -83,6 +88,7 @@
     <value>2048</value>
     <description>Maximum amount of memory each HBase Master can use.</description>
     <display-name>HBase Master Maximum Memory</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>1024</minimum>
@@ -94,6 +100,7 @@
    <property>
     <name>hbase_user</name>
     <value>hbase</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>HBase User Name.</description>
   </property>
@@ -170,6 +177,7 @@ export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Xmx{{master_heapsize}}"
 export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
 {% endif %}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

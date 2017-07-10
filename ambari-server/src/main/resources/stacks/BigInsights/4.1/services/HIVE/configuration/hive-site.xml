@@ -23,6 +23,7 @@ limitations under the License.
     <name>hive.security.authenticator.manager</name>
     <value>org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator</value>
     <description>Hive client authenticator manager class name. The user-defined authenticator class should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   
   <property>
@@ -30,6 +31,7 @@ limitations under the License.
     <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
     <description>the hive client authorization manager class name.
     The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -40,6 +42,7 @@ limitations under the License.
       Hive operations as the user making the calls to it.
     </description>
     <display-name>Run as end user instead of Hive user</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -61,12 +64,13 @@ limitations under the License.
     <value>256000000</value>
     <description>size per reducer.The default is 256Mb, i.e if the input size is 1G, it will use 4 reducers.</description>
     <display-name>Data per Reducer</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>64</minimum>
       <maximum>4294967296</maximum>
       <unit>B</unit>
-      <step-increment></step-increment>
+      <increment-step></increment-step>
     </value-attributes>
   </property>
     <property>
@@ -78,6 +82,7 @@ limitations under the License.
       org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider.
     </description>
      <display-name>Hive Authorization Manager</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>string</type>
     </value-attributes>
@@ -90,6 +95,7 @@ limitations under the License.
       converted to a mapjoin(there is no conditional task). The default is 10MB.
     </description>
     <display-name>For Map Join, per Map memory threshold</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>1073741824</minimum>
@@ -107,6 +113,7 @@ limitations under the License.
       when it is brought up. JDBC/ODBC clients should use the ZooKeeper ensemble: hive.zookeeper.quorum
       in their connection string.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
@@ -116,6 +123,7 @@ limitations under the License.
     <name>hive.vectorized.groupby.checkinterval</name>
     <value>100000</value>
     <description>Number of entries added to the group by aggregation hash before a recomputation of average entry size is performed.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
  
   <property>
@@ -123,6 +131,7 @@ limitations under the License.
     <value>true</value>
     <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
     <display-name>Enable Cost Based Optimizer</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -143,6 +152,7 @@ limitations under the License.
     <value>67108864</value>
     <description>Define the default ORC stripe size</description>
     <display-name>Default ORC Stripe Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>8388608</minimum>
@@ -156,6 +166,7 @@ limitations under the License.
     <value>ZLIB</value>
     <description>Define the default compression codec for ORC file</description>
     <display-name>ORC Compression Algorithm</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -181,6 +192,7 @@ limitations under the License.
       of column statistics from metastore.
     </description>
     <display-name>Fetch column stats at compiler</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -207,6 +219,7 @@ limitations under the License.
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
     <value>NONE</value>
     <display-name>HiveServer2 Authentication</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -239,6 +252,7 @@ limitations under the License.
     <value>false</value>
     <description/>
     <display-name>Use SSL</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -261,6 +275,7 @@ limitations under the License.
       Chooses execution engine. Option is: mr (Map reduce, default) 
     </description>
     <display-name>hive.execution.engine</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -277,6 +292,7 @@ limitations under the License.
     <value>false</value>
     <description>Whether to run the compactor's initiator thread in this metastore instance or not. If there is more than one instance of the thrift metastore this should only be set to true for one of them.</description>
     <display-name>Run Compactor</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -303,6 +319,7 @@ limitations under the License.
     <value>0</value>
     <description>Number of compactor worker threads to run on this metastore instance. Can be different values on different metastore instances.</description>
     <display-name>Number of threads used by Compactor</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -321,6 +338,7 @@ limitations under the License.
     <value>TextFile</value>
     <description>Default file format for CREATE TABLE statement.</description>
     <display-name>Default File Format</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>

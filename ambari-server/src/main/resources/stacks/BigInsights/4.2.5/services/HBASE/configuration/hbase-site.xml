@@ -273,6 +273,7 @@
   <property>
     <name>hbase.table.sanity.checks</name>
     <value>true</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -379,10 +380,12 @@
   <property>
     <name>hbase.rest.authentication.type</name>
     <value>simple</value>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.rest.port</name>
     <value>8091</value>
+    <on-ambari-upgrade add="true"/>
   </property>
   
 </configuration>

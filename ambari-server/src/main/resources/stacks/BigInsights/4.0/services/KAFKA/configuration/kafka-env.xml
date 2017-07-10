@@ -24,6 +24,7 @@
   <property>
     <name>kafka_user</name>
     <value>kafka</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description></description>
   </property>
@@ -31,12 +32,14 @@
     <name>kafka_log_dir</name>
     <value>/var/log/kafka</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kafka_pid_dir</name>
     <display-name>Kafka PID dir</display-name>
     <value>/var/run/kafka</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
@@ -65,5 +68,6 @@ if [ -e "/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar" ]; th
   export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*
 fi
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -30,6 +30,7 @@
       1) embedded: Metrics stored on local FS, HBase in Standalone mode
       2) distributed: HBase daemons writing to HDFS
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.webapp.address</name>
@@ -37,6 +38,7 @@
     <description>
       The address of the metrics service web application.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.rpc.address</name>
@@ -44,6 +46,7 @@
     <description>
       The address of the metrics service rpc listeners.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.aggregator.checkpoint.dir</name>
@@ -53,6 +56,7 @@
       Directory to store aggregator checkpoints. Change to a permanent
       location so that checkpoint ar not lost.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -65,6 +69,7 @@
       Time in seconds to sleep for the minute resolution host based
       aggregator. Default resolution is 5 minutes.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -77,6 +82,7 @@
       Time in seconds to sleep for the hourly resolution host based
       aggregator. Default resolution is 1 hour.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -88,6 +94,7 @@
       Time in seconds to sleep for the day resolution host based
       aggregator. Default resolution is 24 hours.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.interval</name>
@@ -97,6 +104,7 @@
       Time in seconds to sleep for the hourly resolution cluster wide
       aggregator. Default is 1 hour.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -108,6 +116,7 @@
       Time in seconds to sleep for the day resolution cluster wide
       aggregator. Default is 24 hours.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.interval</name>
@@ -117,6 +126,7 @@
       Time in seconds to sleep for the minute resolution cluster wide
       aggregator. Default resolution is 5 minutes.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -129,6 +139,7 @@
       Time in seconds to sleep for the second resolution cluster wide
       aggregator. Default resolution is 2 minutes.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -141,6 +152,7 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier</name>
@@ -151,6 +163,7 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -164,6 +177,7 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -177,6 +191,7 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -190,6 +205,7 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -203,6 +219,7 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -215,6 +232,7 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.disabled</name>
@@ -222,6 +240,7 @@
     <description>
       Disable host based daily aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.disabled</name>
@@ -230,6 +249,7 @@
     <description>
       Disable host based hourly aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.disabled</name>
@@ -238,6 +258,7 @@
     <description>
       Disable host based minute aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.disabled</name>
@@ -245,6 +266,7 @@
     <description>
       Disable cluster based daily aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.disabled</name>
@@ -253,6 +275,7 @@
     <description>
       Disable cluster based hourly aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.disabled</name>
@@ -261,6 +284,7 @@
     <description>
       Disable cluster based minute aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.disabled</name>
@@ -269,6 +293,7 @@
     <description>
       Disable cluster based second aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.timeslice.interval</name>
@@ -277,6 +302,7 @@
     <description>
       Lowest resolution of desired data for cluster level second aggregates.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -287,6 +313,7 @@
     <description>
       Host based daily resolution data purge interval. Default is 1 year.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.ttl</name>
@@ -294,6 +321,7 @@
     <description>
       Host based hourly resolution data purge interval. Default is 30 days.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.ttl</name>
@@ -301,6 +329,7 @@
     <description>
       Host based minute resolution data purge interval. Default is 7 days.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.ttl</name>
@@ -308,6 +337,7 @@
     <description>
       Cluster wide second resolution data purge interval. Default is 7 days.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
@@ -315,6 +345,7 @@
     <description>
       Cluster wide minute resolution data purge interval. Default is 30 days.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.ttl</name>
@@ -322,6 +353,7 @@
     <description>
       Cluster wide hourly resolution data purge interval. Default is 1 year.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.ttl</name>
@@ -329,6 +361,7 @@
     <description>
       Cluster wide daily resolution data purge interval. Default is 2 years.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.ttl</name>
@@ -336,6 +369,7 @@
     <description>
       1 minute resolution data purge interval. Default is 1 day.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.hbase.data.block.encoding</name>
@@ -345,6 +379,7 @@
       Default encoding is FAST_DIFF. This can be changed only before creating
       tables.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.hbase.compression.scheme</name>
@@ -354,6 +389,7 @@
       scheme. Default compression is SNAPPY. Disable by setting to None.
       This can be changed only before creating tables.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.default.result.limit</name>
@@ -363,6 +399,7 @@
       22 aggregate metrics/min * 2 * 60 * 6 : Retrieve 10 SECOND data for 2 hours.
     </description>
     <display-name>Metrics service default result limit</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -375,6 +412,7 @@
       Time in seconds to sleep on the first run or when the checkpoint is
       too old.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -386,6 +424,7 @@
     <description>
       JDBC resultset prefect size for aggregator queries.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -398,6 +437,7 @@
       Percentage of total heap memory (i.e. Runtime.getRuntime().maxMemory())
       that all threads may use.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>phoenix.spool.directory</name>
@@ -406,6 +446,7 @@
       Set directory for Phoenix spill files. If possible set this to a
       different mount point from the one for hbase.rootdir in embedded mode.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.cluster.aggregator.appIds</name>
@@ -414,6 +455,7 @@
       List of application ids to use for aggregating host level metrics for
       an application. Example: bytes_read across Yarn Nodemanagers.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.use.groupBy.aggregators</name>
@@ -422,6 +464,7 @@
       Use a groupBy aggregated query to perform host level aggregations vs
       in-memory aggregations.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregate.splitpoints</name>
@@ -430,6 +473,7 @@
       Pre-split regions using the split points corresponding to this property
       for the precision table that stores seconds aggregate data.
     </description>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>ams-hbase-site</type>
@@ -456,6 +500,7 @@
       Pre-split regions using the split points corresponding to this property
       for the aggregate table that stores seconds aggregate data across hosts.
     </description>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>ams-hbase-site</type>
@@ -483,6 +528,7 @@
       Time in seconds to sleep before report metrics to collector.
       Default resolution is 1 minute.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.sink.collection.period</name>
@@ -490,6 +536,7 @@
     <description>
       The interval between two service metrics data exports.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.watcher.initial.delay</name>
@@ -498,6 +545,7 @@
       The time to delay first watcher check execution
       Default resolution is 10 minutes.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.watcher.delay</name>
@@ -507,6 +555,7 @@
       watcher check execution and the commencement of the next
       Default resolution is 30 seconds.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.watcher.timeout</name>
@@ -515,6 +564,7 @@
       The maximum time to wait for a single watcher check execution
       Default resolution is 30 seconds.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.hbase.fifo.compaction.enabled</name>
@@ -522,6 +572,7 @@
     <description>
       Enable Compaction policy for lower precision and minute aggregate tables.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

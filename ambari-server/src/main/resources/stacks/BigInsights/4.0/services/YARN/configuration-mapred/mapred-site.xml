@@ -32,6 +32,7 @@
       By default, gives each merge stream 1MB, which should minimize seeks.
     </description>
     <display-name>Sort Allocation Memory</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -57,6 +58,7 @@
       is already in progress, so spills may be larger than this threshold when
       it is set to less than .5
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -66,6 +68,7 @@
       The number of streams to merge at once while sorting files.
       This determines the number of open file handles.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 <!-- map/reduce properties -->
@@ -75,6 +78,7 @@
     <description>
       Administrators for MapReduce applications.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -84,6 +88,7 @@
       The default number of parallel transfers run by reduce during
       the copy(shuffle) phase.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -93,6 +98,7 @@
       If true, then multiple instances of some map tasks
       may be executed in parallel.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -102,6 +108,7 @@
       If true, then multiple instances of some reduce tasks may be
       executed in parallel.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -111,6 +118,7 @@
       Fraction of the number of maps in the job which should be complete before
       reduces are scheduled for the job.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -119,6 +127,7 @@
     <description>
       Limit on the number of counters allowed per job.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -130,6 +139,7 @@
       storing in-memory map outputs, as defined by
       mapreduce.reduce.shuffle.input.buffer.percent.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -139,6 +149,7 @@
       The percentage of memory to be allocated from the maximum heap
       size to storing map outputs during the shuffle.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -148,6 +159,7 @@
       If the job outputs are to compressed as SequenceFiles, how should
       they be compressed? Should be one of NONE, RECORD or BLOCK.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -159,6 +171,7 @@
       remaining map outputs in memory must consume less than this threshold before
       the reduce can begin.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!-- copied from kryptonite configuration -->
@@ -168,6 +181,7 @@
     <description>
       Should the outputs of the maps be compressed before being sent across the network. Uses SequenceFile compression.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -178,6 +192,7 @@
       terminated if it neither reads an input, writes an output, nor
       updates its status string.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -185,6 +200,7 @@
     <value>1024</value>
     <description>Virtual memory for single Map task</description>
     <display-name>Map Memory</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
@@ -209,6 +225,7 @@
     <value>1024</value>
     <description>Virtual memory for single Reduce task</description>
     <display-name>Reduce Memory</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
@@ -236,6 +253,7 @@
       ShuffleHandler is a service run at the NodeManager to facilitate
       transfers of intermediate Map outputs to requesting Reducers.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -244,6 +262,7 @@
     <description>
       Directory where history files are written by MapReduce jobs.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -252,18 +271,21 @@
     <description>
       Directory where history files are managed by the MR JobHistory Server.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>mapreduce.jobhistory.address</name>
     <value>localhost:10020</value>
     <description>Enter your JobHistoryServer hostname.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>mapreduce.jobhistory.webapp.address</name>
     <value>localhost:19888</value>
     <description>Enter your JobHistoryServer hostname.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -273,6 +295,7 @@
       The runtime framework for executing MapReduce jobs. Can be one of local,
       classic or yarn.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -281,6 +304,7 @@
     <description>
       The staging dir used while submitting jobs.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -288,6 +312,7 @@
     <value>512</value>
     <description>The amount of memory the MR AppMaster needs.</description>
     <display-name>AppMaster Memory</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
@@ -324,6 +349,7 @@
       mapreduce.reduce.env config settings.
     </description>
     <display-name>MR AppMaster Java Heap Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>mapred-site</type>
@@ -346,6 +372,7 @@
       mapreduce.reduce.env config settings.
     </description>
     <display-name>MR AppMaster Java Heap Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>mapred-site</type>
@@ -358,18 +385,21 @@
     <name>yarn.app.mapreduce.am.log.level</name>
     <value>INFO</value>
     <description>MR App Master process log level.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN -Diop.version=${iop.version}</value>
     <description>This property stores Java options for map tasks.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN -Diop.version=${iop.version}</value>
     <description>This property stores Java options for reduce tasks.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -379,12 +409,14 @@
       CLASSPATH for MR applications. A comma-separated list of CLASSPATH
       entries.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>mapreduce.application.framework.path</name>
     <value>/iop/apps/${iop.version}/mapreduce/mapreduce.tar.gz#mr-framework</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 
@@ -397,6 +429,7 @@
       set by resourcemanager. Otherwise, it will be override. The default number is
       set to 2, to allow at least one retry for AM.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 
@@ -408,6 +441,7 @@
       Larger heap-size for child jvms of maps.
     </description>
     <display-name>MR Map Java Heap Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>mapred-site</type>
@@ -424,6 +458,7 @@
       Larger heap-size for child jvms of reduces.
     </description>
     <display-name>MR Reduce Java Heap Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>mapred-site</type>
@@ -439,6 +474,7 @@
       The logging level for the map task. The allowed levels are:
       OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE and ALL.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -448,6 +484,7 @@
       The logging level for the reduce task. The allowed levels are:
       OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE and ALL.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -458,6 +495,7 @@
       This is not an additive property. You must preserve the original value if
       you want your map and reduce tasks to have access to native libraries (compression, etc)
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -466,6 +504,7 @@
     <description>
       User added environment variables for the MR App Master processes.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -474,6 +513,7 @@
     <description>
       Should the job outputs be compressed?
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

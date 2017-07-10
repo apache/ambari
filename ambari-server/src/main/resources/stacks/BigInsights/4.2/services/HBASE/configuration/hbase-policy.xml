@@ -29,6 +29,7 @@
     The ACL is a comma-separated list of user and group names. The user and 
     group list is separated by a blank. For e.g. "alice,bob users,wheel". 
     A special value of "*" means all users are allowed.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -39,6 +40,7 @@
     The ACL is a comma-separated list of user and group names. The user and 
     group list is separated by a blank. For e.g. "alice,bob users,wheel". 
     A special value of "*" means all users are allowed.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -49,5 +51,6 @@
     The ACL is a comma-separated list of user and group names. The user and 
     group list is separated by a blank. For e.g. "alice,bob users,wheel". 
     A special value of "*" means all users are allowed.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

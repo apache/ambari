@@ -25,6 +25,7 @@
     <name>flume_run_dir</name>	
     <value>/var/run/flume</value>	
     <description>Location to save information about running agents</description>	
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!-- flume-env.sh -->
@@ -66,5 +67,6 @@ fi
 export HIVE_HOME={{flume_hive_home}}
 export HCAT_HOME={{flume_hcat_home}}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

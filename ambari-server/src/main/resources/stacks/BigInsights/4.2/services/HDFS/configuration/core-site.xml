@@ -26,6 +26,7 @@
     <name>ha.failover-controller.active-standby-elector.zk.op.retries</name>
     <value>120</value>
     <description>ZooKeeper Failover Controller retries setting for your environment</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 <!-- i/o properties -->
@@ -37,6 +38,7 @@
   The size of this buffer should probably be a multiple of hardware
   page size (4096 on Intel x86), and it determines how much data is
   buffered during read and write operations.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -44,6 +46,7 @@
     <value>org.apache.hadoop.io.serializer.WritableSerialization</value>
     <description> A list of comma-delimited serialization classes that can be used for obtaining serializers and deserializers.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -51,6 +54,7 @@
     <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec</value>
     <description>A list of the compression codec classes that can be used
                  for compression/decompression.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 <!-- file system properties -->
@@ -62,6 +66,7 @@
     <description>The name of the default file system.  Either the
   literal string "local" or a host:port for NDFS.</description>
     <final>true</final>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -73,6 +78,7 @@
         If trash is disabled server side then the client side configuration is checked.
         If trash is enabled on the server side then the value configured on the server is used and the client configuration value is ignored.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!-- ipc properties: copied from kryptonite configuration -->
@@ -82,6 +88,7 @@
     <description>Defines the threshold number of connections after which
                connections will be inspected for idleness.
   </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -90,12 +97,14 @@
     <description>The maximum time after which a client will bring down the
                connection to the server.
   </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>ipc.client.connect.max.retries</name>
     <value>50</value>
     <description>Defines the maximum number of retries for IPC connections.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -107,6 +116,7 @@
       decrease latency
       with a cost of more/smaller packets.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!-- Web Interface Configuration -->
@@ -118,6 +128,7 @@
                 not be exposed to public. Enable this option if the interfaces
                 are only reachable by those who have the right authorization.
   </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
  <property>
@@ -127,6 +138,7 @@
    Set the authentication for the cluster. Valid values are: simple or
    kerberos.
    </description>
+    <on-ambari-upgrade add="true"/>
  </property>
 <property>
   <name>hadoop.security.authorization</name>
@@ -134,6 +146,7 @@
   <description>
      Enable authorization for different protocols.
   </description>
+    <on-ambari-upgrade add="true"/>
 </property>
 
   <property>
@@ -184,6 +197,7 @@ If you want to treat all principals from APACHE.ORG with /admin as "admin", your
 RULE[2:$1%$2@$0](.%admin@APACHE.ORG)s/./admin/
 DEFAULT
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>multiLine</type>
     </value-attributes>
@@ -194,6 +208,7 @@ DEFAULT
     <description>
       Location of topology script used by Hadoop to determine the rack location of nodes.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   
   <!-- This property added from HDP2.2 stack for Ranger -->
@@ -201,12 +216,14 @@ DEFAULT
     <name>hadoop.http.authentication.simple.anonymous.allowed</name>
     <value>true</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
   
   <!-- This property added from HDP2.2 stack for Ranger -->
   <property>
     <name>hadoop.security.key.provider.path</name>
     <value></value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>

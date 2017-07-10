@@ -23,5 +23,6 @@
     <name>content</name>
     <description>Spark-javaopts-properties</description>
     <value> </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

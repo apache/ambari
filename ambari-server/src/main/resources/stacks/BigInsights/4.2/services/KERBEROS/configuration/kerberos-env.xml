@@ -23,13 +23,12 @@
 <configuration supports_final="false" supports_do_not_extend="true">
   <property require-input="true">
     <name>kdc_type</name>
-    <display-name>KDC type</display-name>
-    <value>mit-kdc</value>
     <description>
       The type of KDC being used. Either mit-kdc or active-directory
     </description>
     <value>mit-kdc</value>
     <display-name>KDC type</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>componentHost</type>
       <overridable>false</overridable>
@@ -44,6 +43,7 @@
     </description>
     <value>true</value>
     <display-name>Manage Kerberos Identities</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <visible>false</visible>
       <overridable>false</overridable>
@@ -60,6 +60,7 @@
       compatible with MIT Kerberos 5 version 1.10.3 in command line options and behaviors.
     </description>
     <value>true</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>boolean</type>
       <overridable>false</overridable>
@@ -73,6 +74,7 @@
       The URL to the Active Directory LDAP Interface
     </description>
     <value/>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>host</type>
       <visible>false</visible>
@@ -86,6 +88,7 @@
     <description>
       The distinguished name (DN) of the container used store service principals
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <visible>false</visible>
       <overridable>false</overridable>
@@ -100,6 +103,7 @@
       The supported list of session key encryption types that should be returned by the KDC.
     </description>
     <value>aes des3-cbc-sha1 rc4 des-cbc-md5</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>multiLine</type>
       <overridable>false</overridable>
@@ -113,6 +117,7 @@
     </description>
     <display-name>Realm name</display-name>
     <value/>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>host</type>
       <editable-only-at-install>true</editable-only-at-install>
@@ -129,6 +134,7 @@
     </description>
     <display-name>KDC hosts</display-name>
     <value/>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -141,6 +147,7 @@
       The IP address or FQDN for the KDC Kerberos administrative host. Optionally a port number may be included.
     </description>
     <value/>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>host</type>
       <overridable>false</overridable>
@@ -154,6 +161,7 @@
       A comma-delimited list of search paths to use to find Kerberos utilities like kadmin and kinit.
     </description>
     <value>/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
       <type>multiLine</type>
@@ -167,6 +175,7 @@
       The length required length for generated passwords.
     </description>
     <value>20</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -179,6 +188,7 @@
       The minimum number of lowercase letters (a-z) required in generated passwords
     </description>
     <value>1</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -192,6 +202,7 @@
       The minimum number of uppercase letters (A-Z) required in generated passwords
     </description>
     <value>1</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -205,6 +216,7 @@
       The minimum number of digits (0-9) required in generated passwords
     </description>
     <value>1</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -218,6 +230,7 @@
       The minimum number of punctuation characters (?.!$%^*()-_+=~) required in generated passwords
     </description>
     <value>1</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -231,6 +244,7 @@
       The minimum number of whitespace characters required in generated passwords
     </description>
     <value>0</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -244,6 +258,7 @@
       The principal name to use when executing the Kerberos service check
     </description>
     <value>${cluster_name}-${short_date}</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -256,6 +271,7 @@
       Force principal names to resolve to lowercase local usernames in auth-to-local rules
     </description>
     <value>false</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
       <type>boolean</type>
@@ -286,6 +302,7 @@
   "userAccountControl": "66048"
 }
     </value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>content</type>
       <empty-value-valid>true</empty-value-valid>
@@ -300,6 +317,7 @@
       The set of attributes to use when creating a new Kerberos identity in the relevant (MIT) KDC.
     </description>
     <value/>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>

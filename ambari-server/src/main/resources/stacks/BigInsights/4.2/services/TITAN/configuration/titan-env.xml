@@ -25,6 +25,7 @@
   <property>
     <name>titan_user</name>
     <description>User to run Titan as</description>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <value>titan</value>
   </property>
@@ -41,6 +42,7 @@ export HADOOP_CONF_DIR={{hadoop_config_dir}}
 export HBASE_CONF_DIR={{hbase_config_dir}}
 CLASSPATH=$HADOOP_CONF_DIR:$HBASE_CONF_DIR:$CLASSPATH
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

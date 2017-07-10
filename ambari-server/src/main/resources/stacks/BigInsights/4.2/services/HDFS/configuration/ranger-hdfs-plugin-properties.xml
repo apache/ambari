@@ -26,12 +26,14 @@
     <display-name>policy User for HDFS</display-name>
     <description>This user must be system user and also present at Ranger
             admin portal</description>
+    <on-ambari-upgrade add="true"/>
   </property> 
   <property>
     <name>hadoop.rpc.protection</name>
     <value></value>
     <description>Used for repository creation on ranger admin
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
   	<empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -40,6 +42,7 @@
     <name>common.name.for.certificate</name>
     <value></value>
     <description>Common name for certificate, this value should match what is specified in repo within ranger admin</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
         <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -50,6 +53,7 @@
     <value>No</value>
     <display-name>Enable Ranger for HDFS</display-name>
     <description>Enable ranger hdfs plugin</description>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
 	   <property>
 	     <type>ranger-env</type>
@@ -68,11 +72,13 @@
     <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <value>hadoop</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>PASSWORD</property-type>
     <description>Used for repository creation on ranger admin
    </description>
@@ -87,126 +93,151 @@
   <property>
     <name>XAAUDIT.DB.IS_ENABLED</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.IS_ENABLED</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_FILE</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_FILE</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>SSL_KEYSTORE_FILE_PATH</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>SSL_KEYSTORE_PASSWORD</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>SSL_TRUSTSTORE_FILE_PATH</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>SSL_TRUSTSTORE_PASSWORD</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>  
 
   <property>
     <name>POLICY_MGR_URL</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>SQL_CONNECTOR_JAR</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.DB.FLAVOUR</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.DB.DATABASE_NAME</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.DB.USER_NAME</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.DB.PASSWORD</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>XAAUDIT.DB.HOSTNAME</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>REPOSITORY_NAME</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>   
  -->
   

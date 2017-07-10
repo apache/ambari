@@ -4,6 +4,7 @@
    <property>
     <name>solr_user</name>
     <description>User to run Solr as</description>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <value>solr</value>
   </property>
@@ -12,28 +13,33 @@
     <name>solr_data_dir</name>
     <value>/opt/solr/data</value>
     <description>Solr Home Directory for writable Solr files and index data</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>solr_pid_dir</name>
     <value>/var/run/solr</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>solr_log_dir</name>
     <value>/var/log/solr</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>solr_port</name>
     <value>8983</value>
     <description>Sets the port Solr binds to, default is 8983</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>solr_hdfs_home_dir</name>
     <value>/apps/solr/data</value>
     <description>A root location in HDFS for Solr to write collection data to. Rather than specifying an HDFS location for the data directory or update log directory, use this to specify one root location and have everything automatically created within this HDFS</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   
@@ -42,12 +48,14 @@
     <value>/solr</value>
     <description>If you're using a ZooKeeper instance that is shared by other systems, it's recommended to isolate the SolrCloud znode tree using ZooKeeper's chroot support. 
     For instance, to ensure all znodes created by SolrCloud are stored under /solr, you can put /solr on the end of your ZK_HOST connection string, such as: ZK_HOST=zk1,zk2,zk3/solr</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
       <name>solr_xms_minmem</name>
       <value>512</value>
       <description>Set Xms value for Solr in MB</description>
+      <on-ambari-upgrade add="true"/>
       <value-attributes>
           <type>int</type>
           <minimum>0</minimum>
@@ -61,6 +69,7 @@
       <name>solr_xmx_maxmem</name>
       <value>512</value>
       <description>Set Xmx value for Solr in MB</description>
+      <on-ambari-upgrade add="true"/>
       <value-attributes>
           <type>int</type>
           <minimum>{{solr_xms_minmem}}</minimum>
@@ -229,6 +238,7 @@ SOLR_OPTS="-Dsolr.directoryFactory=HdfsDirectoryFactory \
 -Dsolr.log4j.dir={{log_dir}}"
 
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>  
   
 </configuration>

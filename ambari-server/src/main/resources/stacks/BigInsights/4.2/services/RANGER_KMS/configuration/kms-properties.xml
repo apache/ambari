@@ -24,11 +24,13 @@
     <name>REPOSITORY_CONFIG_USERNAME</name>
     <value>keyadmin</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <value>keyadmin</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>  
@@ -37,23 +39,27 @@
     <name>DB_FLAVOR</name>
     <value>MYSQL</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>SQL_CONNECTOR_JAR</name>
     <value>/usr/share/java/mysql-connector-java.jar</value>
     <description>Location of DB client library (please check the location of the jar file)</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>db_root_user</name>
     <value>root</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>db_root_password</name>
     <value></value>
+    <on-ambari-upgrade add="true"/>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>
@@ -62,23 +68,27 @@
     <name>db_host</name>
     <value>localhost</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>db_name</name>
     <value>rangerkms</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>db_user</name>
     <value>rangerkms</value>
     <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>db_password</name>
     <value></value>
+    <on-ambari-upgrade add="true"/>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>
@@ -86,6 +96,7 @@
   <property>
     <name>KMS_MASTER_KEY_PASSWD</name>
     <value></value>
+    <on-ambari-upgrade add="true"/>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>

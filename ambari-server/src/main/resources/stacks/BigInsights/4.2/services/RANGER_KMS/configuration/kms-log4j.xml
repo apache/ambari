@@ -63,6 +63,7 @@ log4j.logger.org.apache.hadoop.conf=ERROR
 log4j.logger.org.apache.hadoop=INFO
 log4j.logger.com.sun.jersey.server.wadl.generators.WadlGeneratorJAXBGrammarGenerator=OFF        
     </value>        
+    <on-ambari-upgrade add="true"/>
   </property>     
 
 </configuration>  

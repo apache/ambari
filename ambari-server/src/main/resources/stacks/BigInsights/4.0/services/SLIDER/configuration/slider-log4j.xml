@@ -84,6 +84,7 @@ log4j.logger.org.apache.hadoop.yarn.server.nodemanager.containermanager.monitor=
 log4j.logger.org.apache.hadoop.yarn.server.nodemanager.NodeStatusUpdaterImpl=WARN
 log4j.logger.org.apache.zookeeper=WARN
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

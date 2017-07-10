@@ -25,24 +25,28 @@
     <name>hive.heapsize</name>
     <value>1024</value>
     <description>Hive Java heap size</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hive.client.heapsize</name>
     <value>512</value>
     <description>Hive Client Java heap size</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hive.metastore.heapsize</name>
     <value>1024</value>
     <description>Hive Metastore Java heap size</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hive_database_type</name>
     <value>mysql</value>
     <description>Default HIVE DB type.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_database</name>
@@ -51,6 +55,7 @@
     <description>
       Property that determines whether the HIVE DB is managed by Ambari.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -60,22 +65,26 @@
     <display-name>Database Type</display-name>
     <value>MySQL</value>
     <description>Database type.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_database_name</name>
     <value>hive</value>
     <description>Database name.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_dbroot</name>
     <value>/usr/lib/hive/lib/</value>
     <description>Hive DB Directory.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_log_dir</name>
     <display-name>Hive Log Dir</display-name>
     <value>/var/log/hive</value>
     <description>Directory for Hive Log files.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -87,6 +96,7 @@
     <display-name>Hive PID Dir</display-name>
     <value>/var/run/hive</value>
     <description>Hive PID Dir.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -96,6 +106,7 @@
   <property>
     <name>hive_user</name>
     <value>hive</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Hive User.</description>
   </property>
@@ -107,6 +118,7 @@
     <display-name>WebHCat Log Dir</display-name>
     <value>/var/log/webhcat</value>
     <description>WebHCat Log Dir.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -118,6 +130,7 @@
     <display-name>WebHCat Pid Dir</display-name>
     <value>/var/run/webhcat</value>
     <description>WebHCat Pid Dir.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -127,12 +140,14 @@
   <property>
     <name>hcat_user</name>
     <value>hcat</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>HCat User.</description>
   </property>
   <property>
     <name>webhcat_user</name>
     <value>hcat</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>WebHCat User.</description>
   </property>
@@ -190,6 +205,7 @@ ${HIVE_AUX_JARS_PATH}
 
 export METASTORE_PORT={{hive_metastore_port}}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

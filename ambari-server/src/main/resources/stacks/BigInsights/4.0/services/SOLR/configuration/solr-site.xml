@@ -24,6 +24,7 @@
     <name>solr.hdfs.security.kerberos.enabled</name>
     <value>false</value>
     <description>Set to true to enable Kerberos authentication</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -32,6 +33,7 @@
     <description>A keytab file contains pairs of Kerberos principals and encrypted keys which allows for password-less authentication when Solr attempts to authenticate with secure Hadoop.
     This file will need to be present on all Solr servers at the same path provided in this parameter.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -39,6 +41,7 @@
     <value>solr/_HOST@EXAMPLE.COM</value>
     <description>The Kerberos principal that Solr should use to authenticate to secure Hadoop; the format of a typical Kerberos V5 principal is: primary/instance@realm
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

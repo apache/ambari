@@ -75,6 +75,7 @@ log4j.appender.EWMA.cleanupInterval=${yarn.ewma.cleanupInterval}
 log4j.appender.EWMA.messageAgeLimitSeconds=${yarn.ewma.messageAgeLimitSeconds}
 log4j.appender.EWMA.maxUniqueMessages=${yarn.ewma.maxUniqueMessages}
     </value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <show-property-name>false</show-property-name>
     </value-attributes>

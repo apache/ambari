@@ -152,12 +152,14 @@ export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib
 #Hadoop logging options. Modify and uncomment to change logging level
 #export HADOOP_ROOT_LOGGER={{hadoop_root_logger}}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nfsgateway_heapsize</name>
     <display-name>NFSGateway maximum Java heap size</display-name>
     <value>1024</value>
     <description>Maximum Java heap size for NFSGateway (Java option -Xmx)</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>

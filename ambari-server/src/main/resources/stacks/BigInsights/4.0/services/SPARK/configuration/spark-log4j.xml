@@ -38,5 +38,6 @@ log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=INFO
 log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=INFO
 
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

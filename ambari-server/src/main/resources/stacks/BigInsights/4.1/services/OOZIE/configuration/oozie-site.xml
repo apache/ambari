@@ -60,5 +60,6 @@ limitations under the License.
             All services to be created and managed by Oozie Services singleton.
             Class names must be separated by commas.
         </description>
+      <on-ambari-upgrade add="true"/>
     </property>	
 </configuration>	

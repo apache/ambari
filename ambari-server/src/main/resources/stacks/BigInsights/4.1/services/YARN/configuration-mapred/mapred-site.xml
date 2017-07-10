@@ -29,6 +29,7 @@
       server state upon startup.  If enabled then
       mapreduce.jobhistory.recovery.store.class must be specified.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -37,6 +38,7 @@
     <description>The HistoryServerStateStoreService class to store history server
       state for recovery.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -45,6 +47,7 @@
     <description>The URI where history server state will be stored if HistoryServerLeveldbSystemStateStoreService
       is configured as the recovery storage class.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

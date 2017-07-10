@@ -217,6 +217,7 @@ log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN
 # messages from BlockManager in NameNode.
 #log4j.logger.BlockStateChange=WARN
     </value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <show-property-name>false</show-property-name>
     </value-attributes>

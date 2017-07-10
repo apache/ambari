@@ -28,6 +28,7 @@
       A comma-separated list of domain names used to map server host names to the Realm name (e.g. .example.com,example.com). This is optional
     </description>
     <value/>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
@@ -41,6 +42,7 @@
       Indicates whether your krb5.conf file should be managed by the wizard or should you manage it yourself
     </description>
     <value>true</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
       <type>boolean</type>
@@ -52,6 +54,7 @@
     <display-name>krb5-conf directory path</display-name>
     <description>The krb5.conf configuration directory</description>
     <value>/etc</value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -101,6 +104,7 @@
 
 {# Append additional realm declarations below #}
     </value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>content</type>
       <overridable>false</overridable>

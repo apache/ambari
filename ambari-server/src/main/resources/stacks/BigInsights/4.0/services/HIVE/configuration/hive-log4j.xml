@@ -131,6 +131,7 @@ log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO=WARN,RFA
 log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN
 
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

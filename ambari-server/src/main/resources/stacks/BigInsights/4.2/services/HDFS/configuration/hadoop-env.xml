@@ -26,6 +26,7 @@
     <display-name>Hadoop Log Dir Prefix</display-name>
     <value>/var/log/hadoop</value>
     <description>Hadoop Log Dir Prefix</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -37,6 +38,7 @@
     <display-name>Hadoop PID Dir Prefix</display-name>
     <value>/var/run/hadoop</value>
     <description>Hadoop PID Dir Prefix</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -48,6 +50,7 @@
     <value>INFO,RFA</value>
     <description>Hadoop Root Logger</description>
     <display-name>Hadoop Root Logger</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -57,6 +60,7 @@
     <display-name>Hadoop maximum Java heap size</display-name>
     <value>1024</value>
     <description>Hadoop maximum Java heap size</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
@@ -68,6 +72,7 @@
     <value>1024</value>
     <description>NameNode Java heap size</description>
     <display-name>NameNode Java heap size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -88,6 +93,7 @@
     <value>200</value>
     <description>Default size of Java new generation for NameNode (Java option -XX:NewSize) Note: The value of NameNode new generation size (default size of Java new generation for NameNode (Java option -XX:NewSize)) should be 1/8 of maximum heap size (-Xmx). Ensure that the value of the namenode_opt_newsize property is 1/8 the value of maximum heap size (-Xmx).</description>
     <display-name>NameNode new generation size</display-name>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>hadoop-env</type>
@@ -108,6 +114,7 @@
     <value>200</value>
     <description>NameNode maximum new generation size</description>
     <display-name>NameNode maximum new generation size</display-name>
+    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>hadoop-env</type>
@@ -128,6 +135,7 @@
     <value>128</value>
     <description>NameNode permanent generation size</description>
     <display-name>NameNode permanent generation size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -142,6 +150,7 @@
     <value>256</value>
     <description>NameNode maximum permanent generation size</description>
     <display-name>NameNode maximum permanent generation size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -156,6 +165,7 @@
     <value>1024</value>
     <description>DataNode maximum Java heap size</description>
     <display-name>DataNode maximum Java heap size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -168,6 +178,7 @@
     <name>proxyuser_group</name>
     <display-name>Proxy User Group</display-name>
     <value>users</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
   </property>
@@ -175,6 +186,7 @@
     <name>hdfs_user</name>
     <display-name>HDFS User</display-name>
     <value>hdfs</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>User to run HDFS as</description>
   </property>
@@ -183,22 +195,26 @@
     <name>hdfs_user_nofile_limit</name>
     <value>128000</value>
     <description>Max open files limit setting for HDFS user.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hdfs_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for HDFS user.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hdfs_user_keytab</name>
     <description>HDFS keytab path</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hdfs_principal_name</name>
     <description>HDFS principal name</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -210,6 +226,7 @@
       if a path was previously mounted on a drive.
     </description>
     <display-name>File that stores mount point for each data dir</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <visible>true</visible>
@@ -220,6 +237,7 @@
     <value> </value>
     <display-name>Key Server Host</display-name>
     <description>Hostnames where Key Management Server is installed</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>string</type>
     </value-attributes>
@@ -229,6 +247,7 @@
     <value></value>
     <display-name>Key Server Port</display-name>
     <description>Port number where Key Management Server is available</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <empty-value-valid>true</empty-value-valid>
@@ -381,11 +400,13 @@ if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n
 fi
 {% endif %}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nfsgateway_heapsize</name>
     <value>1024</value>
     <description>Maximum Java heap size for NFSGateway (Java option -Xmx)</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>

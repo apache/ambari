@@ -22,6 +22,7 @@
   <property>
     <name>dfs.namenode.acls.enabled</name>
     <value>true</value>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.namenode.audit.log.async</name>
@@ -139,6 +140,7 @@
       The default value is 1 hour. Setting a value of 0 disables
       access times for HDFS.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>

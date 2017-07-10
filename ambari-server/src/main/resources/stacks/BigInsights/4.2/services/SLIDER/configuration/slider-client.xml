@@ -26,6 +26,7 @@
       <name>slider.security.protocol.acl</name>
       <value>*</value>
       <description>When security is enabled, set appropriate acl. Default value means allow everyone.</description>
+      <on-ambari-upgrade add="true"/>
     </property>
     -->
 

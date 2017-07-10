@@ -32,6 +32,7 @@
     into /tmp.  Change this configuration else all data will be lost
     on machine restart.
     </description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.cluster.distributed</name>
@@ -41,12 +42,14 @@
       false, startup will run all HBase and ZooKeeper daemons together
       in the one JVM.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.master.port</name>
     <value>60000</value>
     <display-name>HBase Master Port</display-name>
     <description>The port the HBase Master should bind to.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
       <type>int</type>
@@ -61,6 +64,7 @@
     machine restart).
     </description>
     <display-name>HBase tmp directory</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -70,27 +74,32 @@
     <value>${hbase.tmp.dir}/local</value>
     <description>Directory on the local filesystem to be used as a local storage
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.master.info.bindAddress</name>
     <value>0.0.0.0</value>
     <description>The bind address for the HBase Master web UI
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.master.info.port</name>
     <value>60010</value>
     <description>The port for the HBase Master web UI.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.port</name>
     <value>60020</value>
     <description>The port the HBase Region Server should bind to.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.info.port</name>
     <value>60030</value>
     <description>The port for the HBase RegionServer web UI.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
@@ -103,6 +112,7 @@
       watermark (hbase.regionserver.global.memstore.size.lower.limit) is reached.
     </description>
     <display-name>% of RegionServer Allocated to Write Buffers</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>float</type>
       <minimum>0</minimum>
@@ -117,6 +127,7 @@
     Same property is used by the Master for count of master handlers.
     </description>
     <display-name>Number of Handlers per RegionServer</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>5</minimum>
@@ -131,6 +142,7 @@
       Time between major compactions. Set to 0 to disable automatic major compactions.
     </description>
     <display-name>Major Compaction Interval</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -145,6 +157,7 @@
       a given amount of time either side of hbase.hregion.majorcompaction. The smaller the number,
       the closer the compactions will happen to the hbase.hregion.majorcompaction
       interval.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -156,6 +169,7 @@
       the minimum possible flushing to occur when updates are blocked due to
       memstore limiting.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>float</type>
     </value-attributes>
@@ -172,6 +186,7 @@
     worse, we OOME.
     </description>
     <display-name>Per-Column Family Memstore Block Multiplier</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -195,6 +210,7 @@
       The size of an individual memstore. Each column familiy within each region is allocated its own memstore.
     </description>
     <display-name>Per-Column Family Memstore Flush Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>33554432</minimum>
@@ -212,6 +228,7 @@
       heavy write loads. This can reduce the frequency of stop-the-world
       GC pauses on large heaps.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
@@ -224,6 +241,7 @@
       value, the region is split in two.
     </description>
     <display-name>Maximum Region File Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>1073741824</minimum>
@@ -243,6 +261,7 @@
     than the scanner timeout; i.e. hbase.regionserver.lease.period
     </description>
     <display-name>Number of Fetched Rows when Scanning from Disk</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>100</minimum>
@@ -265,6 +284,7 @@
       it will take precedence.
     </description>
     <display-name>Zookeeper Session Timeout</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>10000</minimum>
@@ -284,6 +304,7 @@
     or less disables the check.
     </description>
     <display-name>Maximum Record Size</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>1048576</minimum>
@@ -303,6 +324,7 @@
       cases, the default value is appropriate.
     </description>
     <display-name>Maximum Store Files before Minor Compaction</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <entries>
@@ -324,6 +346,7 @@
     <description>
     The number of times the region flush operation will be retried.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -336,6 +359,7 @@
     blocked for this HRegion until a compaction is completed, or
     until hbase.hstore.blockingWaitTime has been exceeded.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -345,6 +369,7 @@
     <value>0.40</value>
     <description>Percentage of RegionServer memory to allocate to read buffers.</description>
     <display-name>% of RegionServer Allocated to Read Buffers</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>float</type>
       <minimum>0</minimum>
@@ -362,6 +387,7 @@
     <description>Full path to the kerberos keytab file to use for logging in
     the configured HMaster server principal.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.master.kerberos.principal</name>
@@ -372,6 +398,7 @@
     portion, it will be replaced with the actual hostname of the running
     instance.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.keytab.file</name>
@@ -379,6 +406,7 @@
     <description>Full path to the kerberos keytab file to use for logging in
     the configured HRegionServer server principal.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.kerberos.principal</name>
@@ -390,23 +418,28 @@
     running instance.  An entry for this principal must exist in the file
     specified in hbase.regionserver.keytab.file
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hbase.rest.keytab.file</name>
     <value>/etc/security/keytabs/hbase.service.keytab</value>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.rest.kerberos.principal</name>
     <value>hbase/_HOST@EXAMPLE.COM</value>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.rest.authentication.kerberos.keytab</name>
     <value>/etc/security/keytabs/hbase.service.keytab</value>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.rest.authentication.kerberos.principal</name>
     <value>HTTP/_HOST@EXAMPLE.COM</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!-- Additional configuration specific to HBase security -->
@@ -417,6 +450,7 @@
     full privileges, regardless of stored ACLs, across the cluster.
     Only used when HBase security is enabled.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -426,6 +460,7 @@
       Select Simple or Kerberos authentication. Note: Kerberos must be set up before the Kerberos option will take effect.
     </description>
     <display-name>Enable Authentication</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -447,6 +482,7 @@
     <value>false</value>
     <description> Set Authorization Method.</description>
     <display-name>Enable Authorization</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -472,6 +508,7 @@
     it in HBase's classpath and add the fully qualified class name here.
     A coprocessor can also be loaded on demand by setting HTableDescriptor.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -497,6 +534,7 @@
       implementing your own MasterObserver, just put it in HBase's classpath
       and add the fully qualified class name here.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -514,6 +552,7 @@
     <description>Property from ZooKeeper's config zoo.cfg.
     The port at which the clients will connect.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!--
@@ -530,6 +569,7 @@
     list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
     this is the list of servers which we will start/stop ZooKeeper on.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>multiLine</type>
     </value-attributes>
@@ -546,6 +586,7 @@
     and will not be downgraded.  ZooKeeper versions before 3.4 do not support multi-update and will
     not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zookeeper.znode.parent</name>
@@ -555,6 +596,7 @@
       By default, all of HBase's ZooKeeper file path are configured with a
       relative path, so they will all go under this directory unless changed.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -567,6 +609,7 @@
     retrying every ten seconds.  See HConstants#RETRY_BACKOFF for how the backup
     ramps up.  Change this setting and hbase.client.pause to suit your workload.</description>
     <display-name>Maximum Client Retries</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>5</minimum>
@@ -584,6 +627,7 @@
       but will eventually throw a TimeoutException.
     </description>
     <display-name>HBase RPC Timeout</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <minimum>10000</minimum>
@@ -603,6 +647,7 @@
       cases, the default value is appropriate.
     </description>
     <display-name>Maximum Files in a Store before Compaction</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <entries>
@@ -643,6 +688,7 @@
       (hbase.regionserver.global.memstore.size.lower.limit) is reached.
     </description>
     <display-name>% of RegionServer Allocated to Write Buffers</display-name>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>float</type>
       <minimum>0</minimum>
@@ -655,27 +701,32 @@
     <name>hbase.defaults.for.version.skip</name>
     <value>true</value>
     <description>Disables version verification.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>dfs.domain.socket.path</name>
     <value>/var/lib/hadoop-hdfs/dn_socket</value>
     <description>Path to domain socket.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hbase.replication</name>
     <value>true</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hbase.rest.authentication.type</name>
     <value>simple</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>hbase.rest.port</name>
     <value>8091</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

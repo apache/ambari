@@ -622,6 +622,7 @@ hcat.bin=/usr/local/hcat/bin/hcat
 
     </value>
     <description>Describe all the Pig agent configurations</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
       <show-property-name>false</show-property-name>

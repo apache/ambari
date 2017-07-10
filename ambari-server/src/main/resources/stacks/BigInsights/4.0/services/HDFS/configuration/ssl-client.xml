@@ -22,15 +22,18 @@
         <name>ssl.client.truststore.location</name>
         <value>/etc/security/clientKeys/all.jks</value>
         <description>Location of the trust store file.</description>
+      <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>ssl.client.truststore.type</name>
         <value>jks</value>
         <description>Optional. Default value is "jks".</description>
+      <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>ssl.client.truststore.password</name>
         <value>bigdata</value>
+        <on-ambari-upgrade add="true"/>
         <property-type>PASSWORD</property-type>
         <description>Password to open the trust store file.</description>
     </property>
@@ -38,20 +41,24 @@
         <name>ssl.client.truststore.reload.interval</name>
         <value>10000</value>
         <description>Truststore reload interval, in milliseconds.</description>
+      <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>ssl.client.keystore.type</name>
         <value>jks</value>
         <description>Optional. Default value is "jks".</description>
+      <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>ssl.client.keystore.location</name>
         <value>/etc/security/clientKeys/keystore.jks</value>
         <description>Location of the keystore file.</description>
+      <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>ssl.client.keystore.password</name>
         <value>bigdata</value>
+        <on-ambari-upgrade add="true"/>
         <property-type>PASSWORD</property-type>
         <description>Password to open the keystore file.</description>
     </property>

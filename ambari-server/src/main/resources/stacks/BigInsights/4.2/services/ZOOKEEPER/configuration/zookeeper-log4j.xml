@@ -96,6 +96,7 @@ log4j.appender.TRACEFILE.layout=org.apache.log4j.PatternLayout
 ### Notice we are including log4j's NDC here (%x)
 log4j.appender.TRACEFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L][%x] - %m%n
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

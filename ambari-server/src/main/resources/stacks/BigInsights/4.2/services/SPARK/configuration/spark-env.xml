@@ -28,11 +28,13 @@
     <description>
       TCP port number to listen on, default 10015.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>spark_user</name>
     <value>spark</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Spark User.</description>
   </property>
@@ -40,6 +42,7 @@
   <property>
     <name>spark_group</name>
     <value>spark</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>GROUP</property-type>
     <description>spark group</description>
   </property>
@@ -48,11 +51,13 @@
     <name>spark_log_dir</name>
     <value>/var/log/spark</value>
     <description>Spark Log Dir</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>spark_pid_dir</name>
     <value>/var/run/spark</value>
+    <on-ambari-upgrade add="true"/>
   </property>
   
   <!-- spark-env.sh -->
@@ -109,6 +114,7 @@ export SPARK_YARN_USER_ENV="JAVA_LIBRARY_PATH=$JAVA_LIBRARY_PATH,LD_LIBRARY_PATH
 export JAVA_HOME={{java_home}}
 
 </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

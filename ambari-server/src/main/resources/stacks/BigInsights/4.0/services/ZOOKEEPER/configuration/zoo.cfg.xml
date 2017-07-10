@@ -26,6 +26,7 @@
     <display-name>Length of single Tick</display-name>
     <value>2000</value>
     <description>The length of a single tick in milliseconds, which is the basic time unit used by ZooKeeper</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -37,6 +38,7 @@
     <display-name>Ticks to allow for sync at Init</display-name>
     <value>10</value>
     <description>Ticks to allow for sync at Init.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -47,6 +49,7 @@
     <display-name>Ticks to allow for sync at Runtime</display-name>
     <value>5</value>
     <description>Ticks to allow for sync at Runtime.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -57,6 +60,7 @@
     <display-name>Port for running ZK Server</display-name>
     <value>2181</value>
     <description>Port for running ZK Server.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -67,6 +71,7 @@
     <display-name>ZooKeeper directory</display-name>
     <value>/hadoop/zookeeper</value>
     <description>Data directory for ZooKeeper.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -75,10 +80,12 @@
     <name>autopurge.snapRetainCount</name>
     <value>30</value>
     <description>ZooKeeper purge feature retains the autopurge.snapRetainCount most recent snapshots and the corresponding transaction logs in the dataDir and dataLogDir respectively and deletes the rest. </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>autopurge.purgeInterval</name>
     <value>24</value>
     <description>The time interval in hours for which the purge task has to be triggered. Set to a positive integer (1 and above) to enable the auto purging.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

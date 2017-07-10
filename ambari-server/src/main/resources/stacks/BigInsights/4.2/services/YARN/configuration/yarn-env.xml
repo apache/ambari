@@ -26,6 +26,7 @@
     <display-name>YARN Log Dir Prefix</display-name>
     <value>/var/log/hadoop-yarn</value>
     <description>YARN Log Dir Prefix</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -37,6 +38,7 @@
     <display-name>YARN PID Dir Prefix</display-name>
     <value>/var/run/hadoop-yarn</value>
     <description>YARN PID Dir Prefix</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -46,6 +48,7 @@
   <property>
     <name>yarn_user</name>
     <value>yarn</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>YARN User</description>
   </property>
@@ -54,6 +57,7 @@
     <display-name>YARN Java heap size</display-name>
     <value>1024</value>
     <description>Max heapsize for all YARN components using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
@@ -64,6 +68,7 @@
     <display-name>ResourceManager Java heap size</display-name>
     <value>1024</value>
     <description>Max heapsize for ResourceManager using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <overridable>false</overridable>
@@ -75,6 +80,7 @@
     <display-name>NodeManager Java heap size</display-name>
     <value>1024</value>
     <description>Max heapsize for NodeManager using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
@@ -85,6 +91,7 @@
     <display-name>Minimum user ID for submitting job</display-name>
     <value>1000</value>
     <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to disallow all superusers from submitting jobs</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -94,6 +101,7 @@
     <display-name>AppTimelineServer Java heap size</display-name>
     <value>1024</value>
     <description>Max heapsize for AppTimelineServer using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
       <unit>MB</unit>
@@ -105,18 +113,21 @@
     <name>is_supported_yarn_ranger</name>
     <value>true</value>
     <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>yarn_user_nofile_limit</name>
     <value>32768</value>
     <description>Max open files limit setting for YARN user.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>yarn_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for YARN user.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!-- yarn-env.sh -->
@@ -245,6 +256,7 @@
       YARN_OPTS="$YARN_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
       YARN_OPTS="$YARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

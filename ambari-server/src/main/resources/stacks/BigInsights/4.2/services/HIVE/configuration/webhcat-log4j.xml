@@ -73,6 +73,7 @@ log4j.logger.org.apache.zookeeper = WARN
 log4j.logger.org.eclipse.jetty = INFO
 
     </value>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <show-property-name>false</show-property-name>
     </value-attributes>

@@ -24,17 +24,20 @@
   <property>
     <name>yarn.node-labels.manager-class</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>yarn.timeline-service.recovery.enabled</name>
     <value>true</value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>yarn.admin.acl</name>
     <value>yarn</value>
     <description> ACL of who can be admin of the YARN cluster. </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>

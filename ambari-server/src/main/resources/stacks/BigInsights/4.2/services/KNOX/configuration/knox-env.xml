@@ -27,6 +27,7 @@
         <name>knox_master_secret</name>
       <display-name>Knox Master Secret</display-name>
       <value></value>
+      <on-ambari-upgrade add="true"/>
       <property-type>PASSWORD</property-type>
       <description>password to use as the master secret</description>
       <value-attributes>
@@ -38,6 +39,7 @@
     <property>
         <name>knox_user</name>
         <value>knox</value>
+        <on-ambari-upgrade add="true"/>
         <property-type>USER</property-type>
         <description>Knox Username.</description>
     </property>
@@ -45,6 +47,7 @@
     <property>
         <name>knox_group</name>
         <value>knox</value>
+        <on-ambari-upgrade add="true"/>
         <property-type>GROUP</property-type>
         <description>Knox Group.</description>
     </property>
@@ -54,6 +57,7 @@
       <display-name>Knox PID dir</display-name>
       <value>/var/run/knox</value>
       <description>Knox PID dir.</description>
+      <on-ambari-upgrade add="true"/>
       <value-attributes>
         <type>directory</type>
         <editable-only-at-install>true</editable-only-at-install>
@@ -66,6 +70,7 @@
       <display-name>Knox Logs dir</display-name>
       <value>/var/log/knox</value>
       <description>Knox Log dir.</description>
+      <on-ambari-upgrade add="true"/>
       <value-attributes>
         <type>directory</type>
         <editable-only-at-install>true</editable-only-at-install>

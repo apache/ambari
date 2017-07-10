@@ -167,6 +167,7 @@
     <description>
         The configuration specifies the Hadoop cluster services Knox will provide access to.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
        <empty-value-valid>true</empty-value-valid>
        <show-property-name>false</show-property-name>

@@ -141,6 +141,7 @@
       log4j.logger.org.hsqldb=WARN, oozie
       log4j.logger.org.apache.hadoop.security.authentication.server=WARN, oozie
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

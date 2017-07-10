@@ -26,6 +26,7 @@
     <display-name>Mapreduce Log Dir Prefix</display-name>
     <value>/var/log/hadoop-mapreduce</value>
     <description>Mapreduce Log Dir Prefix</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -37,6 +38,7 @@
     <display-name>Mapreduce PID Dir Prefix</display-name>
     <value>/var/run/hadoop-mapreduce</value>
     <description>Mapreduce PID Dir Prefix</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -46,6 +48,7 @@
   <property>
     <name>mapred_user</name>
     <value>mapred</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Mapreduce User</description>
   </property>
@@ -54,6 +57,7 @@
     <display-name>History Server heap size</display-name>
     <value>900</value>
     <description>Value for JobHistoryServer heap_size variable in hadoop-env.sh</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <unit>MB</unit>
       <type>int</type>
@@ -78,5 +82,6 @@ export HADOOP_MAPRED_ROOT_LOGGER=INFO,RFA
 #export HADOOP_MAPRED_IDENT_STRING= #A string representing this instance of hadoop. $USER by default
 #export HADOOP_MAPRED_NICENESS= #The scheduling priority for daemons. Defaults to 0.
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

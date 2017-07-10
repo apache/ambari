@@ -156,5 +156,6 @@
 #executor.source.jvm.class=org.apache.spark.metrics.source.JvmSource
 
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

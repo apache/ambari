@@ -196,6 +196,7 @@ log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
 # Removes "deprecated" messages
 log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

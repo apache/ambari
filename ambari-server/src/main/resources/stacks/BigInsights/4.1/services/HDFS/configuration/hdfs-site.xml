@@ -32,6 +32,7 @@
       they are accumulated to exceed certain threshold (e.g., 1MB) in memory.
       One needs to make sure the directory has enough space.
     </description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
         <type>directory</type>
     </value-attributes>
@@ -41,6 +42,7 @@
     <name>nfs.exports.allowed.hosts</name>
     <value>* rw</value>
     <display-name>Allowed hosts</display-name>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

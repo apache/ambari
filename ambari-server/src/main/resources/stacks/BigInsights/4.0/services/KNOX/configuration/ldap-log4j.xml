@@ -62,5 +62,6 @@
     <description>
       content for log4j.properties file for the demo LDAP that comes with Knox.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

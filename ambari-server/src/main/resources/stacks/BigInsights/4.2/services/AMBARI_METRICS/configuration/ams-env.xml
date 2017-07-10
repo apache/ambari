@@ -23,6 +23,7 @@
     <name>ambari_metrics_user</name>
     <display-name>Ambari Metrics User</display-name>
     <value>ams</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Ambari Metrics User Name.</description>
   </property>
@@ -31,29 +32,34 @@
     <value>/var/log/ambari-metrics-collector</value>
     <display-name>Metrics Collector log dir</display-name>
     <description>Collector log directory.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>metrics_collector_pid_dir</name>
     <value>/var/run/ambari-metrics-collector</value>
     <display-name>Metrics Collector pid dir</display-name>
     <description>Collector pid directory.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>metrics_monitor_pid_dir</name>
     <value>/var/run/ambari-metrics-monitor</value>
     <display-name>Metrics Monitor pid dir</display-name>
     <description>Monitor pid directory.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>metrics_monitor_log_dir</name>
     <value>/var/log/ambari-metrics-monitor</value>
     <display-name>Metrics Monitor log dir</display-name>
     <description>Monitor log directory.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>metrics_collector_heapsize</name>
     <value>512</value>
     <description>Metrics Collector Heap Size</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
@@ -102,6 +108,7 @@ export AMS_COLLECTOR_GC_OPTS="-XX:+UseConcMarkSweepGC -verbose:gc -XX:+PrintGCDe
 export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS"
 
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

@@ -24,6 +24,7 @@
   <property>
     <name>zk_user</name>
     <value>zookeeper</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>ZooKeeper User.</description>
   </property>
@@ -32,6 +33,7 @@
     <display-name>ZooKeeper Log Dir</display-name>
     <value>/var/log/zookeeper</value>
     <description>ZooKeeper Log Dir</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
@@ -43,6 +45,7 @@
     <display-name>ZooKeeper PID Dir</display-name>
     <value>/var/run/zookeeper</value>
     <description>ZooKeeper Pid Dir</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
@@ -69,5 +72,6 @@ export SERVER_JVMFLAGS="$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_
 export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}"
 {% endif %}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -134,5 +134,6 @@
     <description>
       User added environment variables for the MR App Master processes.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -30,6 +30,7 @@
     <value>false</value>
     <display-name>Audit to DB</display-name>
     <description>Is Audit to DB enabled?</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
@@ -45,17 +46,20 @@
     <name>xasecure.audit.destination.db.jdbc.url</name>
     <value>{{audit_jdbc_url}}</value>
     <description>Audit DB JDBC URL</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.user</name>
     <value>{{xa_audit_db_user}}</value>
     <description>Audit DB JDBC User</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.password</name>
     <value>crypted</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>PASSWORD</property-type>
     <description>Audit DB JDBC Password</description>
   </property>
@@ -64,18 +68,21 @@
     <name>xasecure.audit.destination.db.jdbc.driver</name>
     <value>{{jdbc_driver}}</value>
     <description>Audit DB JDBC Driver</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xasecure.audit.credential.provider.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>Credential file store</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.batch.filespool.dir</name>
     <value>/var/log/hive/audit/db/spool</value>
     <description>/var/log/hive/audit/db/spool</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -83,6 +90,7 @@
     <value>true</value>
     <display-name>Audit to HDFS</display-name>
     <description>Is Audit to HDFS enabled?</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>

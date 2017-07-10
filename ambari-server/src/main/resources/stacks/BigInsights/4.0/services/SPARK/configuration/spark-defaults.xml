@@ -25,12 +25,14 @@
     <name>spark.eventLog.enabled</name>
     <value>true</value>
     <description>Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>spark.eventLog.dir</name>
     <value>/iop/apps/4.1.0.0/spark/logs/history-server</value>
     <description>Base directory in which Spark events are logged, if spark.eventLog.enabled is true. Within this base directory, Spark creates a sub-directory for each application, and logs the events specific to the application in this directory. Users may want to set this to a unified location like an HDFS directory so history files can be read by the history server.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -41,6 +43,7 @@
       This is memory that accounts for things like VM overheads, interned strings,
       other native overheads, etc.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -51,6 +54,7 @@
       This is memory that accounts for things like VM overheads, interned strings,
       other native overheads, etc.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -60,6 +64,7 @@
       Set the number of times the ApplicationMaster waits for the the Spark master and then
       also the number of tries it waits for the SparkContext to be initialized.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -68,6 +73,7 @@
     <description>
       The interval in ms in which the Spark application master heartbeats into the YARN ResourceManager.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -76,6 +82,7 @@
     <description>
       The maximum number of executor failures before failing the application.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -84,6 +91,7 @@
     <description>
       The name of the YARN queue to which the application is submitted.
     </description>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -92,6 +100,7 @@
     <description>
       The maximum number of threads to use in the application master for launching executor containers.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -101,6 +110,7 @@
       HDFS replication level for the files uploaded into HDFS for the application.
       These include things like the Spark jar, the app jar, and any distributed cache files/archives.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -110,6 +120,7 @@
       Set to true to preserve the staged files (Spark jar, app jar, distributed cache files) at the
       end of the job rather then delete them.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -118,6 +129,7 @@
     <description>
       The port to which the web interface of the History Server binds.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.driver.extraJavaOptions</name>
@@ -128,6 +140,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -139,6 +152,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -147,6 +161,7 @@
     <description>
       Kerberos principal name for the Spark History Server.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -155,5 +170,6 @@
     <description>
       Location of the kerberos keytab file for the Spark History Server.
     </description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

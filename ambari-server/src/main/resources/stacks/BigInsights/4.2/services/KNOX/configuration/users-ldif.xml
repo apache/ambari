@@ -131,6 +131,7 @@ member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
         <description>
             content for users-ldif file for the demo LDAP that comes with Knox.
         </description>
+        <on-ambari-upgrade add="true"/>
         <value-attributes>
           <show-property-name>false</show-property-name>
         </value-attributes>

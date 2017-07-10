@@ -26,6 +26,7 @@
     <display-name>Flume Conf Dir</display-name>
     <value>/etc/flume/conf</value>
     <description>Location to save configuration files</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -37,6 +38,7 @@
     <display-name>Flume Log Dir</display-name>
     <value>/var/log/flume</value>
     <description>Location to save log files</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
@@ -46,6 +48,7 @@
   <property>
     <name>flume_user</name>
     <value>flume</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Flume User</description>
   </property>
@@ -53,6 +56,7 @@
     <name>flume_run_dir</name>	
     <value>/var/run/flume</value>	
     <description>Location to save information about running agents</description>	
+    <on-ambari-upgrade add="true"/>
   </property>
   
   <!-- flume-env.sh -->
@@ -94,5 +98,6 @@ fi
 export HIVE_HOME={{flume_hive_home}}
 export HCAT_HOME={{flume_hcat_home}}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

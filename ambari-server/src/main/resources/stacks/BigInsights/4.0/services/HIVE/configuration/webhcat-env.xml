@@ -49,6 +49,7 @@ CONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log
 # Set HADOOP_HOME to point to a specific hadoop install directory
 export HADOOP_HOME={{hadoop_home}}
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

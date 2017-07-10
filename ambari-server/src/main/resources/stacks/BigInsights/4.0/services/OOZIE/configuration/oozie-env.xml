@@ -25,6 +25,7 @@
     <name>oozie_user</name>
     <display-name>Oozie User</display-name>
     <value>oozie</value>
+    <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Oozie User.</description>
   </property>
@@ -32,12 +33,14 @@
     <name>oozie_admin_users</name>
     <value>{oozie_user}, oozie-admin</value>
     <description>Oozie admin users.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie_database</name>
     <display-name>Oozie Database</display-name>
     <value>New Derby Database</value>
     <description>Oozie Server Database.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -46,12 +49,14 @@
     <name>oozie_derby_database</name>
     <value>Derby</value>
     <description>Oozie Derby Database</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie_data_dir</name>
     <display-name>Oozie Data Dir</display-name>
     <value>/hadoop/oozie/data</value>
     <description>Data directory in which the Oozie DB exists</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <empty-value-valid>true</empty-value-valid>
@@ -63,6 +68,7 @@
     <display-name>Oozie Log Dir</display-name>
     <value>/var/log/oozie</value>
     <description>Directory for oozie logs</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
@@ -74,6 +80,7 @@
     <display-name>Oozie PID Dir</display-name>
     <value>/var/run/oozie</value>
     <description>Directory in which the pid files for oozie reside.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
@@ -85,6 +92,7 @@
     <display-name>Oozie Server Admin Port</display-name>
     <value>11001</value>
     <description>The admin port Oozie server runs.</description>
+    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
       <type>int</type>
@@ -94,16 +102,19 @@
     <name>oozie_initial_heapsize</name>
     <value>1024</value>
     <description>Oozie initial heap size.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie_heapsize</name>
     <value>2048</value>
     <description>Oozie heap size.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie_permsize</name>
     <value>256</value>
     <description>Oozie permanent generation size.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 
@@ -184,6 +195,7 @@ export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native
 export OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5 "
 
     </value>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>
