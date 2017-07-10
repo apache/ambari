@@ -17,16 +17,17 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs/Subject';
+import {FormControl, FormGroup} from '@angular/forms';
 import * as moment from 'moment-timezone';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
+import {UtilsService} from '@app/services/utils.service';
 
 @Injectable()
 export class FilteringService {
 
-  constructor(private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService) {
+  constructor(private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private utils: UtilsService) {
     this.appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
     this.clustersStorage.getAll().subscribe(clusters => this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)]);
     this.componentsStorage.getAll().subscribe(components => this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)]);
@@ -41,9 +42,13 @@ export class FilteringService {
 
   private readonly defaultTimeZone = moment.tz.guess();
 
+  private readonly sortMap = {
+    component_name: 'type',
+    start_time: 'logtime'
+  };
+
   timeZone: string = this.defaultTimeZone;
 
-  // TODO implement loading of real options data
   filters = {
     clusters: {
       label: 'filter.clusters',
@@ -54,12 +59,13 @@ export class FilteringService {
         }
       ],
       selectedValue: '',
-      selectedLabel: 'filter.all',
+      defaultValue: '',
+      defaultLabel: 'filter.all',
       paramName: 'clusters',
     },
     text: {
       label: 'filter.message',
-      selectedValue: ''
+      defaultValue: ''
     },
     timeRange: {
       options: [
@@ -135,18 +141,12 @@ export class FilteringService {
         unit: 'h',
         interval: 1
       },
-      selectedLabel: 'filter.timeRange.1hr'
-    },
-    timeZone: {
-      options: moment.tz.names().map(zone => {
-        // TODO map labels according to actual design requirements
-        return {
-          label: this.getTimeZoneLabel(zone),
-          value: zone
-        };
-      }),
-      selectedValue: this.defaultTimeZone,
-      selectedLabel: this.getTimeZoneLabel(this.defaultTimeZone)
+      defaultValue: {
+        type: 'LAST',
+        unit: 'h',
+        interval: 1
+      },
+      defaultLabel: 'filter.timeRange.1hr'
     },
     components: {
       label: 'filter.components',
@@ -158,7 +158,8 @@ export class FilteringService {
         }
       ],
       selectedValue: '',
-      selectedLabel: 'filter.all'
+      defaultValue: '',
+      defaultLabel: 'filter.all'
     },
     levels: {
       label: 'filter.levels',
@@ -198,9 +199,83 @@ export class FilteringService {
         }
       ],
       selectedValue: '',
-      selectedLabel: 'filter.all'
+      defaultValue: '',
+      defaultLabel: 'filter.all'
+    },
+    sorting: {
+      label: 'sorting.title',
+      options: [
+        {
+          label: 'sorting.level.asc',
+          value: {
+            key: 'level',
+            type: 'asc'
+          }
+        },
+        {
+          label: 'sorting.level.desc',
+          value: {
+            key: 'level',
+            type: 'desc'
+          }
+        },
+        {
+          label: 'sorting.component.asc',
+          value: {
+            key: 'component_name',
+            type: 'asc'
+          }
+        },
+        {
+          label: 'sorting.component.desc',
+          value: {
+            key: 'component_name',
+            type: 'desc'
+          }
+        },
+        {
+          label: 'sorting.time.asc',
+          value: {
+            key: 'start_time',
+            type: 'asc'
+          }
+        },
+        {
+          label: 'sorting.time.desc',
+          value: {
+            key: 'start_time',
+            type: 'desc'
+          }
+        }
+      ],
+      selectedValue: '',
+      defaultValue: '',
+      defaultLabel: ''
     }
   };
+
+  timeZoneSelection = {
+    options: moment.tz.names().map(zone => {
+      // TODO map labels according to actual design requirements
+      return {
+        label: this.utils.getTimeZoneLabel(zone),
+        value: zone
+      };
+    }),
+    defaultValue: this.defaultTimeZone,
+    defaultLabel: this.utils.getTimeZoneLabel(this.defaultTimeZone)
+  };
+
+  private filtersFormItems = Object.keys(this.filters).reduce((currentObject, key) => {
+    let formControl = new FormControl(),
+      item = {
+        [key]: new FormControl()
+      };
+    formControl.setValue(this.filters[key].defaultValue);
+    return Object.assign(currentObject, item);
+  }, {});
+
+  filtersForm = new FormGroup(this.filtersFormItems);
 
   readonly valueGetters = {
     end_time: value => {
@@ -241,24 +316,9 @@ export class FilteringService {
         }
       }
       return time ? time.toISOString() : '';
-    }
+    },
+    sortType: value => value && value.type,
+    sortBy: value => value && (this.sortMap[value.key] || value.key)
   };
-
-  getTimeZoneLabel(timeZone) {
-    return `${timeZone} (${moment.tz(timeZone).format('Z')})`;
-  }
-
-  valueHasChanged(currentValue: any, newValue: any): boolean {
-    if (newValue == null) {
-      return false;
-    }
-    if (typeof newValue === 'object') {
-      return JSON.stringify(currentValue) !== JSON.stringify(newValue);
-    } else {
-      return currentValue !== newValue;
-    }
-  }
-
-  filteringSubject = new Subject();
 
 }

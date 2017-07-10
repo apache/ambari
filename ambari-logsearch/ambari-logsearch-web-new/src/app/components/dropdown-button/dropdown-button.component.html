@@ -15,9 +15,9 @@
   limitations under the License.
 -->
 
-<div class="filter-label" *ngIf="filterInstance.label">{{filterInstance.label | translate}}</div>
+<div class="filter-label" *ngIf="label">{{label | translate}}</div>
 <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">
-  {{filterInstance.selectedLabel | translate}} <span class="caret"></span>
+  {{selectedLabel | translate}} <span class="caret"></span>
 </button>
-<ul class="dropdown-menu" [items]="filterInstance.options" [isFilter]="true"
+<ul data-component="dropdown-list" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}" [items]="options"
     (selectedItemChange)="writeValue($event)"></ul>

@@ -21,6 +21,7 @@ import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {FilteringService} from './filtering.service';
 
@@ -38,7 +39,8 @@ describe('FilteringService', () => {
         FilteringService,
         AppSettingsService,
         ClustersService,
-        ComponentsService
+        ComponentsService,
+        UtilsService
       ]
     });
   });

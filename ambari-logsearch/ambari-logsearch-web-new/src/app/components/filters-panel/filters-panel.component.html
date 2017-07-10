@@ -17,15 +17,14 @@
 
 <form [formGroup]="filtersForm">
   <div class="form-inline filter-input-container col-md-8">
-    <filter-dropdown [(ngModel)]="filters.clusters.selectedValue" [filterName]="'clusters'"
-                     formControlName="clusters" [form]="filtersForm"></filter-dropdown>
-    <filter-text-field [(ngModel)]="filters.text.selectedValue" [filterName]="'text'" formControlName="text"
+    <filter-dropdown [(ngModel)]="filters.clusters.selectedValue" filterName="clusters" [form]="filtersForm"
+                     formControlName="clusters" [options]="filters.clusters.options"></filter-dropdown>
+    <filter-text-field [(ngModel)]="filters.text.selectedValue" filterName="text" formControlName="text"
                        [form]="filtersForm"></filter-text-field>
-    <filter-dropdown [(ngModel)]="filters.timeRange.selectedValue" [filterName]="'timeRange'"
-                     formControlName="timeRange" [form]="filtersForm"></filter-dropdown>
-    <filter-dropdown [(ngModel)]="filters.timeZone.selectedValue" [filterName]="'timeZone'"
-                     formControlName="timeZone" [form]="filtersForm"
-                     [customOnChange]="'setTimeZone'"></filter-dropdown>
+    <filter-dropdown [(ngModel)]="filters.timeRange.selectedValue" filterName="timeRange" [form]="filtersForm"
+                     formControlName="timeRange" [options]="filters.timeRange.options"></filter-dropdown>
+    <dropdown-button [options]="timeZoneSelection.options" [defaultValue]="timeZoneSelection.defaultValue"
+                     [defaultLabel]="timeZoneSelection.defaultLabel" action="setTimeZone"></dropdown-button>
     <!--button class="btn btn-success" type="button">
       <span class="fa fa-search"></span>
     </button-->
@@ -34,14 +33,12 @@
     <a href="#">
       <span class="fa fa-search-minus"></span> {{'filter.excluded' | translate}}
     </a>
-    <filter-button [(ngModel)]="filters.components.selectedValue" formControlName="components"
+    <filter-button [(ngModel)]="filters.components.selectedValue" [form]="filtersForm" formControlName="components"
                    [label]="filters.components.label" [iconClass]="filters.components.iconClass"
-                   [subItems]="filters.components.options" [filterName]="'components'"
-                   [form]="filtersForm"></filter-button>
-    <filter-button [(ngModel)]="filters.levels.selectedValue" formControlName="levels"
+                   [subItems]="filters.components.options" filterName="components"></filter-button>
+    <filter-button [(ngModel)]="filters.levels.selectedValue" [form]="filtersForm" formControlName="levels"
                    [label]="filters.levels.label" [iconClass]="filters.levels.iconClass"
-                   [subItems]="filters.levels.options" [filterName]="'levels'"
-                   [form]="filtersForm"></filter-button>
+                   [subItems]="filters.levels.options" filterName="levels"></filter-button>
     <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
   </div>
 </form>

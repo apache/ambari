@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
+import {Component, Input, ViewChild, ElementRef} from '@angular/core';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import * as $ from 'jquery';
 
@@ -25,12 +25,9 @@ import * as $ from 'jquery';
   templateUrl: './menu-button.component.html',
   styleUrls: ['./menu-button.component.less']
 })
-export class MenuButtonComponent implements AfterViewInit {
+export class MenuButtonComponent {
 
   constructor(protected actions: ComponentActionsService) {
-  }
-
-  ngAfterViewInit() {
   }
 
   @ViewChild('dropdown')
@@ -41,8 +38,6 @@ export class MenuButtonComponent implements AfterViewInit {
 
   @Input()
   action: string;
-
-  isFilter: boolean = false;
 
   @Input()
   iconClass: string;
@@ -84,6 +79,10 @@ export class MenuButtonComponent implements AfterViewInit {
       }
       event.stopPropagation();
     }
+  }
+  
+  writeValue(options: any) {
+    // TODO implement value change behaviour
   }
 
 }

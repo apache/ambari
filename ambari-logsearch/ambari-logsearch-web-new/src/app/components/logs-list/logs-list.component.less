@@ -23,6 +23,19 @@
   padding-top: @block-margin-top;
   background-color: @main-background-color; // TODO implement actual color
 
+  .logs-header {
+    // TODO get rid of magic numbers, base on actual design
+    margin: 10px 0;
+    padding: 5px 0;
+    background-color: @list-header-background-color; // TODO implement actual color
+    overflow: hidden;
+    text-transform: uppercase;
+  }
+
+  filter-dropdown {
+    justify-content: flex-end;
+  }
+
   .hexagon {
     // TODO get rid of magic numbers, base on actual design
     left: -7.5px;
@@ -116,6 +129,7 @@
       &.collapsing + .log-content, &.collapse.in + .log-content {
         min-height: 6em;
         max-height: none;
+        overflow-x: auto;
       }
 
       .action-icon {

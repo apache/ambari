@@ -17,6 +17,5 @@
 
 <div class="input-group">
   <span class="input-group-addon">{{filterInstance.label | translate}}</span>
-  <input type="text" class="form-control" [(ngModel)]="filterInstance.selectedValue"
-         (ngModelChange)="writeValue($event)">
+  <input type="text" class="form-control" [(ngModel)]="instantValue" (ngModelChange)="updateValue($event)">
 </div>

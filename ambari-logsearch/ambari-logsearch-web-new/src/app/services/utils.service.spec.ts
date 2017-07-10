@@ -16,26 +16,18 @@
  * limitations under the License.
  */
 
-import {Component, Input, Output, EventEmitter} from '@angular/core';
+import {TestBed, inject} from '@angular/core/testing';
 
-@Component({
-  selector: 'ul[data-component="dropdown-list"]',
-  templateUrl: './dropdown-list.component.html',
-  styleUrls: ['./dropdown-list.component.less']
-})
-export class DropdownListComponent {
+import {UtilsService} from './utils.service';
 
-  @Input()
-  items: any[];
+describe('UtilsService', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [UtilsService]
+    });
+  });
 
-  @Input()
-  defaultAction: Function;
-
-  @Output()
-  selectedItemChange: EventEmitter<any> = new EventEmitter();
-
-  changeSelectedItem(options: any): void {
-    this.selectedItemChange.emit(options);
-  }
-
-}
+  it('should create service', inject([UtilsService], (service: UtilsService) => {
+    expect(service).toBeTruthy();
+  }));
+});

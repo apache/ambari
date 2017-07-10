@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, Input, forwardRef} from '@angular/core';
+import {Component, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
 import {FilteringService} from '@app/services/filtering.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
+import {UtilsService} from '@app/services/utils.service';
+import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 
 @Component({
   selector: 'filter-dropdown',
-  templateUrl: './filter-dropdown.component.html',
-  styleUrls: ['./filter-dropdown.component.less'],
+  templateUrl: '../dropdown-button/dropdown-button.component.html',
+  styleUrls: ['../dropdown-button/dropdown-button.component.less', './filter-dropdown.component.less'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -32,22 +34,14 @@ import {ComponentActionsService} from '@app/services/component-actions.service';
     }
   ]
 })
-export class FilterDropdownComponent implements AfterViewInit, ControlValueAccessor {
+export class FilterDropdownComponent extends DropdownButtonComponent implements ControlValueAccessor {
 
-  constructor(private filtering: FilteringService, private actions: ComponentActionsService) {
+  constructor(protected filtering: FilteringService, protected actions: ComponentActionsService, protected utils: UtilsService) {
+    super(filtering, actions, utils);
   }
 
-  ngAfterViewInit() {
-    const callback = this.customOnChange ?
-      (value => this.actions[this.customOnChange](value)) : (() => this.filtering.filteringSubject.next(null));
-    this.form.controls[this.filterName].valueChanges.subscribe(callback);
+  ngOnInit() {
   }
-
-  @Input()
-  options: any[];
-
-  @Input()
-  customOnChange: string;
 
   @Input()
   form: FormGroup;
@@ -61,20 +55,36 @@ export class FilterDropdownComponent implements AfterViewInit, ControlValueAcces
     return this.filtering.filters[this.filterName];
   }
 
+  get label(): string {
+    return this.filterInstance.label;
+  }
+
+  get defaultValue(): any {
+    return this.filterInstance.defaultValue;
+  }
+
+  get defaultLabel(): any {
+    return this.filterInstance.defaultLabel;
+  }
+
   get value(): any {
-    return this.filterInstance.selectedValue;
+    return this.filterInstance.selectedValue == null ? this.defaultValue : this.filterInstance.selectedValue;
   }
 
   set value(newValue: any) {
-    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
+    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
       this.filterInstance.selectedValue = newValue;
       this.onChange(newValue);
     }
   }
 
-  writeValue(options: any) {
+  get selectedLabel(): string {
+    return this.filterInstance.selectedLabel == null ? this.defaultLabel : this.filterInstance.selectedLabel;
+  }
+
+  writeValue(options: any): void {
     const value = options && options.value;
-    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, value)) {
+    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, value)) {
       this.filterInstance.selectedValue = value;
       this.filterInstance.selectedLabel = options.label;
     }

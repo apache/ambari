@@ -28,6 +28,7 @@ import {ClustersService, clusters} from '@app/services/storage/clusters.service'
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {FilterButtonComponent} from './filter-button.component';
 
@@ -58,7 +59,8 @@ describe('FilterButtonComponent', () => {
         ClustersService,
         ComponentsService,
         ComponentActionsService,
-        FilteringService
+        FilteringService,
+        UtilsService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

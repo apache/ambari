@@ -55,37 +55,22 @@ describe('DropdownListComponent', () => {
 
   describe('#changeSelectedItem()', () => {
 
+    const options = {
+      label: 'l',
+      value: 'v'
+    };
+
     beforeEach(() => {
       spyOn(component.selectedItemChange, 'emit').and.callFake(() => {});
+      component.changeSelectedItem(options);
     });
 
-    describe('not a filter list', () => {
-      it('event should not be emitted', () => {
-        component.isFilter = false;
-        component.changeSelectedItem({});
-        expect(component.selectedItemChange.emit).not.toHaveBeenCalled();
-      });
+    it('event should be emitted', () => {
+      expect(component.selectedItemChange.emit).toHaveBeenCalled();
     });
 
-    describe('filter list', () => {
-      const options = {
-        label: 'l',
-        value: 'v'
-      };
-
-      beforeEach(() => {
-        component.isFilter = true;
-        component.changeSelectedItem(options);
-      });
-
-      it('event should be emitted', () => {
-        expect(component.selectedItemChange.emit).toHaveBeenCalled();
-      });
-
-      it('event emitter should be called with correct arguments', () => {
-        expect(component.selectedItemChange.emit).toHaveBeenCalledWith(options);
-      });
-
+    it('event emitter should be called with correct arguments', () => {
+      expect(component.selectedItemChange.emit).toHaveBeenCalledWith(options);
     });
 
   });

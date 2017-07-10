@@ -32,6 +32,7 @@ import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -58,6 +59,7 @@ import {FilterTextFieldComponent} from '@app/components/filter-text-field/filter
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
+import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 
 export function HttpLoaderFactory(http: Http) {
   // adding 'static' parameter to step over mock data request
@@ -92,7 +94,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FilterTextFieldComponent,
     FilterButtonComponent,
     AccordionPanelComponent,
-    LogsListComponent
+    LogsListComponent,
+    DropdownButtonComponent
   ],
   imports: [
     BrowserModule,
@@ -115,6 +118,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     HttpClientService,
     ComponentActionsService,
     FilteringService,
+    UtilsService,
     AppSettingsService,
     AppStateService,
     AuditLogsService,

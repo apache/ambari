@@ -15,6 +15,16 @@
   limitations under the License.
 -->
 
+<form *ngIf="(logs | async).length" [formGroup]="filtersForm">
+  <filter-dropdown [(ngModel)]="filters.sorting.selectedValue" filterName="sorting" [form]="filtersForm"
+                   formControlName="sorting" [options]="filters.sorting.options" isRightAlign="true"></filter-dropdown>
+</form>
+<div class="col-md-12 text-center" *ngIf="(logs | async).length">
+  <div class="logs-header">
+    <div class="col-md-1">{{'logs.status' | translate}}</div>
+    <div class="col-md-11">{{'logs.details' | translate}}</div>
+  </div>
+</div>
 <accordion-panel *ngFor="let log of logs | async; let i = index" [toggleId]="'details-' + i" class="col-md-12">
   <ng-template>
     <div [ngClass]="'hexagon ' + log.className"></div>

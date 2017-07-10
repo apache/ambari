@@ -29,11 +29,13 @@ import {FilteringService} from '@app/services/filtering.service';
 export class LogsListComponent implements OnInit {
 
   constructor(private httpClient: HttpClientService, private serviceLogsStorage: ServiceLogsService, private filtering: FilteringService) {
-    this.filtering.filteringSubject.subscribe(this.loadLogs.bind(this));
   }
 
   ngOnInit() {
     this.loadLogs();
+    this.filtersForm.valueChanges.subscribe(() => {
+      this.loadLogs();
+    });
   }
 
   @Input()
@@ -46,7 +48,8 @@ export class LogsListComponent implements OnInit {
     text: ['iMessage'],
     timeRange: ['end_time', 'start_time'],
     components: ['component_name'],
-    levels: ['level']
+    levels: ['level'],
+    sorting: ['sortType', 'sortBy']
   };
 
   logs = this.serviceLogsStorage.getAll().map(logs => logs.map(log => {
@@ -61,6 +64,14 @@ export class LogsListComponent implements OnInit {
 
   get timeZone(): string {
     return this.filtering.timeZone;
+  }
+
+  get filters() {
+    return this.filtering.filters;
+  }
+  
+  get filtersForm() {
+    return this.filtering.filtersForm;
   }
 
   private loadLogs(): void {
@@ -78,8 +89,7 @@ export class LogsListComponent implements OnInit {
   private getParams(): any {
     let params = {};
     Object.keys(this.usedFilters).forEach(key => {
-      const inputFilter = this.filtering.filters[key],
-        inputValue = inputFilter.selectedValue,
+      const inputValue = this.filtersForm.getRawValue()[key],
         paramNames = this.usedFilters[key];
       paramNames.forEach(paramName => {
         let value;

@@ -36,5 +36,16 @@
   "levels.info": "Info",
   "levels.debug": "Debug",
   "levels.trace": "Trace",
-  "levels.unknown": "Unknown"
+  "levels.unknown": "Unknown",
+
+  "sorting.title": "Sort By",
+  "sorting.level.asc": "Ascending Level",
+  "sorting.level.desc": "Descending Level",
+  "sorting.component.asc": "Ascending Component",
+  "sorting.component.desc": "Descending Component",
+  "sorting.time.asc": "Ascending Time",
+  "sorting.time.desc": "Descending Time",
+
+  "logs.status": "Status",
+  "logs.details": "Details"
 }

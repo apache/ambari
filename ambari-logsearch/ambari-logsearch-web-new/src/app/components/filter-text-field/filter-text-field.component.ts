@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, Input, forwardRef} from '@angular/core';
+import {Component, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
+import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import {FilteringService} from '@app/services/filtering.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
+import {UtilsService} from '@app/services/utils.service';
 
 @Component({
   selector: 'filter-text-field',
@@ -33,22 +34,16 @@ import {ComponentActionsService} from '@app/services/component-actions.service';
     }
   ]
 })
-export class FilterTextFieldComponent implements AfterViewInit, ControlValueAccessor {
+export class FilterTextFieldComponent implements ControlValueAccessor {
 
-  constructor(private filtering: FilteringService, private actions: ComponentActionsService) {
-  }
-
-  ngAfterViewInit() {
-    const callback = this.customOnChange ?
-      (value => this.actions[this.customOnChange](value)) : (() => this.filtering.filteringSubject.next(null));
-    this.form.controls[this.filterName].valueChanges.debounceTime(this.debounceInterval).subscribe(callback);
+  constructor(private filtering: FilteringService, private utils: UtilsService) {
+    this.valueSubject.debounceTime(this.debounceInterval).subscribe(value => this.writeValue({
+      value
+    }));
   }
 
   @Input()
   filterName: string;
-
-  @Input()
-  customOnChange: string;
 
   @Input()
   form: FormGroup;
@@ -56,6 +51,10 @@ export class FilterTextFieldComponent implements AfterViewInit, ControlValueAcce
   private onChange: (fn: any) => void;
 
   private readonly debounceInterval = 1500;
+
+  instantValue: string;
+
+  private valueSubject = new Subject<string>();
 
   get filterInstance(): any {
     return this.filtering.filters[this.filterName];
@@ -66,7 +65,7 @@ export class FilterTextFieldComponent implements AfterViewInit, ControlValueAcce
   }
 
   set value(newValue: any) {
-    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
+    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
       this.filterInstance.selectedValue = newValue;
       this.onChange(newValue);
     }
@@ -74,7 +73,7 @@ export class FilterTextFieldComponent implements AfterViewInit, ControlValueAcce
 
   writeValue(options: any) {
     const value = options && options.value;
-    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, value)) {
+    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, value)) {
       this.filterInstance.selectedValue = value;
     }
   }
@@ -84,6 +83,10 @@ export class FilterTextFieldComponent implements AfterViewInit, ControlValueAcce
   }
 
   registerOnTouched() {
+  }
+
+  updateValue(value: string): void {
+    this.valueSubject.next(value);
   }
 
 }

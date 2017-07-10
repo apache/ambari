@@ -17,7 +17,6 @@
  */
 
 import {Component} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
 import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
@@ -35,16 +34,13 @@ export class FiltersPanelComponent {
     this.loadComponents();
   }
 
-  get filters() {
+  get filters(): any {
     return this.filtering.filters;
   }
 
-  private filtersFormItems = Object.keys(this.filters).reduce((currentObject, key) => {
-    const item = {
-      [key]: new FormControl()
-    };
-    return Object.assign(currentObject, item);
-  }, {});
+  get timeZoneSelection(): any {
+    return this.filtering.timeZoneSelection;
+  }
 
   private loadClusters(): void {
     this.httpClient.get('clusters').subscribe(response => {
@@ -66,6 +62,8 @@ export class FiltersPanelComponent {
     });
   }
 
-  filtersForm = new FormGroup(this.filtersFormItems);
+  get filtersForm() {
+    return this.filtering.filtersForm;
+  }
 
 }

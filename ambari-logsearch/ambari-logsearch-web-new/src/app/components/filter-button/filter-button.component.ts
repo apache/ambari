@@ -20,6 +20,7 @@ import {Component, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
+import {UtilsService} from '@app/services/utils.service';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 
 @Component({
@@ -36,28 +37,17 @@ import {MenuButtonComponent} from '@app/components/menu-button/menu-button.compo
 })
 export class FilterButtonComponent extends MenuButtonComponent implements ControlValueAccessor {
 
-  constructor(protected actions: ComponentActionsService, private filtering: FilteringService) {
+  constructor(protected actions: ComponentActionsService, private filtering: FilteringService, private utils: UtilsService) {
     super(actions);
-  }
-
-  ngAfterViewInit() {
-    const callback = this.customOnChange ?
-      (value => this.actions[this.customOnChange](value)) : (() => this.filtering.filteringSubject.next(null));
-    this.form.controls[this.filterName].valueChanges.subscribe(callback);
   }
 
   @Input()
   filterName: string;
 
   @Input()
-  customOnChange: string;
-
-  @Input()
   form: FormGroup;
 
   private onChange: (fn: any) => void;
-
-  readonly isFilter = true;
 
   get filterInstance(): any {
     return this.filtering.filters[this.filterName];
@@ -68,7 +58,7 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
   }
 
   set value(newValue: any) {
-    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
+    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
       this.filterInstance.selectedValue = newValue;
       this.onChange(newValue);
     }
@@ -76,7 +66,7 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
 
   writeValue(options: any) {
     const value = options && options.value;
-    if (this.filtering.valueHasChanged(this.filterInstance.selectedValue, value)) {
+    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, value)) {
       this.filterInstance.selectedValue = value;
       this.filterInstance.selectedLabel = options.label;
     }

@@ -104,7 +104,8 @@ export class mockApiDataService implements InMemoryDbService {
         const filterMapItem = this.filterMap[path];
         if (query && filterMapItem) {
           filteredData = {};
-          const collection = allData[filterMapItem.pathToCollection],
+          const pathToCollection = filterMapItem.pathToCollection,
+            collection = allData[pathToCollection],
             filteredCollection = collection.filter(item => {
             let result = true;
               query.paramsMap.forEach((value, key) => {
@@ -118,7 +119,24 @@ export class mockApiDataService implements InMemoryDbService {
             });
             return result;
           });
-          filteredData[filterMapItem.pathToCollection] = filteredCollection;
+          if (query.paramsMap.has('sortBy') && query.paramsMap.has('sortType')) {
+            const sortKey = query.paramsMap.get('sortBy')[0],
+              sortType = query.paramsMap.get('sortType')[0];
+            filteredCollection.sort((a, b) => {
+              const itemA = a[sortKey],
+                itemB = b[sortKey];
+              let ascResult;
+              if (itemA > itemB) {
+                ascResult = 1;
+              } else if (itemA < itemB) {
+                ascResult = -1;
+              } else {
+                ascResult = 0;
+              }
+              return ascResult * Math.pow(-1, Number(sortType === 'desc'));
+            });
+          }
+          filteredData[pathToCollection] = filteredCollection;
         } else {
           filteredData = allData;
         }

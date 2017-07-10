@@ -27,6 +27,7 @@ import {ClustersService, clusters} from '@app/services/storage/clusters.service'
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {FiltersPanelComponent} from './filters-panel.component';
 
@@ -69,7 +70,8 @@ describe('FiltersPanelComponent', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        }
+        },
+        UtilsService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

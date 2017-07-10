@@ -16,26 +16,25 @@
  * limitations under the License.
  */
 
-import {Component, Input, Output, EventEmitter} from '@angular/core';
+import {Injectable} from '@angular/core';
+import * as moment from 'moment-timezone';
 
-@Component({
-  selector: 'ul[data-component="dropdown-list"]',
-  templateUrl: './dropdown-list.component.html',
-  styleUrls: ['./dropdown-list.component.less']
-})
-export class DropdownListComponent {
+@Injectable()
+export class UtilsService {
 
-  @Input()
-  items: any[];
+  valueHasChanged(currentValue: any, newValue: any): boolean {
+    if (newValue == null) {
+      return false;
+    }
+    if (typeof newValue === 'object') {
+      return JSON.stringify(currentValue) !== JSON.stringify(newValue);
+    } else {
+      return currentValue !== newValue;
+    }
+  }
 
-  @Input()
-  defaultAction: Function;
-
-  @Output()
-  selectedItemChange: EventEmitter<any> = new EventEmitter();
-
-  changeSelectedItem(options: any): void {
-    this.selectedItemChange.emit(options);
+  getTimeZoneLabel(timeZone) {
+    return `${timeZone} (${moment.tz(timeZone).format('Z')})`;
   }
 
 }
