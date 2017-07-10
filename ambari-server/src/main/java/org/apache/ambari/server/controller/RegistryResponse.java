@@ -17,8 +17,11 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.controller.internal.RegistryResourceProvider;
 import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.registry.RegistryType;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Represents a software registry response.
@@ -86,5 +89,11 @@ public class RegistryResponse {
         }
         RegistryResponse registryResponse = (RegistryResponse) obj;
         return getRegistryId().equals(registryResponse.getRegistryId());
+    }
+
+    public interface RegistryResponseWrapper extends ApiModel {
+        @ApiModelProperty(name = RegistryResourceProvider.RESPONSE_KEY)
+        @SuppressWarnings("unused")
+        RegistryResponse getRegistryResponse();
     }
 }

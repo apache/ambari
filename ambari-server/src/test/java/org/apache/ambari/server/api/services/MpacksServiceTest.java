@@ -29,7 +29,6 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 
-import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -65,7 +64,7 @@ public class MpacksServiceTest extends BaseServiceTest{
     private String m_mpackId;
 
     private TestMpacksService(String mpackId) {
-      super(ApiVersion.Default);
+      super();
       m_mpackId = mpackId;
     }
 

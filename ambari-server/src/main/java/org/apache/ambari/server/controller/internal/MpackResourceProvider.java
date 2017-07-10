@@ -43,6 +43,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
@@ -57,14 +58,16 @@ import com.google.inject.Inject;
 @StaticallyInject
 public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
-  public static final String MPACK_ID = "MpackInfo/mpack_id";
-  public static final String REGISTRY_ID = "MpackInfo/registry_id";
-  public static final String MPACK_NAME = "MpackInfo/mpack_name";
-  public static final String MPACK_VERSION = "MpackInfo/mpack_version";
-  public static final String MPACK_URI = "MpackInfo/mpack_uri";
-  public static final String PACKLETS = "MpackInfo/packlets";
-  public static final String STACK_NAME_PROPERTY_ID = "MpackInfo/stack_name";
-  public static final String STACK_VERSION_PROPERTY_ID = "MpackInfo/stack_version";
+  public static final String RESPONSE_KEY = "MpackInfo";
+  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
+  public static final String MPACK_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
+  public static final String REGISTRY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "registry_id";
+  public static final String MPACK_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_name";
+  public static final String MPACK_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_version";
+  public static final String MPACK_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_uri";
+  public static final String PACKLETS = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "packlets";
+  public static final String STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
+  public static final String STACK_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
           Arrays.asList(MPACK_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID));

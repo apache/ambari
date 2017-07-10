@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.registry.RegistryType;
 import org.apache.commons.lang.Validate;
 
@@ -46,10 +47,12 @@ import org.apache.commons.lang.Validate;
  */
 @StaticallyInject
 public class RegistryResourceProvider extends AbstractControllerResourceProvider {
-  public static final String REGISTRY_ID = "RegistryInfo/registry_id";
-  public static final String REGISTRY_NAME = "RegistryInfo/registry_name";
-  public static final String REGISTRY_TYPE = "RegistryInfo/registry_type";
-  public static final String REGISTRY_URI = "RegistryInfo/registry_uri";
+  public static final String RESPONSE_KEY = "RegistryInfo";
+  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
+  public static final String REGISTRY_ID =  RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP +  "registry_id";
+  public static final String REGISTRY_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "registry_name";
+  public static final String REGISTRY_TYPE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "registry_type";
+  public static final String REGISTRY_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "registry_uri";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(REGISTRY_ID, REGISTRY_NAME));
