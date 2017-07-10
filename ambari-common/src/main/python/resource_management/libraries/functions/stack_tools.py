@@ -39,14 +39,32 @@ def get_stack_tool(name):
   :return: tool_name, tool_path, tool_package
   """
   from resource_management.libraries.functions.default import default
+
+  stack_name = default("/hostLevelParams/stack_name", None)
+  if stack_name is None:
+    Logger.warning("Cannot find the stack name in the command. Stack tools cannot be loaded")
+    return (None, None, None)
+
   stack_tools = None
   stack_tools_config = default("/configurations/cluster-env/stack_tools", None)
   if stack_tools_config:
     stack_tools = json.loads(stack_tools_config)
 
+  if stack_tools is None:
+    Logger.warning("The stack tools could not be found in cluster-env")
+    return (None, None, None)
+
+  if stack_name not in stack_tools:
+    Logger.warning("Cannot find stack tools for the stack named {0}".format(stack_name))
+    return (None, None, None)
+
+  # load the stack tooks keyed by the stack name
+  stack_tools = stack_tools[stack_name]
+
   if not stack_tools or not name or name.lower() not in stack_tools:
     Logger.warning("Cannot find config for {0} stack tool in {1}".format(str(name), str(stack_tools)))
     return (None, None, None)
+
 
   tool_config = stack_tools[name.lower()]
 
@@ -81,3 +99,24 @@ def get_stack_tool_package(name):
   """
   (tool_name, tool_path, tool_package) = get_stack_tool(name)
   return tool_package
+
+
+def get_stack_root(stack_name, stack_root_json):
+  """
+  Get the stack-specific install root directory from the raw, JSON-escaped properties.
+  :param stack_name:
+  :param stack_root_json:
+  :return: stack_root
+  """
+  from resource_management.libraries.functions.default import default
+
+  if stack_root_json is None:
+    return "/usr/{0}".format(stack_name.lower())
+
+  stack_root = json.loads(stack_root_json)
+
+  if stack_name not in stack_root:
+    Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
+    return "/usr/{0}".format(stack_name.lower())
+
+  return stack_root[stack_name]

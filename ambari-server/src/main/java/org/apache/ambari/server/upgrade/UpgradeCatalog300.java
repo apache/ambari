@@ -369,6 +369,24 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
               updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", Collections.singletonMap("content", content), true, true);
             }
           }
+
+          Config logsearchServiceLogsConfig = cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig");
+          if (logsearchServiceLogsConfig != null) {
+            String content = logsearchServiceLogsConfig.getProperties().get("content");
+            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
+              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-service_logs-solrconfig", Collections.singletonMap("content", content), true, true);
+            }
+          }
+
+          Config logsearchAuditLogsConfig = cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig");
+          if (logsearchAuditLogsConfig != null) {
+            String content = logsearchAuditLogsConfig.getProperties().get("content");
+            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
+              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-audit_logs-solrconfig", Collections.singletonMap("content", content), true, true);
+            }
+          }
         }
       }
     }

@@ -76,7 +76,7 @@ public class LogEntryParseTester {
     ConfigHandler configHandler = new ConfigHandler();
     Input input = configHandler.getTestInput(inputConfig, logId);
     final Map<String, Object> result = new HashMap<>();
-    input.init();
+    input.getFirstFilter().init();
     input.addOutput(new Output() {
       @Override
       public void write(String block, InputMarker inputMarker) throws Exception {

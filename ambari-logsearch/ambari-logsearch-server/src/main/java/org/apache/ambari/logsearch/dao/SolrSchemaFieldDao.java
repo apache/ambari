@@ -141,7 +141,7 @@ public class SolrSchemaFieldDao {
         try (CloseableHttpClient httpClient = HttpClientUtil.createClient(null)) {
           HttpGet request = new HttpGet(replica.getCoreUrl() + LUKE_REQUEST_URL_SUFFIX);
           HttpResponse response = httpClient.execute(request);
-          NamedList<Object> lukeData = (NamedList<Object>) new JavaBinCodec(null, null).unmarshal(response.getEntity().getContent());
+          NamedList<Object> lukeData = (NamedList<Object>) new JavaBinCodec().unmarshal(response.getEntity().getContent());
           LukeResponse lukeResponse = new LukeResponse();
           lukeResponse.setResponse(lukeData);
           lukeResponses.add(lukeResponse);

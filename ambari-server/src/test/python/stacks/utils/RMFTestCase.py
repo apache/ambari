@@ -102,8 +102,12 @@ class RMFTestCase(TestCase):
     else:
       raise RuntimeError("Please specify either config_file_path or config_dict parameter")
 
-    self.config_dict["configurations"]["cluster-env"]["stack_tools"] = RMFTestCase.get_stack_tools()
-    self.config_dict["configurations"]["cluster-env"]["stack_features"] = RMFTestCase.get_stack_features()
+    # add the stack tools & features from the stack if the test case's JSON file didn't have them
+    if "stack_tools" not in self.config_dict["configurations"]["cluster-env"]:
+      self.config_dict["configurations"]["cluster-env"]["stack_tools"] = RMFTestCase.get_stack_tools()
+
+    if "stack_features" not in self.config_dict["configurations"]["cluster-env"]:
+      self.config_dict["configurations"]["cluster-env"]["stack_features"] = RMFTestCase.get_stack_features()
 
     if config_overrides:
       for key, value in config_overrides.iteritems():

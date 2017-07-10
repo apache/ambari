@@ -70,11 +70,17 @@ class NimbusDefault(Nimbus):
     setup_ranger_storm(upgrade_type=upgrade_type)
     service("nimbus", action="start")
 
+    if "SUPERVISOR" not in params.config['localComponents']:
+      service("logviewer", action="start")
+
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     service("nimbus", action="stop")
+
+    if "SUPERVISOR" not in params.config['localComponents']:
+      service("logviewer", action="stop")
 
 
   def status(self, env):
@@ -85,7 +91,7 @@ class NimbusDefault(Nimbus):
   def get_log_folder(self):
     import params
     return params.log_dir
-  
+
   def get_user(self):
     import params
     return params.storm_user

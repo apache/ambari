@@ -19,22 +19,28 @@
 package org.apache.ambari.infra.solr.commands;
 
 import org.apache.ambari.infra.solr.AmbariSolrCloudClient;
-import org.apache.solr.common.cloud.ClusterProperties;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.SolrZooKeeper;
+import org.apache.zookeeper.data.Stat;
 
-public class SetClusterPropertyZkCommand extends AbstractZookeeperRetryCommand<String>{
+public class RemoveAdminHandlersCommand extends AbstractZookeeperRetryCommand<Boolean> {
 
-  public SetClusterPropertyZkCommand(int maxRetries, int interval) {
+  public RemoveAdminHandlersCommand(int maxRetries, int interval) {
     super(maxRetries, interval);
   }
 
   @Override
-  protected String executeZkCommand(AmbariSolrCloudClient client, SolrZkClient zkClient, SolrZooKeeper solrZooKeeper) throws Exception {
-    String propertyName = client.getPropName();
-    String propertyValue = client.getPropValue();
-    ClusterProperties clusterProperties = new ClusterProperties(zkClient);
-    clusterProperties.setClusterProperty(propertyName, propertyValue);
-    return propertyValue;
+  protected Boolean executeZkCommand(AmbariSolrCloudClient client, SolrZkClient zkClient, SolrZooKeeper solrZooKeeper) throws Exception {
+    String solrConfigXmlPath = String.format("/configs/%s/solrconfig.xml", client.getCollection());
+    if (zkClient.exists(solrConfigXmlPath, true)) {
+      Stat stat = new Stat();
+      byte[] solrConfigXmlBytes = zkClient.getData(solrConfigXmlPath, null, stat, true);
+      String solrConfigStr = new String(solrConfigXmlBytes);
+      if (solrConfigStr.contains("class=\"solr.admin.AdminHandlers\"")) {
+        byte[] newSolrConfigXmlBytes = new String(solrConfigXmlBytes).replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "").getBytes();
+        zkClient.setData(solrConfigXmlPath, newSolrConfigXmlBytes, stat.getVersion() + 1, true);
+      }
+    }
+    return true;
   }
 }

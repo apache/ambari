@@ -48,6 +48,8 @@ Grok filters have the following additional parameters:
 
 ## Key-value Filter
 
+value\_borders is only used if it is specified, and value\_split is not.
+
 Key-value filters have the following additional parameters:
 
 | Field          | Description                                                                               | Default |
@@ -56,4 +58,4 @@ Key-value filters have the following additional parameters:
 | value\_split   | The string that separates keys from values                                                | "="     |
 | value\_borders | The borders around the value, must be 2 characters long, first before it, second after it | -       |
 
-If value\_borders is only used if it is specified, and value\_split is not.
+

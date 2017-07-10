@@ -131,13 +131,15 @@ public class FilterJSONTest {
   @Test
   public void testJSONFilterCode_invalidJson() throws Exception {
     LOG.info("testJSONFilterCode_invalidJson()");
+    
     init(new FilterJsonDescriptorImpl());
-    String inputStr="invalid json";
+    
+    String inputStr = "invalid json";
     try{
-    filterJson.apply(inputStr,new InputMarker(null, null, 0));
-    fail("Expected LogFeederException was not occured");
-    }catch(LogFeederException logFeederException){
-      assertEquals("Json parsing failed for inputstr = "+inputStr, logFeederException.getLocalizedMessage());
+      filterJson.apply(inputStr,new InputMarker(null, null, 0));
+      fail("Expected LogFeederException was not occured");
+    } catch(LogFeederException logFeederException) {
+      assertEquals("Json parsing failed for inputstr = " + inputStr, logFeederException.getLocalizedMessage());
     }
   }
 

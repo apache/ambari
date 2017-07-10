@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -72,7 +72,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
@@ -168,10 +167,9 @@ public class AmbariContext {
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersion) {
     Stack stack = topology.getBlueprint().getStack();
-    StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType, repoVersion);
-    createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion);
+    createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
   public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType, String repoVersion) {
@@ -198,8 +196,7 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName,
-      StackId stackId, String repositoryVersion) {
+  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName) {
     Collection<String> services = topology.getBlueprint().getServices();
 
     try {
@@ -208,13 +205,11 @@ public class AmbariContext {
     } catch (AmbariException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
-    Set<ServiceRequest> serviceRequests = new HashSet<>();
-    Set<ServiceComponentRequest> componentRequests = new HashSet<>();
+    Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
+    Set<ServiceComponentRequest> componentRequests = new HashSet<ServiceComponentRequest>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
-      serviceRequests.add(new ServiceRequest(clusterName, service, stackId.getStackId(),
-          repositoryVersion, null, credentialStoreEnabled));
-
+      serviceRequests.add(new ServiceRequest(clusterName, service, null, credentialStoreEnabled));
       for (String component : topology.getBlueprint().getComponents(service)) {
         String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
         componentRequests.add(new ServiceComponentRequest(clusterName, service, component, null, recoveryEnabled));
@@ -228,14 +223,14 @@ public class AmbariContext {
     }
     // set all services state to INSTALLED->STARTED
     // this is required so the user can start failed services at the service level
-    Map<String, Object> installProps = new HashMap<>();
+    Map<String, Object> installProps = new HashMap<String, Object>();
     installProps.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INSTALLED");
     installProps.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    Map<String, Object> startProps = new HashMap<>();
+    Map<String, Object> startProps = new HashMap<String, Object>();
     startProps.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "STARTED");
     startProps.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    Predicate predicate = new EqualsPredicate<>(
-      ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
+    Predicate predicate = new EqualsPredicate<String>(
+        ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
     try {
       getServiceResourceProvider().updateResources(
           new RequestImpl(null, Collections.singleton(installProps), null, null), predicate);
@@ -267,9 +262,9 @@ public class AmbariContext {
     }
     String clusterName = cluster.getClusterName();
 
-    Map<String, Object> properties = new HashMap<>();
+    Map<String, Object> properties = new HashMap<String, Object>();
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, hostName);
+    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, hostName);
     properties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, host.getRackInfo());
 
     try {
@@ -280,7 +275,7 @@ public class AmbariContext {
           hostName, e.toString()), e);
     }
 
-    final Set<ServiceComponentHostRequest> requests = new HashSet<>();
+    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
 
     for (Map.Entry<String, Collection<String>> entry : components.entrySet()) {
       String service = entry.getKey();
@@ -594,7 +589,7 @@ public class AmbariContext {
    * and the hosts associated with the host group are assigned to the config group.
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
-    Map<String, Map<String, Config>> groupConfigs = new HashMap<>();
+    Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
     Stack stack = topology.getBlueprint().getStack();
 
     // get the host-group config with cluster creation template overrides
@@ -613,7 +608,7 @@ public class AmbariContext {
       //todo: attributes
       Map<String, Config> serviceConfigs = groupConfigs.get(service);
       if (serviceConfigs == null) {
-        serviceConfigs = new HashMap<>();
+        serviceConfigs = new HashMap<String, Config>();
         groupConfigs.put(service, serviceConfigs);
       }
       serviceConfigs.put(type, config);

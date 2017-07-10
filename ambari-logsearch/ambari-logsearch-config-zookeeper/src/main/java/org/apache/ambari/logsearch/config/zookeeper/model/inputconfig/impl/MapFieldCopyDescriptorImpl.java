@@ -19,17 +19,29 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldCopyDescriptor;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class MapFieldCopyDescriptorImpl implements MapFieldCopyDescriptor {
+@ShipperConfigTypeDescription(
+    name = "Map Copy",
+    description = "The name of the mapping element should be map_copy. The value json element should contain the following parameter:"
+)
+public class MapFieldCopyDescriptorImpl extends MapFieldDescriptorImpl implements MapFieldCopyDescriptor {
   @Override
   public String getJsonName() {
     return "map_fieldcopy";
   }
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_copy/copy_name",
+    type = "string",
+    description = "The name of the copied field",
+    examples = {"new_name"}
+  )
   @Expose
   @SerializedName("copy_name")
   private String copyName;

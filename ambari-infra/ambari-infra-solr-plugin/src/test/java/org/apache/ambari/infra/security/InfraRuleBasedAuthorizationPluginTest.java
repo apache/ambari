@@ -242,6 +242,11 @@ public class InfraRuleBasedAuthorizationPluginTest {
     public String getResource() {
       return (String) values.get("resource");
     }
+
+    @Override
+    public Object getHandler() {
+      return null;
+    }
   }
 
 }

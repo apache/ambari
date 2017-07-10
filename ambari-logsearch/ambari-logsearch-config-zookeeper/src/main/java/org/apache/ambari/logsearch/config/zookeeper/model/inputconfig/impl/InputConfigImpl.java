@@ -21,16 +21,34 @@ package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
 import java.util.List;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 
 import com.google.gson.annotations.Expose;
 
+@ShipperConfigTypeDescription(
+  name = "Input Config",
+  description = "The input configurations are stored in json files. Each of them are describing the processing of the log files of a service.\n" +
+                "\n" +
+                "The json contains two elements:"
+)
 public class InputConfigImpl implements InputConfig {
+  @ShipperConfigElementDescription(
+    path = "/input",
+    type = "list of json objects",
+    description = "A list of input descriptions"
+  )
   @Expose
   private List<InputDescriptorImpl> input;
 
+  @ShipperConfigElementDescription(
+    path = "/filter",
+    type = "list of json objects",
+    description = "A list of filter descriptions"
+  )
   @Expose
   private List<FilterDescriptorImpl> filter;
 

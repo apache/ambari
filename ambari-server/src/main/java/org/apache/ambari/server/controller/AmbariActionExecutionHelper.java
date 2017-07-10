@@ -465,7 +465,10 @@ public class AmbariActionExecutionHelper {
 
       if (StringUtils.isNotBlank(serviceName)) {
         Service service = cluster.getService(serviceName);
-        addRepoInfoToHostLevelParams(service.getDesiredRepositoryVersion(), hostLevelParams, hostName);
+        addRepoInfoToHostLevelParams(actionContext, service.getDesiredRepositoryVersion(),
+            hostLevelParams, hostName);
+      } else {
+        addRepoInfoToHostLevelParams(actionContext, null, hostLevelParams, hostName);
       }
 
 
@@ -529,9 +532,19 @@ public class AmbariActionExecutionHelper {
   *
   * */
 
-  private void addRepoInfoToHostLevelParams(RepositoryVersionEntity repositoryVersion,
-      Map<String, String> hostLevelParams, String hostName) throws AmbariException {
+  private void addRepoInfoToHostLevelParams(ActionExecutionContext actionContext,
+      RepositoryVersionEntity repositoryVersion, Map<String, String> hostLevelParams,
+      String hostName) throws AmbariException {
+
+    // if the repo is null, see if any values from the context should go on the
+    // host params and then return
     if (null == repositoryVersion) {
+      if (null != actionContext.getStackId()) {
+        StackId stackId = actionContext.getStackId();
+        hostLevelParams.put(STACK_NAME, stackId.getStackName());
+        hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+      }
+
       return;
     }
 
@@ -557,7 +570,10 @@ public class AmbariActionExecutionHelper {
 
     hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
 
-    hostLevelParams.put(STACK_NAME, repositoryVersion.getStackName());
-    hostLevelParams.put(STACK_VERSION, repositoryVersion.getStackVersion());
+    // set the host level params if not already set by whoever is creating this command
+    if (!hostLevelParams.containsKey(STACK_NAME) || !hostLevelParams.containsKey(STACK_VERSION)) {
+      hostLevelParams.put(STACK_NAME, repositoryVersion.getStackName());
+      hostLevelParams.put(STACK_VERSION, repositoryVersion.getStackVersion());
+    }
   }
 }

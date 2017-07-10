@@ -190,6 +190,16 @@ def secure_solr_znode(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl
   secure_solr_znode_cmd = format('{solr_cli_prefix} --secure-solr-znode --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
   Execute(secure_solr_znode_cmd)
 
+def remove_admin_handlers(zookeeper_quorum, solr_znode, java64_home, collection, jaas_file, retry = 5, interval = 10):
+  """
+  Remove "solr.admin.AdminHandlers" request handler from collection config. Required for migrating to Solr 6 from Solr 5.
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home)
+  remove_admin_handlers_cmd = format('{solr_cli_prefix} --remove-admin-handlers --collection {collection} --retry {retry} --interval {interval}')
+  if jaas_file is not None:
+    remove_admin_handlers_cmd+=format(' --jaas-file {jaas_file}')
+  Execute(remove_admin_handlers_cmd)
+
 def default_config(config, name, default_value):
   subdicts = filter(None, name.split('/'))
   if not config:

@@ -63,11 +63,6 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
   final private CriteriaQuery<T> m_query;
 
   /**
-   * The entity class that the root of the query is built from.
-   */
-  final private Class<T> m_entityClass;
-
-  /**
    * The last calculated predicate.
    */
   private javax.persistence.criteria.Predicate m_lastPredicate = null;
@@ -92,7 +87,6 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
   public JpaPredicateVisitor(EntityManager entityManager, Class<T> entityClass) {
     m_entityManager = entityManager;
     m_builder = m_entityManager.getCriteriaBuilder();
-    m_entityClass = entityClass;
     m_query = m_builder.createQuery(entityClass);
     m_root = m_query.from(entityClass);
   }
@@ -178,7 +172,7 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
     }
 
     String operator = predicate.getOperator();
-    Comparable<?> value = predicate.getValue();
+    Comparable value = predicate.getValue();
 
     // convert string to enum for proper JPA comparisons
     if (lastSingularAttribute != null) {
