@@ -406,6 +406,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         value: '2.2',
         label: 'HDP-2.2',
         type: 'ROLLING',
+        targetStack: 'HDP-2.2',
         skipComponentFailures: 'false',
         skipSCFailures: 'false'
       });
@@ -1756,7 +1757,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.runPreUpgradeCheckOnly.calledWith({
         value: 'v1',
         label: 'V1',
-        type: 'ROLLING'
+        type: 'ROLLING',
+        targetStack: 'V1'
       })).to.be.true;
     });
   });
