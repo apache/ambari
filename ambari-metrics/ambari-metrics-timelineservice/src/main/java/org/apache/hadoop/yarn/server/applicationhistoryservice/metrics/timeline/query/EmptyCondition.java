@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 
 import java.util.List;
@@ -154,5 +155,15 @@ public class EmptyCondition implements Condition {
   @Override
   public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
     this.metricNamesNotCondition = metricNamesNotCondition;
+  }
+
+  @Override
+  public void setHostnamesNotCondition(boolean hostNamesNotCondition) {
+    throw new NotImplementedException("Not implemented");
+  }
+
+  @Override
+  public void setUuidNotCondition(boolean uuidNotCondition) {
+    throw new NotImplementedException("Not implemented");
   }
 }
