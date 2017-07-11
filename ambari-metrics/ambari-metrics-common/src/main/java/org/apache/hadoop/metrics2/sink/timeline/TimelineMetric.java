@@ -40,7 +40,6 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   private String appId;
   private String instanceId;
   private String hostName;
-  private long timestamp;
   private long startTime;
   private String type;
   private String units;
@@ -65,7 +64,6 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
     setMetricName(metric.getMetricName());
     setType(metric.getType());
     setUnits(metric.getUnits());
-    setTimestamp(metric.getTimestamp());
     setAppId(metric.getAppId());
     setInstanceId(metric.getInstanceId());
     setHostName(metric.getHostName());
@@ -107,15 +105,6 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
 
   public void setHostName(String hostName) {
     this.hostName = hostName;
-  }
-
-  @XmlElement(name = "timestamp")
-  public long getTimestamp() {
-    return timestamp;
-  }
-
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
   }
 
   @XmlElement(name = "starttime")
@@ -181,7 +170,6 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
       return false;
     if (instanceId != null ? !instanceId.equals(metric.instanceId) : metric.instanceId != null)
       return false;
-    if (timestamp != metric.timestamp) return false;
     if (startTime != metric.startTime) return false;
 
     return true;
@@ -205,15 +193,15 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
     result = 31 * result + (appId != null ? appId.hashCode() : 0);
     result = 31 * result + (instanceId != null ? instanceId.hashCode() : 0);
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
-    result = 31 * result + (int) (timestamp ^ (timestamp >>> 32));
+    result = 31 * result + (int) (startTime ^ (startTime >>> 32));
     return result;
   }
 
   @Override
   public int compareTo(TimelineMetric other) {
-    if (timestamp > other.timestamp) {
+    if (startTime > other.startTime) {
       return -1;
-    } else if (timestamp < other.timestamp) {
+    } else if (startTime < other.startTime) {
       return 1;
     } else {
       return metricName.compareTo(other.metricName);
