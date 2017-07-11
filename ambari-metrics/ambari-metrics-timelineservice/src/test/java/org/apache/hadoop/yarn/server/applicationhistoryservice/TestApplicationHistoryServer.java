@@ -158,6 +158,7 @@ public class TestApplicationHistoryServer {
   }
 
   // simple test init/start/stop ApplicationHistoryServer. Status should change.
+  @Ignore
   @Test(timeout = 50000)
   public void testStartStopServer() throws Exception {
     Configuration config = new YarnConfiguration();

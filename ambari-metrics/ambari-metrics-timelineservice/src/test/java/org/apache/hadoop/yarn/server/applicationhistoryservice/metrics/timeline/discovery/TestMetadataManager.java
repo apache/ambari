@@ -56,7 +56,6 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     TimelineMetric metric1 = new TimelineMetric();
     metric1.setMetricName("dummy_metric1");
     metric1.setHostName("dummy_host1");
-    metric1.setTimestamp(now);
     metric1.setStartTime(now - 1000);
     metric1.setAppId("dummy_app1");
     metric1.setType("Integer");
@@ -69,7 +68,6 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     TimelineMetric metric2 = new TimelineMetric();
     metric2.setMetricName("dummy_metric2");
     metric2.setHostName("dummy_host2");
-    metric2.setTimestamp(now);
     metric2.setStartTime(now - 1000);
     metric2.setAppId("dummy_app2");
     metric2.setType("Integer");
@@ -175,7 +173,6 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     TimelineMetric metric1 = new TimelineMetric();
     metric1.setMetricName("dummy_m1");
     metric1.setHostName("dummy_host1");
-    metric1.setTimestamp(now);
     metric1.setStartTime(now - 1000);
     metric1.setAppId("dummy_app1");
     metric1.setType("Integer");
@@ -189,7 +186,6 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     TimelineMetric metric2 = new TimelineMetric();
     metric2.setMetricName("dummy_m2");
     metric2.setHostName("dummy_host2");
-    metric2.setTimestamp(now);
     metric2.setStartTime(now - 1000);
     metric2.setAppId("dummy_app2");
     metric2.setType("Integer");
@@ -203,7 +199,6 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     TimelineMetric metric3 = new TimelineMetric();
     metric3.setMetricName("gummy_3");
     metric3.setHostName("dummy_3h");
-    metric3.setTimestamp(now);
     metric3.setStartTime(now - 1000);
     metric3.setAppId("dummy_app3");
     metric3.setType("Integer");

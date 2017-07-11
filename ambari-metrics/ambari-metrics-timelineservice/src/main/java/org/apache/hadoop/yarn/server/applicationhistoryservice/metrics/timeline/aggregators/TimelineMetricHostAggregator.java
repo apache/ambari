@@ -74,8 +74,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
       endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
-    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
-      getQueryHint(startTime), tableName));
+    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, tableName));
     // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
@@ -98,7 +97,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
       if (existingMetric == null) {
         // First row
         existingMetric = currentMetric;
-        currentMetric.setTimestamp(endTime);
+        currentMetric.setStartTime(endTime);
         hostAggregate = new MetricHostAggregate();
         hostAggregateMap.put(currentMetric, hostAggregate);
       }
@@ -108,7 +107,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
         hostAggregate.updateAggregates(currentHostAggregate);
       } else {
         // Switched over to a new metric - save existing - create new aggregate
-        currentMetric.setTimestamp(endTime);
+        currentMetric.setStartTime(endTime);
         hostAggregate = new MetricHostAggregate();
         hostAggregate.updateAggregates(currentHostAggregate);
         hostAggregateMap.put(currentMetric, hostAggregate);
