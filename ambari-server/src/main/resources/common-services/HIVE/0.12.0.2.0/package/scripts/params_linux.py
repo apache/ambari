@@ -846,3 +846,7 @@ ranger_hive_metastore_lookup = default('/configurations/ranger-hive-plugin-prope
 
 if security_enabled:
   hive_metastore_principal_with_host = hive_metastore_principal.replace('_HOST', hostname.lower())
+
+# For ldap - hive_check
+hive_ldap_user= config['configurations']['hive-env'].get('alert_ldap_username','')
+hive_ldap_passwd=config['configurations']['hive-env'].get('alert_ldap_password','')
