@@ -102,8 +102,8 @@ public class MetricsRequestHelper {
 
       if (LOG.isTraceEnabled()) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-          LOG.trace("metric: {}, size = {}, host = {}, app = {}, instance = {}, time = {}, startTime = {}",
-            metric.getMetricName(), metric.getMetricValues().size(), metric.getHostName(), metric.getAppId(), metric.getInstanceId(), metric.getTimestamp(),
+          LOG.trace("metric: {}, size = {}, host = {}, app = {}, instance = {}, startTime = {}",
+            metric.getMetricName(), metric.getMetricValues().size(), metric.getHostName(), metric.getAppId(), metric.getInstanceId(),
             new Date(metric.getStartTime()));
         }
       }

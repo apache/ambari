@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.cache;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -124,7 +123,6 @@ public class InternalMetricsCache {
             metric.setInstanceId(key.getInstanceId());
             metric.setHostName(key.getHostname());
             metric.setStartTime(key.getStartTime());
-            metric.setTimestamp(key.getStartTime());
             Element ele = cache.get(key);
             metric.setMetricValues(((InternalMetricCacheValue) ele.getObjectValue()).getMetricValues());
             metrics.getMetrics().add(metric);

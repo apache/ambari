@@ -121,7 +121,6 @@ public class RawMetricsSourceTest {
     metric1.setInstanceId("i1");
     metric1.setHostName("h1");
     metric1.setStartTime(now - 200);
-    metric1.setTimestamp(now - 200);
     metric1.setMetricValues(new TreeMap<Long, Double>() {{
       put(now - 100, 1.0);
       put(now - 200, 2.0);

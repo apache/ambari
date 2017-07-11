@@ -67,10 +67,10 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
-    String sqlStr = String.format(GET_CLUSTER_AGGREGATE_TIME_SQL, getQueryHint(startTime), tableName);
+    String sqlStr = String.format(GET_CLUSTER_AGGREGATE_TIME_SQL, tableName);
     // HOST_COUNT vs METRIC_COUNT
     if (isClusterPrecisionInputTable) {
-      sqlStr = String.format(GET_CLUSTER_AGGREGATE_SQL, getQueryHint(startTime), tableName);
+      sqlStr = String.format(GET_CLUSTER_AGGREGATE_SQL, tableName);
     }
 
     condition.setStatement(sqlStr);
