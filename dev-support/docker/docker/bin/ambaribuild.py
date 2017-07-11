@@ -35,13 +35,15 @@ def ambariUnitTest():
 			cwd="/tmp/ambari")
 	return proc.wait()
 
-def buildAmbari(stack_distribution):
-	stack_distribution_param = ""
-	if stack_distribution is not None:
-		stack_distribution_param = "-Dstack.distribution=" + stack_distribution
+def buildAmbari(stack_distribution, supplemental_distribution=None):
+	stack_distribution_param = ("-Dstack.distribution=" + stack_distribution) if stack_distribution is not None else ""
+	supplemental_distribution_param = ("-Dsupplemental.distribution=" + supplemental_distribution) if supplemental_distribution is not None else ""
+
 	proc = subprocess.Popen("mvn -B clean install package rpm:rpm -Dmaven.clover.skip=true -Dfindbugs.skip=true "
 						+ SKIP_TEST + " "
-						+ stack_distribution_param + " -Dpython.ver=\"python >= 2.6\"",
+						+ stack_distribution_param + " "
+					  + supplemental_distribution_param + " "
+						+ " -Dpython.ver=\"python >= 2.6\"",
 			shell=True,
 			cwd="/tmp/ambari")
 	return proc.wait()
@@ -143,6 +145,7 @@ class ParseResult:
 	is_deep_clean = False
 	is_rebuild = False
 	stack_distribution = None
+	supplemental_distribution = None
 	is_test = False
 	is_install_server = False
 	is_install_agent = False
@@ -169,6 +172,10 @@ def parse(argv):
 				dest="stack_distribution",
 				help="set a stack distribution. [HDP|PHD|BIGTOP]. Make sure -b is also set when you set a stack distribution")
 
+		parser.add_option("-x", "--supplemental_distribution",
+											dest="supplemental_distribution",
+											help="set a supplement stack distribution in addition to the primary one. [BigInsights]. Make sure -b is also set when you set a supplement stack distribution")
+
 		parser.add_option("-d", "--server_debug",
 				dest="is_server_debug",
 				action="store_true",
@@ -182,6 +189,8 @@ def parse(argv):
 			result.is_rebuild = True
 		if options.stack_distribution:
 			result.stack_distribution = options.stack_distribution
+		if options.supplemental_distribution:
+			result.supplemental_distribution = options.supplemental_distribution
 		if options.is_server_debug:
 			result.is_server_debug = True
 
@@ -232,7 +241,7 @@ if __name__ == "__main__":
 		sys.exit(retcode)
 
 	if parsed_args.is_rebuild:
-		retcode = buildAmbari(parsed_args.stack_distribution)
+		retcode = buildAmbari(parsed_args.stack_distribution, supplemental_distribution=parsed_args.supplemental_distribution)
 		if retcode != 0: sys.exit(retcode)
 
 	if parsed_args.is_install_server:

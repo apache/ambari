@@ -42,6 +42,10 @@
     <ambariProperties>conf/unix/ambari.properties</ambariProperties>
     <commonServicesSrcLocation>src/main/resources/common-services</commonServicesSrcLocation>
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
+
+    <!-- Additional stack to include in the server and agent paths. -->
+    <supplementalDistribution>src/main/resources/stacks/${supplemental.distribution}</supplementalDistribution>
+
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.2</hadoop.version>
