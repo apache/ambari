@@ -89,9 +89,6 @@ public class TimelineMetrics {
 
     if (metricToMerge != null) {
       metricToMerge.addMetricValues(metric.getMetricValues());
-      if (metricToMerge.getTimestamp() > metric.getTimestamp()) {
-        metricToMerge.setTimestamp(metric.getTimestamp());
-      }
       if (metricToMerge.getStartTime() > metric.getStartTime()) {
         metricToMerge.setStartTime(metric.getStartTime());
       }
@@ -114,10 +111,7 @@ public class TimelineMetrics {
     }
 
     if (metricToMerge != null) {
-      metricToMerge.getMetricValues().put(metric.getTimestamp(), metric.getValue());
-      if (metricToMerge.getTimestamp() > metric.getTimestamp()) {
-        metricToMerge.setTimestamp(metric.getTimestamp());
-      }
+      metricToMerge.getMetricValues().put(metric.getStartTime(), metric.getValue());
       if (metricToMerge.getStartTime() > metric.getStartTime()) {
         metricToMerge.setStartTime(metric.getStartTime());
       }

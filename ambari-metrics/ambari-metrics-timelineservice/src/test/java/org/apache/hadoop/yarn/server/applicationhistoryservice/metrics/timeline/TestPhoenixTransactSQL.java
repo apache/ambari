@@ -566,8 +566,7 @@ public class TestPhoenixTransactSQL {
 
     String conditionClause = condition.getConditionClause().toString();
     String expectedClause = " UUID IN (" +
-      "SELECT " + PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),120000l) + " " +
-      "UUID FROM METRIC_RECORD WHERE " +
+      "SELECT UUID FROM METRIC_RECORD WHERE " +
           "(UUID IN (?, ?)) AND " +
           "SERVER_TIME >= ? AND SERVER_TIME < ? " +
           "GROUP BY UUID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) AND SERVER_TIME >= ? AND SERVER_TIME < ?";
@@ -585,8 +584,7 @@ public class TestPhoenixTransactSQL {
 
     String conditionClause = condition.getConditionClause().toString();
     String expectedClause = " UUID IN (" +
-      "SELECT " + PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),120000l) +
-      " UUID FROM METRIC_RECORD WHERE " +
+      "SELECT UUID FROM METRIC_RECORD WHERE " +
       "(UUID IN (?, ?, ?)) AND " +
       "SERVER_TIME >= ? AND SERVER_TIME < ? " +
       "GROUP BY UUID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) AND SERVER_TIME >= ? AND SERVER_TIME < ?";

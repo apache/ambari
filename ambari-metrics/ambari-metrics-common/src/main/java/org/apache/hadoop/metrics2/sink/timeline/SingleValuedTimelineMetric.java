@@ -23,7 +23,6 @@ package org.apache.hadoop.metrics2.sink.timeline;
  * with @TimelineMetric
  */
 public class SingleValuedTimelineMetric {
-  private Long timestamp;
   private Double value;
   private String metricName;
   private String appId;
@@ -31,24 +30,19 @@ public class SingleValuedTimelineMetric {
   private String hostName;
   private Long startTime;
 
-  public void setSingleTimeseriesValue(Long timestamp, Double value) {
-    this.timestamp = timestamp;
+  public void setSingleTimeseriesValue(Long startTime, Double value) {
+    this.startTime = startTime;
     this.value = value;
   }
 
   public SingleValuedTimelineMetric(String metricName, String appId,
                                     String instanceId, String hostName,
-                                    long timestamp, long startTime) {
+                                    long startTime) {
     this.metricName = metricName;
     this.appId = appId;
     this.instanceId = instanceId;
     this.hostName = hostName;
-    this.timestamp = timestamp;
     this.startTime = startTime;
-  }
-
-  public Long getTimestamp() {
-    return timestamp;
   }
 
   public long getStartTime() {
@@ -93,8 +87,7 @@ public class SingleValuedTimelineMetric {
     metric.setHostName(this.hostName);
     metric.setInstanceId(this.instanceId);
     metric.setStartTime(this.startTime);
-    metric.setTimestamp(this.timestamp);
-    metric.getMetricValues().put(timestamp, value);
+    metric.getMetricValues().put(startTime, value);
     return metric;
   }
 }
