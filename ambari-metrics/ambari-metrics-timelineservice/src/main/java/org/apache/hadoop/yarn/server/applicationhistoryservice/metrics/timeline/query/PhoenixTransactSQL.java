@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -194,7 +195,6 @@ public class PhoenixTransactSQL {
 
   public static final String UPSERT_CLUSTER_AGGREGATE_TIME_SQL = "UPSERT INTO" +
     " %s (UUID, SERVER_TIME, " +
-    "UNITS, " +
     "METRIC_SUM, " +
     "METRIC_COUNT, " +
     "METRIC_MAX, " +
@@ -204,7 +204,6 @@ public class PhoenixTransactSQL {
   public static final String UPSERT_AGGREGATE_RECORD_SQL = "UPSERT INTO " +
     "%s (UUID, " +
     "SERVER_TIME, " +
-    "UNITS, " +
     "METRIC_SUM, " +
     "METRIC_MAX, " +
     "METRIC_MIN," +
@@ -763,10 +762,16 @@ public class PhoenixTransactSQL {
   private static int addUuids(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
     if (condition.getUuids() != null) {
       for (int pos2 = 1 ; pos2 <= condition.getUuids().size(); pos2++,pos++) {
+        byte[] uuid = condition.getUuids().get(pos2 - 1);
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value = " + condition.getUuids().get(pos2 - 1));
+          LOG.debug("Setting pos: " + pos + ", value = " + new String(uuid));
         }
-        stmt.setBytes(pos, condition.getUuids().get(pos2 - 1));
+
+        if (uuid.length != TimelineMetricMetadataManager.HOSTNAME_UUID_LENGTH + TimelineMetricMetadataManager.TIMELINE_METRIC_UUID_LENGTH) {
+          stmt.setString(pos, new String(uuid));
+        } else {
+          stmt.setBytes(pos, uuid);
+        }
       }
     }
     return pos;

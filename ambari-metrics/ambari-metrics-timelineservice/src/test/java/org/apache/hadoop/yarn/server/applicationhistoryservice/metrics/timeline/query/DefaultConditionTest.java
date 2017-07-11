@@ -29,88 +29,142 @@ public class DefaultConditionTest {
 
   @Test
   public void testMetricNameWhereCondition() {
-    List<String> metricNames = new ArrayList<>();
+    //EMPTY
+    List<byte[]> uuids = new ArrayList<>();
+    DefaultCondition condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    StringBuilder sb = new StringBuilder();
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "");
+    Assert.assertTrue(CollectionUtils.isEqualCollection(uuids, condition.getUuids()));
+
+    //Metric uuid
+    uuids.add(new byte[16]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(0)).endsWith("%"));
+
+    //metric uuid + Host uuid
+    uuids.add(new byte[4]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID LIKE ? AND UUID LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(1)).startsWith("%"));
+
+    //metric + host + full
+    uuids.add(new byte[20]);
+    uuids.add(new byte[20]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID IN (?, ?) AND UUID LIKE ? AND UUID LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
 
     //Only IN clause.
-
-    metricNames.add("M1");
-    DefaultCondition condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
-    StringBuilder sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME IN (?))");
-    Assert.assertTrue(CollectionUtils.isEqualCollection(metricNames, condition.getMetricNames()));
-
-    metricNames.add("m2");
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
+    uuids.clear();
+    uuids.add(new byte[20]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
     sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME IN (?, ?))");
-    Assert.assertTrue(CollectionUtils.isEqualCollection(metricNames, condition.getMetricNames()));
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID IN (?))");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
 
-    // Only NOT IN clause
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
-    condition.setMetricNamesNotCondition(true);
-    sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME NOT IN (?, ?))");
-    Assert.assertTrue(CollectionUtils.isEqualCollection(metricNames, condition.getMetricNames()));
-
-    metricNames.clear();
-
-    //Only LIKE clause
-    metricNames.add("disk%");
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
-    sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME LIKE ?)");
-    Assert.assertTrue(CollectionUtils.isEqualCollection(metricNames, condition.getMetricNames()));
-
-    metricNames.add("cpu%");
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
-    sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME LIKE ? OR METRIC_NAME LIKE ?)");
-    Assert.assertTrue(CollectionUtils.isEqualCollection(metricNames, condition.getMetricNames()));
-
-    //Only NOT LIKE clause
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
-    condition.setMetricNamesNotCondition(true);
-    sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME NOT LIKE ? AND METRIC_NAME NOT LIKE ?)");
-    Assert.assertTrue(CollectionUtils.isEqualCollection(metricNames, condition.getMetricNames()));
-
-    metricNames.clear();
-
-    // IN followed by LIKE clause
-    metricNames.add("M1");
-    metricNames.add("disk%");
-    metricNames.add("M2");
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
-    sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME IN (?, ?) OR METRIC_NAME LIKE ?)");
-    Assert.assertEquals(metricNames.get(2), "disk%");
-
-    metricNames.clear();
-    //NOT IN followed by NOT LIKE clause
-    metricNames.add("disk%");
-    metricNames.add("metric1");
-    metricNames.add("cpu%");
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
+    //metric NOT LIKE
+    uuids.clear();
+    uuids.add(new byte[16]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
     sb = new StringBuilder();
     condition.setMetricNamesNotCondition(true);
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "(METRIC_NAME NOT IN (?) AND METRIC_NAME NOT LIKE ? AND METRIC_NAME NOT LIKE ?)");
-    Assert.assertEquals(metricNames.get(0), "metric1");
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID NOT LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
 
-    //Empty
-    metricNames.clear();
-    condition = new DefaultCondition(metricNames,null,null,null,null,null,null,null,true);
+    //metric NOT LIKE host LIKE
+    uuids.clear();
+    uuids.add(new byte[16]);
+    uuids.add(new byte[4]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
     sb = new StringBuilder();
-    condition.appendMetricNameClause(sb);
-    Assert.assertEquals(sb.toString(), "");
+    condition.setMetricNamesNotCondition(true);
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID NOT LIKE ? AND UUID LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(0)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(1)).startsWith("%"));
 
+    //metric LIKE host NOT LIKE
+    uuids.clear();
+    uuids.add(new byte[16]);
+    uuids.add(new byte[4]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.setHostnamesNotCondition(true);
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID LIKE ? AND UUID NOT LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(0)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(1)).startsWith("%"));
+
+    //metric LIKE or LIKE host LIKE
+    uuids.clear();
+    uuids.add(new byte[4]);
+    uuids.add(new byte[16]);
+    uuids.add(new byte[16]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "((UUID LIKE ? OR UUID LIKE ?) AND UUID LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(0)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(1)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(2)).startsWith("%"));
+
+    //UUID in metric LIKE or LIKE host LIKE
+    uuids.clear();
+    uuids.add(new byte[16]);
+    uuids.add(new byte[16]);
+    uuids.add(new byte[20]);
+    uuids.add(new byte[4]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID IN (?) AND (UUID LIKE ? OR UUID LIKE ?) AND UUID LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(1)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(2)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(3)).startsWith("%"));
+
+    //metric LIKE host LIKE or LIKE
+    uuids.clear();
+    uuids.add(new byte[16]);
+    uuids.add(new byte[4]);
+    uuids.add(new byte[4]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID LIKE ? AND (UUID LIKE ? OR UUID LIKE ?))");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(0)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(1)).startsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(2)).startsWith("%"));
+
+    //UUID NOT IN metric LIKE host LIKE
+    uuids.clear();
+    uuids.add(new byte[20]);
+    uuids.add(new byte[16]);
+    uuids.add(new byte[4]);
+    condition = new DefaultCondition(uuids,null,null,null,null,null,null,null,null,true);
+    sb = new StringBuilder();
+    condition.setUuidNotCondition(true);
+    condition.appendUuidClause(sb);
+    Assert.assertEquals(sb.toString(), "(UUID NOT IN (?) AND UUID LIKE ? AND UUID LIKE ?)");
+    Assert.assertEquals(uuids.size(), condition.getUuids().size());
+    Assert.assertTrue(new String(condition.getUuids().get(1)).endsWith("%"));
+    Assert.assertTrue(new String(condition.getUuids().get(2)).startsWith("%"));
   }
 }
 

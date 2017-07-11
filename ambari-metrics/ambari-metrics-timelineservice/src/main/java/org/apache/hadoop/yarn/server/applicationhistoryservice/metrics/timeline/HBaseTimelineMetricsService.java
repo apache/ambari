@@ -81,6 +81,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   private static volatile boolean isInitialized = false;
   private final ScheduledExecutorService watchdogExecutorService = Executors.newSingleThreadScheduledExecutor();
   private final Map<AGGREGATOR_NAME, ScheduledExecutorService> scheduledExecutors = new HashMap<>();
+  private final ConcurrentHashMap<String, Long> postedAggregatedMap = new ConcurrentHashMap<>();
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
@@ -170,7 +171,11 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
 
       // Start the minute host aggregator
       if (Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION, "true"))) {
-        LOG.info("timeline.metrics.host.inmemory.aggregation is set to True, disabling host minute aggregation on collector");
+        LOG.info("timeline.metrics.host.inmemory.aggregation is set to True, switching to filtering host minute aggregation on collector");
+        TimelineMetricAggregator minuteHostAggregator =
+          TimelineMetricAggregatorFactory.createFilteringTimelineMetricAggregatorMinute(
+            hBaseAccessor, metricsConf, metricMetadataManager, haController, postedAggregatedMap);
+        scheduleAggregatorThread(minuteHostAggregator);
       } else {
         TimelineMetricAggregator minuteHostAggregator =
           TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(
@@ -451,8 +456,16 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   @Override
   public TimelinePutResponse putHostAggregatedMetrics(AggregationResult aggregationResult) throws SQLException, IOException {
     Map<TimelineMetric, MetricHostAggregate> aggregateMap = new HashMap<>();
+    String hostname = null;
     for (TimelineMetricWithAggregatedValues entry : aggregationResult.getResult()) {
       aggregateMap.put(entry.getTimelineMetric(), entry.getMetricAggregate());
+      hostname = hostname == null ? entry.getTimelineMetric().getHostName() : hostname;
+      break;
+    }
+    long timestamp = aggregationResult.getTimeInMilis();
+    postedAggregatedMap.put(hostname, timestamp);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("Adding host %s to aggregated by in-memory aggregator. Timestamp : %s", hostname, timestamp));
     }
     hBaseAccessor.saveHostAggregateRecords(aggregateMap, PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME);
 

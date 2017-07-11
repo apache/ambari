@@ -46,4 +46,6 @@ public interface Condition {
   void setNoLimit();
   boolean doUpdate();
   void setMetricNamesNotCondition(boolean metricNamesNotCondition);
+  void setHostnamesNotCondition(boolean hostNamesNotCondition);
+  void setUuidNotCondition(boolean uuidNotCondition);
 }

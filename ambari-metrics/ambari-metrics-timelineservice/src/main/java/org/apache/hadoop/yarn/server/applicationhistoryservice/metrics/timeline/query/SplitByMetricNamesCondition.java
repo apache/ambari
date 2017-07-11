@@ -176,4 +176,14 @@ public class SplitByMetricNamesCondition implements Condition {
   public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
     this.metricNamesNotCondition = metricNamesNotCondition;
   }
+
+  @Override
+  public void setHostnamesNotCondition(boolean hostNamesNotCondition) {
+
+  }
+
+  @Override
+  public void setUuidNotCondition(boolean uuidNotCondition) {
+
+  }
 }
