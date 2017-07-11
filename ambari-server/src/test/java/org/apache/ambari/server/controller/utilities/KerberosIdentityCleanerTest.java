@@ -18,15 +18,20 @@
 package org.apache.ambari.server.controller.utilities;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.reset;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
+import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
@@ -35,6 +40,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.easymock.EasyMockRule;
@@ -47,6 +53,7 @@ import org.junit.Test;
 public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Rule public EasyMockRule mocks = new EasyMockRule(this);
   private static final String HOST = "c6401";
+  private static final String HOST2 = "c6402";
   private static final String OOZIE = "OOZIE";
   private static final String OOZIE_SERVER = "OOZIE_SERVER";
   private static final String OOZIE_2 = "OOZIE2";
@@ -55,6 +62,9 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   private static final String RESOURCE_MANAGER_2 = "RESOURCE_MANAGER2";
   private static final String YARN = "YARN";
   private static final String RESOURCE_MANAGER = "RESOURCE_MANAGER";
+  private static final String HDFS = "HDFS";
+  private static final String NAMENODE = "NAMENODE";
+  private static final String DATANODE = "DATANODE";
   private static final long CLUSTER_ID = 1;
   @Mock private KerberosHelper kerberosHelper;
   @Mock private Clusters clusters;
@@ -66,8 +76,8 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
 
   @Test
   public void removesAllKerberosIdentitesOfComponentAfterComponentWasUninstalled() throws Exception {
-    installComponent(OOZIE, OOZIE_SERVER);
-    kerberosHelper.deleteIdentity(cluster, new Component(HOST, OOZIE, OOZIE_SERVER), newArrayList("oozie_server1", "oozie_server2"));
+    installComponent(OOZIE, OOZIE_SERVER, HOST);
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("oozie_server1", "oozie_server2"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -83,9 +93,9 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
 
   @Test
   public void skipsRemovingIdentityThatIsSharedByPrincipalName() throws Exception {
-    installComponent(OOZIE, OOZIE_SERVER);
-    installComponent(OOZIE_2, OOZIE_SERVER_2);
-    kerberosHelper.deleteIdentity(cluster, new Component(HOST, OOZIE, OOZIE_SERVER), newArrayList("oozie_server1"));
+    installComponent(OOZIE, OOZIE_SERVER, HOST);
+    installComponent(OOZIE_2, OOZIE_SERVER_2, HOST);
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("oozie_server1"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -94,9 +104,9 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
 
   @Test
   public void skipsRemovingIdentityThatIsSharedByKeyTabFilePath() throws Exception {
-    installComponent(YARN, RESOURCE_MANAGER);
-    installComponent(YARN_2, RESOURCE_MANAGER_2);
-    kerberosHelper.deleteIdentity(cluster, new Component(HOST, YARN, RESOURCE_MANAGER), newArrayList("rm_unique"));
+    installComponent(YARN, RESOURCE_MANAGER, HOST);
+    installComponent(YARN_2, RESOURCE_MANAGER_2, HOST);
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER)), newHashSet("rm_unique"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(YARN, RESOURCE_MANAGER, HOST);
@@ -112,16 +122,52 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
     verifyAll();
   }
 
-  private void installComponent(String serviceName, final String componentName) {
+  @Test
+  public void skipsRemovingIdentityIfComponentIsStillInstalledOnADifferentHost() throws Exception {
+    installComponent(OOZIE, OOZIE_SERVER, HOST, HOST2);
+    replayAll();
+    uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
+    verifyAll();
+  }
+
+  @Test
+  public void removesServiceIdentitiesSkipComponentIdentitiesAfterServiceWasUninstalled() throws Exception {
+    installComponent(OOZIE, OOZIE_SERVER, HOST);
+    kerberosHelper.deleteIdentities(cluster, hdfsComponents(), newHashSet("hdfs-service"));
+    expectLastCall().once();
+    replayAll();
+    uninstallService(HDFS, hdfsComponents());
+    verifyAll();
+  }
+
+  private ArrayList<Component> hdfsComponents() {
+    return newArrayList(new Component(HOST, HDFS, NAMENODE), new Component(HOST, HDFS, DATANODE));
+  }
+
+  private void installComponent(String serviceName, String componentName, String... hostNames) {
     Service service = createMock(serviceName + "_" + componentName, Service.class);
+    ServiceComponent component = createMock(componentName, ServiceComponent.class);
+    expect(component.getName()).andReturn(componentName).anyTimes();
+    Map<String, ServiceComponentHost> hosts = new HashMap<>();
+    expect(component.getServiceComponentHosts()).andReturn(hosts).anyTimes();
+    for (String hostName : hostNames) {
+      ServiceComponentHost host = createMock(hostName, ServiceComponentHost.class);
+      expect(host.getHostName()).andReturn(hostName).anyTimes();
+      hosts.put(hostName, host);
+    }
     installedServices.put(serviceName, service);
+    expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>() {{
-      put(componentName, null);
+      put(componentName, component);
     }}).anyTimes();
   }
 
   private void uninstallComponent(String service, String component, String host) throws KerberosMissingAdminCredentialsException {
     kerberosIdentityCleaner.componentRemoved(new ServiceComponentUninstalledEvent(CLUSTER_ID, "any", "any", service, component, host, false));
+  }
+
+  private void uninstallService(String service, List<Component> components) throws KerberosMissingAdminCredentialsException {
+    kerberosIdentityCleaner.serviceRemoved(new ServiceRemovedEvent(CLUSTER_ID, "any", "any", service, components));
   }
 
   @Before
@@ -139,7 +185,8 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
       "              'name': '/HDFS/NAMENODE/hdfs'" +
       "            }," +
       "            {" +
-      "              'name': 'oozie_server1'" +
+      "              'name': 'oozie_server1'," +
+      "              'principal': { 'value': 'oozie1/_HOST@EXAMPLE.COM' }" +
       "            }," +"" +
       "            {" +
       "              'name': 'oozie_server2'," +
@@ -189,6 +236,39 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
       "            {" +
       "              'name': 'rm2-shared'," +
       "              'keytab' : { 'file' : 'shared' }" +
+      "            }" +
+      "          ]" +
+      "        }" +
+      "      ]" +
+      "    }," +
+      "    {" +
+      "      'name': 'HDFS'," +
+      "      'identities': [" +
+      "            {" +
+      "              'name': 'hdfs-service'" +
+      "            }," +
+      "            {" +
+      "              'name': 'shared'," +
+      "              'principal': { 'value': 'oozie/_HOST@EXAMPLE.COM' }" +
+      "            }," +
+      "            {" +
+      "              'name': '/YARN/RESOURCE_MANAGER/rm'" +
+      "            }," +
+      "          ]," +
+      "      'components': [" +
+      "        {" +
+      "          'name': 'NAMENODE'," +
+      "          'identities': [" +
+      "            {" +
+      "              'name': 'namenode'" +
+      "            }" +
+      "          ]" +
+      "        }," +
+      "        {" +
+      "          'name': 'DATANODE'," +
+      "          'identities': [" +
+      "            {" +
+      "              'name': 'datanode'" +
       "            }" +
       "          ]" +
       "        }" +
