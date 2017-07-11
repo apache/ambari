@@ -69,7 +69,6 @@ public class TimelineMetricReadHelper {
       timelineMetric.getAppId(),
       timelineMetric.getInstanceId(),
       timelineMetric.getHostName(),
-      rs.getLong("SERVER_TIME"),
       rs.getLong("SERVER_TIME")
     );
 
@@ -108,8 +107,7 @@ public class TimelineMetricReadHelper {
     if (ignoreInstance) {
       metric.setInstanceId(null);
     }
-    metric.setTimestamp(rs.getLong("SERVER_TIME"));
-    metric.setStartTime(rs.getLong("START_TIME"));
+    metric.setStartTime(rs.getLong("SERVER_TIME"));
     return metric;
   }
 

@@ -259,15 +259,14 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
         metricRecordStmt.setString(2, metric.getHostName());
         metricRecordStmt.setString(3, metric.getAppId());
         metricRecordStmt.setString(4, metric.getInstanceId());
-        metricRecordStmt.setLong(5, currentTime);
-        metricRecordStmt.setLong(6, metric.getStartTime());
-        metricRecordStmt.setString(7, metric.getType());
-        metricRecordStmt.setDouble(8, aggregates[0]);
-        metricRecordStmt.setDouble(9, aggregates[1]);
-        metricRecordStmt.setDouble(10, aggregates[2]);
-        metricRecordStmt.setLong(11, (long) aggregates[3]);
+        metricRecordStmt.setLong(5, metric.getStartTime());
+        metricRecordStmt.setString(6, metric.getType());
+        metricRecordStmt.setDouble(7, aggregates[0]);
+        metricRecordStmt.setDouble(8, aggregates[1]);
+        metricRecordStmt.setDouble(9, aggregates[2]);
+        metricRecordStmt.setLong(10, (long) aggregates[3]);
         String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-        metricRecordStmt.setString(12, json);
+        metricRecordStmt.setString(11, json);
 
         try {
           metricRecordStmt.executeUpdate();

@@ -127,7 +127,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
     condition.setStatement(String.format(GET_METRIC_SQL,
-      getQueryHint(startTime), METRICS_RECORD_TABLE_NAME));
+      METRICS_RECORD_TABLE_NAME));
     // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
@@ -257,13 +257,6 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
 
     Map<TimelineClusterMetric, Double> timelineClusterMetricMap =
       new HashMap<TimelineClusterMetric, Double>();
-
-    Long timeShift = timelineMetric.getTimestamp() - timelineMetric.getStartTime();
-    if (timeShift < 0) {
-      LOG.debug("Invalid time shift found, possible discrepancy in clocks. " +
-        "timeShift = " + timeShift);
-      timeShift = 0l;
-    }
 
     Long prevTimestamp = -1l;
     TimelineClusterMetric prevMetric = null;

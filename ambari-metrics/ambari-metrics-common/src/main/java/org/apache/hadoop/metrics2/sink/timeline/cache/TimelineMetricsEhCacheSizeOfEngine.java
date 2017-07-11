@@ -93,7 +93,6 @@ public abstract class TimelineMetricsEhCacheSizeOfEngine implements SizeOfEngine
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getAppId());
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getHostName());
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getInstanceId());
-          timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getTimestamp());
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getStartTime());
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getType());
           timelineMetricPrimitivesApproximation += 8; // Object overhead

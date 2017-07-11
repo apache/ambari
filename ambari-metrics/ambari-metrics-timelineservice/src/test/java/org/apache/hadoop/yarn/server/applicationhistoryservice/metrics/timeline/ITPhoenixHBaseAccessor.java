@@ -422,7 +422,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     while (set.next()) {
       assertEquals("application_1450744875949_0001", set.getString("APP_ID"));
       assertEquals("container_1450744875949_0001_01_000001", set.getString("CONTAINER_ID"));
-      assertEquals(new java.sql.Timestamp(startTime), set.getTimestamp("START_TIME"));
+      assertEquals(new java.sql.Timestamp(startTime), set.getTimestamp("SERVER_TIME"));
       assertEquals(new java.sql.Timestamp(finishTime), set.getTimestamp("FINISH_TIME"));
       assertEquals(5000, set.getLong("DURATION"));
       assertEquals("host1", set.getString("HOSTNAME"));

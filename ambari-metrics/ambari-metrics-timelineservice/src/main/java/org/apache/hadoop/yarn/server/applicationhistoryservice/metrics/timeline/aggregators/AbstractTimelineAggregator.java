@@ -330,7 +330,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     if (outputTableName.contains("RECORD")) {
       queryPrefix = PhoenixTransactSQL.DOWNSAMPLE_HOST_METRIC_SQL_UPSERT_PREFIX;
     }
-    queryPrefix = String.format(queryPrefix, getQueryHint(startTime), outputTableName);
+    queryPrefix = String.format(queryPrefix, outputTableName);
 
     for (Iterator<CustomDownSampler> iterator = configuredDownSamplers.iterator(); iterator.hasNext();){
       CustomDownSampler downSampler = iterator.next();

@@ -101,7 +101,7 @@ public class MetricTestHelper {
     metric.setAppId("test_app");
     metric.setInstanceId("test_instance");
     metric.setHostName("test_host");
-    metric.setTimestamp(startTime);
+    metric.setStartTime(startTime);
 
     return metric;
   }

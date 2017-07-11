@@ -321,14 +321,6 @@ public class PhoenixHBaseAccessor {
               UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
       for (TimelineMetrics timelineMetrics : timelineMetricsCollection) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-          if (Math.abs(currentTime - metric.getStartTime()) > outOfBandTimeAllowance) {
-            // If timeseries start time is way in the past : discard
-            LOG.debug("Discarding out of band timeseries, currentTime = "
-                    + currentTime + ", startTime = " + metric.getStartTime()
-                    + ", hostname = " + metric.getHostName());
-            continue;
-          }
-
           metricRecordStmt.clearParameters();
 
           if (LOG.isTraceEnabled()) {
@@ -345,14 +337,13 @@ public class PhoenixHBaseAccessor {
             continue;
           }
           metricRecordStmt.setBytes(1, uuid);
-          metricRecordStmt.setLong(2, currentTime);
-          metricRecordStmt.setLong(3, metric.getStartTime());
-          metricRecordStmt.setDouble(4, aggregates[0]);
-          metricRecordStmt.setDouble(5, aggregates[1]);
-          metricRecordStmt.setDouble(6, aggregates[2]);
-          metricRecordStmt.setLong(7, (long) aggregates[3]);
+          metricRecordStmt.setLong(2, metric.getStartTime());
+          metricRecordStmt.setDouble(3, aggregates[0]);
+          metricRecordStmt.setDouble(4, aggregates[1]);
+          metricRecordStmt.setDouble(5, aggregates[2]);
+          metricRecordStmt.setLong(6, (long) aggregates[3]);
           String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-          metricRecordStmt.setString(8, json);
+          metricRecordStmt.setString(7, json);
 
           try {
             metricRecordStmt.executeUpdate();
@@ -1191,7 +1182,6 @@ public class PhoenixHBaseAccessor {
       timelineMetric.getAppId(),
       timelineMetric.getInstanceId(),
       null,
-      rs.getLong("SERVER_TIME"),
       rs.getLong("SERVER_TIME")
     );
 
@@ -1283,7 +1273,7 @@ public class PhoenixHBaseAccessor {
         rowCount++;
         stmt.clearParameters();
         stmt.setBytes(1, uuid);
-        stmt.setLong(2, metric.getTimestamp());
+        stmt.setLong(2, metric.getStartTime());
         stmt.setDouble(3, hostAggregate.getSum());
         stmt.setDouble(4, hostAggregate.getMax());
         stmt.setDouble(5, hostAggregate.getMin());

@@ -93,7 +93,6 @@ public class TimelineMetricStoreWatcher implements Runnable {
     fakeMetric.setHostName(FAKE_HOSTNAME);
     fakeMetric.setAppId(FAKE_APP_ID);
     fakeMetric.setStartTime(startTime);
-    fakeMetric.setTimestamp(startTime);
     fakeMetric.getMetricValues().put(startTime, 0.0);
 
     final TimelineMetrics metrics = new TimelineMetrics();

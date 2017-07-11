@@ -107,7 +107,6 @@ public class MetricsRequestHelper {
             ", host = " + metric.getHostName() +
             ", app = " + metric.getAppId() +
             ", instance = " + metric.getInstanceId() +
-            ", time = " + metric.getTimestamp() +
             ", startTime = " + new Date(metric.getStartTime()));
         }
       }

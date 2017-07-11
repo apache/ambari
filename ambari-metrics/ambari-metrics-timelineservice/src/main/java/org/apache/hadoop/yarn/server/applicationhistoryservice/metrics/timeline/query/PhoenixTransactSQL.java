@@ -42,13 +42,12 @@ public class PhoenixTransactSQL {
   public static final String CREATE_METRICS_TABLE_SQL = "CREATE TABLE IF NOT " +
     "EXISTS METRIC_RECORD (UUID BINARY(20) NOT NULL, " +
     "SERVER_TIME BIGINT NOT NULL, " +
-    "START_TIME UNSIGNED_LONG, " +
     "METRIC_SUM DOUBLE, " +
     "METRIC_COUNT UNSIGNED_INT, " +
     "METRIC_MAX DOUBLE, " +
     "METRIC_MIN DOUBLE, " +
     "METRICS VARCHAR CONSTRAINT pk " +
-    "PRIMARY KEY (UUID, SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
+    "PRIMARY KEY (UUID, SERVER_TIME ROW_TIMESTAMP)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
     "TTL=%s, COMPRESSION='%s'";
 
   public static final String CREATE_CONTAINER_METRICS_TABLE_SQL =
@@ -81,35 +80,35 @@ public class PhoenixTransactSQL {
   public static final String CREATE_METRICS_AGGREGATE_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
       "(UUID BINARY(20) NOT NULL, " +
-      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
+      "SERVER_TIME BIGINT NOT NULL, " +
       "METRIC_SUM DOUBLE," +
       "METRIC_COUNT UNSIGNED_INT, " +
       "METRIC_MAX DOUBLE," +
       "METRIC_MIN DOUBLE CONSTRAINT pk " +
-      "PRIMARY KEY (UUID, SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, TTL=%s," +
+      "PRIMARY KEY (UUID, SERVER_TIME ROW_TIMESTAMP)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, TTL=%s," +
       " COMPRESSION='%s'";
 
   public static final String CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
       "(UUID BINARY(16) NOT NULL, " +
-      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
+      "SERVER_TIME BIGINT NOT NULL, " +
       "METRIC_SUM DOUBLE, " +
       "HOSTS_COUNT UNSIGNED_INT, " +
       "METRIC_MAX DOUBLE, " +
       "METRIC_MIN DOUBLE " +
-      "CONSTRAINT pk PRIMARY KEY (UUID, SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
+      "CONSTRAINT pk PRIMARY KEY (UUID, SERVER_TIME ROW_TIMESTAMP)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
       "TTL=%s, COMPRESSION='%s'";
 
   // HOSTS_COUNT vs METRIC_COUNT
   public static final String CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
       "(UUID BINARY(16) NOT NULL, " +
-      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
+      "SERVER_TIME BIGINT NOT NULL, " +
       "METRIC_SUM DOUBLE, " +
       "METRIC_COUNT UNSIGNED_INT, " +
       "METRIC_MAX DOUBLE, " +
       "METRIC_MIN DOUBLE " +
-      "CONSTRAINT pk PRIMARY KEY (UUID, SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
+      "CONSTRAINT pk PRIMARY KEY (UUID, SERVER_TIME ROW_TIMESTAMP)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
       "TTL=%s, COMPRESSION='%s'";
 
   public static final String CREATE_METRICS_METADATA_TABLE_SQL =
@@ -152,13 +151,12 @@ public class PhoenixTransactSQL {
   public static final String UPSERT_METRICS_SQL = "UPSERT INTO %s " +
     "(UUID, " +
     "SERVER_TIME, " +
-    "START_TIME, " +
     "METRIC_SUM, " +
     "METRIC_MAX, " +
     "METRIC_MIN, " +
     "METRIC_COUNT, " +
     "METRICS) VALUES " +
-    "(?, ?, ?, ?, ?, ?, ?, ?)";
+    "(?, ?, ?, ?, ?, ?, ?)";
 
   public static final String UPSERT_CONTAINER_METRICS_SQL = "UPSERT INTO %s " +
       "(APP_ID,"
@@ -227,7 +225,7 @@ public class PhoenixTransactSQL {
   /**
    * Retrieve a set of rows from metrics records table.
    */
-  public static final String GET_METRIC_SQL = "SELECT %s UUID, SERVER_TIME, START_TIME, " +
+  public static final String GET_METRIC_SQL = "SELECT UUID, SERVER_TIME, " +
     "METRIC_SUM, " +
     "METRIC_MAX, " +
     "METRIC_MIN, " +
@@ -242,7 +240,7 @@ public class PhoenixTransactSQL {
    * in Apache Phoenix
    */
   public static final String GET_LATEST_METRIC_SQL = "SELECT %s E.UUID AS UUID, " +
-    "E.SERVER_TIME AS SERVER_TIME, E.START_TIME AS START_TIME, " +
+    "E.SERVER_TIME AS SERVER_TIME, " +
     "E.METRIC_SUM AS METRIC_SUM, " +
     "E.METRIC_MAX AS METRIC_MAX, E.METRIC_MIN AS METRIC_MIN, " +
     "E.METRIC_COUNT AS METRIC_COUNT, E.METRICS AS METRICS " +
@@ -257,7 +255,7 @@ public class PhoenixTransactSQL {
     "ON E.UUID=I.UUID " +
     "AND E.SERVER_TIME=I.MAX_SERVER_TIME";
 
-  public static final String GET_METRIC_AGGREGATE_ONLY_SQL = "SELECT %s UUID, " +
+  public static final String GET_METRIC_AGGREGATE_ONLY_SQL = "SELECT UUID, " +
     "SERVER_TIME, " +
     "METRIC_SUM, " +
     "METRIC_MAX, " +
@@ -265,7 +263,7 @@ public class PhoenixTransactSQL {
     "METRIC_COUNT " +
     "FROM %s";
 
-  public static final String GET_CLUSTER_AGGREGATE_SQL = "SELECT %s " +
+  public static final String GET_CLUSTER_AGGREGATE_SQL = "SELECT " +
     "UUID, " +
     "SERVER_TIME, " +
     "METRIC_SUM, " +
@@ -274,7 +272,7 @@ public class PhoenixTransactSQL {
     "METRIC_MIN " +
     "FROM %s";
 
-  public static final String GET_CLUSTER_AGGREGATE_TIME_SQL = "SELECT %s " +
+  public static final String GET_CLUSTER_AGGREGATE_TIME_SQL = "SELECT " +
     "UUID, " +
     "SERVER_TIME, " +
     "METRIC_SUM, " +
@@ -283,7 +281,7 @@ public class PhoenixTransactSQL {
     "METRIC_MIN " +
     "FROM %s";
 
-  public static final String TOP_N_INNER_SQL = "SELECT %s UUID " +
+  public static final String TOP_N_INNER_SQL = "SELECT UUID " +
     "FROM %s WHERE %s GROUP BY UUID ORDER BY %s LIMIT %s";
 
   public static final String GET_METRIC_METADATA_SQL = "SELECT " +
@@ -300,7 +298,7 @@ public class PhoenixTransactSQL {
    * Aggregate host metrics using a GROUP BY clause to take advantage of
    * N - way parallel scan where N = number of regions.
    */
-  public static final String GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL = "UPSERT %s " +
+  public static final String GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL = "UPSERT " +
     "INTO %s (UUID, SERVER_TIME, METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) " +
     "SELECT UUID, %s AS SERVER_TIME, " +
     "SUM(METRIC_SUM), SUM(METRIC_COUNT), MAX(METRIC_MAX), MIN(METRIC_MIN) " +
@@ -310,7 +308,7 @@ public class PhoenixTransactSQL {
   /**
    * Downsample host metrics.
    */
-  public static final String DOWNSAMPLE_HOST_METRIC_SQL_UPSERT_PREFIX = "UPSERT %s INTO %s (UUID, SERVER_TIME, " +
+  public static final String DOWNSAMPLE_HOST_METRIC_SQL_UPSERT_PREFIX = "UPSERT INTO %s (UUID, SERVER_TIME, " +
     "METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) ";
 
   public static final String TOPN_DOWNSAMPLER_HOST_METRIC_SELECT_SQL = "SELECT UUID, " +
@@ -321,7 +319,7 @@ public class PhoenixTransactSQL {
    * Aggregate app metrics using a GROUP BY clause to take advantage of
    * N - way parallel scan where N = number of regions.
    */
-  public static final String GET_AGGREGATED_APP_METRIC_GROUPBY_SQL = "UPSERT %s " +
+  public static final String GET_AGGREGATED_APP_METRIC_GROUPBY_SQL = "UPSERT " +
          "INTO %s (UUID, SERVER_TIME, METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) SELECT UUID, %s AS SERVER_TIME, " +
          "ROUND(AVG(METRIC_SUM),2), ROUND(AVG(%s)), MAX(METRIC_MAX), MIN(METRIC_MIN) FROM %s WHERE%s SERVER_TIME > %s AND " +
          "SERVER_TIME <= %s GROUP BY UUID";
@@ -329,7 +327,7 @@ public class PhoenixTransactSQL {
   /**
    * Downsample cluster metrics.
    */
-  public static final String DOWNSAMPLE_CLUSTER_METRIC_SQL_UPSERT_PREFIX = "UPSERT %s INTO %s (UUID, SERVER_TIME, " +
+  public static final String DOWNSAMPLE_CLUSTER_METRIC_SQL_UPSERT_PREFIX = "UPSERT INTO %s (UUID, SERVER_TIME, " +
     "METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) ";
 
   public static final String TOPN_DOWNSAMPLER_CLUSTER_METRIC_SELECT_SQL = "SELECT UUID, " +
@@ -368,7 +366,6 @@ public class PhoenixTransactSQL {
 
   public static final String DEFAULT_TABLE_COMPRESSION = "SNAPPY";
   public static final String DEFAULT_ENCODING = "FAST_DIFF";
-  public static final long NATIVE_TIME_RANGE_DELTA = 120000; // 2 minutes
   public static final long HOUR = 3600000; // 1 hour
   public static final long DAY = 86400000; // 1 day
   private static boolean sortMergeJoinEnabled = false;
@@ -435,9 +432,7 @@ public class PhoenixTransactSQL {
           query = GET_METRIC_SQL;
       }
 
-      stmtStr = String.format(query,
-        getNaiveTimeRangeHint(condition.getStartTime(), NATIVE_TIME_RANGE_DELTA),
-        metricsTable);
+      stmtStr = String.format(query, metricsTable);
     }
 
     StringBuilder sb = new StringBuilder(stmtStr);
@@ -630,9 +625,7 @@ public class PhoenixTransactSQL {
         queryStmt = GET_CLUSTER_AGGREGATE_SQL;
     }
 
-    queryStmt = String.format(queryStmt,
-      getNaiveTimeRangeHint(condition.getStartTime(), NATIVE_TIME_RANGE_DELTA),
-      metricsAggregateTable);
+    queryStmt = String.format(queryStmt, metricsAggregateTable);
 
     StringBuilder sb = new StringBuilder(queryStmt);
     sb.append(" WHERE ");
@@ -684,7 +677,7 @@ public class PhoenixTransactSQL {
     if (condition.getStatement() != null) {
       stmtStr = condition.getStatement();
     } else {
-      stmtStr = String.format(GET_CLUSTER_AGGREGATE_SQL, "",
+      stmtStr = String.format(GET_CLUSTER_AGGREGATE_SQL,
         METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
     }
 

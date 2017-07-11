@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 import java.util.List;
 
 public class TopNCondition extends DefaultCondition{
@@ -66,7 +65,6 @@ public class TopNCondition extends DefaultCondition{
 
   public String getTopNInnerQuery() {
     return String.format(PhoenixTransactSQL.TOP_N_INNER_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(getStartTime(), NATIVE_TIME_RANGE_DELTA),
       PhoenixTransactSQL.getTargetTableUsingPrecision(precision, CollectionUtils.isNotEmpty(hostnames)),
       super.getConditionClause().toString(), getTopNOrderByClause(), topN);
   }
