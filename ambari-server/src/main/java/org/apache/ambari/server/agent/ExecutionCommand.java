@@ -410,6 +410,7 @@ public class ExecutionCommand extends AgentCommand {
     String STACK_VERSION = "stack_version";
     String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";
+    String IGNORE_PACKAGE_DEPENDENCIES = "ignore_package_dependencies";
     String JDK_LOCATION = "jdk_location";
     String JAVA_HOME = "java_home";
     String JAVA_VERSION = "java_version";

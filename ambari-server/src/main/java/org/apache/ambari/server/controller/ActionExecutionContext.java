@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.state.StackId;
 
 /**
  * The context required to create tasks and stages for a custom action
@@ -41,6 +42,7 @@ public class ActionExecutionContext {
   private String expectedComponentName;
   private boolean hostsInMaintenanceModeExcluded = true;
   private boolean allowRetry = false;
+  private StackId stackId;
 
   /**
    * {@code true} if slave/client component failures should be automatically
@@ -166,6 +168,30 @@ public class ActionExecutionContext {
    */
   public void setAutoSkipFailures(boolean autoSkipFailures) {
     this.autoSkipFailures = autoSkipFailures;
+  }
+
+  /**
+   * Gets the stack to use for generating stack-associated values for a command.
+   * In some cases the cluster's stack is not the correct one to use, such as
+   * when distributing a repository.
+   *
+   * @return the stackId the stack to use when generating stack-specific content
+   *         for the command.
+   */
+  public StackId getStackId() {
+    return stackId;
+  }
+
+  /**
+   * Sets the stack to use for generating stack-associated values for a command.
+   * In some cases the cluster's stack is not the correct one to use, such as
+   * when distributing a repository.
+   *
+   * @param stackId
+   *          the stackId to use for stack-based properties on the command.
+   */
+  public void setStackId(StackId stackId) {
+    this.stackId = stackId;
   }
 
   @Override

@@ -175,7 +175,8 @@ public class HostOrderGrouping extends Grouping {
           if (null != hostsType && !hostsType.hosts.contains(hostName)) {
             LOG.warn("Host {} could not be orchestrated. Either there are no components for {}/{} " +
                 "or the target version {} is already current.",
-                hostName, sch.getServiceName(), sch.getServiceComponentName(), upgradeContext.getVersion());
+                hostName, sch.getServiceName(), sch.getServiceComponentName(),
+                upgradeContext.getTargetRepositoryVersion().getVersion());
             continue;
           }
 
@@ -225,7 +226,7 @@ public class HostOrderGrouping extends Grouping {
           // create task wrappers
           List<TaskWrapper> taskWrappers = new ArrayList<>();
           for (HostRoleCommand command : stageCommandsForHost) {
-            StackId stackId = upgradeContext.getEffectiveStackId();
+            StackId stackId = upgradeContext.getTargetStackId();
             String componentName = command.getRole().name();
 
             String serviceName = null;

@@ -19,111 +19,111 @@
 package org.apache.ambari.server.controller.internal;
 
  import static org.easymock.EasyMock.anyLong;
- import static org.easymock.EasyMock.anyObject;
- import static org.easymock.EasyMock.capture;
- import static org.easymock.EasyMock.createMock;
- import static org.easymock.EasyMock.createNiceMock;
- import static org.easymock.EasyMock.eq;
- import static org.easymock.EasyMock.expect;
- import static org.easymock.EasyMock.expectLastCall;
- import static org.easymock.EasyMock.replay;
- import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
- import java.io.File;
- import java.io.FileInputStream;
- import java.lang.reflect.Field;
- import java.sql.SQLException;
- import java.util.ArrayList;
- import java.util.Arrays;
- import java.util.Collections;
- import java.util.HashMap;
- import java.util.LinkedHashMap;
- import java.util.LinkedHashSet;
- import java.util.List;
- import java.util.Map;
- import java.util.Properties;
- import java.util.Set;
+import java.io.File;
+import java.io.FileInputStream;
+import java.lang.reflect.Field;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
- import org.apache.ambari.annotations.Experimental;
- import org.apache.ambari.annotations.ExperimentalFeature;
- import org.apache.ambari.server.AmbariException;
- import org.apache.ambari.server.H2DatabaseCleaner;
- import org.apache.ambari.server.Role;
- import org.apache.ambari.server.actionmanager.ActionManager;
- import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
- import org.apache.ambari.server.actionmanager.HostRoleCommand;
- import org.apache.ambari.server.actionmanager.Stage;
- import org.apache.ambari.server.actionmanager.StageFactory;
- import org.apache.ambari.server.agent.CommandReport;
- import org.apache.ambari.server.agent.ExecutionCommand;
- import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
- import org.apache.ambari.server.api.services.AmbariMetaInfo;
- import org.apache.ambari.server.configuration.Configuration;
- import org.apache.ambari.server.controller.AmbariManagementController;
- import org.apache.ambari.server.controller.ExecuteActionRequest;
- import org.apache.ambari.server.controller.RequestStatusResponse;
- import org.apache.ambari.server.controller.ResourceProviderFactory;
- import org.apache.ambari.server.controller.spi.Request;
- import org.apache.ambari.server.controller.spi.RequestStatus;
- import org.apache.ambari.server.controller.spi.Resource;
- import org.apache.ambari.server.controller.spi.ResourceProvider;
- import org.apache.ambari.server.controller.utilities.PropertyHelper;
- import org.apache.ambari.server.orm.GuiceJpaInitializer;
- import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
- import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
- import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
- import org.apache.ambari.server.orm.dao.HostVersionDAO;
- import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
- import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
- import org.apache.ambari.server.orm.dao.StackDAO;
- import org.apache.ambari.server.orm.entities.ClusterEntity;
- import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
- import org.apache.ambari.server.orm.entities.HostVersionEntity;
- import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
- import org.apache.ambari.server.orm.entities.ResourceEntity;
- import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
- import org.apache.ambari.server.orm.entities.StackEntity;
- import org.apache.ambari.server.orm.entities.UpgradeEntity;
- import org.apache.ambari.server.security.TestAuthenticationFactory;
- import org.apache.ambari.server.security.authorization.AuthorizationException;
- import org.apache.ambari.server.security.authorization.ResourceType;
- import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
- import org.apache.ambari.server.state.Cluster;
- import org.apache.ambari.server.state.Clusters;
- import org.apache.ambari.server.state.ConfigHelper;
- import org.apache.ambari.server.state.Host;
- import org.apache.ambari.server.state.MaintenanceState;
- import org.apache.ambari.server.state.RepositoryType;
- import org.apache.ambari.server.state.RepositoryVersionState;
- import org.apache.ambari.server.state.Service;
- import org.apache.ambari.server.state.ServiceComponent;
- import org.apache.ambari.server.state.ServiceComponentHost;
- import org.apache.ambari.server.state.ServiceInfo;
- import org.apache.ambari.server.state.ServiceOsSpecific;
- import org.apache.ambari.server.state.StackId;
- import org.apache.ambari.server.state.cluster.ClusterImpl;
- import org.apache.ambari.server.state.stack.upgrade.Direction;
- import org.apache.ambari.server.topology.TopologyManager;
- import org.apache.ambari.server.utils.StageUtils;
- import org.apache.commons.io.IOUtils;
- import org.easymock.Capture;
- import org.easymock.EasyMock;
- import org.easymock.IAnswer;
- import org.junit.After;
- import org.junit.Assert;
- import org.junit.Before;
- import org.junit.Ignore;
- import org.junit.Test;
- import org.springframework.security.core.Authentication;
- import org.springframework.security.core.context.SecurityContextHolder;
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.io.IOUtils;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
- import com.google.gson.JsonArray;
- import com.google.gson.JsonObject;
- import com.google.gson.JsonParser;
- import com.google.inject.AbstractModule;
- import com.google.inject.Guice;
- import com.google.inject.Injector;
- import com.google.inject.util.Modules;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.util.Modules;
 
 
  /**
@@ -222,7 +222,7 @@ public class ClusterStackVersionResourceProviderTest {
     repoVersion.setId(1l);
     repoVersion.setOperatingSystems(OS_JSON);
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -271,7 +271,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -363,9 +363,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -413,7 +413,7 @@ public class ClusterStackVersionResourceProviderTest {
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -491,7 +491,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -585,9 +585,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -646,7 +646,7 @@ public class ClusterStackVersionResourceProviderTest {
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -708,7 +708,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -806,9 +806,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -877,7 +877,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -939,7 +939,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1038,9 +1038,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -1152,7 +1152,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1169,7 +1169,7 @@ public class ClusterStackVersionResourceProviderTest {
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(schs).anyTimes();
 
-    Capture<StackId> capturedStackId = new Capture<StackId>();
+    Capture<StackId> capturedStackId = new Capture<>();
     cluster.setDesiredStackVersion(capture(capturedStackId));
       expectLastCall().once();
     expect(cluster.getHosts()).andReturn(hosts).anyTimes();
@@ -1206,7 +1206,7 @@ public class ClusterStackVersionResourceProviderTest {
     field.set(provider, finalizeUpgradeAction);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName);
@@ -1305,7 +1305,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1327,7 +1327,7 @@ public class ClusterStackVersionResourceProviderTest {
     ClusterVersionEntity current = new ClusterVersionEntity();
     current.setRepositoryVersion(currentRepo);
 
-    Capture<StackId> capturedStackId = new Capture<StackId>();
+    Capture<StackId> capturedStackId = new Capture<>();
     cluster.setDesiredStackVersion(capture(capturedStackId));
       expectLastCall().once();
     expect(cluster.getHosts()).andReturn(hosts).anyTimes();
@@ -1362,7 +1362,7 @@ public class ClusterStackVersionResourceProviderTest {
 
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName);
@@ -1424,7 +1424,7 @@ public class ClusterStackVersionResourceProviderTest {
     repoVersion.setType(RepositoryType.STANDARD);
 
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -1473,7 +1473,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1570,9 +1570,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -1636,7 +1636,7 @@ public class ClusterStackVersionResourceProviderTest {
     repoVersionEntity.setVersionXsd("version_definition.xsd");
     repoVersionEntity.setType(RepositoryType.STANDARD);
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     List<HostVersionEntity> hostVersionEntitiesMergedWithNotRequired = new ArrayList<>();
     int hostCount = 10;
 
@@ -1714,8 +1714,8 @@ public class ClusterStackVersionResourceProviderTest {
     expect(cluster.getClusterName()).andReturn(clusterName).atLeastOnce();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
-    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(
-        serviceComponentHosts).anyTimes();
+    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(serviceComponentHosts).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId).atLeastOnce();
 
     expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(StackId.class),
         anyObject(String.class))).andReturn(repoVersionEntity);
@@ -1757,9 +1757,9 @@ public class ClusterStackVersionResourceProviderTest {
 
     // add the property map to a set for the request. add more maps for multiple
     // creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(
@@ -1826,9 +1826,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");

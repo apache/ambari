@@ -42,6 +42,10 @@
     <ambariProperties>conf/unix/ambari.properties</ambariProperties>
     <commonServicesSrcLocation>src/main/resources/common-services</commonServicesSrcLocation>
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
+
+    <!-- Additional stack to include in the server and agent paths. -->
+    <supplementalDistribution>src/main/resources/stacks/${supplemental.distribution}</supplementalDistribution>
+
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.2</hadoop.version>
@@ -299,6 +303,10 @@
             <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
+            <exclude>src/main/resources/stacks/BigInsights/4.0/services/AMBARI_METRICS/package/templates/smoketest_metrics.json.j2</exclude>
+            <exclude>src/main/resources/stacks/BigInsights/4.0/services/AMBARI_METRICS/package/files/service-metrics/*.txt</exclude>
+            <exclude>src/main/resources/stacks/BigInsights/4.2/services/AMBARI_METRICS/package/templates/smoketest_metrics.json.j2</exclude>
+            <exclude>src/main/resources/stacks/BigInsights/4.2/services/AMBARI_METRICS/package/files/service-metrics/*.txt</exclude>
             <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>

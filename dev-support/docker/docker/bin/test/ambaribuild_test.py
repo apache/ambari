@@ -22,6 +22,7 @@ def unittest():
 	assert result.is_test == True
 	assert result.is_rebuild == False
 	assert result.stack_distribution == None
+	assert result.supplemental_distribution == None
 	assert result.is_install_server == False
 	assert result.is_install_agent == False
 	assert result.is_deploy == False
@@ -32,6 +33,7 @@ def unittest():
 	assert result.is_test == False
 	assert result.is_rebuild == False
 	assert result.stack_distribution == None
+	assert result.supplemental_distribution == None
 	assert result.is_install_server == True
 	assert result.is_install_agent == False
 	assert result.is_deploy == False
@@ -42,6 +44,7 @@ def unittest():
 	assert result.is_test == False
 	assert result.is_rebuild == False
 	assert result.stack_distribution == None
+	assert result.supplemental_distribution == None
 	assert result.is_install_server == True
 	assert result.is_install_agent == True
 	assert result.is_deploy == False
@@ -52,6 +55,7 @@ def unittest():
 	assert result.is_test == False
 	assert result.is_rebuild == True
 	assert result.stack_distribution == None
+	assert result.supplemental_distribution == None
 	assert result.is_install_server == True
 	assert result.is_install_agent == True
 	assert result.is_deploy == False
@@ -62,6 +66,7 @@ def unittest():
 	assert result.is_test == False
 	assert result.is_rebuild == False
 	assert result.stack_distribution == None
+	assert result.supplemental_distribution == None
 	assert result.is_install_server == True
 	assert result.is_install_agent == True
 	assert result.is_deploy == True
@@ -72,10 +77,22 @@ def unittest():
 	assert result.is_test == False
 	assert result.is_rebuild == True
 	assert result.stack_distribution == "BIGTOP"
+	assert result.supplemental_distribution == None
 	assert result.is_install_server == True
 	assert result.is_install_agent == True
 	assert result.is_deploy == True
 	assert result.is_server_debug == True
+
+	result = ambaribuild.parse(["deploy", "-b", "-s", "HDP", "-x", "BigInsights", "-c"])
+	assert result.is_deep_clean == True
+	assert result.is_test == False
+	assert result.is_rebuild == True
+	assert result.stack_distribution == "HDP"
+	assert result.supplemental_distribution == "BigInsights"
+	assert result.is_install_server == True
+	assert result.is_install_agent == True
+	assert result.is_deploy == True
+	assert result.is_server_debug == False
 
 if __name__ == "__main__":
 	unittest()

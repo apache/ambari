@@ -75,7 +75,7 @@ class ChocoProvider(PackageProvider):
     if res['exitCode'] != 0:
       raise Exception("Error while upgrading choco package " + name + ". " + res['error'] + res['output'])
 
-  def remove_package(self, name):
+  def remove_package(self, name, ignore_dependencies = False):
     if self._check_existence(name):
       cmd = REMOVE_CMD[self.get_logoutput()] + [name]
       cmdString = " ".join(cmd)

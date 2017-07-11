@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+  
+  <!-- hive-env.sh -->
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for hive-env.sh file</description>
+    <value>
+ if [ "$SERVICE" = "cli" ]; then
+   {% if java_version &lt; 8 %}
+    if [ -z "$DEBUG" ]; then
+      export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -Xms10m -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseParNewGC -XX:-UseGCOverheadLimit"
+    else
+      export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -Xms10m -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"
+    fi
+  {% else %}
+    if [ -z "$DEBUG" ]; then
+      export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -Xms10m -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit"
+    else
+      export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -Xms10m -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"
+    fi
+  {% endif %}
+ fi
+
+# The heap size of the jvm stared by hive shell script can be controlled via:
+
+export HADOOP_HEAPSIZE="{{hive_heapsize}}"
+export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
+
+# Set JAVA HOME
+export JAVA_HOME={{java64_home}}
+
+# Larger heap size may be required when running queries over large number of files or partitions.
+# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be
+# appropriate for hive server (hwi etc).
+
+
+# Set HADOOP_HOME to point to a specific hadoop install directory
+HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+
+# Hive Configuration Directory can be controlled by:
+export HIVE_CONF_DIR={{hive_config_dir}}
+
+# Folder containing extra libraries required for hive compilation/execution can be controlled by:
+if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
+  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
+elif [ -d "{{hcat_lib}}" ]; then
+  export HIVE_AUX_JARS_PATH={{hcat_lib}}
+fi
+
+# Set HIVE_AUX_JARS_PATH
+export HIVE_AUX_JARS_PATH={{hbase_lib}}/hbase-client.jar,\
+{{hbase_lib}}/hbase-common.jar,\
+{{hbase_lib}}/hbase-hadoop2-compat.jar,\
+{{hbase_lib}}/hbase-prefix-tree.jar,\
+{{hbase_lib}}/hbase-protocol.jar,\
+{{hbase_lib}}/hbase-server.jar,\
+{{hbase_lib}}/htrace-core-3.1.0-incubating.jar,\
+${HIVE_AUX_JARS_PATH}
+
+export METASTORE_PORT={{hive_metastore_port}}
+    </value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+ 
+  <property>
+    <name>hive_security_authorization</name>
+    <display-name>Choose Authorization</display-name>
+    <value>None</value>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>None</value>
+          <label>None</label>
+        </entry>
+        <entry>
+          <value>SQLStdAuth</value>
+          <label>SQLStdAuth</label>
+        </entry>
+      </entries>
+    </value-attributes>
+  </property>
+  
+  <property>
+    <name>hive_exec_orc_storage_strategy</name>
+    <display-name>ORC Storage Strategy</display-name>
+    <value>SPEED</value>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>SPEED</value>
+          <label>Speed</label>
+        </entry>
+        <entry>
+          <value>COMPRESSION</value>
+          <label>Compression</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive_txn_acid</name>
+    <display-name>ACID Transactions</display-name>
+    <value>off</value>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>on</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>off</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  
+  <property>
+    <name>hive.heapsize</name>
+    <value>1024</value>
+    <description>Hive Java heap size</description>
+    <display-name>HiveServer2 Heap Size</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>512</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.client.heapsize</name>
+    <value>512</value>
+    <description>Hive Client Java heap size</description>
+    <display-name>Client Heap Size</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>512</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.metastore.heapsize</name>
+    <value>1024</value>
+    <description>Hive Metastore Java heap size</description>
+    <display-name>Metastore Heap Size</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>512</increment-step>
+    </value-attributes>
+  </property>
+  
+</configuration>

@@ -170,7 +170,10 @@ App.MainAdminStackVersionsView = Em.View.extend({
       return versions.toArray();
     } else {
       return versions.filter(function(v) {
-        return stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
+        if (v.get('stackVersionType') === Em.get(currentVersion, 'stack_name')) {
+          return stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
+        }
+        return v.get('isCompatible');
       }).toArray();
     }
   },
@@ -240,6 +243,22 @@ App.MainAdminStackVersionsView = Em.View.extend({
         self.doPolling();
       });
     }
+  },
+
+  showRemoveIopSelect: function() {
+    return App.get('currentStackName') === 'BigInsights' && !App.get('upgradeIsRunning');
+  }.property('App.currentStackName', 'App.upgradeIsRunning'),
+
+  removeIopSelect: function() {
+    return App.showConfirmationPopup(function () {
+      App.ajax.send({
+        name: 'admin.stack_versions.removeIopSelect',
+        sender: this,
+        data: {
+          hosts: App.get('allHostNames').join(',')
+        }
+      });
+    });
   }
 
 });

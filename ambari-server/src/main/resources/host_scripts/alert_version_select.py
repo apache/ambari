@@ -31,6 +31,7 @@ RESULT_STATE_WARNING = 'WARNING'
 RESULT_STATE_CRITICAL = 'CRITICAL'
 RESULT_STATE_UNKNOWN = 'UNKNOWN'
 
+STACK_NAME = '{{cluster-env/stack_name}}'
 STACK_TOOLS = '{{cluster-env/stack_tools}}'
 
 
@@ -42,7 +43,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (STACK_TOOLS,)
+  return (STACK_NAME, STACK_TOOLS)
 
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -65,8 +66,10 @@ def execute(configurations={}, parameters={}, host_name=None):
     if STACK_TOOLS not in configurations:
       return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(STACK_TOOLS)])
 
+    stack_name = Script.get_stack_name()
+
     # Of the form,
-    # { "stack_selector": ["hdp-select", "/usr/bin/hdp-select", "hdp-select"], "conf_selector": ["conf-select", "/usr/bin/conf-select", "conf-select"] }
+    # { "HDP" : { "stack_selector": ["hdp-select", "/usr/bin/hdp-select", "hdp-select"], "conf_selector": ["conf-select", "/usr/bin/conf-select", "conf-select"] } }
     stack_tools_str = configurations[STACK_TOOLS]
 
     if stack_tools_str is None:
@@ -75,6 +78,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     distro_select = "unknown-distro-select"
     try:
       stack_tools = json.loads(stack_tools_str)
+      stack_tools = stack_tools[stack_name]
       distro_select = stack_tools["stack_selector"][0]
     except:
       pass
@@ -87,18 +91,18 @@ def execute(configurations={}, parameters={}, host_name=None):
       (code, out, versions) = unsafe_get_stack_versions()
 
       if code == 0:
-        msg.append("Ok. {0}".format(distro_select))
+        msg.append("{0} ".format(distro_select))
         if versions is not None and type(versions) is list and len(versions) > 0:
-          msg.append("Versions: {0}".format(", ".join(versions)))
+          msg.append("reported the following versions: {0}".format(", ".join(versions)))
         return (RESULT_STATE_OK, ["\n".join(msg)])
       else:
-        msg.append("Failed, check dir {0} for unexpected contents.".format(stack_root_dir))
+        msg.append("{0} could not properly read {1}. Check this directory for unexpected contents.".format(distro_select, stack_root_dir))
         if out is not None:
           msg.append(out)
 
         return (RESULT_STATE_CRITICAL, ["\n".join(msg)])
     else:
-      msg.append("Ok. No stack root {0} to check.".format(stack_root_dir))
+      msg.append("No stack root {0} to check.".format(stack_root_dir))
       return (RESULT_STATE_OK, ["\n".join(msg)])
   except Exception, e:
     return (RESULT_STATE_CRITICAL, [e.message])

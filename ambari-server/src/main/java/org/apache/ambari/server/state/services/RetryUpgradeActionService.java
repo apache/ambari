@@ -178,9 +178,11 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
       LOG.debug("There is no active stack upgrade in progress. Skip retrying failed tasks.");
       return null;
     }
+
     LOG.debug("Found an active stack upgrade with id: {}, direction: {}, type: {}, from version: {}, to version: {}",
         currentUpgrade.getId(), currentUpgrade.getDirection(), currentUpgrade.getUpgradeType(),
-        currentUpgrade.getFromVersion(), currentUpgrade.getToVersion());
+        currentUpgrade.getFromRepositoryVersion().getVersion(),
+        currentUpgrade.getToRepositoryVersion().getVersion());
 
     return currentUpgrade.getRequestId();
   }

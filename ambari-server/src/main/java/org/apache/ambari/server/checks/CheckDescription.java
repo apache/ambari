@@ -329,6 +329,14 @@ public class CheckDescription {
               "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
               "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
 
+  public static CheckDescription JAVA_VERSION = new CheckDescription("JAVA_VERSION",
+      PrereqCheckType.CLUSTER,
+      "Verify Java version requirement",
+      new ImmutableMap.Builder<String, String>()
+        .put(AbstractCheckDescriptor.DEFAULT, "Ambari requires JDK with minimum version %s. Reconfigure Ambari with a JDK that meets the version requirement.")
+        .build()
+    );
+
   private String m_name;
   private PrereqCheckType m_type;
   private String m_description;

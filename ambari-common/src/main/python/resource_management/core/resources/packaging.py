@@ -52,3 +52,9 @@ class Package(Resource):
   version = ResourceArgument()
   actions = ["install", "upgrade", "remove"]
   build_vars = ForcedListArgument(default=[])
+
+  """
+  False - also remove any packages that depend on the one being removed
+  True - possibly break dependencies by keeping them installed
+  """
+  ignore_dependencies = BooleanArgument(default=False)

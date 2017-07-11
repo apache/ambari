@@ -486,6 +486,7 @@
                     <include>common-services/**</include>
                     <include>stacks/stack_advisor.py</include>
                     <include>stacks/${stack.distribution}/**/*</include>
+                    <include>stacks/${supplemental.distribution}/**/*</include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -661,6 +662,7 @@
       <dirsep>/</dirsep>
       <pathsep>:</pathsep>
       <stack.distribution>HDP</stack.distribution>
+      <supplemental.distribution>BigInsights</supplemental.distribution>
       <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
       <executable.shell>sh</executable.shell>
       <fileextension.shell>sh</fileextension.shell>

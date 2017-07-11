@@ -1,0 +1,14 @@
+{
+  "BigInsights": {
+    "stack_selector": [
+      "iop-select",
+      "/usr/bin/iop-select",
+      "iop-select"
+    ],
+    "conf_selector": [
+      "conf-select",
+      "/usr/bin/conf-select",
+      "conf-select"
+    ]
+  }
+}

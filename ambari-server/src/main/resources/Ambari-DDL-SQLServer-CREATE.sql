@@ -849,8 +849,8 @@ CREATE TABLE upgrade (
   upgrade_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
-  from_version VARCHAR(255) DEFAULT '' NOT NULL,
-  to_version VARCHAR(255) DEFAULT '' NOT NULL,
+  from_repo_version_id BIGINT NOT NULL,
+  to_repo_version_id BIGINT NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
@@ -860,7 +860,9 @@ CREATE TABLE upgrade (
   suspended BIT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY CLUSTERED (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id)
+  FOREIGN KEY (request_id) REFERENCES request(request_id),
+  CONSTRAINT FK_upgrade_from_repo_id FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT FK_upgrade_to_repo_id FOREIGN KEY (to_repo_version_id) REFERENCES repo_version (repo_version_id)
 );
 
 CREATE TABLE upgrade_group (

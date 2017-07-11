@@ -454,10 +454,12 @@ public class AmbariActionExecutionHelper {
       for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
         hostLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
       }
+
       for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
         hostLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
       }
-      addRepoInfoToHostLevelParams(cluster, hostLevelParams, hostName);
+
+      addRepoInfoToHostLevelParams(cluster, actionContext, hostLevelParams, hostName);
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -517,7 +519,8 @@ public class AmbariActionExecutionHelper {
   *
   * */
 
-  private void addRepoInfoToHostLevelParams(Cluster cluster, Map<String, String> hostLevelParams, String hostName) throws AmbariException {
+  private void addRepoInfoToHostLevelParams(Cluster cluster, ActionExecutionContext actionContext,
+      Map<String, String> hostLevelParams, String hostName) throws AmbariException {
     if (null == cluster) {
       return;
     }
@@ -526,6 +529,7 @@ public class AmbariActionExecutionHelper {
     JsonArray repositories = new JsonArray();
     ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(
         cluster.getClusterName());
+
     if (clusterVersionEntity != null && clusterVersionEntity.getRepositoryVersion() != null) {
       String hostOsFamily = clusters.getHost(hostName).getOsFamily();
       for (OperatingSystemEntity operatingSystemEntity : clusterVersionEntity.getRepositoryVersion().getOperatingSystems()) {
@@ -547,8 +551,15 @@ public class AmbariActionExecutionHelper {
 
     hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
 
-    StackId stackId = cluster.getCurrentStackVersion();
-    hostLevelParams.put(STACK_NAME, stackId.getStackName());
-    hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+    // set the host level params if not already set by whoever is creating this command
+    if (!hostLevelParams.containsKey(STACK_NAME) || !hostLevelParams.containsKey(STACK_VERSION)) {
+      // see if the action context has a stack ID set to use, otherwise use the
+      // cluster's current stack ID
+      StackId stackId = actionContext.getStackId() != null ? actionContext.getStackId()
+          : cluster.getCurrentStackVersion();
+
+      hostLevelParams.put(STACK_NAME, stackId.getStackName());
+      hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+    }
   }
 }

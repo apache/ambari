@@ -1,0 +1,820 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <!-- ResourceManager -->
+
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>localhost</value>
+    <description>The hostname of the RM.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.resource-tracker.address</name>
+    <value>localhost:8025</value>
+    <description> The address of ResourceManager. </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.scheduler.address</name>
+    <value>localhost:8030</value>
+    <description>The address of the scheduler interface.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.address</name>
+    <value>localhost:8050</value>
+    <description>
+      The address of the applications manager interface in the
+      RM.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.admin.address</name>
+    <value>localhost:8141</value>
+    <description>The address of the RM admin interface.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.scheduler.class</name>
+    <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+    <description>The class to use as the resource scheduler.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>512</value>
+    <description>
+      The minimum allocation for every container request at the RM,
+      in MBs. Memory requests lower than this won't take effect,
+      and the specified value will get allocated at minimum.
+    </description>
+    <display-name>Minimum Container Size (Memory)</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>5120</maximum>
+      <unit>MB</unit>
+      <increment-step>250</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>2048</value>
+    <description>
+      The maximum allocation for every container request at the RM,
+      in MBs. Memory requests higher than this won't take effect,
+      and will get capped to this value.
+    </description>
+    <display-name>Maximum Container Size (Memory)</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>5120</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.acl.enable</name>
+    <value>false</value>
+    <description> Are acls enabled. </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.admin.acl</name>
+    <value></value>
+    <description> ACL of who can be admin of the YARN cluster. </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <!-- NodeManager -->
+
+  <property>
+    <name>yarn.nodemanager.address</name>
+    <value>0.0.0.0:45454</value>
+    <description>The address of the container manager in the NM.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>5120</value>
+    <description>Amount of physical memory, in MB, that can be allocated
+      for containers.</description>
+    <display-name>Memory allocated for all YARN containers on a node</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>268435456</maximum>
+      <unit>MB</unit>
+      <increment-step>250</increment-step>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.application.classpath</name>
+    <value>/etc/hadoop/conf,/usr/iop/current/hadoop-client/*,/usr/iop/current/hadoop-client/lib/*,/usr/iop/current/hadoop-hdfs-client/*,/usr/iop/current/hadoop-hdfs-client/lib/*,/usr/iop/current/hadoop-yarn-client/*,/usr/iop/current/hadoop-yarn-client/lib/*</value>
+    <description>Classpath for typical applications.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+    <value>5</value>
+    <description>Ratio between virtual memory to physical memory when
+      setting memory limits for containers. Container allocations are
+      expressed in terms of physical memory, and virtual memory usage
+      is allowed to exceed this allocation by this ratio.
+    </description>
+    <display-name>Virtual Memory Ratio</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0.1</minimum>
+      <maximum>5.0</maximum>
+      <increment-step>0.1</increment-step>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
+    <description>ContainerExecutor for launching containers</description>
+    <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>hadoop</value>
+    <description>Unix group of the NodeManager</description>
+    <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+    <description>Auxilliary services of NodeManager. A valid service name should only contain a-zA-Z0-9_ and can
+      not start with numbers</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+    <description>The auxiliary service class to use </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.log-dirs</name>
+    <value>/hadoop/yarn/log</value>
+    <description>
+      Where to store container logs. An application's localized log directory
+      will be found in ${yarn.nodemanager.log-dirs}/application_${appid}.
+      Individual containers' log directories will be below this, in directories
+      named container_{$contid}. Each container directory will contain the files
+      stderr, stdin, and syslog generated by that container.
+    </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>directories</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <value>/hadoop/yarn/local</value>
+    <description>
+      List of directories to store localized files in. An
+      application's localized file directory will be found in:
+      ${yarn.nodemanager.local-dirs}/usercache/${user}/appcache/application_${appid}.
+      Individual containers' work directories, called container_${contid}, will
+      be subdirectories of this.
+    </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>directories</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.container-monitor.interval-ms</name>
+    <value>3000</value>
+    <description>
+      The interval, in milliseconds, for which the node manager
+      waits  between two cycles of monitoring its containers' memory usage.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <!--
+  <property>
+    <name>yarn.nodemanager.health-checker.script.path</name>
+    <value>/etc/hadoop/conf/health_check_nodemanager</value>
+    <description>The health check script to run.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+   -->
+
+  <property>
+    <name>yarn.nodemanager.health-checker.interval-ms</name>
+    <value>135000</value>
+    <description>Frequency of running node health script.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.health-checker.script.timeout-ms</name>
+    <value>60000</value>
+    <description>Script time out period.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.log.retain-second</name>
+    <value>604800</value>
+    <description>
+      Time in seconds to retain user logs. Only applicable if
+      log aggregation is disabled.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
+    <description>Whether to enable log aggregation. </description>
+    <display-name>Enable Log Aggregation</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.remote-app-log-dir</name>
+    <value>/app-logs</value>
+    <description>Location to aggregate logs to. </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.remote-app-log-dir-suffix</name>
+    <value>logs</value>
+    <description>
+      The remote log dir will be created at
+      {yarn.nodemanager.remote-app-log-dir}/${user}/{thisParam}.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.log-aggregation.compression-type</name>
+    <value>gz</value>
+    <description>
+      T-file compression types used to compress aggregated logs.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.delete.debug-delay-sec</name>
+    <value>0</value>
+    <description>
+      Number of seconds after an application finishes before the nodemanager's
+      DeletionService will delete the application's localized file directory
+      and log directory.
+
+      To diagnose Yarn application problems, set this property's value large
+      enough (for example, to 600 = 10 minutes) to permit examination of these
+      directories. After changing the property's value, you must restart the
+      nodemanager in order for it to have an effect.
+
+      The roots of Yarn applications' work directories is configurable with
+      the yarn.nodemanager.local-dirs property (see below), and the roots
+      of the Yarn applications' log directories is configurable with the
+      yarn.nodemanager.log-dirs property (see also below).
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.log-aggregation.retain-seconds</name>
+    <value>2592000</value>
+    <description>
+      How long to keep aggregation logs before deleting them. -1 disables.
+      Be careful set this too small and you will spam the name node.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.admin-env</name>
+    <value>MALLOC_ARENA_MAX=$MALLOC_ARENA_MAX</value>
+    <description>
+      Environment variables that should be forwarded from the NodeManager's
+      environment to the container's.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.disk-health-checker.min-healthy-disks</name>
+    <value>0.25</value>
+    <description>
+      The minimum fraction of number of disks to be healthy for the nodemanager
+      to launch new containers. This correspond to both
+      yarn-nodemanager.local-dirs and yarn.nodemanager.log-dirs. i.e.
+      If there are less number of healthy local-dirs (or log-dirs) available,
+      then new containers will not be launched on this node.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.am.max-attempts</name>
+    <value>2</value>
+    <description>
+      The maximum number of application attempts. It's a global
+      setting for all application masters. Each application master can specify
+      its individual maximum number of application attempts via the API, but the
+      individual number cannot be more than the global upper bound. If it is,
+      the resourcemanager will override it. The default number is set to 2, to
+      allow at least one retry for AM.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <value>localhost:8088</value>
+    <description>
+      The address of the RM web application.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>true</value>
+    <description>
+      Whether virtual memory limits will be enforced for containers.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.log.server.url</name>
+    <value>http://localhost:19888/jobhistory/logs</value>
+    <description>
+      URI for the HistoryServer's log resource
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.nodes.exclude-path</name>
+    <value>/etc/hadoop/conf/yarn.exclude</value>
+    <description>
+      Names a file that contains a list of hosts that are
+      not permitted to connect to the resource manager.  The full pathname of the
+      file must be specified.  If the value is empty, no hosts are
+      excluded.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.enabled</name>
+    <value>true</value>
+    <description>Indicate to clients whether timeline service is enabled or not.
+      If enabled, clients will put entities and events to the timeline server.
+    </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.store-class</name>
+    <!--<value>org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.LeveldbTimelineStore</value> -->
+    <value>org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore</value>
+    <description>
+      Store class name for timeline store
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.generic-application-history.store-class</name>
+    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore</value>
+    <description>
+      Store class name for history store, defaulting to file system store
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.leveldb-timeline-store.path</name>
+    <value>/var/log/hadoop-yarn/timeline</value>
+    <description>
+      Store file name for leveldb timeline store
+    </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.webapp.address</name>
+    <value>localhost:8188</value>
+    <description>
+      The http address of the timeline service web application.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.webapp.https.address</name>
+    <value>localhost:8190</value>
+    <description>
+      The http address of the timeline service web application.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.address</name>
+    <value>localhost:10200</value>
+    <description>
+      This is default address for the timeline server to start
+      the RPC server.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.ttl-enable</name>
+    <description>Enable age off of timeline store data.</description>
+    <value>true</value>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+  <property>
+    <description>Time to live for timeline store data in milliseconds.</description>
+    <name>yarn.timeline-service.ttl-ms</name>
+    <value>2678400000</value>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+  <property>
+    <description>Length of time to wait between deletion cycles of leveldb timeline store in milliseconds.</description>
+    <name>yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms</name>
+    <value>300000</value>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+
+  <!-- Default Values Set for IOP Stack -->
+
+  <!-- Fault Tolerance-->
+  <property>
+    <name>yarn.nodemanager.recovery.enabled</name>
+    <value>false</value>
+    <description>Enable the node manager to recover after starting</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.recovery.enabled</name>
+    <value>false</value>
+    <description>
+      Enable RM to recover state after starting.
+      If true, then yarn.resourcemanager.store.class must be specified.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.work-preserving-recovery.enabled</name>
+    <value>false</value>
+    <description>
+      Enable RM work preserving recovery. This configuration is private to YARN for experimenting the feature.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.zk-address</name>
+    <value>localhost:2181</value>
+    <description>
+      List Host:Port of the ZooKeeper servers to be used by the RM. comma separated host:port pairs, each corresponding to a zk server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002" If the optional chroot suffix is used the example would look like: "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002/app/a" where the client would be rooted at "/app/a" and all paths would be relative to this root - ie getting/setting/etc...  "/foo/bar" would result in operations being run on "/app/a/foo/bar" (from the server perspective).
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.connect.retry-interval.ms</name>
+    <value>30000</value>
+    <description>How often to try connecting to the ResourceManager.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.connect.max-wait.ms</name>
+    <value>900000</value>
+    <description>Maximum time to wait to establish connection to ResourceManager</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.ha.enabled</name>
+    <value>false</value>
+    <description>enable RM HA or not</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <!-- Isolation -->
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.util.DefaultLCEResourcesHandler</value>
+    <description>Pre-requisite to use CGroups</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
+    <value>hadoop-yarn</value>
+    <description>Name of the Cgroups hierarchy under which all YARN jobs will be launched</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
+    <value>false</value>
+    <description>If true, YARN will automount the CGroup, however the directory needs to already exist; else, the cgroup should be mounted by the admin</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.strict-resource-usage</name>
+    <value>false</value>
+    <description>Strictly limit CPU resource usage to allocated usage even if spare CPU is available</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <!-- Scheduler -->
+  <property>
+    <name>yarn.nodemanager.resource.cpu-vcores</name>
+    <value>8</value>
+    <description></description>
+    <display-name>Number of virtual cores</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>32</maximum>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
+    <value>80</value>
+    <description>The amount of CPU allocated for YARN containers - only effective when used with CGroups</description>
+    <display-name>Percentage of physical CPU allocated for all containers on a node</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>100</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+  </property>
+
+ <property>
+    <name>yarn.timeline-service.http-authentication.type</name>
+    <value>simple</value>
+    <description>
+      Defines authentication used for the Timeline Server HTTP endpoint.
+      Supported values are: simple | kerberos | $AUTHENTICATION_HANDLER_CLASSNAME
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.timeline-service.http-authentication.simple.anonymous.allowed</name>
+    <value>true</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled</name>
+    <value>false</value>
+    <description>
+      Flag to enable override of the default kerberos authentication filter with
+      the RM authentication filter to allow authentication using delegation
+      tokens(fallback to kerberos if the tokens are missing).
+      Only applicable when the http authentication type is kerberos.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+   <property>
+     <name>yarn.timeline-service.bind-host</name>
+     <value>0.0.0.0</value>
+     <on-ambari-upgrade add="true"/>
+   </property>
+   <property>
+     <name>yarn.nodemanager.bind-host</name>
+     <value>0.0.0.0</value>
+     <on-ambari-upgrade add="true"/>
+   </property>
+   <property>
+     <name>yarn.resourcemanager.bind-host</name>
+     <value>0.0.0.0</value>
+     <on-ambari-upgrade add="true"/>
+   </property>
+   <property>
+     <name>yarn.resourcemanager.system-metrics-publisher.enabled</name>
+     <value>true</value>
+     <on-ambari-upgrade add="true"/>
+   </property>
+  <property>
+     <name>hadoop.registry.rm.enabled</name>
+     <value>false</value>
+     <description> Is the registry enabled: does the RM start it up, create the user and system paths, and purge service records when
+     </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+     <name>hadoop.registry.zk.quorum</name>
+     <value>localhost:2181</value>
+     <description> List of hostname:port pairs defining the zookeeper quorum binding for the registry </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>yarn.node-labels.enabled</name>
+    <value>false</value>
+    <description>
+      Enable node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
+    </description>
+    <display-name>Node Labels</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.scheduler.monitor.enable</name>
+    <value>false</value>
+    <display-name>Pre-emption</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.minimum-allocation-vcores</name>
+    <value>1</value>
+    <description></description>
+    <display-name>Minimum Container Size (VCores)</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.maximum-allocation-vcores</name>
+    <value>8</value>
+    <description></description>
+    <display-name>Maximum Container Size (VCores)</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.http.policy</name>
+    <value>HTTP_ONLY</value>
+    <description>
+      This configures the HTTP endpoint for Yarn Daemons.The following values are supported: - HTTP_ONLY : Service is provided only on http - HTTPS_ONLY : Service is provided only on https
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+</configuration>

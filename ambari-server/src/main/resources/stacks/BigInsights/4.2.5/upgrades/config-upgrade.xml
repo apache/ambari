@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
+  <services>
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_namenode_update_hadoop_env" summary="Update Hadoop env">
+            <type>hadoop-env</type>
+            <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/hdp/current/hadoop-client/lib/native" />
+            <replace key="content" find="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}" replace-with="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}&#10;if [ -d &quot;/usr/lib/hadoop-lzo&quot; ]; then&#10;  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/hadoop-lzo/lib/*&#10;  export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop-lzo/lib/native&#10;fi"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
+            <type>yarn-site</type>
+            <replace key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="MAPREDUCE2">
+      <component name="HISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" summary="Update MapReduce2 configurations">
+            <type>mapred-site</type>
+            <set key="mapreduce.application.framework.path" value="/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    
+    <service name="HIVE">
+      <component name="HIVE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_server_configure_authentication" summary="Configuring hive authentication">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="hive.metastore.event.listeners" if-key="hive.metastore.event.listeners" if-type="hive-site" if-value="com.ibm.biginsights.bigsql.sync.BIEventListener"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+          </definition>
+          
+          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure" summary="Configuring hive env for MariaDB/RedHat7 support">
+            <type>hive-env</type>
+            <set key="mariadb_redhat_support" value="true"/>
+          </definition>
+        </changes>
+      </component>
+      
+      <component name="WEBHCAT_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" summary="Update Hadoop home">
+            <type>webhcat-env</type>
+            <replace key="content" find="export HADOOP_HOME={{hadoop_home}}" replace-with="export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}" />
+          </definition>
+          
+          <definition xsi:type="configure" id="biginsights_4_2_webhcat_server_update_configurations" summary="Updating Configuration Paths">
+            <type>webhcat-site</type>
+            <replace key="templeton.jar" find="/usr/iop/current/hive-webhcat" replace-with="/usr/hdp/${hdp.version}/hive"/>
+            <replace key="templeton.libjars" find="/usr/iop/current/zookeeper-client" replace-with="/usr/hdp/${hdp.version}/zookeeper"/>
+            <replace key="templeton.hadoop" find="/usr/iop/current/hadoop-client" replace-with="/usr/hdp/${hdp.version}/hadoop"/>
+            <replace key="templeton.hcat" find="/usr/iop/current/hive-client" replace-with="/usr/hdp/${hdp.version}/hive"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_configurations" summary="Updating oozie-site configurations">
+            <type>oozie-site</type>
+            <replace key="oozie.services" find="org.apache.oozie.service.JvmPauseMonitorService" replace-with="org.apache.oozie.service.JvmPauseMonitorService,     org.apache.oozie.service.SparkConfigurationService"/>
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_configurations" summary="Update oozie env">
+            <type>oozie-env</type>
+            <replace key="content" find="export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}" replace-with="export CATALINA_BASE={{oozie_server_dir}}" />            
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" summary="Updating oozie env">
+            <type>oozie-site</type>
+            <replace key="content" find="/usr/lib/bigtop-tomcat7-7.0.75" replace-with="/usr/lib/bigtop-tomcat" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+  </services>
+</upgrade-config-changes>

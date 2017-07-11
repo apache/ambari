@@ -59,7 +59,7 @@ class PackageProvider(Provider):
 
   def action_remove(self):
     package_name = self.get_package_name_with_version()
-    self.remove_package(package_name)
+    self.remove_package(package_name, self.resource.ignore_dependencies)
 
   def get_package_name_with_version(self):
     if self.resource.version:

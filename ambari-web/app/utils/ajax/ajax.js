@@ -1709,6 +1709,7 @@ var urls = {
         timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
+            "repository_id": data.id,
             "repository_version": data.value,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
@@ -1836,8 +1837,32 @@ var urls = {
     }
   },
 
+  'admin.stack_versions.removeIopSelect': {
+    'real': '/requests',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "RequestInfo":{
+            "context": "Remove IOP select",
+            "action": "force_remove_packages",
+            "parameters": {
+              "package_list": "iop-select"
+            }
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts": data.hosts
+            }
+          ]
+        })
+      }
+    }
+  },
+
   'admin.upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}&UpgradeChecks/upgrade_type={type}',
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}&UpgradeChecks/upgrade_type={type}&UpgradeChecks/target_stack={targetStack}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 

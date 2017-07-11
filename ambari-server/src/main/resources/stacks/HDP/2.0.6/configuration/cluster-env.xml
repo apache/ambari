@@ -220,6 +220,18 @@ gpgcheck=0</value>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <!-- Define stack_name property in the base stack. DO NOT override this property for each stack version -->
+  <property>
+    <name>stack_name</name>
+    <value>HDP</value>
+    <description>The name of the stack.</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <!-- Define stack_tools property in the base stack. DO NOT override this property for each stack version -->
   <property>
     <name>stack_tools</name>
@@ -252,8 +264,8 @@ gpgcheck=0</value>
   </property>
   <property>
     <name>stack_root</name>
-    <value>/usr/hdp</value>
-    <description>Stack root folder</description>
+    <value>{"HDP":"/usr/hdp"}</value>
+    <description>JSON which defines the stack root by stack name</description>
     <value-attributes>
       <read-only>true</read-only>
       <overridable>false</overridable>

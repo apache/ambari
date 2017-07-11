@@ -28,13 +28,16 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
 
 /**
  * Action that checks component versions to ensure {@link FinalizeUpgradeAction} will
@@ -42,20 +45,23 @@ import com.google.gson.JsonPrimitive;
  */
 public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
 
+  /**
+   * Used for building {@link UpgradeContext} instances.
+   */
+  @Inject
+  private UpgradeContextFactory upgradeContextFactory;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
-    Map<String, String> commandParams = getExecutionCommand().getCommandParams();
-
-    String version = commandParams.get(VERSION_KEY);
-    StackId targetStackId = new StackId(commandParams.get(TARGET_STACK_KEY));
     String clusterName = getExecutionCommand().getClusterName();
-
     Cluster cluster = clusters.getCluster(clusterName);
+    UpgradeContext context = upgradeContextFactory.create(cluster, cluster.getUpgradeInProgress());
+    RepositoryVersionEntity targetRepositoryVersion = context.getTargetRepositoryVersion();
 
-    List<InfoTuple> errors = checkHostComponentVersions(cluster, version, targetStackId);
+    List<InfoTuple> errors = checkHostComponentVersions(cluster,
+        targetRepositoryVersion.getVersion(), context.getTargetStackId());
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();

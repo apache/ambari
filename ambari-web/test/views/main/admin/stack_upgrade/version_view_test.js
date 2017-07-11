@@ -28,6 +28,7 @@ describe('App.mainAdminStackVersionsView', function () {
     view = App.MainAdminStackVersionsView.create({
       controller: {
         currentVersion: {
+          stack_name: 'HDP',
           repository_version: "2.2.1.0",
           runningCheckRequests: []
         },
@@ -45,40 +46,61 @@ describe('App.mainAdminStackVersionsView', function () {
     var versions = [
         Em.Object.create({
           status: "INIT",
-          repositoryVersion: "2.2.1.1"
+          repositoryVersion: "2.2.1.1",
+          stackVersionType: 'HDP'
         }),
         Em.Object.create({
           status: "INSTALLING",
-          repositoryVersion: "2.2.1.1"
+          repositoryVersion: "2.2.1.1",
+          stackVersionType: 'HDP'
         }),
         Em.Object.create({
           status: "INSTALLED",
-          repositoryVersion: "2.2.0.1"
+          repositoryVersion: "2.0.2.1",
+          stackVersionType: 'HCP',
+          isCompatible: true
         }),
         Em.Object.create({
           status: "INSTALLED",
-          repositoryVersion: "2.2.2.1"
+          repositoryVersion: "2.0.2.2",
+          stackVersionType: 'HCP',
+          isCompatible: false
+        }),
+        Em.Object.create({
+          status: "INSTALLED",
+          repositoryVersion: "2.2.0.1",
+          stackVersionType: 'HDP'
+        }),
+        Em.Object.create({
+          status: "INSTALLED",
+          repositoryVersion: "2.2.2.1",
+          stackVersionType: 'HDP'
         }),
         Em.Object.create({
           status: "INSTALLED",
           repositoryVersion: "2.2.3.1",
-          displayName: 'HDP-2.2'
+          displayName: 'HDP-2.2',
+          stackVersionType: 'HDP'
         }),
         Em.Object.create({
           status: "INSTALL_FAILED",
-          repositoryVersion: "2.2.1.1"
+          repositoryVersion: "2.2.1.1",
+          stackVersionType: 'HDP'
         }),
         Em.Object.create({
           status: "OUT_OF_SYNC",
-          repositoryVersion: "2.2.1.1"
+          repositoryVersion: "2.2.1.1",
+          stackVersionType: 'HDP'
         }),
         Em.Object.create({
           status: "UPGRADED",
-          repositoryVersion: "2.2.1.1"
+          repositoryVersion: "2.2.1.1",
+          stackVersionType: 'HDP'
         }),
         Em.Object.create({
           status: "CURRENT",
-          repositoryVersion: "2.2.1.1"
+          repositoryVersion: "2.2.1.1",
+          stackVersionType: 'HDP'
         })
       ],
       testCases = [
@@ -89,36 +111,50 @@ describe('App.mainAdminStackVersionsView', function () {
           filteredVersions: [
             Em.Object.create({
               status: "INIT",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "INSTALLING",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "INSTALLED",
-              repositoryVersion: "2.2.2.1"
+              repositoryVersion: "2.0.2.1",
+              stackVersionType: 'HCP',
+              isCompatible: true
+            }),
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.2.2.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "INSTALLED",
               repositoryVersion: "2.2.3.1",
-              displayName: 'HDP-2.2'
+              displayName: 'HDP-2.2',
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "INSTALL_FAILED",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "OUT_OF_SYNC",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "UPGRADED",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "CURRENT",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             })
           ]
         },
@@ -129,19 +165,23 @@ describe('App.mainAdminStackVersionsView', function () {
           filteredVersions: [
             Em.Object.create({
               status: "INIT",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "INSTALLING",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "INSTALL_FAILED",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             }),
             Em.Object.create({
               status: "OUT_OF_SYNC",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             })
           ]
         },
@@ -150,7 +190,12 @@ describe('App.mainAdminStackVersionsView', function () {
             value: 'INSTALLED'
           }),
           filteredVersions: [
-
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.0.2.1",
+              stackVersionType: 'HCP',
+              isCompatible: true
+            })
           ]
         },
         {
@@ -160,7 +205,8 @@ describe('App.mainAdminStackVersionsView', function () {
           filteredVersions: [
             Em.Object.create({
               status: "INSTALLED",
-              repositoryVersion: "2.2.2.1"
+              repositoryVersion: "2.2.2.1",
+              stackVersionType: 'HDP'
             })
           ]
         },
@@ -171,7 +217,8 @@ describe('App.mainAdminStackVersionsView', function () {
           filteredVersions: [
             Em.Object.create({
               status: "CURRENT",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             })
           ]
         },
@@ -183,7 +230,8 @@ describe('App.mainAdminStackVersionsView', function () {
             Em.Object.create({
               status: "INSTALLED",
               repositoryVersion: "2.2.3.1",
-              displayName: 'HDP-2.2'
+              displayName: 'HDP-2.2',
+              stackVersionType: 'HDP'
             })
           ]
         },
@@ -194,7 +242,8 @@ describe('App.mainAdminStackVersionsView', function () {
           filteredVersions: [
             Em.Object.create({
               status: "UPGRADED",
-              repositoryVersion: "2.2.1.1"
+              repositoryVersion: "2.2.1.1",
+              stackVersionType: 'HDP'
             })
           ]
         },
@@ -234,7 +283,10 @@ describe('App.mainAdminStackVersionsView', function () {
       var msg = t.filter.get('value') || "All";
       it(t.message || "filter By " + msg, function () {
         displayOlderVersions = t.displayOlderVersions;
-        view.set('controller.currentVersion', t.noCurrentVersion ? null : {repository_version: '2.2.1.1'});
+        view.set('controller.currentVersion', t.noCurrentVersion ? null : {
+          repository_version: '2.2.1.1',
+          stack_name: 'HDP'
+        });
         expect(view.filterBy(versions, t.filter)).to.eql(t.filteredVersions);
       });
     });
@@ -431,6 +483,48 @@ describe('App.mainAdminStackVersionsView', function () {
       this.mock.returns(Em.Object.create({isWorking: false}));
       view.poll();
       expect(view.get('controller').load.called).to.be.false;
+    });
+  });
+
+  describe('#showRemoveIopSelect', function() {
+    beforeEach(function() {
+      this.mockApp = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mockApp.restore();
+    });
+
+    it('should be true when BigInsights stack and upgrade not running', function() {
+      this.mockApp.withArgs('currentStackName').returns('BigInsights');
+      this.mockApp.withArgs('upgradeIsRunning').returns(false);
+      expect(view.get('showRemoveIopSelect')).to.be.true;
+    });
+
+    it('should be false when BigInsights stack and upgrade running', function() {
+      this.mockApp.withArgs('currentStackName').returns('BigInsights');
+      this.mockApp.withArgs('upgradeIsRunning').returns(true);
+      expect(view.get('showRemoveIopSelect')).to.be.false;
+    });
+
+    it('should be false when HDP stack and upgrade not running', function() {
+      this.mockApp.withArgs('currentStackName').returns('HDP');
+      this.mockApp.withArgs('upgradeIsRunning').returns(false);
+      expect(view.get('showRemoveIopSelect')).to.be.false;
+    });
+  });
+
+  describe('#removeIopSelect', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'showConfirmationPopup', Em.clb);
+    });
+    afterEach(function() {
+      App.showConfirmationPopup.restore();
+    });
+
+    it('App.ajax.send should be called', function() {
+      view.removeIopSelect();
+      var args = testHelpers.findAjaxRequest('name', 'admin.stack_versions.removeIopSelect');
+      expect(args[0]).exists;
     });
   });
 });

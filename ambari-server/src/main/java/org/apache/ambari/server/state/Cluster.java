@@ -181,7 +181,11 @@ public interface Cluster {
    *
    * @return the effective cluster stack version given the current upgrading
    *         conditions of the cluster.
+   * 
+   * @deprecated to be removed once the cluster tracks the desired repo instead
+   *             of desired stack id
    */
+  @Deprecated
   ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException;
 
   /**
