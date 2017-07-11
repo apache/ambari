@@ -69,8 +69,8 @@ public class TimelineMetricMetadataManager {
   AtomicBoolean SYNC_HOSTED_APPS_METADATA = new AtomicBoolean(false);
   AtomicBoolean SYNC_HOSTED_INSTANCES_METADATA = new AtomicBoolean(false);
   private MetricUuidGenStrategy uuidGenStrategy = new HashBasedUuidGenStrategy();
-  private static final int timelineMetricUuidLength = 16;
-  private static final int hostnameUuidLength = 4;
+  public static final int TIMELINE_METRIC_UUID_LENGTH = 16;
+  public static final int HOSTNAME_UUID_LENGTH = 4;
 
   // Single thread to sync back new writes to the store
   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -344,9 +344,9 @@ public class TimelineMetricMetadataManager {
   }
 
   /**
-   * Given the hostname, generates a byte array of length 'hostnameUuidLength'
+   * Given the hostname, generates a byte array of length 'HOSTNAME_UUID_LENGTH'
    * @param hostname
-   * @return uuid byte array of length 'hostnameUuidLength'
+   * @return uuid byte array of length 'HOSTNAME_UUID_LENGTH'
    */
   private byte[] getUuidForHostname(String hostname) {
 
@@ -358,7 +358,7 @@ public class TimelineMetricMetadataManager {
       }
     }
 
-    byte[] uuid = uuidGenStrategy.computeUuid(hostname, hostnameUuidLength);
+    byte[] uuid = uuidGenStrategy.computeUuid(hostname, HOSTNAME_UUID_LENGTH);
 
     String uuidStr = new String(uuid);
     if (uuidHostMap.containsKey(uuidStr)) {
@@ -379,7 +379,7 @@ public class TimelineMetricMetadataManager {
   /**
    * Given a timelineClusterMetric instance, generates a UUID for Metric-App-Instance combination.
    * @param timelineClusterMetric
-   * @return uuid byte array of length 'timelineMetricUuidLength'
+   * @return uuid byte array of length 'TIMELINE_METRIC_UUID_LENGTH'
    */
   public byte[] getUuid(TimelineClusterMetric timelineClusterMetric) {
     TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(timelineClusterMetric.getMetricName(),
@@ -393,7 +393,7 @@ public class TimelineMetricMetadataManager {
       }
     }
 
-    byte[] uuid = uuidGenStrategy.computeUuid(timelineClusterMetric, timelineMetricUuidLength);
+    byte[] uuid = uuidGenStrategy.computeUuid(timelineClusterMetric, TIMELINE_METRIC_UUID_LENGTH);
 
     String uuidStr = new String(uuid);
     if (uuidKeyMap.containsKey(uuidStr) && !uuidKeyMap.get(uuidStr).equals(key)) {
@@ -419,7 +419,7 @@ public class TimelineMetricMetadataManager {
   /**
    * Given a timelineMetric instance, generates a UUID for Metric-App-Instance combination.
    * @param timelineMetric
-   * @return uuid byte array of length 'timelineMetricUuidLength' + 'hostnameUuidLength'
+   * @return uuid byte array of length 'TIMELINE_METRIC_UUID_LENGTH' + 'HOSTNAME_UUID_LENGTH'
    */
   public byte[] getUuid(TimelineMetric timelineMetric) {
 
@@ -433,8 +433,8 @@ public class TimelineMetricMetadataManager {
   public String getMetricNameFromUuid(byte[]  uuid) {
 
     byte[] metricUuid = uuid;
-    if (uuid.length == timelineMetricUuidLength + hostnameUuidLength) {
-      metricUuid = ArrayUtils.subarray(uuid, 0, timelineMetricUuidLength);
+    if (uuid.length == TIMELINE_METRIC_UUID_LENGTH + HOSTNAME_UUID_LENGTH) {
+      metricUuid = ArrayUtils.subarray(uuid, 0, TIMELINE_METRIC_UUID_LENGTH);
     }
 
     TimelineMetricMetadataKey key = uuidKeyMap.get(new String(metricUuid));
@@ -446,11 +446,11 @@ public class TimelineMetricMetadataManager {
       return null;
     }
 
-    if (uuid.length == timelineMetricUuidLength) {
+    if (uuid.length == TIMELINE_METRIC_UUID_LENGTH) {
       TimelineMetricMetadataKey key = uuidKeyMap.get(new String(uuid));
       return key != null ? new TimelineMetric(key.metricName, null, key.appId, key.instanceId) : null;
     } else {
-      byte[] metricUuid = ArrayUtils.subarray(uuid, 0, timelineMetricUuidLength);
+      byte[] metricUuid = ArrayUtils.subarray(uuid, 0, TIMELINE_METRIC_UUID_LENGTH);
       TimelineMetricMetadataKey key = uuidKeyMap.get(new String(metricUuid));
       if (key == null) {
         LOG.error("TimelineMetricMetadataKey is null for : " + Arrays.toString(uuid));
@@ -461,7 +461,7 @@ public class TimelineMetricMetadataManager {
       timelineMetric.setAppId(key.appId);
       timelineMetric.setInstanceId(key.instanceId);
 
-      byte[] hostUuid = ArrayUtils.subarray(uuid, timelineMetricUuidLength, hostnameUuidLength + timelineMetricUuidLength);
+      byte[] hostUuid = ArrayUtils.subarray(uuid, TIMELINE_METRIC_UUID_LENGTH, HOSTNAME_UUID_LENGTH + TIMELINE_METRIC_UUID_LENGTH);
       timelineMetric.setHostName(uuidHostMap.get(new String(hostUuid)));
       return timelineMetric;
     }
@@ -525,14 +525,23 @@ public class TimelineMetricMetadataManager {
       appId = appId.toLowerCase();
     }
     if (CollectionUtils.isNotEmpty(sanitizedHostNames)) {
-      for (String metricName : sanitizedMetricNames) {
-        TimelineMetric metric = new TimelineMetric();
-        metric.setMetricName(metricName);
-        metric.setAppId(appId);
-        metric.setInstanceId(instanceId);
+      if (CollectionUtils.isNotEmpty(sanitizedMetricNames)) {
+        for (String metricName : sanitizedMetricNames) {
+          TimelineMetric metric = new TimelineMetric();
+          metric.setMetricName(metricName);
+          metric.setAppId(appId);
+          metric.setInstanceId(instanceId);
+          for (String hostname : sanitizedHostNames) {
+            metric.setHostName(hostname);
+            byte[] uuid = getUuid(metric);
+            if (uuid != null) {
+              uuids.add(uuid);
+            }
+          }
+        }
+      } else {
         for (String hostname : sanitizedHostNames) {
-          metric.setHostName(hostname);
-          byte[] uuid = getUuid(metric);
+          byte[] uuid = getUuidForHostname(hostname);
           if (uuid != null) {
             uuids.add(uuid);
           }
@@ -553,5 +562,32 @@ public class TimelineMetricMetadataManager {
 
   public Map<String, TimelineMetricMetadataKey> getUuidKeyMap() {
     return uuidKeyMap;
+  }
+
+  public List<String> getNotLikeHostnames(List<String> hostnames) {
+    List<String> result = new ArrayList<>();
+    Set<String> sanitizedHostNames = new HashSet<>();
+    if (CollectionUtils.isNotEmpty(hostnames)) {
+      for (String hostname : hostnames) {
+        if (hostname.contains("%")) {
+          String hostRegEx;
+          hostRegEx = hostname.replace("%", ".*");
+          for (String host : HOSTED_APPS_MAP.keySet()) {
+            if (host.matches(hostRegEx)) {
+              sanitizedHostNames.add(host);
+            }
+          }
+        } else {
+          sanitizedHostNames.add(hostname);
+        }
+      }
+    }
+
+    for (String hostname: HOSTED_APPS_MAP.keySet()) {
+      if (!sanitizedHostNames.contains(hostname)) {
+        result.add(hostname);
+      }
+    }
+    return result;
   }
 }
