@@ -39,7 +39,7 @@ class SliderServiceCheck(Script):
     env.set_params(params)
     
     if Script.is_stack_greater_or_equal("4.0"):
-      copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("slider", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
     
     smokeuser_kinit_cmd = format(
       "{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal};") if params.security_enabled else ""

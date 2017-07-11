@@ -133,7 +133,7 @@ def hive(name=None):
     # ****** Begin Copy Tarballs ******
     # *********************************
     if params.stack_version != "" and compare_versions(params.stack_version, '4.0.0.0') >= 0:
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
 
     # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
     copy_to_hdfs("pig",
@@ -142,14 +142,14 @@ def hive(name=None):
                  file_mode=params.tarballs_mode,
                  custom_source_file=params.pig_tar_source,
                  custom_dest_file=params.pig_tar_dest_file,
-                 host_sys_prepped=params.host_sys_prepped)
+                 skip=params.host_sys_prepped)
     copy_to_hdfs("hive",
                  params.user_group,
                  params.hdfs_user,
                  file_mode=params.tarballs_mode,
                  custom_source_file=params.hive_tar_source,
                  custom_dest_file=params.hive_tar_dest_file,
-                 host_sys_prepped=params.host_sys_prepped)
+                 skip=params.host_sys_prepped)
 
     wildcard_tarballs = ["sqoop", "hadoop_streaming"]
     for tarball_name in wildcard_tarballs:
@@ -170,7 +170,7 @@ def hive(name=None):
                      file_mode=params.tarballs_mode,
                      custom_source_file=source_file,
                      custom_dest_file=dest_file,
-                     host_sys_prepped=params.host_sys_prepped)
+                     skip=params.host_sys_prepped)
     # ******* End Copy Tarballs *******
     # *********************************
    

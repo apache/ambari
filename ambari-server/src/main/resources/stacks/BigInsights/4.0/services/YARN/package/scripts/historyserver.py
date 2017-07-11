@@ -61,8 +61,8 @@ class HistoryServer(Script):
       conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-mapreduce-historyserver", params.version)
       # MC Hammer said, "Can't touch this"
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
+      copy_to_hdfs("slider", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
       params.HdfsResource(None, action="execute")
 
   def start(self, env, upgrade_type=None):
@@ -75,12 +75,12 @@ class HistoryServer(Script):
       "mapreduce",
       params.user_group,
       params.hdfs_user,
-      host_sys_prepped=params.host_sys_prepped)
+      skip=params.host_sys_prepped)
     resource_created = copy_to_hdfs(
       "slider",
       params.user_group,
       params.hdfs_user,
-      host_sys_prepped=params.host_sys_prepped) or resource_created
+      skip=params.host_sys_prepped) or resource_created
     if resource_created:
       params.HdfsResource(None, action="execute")
     service('historyserver', action='start', serviceName='mapreduce')

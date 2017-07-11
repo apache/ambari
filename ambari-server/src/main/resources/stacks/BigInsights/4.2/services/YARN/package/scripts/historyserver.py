@@ -62,8 +62,8 @@ class HistoryServer(Script):
       #Execute(format("iop-select set hadoop-mapreduce-historyserver {version}"))
       #copy_tarballs_to_hdfs('mapreduce', 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
       # MC Hammer said, "Can't touch this"
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
+      copy_to_hdfs("slider", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
       params.HdfsResource(None, action="execute")
 
   def start(self, env, upgrade_type=None):
@@ -76,12 +76,12 @@ class HistoryServer(Script):
       "mapreduce",
       params.user_group,
       params.hdfs_user,
-      host_sys_prepped=params.host_sys_prepped)
+      skip=params.host_sys_prepped)
     resource_created = copy_to_hdfs(
       "slider",
       params.user_group,
       params.hdfs_user,
-      host_sys_prepped=params.host_sys_prepped) or resource_created
+      skip=params.host_sys_prepped) or resource_created
     if resource_created:
       params.HdfsResource(None, action="execute")
 

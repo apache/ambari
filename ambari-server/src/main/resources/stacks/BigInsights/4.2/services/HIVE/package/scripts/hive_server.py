@@ -106,7 +106,7 @@ class HiveServerDefault(HiveServer):
         "mapreduce",
         params.user_group,
         params.hdfs_user,
-        host_sys_prepped=params.host_sys_prepped)
+        skip=params.host_sys_prepped)
 
       if resource_created:
         params.HdfsResource(None, action="execute")
