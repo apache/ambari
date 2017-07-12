@@ -52,17 +52,6 @@
       </component>
     </service>
     
-    <service name="HBASE">
-      <component name="HBASE_MASTER">
-        <changes>
-          <definition xsi:type="configure" id="biginsights_4_2_hbase_env_config" summary="Update HBase configurations">
-            <type>hbase-env</type>
-            <set key="backup_wal_dir" value="true"/>
-          </definition>
-        </changes>
-      </component>
-    </service>
-
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>

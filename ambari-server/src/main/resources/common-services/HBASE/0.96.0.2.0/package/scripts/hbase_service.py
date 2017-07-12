@@ -19,7 +19,6 @@ limitations under the License.
 """
 
 from resource_management import *
-from resource_management.core.logger import Logger
 
 def hbase_service(
   name,
@@ -33,22 +32,6 @@ def hbase_service(
     pid_expression = as_sudo(["cat", pid_file])
     no_op_test = as_sudo(["test", "-f", pid_file]) + format(" && ps -p `{pid_expression}` >/dev/null 2>&1")
     
-    # delete wal log if HBase version has moved down
-    if params.to_backup_wal_dir:
-      wal_directory = params.wal_directory
-      timestamp = datetime.datetime.now()
-      format = '%Y%m%d%H%M%S'
-      wal_directory_backup = '%s_%s' % (wal_directory, timestamp.strftime(format))
-
-      rm_cmd = format("hadoop fs -mv {wal_directory} {wal_directory_backup}")
-      try:
-        Execute ( rm_cmd,
-          user = params.hbase_user
-        )
-      except Exception, e:
-        #Should still allow HBase Start/Stop to proceed
-        Logger.error("Failed to backup HBase WAL directory, command: {0} . Exception: {1}".format(rm_cmd, e.message))
-
     if action == 'start':
       daemon_cmd = format("{cmd} start {role}")
       

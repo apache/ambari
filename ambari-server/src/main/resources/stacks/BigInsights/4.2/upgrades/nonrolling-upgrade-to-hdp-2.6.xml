@@ -181,12 +181,7 @@
       <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
         <task xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" />
       </execute-stage>
-
-      <!-- HBASE -->
-      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase">
-        <task xsi:type="configure" id="biginsights_4_2_hbase_env_config" />
-      </execute-stage>
-
+      
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure"/>

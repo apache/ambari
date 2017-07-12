@@ -44,7 +44,6 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.expect import expect
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
-from resource_management.libraries.functions.constants import Direction
 
 # server configurations
 config = Script.get_config()
@@ -441,11 +440,3 @@ if has_atlas:
   atlas_with_managed_hbase = len(zk_hosts_matches) > 0
 else:
   atlas_with_managed_hbase = False
-
-wal_directory = "/apps/hbase/data/MasterProcWALs"
-
-backup_wal_dir = default('/configurations/hbase-env/backup_wal_dir', False)
-
-#Need to make sure not to keep removing WAL logs once EU is finalized.
-upgrade_direction = default("/commandParams/upgrade_direction", None)
-to_backup_wal_dir = upgrade_direction is not None and upgrade_direction == Direction.UPGRADE and backup_wal_dir
