@@ -613,7 +613,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         INSTALL_PACKAGES_ACTION, Collections.singletonList(filter), roleParams);
 
-    actionContext.setStackId(stackId);
+    actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     repoVersionHelper.addCommandRepository(actionContext, osFamily, repoVersion, repoInfo);

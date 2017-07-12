@@ -539,13 +539,18 @@ public class AmbariActionExecutionHelper {
     // if the repo is null, see if any values from the context should go on the
     // host params and then return
     if (null == repositoryVersion) {
-      if (null != actionContext.getStackId()) {
-        StackId stackId = actionContext.getStackId();
+      // see if the action context has a repository set to use for the command
+      if (null != actionContext.getRepositoryVersion()) {
+        StackId stackId = actionContext.getRepositoryVersion().getStackId();
         hostLevelParams.put(STACK_NAME, stackId.getStackName());
         hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
       }
 
       return;
+    } else {
+      StackId stackId = repositoryVersion.getStackId();
+      hostLevelParams.put(STACK_NAME, stackId.getStackName());
+      hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
     }
 
     JsonObject rootJsonObject = new JsonObject();
@@ -569,11 +574,5 @@ public class AmbariActionExecutionHelper {
     }
 
     hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
-
-    // set the host level params if not already set by whoever is creating this command
-    if (!hostLevelParams.containsKey(STACK_NAME) || !hostLevelParams.containsKey(STACK_VERSION)) {
-      hostLevelParams.put(STACK_NAME, repositoryVersion.getStackName());
-      hostLevelParams.put(STACK_VERSION, repositoryVersion.getStackVersion());
-    }
   }
 }
