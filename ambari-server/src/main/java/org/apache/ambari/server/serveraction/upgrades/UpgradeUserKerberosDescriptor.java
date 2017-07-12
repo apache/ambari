@@ -17,11 +17,16 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
@@ -37,10 +42,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
 
 /**
  * Update the user-defined Kerberos Descriptor to work with the current stack.
@@ -56,25 +58,6 @@ public class UpgradeUserKerberosDescriptor extends AbstractServerAction {
    * @see Direction
    */
   private static final String UPGRADE_DIRECTION_KEY = "upgrade_direction";
-
-  /**
-   * The original "current" stack of the cluster before the upgrade started.
-   * This is the same regardless of whether the current direction is
-   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
-   *
-   * @see Direction
-   */
-  private static final String ORIGINAL_STACK_KEY = "original_stack";
-
-  /**
-   * The target upgrade stack before the upgrade started. This is the same
-   * regardless of whether the current direction is {@link Direction#UPGRADE} or
-   * {@link Direction#DOWNGRADE}.
-   *
-   * @see Direction
-   */
-  private static final String TARGET_STACK_KEY = "target_stack";
-
   private final static String KERBEROS_DESCRIPTOR_NAME = "kerberos_descriptor";
   private final static String KERBEROS_DESCRIPTOR_BACKUP_NAME = "kerberos_descriptor_backup";
 
@@ -104,21 +87,21 @@ public class UpgradeUserKerberosDescriptor extends AbstractServerAction {
     HostRoleCommand hostRoleCommand = getHostRoleCommand();
     String clusterName = hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
-    List<String> messages = new ArrayList<String>();
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> messages = new ArrayList<>();
+    List<String> errorMessages = new ArrayList<>();
 
     if (cluster != null) {
       logMessage(messages, "Obtaining the user-defined Kerberos descriptor");
 
-      TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+      TreeMap<String, String> foreignKeys = new TreeMap<>();
       foreignKeys.put("cluster", String.valueOf(cluster.getClusterId()));
 
       ArtifactEntity entity = artifactDAO.findByNameAndForeignKeys("kerberos_descriptor", foreignKeys);
       KerberosDescriptor userDescriptor = (entity == null) ? null : kerberosDescriptorFactory.createInstance(entity.getArtifactData());
 
       if (userDescriptor != null) {
-        StackId originalStackId = getStackIdFromCommandParams(ORIGINAL_STACK_KEY);
-        StackId targetStackId = getStackIdFromCommandParams(TARGET_STACK_KEY);
+        StackId originalStackId = cluster.getCurrentStackVersion();
+        StackId targetStackId = getStackIdFromCommandParams(KeyNames.TARGET_STACK);
 
         if (isDowngrade()) {
           restoreDescriptor(foreignKeys, messages, errorMessages);

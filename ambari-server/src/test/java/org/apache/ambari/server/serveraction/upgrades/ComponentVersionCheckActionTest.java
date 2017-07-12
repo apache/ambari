@@ -409,7 +409,6 @@ public class ComponentVersionCheckActionTest {
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
     commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
     commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
 
     ExecutionCommand executionCommand = new ExecutionCommand();

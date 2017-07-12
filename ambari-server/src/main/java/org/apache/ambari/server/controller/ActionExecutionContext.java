@@ -25,7 +25,7 @@ import java.util.Map;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 /**
  * The context required to create tasks and stages for a custom action
@@ -42,7 +42,7 @@ public class ActionExecutionContext {
   private String expectedComponentName;
   private boolean hostsInMaintenanceModeExcluded = true;
   private boolean allowRetry = false;
-  private StackId stackId;
+  private RepositoryVersionEntity repositoryVersion;
 
   /**
    * {@code true} if slave/client component failures should be automatically
@@ -171,27 +171,29 @@ public class ActionExecutionContext {
   }
 
   /**
-   * Gets the stack to use for generating stack-associated values for a command.
-   * In some cases the cluster's stack is not the correct one to use, such as
-   * when distributing a repository.
+   * Gets the stack/version to use for generating stack-associated values for a
+   * command. In some cases the cluster's stack is not the correct one to use,
+   * such as when distributing a repository.
    *
-   * @return the stackId the stack to use when generating stack-specific content
-   *         for the command.
+   * @return the repository for the stack/version to use when generating
+   *         stack-specific content for the command.
+   *
+   * @return
    */
-  public StackId getStackId() {
-    return stackId;
+  public RepositoryVersionEntity getRepositoryVersion() {
+    return repositoryVersion;
   }
 
   /**
-   * Sets the stack to use for generating stack-associated values for a command.
-   * In some cases the cluster's stack is not the correct one to use, such as
-   * when distributing a repository.
+   * Sets the stack/version to use for generating stack-associated values for a
+   * command. In some cases the cluster's stack is not the correct one to use,
+   * such as when distributing a repository.
    *
    * @param stackId
    *          the stackId to use for stack-based properties on the command.
    */
-  public void setStackId(StackId stackId) {
-    this.stackId = stackId;
+  public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
+    this.repositoryVersion = repositoryVersion;
   }
 
   @Override
