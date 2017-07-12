@@ -1,0 +1,59 @@
+{
+  "services": [
+    {
+      "name": "JNBG",
+      "identities": [
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "components": [
+        {
+          "name": "KERNEL_GATEWAY",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "jnbg_principal",
+              "principal": {
+                "value": "${jnbg-env/notebook_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "jnbg-env/jnbg.service.kerberos.principal",
+                "local_username" : "${jnbg-env/notebook_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/jnbg.service.keytab",
+                "owner": {
+                  "name": "${jnbg-env/notebook_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "jnbg-env/jnbg.service.kerberos.keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PYTHON_CLIENT",
+          "identities": [
+            {
+              "name": "/JNBG/KERNEL_GATEWAY/jnbg_principal"
+            }
+          ]
+        }
+      ],
+
+      "configurations": [
+        {
+          "jnbg-env": {
+            "jnbg.kerberos.enabled": "true"
+          }
+        }
+      ]
+    }
+  ]
+}

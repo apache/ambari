@@ -1,0 +1,52 @@
+{
+  "services": [
+    {
+      "name": "TITAN",
+      "components": [
+        {
+          "name": "TITAN_SERVER",
+          "identities": [
+            {
+              "name": "titan_principal",
+              "principal": {
+                "value": "${titan-env/titan_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "titan-env/titan_principal_name",
+                "local_username": "${titan-env/titan_user}"
+
+              },
+              "keytab": {
+                "file": "${keytab_dir}/titan.service.keytab",
+                "owner": {
+                  "name": "${titan-env/titan_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "titan-env/titan_keytab_path"
+              }
+            }
+          ]
+        },
+        {
+          "name": "TITAN_CLIENT",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        }
+      ],
+      "configurations": [
+        {
+          "core-site": {
+            "hadoop.proxyuser.titan.groups": "${hadoop-env/proxyuser_group}",
+            "hadoop.proxyuser.titan.hosts": "*"
+          }
+        }
+      ]
+    }
+  ]
+}
