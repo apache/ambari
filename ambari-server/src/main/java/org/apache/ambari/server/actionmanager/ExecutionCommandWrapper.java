@@ -198,8 +198,9 @@ public class ExecutionCommandWrapper {
 
       Map<String,String> commandParams = executionCommand.getCommandParams();
 
+      // set the version for the command if it's not already set
       ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-      if (null != effectiveClusterVersion) {
+      if (null != effectiveClusterVersion && !commandParams.containsKey(KeyNames.VERSION)) {
         commandParams.put(KeyNames.VERSION,
             effectiveClusterVersion.getRepositoryVersion().getVersion());
       }

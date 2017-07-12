@@ -188,7 +188,8 @@ def hive(name=None):
                            type="directory",
                             action="create_on_execute",
                             owner=params.hive_user,
-                            mode=0777
+                            group=params.user_group,
+                            mode=params.hive_apps_whs_mode
       )
     else:
       Logger.info(format("Not creating warehouse directory '{hive_apps_whs_dir}', as the location is not in DFS."))

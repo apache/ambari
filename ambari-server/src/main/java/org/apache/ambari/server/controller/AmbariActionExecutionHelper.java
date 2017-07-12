@@ -553,10 +553,12 @@ public class AmbariActionExecutionHelper {
 
     // set the host level params if not already set by whoever is creating this command
     if (!hostLevelParams.containsKey(STACK_NAME) || !hostLevelParams.containsKey(STACK_VERSION)) {
-      // see if the action context has a stack ID set to use, otherwise use the
+      // see if the action context has a repository set to use for the command, otherwise use the
       // cluster's current stack ID
-      StackId stackId = actionContext.getStackId() != null ? actionContext.getStackId()
-          : cluster.getCurrentStackVersion();
+      StackId stackId = cluster.getCurrentStackVersion();
+      if (null != actionContext.getRepositoryVersion()) {
+        stackId = actionContext.getRepositoryVersion().getStackId();
+      }
 
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());

@@ -25,6 +25,11 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -33,6 +38,7 @@ import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorUpdateHelper;
@@ -44,11 +50,6 @@ import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Tests OozieConfigCalculation logic
@@ -63,6 +64,7 @@ public class UpgradeUserKerberosDescriptorTest {
   private ArtifactDAO artifactDAO;
 
   private TreeMap<String, Field> fields = new TreeMap<>();
+  private StackId HDP_24 = new StackId("HDP", "2.4");
 
   @Before
   public void setup() throws Exception {
@@ -74,6 +76,7 @@ public class UpgradeUserKerberosDescriptorTest {
 
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(1l).atLeastOnce();
+    expect(cluster.getCurrentStackVersion()).andReturn(HDP_24).atLeastOnce();
     replay(clusters, cluster);
 
     prepareFields();
@@ -83,10 +86,9 @@ public class UpgradeUserKerberosDescriptorTest {
   @Test
   public void testUpgrade() throws Exception {
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
     commandParams.put("upgrade_direction", "UPGRADE");
-    commandParams.put("original_stack", "HDP-2.4");
     commandParams.put("target_stack", "HDP-2.5");
 
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -141,10 +143,9 @@ public class UpgradeUserKerberosDescriptorTest {
   @Test
   public void testDowngrade() throws Exception {
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
     commandParams.put("upgrade_direction", "DOWNGRADE");
-    commandParams.put("original_stack", "HDP-2.4");
     commandParams.put("target_stack", "HDP-2.5");
 
     ExecutionCommand executionCommand = new ExecutionCommand();

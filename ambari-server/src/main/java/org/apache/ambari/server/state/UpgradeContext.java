@@ -62,21 +62,15 @@ public class UpgradeContext {
   public static final String COMMAND_PARAM_UPGRADE_TYPE = "upgrade_type";
   public static final String COMMAND_PARAM_TASKS = "tasks";
   public static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
-  public static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
 
-  /**
-   * The original "current" stack of the cluster before the upgrade started.
-   * This is the same regardless of whether the current direction is
-   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
-   */
-  public static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
+  public static final String COMMAND_PARAM_SOURCE_STACK = KeyNames.SOURCE_STACK;
+  public static final String COMMAND_PARAM_TARGET_STACK = KeyNames.TARGET_STACK;
 
-  /**
-   * The target upgrade stack before the upgrade started. This is the same
-   * regardless of whether the current direction is {@link Direction#UPGRADE} or
-   * {@link Direction#DOWNGRADE}.
-   */
-  public static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
+  @Deprecated
+  @Experimental(
+      feature = ExperimentalFeature.STACK_UPGRADES_BETWEEN_VENDORS,
+      comment = "This isn't needed anymore, but many python classes still use it")
+  public static final String COMMAND_PARAM_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
 
   /**
    * The cluster that the upgrade is for.
@@ -528,6 +522,7 @@ public class UpgradeContext {
    * <ul>
    * <li>{@link #COMMAND_PARAM_CLUSTER_NAME}
    * <li>{@link #COMMAND_PARAM_DIRECTION}
+   * <li>{@link #COMMAND_PARAM_DOWNGRADE_FROM_VERSION}
    * <li>{@link #COMMAND_PARAM_UPGRADE_TYPE}
    * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
    * order to have the commands contain the correct configurations. Otherwise,
@@ -542,8 +537,16 @@ public class UpgradeContext {
   public Map<String, String> getInitializedCommandParameters() {
     Map<String, String> parameters = new HashMap<>();
 
+    Direction direction = getDirection();
     parameters.put(COMMAND_PARAM_CLUSTER_NAME, m_cluster.getClusterName());
-    parameters.put(COMMAND_PARAM_DIRECTION, getDirection().name().toLowerCase());
+    parameters.put(COMMAND_PARAM_DIRECTION, direction.name().toLowerCase());
+
+    parameters.put(COMMAND_PARAM_SOURCE_STACK, m_fromRepositoryVersion.getStackId().getStackId());
+    parameters.put(COMMAND_PARAM_TARGET_STACK, m_toRepositoryVersion.getStackId().getStackId());
+
+    if (direction == Direction.DOWNGRADE) {
+      parameters.put(COMMAND_PARAM_DOWNGRADE_FROM_VERSION, m_fromRepositoryVersion.getVersion());
+    }
 
     if (null != getType()) {
       // use the serialized attributes of the enum to convert it to a string,
