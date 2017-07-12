@@ -21,7 +21,9 @@ limitations under the License.
 import logging
 import ambari_stomp
 import threading
+from socket import error as socket_error
 
+from ambari_agent.security import ConnectionFailed
 from ambari_agent import Constants
 from ambari_agent.Register import Register
 from ambari_agent.Utils import BlockingDictionary
@@ -67,6 +69,7 @@ class HeartbeatThread(threading.Thread):
     (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener)
     ]
     self.responseId = 0
+    self.file_cache = initializer_module.file_cache
 
 
   def run(self):
@@ -83,11 +86,18 @@ class HeartbeatThread(threading.Thread):
         response = self.blocking_request(heartbeat_body, Constants.HEARTBEAT_ENDPOINT)
         logger.debug("Heartbeat response is {0}".format(response))
         self.handle_heartbeat_reponse(response)
-      except:
-        logger.exception("Exception in HeartbeatThread. Re-running the registration")
+      except Exception as ex:
+        if not isinstance(ex, (socket_error, ConnectionFailed)):
+          logger.exception("Exception in HeartbeatThread. Re-running the registration")
+
         self.initializer_module.is_registered = False
-        self.initializer_module.connection.disconnect()
-        delattr(self.initializer_module, '_connection')
+        try:
+          self.initializer_module.connection.disconnect()
+        except:
+          # if exception happened due to connection problem, disconnect might not work
+          pass
+        if hasattr(self.initializer_module, '_connection'):
+          delattr(self.initializer_module, '_connection')
 
       self.stop_event.wait(self.heartbeat_interval)
 
@@ -124,6 +134,7 @@ class HeartbeatThread(threading.Thread):
         raise
 
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
+    self.file_cache.reset()
     self.initializer_module.is_registered = True
 
   def handle_registration_response(self, response):
@@ -179,7 +190,14 @@ class HeartbeatThread(threading.Thread):
     """
     Send a request to server and waits for the response from it. The response it detected by the correspondence of correlation_id.
     """
-    correlation_id = self.initializer_module.connection.send(message=message, destination=destination)
+    try:
+      correlation_id = self.initializer_module.connection.send(message=message, destination=destination)
+    except AttributeError:
+      # this happens when trying to connect to broken connection. Happens if ambari-server is restarted.
+      err_msg = "Connection failed while trying to connect to {0}".format(destination)
+      logger.warn(err_msg)
+      raise ConnectionFailed(err_msg)
+
     try:
       return self.server_responses_listener.responses.blocking_pop(str(correlation_id), timeout=timeout)
     except BlockingDictionary.DictionaryPopTimeout:

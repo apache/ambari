@@ -102,6 +102,9 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
     return sock
 
+class ConnectionFailed(Exception):
+  pass
+
 class AmbariStompConnection(WsConnection):
   def __init__(self, url):
     self.lock = threading.RLock()

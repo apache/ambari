@@ -86,14 +86,12 @@ class CustomServiceOrchestrator():
     self.tmp_dir = self.config.get('agent', 'prefix')
     self.force_https_protocol = self.config.get_force_https_protocol()
     self.exec_tmp_dir = Constants.AGENT_TMP_DIR
-    self.file_cache = FileCache(self.config)
+    self.file_cache = initializer_module.file_cache
     self.status_commands_stdout = os.path.join(self.tmp_dir,
                                                'status_command_stdout.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr.txt')
     self.public_fqdn = hostname.public_hostname(self.config)
-    # TODO STOMP: cache reset should be called on every agent registration
-    #controller.registration_listeners.append(self.file_cache.reset)
 
     # Construct the hadoop credential lib JARs path
     self.credential_shell_lib_path = os.path.join(self.config.get('security', 'credential_lib_dir',

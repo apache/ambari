@@ -86,6 +86,15 @@ class ClusterCache(dict):
     self.on_cache_update()
     self.persist_cache()
 
+  def cache_update(self, update_dict):
+    """
+    Update the current dictionary by other one
+    """
+    merged_dict = Utils.update_nested(self._get_mutable_copy(), update_dict)
+    self.rewrite_cache(merged_dict)
+
+  def cache_delete(self, delete_dict):
+    raise NotImplemented()
 
   def rewrite_cluster_cache(self, cluster_id, cache):
     """

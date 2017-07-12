@@ -60,6 +60,9 @@ class ComponentStatusExecutor(threading.Thread):
 
           status_commands_to_run = metadata_cache.status_commands_to_run
 
+          if not 'components' in topology_cache:
+            continue
+
           cluster_components = topology_cache.components
           for component_dict in cluster_components:
             for command_name in status_commands_to_run:
@@ -78,7 +81,7 @@ class ComponentStatusExecutor(threading.Thread):
               }
 
               component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
-              logger.info(component_status_result)
+              # TODO STOMP: if status command failed with exception show exception
               status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
 
               result = {

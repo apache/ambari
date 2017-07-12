@@ -46,7 +46,7 @@ class MetadataEventListener(EventListener):
     if message == {}:
       return
 
-    self.metadata_cache.rewrite_cache(message['clusters'])
+    self.metadata_cache.cache_update(message['clusters'])
     self.metadata_cache.hash = message['hash']
 
   def get_handled_path(self):

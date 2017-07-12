@@ -21,6 +21,8 @@ limitations under the License.
 import threading
 import logging
 import os
+from socket import error as socket_error
+
 from ambari_agent.FileCache import FileCache
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
@@ -75,6 +77,9 @@ class InitializerModule:
     self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir, self.config)
     self.configurations_cache = ClusterConfigurationCache(self.cluster_cache_dir)
     self.host_level_params_cache = ClusterHostLevelParamsCache(self.cluster_cache_dir)
+
+    self.file_cache = FileCache(self.config)
+
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
 
     self.recovery_manager = RecoveryManager(self.recovery_cache_dir)
@@ -92,7 +97,11 @@ class InitializerModule:
     logging.info("Connecting to {0}".format(connection_url))
 
     conn = AmbariStompConnection(connection_url)
-    conn.start()
-    conn.connect(wait=True)
+    try:
+      conn.start()
+      conn.connect(wait=True)
+    except socket_error:
+      logger.warn("Could not connect to {0}".format(connection_url))
+      raise
 
     return conn

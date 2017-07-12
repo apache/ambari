@@ -51,10 +51,10 @@ class TopologyEventListener(EventListener):
       self.topology_cache.hash = message['hash']
     elif event_type == 'UPDATE':
       self.topology_cache.cache_update(message['clusters'])
-      self.topology_cache.hash = "abc" #message['hash']
+      self.topology_cache.hash = message['hash']
     elif event_type == 'DELETE':
       self.topology_cache.cache_delete(message['clusters'])
-      self.topology_cache.hash = "abcd" #message['hash']
+      self.topology_cache.hash = message['hash']
     else:
       logger.error("Unknown event type '{0}' for topology event")
 
