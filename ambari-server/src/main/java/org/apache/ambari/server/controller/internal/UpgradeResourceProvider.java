@@ -2116,6 +2116,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Direction direction = upgradeContext.getDirection();
       Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
       UpgradeType upgradeType = upgradeContext.getType();
+      String stackId = upgradeContext.getTargetStackId().getStackId();
 
       String version = (String) requestMap.get(UPGRADE_REPO_VERSION);
       boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
@@ -2144,6 +2145,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals(version).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(upgradeType).and().property(
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_STACK_ID).equals(stackId).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();
 
       Request preUpgradeCheckRequest = PropertyHelper.getReadRequest();
