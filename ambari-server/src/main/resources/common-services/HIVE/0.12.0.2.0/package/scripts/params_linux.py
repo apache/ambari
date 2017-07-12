@@ -505,6 +505,8 @@ hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0755
+#Parameter for custom warehouse directory permissions. Permissions are in octal format and need to be converted to decimal
+hive_apps_whs_mode = int(default('/configurations/hive-site/custom.hive.warehouse.mode', '0777'), 8)
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 whs_dir_protocol = urlparse(hive_apps_whs_dir).scheme
 hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
