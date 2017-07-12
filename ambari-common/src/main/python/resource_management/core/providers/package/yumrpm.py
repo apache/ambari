@@ -36,7 +36,7 @@ REMOVE_CMD = {
   False: ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase'],
 }
 
-REMOVE_WITHOUT_DEPENDENCIES_CMD = ['/usr/bin/rpm', '-e', '--nodeps']
+REMOVE_WITHOUT_DEPENDENCIES_CMD = ['rpm', '-e', '--nodeps']
 
 REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean','metadata']
 
