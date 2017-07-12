@@ -26,9 +26,7 @@ class BigInsights425StackAdvisor(BigInsights42StackAdvisor):
     parentRecommendConfDict = super(BigInsights425StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "HDFS": self.recommendHDFSConfigurations,
-      "JNBG": self.recommendJNBGConfigurations,
       "SOLR": self.recommendSolrConfigurations,
-      "TITAN": self.recommendTitanConfigurations,
       "RANGER": self.recommendRangerConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
@@ -37,54 +35,10 @@ class BigInsights425StackAdvisor(BigInsights42StackAdvisor):
   def getServiceConfigurationValidators(self):
     parentValidators = super(BigInsights425StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
-      "JNBG": {"jnbg-env": self.validateJNBGConfigurations},
       "SOLR": {"ranger-solr-plugin-properties": self.validateSolrRangerPluginConfigurations}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
-
-  def recommendJNBGConfigurations(self, configurations, clusterData, services, hosts):
-    putJNBGEnvProperty = self.putProperty(configurations, "jnbg-env", services)
-    putJNBGEnvPropertyAttribute = self.putPropertyAttribute(configurations, "jnbg-env")
-   
-    distro_version = platform.linux_distribution()[1]
-    # On RHEL 6.x default path does not point to a Python 2.7
-    # so empty out the field and force user to update the path
-    if distro_version < "7.0":
-      putJNBGEnvProperty('python_interpreter_path', "")
-
-  def validateJNBGConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = []
-    jnbg_env = getSiteProperties(configurations, "jnbg-env")
-    py_exec = jnbg_env.get("python_interpreter_path") if jnbg_env and "python_interpreter_path" in jnbg_env else []
-
-    # Test that it is a valid executable path before proceeding
-    if not os.path.isfile(py_exec) and not os.access(py_exec, os.X_OK):
-      validationItems.append({"config-name": "python_interpreter_path",
-                              "item": self.getErrorItem("Invalid Python interpreter path specified")})
-      return self.toConfigurationValidationProblems(validationItems, "jnbg-env")
-
-    distro_version = platform.linux_distribution()[1]
-    if distro_version < "7.0" and (py_exec == "/opt/rh/python27/root/usr/bin/python" or py_exec == "/opt/rh/python27/root/usr/bin/python2" or py_exec == "/opt/rh/python27/root/usr/bin/python2.7"):
-      # Special handling for RHSCL Python 2.7
-      proc = Popen(['/usr/bin/scl', 'enable', 'python27', '/opt/rh/python27/root/usr/bin/python' ' -V'], stderr=PIPE)
-    else:
-      proc = Popen([py_exec, '-V'], stderr=PIPE)
-    py_string = proc.communicate()[1]
-    py_version = py_string.split()[1]
-
-    if "Python" not in py_string:
-      validationItems.append({"config-name": "python_interpreter_path",
-                              "item": self.getErrorItem("Path specified does not appear to be a Python interpreter")})
-      return self.toConfigurationValidationProblems(validationItems, "jnbg-env")
-
-    # Validate that the specified python is 2.7.x (not > 2.x.x and not < 2.7)
-    if not py_version.split('.')[0] == '2' or (py_version.split('.')[0] == '2' and py_version.split('.')[1] < '7'):
-      validationItems.append({"config-name": "python_interpreter_path",
-                              "item": self.getErrorItem("Specified Python interpreter must be version >= 2.7 and < 3.0")})
-      return self.toConfigurationValidationProblems(validationItems, "jnbg-env")
-
-    return self.toConfigurationValidationProblems(validationItems, "jnbg-env")
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(BigInsights425StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
@@ -96,13 +50,6 @@ class BigInsights425StackAdvisor(BigInsights42StackAdvisor):
     zookeeper_host_port = ",".join(zookeeper_host_port)
     ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'solr')
     putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
-
-  def recommendTitanConfigurations(self, configurations, clusterData, services, hosts):
-    putTitanPropertyAttribute = self.putPropertyAttribute(configurations, "titan-env")
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    knox_enabled = "KNOX" in servicesList
-    if knox_enabled:
-      putTitanPropertyAttribute("SimpleAuthenticator", "visible", "false")
  
   def recommendSolrConfigurations(self, configurations, clusterData, services, hosts):
     super(BigInsights425StackAdvisor, self).recommendSolrConfigurations(configurations, clusterData, services, hosts)
