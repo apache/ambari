@@ -228,7 +228,7 @@ class TestPackageResource(TestCase):
               logoutput = False,
               ignore_dependencies = True
       )
-    shell_mock.assert_called_with(['/usr/bin/rpm', '-e', '--nodeps', 'some_package'], logoutput=False, sudo=True)
+    shell_mock.assert_called_with(['rpm', '-e', '--nodeps', 'some_package'], logoutput=False, sudo=True)
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
   @patch.object(shell, "checked_call")
@@ -256,7 +256,7 @@ class TestPackageResource(TestCase):
               logoutput = False,
               ignore_dependencies = True
       )
-    shell_mock.assert_called_with(['/usr/bin/rpm', '-e', '--nodeps', 'some_package'], logoutput=False, sudo=True)
+    shell_mock.assert_called_with(['rpm', '-e', '--nodeps', 'some_package'], logoutput=False, sudo=True)
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
   @patch.object(shell, "checked_call")
