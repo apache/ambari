@@ -1710,6 +1710,8 @@ Em.I18n.translations = {
   'admin.stackVersions.version.notInstalled': "Not Installed",
   'admin.stackVersions.version.hostsInfoTooltip': "There are {0} hosts that do not need packages installed:<li>{1} Maintenance Mode</li><li>{2} Not Required</li>",
   'admin.stackVersions.removeIopSelect': "Remove IOP select",
+  'admin.stackVersions.removeIopSelect.done': "IOP select successfully removed.",
+  'admin.stackVersions.removeIopSelect.fail': "IOP select remove failed",
   'admin.stackVersions.manageVersions': "Manage Versions",
   'admin.stackVersions.manageVersions.popup.body': 'You are about to leave the <b>Cluster Management</b> interface' +
     ' and go to the <b>Ambari Administration</b> interface. You can return to cluster management by using the' +
