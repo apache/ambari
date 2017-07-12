@@ -30,11 +30,11 @@ from resource_management.libraries.functions import get_port_from_url
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 from resource_management.libraries.script.script import Script
-
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
+from resource_management.libraries.functions.stack_tools import get_stack_name
 
 from resource_management.core.utils import PasswordString
 from ambari_commons.credential_store_helper import get_password_from_credential_store
@@ -65,6 +65,13 @@ agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_ret
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 stack_root = status_params.stack_root
+
+# The source stack will be present during a cross-stack upgrade.
+# E.g., BigInsights-4.2.5 or HDP-2.6
+source_stack = default("/commandParams/source_stack", None)
+# This variable name is important, do not change
+source_stack_name = get_stack_name(source_stack)
+
 stack_version_unformatted =  status_params.stack_version_unformatted
 stack_version_formatted =  status_params.stack_version_formatted
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -142,8 +149,14 @@ hadoop_jar_location = "/usr/lib/hadoop/"
 java_share_dir = "/usr/share/java"
 java64_home = config['hostLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
+
+# This variable name is important, do not change
 ext_js_file = "ext-2.2.zip"
+
+# During a cross-stack migration, the source location will be different
+# This variable name is important, do not change
 ext_js_path = format("/usr/share/{stack_name_uppercase}-oozie/{ext_js_file}")
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 oozie_heapsize = config['configurations']['oozie-env']['oozie_heapsize']
 oozie_permsize = config['configurations']['oozie-env']['oozie_permsize']
