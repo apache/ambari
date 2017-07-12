@@ -17,26 +17,12 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
-import static org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptor.nullToEmpty;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
+import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,67 +55,29 @@ public class KerberosIdentityCleaner {
   @Subscribe
   public void componentRemoved(ServiceComponentUninstalledEvent event) throws KerberosMissingAdminCredentialsException {
     try {
-      Cluster cluster = clusters.getCluster(event.getClusterId());
-      if (cluster.getSecurityType() != SecurityType.KERBEROS) {
-        return;
-      }
-      KerberosComponentDescriptor descriptor = componentDescriptor(cluster, event.getServiceName(), event.getComponentName());
-      if (descriptor == null) {
-        LOG.info("No kerberos descriptor for {}", event);
-        return;
-      }
-      List<String> identitiesToRemove = identityNames(skipSharedIdentities(descriptor.getIdentitiesSkipReferences(), cluster, event));
-      LOG.info("Deleting identities {} after an event {}",  identitiesToRemove, event);
-      kerberosHelper.deleteIdentity(cluster, new Component(event.getHostName(), event.getServiceName(), event.getComponentName()), identitiesToRemove);
+      LOG.info("Removing identities after {}", event);
+      RemovableIdentities
+        .ofComponent(clusters.getCluster(event.getClusterId()), event, kerberosHelper)
+        .remove(kerberosHelper);
     } catch (Exception e) {
       LOG.error("Error while deleting kerberos identity after an event: " + event, e);
     }
   }
 
-  private KerberosComponentDescriptor componentDescriptor(Cluster cluster, String serviceName, String componentName) throws AmbariException {
-    KerberosServiceDescriptor serviceDescriptor = kerberosHelper.getKerberosDescriptor(cluster).getService(serviceName);
-    return serviceDescriptor == null ? null : serviceDescriptor.getComponent(componentName);
-  }
-
-  private List<String> identityNames(List<KerberosIdentityDescriptor> identities) {
-    List<String> result = new ArrayList<>();
-    for (KerberosIdentityDescriptor each : identities) { result.add(each.getName()); }
-    return result;
-  }
-
-  private List<KerberosIdentityDescriptor> skipSharedIdentities(List<KerberosIdentityDescriptor> candidates, Cluster cluster, ServiceComponentUninstalledEvent event) throws AmbariException {
-    List<KerberosIdentityDescriptor> activeIdentities = activeIdentities(cluster, kerberosHelper.getKerberosDescriptor(cluster), event);
-    List<KerberosIdentityDescriptor> result = new ArrayList<>();
-    for (KerberosIdentityDescriptor candidate : candidates) {
-      if (!candidate.isShared(activeIdentities)) {
-        result.add(candidate);
-      } else {
-        LOG.debug("Skip removing shared identity: {}", candidate.getName());
-      }
+  /**
+   * Removes kerberos identities (principals and keytabs) after a service was uninstalled.
+   * Keeps the identity if either the principal or the keytab is used by an other service
+   */
+  @Subscribe
+  public void serviceRemoved(ServiceRemovedEvent event) {
+    try {
+      LOG.info("Removing identities after {}", event);
+      RemovableIdentities
+        .ofService(clusters.getCluster(event.getClusterId()), event, kerberosHelper)
+        .remove(kerberosHelper);
+    } catch (Exception e) {
+      LOG.error("Error while deleting kerberos identity after an event: " + event, e);
     }
-    return result;
-  }
-
-  private List<KerberosIdentityDescriptor> activeIdentities(Cluster cluster, KerberosDescriptor root, ServiceComponentUninstalledEvent event) {
-    List<KerberosIdentityDescriptor> result = new ArrayList<>();
-    result.addAll(nullToEmpty(root.getIdentities()));
-    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
-      KerberosServiceDescriptor serviceDescriptor = root.getService(serviceEntry.getKey());
-      if (serviceDescriptor == null) {
-        continue;
-      }
-      result.addAll(nullToEmpty(serviceDescriptor.getIdentities()));
-      for (String componentName : serviceEntry.getValue().getServiceComponents().keySet()) {
-        if (!sameComponent(event, componentName, serviceEntry.getKey())) {
-          result.addAll(serviceDescriptor.getComponentIdentities(componentName));
-        }
-      }
-    }
-    return result;
-  }
-
-  private boolean sameComponent(ServiceComponentUninstalledEvent event, String componentName, String serviceName) {
-    return event.getServiceName().equals(serviceName) && event.getComponentName().equals(componentName);
   }
 }
 

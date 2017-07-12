@@ -267,6 +267,13 @@ public interface Cluster {
   Config getConfig(String configType, String versionTag);
 
   /**
+   * Get latest (including inactive ones) configurations with any of the given types.
+   * This method does not take into account the configuration being enabled.
+   * @return the list of configurations with the given types
+   */
+  List<Config> getLatestConfigsWithTypes(Collection<String> types);
+
+  /**
    * Gets the specific config that matches the specified type and version.  This not
    * necessarily a DESIRED configuration that applies to a cluster.
    * @param configType  the config type to find

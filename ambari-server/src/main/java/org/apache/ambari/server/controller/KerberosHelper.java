@@ -233,7 +233,7 @@ public interface KerberosHelper {
                                          RequestStageContainer requestStageContainer, Boolean manageIdentities)
       throws AmbariException, KerberosOperationException;
 
-  void deleteIdentity(Cluster cluster, Component component, List<String> identities) throws AmbariException, KerberosOperationException;
+  void deleteIdentities(Cluster cluster, List<Component> components, Set<String> identities) throws AmbariException, KerberosOperationException;
 
   /**
    * Updates the relevant configurations for the components specified in the service filter.

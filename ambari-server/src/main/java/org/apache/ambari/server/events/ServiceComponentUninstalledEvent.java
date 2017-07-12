@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.events;
 
+import org.apache.ambari.server.serveraction.kerberos.Component;
+
 /**
  * The {@link ServiceComponentUninstalledEvent} class is fired when a service
  * component is successfully uninstalled.
@@ -84,5 +86,9 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     buffer.append(", recoveryEnabled=").append(m_recoveryEnabled);
     buffer.append("}");
     return buffer.toString();
+  }
+
+  public Component getComponent() {
+    return new Component(getHostName(), getServiceName(), getComponentName());
   }
 }

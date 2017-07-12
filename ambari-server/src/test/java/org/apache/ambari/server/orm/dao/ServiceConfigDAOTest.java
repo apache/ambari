@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import static java.util.Arrays.asList;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -480,6 +482,16 @@ public class ServiceConfigDAOTest {
     Assert.assertEquals("version5", entity.getTag());
     Assert.assertEquals("oozie-site", entity.getType());
     Assert.assertTrue(entity.isSelected());
+  }
+
+  @Test
+  public void testGetLatestClusterConfigsWithTypes() throws Exception {
+    initClusterEntities();
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
+    List<ClusterConfigEntity> entities = clusterDAO.getLatestConfigurationsWithTypes(clusterEntity.getClusterId(), HDP_01, asList("oozie-site"));
+    Assert.assertEquals(1, entities.size());
+    entities = clusterDAO.getLatestConfigurationsWithTypes(clusterEntity.getClusterId(), HDP_01, asList("no-such-type"));
+    Assert.assertTrue(entities.isEmpty());
   }
 
   /**
