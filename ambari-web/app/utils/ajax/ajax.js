@@ -1838,7 +1838,7 @@ var urls = {
   },
 
   'admin.stack_versions.removeIopSelect': {
-    'real': '/requests',
+    'real': '/clusters/{clusterName}/requests',
     'mock': '',
     'type': 'POST',
     'format': function (data) {

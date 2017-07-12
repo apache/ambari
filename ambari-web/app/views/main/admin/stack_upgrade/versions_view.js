@@ -257,6 +257,20 @@ App.MainAdminStackVersionsView = Em.View.extend({
         data: {
           hosts: App.get('allHostNames').join(',')
         }
+      }).always(function(xhr, status) {
+        if (status === 'success') {
+          App.showAlertPopup(Em.I18n.t('admin.stackVersions.removeIopSelect'), Em.I18n.t('admin.stackVersions.removeIopSelect.done'));
+        } else if (status === 'error') {
+          App.ModalPopup.show({
+            header: Em.I18n.t('admin.stackVersions.removeIopSelect.fail'),
+            secondary: false,
+            bodyClass: App.AjaxDefaultErrorPopupBodyView.extend({
+              type: 'POST',
+              status: xhr.status,
+              message: xhr.responseText
+            })
+          });
+        }
       });
     });
   }

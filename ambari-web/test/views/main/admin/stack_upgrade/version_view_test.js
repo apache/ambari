@@ -516,9 +516,13 @@ describe('App.mainAdminStackVersionsView', function () {
   describe('#removeIopSelect', function() {
     beforeEach(function() {
       sinon.stub(App, 'showConfirmationPopup', Em.clb);
+      sinon.stub(App, 'showAlertPopup');
+      sinon.stub(App.ModalPopup, 'show');
     });
     afterEach(function() {
       App.showConfirmationPopup.restore();
+      App.showAlertPopup.restore();
+      App.ModalPopup.show.restore();
     });
 
     it('App.ajax.send should be called', function() {
