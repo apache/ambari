@@ -19,10 +19,14 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
+
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.service import Service
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.format import format
 from hbase import hbase
 from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
@@ -31,6 +35,8 @@ from setup_ranger_hbase import setup_ranger_hbase
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
+if OSCheck.is_windows_family():
+  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 
 class HbaseMaster(Script):
   def configure(self, env):
@@ -83,7 +89,7 @@ class HbaseMasterDefault(HbaseMaster):
     env.set_params(params)
     self.configure(env) # for security
     setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-master")
-    hbase_service('master', action = 'start')
+    hbase_service('master', action='start')
     
   def stop(self, env, upgrade_type=None):
     import params

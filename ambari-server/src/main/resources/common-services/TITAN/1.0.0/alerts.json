@@ -1,0 +1,33 @@
+ {
+  "TITAN": {
+    "TITAN_SERVER": [
+      {
+        "name": "titan",
+        "label": "titan server",
+        "description": "This host-level alert is triggered if the Titan Server Instance is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+	  "path": "TITAN/1.0.0/package/alerts/alert_check_titan_server.py",
+	  "parameters": [
+            {
+              "name": "titan.run.dir",
+              "display_name": "Run Directory",
+              "value": "/var/run/titan",
+              "type": "STRING",
+              "description": "The directory where titan server processe place its PID files."
+            },
+	    {
+              "name": "titan.user",
+              "display_name": "Titan User",
+              "value": "titan",
+              "type": "STRING",
+              "description": "User who starts the Titan Server process"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

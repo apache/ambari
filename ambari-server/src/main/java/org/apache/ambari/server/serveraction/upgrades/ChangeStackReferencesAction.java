@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -45,6 +46,7 @@ import com.google.common.collect.Sets;
 public class ChangeStackReferencesAction extends AbstractServerAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(ChangeStackReferencesAction.class);
+  private static final Set<String> SKIP_PROPERTIES = ImmutableSet.of("cluster-env/stack_root");
   private static final Set<Map.Entry<String, String>> REPLACEMENTS = Maps.asMap(
     Sets.newHashSet("/usr/iop", "iop/apps", "iop.version", "IOP_VERSION"),
     new Function<String, String>() {
@@ -83,7 +85,7 @@ public class ChangeStackReferencesAction extends AbstractServerAction {
         for (Map.Entry<String, String> entry : properties.entrySet()) {
           String key = entry.getKey();
           String original = entry.getValue();
-          if (original != null) {
+          if (original != null && !SKIP_PROPERTIES.contains(configType + "/" + key)) {
             String replaced = original;
             for (Map.Entry<String, String> replacement : REPLACEMENTS) {
               replaced = replaced.replace(replacement.getKey(), replacement.getValue());

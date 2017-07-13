@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration supports_final="false" supports_adding_forbidden="true" supports_do_not_extend="true">
+
+  <property>
+    <name>content</name>
+    <description>Describe the configurations for Solr</description>
+    <value># Titan configuration sample: HBase and Solr
+# ATTENTION: If you would like to use this property, do manually execute titan-solr-connection.sh before build index.
+
+# This file connects to HBase using a Zookeeper quorum
+# (storage.hostname) consisting solely of localhost. It also
+# connects to Solr running on localhost using Solr's HTTP API.
+# Zookeeper, the HBase services, and Solr must already be
+# running and available before starting Titan with this file.
+storage.backend=hbase
+storage.hostname={{storage_host}}
+storage.hbase.table=titan_solr
+storage.hbase.ext.zookeeper.znode.parent={{hbase_zookeeper_parent}}
+
+cache.db-cache = true
+cache.db-cache-clean-wait = 20
+cache.db-cache-time = 180000
+cache.db-cache-size = 0.5
+
+# The indexing backend used to extend and optimize Titan's query
+# functionality. This setting is optional. Titan can use multiple
+# heterogeneous index backends. Hence, this option can appear more than
+# once, so long as the user-defined name between "index" and "backend" is
+# unique among appearances.Similar to the storage backend, this should be
+# set to one of Titan's built-in shorthand names for its standard index
+# backends (shorthands: lucene, elasticsearch, es, solr) or to the full
+# package and classname of a custom/third-party IndexProvider
+# implementation.
+
+index.search.backend=solr
+index.search.solr.mode=cloud
+index.search.solr.zookeeper-url={{solr_server_host}}/solr
+index.search.solr.configset=titan
+    </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+</configuration>

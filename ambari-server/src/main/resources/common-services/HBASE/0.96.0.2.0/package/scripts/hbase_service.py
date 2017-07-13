@@ -17,14 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from datetime import datetime
 
-from resource_management import *
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import File
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.core.shell import as_sudo
+from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.logger import Logger
 
-def hbase_service(
-  name,
-  action = 'start'): # 'start' or 'stop' or 'status'
-    
+def hbase_service(name, action='start'):
     import params
   
     role = name
@@ -36,18 +39,28 @@ def hbase_service(
     # delete wal log if HBase version has moved down
     if params.to_backup_wal_dir:
       wal_directory = params.wal_directory
-      timestamp = datetime.datetime.now()
-      format = '%Y%m%d%H%M%S'
-      wal_directory_backup = '%s_%s' % (wal_directory, timestamp.strftime(format))
+      timestamp = datetime.now()
+      timestamp_format = '%Y%m%d%H%M%S'
+      wal_directory_backup = '%s_%s' % (wal_directory, timestamp.strftime(timestamp_format))
 
-      rm_cmd = format("hadoop fs -mv {wal_directory} {wal_directory_backup}")
+      check_if_wal_dir_exists = format("hdfs dfs -ls {wal_directory}")
+      wal_dir_exists = False
       try:
-        Execute ( rm_cmd,
-          user = params.hbase_user
-        )
+        Execute(check_if_wal_dir_exists,
+                user=params.hbase_user
+                )
+        wal_dir_exists = True
       except Exception, e:
-        #Should still allow HBase Start/Stop to proceed
-        Logger.error("Failed to backup HBase WAL directory, command: {0} . Exception: {1}".format(rm_cmd, e.message))
+        Logger.error(format("Did not find HBase WAL directory {wal_directory}. It's possible that it was already moved. Exception: {e.message}"))
+
+      if wal_dir_exists:
+        move_wal_dir_cmd = format("hdfs dfs -mv {wal_directory} {wal_directory_backup}")
+        try:
+          Execute(move_wal_dir_cmd,
+            user=params.hbase_user
+          )
+        except Exception, e:
+          Logger.error(format("Failed to backup HBase WAL directory, command: {move_wal_dir_cmd} . Exception: {e.message}"))
 
     if action == 'start':
       daemon_cmd = format("{cmd} start {role}")
