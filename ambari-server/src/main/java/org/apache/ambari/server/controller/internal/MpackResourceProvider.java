@@ -75,12 +75,12 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   /**
    * The property ids for an mpack resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<>();
+  public static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for a mpack resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
+  public static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
   protected static MpackDAO mpackDAO;
@@ -115,8 +115,10 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     return pkPropertyIds;
   }
 
+
+
   @Override
-  public RequestStatus createResources(final Request request)
+  public RequestStatus createResourcesAuthorized(final Request request)
     throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException,
     NoSuchParentResourceException, IllegalArgumentException {
     Set<Resource> associatedResources = new HashSet<>();

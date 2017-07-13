@@ -48,6 +48,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -241,6 +242,7 @@ public class AmbariServerTest {
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final MpackManagerFactory mpackManagerFactory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
 
     AmbariServer ambariServer = new AmbariServer();
 
@@ -265,6 +267,7 @@ public class AmbariServerTest {
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(Clusters.class).toInstance(mockClusters);
         bind(Configuration.class).toInstance(mockConfiguration);
+        bind(MpackManagerFactory.class).toInstance(mpackManagerFactory);
       }
     });
 
@@ -313,6 +316,7 @@ public class AmbariServerTest {
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final MpackManagerFactory mpackManagerFactory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
 
     AmbariServer ambariServer = new AmbariServer();
 
@@ -337,6 +341,7 @@ public class AmbariServerTest {
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(Clusters.class).toInstance(mockClusters);
         bind(Configuration.class).toInstance(mockConfiguration);
+        bind(MpackManagerFactory.class).toInstance(mpackManagerFactory);
       }
     });
 

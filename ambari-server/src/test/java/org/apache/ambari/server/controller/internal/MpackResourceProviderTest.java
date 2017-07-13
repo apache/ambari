@@ -226,7 +226,7 @@ public class MpackResourceProviderTest {
     replay(m_amc,request);
     // end expectations
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+    MpackResourceProvider provider = (MpackResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
             Resource.Type.Mpack,
             PropertyHelper.getPropertyIds(Resource.Type.Mpack),
             PropertyHelper.getKeyPropertyIds(Resource.Type.Mpack),
@@ -235,7 +235,7 @@ public class MpackResourceProviderTest {
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
 
-    RequestStatusImpl requestStatus = (RequestStatusImpl) provider.createResources(request);
+    RequestStatusImpl requestStatus = (RequestStatusImpl) provider.createResourcesAuthorized(request);
     Set<Resource> associatedResources = requestStatus.getAssociatedResources();
 
     Assert.assertEquals(1,associatedResources.size());

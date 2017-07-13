@@ -63,6 +63,7 @@ public class BootStrapTest extends TestCase {
     String bootdir = temp.newFolder("bootdir").toString();
     String metadetadir = temp.newFolder("metadetadir").toString();
     String serverVersionFilePath = temp.newFolder("serverVersionFilePath").toString();
+    String mpackStagingDir = "src/test/resources/mpacks-v2";
     LOG.info("Bootdir is " + bootdir);
     LOG.info("Metadetadir is " + metadetadir);
     LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
@@ -78,6 +79,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), serverVersionFilePath);
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), mpackStagingDir);
 
     Configuration conf = new Configuration(properties);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
@@ -138,6 +140,7 @@ public class BootStrapTest extends TestCase {
     String bootdir = temp.newFolder("bootdir").toString();
     String metadetadir = temp.newFolder("metadetadir").toString();
     String serverVersionFilePath = temp.newFolder("serverVersionFilePath").toString();
+    String mpackStagingDir = "src/test/resources/mpacks-v2";
     LOG.info("Bootdir is " + bootdir);
     LOG.info("Metadetadir is " + metadetadir);
     LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
@@ -155,6 +158,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), serverVersionFilePath);
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), mpackStagingDir);
     Configuration conf = new Configuration(properties);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
     BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);

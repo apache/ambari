@@ -35,6 +35,7 @@ import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.MockEventListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -358,6 +359,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
       binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
       binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
       binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
     }
   }
 }

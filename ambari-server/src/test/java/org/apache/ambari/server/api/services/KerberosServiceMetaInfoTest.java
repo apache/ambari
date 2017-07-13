@@ -36,6 +36,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -154,11 +155,12 @@ public class KerberosServiceMetaInfoTest {
   public void before() throws Exception {
     File stackRoot = new File("src/main/resources/stacks");
     File commonServicesRoot = new File("src/main/resources/common-services");
+    File mpacksStaging = new File("src/test/resources/mpacks-v2");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     LOG.info("Common Services file " + commonServicesRoot.getAbsolutePath());
 
     AmbariMetaInfo metaInfo = createAmbariMetaInfo(stackRoot,
-        commonServicesRoot, new File("src/test/resources/version"), true);
+        commonServicesRoot, new File("src/test/resources/version"),mpacksStaging, true);
 
     metaInfo.init();
 
@@ -196,11 +198,12 @@ public class KerberosServiceMetaInfoTest {
     });
   }
 
-  private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File commonServicesRoot, File versionFile, boolean replayMocks) throws Exception {
+  private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File commonServicesRoot, File versionFile, File mpacksStaging, boolean replayMocks) throws Exception {
     Properties properties = new Properties();
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
     properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), mpacksStaging.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
@@ -263,6 +266,12 @@ public class KerberosServiceMetaInfoTest {
       f.setAccessible(true);
       f.set(this, stackManagerFactory);
 
+      // MpackManagerFactory
+      MpackManagerFactory mpackManagerFactory = injector.getInstance(MpackManagerFactory.class);
+      f = c.getDeclaredField("mpackManagerFactory");
+      f.setAccessible(true);
+      f.set(this, mpackManagerFactory);
+
       //AlertDefinitionDAO
       alertDefinitionDAO = createNiceMock(AlertDefinitionDAO.class);
       f = c.getDeclaredField("alertDefinitionDao");
@@ -285,6 +294,7 @@ public class KerberosServiceMetaInfoTest {
       //OSFamily
       Configuration config = createNiceMock(Configuration.class);
       expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
+      expect(config.getMpacksV2StagingPath()).andReturn("./src/test/resources/mpacks-v2").anyTimes();
       replay(config);
       osFamily = new OsFamily(config);
       f = c.getDeclaredField("osFamily");

@@ -75,6 +75,7 @@ import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -256,6 +257,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(KerberosPrincipalDAO.class).toInstance(createNiceMock(KerberosPrincipalDAO.class));
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         requestStaticInjection(KerberosChecker.class);
       }

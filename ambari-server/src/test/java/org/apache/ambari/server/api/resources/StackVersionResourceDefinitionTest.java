@@ -42,7 +42,7 @@ public class StackVersionResourceDefinitionTest {
     ResourceDefinition def = new StackVersionResourceDefinition();
 
     Set<SubResourceDefinition> subResources = def.getSubResourceDefinitions();
-    assertEquals(6, subResources.size());
+    assertEquals(7, subResources.size());
 
     boolean operatingSystemFound = false;
     boolean serviceFound = false;
@@ -50,6 +50,7 @@ public class StackVersionResourceDefinitionTest {
     boolean repoFound = false;
     boolean artifactReturned = false;
     boolean compatibleFound = false;
+    boolean mpackFound = false;
 
     for (SubResourceDefinition subResource : subResources) {
       Resource.Type type = subResource.getType();
@@ -65,6 +66,8 @@ public class StackVersionResourceDefinitionTest {
         artifactReturned = true;
       } else if (type.equals(Resource.Type.CompatibleRepositoryVersion)) {
         compatibleFound = true;
+      } else if (type.equals(Resource.Type.Mpack)) {
+        mpackFound = true;
       }
     }
     assertTrue(operatingSystemFound);
@@ -73,5 +76,6 @@ public class StackVersionResourceDefinitionTest {
     assertTrue(repoFound);
     assertTrue(artifactReturned);
     assertTrue(compatibleFound);
+    assertTrue(mpackFound);
   }
 }

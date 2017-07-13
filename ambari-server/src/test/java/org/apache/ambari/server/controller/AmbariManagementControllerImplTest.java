@@ -79,6 +79,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -140,6 +141,7 @@ public class AmbariManagementControllerImplTest {
   private static final AmbariMetaInfo ambariMetaInfo = createMock(AmbariMetaInfo.class);
   private static final Users users = createMock(Users.class);
   private static final AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
+  private static final RegistryManager registryManager = createNiceMock(RegistryManager.class);
 
   @BeforeClass
   public static void setupAuthentication() {
@@ -2218,6 +2220,7 @@ public class AmbariManagementControllerImplTest {
       binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       binder.bind(Users.class).toInstance(users);
       binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
+      binder.bind(RegistryManager.class).toInstance(registryManager);
     }
   }
 
@@ -2404,6 +2407,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testRegisterMpacks() throws Exception{
     MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
+    RequestStatusResponse response = new RequestStatusResponse(new Long(201));
     Mpack mpack = new Mpack();
     mpack.setMpackId((long)100);
     mpack.setPacklets(new ArrayList<Packlet>());
@@ -2417,6 +2421,8 @@ public class AmbariManagementControllerImplTest {
     Injector injector = createNiceMock(Injector.class);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
     expect(ambariMetaInfo.registerMpack(mpackRequest)).andReturn(mpackResponse);
+    ambariMetaInfo.init();
+    expectLastCall();
     replay(ambariMetaInfo,injector);
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);

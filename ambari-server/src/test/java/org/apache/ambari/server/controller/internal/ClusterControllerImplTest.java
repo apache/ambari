@@ -946,6 +946,7 @@ public class ClusterControllerImplTest {
       providers.put(Resource.Type.RepositoryVersion, new TestRepositoryVersionResourceProvider());
       providers.put(Resource.Type.CompatibleRepositoryVersion, new TestCompatibleRepositoryVersionResourceProvider());
       providers.put(Type.StackArtifact, new TestStackArtifactResourceProvider());
+      providers.put(Type.Mpack, new TestMpackResourceProvider());
     }
 
     @Override
@@ -1207,6 +1208,12 @@ public class ClusterControllerImplTest {
       keyPropertyValues.add("repo2");
 
       return getResources(Resource.Type.Repository, predicate, "Repositories/repo_id", keyPropertyValues);
+    }
+  }
+
+  private static class TestMpackResourceProvider extends TestResourceProvider {
+    private TestMpackResourceProvider() {
+      super(MpackResourceProvider.PROPERTY_IDS, MpackResourceProvider.KEY_PROPERTY_IDS);
     }
   }
 

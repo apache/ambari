@@ -40,6 +40,7 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Clusters;
@@ -67,6 +68,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
 
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final MpackManagerFactory mockMpackManagerFactory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
@@ -79,6 +81,7 @@ public class DatabaseConsistencyCheckHelperTest {
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
         bind(Clusters.class).toInstance(mockClusters);
         bind(OsFamily.class).toInstance(mockOSFamily);
+        bind(MpackManagerFactory.class).toInstance(mockMpackManagerFactory);
       }
     });
 
@@ -111,6 +114,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
 
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
@@ -123,6 +127,7 @@ public class DatabaseConsistencyCheckHelperTest {
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
         bind(Clusters.class).toInstance(mockClusters);
         bind(OsFamily.class).toInstance(mockOSFamily);
+
       }
     });
 
@@ -265,6 +270,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final ServiceInfo mockHDFSServiceInfo = easyMockSupport.createNiceMock(ServiceInfo.class);
 
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final MpackManagerFactory mockMpackManagerFactory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
@@ -277,6 +283,7 @@ public class DatabaseConsistencyCheckHelperTest {
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
         bind(Clusters.class).toInstance(mockClusters);
         bind(OsFamily.class).toInstance(mockOSFamily);
+        bind(MpackManagerFactory.class).toInstance(mockMpackManagerFactory);
       }
     });
 
@@ -462,6 +469,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final ServiceInfo mockHDFSServiceInfo = easyMockSupport.createNiceMock(ServiceInfo.class);
 
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final MpackManagerFactory mockMpackManagerFacgtory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
@@ -474,6 +482,7 @@ public class DatabaseConsistencyCheckHelperTest {
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
         bind(Clusters.class).toInstance(mockClusters);
         bind(OsFamily.class).toInstance(mockOSFamily);
+        bind(MpackManagerFactory.class).toInstance(mockMpackManagerFacgtory);
       }
     });
 
@@ -549,6 +558,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
     final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final MpackManagerFactory mockMpackManagerFactory = easyMockSupport.createNiceMock(MpackManagerFactory.class);
 
     final ResultSet hostRoleCommandResultSet = easyMockSupport.createNiceMock(ResultSet.class);
     final ResultSet executionCommandResultSet = easyMockSupport.createNiceMock(ResultSet.class);
@@ -565,6 +575,7 @@ public class DatabaseConsistencyCheckHelperTest {
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
         bind(Clusters.class).toInstance(mockClusters);
         bind(OsFamily.class).toInstance(mockOSFamily);
+        bind(MpackManagerFactory.class).toInstance(mockMpackManagerFactory);
       }
     });
 

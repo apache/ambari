@@ -52,6 +52,7 @@ import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -60,6 +61,8 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.registry.RegistryFactory;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -423,6 +426,10 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
         bind(HookService.class).toInstance(createMock(HookService.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+        bind(RegistryFactory.class).toInstance(createNiceMock(RegistryFactory.class));
+
       }
     });
   }

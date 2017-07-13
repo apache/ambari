@@ -30,6 +30,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
@@ -67,6 +68,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         properties.put("common.services.path", "src/main/resources/common-services");
         properties.put("server.version.file", "target/version");
         properties.put("custom.action.definitions", "/tmp/nofile");
+        properties.put("mpacks-v2.staging.path","src/test/resources/mpacks-v2");
         Configuration configuration = new Configuration(properties);
 
         install(new FactoryModuleBuilder().build(StackManagerFactory.class));
@@ -77,6 +79,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(configuration);
         bind(ExtensionLinkDAO.class).toInstance(createNiceMock(ExtensionLinkDAO.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       }
     });
 

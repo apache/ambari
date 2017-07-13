@@ -57,6 +57,7 @@ import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -127,6 +128,7 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
         bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
         bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
+        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
         install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));

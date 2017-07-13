@@ -39,6 +39,8 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManager;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -112,6 +114,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
   AmbariMetaInfo ambariMetaInfo;
   OsFamily os_family;
   ActionDBAccessor actionDBAccessor;
+  MpackManager mpackManager;
 
   public AgentResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
@@ -310,6 +313,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       ambariMetaInfo = mock(AmbariMetaInfo.class);
       actionDBAccessor = mock(ActionDBAccessor.class);
       sessionManager = mock(SessionManager.class);
+      mpackManager = mock(MpackManager.class);
       bind(OsFamily.class).toInstance(os_family);
       bind(ActionDBAccessor.class).toInstance(actionDBAccessor);
       bind(ActionManager.class).toInstance(actionManager);
@@ -317,6 +321,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(AgentCommand.class).to(ExecutionCommand.class);
       bind(HeartBeatHandler.class).toInstance(handler);
       bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
+      bind(MpackManager.class).toInstance(mpackManager);
       bind(DBAccessor.class).toInstance(mock(DBAccessor.class));
       bind(HostRoleCommandDAO.class).toInstance(mock(HostRoleCommandDAO.class));
       bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
@@ -351,7 +356,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       install(new FactoryModuleBuilder().build(StageFactory.class));
       install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
       install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
-
+      install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
 
       bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
       bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());

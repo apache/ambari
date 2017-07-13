@@ -274,6 +274,10 @@ public class MpackManager {
     String[] stackMetaData = stackId.split("-");
     String stackName = stackMetaData[0];
     String stackVersion = stackMetaData[1];
+    File stack = new File(stackRoot + "/" + stackName);
+    if(!stack.exists()) {
+      stack.mkdir();
+    }
     Path stackPath = Paths.get(stackRoot + "/" + stackName + "/" + stackVersion);
     Path mpackPath = Paths.get(mpacksStaging + "/" + mpack.getName() + "/" + mpack.getVersion());
     if(Files.isSymbolicLink(stackPath))
@@ -290,7 +294,11 @@ public class MpackManager {
   public Path downloadMpack(String mpackURI) throws IOException {
     URL url = new URL(mpackURI);
     String fileName = mpackURI.substring(mpackURI.lastIndexOf('/') + 1, mpackURI.length());
-    Path targetPath = new File(mpacksStaging.toString() + File.separator + MPACK_TAR_LOCATION + File.separator + fileName).toPath();
+    File stagingDir = new File(mpacksStaging.toString() + File.separator + MPACK_TAR_LOCATION);
+    if (!stagingDir.exists()) {
+      stagingDir.mkdir();
+    }
+    Path targetPath = new File(stagingDir.getPath() + File.separator fileName).toPath();
     Files.copy(url.openStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
     return targetPath;

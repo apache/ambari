@@ -31,10 +31,8 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -50,8 +48,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.MpackRequest;
-import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -73,9 +69,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -350,30 +344,6 @@ public class AmbariMetaInfoTest {
     ServiceInfo si = metaInfo.getService(STACK_NAME_HDP, STACK_VERSION_HDP,
         SERVICE_NAME_HDFS);
     assertNotNull(si);
-  }
-
-  @Test
-  public void testRegisterMpacks() throws Exception{
-    MpackManager mm = metaInfo.getMpackManager();
-    MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
-    Mpack mpack = new Mpack();
-    mpack.setMpackId((long)100);
-    mpack.setPacklets(new ArrayList<Packlet>());
-    mpack.setPrerequisites(new HashMap<String, String>());
-    mpack.setRegistryId(new Long(100));
-    mpack.setVersion("3.0");
-    mpack.setMpackUri("abc.tar.gz");
-    mpack.setDescription("Test mpack");
-    mpack.setName("testMpack");
-    MpackResponse mpackResponse = new MpackResponse(mpack);
-    expect(mm.registerMpack(mpackRequest)).andReturn(mpackResponse);
-    replay(mm);
-    assertEquals(mpackResponse,metaInfo.registerMpack(mpackRequest));
-  }
-
-  @Test
-  public void testGetPacklets() throws Exception{
-
   }
 
   @Test
@@ -805,6 +775,7 @@ public class AmbariMetaInfoTest {
     File stacks = new File("src/main/resources/stacks");
     File version = new File("src/test/resources/version");
     File commonServicesRoot = new File("src/main/resources/common-services");
+    File mpackStaging = new File("src/test/resources/mpacks-v2");
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
@@ -815,6 +786,7 @@ public class AmbariMetaInfoTest {
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks.getPath());
     properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version.getPath());
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(), mpackStaging.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo ambariMetaInfo = new TestAmbariMetaInfo(configuration);
@@ -1905,7 +1877,7 @@ public class AmbariMetaInfoTest {
     Properties properties = new Properties();
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
-    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"/var/lib/ambari-server/resources/mpacks-v2");
+    properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"src/test/resources/mpacks-v2");
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
@@ -2047,6 +2019,7 @@ public class AmbariMetaInfoTest {
         // create a mock metainfo DAO for the entire system so that injectables
         // can use the mock as well
         bind(MetainfoDAO.class).toInstance(createNiceMock(MetainfoDAO.class));
+        bind(MpackManager.class).toInstance(createNiceMock(MpackManager.class));
       }
     }
   }
