@@ -204,7 +204,7 @@
             <replace key="content" find="export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}" replace-with="export CATALINA_BASE={{oozie_server_dir}}" />            
           </definition>
           <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" summary="Updating oozie env">
-            <type>oozie-site</type>
+            <type>oozie-env</type>
             <replace key="content" find="/usr/lib/bigtop-tomcat7-7.0.75" replace-with="/usr/lib/bigtop-tomcat" />
           </definition>
         </changes>

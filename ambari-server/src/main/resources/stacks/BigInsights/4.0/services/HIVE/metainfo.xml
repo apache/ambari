@@ -267,7 +267,7 @@
             </package-->
             <package>
               <name>mysql-connector-java</name>
-              <condition>should_install_mysl_connector</condition>
+              <condition>should_install_mysql_connector</condition>
             </package>
           </packages>
         </osSpecific>
