@@ -75,6 +75,7 @@
     <value>/apps/jnbg/spark-warehouse</value>
     <display-name>spark.sql.warehouse.dir</display-name>
     <description>Warehouse for Notebook applications</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>jkg_port</name>
