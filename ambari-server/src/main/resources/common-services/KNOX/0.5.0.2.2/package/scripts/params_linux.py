@@ -28,6 +28,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries.functions.get_stack_version import get_stack_version
+from resource_management.libraries.functions.stack_tools import get_stack_name, get_stack_root
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from status_params import *
@@ -66,6 +67,13 @@ stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CO
 # This is the version whose state is CURRENT. During an RU, this is the source version.
 # DO NOT format it since we need the build number too.
 upgrade_from_version = default("/hostLevelParams/current_version", None)
+
+source_stack = default("/commandParams/source_stack", None)
+source_stack_name = get_stack_name(source_stack)
+if source_stack_name is not None and source_stack_name != stack_name:
+  source_stack_root = get_stack_root(source_stack_name, default('/configurations/cluster-env/stack_root', None))
+else:
+  source_stack_root = stack_root
 
 # server configurations
 # Default value used in HDP 2.3.0.0 and earlier.

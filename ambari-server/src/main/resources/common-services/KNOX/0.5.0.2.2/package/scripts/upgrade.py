@@ -91,7 +91,7 @@ def seed_current_data_directory():
     Logger.info("Seeding Knox data from prior version...")
 
     # <stack-root>/2.3.0.0-1234/knox/data/.
-    source_data_dir = os.path.join(params.stack_root, params.upgrade_from_version, "knox", "data", ".")
+    source_data_dir = os.path.join(params.source_stack_root, params.upgrade_from_version, "knox", "data", ".")
 
     # <stack-root>/current/knox-server/data
     target_data_dir = os.path.join(params.stack_root, "current", "knox-server", "data")
