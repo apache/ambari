@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,11 +24,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -39,7 +44,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class ExecutionCommand extends AgentCommand {
 
-  private static Log LOG = LogFactory.getLog(ExecutionCommand.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ExecutionCommand.class);
 
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
@@ -67,7 +72,7 @@ public class ExecutionCommand extends AgentCommand {
   private String role;
 
   @SerializedName("hostLevelParams")
-  private Map<String, String> hostLevelParams = new HashMap<String, String>();
+  private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("roleParams")
   private Map<String, String> roleParams = null;
@@ -76,8 +81,7 @@ public class ExecutionCommand extends AgentCommand {
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
-  private Map<String, Set<String>> clusterHostInfo =
-      new HashMap<String, Set<String>>();
+  private Map<String, Set<String>> clusterHostInfo = new HashMap<>();
 
   @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
@@ -92,7 +96,7 @@ public class ExecutionCommand extends AgentCommand {
   private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
-  private Map<String, String> commandParams = new HashMap<String, String>();
+  private Map<String, String> commandParams = new HashMap<>();
 
   @SerializedName("serviceName")
   private String serviceName;
@@ -104,13 +108,10 @@ public class ExecutionCommand extends AgentCommand {
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
-  private List<Map<String, String>> kerberosCommandParams = new ArrayList<Map<String, String>>();
+  private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")
-  private Set<String> localComponents = new HashSet<String>();
-
-  @SerializedName("availableServices")
-  private Map<String, String> availableServices = new HashMap<>();
+  private Set<String> localComponents = new HashSet<>();
 
   /**
    * "true" or "false" indicating whether this
@@ -144,12 +145,23 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("configuration_credentials")
   private Map<String, Map<String, String>> configurationCredentials;
 
+
+  /**
+   * Provides information regarding the content of repositories.  This structure replaces
+   * the deprecated use of {@link KeyNames#REPO_INFO}
+   */
+  @SerializedName("repositoryFile")
+  private CommandRepository commandRepository;
+
+  @SerializedName("componentVersionMap")
+  private Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
+
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
   }
 
   public Map<String, Map<String, String>> getConfigurationCredentials() {
-    return this.configurationCredentials;
+    return configurationCredentials;
   }
 
   public String getCommandId() {
@@ -291,18 +303,6 @@ public class ExecutionCommand extends AgentCommand {
     this.localComponents = localComponents;
   }
 
-  public Map<String, String> getAvailableServices() {
-    return availableServices;
-  }
-
-  public void setAvailableServicesFromServiceInfoMap(Map<String, ServiceInfo> serviceInfoMap) {
-    Map<String, String> serviceVersionMap = new HashMap<>();
-    for (Map.Entry<String, ServiceInfo> entry : serviceInfoMap.entrySet()) {
-      serviceVersionMap.put(entry.getKey(), entry.getValue().getVersion());
-    }
-    availableServices = serviceVersionMap;
-  }
-
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
     return configurationAttributes;
   }
@@ -395,10 +395,24 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
+   * @return the repository file that is to be written.
+   */
+  public CommandRepository getRepositoryFile() {
+    return commandRepository;
+  }
+
+  /**
+   * @param repository  the command repository instance.
+   */
+  public void setRepositoryFile(CommandRepository repository) {
+    commandRepository = repository;
+  }
+
+  /**
    * Contains key name strings. These strings are used inside maps
    * incapsulated inside command.
    */
-  public static interface KeyNames {
+  public interface KeyNames {
     String COMMAND_TIMEOUT = "command_timeout";
     String SCRIPT = "script";
     String SCRIPT_TYPE = "script_type";
@@ -421,6 +435,11 @@ public class ExecutionCommand extends AgentCommand {
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
     String CLIENTS_TO_UPDATE_CONFIGS = "clientsToUpdateConfigs";
+    /**
+     * Keep for backward compatibility.
+     */
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_INFO = "repo_info";
     String DB_NAME = "db_name";
     String GLOBAL = "global";
@@ -433,7 +452,6 @@ public class ExecutionCommand extends AgentCommand {
     String GROUP_LIST = "group_list";
     String USER_GROUPS = "user_groups";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
-    String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";
@@ -454,6 +472,8 @@ public class ExecutionCommand extends AgentCommand {
     /**
      * The key indicating that the package_version string is available
      */
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String PACKAGE_VERSION = "package_version";
 
     /**
@@ -468,6 +488,63 @@ public class ExecutionCommand extends AgentCommand {
      * The agent will return this value back in its response so the repository
      * can be looked up and possibly have its version updated.
      */
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_VERSION_ID = "repository_version_id";
+
+    /**
+     * The version of the component to send down with the command. Normally,
+     * this is simply the repository version of the component. However, during
+     * ugprades, this value may change depending on the progress of the upgrade
+     * and the type/direction.
+     */
+    @Experimental(
+        feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "Change this to reflect the component version")
+    String VERSION = "version";
+
+    /**
+     * Put on hostLevelParams to indicate the version that the component should
+     * be.
+     */
+    @Deprecated
+    @Experimental(
+        feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "This should be replaced by a map of all service component versions")
+    String CURRENT_VERSION = "current_version";
+  }
+
+  /**
+   * @return
+   */
+  public Map<String, Map<String, String>> getComponentVersionMap() {
+    return componentVersionMap;
+  }
+
+  /**
+   * Used to set a map of {service -> { component -> version}}.  This is necessary when performing
+   * an upgrade to correct build paths of required binaries.
+   * @param cluster the cluster from which to build the map
+   */
+  public void setComponentVersions(Cluster cluster) throws AmbariException {
+    Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
+
+    for (Service service : cluster.getServices().values()) {
+      Map<String, String> componentMap = new HashMap<>();
+
+      boolean shouldSet = false;
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (component.isVersionAdvertised()) {
+          shouldSet = true;
+          componentMap.put(component.getName(), component.getDesiredVersion());
+        }
+      }
+
+      if (shouldSet) {
+        componentVersionMap.put(service.getName(), componentMap);
+      }
+    }
+
+    this.componentVersionMap = componentVersionMap;
   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -49,9 +49,22 @@ import org.apache.ambari.server.state.RepositoryVersionState;
     valueColumnName = "sequence_value",
     pkColumnValue = "servicecomponent_version_id_seq",
     initialValue = 0)
-@NamedQueries({ @NamedQuery(
+@NamedQueries({
+  @NamedQuery(
     name = "ServiceComponentVersionEntity.findByComponent",
-    query = "SELECT version FROM ServiceComponentVersionEntity version WHERE version.m_serviceComponentDesiredStateEntity.clusterId = :clusterId AND version.m_serviceComponentDesiredStateEntity.serviceName = :serviceName AND version.m_serviceComponentDesiredStateEntity.componentName = :componentName") })
+    query = "SELECT version FROM ServiceComponentVersionEntity version WHERE " +
+      "version.m_serviceComponentDesiredStateEntity.clusterId = :clusterId AND " +
+      "version.m_serviceComponentDesiredStateEntity.serviceName = :serviceName AND " +
+      "version.m_serviceComponentDesiredStateEntity.componentName = :componentName"),
+  @NamedQuery(
+    name = "ServiceComponentVersionEntity.findByComponentAndVersion",
+    query = "SELECT version FROM ServiceComponentVersionEntity version WHERE " +
+        "version.m_serviceComponentDesiredStateEntity.clusterId = :clusterId AND " +
+        "version.m_serviceComponentDesiredStateEntity.serviceName = :serviceName AND " +
+        "version.m_serviceComponentDesiredStateEntity.componentName = :componentName AND " +
+        "version.m_repositoryVersion.version = :repoVersion")
+})
+
 public class ServiceComponentVersionEntity {
 
   @Id
@@ -66,7 +79,7 @@ public class ServiceComponentVersionEntity {
   private ServiceComponentDesiredStateEntity m_serviceComponentDesiredStateEntity;
 
   @ManyToOne
-  @JoinColumn(name = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
+  @JoinColumn(name  = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
   private RepositoryVersionEntity m_repositoryVersion;
 
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
@@ -96,6 +109,13 @@ public class ServiceComponentVersionEntity {
    */
   public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
     m_repositoryVersion = repositoryVersion;
+  }
+
+  /**
+   * @return the repository
+   */
+  public RepositoryVersionEntity getRepositoryVersion() {
+    return m_repositoryVersion;
   }
 
   /**

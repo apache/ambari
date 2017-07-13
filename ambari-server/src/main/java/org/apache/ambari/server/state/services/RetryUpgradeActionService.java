@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,11 +30,12 @@ import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,24 +166,21 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
    * @return Request Id of active stack upgrade.
    */
   private Long getActiveUpgradeRequestId(Cluster cluster) {
-    ClusterVersionEntity currentVersion = cluster.getCurrentClusterVersion();
-
-    if (currentVersion == null) {
-      LOG.debug("No Cluster Version exists as CURRENT. Skip retrying failed tasks.");
-      return null;
-    }
 
     // May be null, and either upgrade or downgrade
     UpgradeEntity currentUpgrade = cluster.getUpgradeInProgress();
     if (currentUpgrade == null) {
-      LOG.debug("There is no active stack upgrade in progress. Skip retrying failed tasks.");
+      LOG.debug("There is no active upgrade in progress. Skip retrying failed tasks.");
       return null;
     }
 
-    LOG.debug("Found an active stack upgrade with id: {}, direction: {}, type: {}, from version: {}, to version: {}",
-        currentUpgrade.getId(), currentUpgrade.getDirection(), currentUpgrade.getUpgradeType(),
-        currentUpgrade.getFromRepositoryVersion().getVersion(),
-        currentUpgrade.getToRepositoryVersion().getVersion());
+    Direction direction = currentUpgrade.getDirection();
+    RepositoryVersionEntity repositoryVersion = currentUpgrade.getRepositoryVersion();
+
+    LOG.debug(
+        "Found an active upgrade with id: {}, direction: {}, {} {}", currentUpgrade.getId(),
+        direction, currentUpgrade.getUpgradeType(), direction.getPreposition(),
+        repositoryVersion.getVersion());
 
     return currentUpgrade.getRequestId();
   }

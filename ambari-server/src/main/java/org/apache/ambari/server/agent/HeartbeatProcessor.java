@@ -293,13 +293,13 @@ public class HeartbeatProcessor extends AbstractService{
         int slaveCount = 0;
         int slavesRunning = 0;
 
-        StackId stackId;
         Cluster cluster = clusterFsm.getCluster(clusterName);
-        stackId = cluster.getDesiredStackVersion();
 
 
         List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(heartbeat.getHostname());
         for (ServiceComponentHost scHost : scHosts) {
+          StackId stackId = scHost.getDesiredStackId();
+
           ComponentInfo componentInfo =
               ambariMetaInfo.getComponent(stackId.getStackName(),
                   stackId.getStackVersion(), scHost.getServiceName(),
@@ -356,7 +356,7 @@ public class HeartbeatProcessor extends AbstractService{
     List<CommandReport> reports = heartbeat.getReports();
 
     // Cache HostRoleCommand entities because we will need them few times
-    List<Long> taskIds = new ArrayList<Long>();
+    List<Long> taskIds = new ArrayList<>();
     for (CommandReport report : reports) {
       taskIds.add(report.getTaskId());
     }
@@ -491,9 +491,7 @@ public class HeartbeatProcessor extends AbstractService{
             }
 
             // Updating stack version, if needed (this is not actually for express/rolling upgrades!)
-            if (scHost.getState().equals(org.apache.ambari.server.state.State.UPGRADING)) {
-              scHost.setStackVersion(scHost.getDesiredStackVersion());
-            } else if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
+            if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
                 (report.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND.toString()) &&
                     ("START".equals(report.getCustomCommand()) ||
                         "RESTART".equals(report.getCustomCommand()))))
@@ -613,10 +611,6 @@ public class HeartbeatProcessor extends AbstractService{
                       + " at host " + hostname
                       + " according to STATUS_COMMAND report");
                 }
-              }
-
-              if (null != status.getStackVersion() && !status.getStackVersion().isEmpty()) {
-                scHost.setStackVersion(gson.fromJson(status.getStackVersion(), StackId.class));
               }
 
               if (null != status.getConfigTags()) {

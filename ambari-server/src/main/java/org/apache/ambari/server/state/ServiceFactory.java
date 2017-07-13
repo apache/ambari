@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,10 +19,33 @@
 package org.apache.ambari.server.state;
 
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface ServiceFactory {
 
-  Service createNew(Cluster cluster, String serviceName);
+  /**
+   * Creates a new service in memory and then persists it to the database.
+   *
+   * @param cluster
+   *          the cluster the service is for (not {@code null).
+   * @param serviceName
+   *          the name of the service (not {@code null).
+   * @param desiredRepositoryVersion
+   *          the repository version of the service (not {@code null).
+   * @return
+   */
+  Service createNew(Cluster cluster, String serviceName,
+      RepositoryVersionEntity desiredRepositoryVersion);
 
+  /**
+   * Creates an in-memory representation of a service from an existing database
+   * object.
+   *
+   * @param cluster
+   *          the cluster the service is installed in (not {@code null).
+   * @param serviceEntity
+   *          the entity the existing database entry (not {@code null).
+   * @return
+   */
   Service createExisting(Cluster cluster, ClusterServiceEntity serviceEntity);
 }

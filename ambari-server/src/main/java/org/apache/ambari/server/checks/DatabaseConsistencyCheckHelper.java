@@ -655,8 +655,6 @@ public class DatabaseConsistencyCheckHelper {
       if (!clusterConfigEntity.isServiceDeleted()){
         continue; // skip clusterConfigs that did not leave after service deletion
       }
-      LOG.info("Removing cluster config mapping of clusterConfigEntity {} that is not mapped to any service", clusterConfigEntity);
-      clusterDAO.removeClusterConfigMappingEntityByConfig(clusterConfigEntity);
       LOG.info("Removing config that is not mapped to any service {}", clusterConfigEntity);
       clusterDAO.removeConfig(clusterConfigEntity);
     }

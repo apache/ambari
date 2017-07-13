@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,18 +19,33 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.CommandRepository;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ActionExecutionContext;
+import org.apache.ambari.server.controller.ActionExecutionContext.ExecutionCommandVisitor;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.OperatingSystemResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -44,6 +59,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -57,8 +73,11 @@ public class RepositoryVersionHelper {
   @Inject
   private Gson gson;
 
-  @Inject(optional = true)
-  private AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  private Provider<AmbariMetaInfo> ami;
+
+  @Inject
+  private Provider<Configuration> configuration;
 
   /**
    * Parses operating systems json to a list of entities. Expects json like:
@@ -86,7 +105,7 @@ public class RepositoryVersionHelper {
    * @throws Exception if any kind of json parsing error happened
    */
   public List<OperatingSystemEntity> parseOperatingSystems(String repositoriesJson) throws Exception {
-    final List<OperatingSystemEntity> operatingSystems = new ArrayList<OperatingSystemEntity>();
+    final List<OperatingSystemEntity> operatingSystems = new ArrayList<>();
     final JsonArray rootJson = new JsonParser().parse(repositoriesJson).getAsJsonArray();
     for (JsonElement operatingSystemJson: rootJson) {
       JsonObject osObj = operatingSystemJson.getAsJsonObject();
@@ -106,8 +125,11 @@ public class RepositoryVersionHelper {
         repositoryEntity.setBaseUrl(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
         repositoryEntity.setName(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
         repositoryEntity.setRepositoryId(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
-        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID) != null) {
-          repositoryEntity.setUnique(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID).getAsBoolean());
+        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID) != null) {
+          repositoryEntity.setMirrorsList(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID).getAsString());
+        }
+        if (repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID) != null) {
+          repositoryEntity.setUnique(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID).getAsBoolean());
         }
         operatingSystemEntity.getRepositories().add(repositoryEntity);
       }
@@ -156,6 +178,7 @@ public class RepositoryVersionHelper {
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, repository.getBaseUrl());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, repository.getRepoName());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, repository.getRepoId());
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
         repositoriesJson.add(repositoryJson);
         operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, repository.isAmbariManagedRepositories());
@@ -194,7 +217,7 @@ public class RepositoryVersionHelper {
    * @throws AmbariException if no upgrade packs suit the requirements
    */
   public String getUpgradePackageName(String stackName, String stackVersion, String repositoryVersion, UpgradeType upgradeType) throws AmbariException {
-    final Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks(stackName, stackVersion);
+    final Map<String, UpgradePack> upgradePacks = ami.get().getUpgradePacks(stackName, stackVersion);
     for (UpgradePack upgradePack : upgradePacks.values()) {
       final String upgradePackName = upgradePack.getName();
 
@@ -214,4 +237,107 @@ public class RepositoryVersionHelper {
     throw new AmbariException("There were no suitable upgrade packs for stack " + stackName + " " + stackVersion +
         ((null != upgradeType) ? " and upgrade type " + upgradeType : ""));
   }
+
+  /**
+   * Build the role parameters for an install command.
+   *
+   * @param amc           the management controller.  Tests don't use the same instance that gets injected.
+   * @param repoVersion   the repository version
+   * @param osFamily      the os family
+   * @param servicesOnHost the set of services to check for packages
+   * @return a Map<String, String> to use in
+   */
+  public Map<String, String> buildRoleParams(AmbariManagementController amc, RepositoryVersionEntity repoVersion, String osFamily, Set<String> servicesOnHost)
+    throws SystemException {
+
+    StackId stackId = repoVersion.getStackId();
+
+    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
+
+    for (String serviceName : servicesOnHost) {
+      ServiceInfo info;
+
+      try {
+        if (ami.get().isServiceRemovedInStack(stackId.getStackName(), stackId.getStackVersion(), serviceName)) {
+          LOG.info(String.format("%s has been removed from stack %s-%s. Skip calculating its installation packages", stackId.getStackName(), stackId.getStackVersion(), serviceName));
+          continue; //No need to calculate install packages for removed services
+        }
+
+        info = ami.get().getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
+      } catch (AmbariException e) {
+        throw new SystemException(String.format("Cannot obtain stack information for %s-%s", stackId.getStackName(), stackId.getStackVersion()), e);
+      }
+
+      List<ServiceOsSpecific.Package> packagesForService = amc.getPackagesForServiceHost(info,
+        new HashMap<String, String>(), osFamily);
+
+      List<String> blacklistedPackagePrefixes = configuration.get().getRollingUpgradeSkipPackagesPrefixes();
+
+      for (ServiceOsSpecific.Package aPackage : packagesForService) {
+        if (!aPackage.getSkipUpgrade()) {
+          boolean blacklisted = false;
+          for (String prefix : blacklistedPackagePrefixes) {
+            if (aPackage.getName().startsWith(prefix)) {
+              blacklisted = true;
+              break;
+            }
+          }
+          if (! blacklisted) {
+            packages.add(aPackage);
+          }
+        }
+      }
+    }
+
+    Map<String, String> roleParams = new HashMap<>();
+    roleParams.put("stack_id", stackId.getStackId());
+    roleParams.put("repository_version", repoVersion.getVersion());
+    // !!! TODO make roleParams <String, Object> so we don't have to do this awfulness.
+    roleParams.put(KeyNames.PACKAGE_LIST, gson.toJson(packages));
+    roleParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
+
+    VersionDefinitionXml xml = null;
+    try {
+      xml = repoVersion.getRepositoryXml();
+    } catch (Exception e) {
+      throw new SystemException(String.format("Could not load xml from repo version %s",
+          repoVersion.getVersion()));
+    }
+
+    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
+      roleParams.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
+    }
+
+    return roleParams;
+  }
+
+  /**
+   * Adds a command repository to the action context
+   * @param context       the context
+   * @param osFamily      the OS family
+   * @param repoVersion   the repository version entity
+   * @param repos         the repository entities
+   */
+  public void addCommandRepository(ActionExecutionContext context, String osFamily,
+      RepositoryVersionEntity repoVersion, List<RepositoryEntity> repos) {
+    StackId stackId = repoVersion.getStackId();
+
+    final CommandRepository commandRepo = new CommandRepository();
+    commandRepo.setRepositories(osFamily, repos);
+    commandRepo.setRepositoryVersion(repoVersion.getVersion());
+    commandRepo.setRepositoryVersionId(repoVersion.getId());
+    commandRepo.setStackName(stackId.getStackName());
+    commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+
+    context.addVisitor(new ExecutionCommandVisitor() {
+      @Override
+      public void visit(ExecutionCommand command) {
+        if (null == command.getRepositoryFile()) {
+          command.setRepositoryFile(commandRepo);
+        }
+      }
+    });
+  }
+
+
 }

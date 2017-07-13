@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,33 +17,25 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigMergeHelper;
-import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
-import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.lang.StringUtils;
+
+import com.google.inject.Singleton;
 
 /**
  * Checks for properties that contain hardcoded CURRENT hdp version string.
@@ -57,12 +49,6 @@ import java.util.regex.Pattern;
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescriptor {
 
-  @Inject
-  private Provider<Clusters> m_clusters;
-
-  @Inject
-  private Provider<ConfigHelper> m_config_helper_provider;
-
   public HardcodedStackVersionPropertiesCheck() {
     super(CheckDescription.HARDCODED_STACK_VERSION_PROPERTIES_CHECK);
   }
@@ -71,18 +57,13 @@ public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescripto
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
 
-    String stackName = request.getTargetStackId().getStackName();
-    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().
-      findByStackNameAndVersion(stackName, request.getRepositoryVersion());
+    Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
 
-    Cluster cluster = m_clusters.get().getCluster(request.getClusterName());
-
-    String currentHdpVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
+    Set<String> versions = new HashSet<>();
+    Set<String> failures = new HashSet<>();
+    Set<String> failedVersions = new HashSet<>();
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    Set<String> failures = new HashSet<>();
-
-    Pattern searchPattern = getHardcodeSearchPattern(currentHdpVersion);
     for (Entry<String, DesiredConfig> configEntry : desiredConfigs.entrySet()) {
       String configType = configEntry.getKey();
       DesiredConfig desiredConfig = configEntry.getValue();
@@ -90,23 +71,31 @@ public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescripto
 
       Map<String, String> properties = config.getProperties();
       for (Entry<String, String> property : properties.entrySet()) {
-        if (stringContainsVersionHardcode(property.getValue(), searchPattern)) {
-          failures.add(String.format(" %s/%s",
-            configType, property.getKey()));
+
+        // !!! this code is already iterating every config property, so an extra loop for the small-ish
+        // numbers of repository versions won't add that much more overhead
+        for (String version : versions) {
+          Pattern searchPattern = getHardcodeSearchPattern(version);
+          if (stringContainsVersionHardcode(property.getValue(), searchPattern)) {
+            failedVersions.add(version);
+            failures.add(String.format("%s/%s found a hardcoded value %s",
+              configType, property.getKey(), version));
+          }
         }
       }
-
-      if (failures.size() > 0) {
-        prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-        String failReason = getFailReason(prerequisiteCheck, request);
-
-        prerequisiteCheck.setFailReason(String.format(failReason, currentHdpVersion));
-        prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failures));
-
-      } else {
-        prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
-      }
     }
+
+    if (failures.size() > 0) {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
+      String failReason = getFailReason(prerequisiteCheck, request);
+
+      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(failedVersions, ',')));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failures));
+
+    } else {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+    }
+
   }
 
   /**

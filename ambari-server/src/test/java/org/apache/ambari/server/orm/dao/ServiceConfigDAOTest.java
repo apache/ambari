@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,7 +29,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
@@ -41,7 +40,6 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -271,23 +269,43 @@ public class ServiceConfigDAOTest {
   @Test
   public void testGetLastServiceConfigsForService() throws Exception {
     String serviceName = "HDFS";
+    Clusters clusters = injector.getInstance(Clusters.class);
+    clusters.addCluster("c1", HDP_01);
+    ConfigGroupEntity configGroupEntity1 = new ConfigGroupEntity();
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
+    configGroupEntity1.setClusterEntity(clusterEntity);
+    configGroupEntity1.setClusterId(clusterEntity.getClusterId());
+    configGroupEntity1.setGroupName("group1");
+    configGroupEntity1.setDescription("group1_desc");
+    configGroupEntity1.setTag("HDFS");
+    configGroupEntity1.setServiceName("HDFS");
+    configGroupDAO.create(configGroupEntity1);
+    ConfigGroupEntity group1 = configGroupDAO.findByName("group1");
+    ConfigGroupEntity configGroupEntity2 = new ConfigGroupEntity();
+    configGroupEntity2.setClusterEntity(clusterEntity);
+    configGroupEntity2.setClusterId(clusterEntity.getClusterId());
+    configGroupEntity2.setGroupName("group2");
+    configGroupEntity2.setDescription("group2_desc");
+    configGroupEntity2.setTag("HDFS");
+    configGroupEntity2.setServiceName("HDFS");
+    configGroupDAO.create(configGroupEntity2);
+    ConfigGroupEntity group2 = configGroupDAO.findByName("group2");
     createServiceConfig(serviceName, "admin", 1L, 1L, 1111L, null);
     createServiceConfig(serviceName, "admin", 2L, 2L, 1010L, null);
-    createServiceConfigWithGroup(serviceName, "admin", 3L, 3L, 2222L, null, 1L);
-    createServiceConfigWithGroup(serviceName, "admin", 5L, 5L, 3333L, null, 2L);
-    createServiceConfigWithGroup(serviceName, "admin", 4L, 4L, 3330L, null, 2L);
+    createServiceConfigWithGroup(serviceName, "admin", 3L, 3L, 2222L, null, group1.getGroupId());
+    createServiceConfigWithGroup(serviceName, "admin", 5L, 5L, 3333L, null, group2.getGroupId());
+    createServiceConfigWithGroup(serviceName, "admin", 4L, 4L, 3330L, null, group2.getGroupId());
 
-    List<ServiceConfigEntity> serviceConfigEntities =
-        serviceConfigDAO.getLastServiceConfigsForService(clusterDAO.findByName("c1").getClusterId(), serviceName);
-
+    List<ServiceConfigEntity> serviceConfigEntities = serviceConfigDAO
+        .getLastServiceConfigsForService(clusterDAO.findByName("c1").getClusterId(), serviceName);
     Assert.assertNotNull(serviceConfigEntities);
     Assert.assertEquals(3, serviceConfigEntities.size());
 
-    for (ServiceConfigEntity sce: serviceConfigEntities) {
-     if (sce.getGroupId() != null && sce.getGroupId().equals(2L)) {
-       // Group ID with the highest version should be selected
-       Assert.assertEquals(sce.getVersion(), Long.valueOf(5L));
-     }
+    for (ServiceConfigEntity sce : serviceConfigEntities) {
+      if (sce.getGroupId() != null && sce.getGroupId().equals(group2.getGroupId())) {
+        // Group ID with the highest version should be selected
+        Assert.assertEquals(sce.getVersion(), Long.valueOf(5L));
+      }
     }
   }
 
@@ -370,10 +388,15 @@ public class ServiceConfigDAOTest {
 
     long clusterId = serviceConfigEntity.getClusterId();
 
-    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_01);
-    Assert.assertEquals(4, serviceConfigs.size());
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(
+        clusterId, HDP_01, "HDFS");
 
-    serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_02);
+    Assert.assertEquals(3, serviceConfigs.size());
+
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_01, "YARN");
+    Assert.assertEquals(1, serviceConfigs.size());
+    
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_02, "HDFS");
     Assert.assertEquals(0, serviceConfigs.size());
   }
 
@@ -392,6 +415,16 @@ public class ServiceConfigDAOTest {
     clusterEntity.setDesiredStack(stackEntity);
     clusterDAO.merge(clusterEntity);
 
+    ConfigGroupEntity configGroupEntity1 = new ConfigGroupEntity();
+    configGroupEntity1.setClusterEntity(clusterEntity);
+    configGroupEntity1.setClusterId(clusterEntity.getClusterId());
+    configGroupEntity1.setGroupName("group1");
+    configGroupEntity1.setDescription("group1_desc");
+    configGroupEntity1.setTag("HDFS");
+    configGroupEntity1.setServiceName("HDFS");
+    configGroupDAO.create(configGroupEntity1);
+    ConfigGroupEntity group1 = configGroupDAO.findByName("group1");
+    createServiceConfigWithGroup("HDFS", "admin", 3L, 8L, 2222L, null, group1.getGroupId());
     // create some for HDP 0.2
     serviceConfigEntity = createServiceConfig("HDFS", "admin", 4L, 5L, 50L, null);
     serviceConfigEntity = createServiceConfig("HDFS", "admin", 5L, 6L, 60L, null);
@@ -400,7 +433,8 @@ public class ServiceConfigDAOTest {
     long clusterId = serviceConfigEntity.getClusterId();
 
     List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getLatestServiceConfigs(clusterId, HDP_01);
-    Assert.assertEquals(2, serviceConfigs.size());
+    Assert.assertEquals(3, serviceConfigs.size());
+    configGroupDAO.remove(configGroupEntity1);
 
     serviceConfigs = serviceConfigDAO.getLatestServiceConfigs(clusterId, HDP_02);
     Assert.assertEquals(2, serviceConfigs.size());
@@ -412,85 +446,99 @@ public class ServiceConfigDAOTest {
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
 
     Assert.assertTrue(!clusterEntity.getClusterConfigEntities().isEmpty());
-    Assert.assertTrue(!clusterEntity.getConfigMappingEntities().isEmpty());
 
     Assert.assertEquals(5, clusterEntity.getClusterConfigEntities().size());
-    Assert.assertEquals(3, clusterEntity.getConfigMappingEntities().size());
   }
 
+  /**
+   * Tests the ability to find the latest configuration by stack, regardless of
+   * whether that configuration is enabled.
+   *
+   * @throws Exception
+   */
   @Test
-  public void testGetClusterConfigMappingByStack() throws Exception{
+  public void testGetLatestClusterConfigsByStack() throws Exception {
     initClusterEntities();
 
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
 
-    List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), HDP_01);
-    Assert.assertEquals(2, clusterConfigMappingEntities .size());
+    // there should be 3 configs in HDP-0.1 for this cluster, none selected
+    List<ClusterConfigEntity> clusterConfigEntities = clusterDAO.getLatestConfigurations(clusterEntity.getClusterId(), HDP_01);
+    Assert.assertEquals(1, clusterConfigEntities.size());
 
-    ClusterConfigMappingEntity e1 = clusterConfigMappingEntities.get(0);
-    String tag1 = e1.getTag();
-    Assert.assertEquals("version1", tag1);
-    String type1 = e1.getType();
-    Assert.assertEquals("oozie-site", type1);
+    ClusterConfigEntity entity = clusterConfigEntities.get(0);
+    Assert.assertEquals("version3", entity.getTag());
+    Assert.assertEquals("oozie-site", entity.getType());
+    Assert.assertFalse(entity.isSelected());
 
-    ClusterConfigMappingEntity e2 = clusterConfigMappingEntities.get(1);
-    String tag2 = e2.getTag();
-    Assert.assertEquals("version2", tag2);
-    String type2 = e2.getType();
-    Assert.assertEquals("oozie-site", type2);
+    // there should be 2 configs in HDP-0.2 for this cluster, the latest being
+    // selected
+    clusterConfigEntities = clusterDAO.getLatestConfigurations(clusterEntity.getClusterId(), HDP_02);
+    Assert.assertEquals(1, clusterConfigEntities.size());
+
+    entity = clusterConfigEntities.get(0);
+    Assert.assertEquals("version5", entity.getTag());
+    Assert.assertEquals("oozie-site", entity.getType());
+    Assert.assertTrue(entity.isSelected());
   }
 
   /**
-   * Test the get latest configuration query against clusterconfig table with configuration groups inserted
-   * */
+   * Tests getting latest and enabled configurations when there is a
+   * configuration group. Configurations for configuration groups are not
+   * "selected" as they are merged in with the selected configuration. This can
+   * cause problems if searching simply for the "latest" since it will pickup
+   * the wrong configuration.
+   *
+   */
   @Test
-  public void testGetClusterConfigMappingByStackCG() throws Exception{
+  public void testGetClusterConfigsByStackCG() throws Exception {
     initClusterEntitiesWithConfigGroups();
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    Long clusterId = clusterEntity.getClusterId();
 
     List<ConfigGroupEntity> configGroupEntities = configGroupDAO.findAllByTag("OOZIE");
+
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
 
     Assert.assertNotNull(configGroupEntities);
     ConfigGroupEntity configGroupEntity = configGroupEntities.get(0);
     Assert.assertNotNull(configGroupEntity);
     Assert.assertEquals("c1", configGroupEntity.getClusterEntity().getClusterName());
-    Assert.assertEquals(clusterId, configGroupEntity.getClusterEntity()
-      .getClusterId());
+    Assert.assertEquals(clusterId, configGroupEntity.getClusterEntity().getClusterId());
     Assert.assertEquals("oozie_server", configGroupEntity.getGroupName());
     Assert.assertEquals("OOZIE", configGroupEntity.getTag());
     Assert.assertEquals("oozie server", configGroupEntity.getDescription());
 
-    List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), HDP_01);
-    Assert.assertEquals(2, clusterConfigMappingEntities .size());
+    // all 3 are HDP-0.1, but only the 2nd one is enabled
+    List<ClusterConfigEntity> clusterConfigEntities = clusterDAO.getEnabledConfigsByStack(
+        clusterEntity.getClusterId(), HDP_01);
 
-    ClusterConfigMappingEntity e1 = clusterConfigMappingEntities.get(0);
-    String tag1 = e1.getTag();
-    Assert.assertEquals("version1", tag1);
-    String type1 = e1.getType();
-    Assert.assertEquals("oozie-site", type1);
+    Assert.assertEquals(1, clusterConfigEntities.size());
 
-    ClusterConfigMappingEntity e2 = clusterConfigMappingEntities.get(1);
-    String tag2 = e2.getTag();
-    Assert.assertEquals("version2", tag2);
-    String type2 = e2.getType();
-    Assert.assertEquals("oozie-site", type2);
+    ClusterConfigEntity configEntity = clusterConfigEntities.get(0);
+    Assert.assertEquals("version2", configEntity.getTag());
+    Assert.assertEquals("oozie-site", configEntity.getType());
+    Assert.assertTrue(configEntity.isSelected());
+
+    // this should still return the 2nd one since the 3rd one has never been
+    // selected as its only for configuration groups
+    clusterConfigEntities = clusterDAO.getLatestConfigurations(clusterEntity.getClusterId(),
+        HDP_01);
+
+    configEntity = clusterConfigEntities.get(0);
+    Assert.assertEquals("version2", configEntity.getTag());
+    Assert.assertEquals("oozie-site", configEntity.getType());
+    Assert.assertTrue(configEntity.isSelected());
   }
 
+
   /**
-   * Test
+   * Tests that when there are multiple configurations for a stack, only the
+   * selected ones get returned.
    *
-   * When the last configuration of a given configuration type to be stored into the clusterconfig table is
-   * for a configuration group, there is no corresponding entry generated in the clusterconfigmapping.
-   *
-   * Therefore, the getlatestconfiguration query should skip configuration groups stored in the clusterconfig table.
-   *
-   * Test to determine the latest configuration of a given type whose version_tag
-   * exists in the clusterconfigmapping table.
-   *
-   * */
+   * @throws Exception
+   */
   @Test
-  public void testGetLatestClusterConfigMappingByStack() throws Exception {
+  public void testGetEnabledClusterConfigByStack() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1", HDP_01);
 
@@ -498,30 +546,24 @@ public class ServiceConfigDAOTest {
 
     initClusterEntities();
 
-    Collection<ClusterConfigMappingEntity> latestMapingEntities = ((ClusterImpl) cluster).getLatestConfigMappingsForStack(
-        cluster.getClusterId(), HDP_01);
+    Collection<ClusterConfigEntity> latestConfigs = clusterDAO.getEnabledConfigsByStack(
+        cluster.getClusterId(), HDP_02);
 
-    Assert.assertEquals(1, latestMapingEntities.size());
-    for(ClusterConfigMappingEntity e: latestMapingEntities){
-      Assert.assertEquals("version2", e.getTag());
+    Assert.assertEquals(1, latestConfigs.size());
+    for (ClusterConfigEntity e : latestConfigs) {
+      Assert.assertEquals("version5", e.getTag());
       Assert.assertEquals("oozie-site", e.getType());
     }
   }
 
   /**
-   * Test
-   *
-   * When the last configuration of a given configuration type to be stored into the clusterconfig table is
-   * for a configuration group, there is no corresponding entry generated in the clusterconfigmapping.
-   *
-   * Therefore, the getlatestconfiguration query should skip configuration groups stored in the clusterconfig table.
-   *
-   * Test to determine the latest configuration of a given type whose version_tag
-   * exists in the clusterconfigmapping table.
-   *
-   * */
+   * When the last configuration of a given configuration type to be stored into
+   * the clusterconfig table is for a configuration group, that configuration is
+   * not enabled. Therefore, it should be skipped when getting the enabled
+   * configurations for a stack.
+   */
   @Test
-  public void testGetLatestClusterConfigMappingByStackCG() throws Exception{
+  public void testGetLatestClusterConfigByStackCG() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1", HDP_01);
 
@@ -529,16 +571,50 @@ public class ServiceConfigDAOTest {
 
     initClusterEntitiesWithConfigGroups();
 
-    Collection<ClusterConfigMappingEntity> latestMapingEntities = ((ClusterImpl) cluster).getLatestConfigMappingsForStack(
+    Collection<ClusterConfigEntity> latestConfigs = clusterDAO.getEnabledConfigsByStack(
         cluster.getClusterId(), HDP_01);
 
-    Assert.assertEquals(1, latestMapingEntities.size());
-    for(ClusterConfigMappingEntity e: latestMapingEntities){
+    Assert.assertEquals(1, latestConfigs.size());
+    for (ClusterConfigEntity e : latestConfigs) {
       Assert.assertEquals("version2", e.getTag());
       Assert.assertEquals("oozie-site", e.getType());
     }
   }
 
+  @Test
+  public void testGetLastServiceConfigsForServiceWhenAConfigGroupIsDeleted() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    clusters.addCluster("c1", HDP_01);
+    initClusterEntitiesWithConfigGroups();
+    ConfigGroupEntity configGroupEntity1 = new ConfigGroupEntity();
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
+    Long clusterId = clusterEntity.getClusterId();
+    configGroupEntity1.setClusterEntity(clusterEntity);
+    configGroupEntity1.setClusterId(clusterEntity.getClusterId());
+    configGroupEntity1.setGroupName("toTestDeleteGroup_OOZIE");
+    configGroupEntity1.setDescription("toTestDeleteGroup_OOZIE_DESC");
+    configGroupEntity1.setTag("OOZIE");
+    configGroupEntity1.setServiceName("OOZIE");
+    configGroupDAO.create(configGroupEntity1);
+    ConfigGroupEntity testDeleteGroup_OOZIE = configGroupDAO.findByName("toTestDeleteGroup_OOZIE");
+    createServiceConfigWithGroup("OOZIE", "", 2L, 2L, System.currentTimeMillis(), null,
+        testDeleteGroup_OOZIE.getGroupId());
+    Collection<ServiceConfigEntity> serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(clusterId,
+        "OOZIE");
+    Assert.assertEquals(2, serviceConfigEntityList.size());
+    configGroupDAO.remove(configGroupEntity1);
+    serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(clusterId, "OOZIE");
+    Assert.assertEquals(1, serviceConfigEntityList.size());
+  }
+
+  /**
+   * Createa a cluster with 5 configurations for Oozie. Each configuration will
+   * have a tag of "version" plus a count. 3 configs will be for
+   * {@link #HDP_01}, and 2 will be for {@link #HDP_02}. Only the most recent
+   * configuration, {@code version5}, will be enabled.
+   *
+   * @throws Exception
+   */
   private void initClusterEntities() throws Exception{
     String userName = "admin";
 
@@ -558,7 +634,9 @@ public class ServiceConfigDAOTest {
 
     String oozieSite = "oozie-site";
 
-    for (int i = 1; i < 6; i++){
+    // create 5 Oozie Configs, with only the latest from HDP-0.2 being enabled
+    int configsToCreate = 5;
+    for (int i = 1; i <= configsToCreate; i++) {
       Thread.sleep(1);
       ClusterConfigEntity entity = new ClusterConfigEntity();
       entity.setClusterEntity(clusterEntity);
@@ -567,58 +645,35 @@ public class ServiceConfigDAOTest {
       entity.setVersion(Long.valueOf(i));
       entity.setTag("version"+i);
       entity.setTimestamp(new Date().getTime());
-      if(i < 4) {
-        entity.setStack(stackEntityHDP01);
-      } else {
+
+      // set selected to true to get the last selected timestamp populated
+      entity.setSelected(true);
+
+      // now set it to false
+      entity.setSelected(false);
+
+      entity.setStack(stackEntityHDP01);
+      if (i >= 4) {
         entity.setStack(stackEntityHDP02);
+        if (i == configsToCreate) {
+          entity.setSelected(true);
+        }
       }
+
       entity.setData("");
       clusterDAO.createConfig(entity);
       clusterEntity.getClusterConfigEntities().add(entity);
       clusterDAO.merge(clusterEntity);
     }
-
-    Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
-    if(null == entities){
-      entities = new ArrayList<ClusterConfigMappingEntity>();
-      clusterEntity.setConfigMappingEntities(entities);
-    }
-
-    ClusterConfigMappingEntity e1 = new ClusterConfigMappingEntity();
-    e1.setClusterEntity(clusterEntity);
-    e1.setClusterId(clusterEntity.getClusterId());
-    e1.setCreateTimestamp(System.currentTimeMillis());
-    e1.setSelected(0);
-    e1.setUser(userName);
-    e1.setType(oozieSite);
-    e1.setTag("version1");
-    entities.add(e1);
-    clusterDAO.merge(clusterEntity);
-
-    ClusterConfigMappingEntity e2 = new ClusterConfigMappingEntity();
-    e2.setClusterEntity(clusterEntity);
-    e2.setClusterId(clusterEntity.getClusterId());
-    e2.setCreateTimestamp(System.currentTimeMillis());
-    e2.setSelected(0);
-    e2.setUser(userName);
-    e2.setType(oozieSite);
-    e2.setTag("version2");
-    entities.add(e2);
-    clusterDAO.merge(clusterEntity);
-
-    Thread.sleep(1);
-    ClusterConfigMappingEntity e3 = new ClusterConfigMappingEntity();
-    e3.setClusterEntity(clusterEntity);
-    e3.setClusterId(clusterEntity.getClusterId());
-    e3.setCreateTimestamp(System.currentTimeMillis());
-    e3.setSelected(1);
-    e3.setUser(userName);
-    e3.setType(oozieSite);
-    e3.setTag("version4");
-    entities.add(e3);
-    clusterDAO.merge(clusterEntity);
   }
 
+  /**
+   * Createa a cluster with 3 configurations for Oozie in the {@link #HDP_01}
+   * stack. Only {@code version2}, will be enabled. {@code version3} will be for
+   * a new configuration group.
+   *
+   * @throws Exception
+   */
   private void initClusterEntitiesWithConfigGroups() throws Exception{
     String userName = "admin";
 
@@ -636,8 +691,9 @@ public class ServiceConfigDAOTest {
     StackEntity stackEntityHDP01 = stackDAO.find(HDP_01.getStackName(),HDP_01.getStackVersion());
     String oozieSite = "oozie-site";
 
-    int count = 3;
-    for (int i = 1; i < count; i++){
+    // create 2 configurations for HDP-0.1
+    int count = 2;
+    for (int i = 1; i <= count; i++) {
       Thread.sleep(1);
       ClusterConfigEntity entity = new ClusterConfigEntity();
       entity.setClusterEntity(clusterEntity);
@@ -648,42 +704,16 @@ public class ServiceConfigDAOTest {
       entity.setTimestamp(new Date().getTime());
       entity.setStack(stackEntityHDP01);
       entity.setData("");
+      entity.setSelected(false);
+
+      if (i == count) {
+        entity.setSelected(true);
+      }
+
       clusterDAO.createConfig(entity);
       clusterEntity.getClusterConfigEntities().add(entity);
       clusterDAO.merge(clusterEntity);
     }
-
-    Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
-    if(null == entities){
-      entities = new ArrayList<ClusterConfigMappingEntity>();
-      clusterEntity.setConfigMappingEntities(entities);
-    }
-
-    Thread.sleep(1);
-    ClusterConfigMappingEntity e1 = new ClusterConfigMappingEntity();
-    e1.setClusterEntity(clusterEntity);
-    e1.setClusterId(clusterEntity.getClusterId());
-    e1.setCreateTimestamp(System.currentTimeMillis());
-    e1.setSelected(0);
-    e1.setUser(userName);
-    e1.setType(oozieSite);
-    e1.setTag("version1");
-    entities.add(e1);
-    clusterDAO.merge(clusterEntity);
-
-    Thread.sleep(1);
-    ClusterConfigMappingEntity e2 = new ClusterConfigMappingEntity();
-    e2.setClusterEntity(clusterEntity);
-    e2.setClusterId(clusterEntity.getClusterId());
-    e2.setCreateTimestamp(System.currentTimeMillis());
-    e2.setSelected(1);
-    e2.setUser(userName);
-    e2.setType(oozieSite);
-    e2.setTag("version2");
-    entities.add(e2);
-    clusterDAO.merge(clusterEntity);
-
-    ConfigGroupEntity configGroupEntity = new ConfigGroupEntity();
 
     ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
     if (resourceTypeEntity == null) {
@@ -696,51 +726,48 @@ public class ServiceConfigDAOTest {
     ResourceEntity resourceEntity = new ResourceEntity();
     resourceEntity.setResourceType(resourceTypeEntity);
 
+    // create a configuration group for oozie
+    ConfigGroupEntity configGroupEntity = new ConfigGroupEntity();
     configGroupEntity.setClusterEntity(clusterEntity);
     configGroupEntity.setClusterId(clusterEntity.getClusterId());
     configGroupEntity.setGroupName("oozie_server");
     configGroupEntity.setDescription("oozie server");
     configGroupEntity.setTag("OOZIE");
-
-    ClusterConfigEntity configEntity = new ClusterConfigEntity();
-    configEntity.setType("oozie-site");
-    configEntity.setTag("version3");
-    configEntity.setData("someData");
-    configEntity.setAttributes("someAttributes");
-    configEntity.setStack(stackEntityHDP01);
-
-    Thread.sleep(1);
-    List<ClusterConfigEntity> configEntities = new
-      ArrayList<ClusterConfigEntity>();
-    configEntities.add(configEntity);
-
     configGroupDAO.create(configGroupEntity);
 
-    Thread.sleep(1);
-    if (configEntities != null && !configEntities.isEmpty()) {
-      List<ConfigGroupConfigMappingEntity> configMappingEntities = new
-        ArrayList<ConfigGroupConfigMappingEntity>();
+    // create a new configuration for oozie, for the config group
+    ClusterConfigEntity configEntityForGroup = new ClusterConfigEntity();
+    configEntityForGroup.setSelected(false);
+    configEntityForGroup.setType("oozie-site");
+    configEntityForGroup.setTag("version3");
+    configEntityForGroup.setData("someData");
+    configEntityForGroup.setAttributes("someAttributes");
+    configEntityForGroup.setStack(stackEntityHDP01);
 
-      for (ClusterConfigEntity config : configEntities) {
-        config.setClusterEntity(clusterEntity);
-        config.setClusterId(clusterEntity.getClusterId());
-        clusterDAO.createConfig(config);
+    List<ClusterConfigEntity> configEntitiesForGroup = new ArrayList<>();
+    configEntitiesForGroup.add(configEntityForGroup);
+    List<ConfigGroupConfigMappingEntity> configMappingEntities = new ArrayList<>();
 
-        ConfigGroupConfigMappingEntity configMappingEntity = new
-          ConfigGroupConfigMappingEntity();
-        configMappingEntity.setClusterId(clusterEntity.getClusterId());
-        configMappingEntity.setClusterConfigEntity(config);
-        configMappingEntity.setConfigGroupEntity(configGroupEntity);
-        configMappingEntity.setConfigGroupId(configGroupEntity.getGroupId());
-        configMappingEntity.setVersionTag(config.getTag());
-        configMappingEntity.setConfigType(config.getType());
-        configMappingEntity.setTimestamp(System.currentTimeMillis());
-        configMappingEntities.add(configMappingEntity);
-        configGroupConfigMappingDAO.create(configMappingEntity);
-      }
+    for (ClusterConfigEntity config : configEntitiesForGroup) {
+      config.setClusterEntity(clusterEntity);
+      config.setClusterId(clusterEntity.getClusterId());
+      clusterDAO.createConfig(config);
 
-      configGroupEntity.setConfigGroupConfigMappingEntities(configMappingEntities);
-      configGroupDAO.merge(configGroupEntity);
+      Thread.sleep(1);
+      ConfigGroupConfigMappingEntity configMappingEntity = new
+        ConfigGroupConfigMappingEntity();
+      configMappingEntity.setClusterId(clusterEntity.getClusterId());
+      configMappingEntity.setClusterConfigEntity(config);
+      configMappingEntity.setConfigGroupEntity(configGroupEntity);
+      configMappingEntity.setConfigGroupId(configGroupEntity.getGroupId());
+      configMappingEntity.setVersionTag(config.getTag());
+      configMappingEntity.setConfigType(config.getType());
+      configMappingEntity.setTimestamp(System.currentTimeMillis());
+      configMappingEntities.add(configMappingEntity);
+      configGroupConfigMappingDAO.create(configMappingEntity);
     }
+
+    configGroupEntity.setConfigGroupConfigMappingEntities(configMappingEntities);
+    configGroupDAO.merge(configGroupEntity);
   }
 }

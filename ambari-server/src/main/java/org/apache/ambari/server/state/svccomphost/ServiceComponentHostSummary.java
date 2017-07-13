@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,19 +19,19 @@
 package org.apache.ambari.server.state.svccomphost;
 
 
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 
 
 /**
@@ -43,14 +43,28 @@ public class ServiceComponentHostSummary {
   private Collection<HostComponentStateEntity> haveAdvertisedVersion;
   private Collection<HostComponentStateEntity> waitingToAdvertiseVersion;
   private Collection<HostComponentStateEntity> noVersionToAdvertise;
-  private Set<String> versions;
 
-  public ServiceComponentHostSummary(AmbariMetaInfo ambariMetaInfo, HostEntity host, String stackName, String stackVersion) throws AmbariException {
+  /**
+   * Constructor.
+   *
+   * @param ambariMetaInfo
+   *          used to lookup whether a component advertises a version (not
+   *          {@code null}).
+   * @param host
+   *          the host to generate a component summary for (not {@code null}).
+   * @param repositoryVersion
+   *          the repository to generate a summary for (not {@code null}).
+   * @throws AmbariException
+   */
+  public ServiceComponentHostSummary(AmbariMetaInfo ambariMetaInfo, HostEntity host,
+      RepositoryVersionEntity repositoryVersion) throws AmbariException {
     allHostComponents = host.getHostComponentStateEntities();
     haveAdvertisedVersion = new HashSet<>();
     waitingToAdvertiseVersion = new HashSet<>();
     noVersionToAdvertise = new HashSet<>();
-    versions = new HashSet<>();
+
+    String stackName = repositoryVersion.getStackName();
+    String stackVersion = repositoryVersion.getStackVersion();
 
     for (HostComponentStateEntity hostComponentStateEntity : allHostComponents) {
       ComponentInfo compInfo = ambariMetaInfo.getComponent(
@@ -60,64 +74,50 @@ public class ServiceComponentHostSummary {
       if (!compInfo.isVersionAdvertised()) {
         // Some Components cannot advertise a version. E.g., ZKF, AMBARI_METRICS, Kerberos
         noVersionToAdvertise.add(hostComponentStateEntity);
-      } else {
-        if (hostComponentStateEntity.getUpgradeState().equals(UpgradeState.IN_PROGRESS) ||
-            hostComponentStateEntity.getVersion().equalsIgnoreCase(State.UNKNOWN.toString())) {
-          waitingToAdvertiseVersion.add(hostComponentStateEntity);
-        } else {
-          haveAdvertisedVersion.add(hostComponentStateEntity);
-          versions.add(hostComponentStateEntity.getVersion());
-        } // TODO: what if component reported wrong version?
+        continue;
       }
+
+      String versionAdvertised = hostComponentStateEntity.getVersion();
+      if (hostComponentStateEntity.getUpgradeState() == UpgradeState.IN_PROGRESS
+          || StringUtils.equals(versionAdvertised, State.UNKNOWN.name())) {
+        waitingToAdvertiseVersion.add(hostComponentStateEntity);
+        continue;
+      }
+
+      haveAdvertisedVersion.add(hostComponentStateEntity);
     }
   }
 
-  public ServiceComponentHostSummary(AmbariMetaInfo ambariMetaInfo, HostEntity host, StackId stackId) throws AmbariException {
-    this(ambariMetaInfo, host, stackId.getStackName(), stackId.getStackVersion());
-  }
-
-  public Collection<HostComponentStateEntity> getHaveAdvertisedVersion() {
-    return haveAdvertisedVersion;
-  }
-
-  public boolean isUpgradeFinished() {
-    return haveAllComponentsFinishedAdvertisingVersion() && noComponentVersionMismatches(getHaveAdvertisedVersion());
-  }
-
   /**
-   * @param upgradeEntity Upgrade info about update on given host
-   * @return Return true if multiple component versions are found for this host, or if it does not coincide with the
-   * CURRENT repo version.
-   */
-  public boolean isUpgradeInProgress(UpgradeEntity upgradeEntity) {
-    // Exactly one CURRENT version must exist
-    // We can only detect an upgrade if the Host has at least one component that advertises a version and has done so already
-    // If distinct versions have been advertises, then an upgrade is in progress.
-    // If exactly one version has been advertises, but it doesn't coincide with the CURRENT HostVersion, then an upgrade is in progress.
-    return upgradeEntity != null;
-  }
-
-  /**
-   * Determine if all of the components on that need to advertise a version have finished doing so.
-   * @return Return a bool indicating if all components that can report a version have done so.
-   */
-  public boolean haveAllComponentsFinishedAdvertisingVersion() {
-    return waitingToAdvertiseVersion.isEmpty();
-  }
-
-  /**
-   * Checks that every component has really advertised version (in other words, we are not waiting
-   * for version advertising), and that no version mismatch occurred
+   * Gets whether all hosts for a service component have reported the correct
+   * version.
    *
-   * @param hostComponents host components
-   * @return true if components have advertised the same version, or collection is empty, false otherwise.
+   * @param repositoryVersion
+   *          the version to report (not {@code null}).
+   * @return {@code true} if all hosts for this service component have reported
+   *         the correct version, {@code false} othwerise.
    */
-  public static boolean noComponentVersionMismatches(Collection<HostComponentStateEntity> hostComponents) {
-    for (HostComponentStateEntity hostComponent : hostComponents) {
+  public boolean isVersionCorrectForAllHosts(RepositoryVersionEntity repositoryVersion) {
+    if (!waitingToAdvertiseVersion.isEmpty()) {
+      return false;
+    }
+
+    for (HostComponentStateEntity hostComponent : haveAdvertisedVersion) {
       if (UpgradeState.VERSION_NON_ADVERTISED_STATES.contains(hostComponent.getUpgradeState())) {
         return false;
       }
+
+      ServiceComponentDesiredStateEntity desiredState = hostComponent.getServiceComponentDesiredStateEntity();
+      RepositoryVersionEntity desiredRepositoryVersion = desiredState.getDesiredRepositoryVersion();
+      if (!desiredRepositoryVersion.equals(repositoryVersion)) {
+        continue;
+      }
+
+      if (!StringUtils.equals(hostComponent.getVersion(), desiredRepositoryVersion.getVersion())) {
+        return false;
+      }
     }
+
     return true;
   }
 }

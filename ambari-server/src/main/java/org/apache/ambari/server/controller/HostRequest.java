@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,26 +19,21 @@
 package org.apache.ambari.server.controller;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class HostRequest {
 
   private String hostname;
   private String publicHostname;
   private String clusterName; // CREATE/UPDATE
-  private Map<String, String> hostAttributes; // CREATE/UPDATE
   private String rackInfo;
   private List<ConfigurationRequest> desiredConfigs; // UPDATE
   private String maintenanceState; // UPDATE
   private String blueprint;
-  private String hostgroup;
-  private String hostToClone;
+  private String hostGroup;
 
-  public HostRequest(String hostname, String clusterName, Map<String, String> hostAttributes) {
+  public HostRequest(String hostname, String clusterName) {
     this.hostname = hostname;
     this.clusterName = clusterName;
-    this.hostAttributes = hostAttributes;
   }
 
   public String getHostname() {
@@ -57,42 +52,34 @@ public class HostRequest {
     this.clusterName = clusterName;
   }
 
-  public Map<String, String> getHostAttributes() {
-    return hostAttributes;
-  }
-
-  public void setHostAttributes(Map<String, String> hostAttributes) {
-    this.hostAttributes = hostAttributes;
-  }
-  
   public String getRackInfo() {
     return rackInfo;
   }
-  
+
   public void setRackInfo(String info) {
     rackInfo = info;
   }
-  
+
   public String getPublicHostName() {
     return publicHostname;
   }
-  
+
   public void setPublicHostName(String name) {
     publicHostname = name;
   }
-  
+
   public void setDesiredConfigs(List<ConfigurationRequest> request) {
     desiredConfigs = request;
   }
-  
+
   public List<ConfigurationRequest> getDesiredConfigs() {
     return desiredConfigs;
   }
-  
+
   public void setMaintenanceState(String state) {
     maintenanceState = state;
   }
-  
+
   public String getMaintenanceState() {
     return maintenanceState;
   }
@@ -105,40 +92,16 @@ public class HostRequest {
     return blueprint;
   }
 
-  public void setHostGroupName(String hostgroupName) {
-    hostgroup = hostgroupName;
+  public void setHostGroupName(String hostGroupName) {
+    hostGroup = hostGroupName;
   }
 
   public String getHostGroupName() {
-    return hostgroup;
+    return hostGroup;
   }
 
-  public void setHostToClone(String hostname) {
-    hostToClone = hostname;
-  }
-
-  public String getHostToClone() {
-    return hostToClone;
-  }
-
+  @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("{ hostname=").append(hostname).append(", clusterName=").append(clusterName);
-    if (hostAttributes != null) {
-      sb.append(", hostAttributes=[");
-      int i = 0;
-      for (Entry<String, String> attr : hostAttributes.entrySet()) {
-        if (i != 0) {
-          sb.append(",");
-        }
-        ++i;
-        sb.append(attr.getKey());
-        sb.append("=");
-        sb.append(attr.getValue());
-      }
-      sb.append(']');
-    }
-    sb.append(" }");
-    return sb.toString();
+    return "{ hostname=" + hostname + ", clusterName=" + clusterName + " }";
   }
 }

@@ -35,14 +35,14 @@ import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class RootServiceHostComponentResourceProvider extends
     ReadOnlyResourceProvider {
-  
+
   public static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("RootServiceHostComponents", "service_name");
   public static final String HOST_NAME_PROPERTY_ID = PropertyHelper
@@ -55,9 +55,9 @@ public class RootServiceHostComponentResourceProvider extends
       .getPropertyId("RootServiceHostComponents", "component_state");
   public static final String PROPERTIES_PROPERTY_ID = PropertyHelper
       .getPropertyId("RootServiceHostComponents", "properties");
-  
-  
-  private Set<String> pkPropertyIds = new HashSet<String>(
+
+
+  private Set<String> pkPropertyIds = new HashSet<>(
       Arrays.asList(new String[] { SERVICE_NAME_PROPERTY_ID, HOST_NAME_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID }));
 
 
@@ -67,13 +67,13 @@ public class RootServiceHostComponentResourceProvider extends
     super(propertyIds, keyPropertyIds, managementController);
   }
 
-  
+
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RootServiceHostComponentRequest> requests = new HashSet<RootServiceHostComponentRequest>();
+    final Set<RootServiceHostComponentRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -92,26 +92,26 @@ public class RootServiceHostComponentResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (RootServiceHostComponentResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RootServiceHostComponent);
 
       setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
           response.getServiceName(), requestedIds);
-      
+
       setResourceProperty(resource, HOST_NAME_PROPERTY_ID,
           response.getHostName(), requestedIds);
-      
+
       setResourceProperty(resource, COMPONENT_NAME_PROPERTY_ID,
           response.getComponentName(), requestedIds);
-      
+
       setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID,
           response.getComponentState(), requestedIds);
-      
+
       setResourceProperty(resource, COMPONENT_VERSION_PROPERTY_ID,
           response.getComponentVersion(), requestedIds);
-      
+
       setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
           response.getProperties(), requestedIds);
 
@@ -120,7 +120,7 @@ public class RootServiceHostComponentResourceProvider extends
 
     return resources;
   }
-  
+
   private RootServiceHostComponentRequest getRequest(Map<String, Object> properties) {
     return new RootServiceHostComponentRequest((String) properties.get(SERVICE_NAME_PROPERTY_ID),
                                                (String) properties.get(HOST_NAME_PROPERTY_ID),
@@ -135,14 +135,10 @@ public class RootServiceHostComponentResourceProvider extends
   // Get the root service host components for the given set of requests
   protected Set<RootServiceHostComponentResponse> getRootServiceHostComponents(
       Set<RootServiceHostComponentRequest> requests) throws AmbariException {
-    Set<RootServiceHostComponentResponse> response = new HashSet<RootServiceHostComponentResponse>();
+    Set<RootServiceHostComponentResponse> response = new HashSet<>();
     for (RootServiceHostComponentRequest request : requests) {
-      String serviceName = request.getServiceName();
       try {
         Set<RootServiceHostComponentResponse> rootServiceHostComponents = getRootServiceHostComponents(request);
-        for (RootServiceHostComponentResponse rootServiceHostComponentResponse : rootServiceHostComponents ) {
-          rootServiceHostComponentResponse.setServiceName(serviceName);
-        }
 
         response.addAll(rootServiceHostComponents);
       } catch (AmbariException e) {
@@ -163,7 +159,7 @@ public class RootServiceHostComponentResourceProvider extends
     AmbariManagementController controller = getManagementController();
     //Get all hosts of all clusters
     Set<HostResponse> hosts = HostResourceProvider.getHosts(controller,
-        new HostRequest(request.getHostName(), null, null));
+        new HostRequest(request.getHostName(), null));
 
     return controller.getRootServiceResponseFactory().getRootServiceHostComponent(request, hosts);
   }

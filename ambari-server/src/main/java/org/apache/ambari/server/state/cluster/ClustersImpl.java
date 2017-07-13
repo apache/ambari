@@ -43,10 +43,8 @@ import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
@@ -57,7 +55,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -97,25 +94,21 @@ public class ClustersImpl implements Clusters {
 
   private static final Logger LOG = LoggerFactory.getLogger(ClustersImpl.class);
 
-  private final ConcurrentHashMap<String, Cluster> clusters = new ConcurrentHashMap<String, Cluster>();
-  private final ConcurrentHashMap<Long, Cluster> clustersById = new ConcurrentHashMap<Long, Cluster>();
-  private final ConcurrentHashMap<String, Host> hosts = new ConcurrentHashMap<String, Host>();
-  private final ConcurrentHashMap<Long, Host> hostsById = new ConcurrentHashMap<Long, Host>();
-  private final ConcurrentHashMap<String, Set<Cluster>> hostClusterMap = new ConcurrentHashMap<String, Set<Cluster>>();
-  private final ConcurrentHashMap<String, Set<Host>> clusterHostMap = new ConcurrentHashMap<String, Set<Host>>();
+  private final ConcurrentHashMap<String, Cluster> clusters = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, Cluster> clustersById = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Host> hosts = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, Host> hostsById = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Set<Cluster>> hostClusterMap = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Set<Host>> clusterHostMap = new ConcurrentHashMap<>();
 
   @Inject
   private ClusterDAO clusterDAO;
   @Inject
   private HostDAO hostDAO;
   @Inject
-  private ClusterVersionDAO clusterVersionDAO;
-  @Inject
   private HostVersionDAO hostVersionDAO;
   @Inject
   private HostStateDAO hostStateDAO;
-  @Inject
-  private HostRoleCommandDAO hostRoleCommandDAO;
   @Inject
   private ResourceTypeDAO resourceTypeDAO;
   @Inject
@@ -318,7 +311,7 @@ public class ClustersImpl implements Clusters {
 
   @Override
   public List<Host> getHosts() {
-    return new ArrayList<Host>(hosts.values());
+    return new ArrayList<>(hosts.values());
   }
 
   @Override
@@ -407,7 +400,7 @@ public class ClustersImpl implements Clusters {
     // not stored to DB
     Host host = hostFactory.create(hostEntity);
     host.setAgentVersion(new AgentVersion(""));
-    List<DiskInfo> emptyDiskList = new CopyOnWriteArrayList<DiskInfo>();
+    List<DiskInfo> emptyDiskList = new CopyOnWriteArrayList<>();
     host.setDisksInfo(emptyDiskList);
     host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
     host.setHostAttributes(new ConcurrentHashMap<String, String>());
@@ -480,7 +473,7 @@ public class ClustersImpl implements Clusters {
   private Map<String, Host> getHostsMap(Collection<String> hostSet) throws
       HostNotFoundException {
 
-    Map<String, Host> hostMap = new HashMap<String, Host>();
+    Map<String, Host> hostMap = new HashMap<>();
     Host host = null;
     for (String hostName : hostSet) {
       if (null != hostName) {
@@ -606,7 +599,7 @@ public class ClustersImpl implements Clusters {
   public Map<String, Host> getHostsForCluster(String clusterName)
       throws AmbariException {
 
-    Map<String, Host> hosts = new HashMap<String, Host>();
+    Map<String, Host> hosts = new HashMap<>();
     for (Host h : clusterHostMap.get(clusterName)) {
       hosts.put(h.getHostName(), h);
     }
@@ -617,7 +610,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public Map<Long, Host> getHostIdsForCluster(String clusterName)
       throws AmbariException {
-    Map<Long, Host> hosts = new HashMap<Long, Host>();
+    Map<Long, Host> hosts = new HashMap<>();
 
     for (Host h : clusterHostMap.get(clusterName)) {
       HostEntity hostEntity = hostDAO.findByName(h.getHostName());
@@ -643,11 +636,6 @@ public class ClustersImpl implements Clusters {
       clusterSet.remove(cluster);
     }
     clusterHostMap.remove(cluster.getClusterName());
-
-    Collection<ClusterVersionEntity> clusterVersions = cluster.getAllClusterVersions();
-    for (ClusterVersionEntity clusterVersion : clusterVersions) {
-      clusterVersionDAO.remove(clusterVersion);
-    }
 
     clusters.remove(clusterName);
   }

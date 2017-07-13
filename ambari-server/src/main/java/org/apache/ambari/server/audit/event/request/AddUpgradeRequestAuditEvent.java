@@ -33,7 +33,7 @@ public class AddUpgradeRequestAuditEvent extends RequestAuditEvent {
     /**
      * Repository version
      */
-    private String repositoryVersion;
+    private String repositoryVersionId;
 
     /**
      * Upgrade type (rolling, non-rolling)
@@ -64,8 +64,8 @@ public class AddUpgradeRequestAuditEvent extends RequestAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      builder.append(", Repository version(")
-        .append(repositoryVersion)
+      builder.append(", Repository version ID(")
+        .append(repositoryVersionId)
         .append("), Upgrade type(")
         .append(upgradeType)
         .append("), Cluster name(")
@@ -73,8 +73,8 @@ public class AddUpgradeRequestAuditEvent extends RequestAuditEvent {
         .append(")");
     }
 
-    public AddUpgradeRequestAuditEventBuilder withRepositoryVersion(String repositoryVersion) {
-      this.repositoryVersion = repositoryVersion;
+    public AddUpgradeRequestAuditEventBuilder withRepositoryVersionId(String repositoryVersionId) {
+      this.repositoryVersionId = repositoryVersionId;
       return this;
     }
 

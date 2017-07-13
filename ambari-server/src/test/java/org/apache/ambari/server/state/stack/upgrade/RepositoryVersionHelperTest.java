@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,19 +17,15 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 /**
  * Tests the {@link RepositoryVersionHelper} class
@@ -38,21 +34,16 @@ public class RepositoryVersionHelperTest {
 
   private RepositoryVersionHelper helper;
 
-  @Before
-  public void before() throws Exception {
-    final Injector injector = Guice.createInjector(new AbstractModule() {
-
-      @Override
-      protected void configure() {
-        bind(Gson.class).toInstance(new Gson());
-      }
-    });
-    helper = injector.getInstance(RepositoryVersionHelper.class);
-  }
-
   @Test
   public void testSerializeOperatingSystems() throws Exception {
-    final List<RepositoryInfo> repositories = new ArrayList<RepositoryInfo>();
+    Gson gson = new Gson();
+    Field field = RepositoryVersionHelper.class.getDeclaredField("gson");
+    field.setAccessible(true);
+
+    RepositoryVersionHelper helper = new RepositoryVersionHelper();
+    field.set(helper, gson);
+
+    final List<RepositoryInfo> repositories = new ArrayList<>();
     final RepositoryInfo repository = new RepositoryInfo();
     repository.setBaseUrl("baseurl");
     repository.setOsType("os");

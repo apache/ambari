@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
@@ -47,7 +46,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
   /**
    * The message displayed as part of this pre-upgrade check.
    */
-  public static final String ERROR_MESSAGE = "There is an existing {0} from {1}-{2} to {3}-{4} which has not completed. This {5} must be completed before a new upgrade or downgrade can begin.";
+  public static final String ERROR_MESSAGE = "There is an existing {0} {1} {2} which has not completed. This {3} must be completed before a new upgrade or downgrade can begin.";
 
   /**
    * Constructor.
@@ -66,13 +65,10 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
     if (null != upgradeInProgress) {
       Direction direction = upgradeInProgress.getDirection();
       String directionText = direction.getText(false);
+      String prepositionText = direction.getPreposition();
 
-      RepositoryVersionEntity fromRepositoryVersion = upgradeInProgress.getFromRepositoryVersion();
-      RepositoryVersionEntity toRepositoryVersion = upgradeInProgress.getToRepositoryVersion();
-
-      errorMessage = MessageFormat.format(ERROR_MESSAGE, directionText,
-          fromRepositoryVersion.getStackName(), fromRepositoryVersion.getVersion(),
-          toRepositoryVersion.getStackName(), toRepositoryVersion.getVersion(), directionText);
+      errorMessage = MessageFormat.format(ERROR_MESSAGE, directionText, prepositionText,
+          upgradeInProgress.getRepositoryVersion().getVersion(), directionText);
     }
 
     if (null != errorMessage) {

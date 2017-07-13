@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm.entities;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.Basic;
@@ -129,9 +128,6 @@ public class ClusterEntity {
 
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private Collection<AlertDefinitionEntity> alertDefinitionEntities;
-
-  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-  private Collection<ClusterVersionEntity> clusterVersionEntities;
 
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private Collection<WidgetEntity> widgetEntities;
@@ -335,19 +331,6 @@ public class ClusterEntity {
 
   public Collection<AlertDefinitionEntity> getAlertDefinitionEntities() {
     return alertDefinitionEntities;
-  }
-
-  public Collection<ClusterVersionEntity> getClusterVersionEntities() {
-    return clusterVersionEntities;
-  }
-
-  public void setClusterVersionEntities(Collection<ClusterVersionEntity> clusterVersionEntities) { this.clusterVersionEntities = clusterVersionEntities; }
-
-  public void addClusterVersionEntity(ClusterVersionEntity clusterVersionEntity) {
-    if (clusterVersionEntities == null) {
-      clusterVersionEntities = new ArrayList<ClusterVersionEntity>();
-    }
-    clusterVersionEntities.add(clusterVersionEntity);
   }
 
   /**

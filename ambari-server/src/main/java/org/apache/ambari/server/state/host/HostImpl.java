@@ -148,7 +148,7 @@ public class HostImpl implements Host {
 
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
-  private List<DiskInfo> disksInfo = new CopyOnWriteArrayList<DiskInfo>();
+  private List<DiskInfo> disksInfo = new CopyOnWriteArrayList<>();
   private RecoveryReport recoveryReport = new RecoveryReport();
   private Integer currentPingPort = null;
 
@@ -481,7 +481,7 @@ public class HostImpl implements Host {
     // FIXME add all other information into host attributes
     setAgentVersion(new AgentVersion(hostInfo.getAgentUserId()));
 
-    Map<String, String> attrs = new HashMap<String, String>();
+    Map<String, String> attrs = new HashMap<>();
     if (hostInfo.getHardwareIsa() != null) {
       attrs.put(HARDWAREISA, hostInfo.getHardwareIsa());
     }
@@ -828,7 +828,7 @@ public class HostImpl implements Host {
     Map<String, String> hostAttrs = gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
 
     if (hostAttrs == null) {
-      hostAttrs = new ConcurrentHashMap<String, String>();
+      hostAttrs = new ConcurrentHashMap<>();
     }
 
     hostAttrs.putAll(hostAttributes);
@@ -939,24 +939,20 @@ public class HostImpl implements Host {
     HostResponse r = new HostResponse(getHostName());
 
     r.setAgentVersion(getAgentVersion());
-    r.setAvailableMemBytes(getAvailableMemBytes());
     r.setPhCpuCount(getPhCpuCount());
     r.setCpuCount(getCpuCount());
     r.setDisksInfo(getDisksInfo());
     r.setHealthStatus(getHealthStatus());
     r.setHostAttributes(getHostAttributes());
     r.setIpv4(getIPv4());
-    r.setIpv6(getIPv6());
     r.setLastHeartbeatTime(getLastHeartbeatTime());
     r.setLastAgentEnv(lastAgentEnv);
     r.setLastRegistrationTime(getLastRegistrationTime());
     r.setOsArch(getOsArch());
-    r.setOsInfo(getOsInfo());
     r.setOsType(getOsType());
     r.setRackInfo(getRackInfo());
     r.setTotalMemBytes(getTotalMemBytes());
     r.setPublicHostName(getPublicHostName());
-    r.setHostState(getState().toString());
     r.setStatus(getStatus());
     r.setRecoveryReport(getRecoveryReport());
     r.setRecoverySummary(getRecoveryReport().getSummary());
@@ -1024,7 +1020,7 @@ public class HostImpl implements Host {
 
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs(long clusterId) {
-    Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> map = new HashMap<>();
 
     for (HostConfigMapping e : hostConfigMappingDAO.findSelected(
         clusterId, getHostId())) {
@@ -1045,10 +1041,10 @@ public class HostImpl implements Host {
   @Override
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster,
       Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException {
-    Map<String, HostConfig> hostConfigMap = new HashMap<String, HostConfig>();
+    Map<String, HostConfig> hostConfigMap = new HashMap<>();
 
     if( null == cluster ){
-      clusterDesiredConfigs = new HashMap<String, DesiredConfig>();
+      clusterDesiredConfigs = new HashMap<>();
     }
 
     // per method contract, fetch if not supplied

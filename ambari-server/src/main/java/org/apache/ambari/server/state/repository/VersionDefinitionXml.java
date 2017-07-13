@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -140,6 +140,27 @@ public class VersionDefinitionXml {
     }
 
     return m_availableMap.values();
+  }
+
+  /**
+   * Gets the set of services that are included in this XML
+   * @return an empty set for STANDARD repositories, or a non-empty set for PATCH type.
+   */
+  public Set<String> getAvailableServiceNames() {
+    if (availableServices.isEmpty()) {
+      return Collections.emptySet();
+    } else {
+      Set<String> serviceNames = new HashSet<>();
+
+      Map<String, ManifestService> manifest = buildManifest();
+
+      for (AvailableServiceReference ref : availableServices) {
+        ManifestService ms = manifest.get(ref.serviceIdReference);
+        serviceNames.add(ms.serviceName);
+      }
+
+      return serviceNames;
+    }
   }
 
   /**
@@ -353,7 +374,6 @@ public class VersionDefinitionXml {
 
   /**
    * Builds a Version Definition that is the default for the stack
-   * @param stack
    * @return the version definition
    */
   public static VersionDefinitionXml build(StackInfo stackInfo) {

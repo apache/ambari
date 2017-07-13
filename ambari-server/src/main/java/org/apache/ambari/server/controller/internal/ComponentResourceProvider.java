@@ -89,6 +89,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID   = "ServiceComponentInfo/unknown_count";
   protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = "ServiceComponentInfo/install_failed_count";
   protected static final String COMPONENT_RECOVERY_ENABLED_ID         = "ServiceComponentInfo/recovery_enabled";
+  protected static final String COMPONENT_DESIRED_STACK               = "ServiceComponentInfo/desired_stack";
+  protected static final String COMPONENT_DESIRED_VERSION             = "ServiceComponentInfo/desired_version";
+  protected static final String COMPONENT_REPOSITORY_STATE            = "ServiceComponentInfo/repository_state";
 
   private static final String TRUE = "true";
 
@@ -324,7 +327,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         // Expected
       }
 
-      StackId stackId = s.getDesiredStackVersion();
+      StackId stackId = s.getDesiredStackId();
       if (!ambariMetaInfo.isValidServiceComponent(stackId.getStackName(),
           stackId.getStackVersion(), s.getName(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
@@ -349,7 +352,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName());
-      sc.setDesiredStackVersion(s.getDesiredStackVersion());
+      sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
@@ -367,7 +370,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setRecoveryEnabled(recoveryEnabled);
         LOG.info("Component: {}, recovery_enabled from request: {}", request.getComponentName(), recoveryEnabled);
       } else {
-        StackId stackId = s.getDesiredStackVersion();
+        StackId stackId = s.getDesiredStackId();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), s.getName(), request.getComponentName());
         if (componentInfo == null) {

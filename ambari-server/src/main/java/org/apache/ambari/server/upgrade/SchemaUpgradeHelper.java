@@ -39,13 +39,13 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.support.JdbcUtils;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.persist.PersistService;
-import org.springframework.jdbc.support.JdbcUtils;
 
 public class SchemaUpgradeHelper {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -178,19 +178,6 @@ public class SchemaUpgradeHelper {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
-      catalogBinder.addBinding().to(UpgradeCatalog200.class);
-      catalogBinder.addBinding().to(UpgradeCatalog210.class);
-      catalogBinder.addBinding().to(UpgradeCatalog211.class);
-      catalogBinder.addBinding().to(UpgradeCatalog212.class);
-      catalogBinder.addBinding().to(UpgradeCatalog2121.class);
-      catalogBinder.addBinding().to(UpgradeCatalog220.class);
-      catalogBinder.addBinding().to(UpgradeCatalog221.class);
-      catalogBinder.addBinding().to(UpgradeCatalog222.class);
-      catalogBinder.addBinding().to(UpgradeCatalog230.class);
-      catalogBinder.addBinding().to(UpgradeCatalog240.class);
-      catalogBinder.addBinding().to(UpgradeCatalog2402.class);
-      catalogBinder.addBinding().to(UpgradeCatalog242.class);
-      catalogBinder.addBinding().to(UpgradeCatalog250.class);
       catalogBinder.addBinding().to(UpgradeCatalog251.class);
       catalogBinder.addBinding().to(UpgradeCatalog252.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);

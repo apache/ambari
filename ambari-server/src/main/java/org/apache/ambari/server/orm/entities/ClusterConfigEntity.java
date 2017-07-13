@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import com.google.common.base.Objects;
-
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -41,6 +40,8 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+
 @Entity
 @Table(name = "clusterconfig",
   uniqueConstraints = {@UniqueConstraint(name = "UQ_config_type_tag", columnNames = {"cluster_id", "type_name", "version_tag"}),
@@ -51,20 +52,27 @@ import javax.persistence.UniqueConstraint;
   , initialValue = 1
 )
 @NamedQueries({
-    @NamedQuery(name = "ClusterConfigEntity.findNextConfigVersion", query = "SELECT COALESCE(MAX(clusterConfig.version),0) + 1 as nextVersion FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type=:configType AND clusterConfig.clusterId=:clusterId"),
-    @NamedQuery(name = "ClusterConfigEntity.findAllConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.stack=:stack"),
-    @NamedQuery(name = "ClusterConfigEntity.findLatestConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.timestamp = (SELECT MAX(clusterConfig2.timestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)"),
-    @NamedQuery(name = "ClusterConfigEntity.findNotMappedClusterConfigsToService", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.serviceConfigEntities IS EMPTY AND clusterConfig.type != 'cluster-env'"),
-    @NamedQuery(name = "ClusterConfigEntity.findClusterConfigMappingsByStack",
-      query = "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
-        "JOIN ClusterConfigEntity config ON mapping.typeName = config.type AND mapping.tag = config.tag " +
-        "WHERE mapping.clusterId = :clusterId AND config.stack = :stack"),
-    @NamedQuery(name = "ClusterConfigEntity.findLatestClusterConfigsByTypes",
-      query = "SELECT cc FROM ClusterConfigEntity cc " +
-        "JOIN ClusterConfigMappingEntity ccm " +
-        "ON cc.clusterId = ccm.clusterId AND cc.type = ccm.typeName AND cc.tag = ccm.tag " +
-        "WHERE cc.clusterId = :clusterId AND ccm.selectedInd > 0 AND ccm.typeName IN :types")
-})
+    @NamedQuery(
+        name = "ClusterConfigEntity.findNextConfigVersion",
+        query = "SELECT COALESCE(MAX(clusterConfig.version),0) + 1 as nextVersion FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type=:configType AND clusterConfig.clusterId=:clusterId"),
+    @NamedQuery(
+        name = "ClusterConfigEntity.findAllConfigsByStack",
+        query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.stack=:stack"),
+    @NamedQuery(
+        name = "ClusterConfigEntity.findLatestConfigsByStack",
+        query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId = :clusterId AND clusterConfig.stack = :stack AND clusterConfig.selectedTimestamp = (SELECT MAX(clusterConfig2.selectedTimestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)"),
+    @NamedQuery(
+        name = "ClusterConfigEntity.findNotMappedClusterConfigsToService",
+        query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.serviceConfigEntities IS EMPTY AND clusterConfig.type != 'cluster-env'"),
+    @NamedQuery(
+        name = "ClusterConfigEntity.findEnabledConfigsByStack",
+        query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1 AND config.stack = :stack"),
+    @NamedQuery(
+        name = "ClusterConfigEntity.findEnabledConfigByType",
+        query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1 and config.type = :type"),
+    @NamedQuery(
+        name = "ClusterConfigEntity.findEnabledConfigsByTypes",
+        query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1 and config.type in :types") })
 
 public class ClusterConfigEntity {
 
@@ -85,6 +93,9 @@ public class ClusterConfigEntity {
   @Column(name = "version_tag")
   private String tag;
 
+  @Column(name = "selected", insertable = true, updatable = true, nullable = false)
+  private int selected = 0;
+
   @Basic(fetch = FetchType.LAZY)
   @Column(name = "config_data", nullable = false, insertable = true)
   @Lob
@@ -97,6 +108,16 @@ public class ClusterConfigEntity {
 
   @Column(name = "create_timestamp", nullable = false, insertable = true, updatable = false)
   private long timestamp;
+
+  /**
+   * The most recent time that this configuration was marked as
+   * {@link #selected}. This is useful when configruations are being reverted
+   * since a reversion does not create a new instance. Another configuration may
+   * technically be newer via its creation date ({@link #timestamp}), however
+   * that does not indicate it was the most recently enabled configuration.
+   */
+  @Column(name = "selected_timestamp", nullable = false, insertable = true, updatable = true)
+  private long selectedTimestamp = 0;
 
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
@@ -182,6 +203,10 @@ public class ClusterConfigEntity {
     timestamp = stamp;
   }
 
+  public long getSelectedTimestamp() {
+    return selectedTimestamp;
+  }
+
   public String getAttributes() {
     return configAttributesJson;
   }
@@ -209,51 +234,37 @@ public class ClusterConfigEntity {
     this.stack = stack;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object object) {
+    if (this == object) {
       return true;
     }
 
-    if (o == null || getClass() != o.getClass()) {
+    if (object == null || getClass() != object.getClass()) {
       return false;
     }
 
-    ClusterConfigEntity that = (ClusterConfigEntity) o;
+    ClusterConfigEntity that = (ClusterConfigEntity) object;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
 
-    if (configId != null ? !configId.equals(that.configId) : that.configId != null) {
-      return false;
-    }
+    equalsBuilder.append(configId, that.configId);
+    equalsBuilder.append(clusterId, that.clusterId);
+    equalsBuilder.append(type, that.type);
+    equalsBuilder.append(tag, that.tag);
+    equalsBuilder.append(stack, that.stack);
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
-      return false;
-    }
-
-    if (type != null ? !type.equals(that.type) : that.type != null) {
-      return false;
-    }
-
-    if (tag != null ? !tag.equals(that.tag) : that.tag != null) {
-      return false;
-    }
-
-    if (stack != null ? !stack.equals(that.stack) : that.stack != null) {
-      return false;
-    }
-
-    return true;
-
+    return equalsBuilder.isEquals();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = configId != null ? configId.hashCode() : 0;
-    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
-    result = 31 * result + (type != null ? type.hashCode() : 0);
-    result = 31 * result + (tag != null ? tag.hashCode() : 0);
-    result = 31 * result + (stack != null ? stack.hashCode() : 0);
-
-    return result;
+    return Objects.hash(configId, clusterId, type, tag, stack);
   }
 
   public ClusterEntity getClusterEntity() {
@@ -286,12 +297,28 @@ public class ClusterConfigEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return com.google.common.base.Objects.toStringHelper(this)
       .add("clusterId", clusterId)
       .add("type", type)
       .add("version", version)
       .add("tag", tag)
-      .add("timestamp", timestamp)
+      .add("selected", selected == 1)
+      .add("selectedTimeStamp", selectedTimestamp)
+      .add("created", timestamp)
       .toString();
   }
+
+  public boolean isSelected() {
+    return selected == 1;
+  }
+
+  public void setSelected(boolean selected) {
+    this.selected = selected ? 1 : 0;
+
+    // if this config is being selected, then also update the selected timestamp
+    if (selected) {
+      selectedTimestamp = System.currentTimeMillis();
+    }
+  }
+
 }

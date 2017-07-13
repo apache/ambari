@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,32 +18,39 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
 
 public class ServiceResponse {
 
   private Long clusterId;
   private String clusterName;
   private String serviceName;
-  private String desiredStackVersion;
+  private StackId desiredStackId;
+  private String desiredRepositoryVersion;
+  private Long desiredRepositoryVersionId;
+  private RepositoryVersionState repositoryVersionState;
   private String desiredState;
   private String maintenanceState;
   private boolean credentialStoreSupported;
   private boolean credentialStoreEnabled;
 
-  public ServiceResponse(Long clusterId, String clusterName,
-                         String serviceName,
-                         String desiredStackVersion, String desiredState,
-                         boolean credentialStoreSupported, boolean credentialStoreEnabled) {
+  public ServiceResponse(Long clusterId, String clusterName, String serviceName,
+      StackId desiredStackId, String desiredRepositoryVersion,
+      RepositoryVersionState repositoryVersionState, String desiredState,
+      boolean credentialStoreSupported, boolean credentialStoreEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    this.setDesiredStackVersion(desiredStackVersion);
-    this.setDesiredState(desiredState);
+    this.desiredStackId = desiredStackId;
+    this.repositoryVersionState = repositoryVersionState;
+    setDesiredState(desiredState);
+    this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
   }
-  
-  
+
+
 
   /**
    * @return the serviceName
@@ -102,23 +109,40 @@ public class ServiceResponse {
   }
 
   /**
-   * @return the desiredStackVersion
+   * @return the desired stack ID.
    */
-  public String getDesiredStackVersion() {
-    return desiredStackVersion;
+  public String getDesiredStackId() {
+    return desiredStackId.getStackId();
+
   }
 
   /**
-   * @param desiredStackVersion the desiredStackVersion to set
+   * Gets the desired repository version.
+   *
+   * @return the desired repository version.
    */
-  public void setDesiredStackVersion(String desiredStackVersion) {
-    this.desiredStackVersion = desiredStackVersion;
+  public String getDesiredRepositoryVersion() {
+    return desiredRepositoryVersion;
+  }
+
+  /**
+   * Gets the calculated repository version state from the components of this
+   * service.
+   *
+   * @return the desired repository version state
+   */
+  public RepositoryVersionState getRepositoryVersionState() {
+    return repositoryVersionState;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceResponse that = (ServiceResponse) o;
 
@@ -137,11 +161,11 @@ public class ServiceResponse {
 
     return true;
   }
-  
+
   public void setMaintenanceState(String state) {
     maintenanceState = state;
   }
-  
+
   public String getMaintenanceState() {
     return maintenanceState;
   }
@@ -192,6 +216,20 @@ public class ServiceResponse {
     result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
+  }
+
+  /**
+   * @param id
+   */
+  public void setDesiredRepositoryVersionId(Long id) {
+    desiredRepositoryVersionId = id;
+  }
+
+  /**
+   * @param id
+   */
+  public Long getDesiredRepositoryVersionId() {
+    return desiredRepositoryVersionId;
   }
 
 }

@@ -24,9 +24,8 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
@@ -35,7 +34,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -59,9 +57,6 @@ public abstract class AbstractCheckDescriptor {
 
   @Inject
   Provider<Clusters> clustersProvider;
-
-  @Inject
-  Provider<ClusterVersionDAO> clusterVersionDAOProvider;
 
   @Inject
   Provider<HostVersionDAO> hostVersionDaoProvider;
@@ -241,7 +236,7 @@ public abstract class AbstractCheckDescriptor {
               c.getDesiredStackVersion().getStackName(),
               c.getDesiredStackVersion().getStackVersion());
 
-          LinkedHashSet<String> displays = new LinkedHashSet<String>();
+          LinkedHashSet<String> displays = new LinkedHashSet<>();
           for (String name : names) {
             if (services.containsKey(name)) {
               displays.add(services.get(name).getDisplayName());

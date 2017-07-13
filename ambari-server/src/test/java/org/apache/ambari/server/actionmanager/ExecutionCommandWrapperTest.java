@@ -36,6 +36,8 @@ import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -45,13 +47,12 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import junit.framework.Assert;
 
 public class ExecutionCommandWrapperTest {
 
@@ -109,25 +110,25 @@ public class ExecutionCommandWrapperTest {
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
-    SERVICE_SITE_CLUSTER = new HashMap<String, String>();
+    SERVICE_SITE_CLUSTER = new HashMap<>();
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2);
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME3, SERVICE_SITE_VAL3);
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME4, SERVICE_SITE_VAL4);
 
-    SERVICE_SITE_SERVICE = new HashMap<String, String>();
+    SERVICE_SITE_SERVICE = new HashMap<>();
     SERVICE_SITE_SERVICE.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1_S);
     SERVICE_SITE_SERVICE.put(SERVICE_SITE_NAME5, SERVICE_SITE_VAL5_S);
 
-    SERVICE_SITE_HOST = new HashMap<String, String>();
+    SERVICE_SITE_HOST = new HashMap<>();
     SERVICE_SITE_HOST.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2_H);
     SERVICE_SITE_HOST.put(SERVICE_SITE_NAME6, SERVICE_SITE_VAL6_H);
 
-    GLOBAL_CLUSTER = new HashMap<String, String>();
+    GLOBAL_CLUSTER = new HashMap<>();
     GLOBAL_CLUSTER.put(GLOBAL_NAME1, GLOBAL_CLUSTER_VAL1);
     GLOBAL_CLUSTER.put(GLOBAL_NAME2, GLOBAL_CLUSTER_VAL2);
 
-    CONFIG_ATTRIBUTES = new HashMap<String, Map<String,String>>();
+    CONFIG_ATTRIBUTES = new HashMap<>();
 
     //Cluster level global config
     configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
@@ -155,7 +156,7 @@ public class ExecutionCommandWrapperTest {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.NAMENODE.toString(),
             hostName, System.currentTimeMillis()), clusterName, "HDFS", false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
     db.persistActions(request);
@@ -164,14 +165,20 @@ public class ExecutionCommandWrapperTest {
   @Test
   public void testGetExecutionCommand() throws JSONException, AmbariException {
 
+    Cluster cluster = clusters.getCluster(CLUSTER1);
 
-    Map<String, Map<String, String>> confs = new HashMap<String, Map<String, String>>();
-    Map<String, String> configurationsGlobal = new HashMap<String, String>();
+    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+
+    cluster.addService("HDFS", repositoryVersion);
+
+    Map<String, Map<String, String>> confs = new HashMap<>();
+    Map<String, String> configurationsGlobal = new HashMap<>();
     configurationsGlobal.put(GLOBAL_NAME1, GLOBAL_VAL1);
     confs.put(GLOBAL_CONFIG, configurationsGlobal);
 
-    Map<String, Map<String, String>> confTags = new HashMap<String, Map<String, String>>();
-    Map<String, String> confTagServiceSite = new HashMap<String, String>();
+    Map<String, Map<String, String>> confTags = new HashMap<>();
+    Map<String, String> confTagServiceSite = new HashMap<>();
 
     confTagServiceSite.put("tag", CLUSTER_VERSION_TAG);
     confTagServiceSite.put("service_override_tag", SERVICE_VERSION_TAG);
@@ -223,7 +230,7 @@ public class ExecutionCommandWrapperTest {
 
 
     //Union of all keys of service site configs
-    Set<String> serviceSiteKeys = new HashSet<String>();
+    Set<String> serviceSiteKeys = new HashSet<>();
     serviceSiteKeys.addAll(SERVICE_SITE_CLUSTER.keySet());
     serviceSiteKeys.addAll(SERVICE_SITE_SERVICE.keySet());
     serviceSiteKeys.addAll(SERVICE_SITE_HOST.keySet());
@@ -234,7 +241,7 @@ public class ExecutionCommandWrapperTest {
 
   @Test
   public void testGetMergedConfig() {
-    Map<String, String> baseConfig = new HashMap<String, String>();
+    Map<String, String> baseConfig = new HashMap<>();
 
     baseConfig.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);
     baseConfig.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2);
@@ -242,7 +249,7 @@ public class ExecutionCommandWrapperTest {
     baseConfig.put(SERVICE_SITE_NAME4, SERVICE_SITE_VAL4);
     baseConfig.put(SERVICE_SITE_NAME5, SERVICE_SITE_VAL5);
 
-    Map<String, String> overrideConfig = new HashMap<String, String>();
+    Map<String, String> overrideConfig = new HashMap<>();
 
     overrideConfig.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2_H);
     overrideConfig.put(SERVICE_SITE_NAME6, SERVICE_SITE_VAL6_H);
@@ -252,7 +259,7 @@ public class ExecutionCommandWrapperTest {
       overrideConfig);
 
 
-    Set<String> configsKeys = new HashSet<String>();
+    Set<String> configsKeys = new HashSet<>();
     configsKeys.addAll(baseConfig.keySet());
     configsKeys.addAll(overrideConfig.keySet());
 

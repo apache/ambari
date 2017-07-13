@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,7 +30,6 @@ import javax.persistence.criteria.Root;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
@@ -116,9 +115,9 @@ public class ClusterDAO {
   }
 
   @RequiresSession
-  public List<ClusterConfigEntity> getLatestClusterConfigsByTypes(Long clusterId, List<String> types) {
+  public List<ClusterConfigEntity> getEnabledConfigsByTypes(Long clusterId, Collection<String> types) {
     TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createNamedQuery(
-      "ClusterConfigEntity.findLatestClusterConfigsByTypes",
+        "ClusterConfigEntity.findEnabledConfigsByTypes",
       ClusterConfigEntity.class);
 
     query.setParameter("clusterId", clusterId);
@@ -191,7 +190,9 @@ public class ClusterDAO {
 
   /**
    * Gets the latest configurations for a given stack for all of the
-   * configurations of the specified cluster.
+   * configurations of the specified cluster. This method does not take into
+   * account the configuration being enabled, as the latest for a given stack
+   * may not be "selected".
    *
    * @param clusterId
    *          the cluster that the service is a part of.
@@ -226,14 +227,11 @@ public class ClusterDAO {
    * @return the latest configurations for the specified cluster and stack.
    */
   @RequiresSession
-  public List<ClusterConfigMappingEntity> getClusterConfigMappingsByStack(long clusterId,
-      StackId stackId) {
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-        stackId.getStackVersion());
+  public List<ClusterConfigEntity> getEnabledConfigsByStack(long clusterId, StackId stackId) {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
 
-    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createNamedQuery(
-        "ClusterConfigEntity.findClusterConfigMappingsByStack",
-        ClusterConfigMappingEntity.class);
+    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findEnabledConfigsByStack", ClusterConfigEntity.class);
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("stack", stackEntity);
@@ -241,46 +239,26 @@ public class ClusterDAO {
     return daoUtils.selectList(query);
   }
 
-  @RequiresSession
-  public List<ClusterConfigMappingEntity> getClusterConfigMappingEntitiesByCluster(long clusterId) {
-    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createQuery(
-      "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
-        "WHERE mapping.clusterId = :clusterId", ClusterConfigMappingEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-
-    return daoUtils.selectList(query);
-  }
-
-  @RequiresSession
-  public List<ClusterConfigMappingEntity> getLatestClusterConfigMappingsEntityByType(long clusterId, String configType) {
-    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createNamedQuery(
-      "ClusterConfigMappingEntity.findLatestClusterConfigMappingsByType",
-      ClusterConfigMappingEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("typeName", configType);
-
-    return daoUtils.selectList(query);
-  }
-
   /**
-   * Gets selected mappings for provided config types
-   * @param clusterId cluster id
-   * @param types config types for mappings
-   * @return
+   * Gets the latest config in the given cluster by type name. Only a config
+   * which is enabled can be returned.
+   *
+   * @param clusterId
+   *          the ID of the cluster.
+   * @param type
+   *          the config type (not {@code null}).
+   * @return a config, or {@code null} if there is none enabled.
    */
   @RequiresSession
-  public List<ClusterConfigMappingEntity> getSelectedConfigMappingByTypes(long clusterId, List<String> types) {
-    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createQuery(
-        "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
-            "WHERE mapping.clusterId = :clusterId AND mapping.typeName IN :type " +
-            "AND mapping.selectedInd > 0", ClusterConfigMappingEntity.class);
+  public ClusterConfigEntity findEnabledConfigByType(long clusterId, String type) {
+
+    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findEnabledConfigByType", ClusterConfigEntity.class);
 
     query.setParameter("clusterId", clusterId);
-    query.setParameter("type", types);
+    query.setParameter("type", type);
 
-    return daoUtils.selectList(query);
+    return daoUtils.selectOne(query);
   }
 
   /**
@@ -301,101 +279,11 @@ public class ClusterDAO {
   }
 
   /**
-   * Merge a cluster configuration in the DB.
-   */
-  @Transactional
-  public void mergeConfig(ClusterConfigEntity configEntity) {
-    entityManagerProvider.get().merge(configEntity);
-  }
-
-  /**
-   * Bulk update configs in DB
-   */
-  @Transactional
-  public void mergeConfigs(Collection<ClusterConfigEntity> clusterConfigEntities) {
-    for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
-      entityManagerProvider.get().merge(clusterConfigEntity);
-    }
-  }
-
-  /**
    * Remove a cluster configuration in the DB.
    */
   @Transactional
   public void removeConfig(ClusterConfigEntity entity) {
     entityManagerProvider.get().remove(entity);
-  }
-
-  /**
-   * Bulk update config mappings in DB
-   */
-  @Transactional
-  public void mergeConfigMappings(Collection<ClusterConfigMappingEntity> mappingEntities) {
-    for (ClusterConfigMappingEntity mappingEntity : mappingEntities) {
-      entityManagerProvider.get().merge(mappingEntity);
-    }
-  }
-
-  /**
-   * Update config mapping in DB
-   */
-  @Transactional
-  public ClusterConfigMappingEntity mergeConfigMapping(ClusterConfigMappingEntity mappingEntity) {
-    return entityManagerProvider.get().merge(mappingEntity);
-  }
-
-  /**
-   * Create cluster config mapping in DB
-   */
-  @Transactional
-  public void persistConfigMapping(ClusterConfigMappingEntity entity) {
-    entityManagerProvider.get().persist(entity);
-  }
-
-  /**
-   * Remove a cluster configuration mapping from the DB.
-   */
-  @Transactional
-  public void removeConfigMapping(ClusterConfigMappingEntity entity) {
-    entityManagerProvider.get().remove(entity);
-  }
-
-
-  /**
-   * Sets selected = 0, for clusterConfigEntities which has type_name which is in the given types list
-   *
-   * @param clusterId
-   *          the cluster that the service is a part of.
-   * @param types
-   *          the names of the configuration types.
-   */
-    @Transactional
-    public void removeClusterConfigMappingEntityByTypes(Long clusterId, List<String> types) {
-      if(types.isEmpty()) {
-        return;
-      }
-
-      TypedQuery<Long> query = entityManagerProvider.get().createQuery
-          ("DELETE FROM ClusterConfigMappingEntity configs WHERE configs" +
-            ".clusterId=?1 AND configs.typeName IN ?2", Long.class);
-
-      daoUtils.executeUpdate(query, clusterId, types);
-    }
-
-  /**
-   * Delete ClusterConfigMappingEntity corresponds to clusterConfigEntity
-   *
-   * @param clusterConfigEntity
-   *          clusterConfigEntity to match.
-   */
-  @Transactional
-  public void removeClusterConfigMappingEntityByConfig(ClusterConfigEntity clusterConfigEntity) {
-
-    TypedQuery<Long> query = entityManagerProvider.get().createQuery
-        ("DELETE FROM ClusterConfigMappingEntity configs WHERE configs" +
-            ".clusterId=?1 AND configs.typeName= ?2 AND configs.tag=?3 ", Long.class);
-
-    daoUtils.executeUpdate(query, clusterConfigEntity.getClusterId(), clusterConfigEntity.getType(), clusterConfigEntity.getTag());
   }
 
   /**
@@ -446,10 +334,21 @@ public class ClusterDAO {
     return clusterEntity;
   }
 
+  /**
+   * Merge the specified entity into the current persistence context.
+   *
+   * @param clusterConfigEntity
+   *          the entity to merge (not {@code null}).
+   * @return the managed entity which was merged (never {@code null}).
+   */
+  public ClusterConfigEntity merge(ClusterConfigEntity clusterConfigEntity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    return entityManager.merge(clusterConfigEntity);
+  }
 
   @Transactional
   public void remove(ClusterEntity clusterEntity) {
-    entityManagerProvider.get().remove(merge(clusterEntity));
+    entityManagerProvider.get().remove(clusterEntity);
   }
 
   @Transactional

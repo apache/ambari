@@ -38,8 +38,8 @@ public class PrereqCheckRequest {
 
   private UpgradeType m_upgradeType;
 
-  private Map<CheckDescription, PrereqCheckStatus> m_results =
-      new HashMap<CheckDescription, PrereqCheckStatus>();
+  private Map<CheckDescription, PrereqCheckStatus> m_results = new HashMap<>();
+  private boolean m_revert = false;
 
 
   public PrereqCheckRequest(String clusterName, UpgradeType upgradeType) {
@@ -132,11 +132,30 @@ public class PrereqCheckRequest {
    * Gets the prerequisite check config
    * @return the prereqCheckConfig
    */
-  public PrerequisiteCheckConfig getPrerequisiteCheckConfig() { return m_prereqCheckConfig; }
+  public PrerequisiteCheckConfig getPrerequisiteCheckConfig() {
+    return m_prereqCheckConfig;
+  }
 
   /**
    * Sets the prerequisite check config obtained from the upgrade pack
    * @param prereqCheckConfig The prereqCheckConfig
    */
-  public void setPrerequisiteCheckConfig(PrerequisiteCheckConfig prereqCheckConfig) { m_prereqCheckConfig = prereqCheckConfig;}
+  public void setPrerequisiteCheckConfig(PrerequisiteCheckConfig prereqCheckConfig) {
+    m_prereqCheckConfig = prereqCheckConfig;
+  }
+
+  /**
+   * @param revert
+   *          {@code true} if the check is for a patch reversion
+   */
+  public void setRevert(boolean revert) {
+    m_revert = revert;
+  }
+
+  /**
+   * @return if the check is for a patch reversion
+   */
+  public boolean isRevert() {
+    return m_revert;
+  }
 }

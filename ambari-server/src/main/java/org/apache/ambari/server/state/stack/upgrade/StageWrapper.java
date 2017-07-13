@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -93,7 +93,7 @@ public class StageWrapper {
    * Gets the tasks json.
    */
   public String getTasksJson() {
-    List<Task> realTasks = new ArrayList<Task>();
+    List<Task> realTasks = new ArrayList<>();
     for (TaskWrapper tw : tasks) {
       realTasks.addAll(tw.getTasks());
     }
@@ -105,7 +105,7 @@ public class StageWrapper {
    * @return the set of hosts for all tasks
    */
   public Set<String> getHosts() {
-    Set<String> hosts = new HashSet<String>();
+    Set<String> hosts = new HashSet<>();
     for (TaskWrapper tw : tasks) {
       hosts.addAll(tw.getHosts());
     }
@@ -155,7 +155,7 @@ public class StageWrapper {
   public enum Type {
     SERVER_SIDE_ACTION,
     RESTART,
-    RU_TASKS,
+    UPGRADE_TASKS,
     SERVICE_CHECK,
     STOP,
     START,

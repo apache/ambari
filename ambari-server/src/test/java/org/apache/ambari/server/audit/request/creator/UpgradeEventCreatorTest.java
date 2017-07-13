@@ -40,7 +40,7 @@ public class UpgradeEventCreatorTest extends AuditEventCreatorTestBase{
     UpgradeEventCreator creator = new UpgradeEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION, "1.9");
+    properties.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, "1234");
     properties.put(UpgradeResourceProvider.UPGRADE_TYPE, "ROLLING");
     properties.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "mycluster");
 
@@ -50,7 +50,7 @@ public class UpgradeEventCreatorTest extends AuditEventCreatorTestBase{
     AuditEvent event = AuditEventCreatorTestHelper.getEvent(creator, request, result);
 
     String actual = event.getAuditMessage();
-    String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(Upgrade addition), RequestType(POST), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Repository version(1.9), Upgrade type(ROLLING), Cluster name(mycluster)";
+    String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(Upgrade addition), RequestType(POST), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Repository version ID(1234), Upgrade type(ROLLING), Cluster name(mycluster)";
 
     Assert.assertTrue("Class mismatch", event instanceof AddUpgradeRequestAuditEvent);
     Assert.assertEquals(expected, actual);

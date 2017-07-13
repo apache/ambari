@@ -71,7 +71,7 @@ public class Grouping {
   public boolean allowRetry = true;
 
   @XmlElement(name="service")
-  public List<UpgradePack.OrderService> services = new ArrayList<UpgradePack.OrderService>();
+  public List<UpgradePack.OrderService> services = new ArrayList<>();
 
   @XmlElement(name="service-check", defaultValue="true")
   public boolean performServiceCheck = true;
@@ -101,8 +101,8 @@ public class Grouping {
 
   private static class DefaultBuilder extends StageWrapperBuilder {
 
-    private List<StageWrapper> m_stages = new ArrayList<StageWrapper>();
-    private Set<String> m_servicesToCheck = new HashSet<String>();
+    private List<StageWrapper> m_stages = new ArrayList<>();
+    private Set<String> m_servicesToCheck = new HashSet<>();
     private boolean m_serviceCheck = true;
 
     private DefaultBuilder(Grouping grouping, boolean serviceCheck) {
@@ -167,7 +167,7 @@ public class Grouping {
      * @return List of list of TaskWrappers, where each outer list is a separate stage.
      */
     private List<List<TaskWrapper>> organizeTaskWrappersBySyncRules(List<TaskWrapper> tasks) {
-      List<List<TaskWrapper>> groupedTasks = new ArrayList<List<TaskWrapper>>();
+      List<List<TaskWrapper>> groupedTasks = new ArrayList<>();
 
       List<TaskWrapper> subTasks = new ArrayList<>();
       for (TaskWrapper tw : tasks) {
@@ -247,8 +247,8 @@ public class Grouping {
         m_stages.addAll(0, stageWrappers);
       }
 
-      List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
-      List<String> displays = new ArrayList<String>();
+      List<TaskWrapper> tasks = new ArrayList<>();
+      List<String> displays = new ArrayList<>();
       for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
             service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
@@ -277,7 +277,7 @@ public class Grouping {
       return Collections.emptyList();
     }
 
-    List<TaskBucket> holders = new ArrayList<TaskBucket>();
+    List<TaskBucket> holders = new ArrayList<>();
 
     TaskBucket current = null;
 
@@ -301,7 +301,7 @@ public class Grouping {
 
   private static class TaskBucket {
     private StageWrapper.Type type;
-    private List<Task> tasks = new ArrayList<Task>();
+    private List<Task> tasks = new ArrayList<>();
     private TaskBucket(Task initial) {
       switch (initial.getType()) {
         case CONFIGURE:
@@ -310,7 +310,7 @@ public class Grouping {
           type = StageWrapper.Type.SERVER_SIDE_ACTION;
           break;
         case EXECUTE:
-          type = StageWrapper.Type.RU_TASKS;
+          type = StageWrapper.Type.UPGRADE_TASKS;
           break;
         case CONFIGURE_FUNCTION:
           type = StageWrapper.Type.CONFIGURE;

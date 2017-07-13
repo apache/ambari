@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,6 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -28,16 +27,13 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
 
 /**
  * Action that checks component versions to ensure {@link FinalizeUpgradeAction} will
@@ -45,30 +41,23 @@ import com.google.inject.Inject;
  */
 public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
 
-  /**
-   * Used for building {@link UpgradeContext} instances.
-   */
-  @Inject
-  private UpgradeContextFactory upgradeContextFactory;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
-    UpgradeContext context = upgradeContextFactory.create(cluster, cluster.getUpgradeInProgress());
-    RepositoryVersionEntity targetRepositoryVersion = context.getTargetRepositoryVersion();
 
-    List<InfoTuple> errors = checkHostComponentVersions(cluster,
-        targetRepositoryVersion.getVersion(), context.getTargetStackId());
+    Cluster cluster = m_clusters.getCluster(clusterName);
+
+    UpgradeContext upgradeContext = getUpgradeContext(cluster);
+    Set<InfoTuple> errors = validateComponentVersions(upgradeContext);
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();
 
     if (errors.isEmpty()) {
-      outSB.append("No version mismatches found for components");
-      errSB.append("No errors found for components");
+      outSB.append("All service components are reporting the correct version.");
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } else {
       String structuredOut = getErrors(outSB, errSB, errors);
@@ -76,19 +65,21 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
     }
   }
 
-  private String getErrors(StringBuilder outSB, StringBuilder errSB, List<InfoTuple> errors) {
+  private String getErrors(StringBuilder outSB, StringBuilder errSB, Set<InfoTuple> errors) {
 
-    errSB.append("The following components were found to have version mismatches.  ");
-    errSB.append("Finalize will not complete successfully:\n");
+    errSB.append("Finalization will not be able to completed because of the following version inconsistencies:");
 
     Set<String> hosts = new TreeSet<>();
     Map<String, JsonArray> hostDetails = new HashMap<>();
 
     for (InfoTuple tuple : errors) {
+      errSB.append("  ");
       errSB.append(tuple.hostName).append(": ");
+      errSB.append(System.lineSeparator()).append("    ");
       errSB.append(tuple.serviceName).append('/').append(tuple.componentName);
       errSB.append(" reports ").append(StringUtils.trimToEmpty(tuple.currentVersion));
-      errSB.append('\n');
+      errSB.append(" but expects ").append(tuple.targetVersion);
+      errSB.append(System.lineSeparator());
 
       hosts.add(tuple.hostName);
 
@@ -100,6 +91,7 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
       obj.addProperty("service", tuple.serviceName);
       obj.addProperty("component", tuple.componentName);
       obj.addProperty("version", tuple.currentVersion);
+      obj.addProperty("targetVersion", tuple.targetVersion);
 
       hostDetails.get(tuple.hostName).add(obj);
     }

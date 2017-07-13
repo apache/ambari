@@ -91,7 +91,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
           }
         });
 
-    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
     Map<String, String> commandParameters = getCommandParameters();
     String dataDirectory = getCommandParameterValue(commandParameters, DATA_DIRECTORY);
 
@@ -143,7 +143,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
     // Ensure the cluster-env/security_enabled flag is set properly
     Map<String, String> clusterEnvProperties = kerberosConfigurations.get(KerberosHelper.SECURITY_ENABLED_CONFIG_TYPE);
     if (clusterEnvProperties == null) {
-      clusterEnvProperties = new HashMap<String, String>();
+      clusterEnvProperties = new HashMap<>();
       kerberosConfigurations.put(KerberosHelper.SECURITY_ENABLED_CONFIG_TYPE, clusterEnvProperties);
     }
     clusterEnvProperties.put(KerberosHelper.SECURITY_ENABLED_PROPERTY_NAME, "false");
@@ -157,13 +157,13 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
         throw new AmbariException(message);
       }
 
-      Map<String, Set<String>> configurationsToRemove = new HashMap<String, Set<String>>();
+      Map<String, Set<String>> configurationsToRemove = new HashMap<>();
 
       // Fill the configurationsToRemove map with all Kerberos-related configurations.  Values
       // needed to be kept will have new values from the stack definition and thus pruned from
       // this map.
       for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
-        configurationsToRemove.put(entry.getKey(), new HashSet<String>(entry.getValue().keySet()));
+        configurationsToRemove.put(entry.getKey(), new HashSet<>(entry.getValue().keySet()));
       }
 
       // Remove cluster-env from the set of configurations to remove since it has no default set
@@ -171,13 +171,13 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       configurationsToRemove.remove("cluster-env");
 
       if (!schToProcess.isEmpty()) {
-        Set<String> visitedServices = new HashSet<String>();
+        Set<String> visitedServices = new HashSet<>();
 
         for (ServiceComponentHost sch : schToProcess) {
           String serviceName = sch.getServiceName();
 
           if (!visitedServices.contains(serviceName)) {
-            StackId stackVersion = sch.getStackVersion();
+            StackId stackVersion = sch.getDesiredStackId();
 
             visitedServices.add(serviceName);
 

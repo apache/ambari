@@ -536,7 +536,7 @@ public class ConfigureAction extends AbstractServerAction {
       auditName = m_configuration.getAnonymousAuditName();
     }
 
-    m_configHelper.createConfigType(cluster, m_controller, configType,
+    m_configHelper.createConfigType(cluster, cluster.getDesiredStackVersion(), m_controller, configType,
         newValues, auditName, serviceVersionNote);
 
     String message = "Finished updating configuration ''{0}''";

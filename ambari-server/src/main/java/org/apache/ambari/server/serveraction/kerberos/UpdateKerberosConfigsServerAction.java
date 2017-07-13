@@ -18,7 +18,15 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -31,14 +39,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
 
 /**
  * UpdateKerberosConfigServerAction is implementation of ServerAction that updates service configs
@@ -85,8 +86,8 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
 
     String authenticatedUserName = getCommandParameterValue(getCommandParameters(), KerberosServerAction.AUTHENTICATED_USER_NAME);
     String dataDirectoryPath = getCommandParameterValue(getCommandParameters(), KerberosServerAction.DATA_DIRECTORY);
-    HashMap<String, Map<String, String>> propertiesToSet = new HashMap<String, Map<String, String>>();
-    HashMap<String, Collection<String>> propertiesToRemove = new HashMap<String, Collection<String>>();
+    HashMap<String, Map<String, String>> propertiesToSet = new HashMap<>();
+    HashMap<String, Collection<String>> propertiesToRemove = new HashMap<>();
 
     // If the data directory path is set, attempt to process further, else assume there is no work to do
     if (dataDirectoryPath != null) {
@@ -95,7 +96,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
       // If the data directory exists, attempt to process further, else assume there is no work to do
       if (dataDirectory.exists()) {
         KerberosConfigDataFileReader configReader = null;
-        Set<String> configTypes = new HashSet<String>();
+        Set<String> configTypes = new HashSet<>();
 
         try {
           // If the config data file exists, iterate over the records to find the (explicit)
@@ -146,7 +147,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
             }
 
             for (String configType : configTypes) {
-              configHelper.updateConfigType(cluster, controller, configType,
+              configHelper.updateConfigType(cluster, cluster.getDesiredStackVersion(), controller, configType,
                   propertiesToSet.get(configType),
                   propertiesToRemove.get(configType),
                   authenticatedUserName, configNote);
@@ -200,7 +201,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
   private void addConfigTypePropVal(HashMap<String, Map<String, String>> configurations, String configType, String prop, String val) {
     Map<String, String> configTypePropsVal = configurations.get(configType);
     if (configTypePropsVal == null) {
-      configTypePropsVal = new HashMap<String, String>();
+      configTypePropsVal = new HashMap<>();
       configurations.put(configType, configTypePropsVal);
     }
     configTypePropsVal.put(prop, val);
@@ -217,7 +218,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
   private void removeConfigTypeProp(HashMap<String, Collection<String>> configurations, String configType, String prop) {
     Collection<String> configTypeProps = configurations.get(configType);
     if (configTypeProps == null) {
-      configTypeProps = new HashSet<String>();
+      configTypeProps = new HashSet<>();
       configurations.put(configType, configTypeProps);
     }
     configTypeProps.add(prop);

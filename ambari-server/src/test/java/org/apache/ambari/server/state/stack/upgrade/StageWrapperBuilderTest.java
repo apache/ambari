@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -51,8 +51,6 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
   @Test
   public void testBuildOrder() throws Exception {
     Cluster cluster = createNiceMock(Cluster.class);
-    EasyMock.expect(cluster.getCurrentStackVersion()).andReturn(HDP_21).anyTimes();
-    EasyMock.expect(cluster.getDesiredStackVersion()).andReturn(HDP_21).anyTimes();
 
     RepositoryVersionEntity repoVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     EasyMock.expect(repoVersionEntity.getStackId()).andReturn(HDP_21).anyTimes();
@@ -65,8 +63,7 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
     EasyMock.expect(upgradeContext.getCluster()).andReturn(cluster).anyTimes();
     EasyMock.expect(upgradeContext.getType()).andReturn(UpgradeType.ROLLING).anyTimes();
     EasyMock.expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
-    EasyMock.expect(upgradeContext.getSourceRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
-    EasyMock.expect(upgradeContext.getTargetRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
+    EasyMock.expect(upgradeContext.getRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
     EasyMock.expect(upgradeContext.isComponentFailureAutoSkipped()).andReturn(false).anyTimes();
     EasyMock.expect(upgradeContext.isServiceCheckFailureAutoSkipped()).andReturn(false).anyTimes();
 
@@ -95,8 +92,6 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
   @Test
   public void testAutoSkipCheckInserted() throws Exception {
     Cluster cluster = createNiceMock(Cluster.class);
-    EasyMock.expect(cluster.getCurrentStackVersion()).andReturn(HDP_21).anyTimes();
-    EasyMock.expect(cluster.getDesiredStackVersion()).andReturn(HDP_21).anyTimes();
 
     RepositoryVersionEntity repoVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     EasyMock.expect(repoVersionEntity.getStackId()).andReturn(HDP_21).anyTimes();
@@ -109,8 +104,7 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
     EasyMock.expect(upgradeContext.getCluster()).andReturn(cluster).anyTimes();
     EasyMock.expect(upgradeContext.getType()).andReturn(UpgradeType.ROLLING).anyTimes();
     EasyMock.expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
-    EasyMock.expect(upgradeContext.getSourceRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
-    EasyMock.expect(upgradeContext.getTargetRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
+    EasyMock.expect(upgradeContext.getRepositoryVersion()).andReturn(repoVersionEntity).anyTimes();
     EasyMock.expect(upgradeContext.isComponentFailureAutoSkipped()).andReturn(true).anyTimes();
     EasyMock.expect(upgradeContext.isServiceCheckFailureAutoSkipped()).andReturn(true).anyTimes();
 

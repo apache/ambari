@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.HostRequest;
@@ -28,9 +31,6 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.Set;
 
 public class HostStatusHelper {
 
@@ -72,8 +72,7 @@ public class HostStatusHelper {
     HostResponse hostResponse;
 
     try {
-      HostRequest hostRequest = new HostRequest(hostName, clusterName,
-        Collections.<String, String>emptyMap());
+      HostRequest hostRequest = new HostRequest(hostName, clusterName);
       Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest);
 
       hostResponse = hosts.size() == 1 ? hosts.iterator().next() : null;

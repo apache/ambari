@@ -17,29 +17,25 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +63,6 @@ public class ExecutionCommandWrapper {
   @Inject
   private Gson gson;
 
-  /**
-   * Used for injecting hooks and common-services into the command.
-   */
-  @Inject
-  private AmbariMetaInfo ambariMetaInfo;
-
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
     this.jsonExecutionCommand = jsonExecutionCommand;
@@ -95,7 +85,6 @@ public class ExecutionCommandWrapper {
    * long as it has been instructed to set updated ones at execution time.
    *
    * @return
-   * @see ExecutionCommand#setForceRefreshConfigTagsBeforeExecution(Set)
    */
   public ExecutionCommand getExecutionCommand() {
     if (executionCommand != null) {
@@ -155,7 +144,8 @@ public class ExecutionCommandWrapper {
       // now that the tags have been updated (if necessary), fetch the
       // configurations
       Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
-      if (null != configurationTags && !configurationTags.isEmpty()) {
+
+      if (MapUtils.isNotEmpty(configurationTags)) {
         Map<String, Map<String, String>> configProperties = configHelper
             .getEffectiveConfigProperties(cluster, configurationTags);
 
@@ -196,34 +186,44 @@ public class ExecutionCommandWrapper {
         }
       }
 
-      Map<String,String> commandParams = executionCommand.getCommandParams();
-
-      ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-      if (null != effectiveClusterVersion) {
-        commandParams.put(KeyNames.VERSION,
-            effectiveClusterVersion.getRepositoryVersion().getVersion());
-      }
-
-      // add the stack and common-services folders to the command, but only if
-      // they don't exist - they may have been put on here with specific values
-      // ahead of time
-      StackId stackId = cluster.getDesiredStackVersion();
-      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-          stackId.getStackVersion());
-
-      if (!commandParams.containsKey(HOOKS_FOLDER)) {
-        commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-      }
-
-      if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
+      // set the repository version for the component this command is for -
+      // always use the current desired version
+      try {
+        RepositoryVersionEntity repositoryVersion = null;
         String serviceName = executionCommand.getServiceName();
         if (!StringUtils.isEmpty(serviceName)) {
-          ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-              stackId.getStackVersion(), serviceName);
+          Service service = cluster.getService(serviceName);
+          if (null != service) {
+            repositoryVersion = service.getDesiredRepositoryVersion();
+          }
 
-          commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+          String componentName = executionCommand.getComponentName();
+          if (!StringUtils.isEmpty(componentName)) {
+            ServiceComponent serviceComponent = service.getServiceComponent(
+                executionCommand.getComponentName());
+
+            if (null != serviceComponent) {
+              repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+            }
+          }
         }
+
+        if (null != repositoryVersion) {
+          executionCommand.getCommandParams().put(KeyNames.VERSION, repositoryVersion.getVersion());
+          executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
+        }
+      } catch (ServiceNotFoundException serviceNotFoundException) {
+        // it's possible that there are commands specified for a service where
+        // the service doesn't exist yet
+        LOG.warn(
+            "The service {} is not installed in the cluster. No repository version will be sent for this command.",
+            executionCommand.getServiceName());
       }
+
+      // set the desired versions of versionable components.  This is safe even during an upgrade because
+      // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.
+      executionCommand.setComponentVersions(cluster);
+
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs

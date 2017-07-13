@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,6 +25,7 @@ public class RepositoryEntity {
   private String name;
   private String baseUrl;
   private String repositoryId;
+  private String mirrorsList;
   private boolean unique;
 
   public String getName() {
@@ -71,6 +72,14 @@ public class RepositoryEntity {
     result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
     result = 31 * result + (repositoryId != null ? repositoryId.hashCode() : 0);
     return result;
+  }
+
+  public String getMirrorsList() {
+    return mirrorsList;
+  }
+
+  public void setMirrorsList(String mirrorsList) {
+    this.mirrorsList = mirrorsList;
   }
 
   public boolean isUnique() {

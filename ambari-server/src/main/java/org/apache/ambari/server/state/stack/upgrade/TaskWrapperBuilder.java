@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TaskWrapperBuilder {
 
-  private static Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
 
   /**
    * Creates a collection of task wrappers based on the set of hosts they are allowed to run on
@@ -56,7 +56,7 @@ public class TaskWrapperBuilder {
     // to create.
     String ambariServerHostname = StageUtils.getHostName();
 
-    List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
+    List<TaskWrapper> collection = new ArrayList<>();
     for (Task t : tasks) {
 
       // only add the server-side task if there are actual hosts for the service/component
@@ -114,7 +114,7 @@ public class TaskWrapperBuilder {
    * @return Returns the union of the hosts scheduled to perform the tasks.
    */
   public static Set<String> getEffectiveHosts(List<TaskWrapper> tasks) {
-    Set<String> effectiveHosts = new HashSet<String>();
+    Set<String> effectiveHosts = new HashSet<>();
     for(TaskWrapper t : tasks) {
       effectiveHosts.addAll(t.getHosts());
     }

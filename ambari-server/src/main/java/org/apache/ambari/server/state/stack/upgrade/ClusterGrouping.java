@@ -224,7 +224,7 @@ public class ClusterGrouping extends Grouping {
       if (null == hosts || hosts.hosts.isEmpty()) {
         return null;
       } else {
-        realHosts = new LinkedHashSet<String>(hosts.hosts);
+        realHosts = new LinkedHashSet<>(hosts.hosts);
       }
     }
 
@@ -269,7 +269,7 @@ public class ClusterGrouping extends Grouping {
 
       if (hosts != null) {
 
-        Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
+        Set<String> realHosts = new LinkedHashSet<>(hosts.hosts);
         if (ExecuteHostType.MASTER == et.hosts && null != hosts.master) {
           realHosts = Collections.singleton(hosts.master);
         }
@@ -292,7 +292,7 @@ public class ClusterGrouping extends Grouping {
         }
 
         return new StageWrapper(
-            StageWrapper.Type.RU_TASKS,
+            StageWrapper.Type.UPGRADE_TASKS,
             execution.title,
             new TaskWrapper(service, component, realHosts, et));
       }
@@ -300,7 +300,7 @@ public class ClusterGrouping extends Grouping {
       // no service and no component will distributed the task to all healthy
       // hosts not in maintenance mode
       Cluster cluster = ctx.getCluster();
-      Set<String> hostNames = new HashSet<String>();
+      Set<String> hostNames = new HashSet<>();
       for (Host host : ctx.getCluster().getHosts()) {
         MaintenanceState maintenanceState = host.getMaintenanceState(cluster.getClusterId());
         if (maintenanceState == MaintenanceState.OFF) {
@@ -309,7 +309,7 @@ public class ClusterGrouping extends Grouping {
       }
 
       return new StageWrapper(
-          StageWrapper.Type.RU_TASKS,
+          StageWrapper.Type.UPGRADE_TASKS,
           execution.title,
           new TaskWrapper(service, component, hostNames, et));
     }
@@ -349,7 +349,7 @@ public class ClusterGrouping extends Grouping {
   @Override
   public void merge(Iterator<Grouping> iterator) throws AmbariException {
     if (executionStages == null) {
-      executionStages = new ArrayList<ExecuteStage>();
+      executionStages = new ArrayList<>();
     }
     Map<String, List<ExecuteStage>> skippedStages = new HashMap<>();
     while (iterator.hasNext()) {
