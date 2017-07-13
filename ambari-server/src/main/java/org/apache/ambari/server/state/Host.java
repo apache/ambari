@@ -395,7 +395,9 @@ public interface Host extends Comparable {
   List<HostVersionEntity> getAllHostVersions();
 
   /**
-   * Gets whether this host has components which advertise their version.
+   * Gets whether this host has components which advertise their version for the
+   * given stack. If the components on the host do not exist in the given stack,
+   * then it is assumed they do not advertise their version.
    *
    * @param stackId
    *          the version of the stack to use when checking version
