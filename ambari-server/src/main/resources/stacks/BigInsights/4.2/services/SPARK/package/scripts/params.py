@@ -22,6 +22,7 @@ from resource_management.libraries.functions.default import default
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import format_stack_version
 from spark import *
 import status_params
 
@@ -39,7 +40,9 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
-iop_full_version = get_iop_version()
+
+current_version = default("/hostLevelParams/current_version", None)
+iop_full_version = format_stack_version(current_version)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
