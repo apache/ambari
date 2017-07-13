@@ -19,8 +19,11 @@ import javax.inject.Singleton;
 
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 
+import com.google.inject.persist.Transactional;
+
 /**
  * DAO dealing with ambari configuration related JPA operations.
+ * Operations delegate to the JPA provider implementation of CRUD operations.
  */
 
 @Singleton
@@ -31,6 +34,7 @@ public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, L
     super(AmbariConfigurationEntity.class);
   }
 
+  @Transactional
   public void create(AmbariConfigurationEntity entity) {
     super.create(entity);
   }

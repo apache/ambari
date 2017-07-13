@@ -25,7 +25,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -46,11 +45,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * Resource provider for AmbariConfiguration resources.
  */
-@StaticallyInject
 public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResourceProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariConfigurationResourceProvider.class);
@@ -60,7 +59,7 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
   /**
    * Resource property id constants.
    */
-  private enum ResourcePropertyId {
+  public enum ResourcePropertyId {
 
     ID("AmbariConfiguration/id"),
     TYPE("AmbariConfiguration/type"),
@@ -112,11 +111,12 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
 
 
   @Inject
-  private static AmbariConfigurationDAO ambariConfigurationDAO;
+  private AmbariConfigurationDAO ambariConfigurationDAO;
 
   private Gson gson;
 
-  protected AmbariConfigurationResourceProvider() {
+  @AssistedInject
+  public AmbariConfigurationResourceProvider() {
     super(PROPERTIES, PK_PROPERTY_MAP);
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION));
@@ -134,7 +134,12 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
     ResourceAlreadyExistsException, NoSuchParentResourceException {
 
     LOGGER.info("Creating new ambari configuration resource ...");
-    AmbariConfigurationEntity ambariConfigurationEntity = getEntityFromRequest(request);
+    AmbariConfigurationEntity ambariConfigurationEntity = null;
+    try {
+      ambariConfigurationEntity = getEntityFromRequest(request);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException(e.getMessage());
+    }
 
     LOGGER.info("Persisting new ambari configuration: {} ", ambariConfigurationEntity);
     ambariConfigurationDAO.create(ambariConfigurationEntity);
@@ -148,6 +153,7 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
     UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     Set<Resource> resources = Sets.newHashSet();
 
+    // retrieves allconfigurations, filtering is done at a higher level
     List<AmbariConfigurationEntity> ambariConfigurationEntities = ambariConfigurationDAO.findAll();
     for (AmbariConfigurationEntity ambariConfigurationEntity : ambariConfigurationEntities) {
       try {
@@ -181,40 +187,86 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
 
   }
 
+  @Override
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate) throws SystemException,
+    UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    Long idFromRequest = Long.valueOf((String) PredicateHelper.getProperties(predicate).get(ResourcePropertyId.ID.getPropertyId()));
+
+    AmbariConfigurationEntity persistedEntity = ambariConfigurationDAO.findByPK(idFromRequest);
+    if (persistedEntity == null) {
+      String errorMsg = String.format("Entity with primary key [ %s ] not found in the database.", idFromRequest);
+      LOGGER.error(errorMsg);
+      throw new NoSuchResourceException(errorMsg);
+    }
+
+    try {
+
+      AmbariConfigurationEntity entityFromRequest = getEntityFromRequest(request);
+      persistedEntity.getConfigurationBaseEntity().setVersionTag(entityFromRequest.getConfigurationBaseEntity().getVersionTag());
+      persistedEntity.getConfigurationBaseEntity().setVersion(entityFromRequest.getConfigurationBaseEntity().getVersion());
+      persistedEntity.getConfigurationBaseEntity().setType(entityFromRequest.getConfigurationBaseEntity().getType());
+      persistedEntity.getConfigurationBaseEntity().setConfigurationData(entityFromRequest.getConfigurationBaseEntity().getConfigurationData());
+      persistedEntity.getConfigurationBaseEntity().setConfigurationAttributes(entityFromRequest.getConfigurationBaseEntity().getConfigurationAttributes());
+
+
+      ambariConfigurationDAO.create(persistedEntity);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException(e.getMessage());
+    }
+
+    return getRequestStatus(null);
+
+  }
+
   private Resource toResource(AmbariConfigurationEntity entity, Set<String> requestedIds) throws AmbariException {
+
+    if (null == entity) {
+      throw new IllegalArgumentException("Null entity can't be transformed into a resource");
+    }
+
+    if (null == entity.getConfigurationBaseEntity()) {
+      throw new IllegalArgumentException("Invalid configuration entity can't be transformed into a resource");
+    }
     Resource resource = new ResourceImpl(Resource.Type.AmbariConfiguration);
     Set<Map<String, String>> configurationSet = gson.fromJson(entity.getConfigurationBaseEntity().getConfigurationData(), Set.class);
 
     setResourceProperty(resource, ResourcePropertyId.ID.getPropertyId(), entity.getId(), requestedIds);
     setResourceProperty(resource, ResourcePropertyId.TYPE.getPropertyId(), entity.getConfigurationBaseEntity().getType(), requestedIds);
     setResourceProperty(resource, ResourcePropertyId.DATA.getPropertyId(), configurationSet, requestedIds);
+    setResourceProperty(resource, ResourcePropertyId.VERSION.getPropertyId(), entity.getConfigurationBaseEntity().getVersion(), requestedIds);
+    setResourceProperty(resource, ResourcePropertyId.VERSION_TAG.getPropertyId(), entity.getConfigurationBaseEntity().getVersionTag(), requestedIds);
 
     return resource;
   }
 
-  private AmbariConfigurationEntity getEntityFromRequest(Request request) {
+  private AmbariConfigurationEntity getEntityFromRequest(Request request) throws AmbariException {
 
     AmbariConfigurationEntity ambariConfigurationEntity = new AmbariConfigurationEntity();
     ambariConfigurationEntity.setConfigurationBaseEntity(new ConfigurationBaseEntity());
 
+    // set of resource properties (eache entry in the set belongs to a different resource)
+    Set<Map<String, Object>> resourcePropertiesSet = request.getProperties();
+
+    if (resourcePropertiesSet.size() != 1) {
+      throw new AmbariException("There must be only one resource specified in the request");
+    }
+
 
     for (ResourcePropertyId resourcePropertyId : ResourcePropertyId.values()) {
-      Object requestValue = getValueFromRequest(resourcePropertyId, request);
+      Object requestValue = getValueFromResourceProperties(resourcePropertyId, resourcePropertiesSet.iterator().next());
 
       switch (resourcePropertyId) {
         case DATA:
           if (requestValue == null) {
             throw new IllegalArgumentException("No configuration data is provided in the request");
           }
-
           ambariConfigurationEntity.getConfigurationBaseEntity().setConfigurationData(gson.toJson(requestValue));
           break;
         case TYPE:
           ambariConfigurationEntity.getConfigurationBaseEntity().setType((String) requestValue);
           break;
-
         case VERSION:
-          Integer version = (requestValue == null) ? DEFAULT_VERSION : Integer.valueOf((Integer) requestValue);
+          Integer version = (requestValue == null) ? DEFAULT_VERSION : Integer.valueOf((String) requestValue);
           ambariConfigurationEntity.getConfigurationBaseEntity().setVersion((version));
           break;
         case VERSION_TAG:
@@ -231,15 +283,13 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
 
   }
 
-  private Object getValueFromRequest(ResourcePropertyId resourcePropertyIdEnum, Request request) {
-    LOGGER.debug("Locating resource property [{}] in the request ...", resourcePropertyIdEnum);
+  private Object getValueFromResourceProperties(ResourcePropertyId resourcePropertyIdEnum, Map<String, Object> resourceProperties) {
+    LOGGER.debug("Locating resource property [{}] in the resource properties map ...", resourcePropertyIdEnum);
     Object requestValue = null;
-    for (Map<String, Object> propertyMap : request.getProperties()) {
-      if (propertyMap.containsKey(resourcePropertyIdEnum.getPropertyId())) {
-        requestValue = propertyMap.get(resourcePropertyIdEnum.getPropertyId());
-        LOGGER.debug("Found resource property {} in the request, value: {} ...", resourcePropertyIdEnum, requestValue);
-        break;
-      }
+
+    if (resourceProperties.containsKey(resourcePropertyIdEnum.getPropertyId())) {
+      requestValue = resourceProperties.get(resourcePropertyIdEnum.getPropertyId());
+      LOGGER.debug("Found resource property {} in the resource properties map, value: {}", resourcePropertyIdEnum, requestValue);
     }
     return requestValue;
   }
