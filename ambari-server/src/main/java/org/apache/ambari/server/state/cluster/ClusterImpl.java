@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
@@ -1122,6 +1123,14 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+
+  @Override
+  public List<Config> getLatestConfigsWithTypes(Collection<String> types) {
+    return clusterDAO.getLatestConfigurationsWithTypes(clusterId, getDesiredStackVersion(), types)
+      .stream()
+      .map(clusterConfigEntity -> configFactory.createExisting(this, clusterConfigEntity))
+      .collect(Collectors.toList());
   }
 
   @Override

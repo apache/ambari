@@ -95,7 +95,7 @@ public class PostMapValuesAdapter implements JsonDeserializer<List<PostMapValues
   private JsonElement createMapperObject(PostMapValuesImpl postMapValues, JsonSerializationContext context) {
     JsonObject jsonObject = new JsonObject();
     for (MapFieldDescriptor m : postMapValues.getMappers()) {
-      jsonObject.add(((MapFieldDescriptor)m).getJsonName(), context.serialize(m));
+      jsonObject.add(((MapFieldDescriptorImpl)m).getJsonName(), context.serialize(m));
     }
     return jsonObject;
   }

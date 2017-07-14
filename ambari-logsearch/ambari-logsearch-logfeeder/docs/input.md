@@ -20,20 +20,18 @@ limitations under the License.
 # Input
 
 The input element in the [input configuration](inputConfig.md) contains a list of input descriptions, each describing one source
-of input.
-
-The general elements in the json are the following:
+of input. The general elements in the json are the following:
 
 | Field                       | Description                                                                                           | Default      |
 |-----------------------------|-------------------------------------------------------------------------------------------------------|--------------|
-| type                        | The type of the input source, currently file and s3_file are supported                                | -            |
+| type                        | The log id for this source                                                                            | -            |
 | rowtype                     | The type of the row, can be service / audit                                                           | -            |
 | path                        | The path of the source, may contain '*' characters too                                                | -            |
 | add\_fields                 | The element contains field\_name: field\_value pairs which will be added to each rows data            | -            |
+| source                      | The type of the input source, currently file and s3_file are supported                                | -            |
 | tail                        | The input should check for only the latest file matching the pattern, not all of them                 | true         |
 | gen\_event\_md5             | Generate an event\_md5 field for each row by creating a hash of the row data                          | true         |
 | use\_event\_md5\_as\_id     | Generate an id for each row by creating a hash of the row data                                        | false        |
-| start\_position             | Should the parsing start from the beginning                                                           | beginning    |
 | cache\_enabled              | Allows the input to use a cache to filter out duplications                                            | true         |
 | cache\_key\_field           | Specifies the field for which to use the cache to find duplications of                                | log\_message |
 | cache\_last\_dedup\_enabled | Allow to filter out entries which are same as the most recent one irrelevant of it's time             | false        |
@@ -44,7 +42,7 @@ The general elements in the json are the following:
 
 ## File Input
 
-File inputs have the following parameters too:
+File inputs have some additional parameters:
 
 | Field                    | Description                                                        | Default |
 |--------------------------|--------------------------------------------------------------------|---------|

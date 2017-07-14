@@ -399,7 +399,6 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   stack_root = Script.get_stack_root()
   stack_version = Script.get_stack_version()
   version = None
-  allow_setting_conf_select_symlink = False
 
   if not Script.in_stack_upgrade():
     # During normal operation, the HDP stack must be 2.3 or higher
@@ -413,27 +412,10 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
 
       if not os.path.islink(hadoop_conf_dir) and stack_name and version:
         version = str(version)
-        allow_setting_conf_select_symlink = True
   else:
-    # During an upgrade/downgrade, which can be a Rolling or Express Upgrade, need to calculate it based on the version
-    '''
-    Whenever upgrading to HDP 2.2, or downgrading back to 2.2, need to use /etc/hadoop/conf
-    Whenever upgrading to HDP 2.3, or downgrading back to 2.3, need to use a versioned hadoop conf dir
-
-    Type__|_Source_|_Target_|_Direction_____________|_Comment_____________________________________________________________
-    Normal|        | 2.2    |                       | Use /etc/hadoop/conf
-    Normal|        | 2.3    |                       | Use /etc/hadoop/conf, which should be a symlink to <stack-root>/current/hadoop-client/conf
-    EU    | 2.1    | 2.3    | Upgrade               | Use versioned <stack-root>/current/hadoop-client/conf
-          |        |        | No Downgrade Allowed  | Invalid
-    EU/RU | 2.2    | 2.2.*  | Any                   | Use <stack-root>/current/hadoop-client/conf
-    EU/RU | 2.2    | 2.3    | Upgrade               | Use <stack-root>/$version/hadoop/conf, which should be a symlink destination
-          |        |        | Downgrade             | Use <stack-root>/current/hadoop-client/conf
-    EU/RU | 2.3    | 2.3.*  | Any                   | Use <stack-root>/$version/hadoop/conf, which should be a symlink destination
-    '''
-
     # The "stack_version" is the desired stack, e.g., 2.2 or 2.3
     # In an RU, it is always the desired stack, and doesn't change even during the Downgrade!
-    # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is 
+    # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is
     # rm /etc/[component]/conf and then mv /etc/[component]/conf.backup /etc/[component]/conf
     if stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version):
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
@@ -442,13 +424,16 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
       # is the version upgrading/downgrading to.
       stack_info = stack_select._get_upgrade_stack()
 
-      if stack_info is not None:
-        stack_name = stack_info[0]
-        version = stack_info[1]
-      else:
-        raise Fail("Unable to get parameter 'version'")
-      
-      Logger.info("In the middle of a stack upgrade/downgrade for Stack {0} and destination version {1}, determining which hadoop conf dir to use.".format(stack_name, version))
+      if stack_info is None:
+        raise Fail("Unable to retrieve the upgrade/downgrade stack information from the request")
+
+      stack_name = stack_info[0]
+      version = stack_info[1]
+
+      Logger.info(
+        "An upgrade/downgrade for {0}-{1} is in progress, determining which hadoop conf dir to use.".format(
+          stack_name, version))
+
       # This is the version either upgrading or downgrading to.
       if version and check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
         # Determine if <stack-selector-tool> has been run and if not, then use the current
@@ -464,21 +449,6 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
         # Only change the hadoop_conf_dir path, don't <conf-selector-tool> this older version
         hadoop_conf_dir = os.path.join(stack_root, version, "hadoop", "conf")
         Logger.info("Hadoop conf dir: {0}".format(hadoop_conf_dir))
-
-        allow_setting_conf_select_symlink = True
-
-  if allow_setting_conf_select_symlink:
-    # If not in the middle of an upgrade and on HDP 2.3 or higher, or if
-    # upgrading stack to version 2.3.0.0 or higher (which may be upgrade or downgrade), then consider setting the
-    # symlink for /etc/hadoop/conf.
-    # If a host does not have any HDFS or YARN components (e.g., only ZK), then it will not contain /etc/hadoop/conf
-    # Therefore, any calls to <conf-selector-tool> will fail.
-    # For that reason, if the hadoop conf directory exists, then make sure it is set.
-    if os.path.exists(hadoop_conf_dir):
-      conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
-      Logger.info("The hadoop conf dir {0} exists, will call {1} on it for version {2}".format(
-              hadoop_conf_dir, conf_selector_name, version))
-      select(stack_name, "hadoop", version)
 
   Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
   return hadoop_conf_dir
@@ -587,7 +557,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
 
 
   # <stack-root>/current/[component] is already set to to the correct version, e.g., <stack-root>/[version]/[component]
-  
+
   select(stack_name, package, version, ignore_errors = True)
 
   # Symlink /etc/[component]/conf to /etc/[component]/conf.backup

@@ -99,7 +99,13 @@ public class UpgradeContext {
   public static final String COMMAND_PARAM_TASKS = "tasks";
   public static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
 
-  /**
+  @Deprecated
+  @Experimental(
+      feature = ExperimentalFeature.PATCH_UPGRADES,
+      comment = "This isn't needed anymore, but many python classes still use it")
+  public static final String COMMAND_PARAM_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
+
+  /*
    * The cluster that the upgrade is for.
    */
   final private Cluster m_cluster;
@@ -744,6 +750,7 @@ public class UpgradeContext {
    * <ul>
    * <li>{@link #COMMAND_PARAM_CLUSTER_NAME}
    * <li>{@link #COMMAND_PARAM_DIRECTION}
+   * <li>{@link #COMMAND_PARAM_DOWNGRADE_FROM_VERSION}
    * <li>{@link #COMMAND_PARAM_UPGRADE_TYPE}
    * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
    * order to have the commands contain the correct configurations. Otherwise,
@@ -758,8 +765,13 @@ public class UpgradeContext {
   public Map<String, String> getInitializedCommandParameters() {
     Map<String, String> parameters = new HashMap<>();
 
+    Direction direction = getDirection();
     parameters.put(COMMAND_PARAM_CLUSTER_NAME, m_cluster.getClusterName());
-    parameters.put(COMMAND_PARAM_DIRECTION, getDirection().name().toLowerCase());
+    parameters.put(COMMAND_PARAM_DIRECTION, direction.name().toLowerCase());
+
+    if (direction == Direction.DOWNGRADE) {
+      parameters.put(COMMAND_PARAM_DOWNGRADE_FROM_VERSION, m_repositoryVersion.getVersion());
+    }
 
     if (null != getType()) {
       // use the serialized attributes of the enum to convert it to a string,

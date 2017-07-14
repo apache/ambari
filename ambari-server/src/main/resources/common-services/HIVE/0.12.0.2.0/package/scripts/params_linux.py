@@ -505,6 +505,8 @@ hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0755
+#Parameter for custom warehouse directory permissions. Permissions are in octal format and need to be converted to decimal
+hive_apps_whs_mode = int(default('/configurations/hive-site/custom.hive.warehouse.mode', '0777'), 8)
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 whs_dir_protocol = urlparse(hive_apps_whs_dir).scheme
 hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
@@ -847,3 +849,7 @@ ranger_hive_metastore_lookup = default('/configurations/ranger-hive-plugin-prope
 
 if security_enabled:
   hive_metastore_principal_with_host = hive_metastore_principal.replace('_HOST', hostname.lower())
+
+# For ldap - hive_check
+hive_ldap_user= config['configurations']['hive-env'].get('alert_ldap_username','')
+hive_ldap_passwd=config['configurations']['hive-env'].get('alert_ldap_password','')

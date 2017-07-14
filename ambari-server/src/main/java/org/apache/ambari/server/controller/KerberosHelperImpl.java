@@ -301,17 +301,18 @@ public class KerberosHelperImpl implements KerberosHelper {
    * Deletes the kerberos identities of the given component, even if the component is already deleted.
    */
   @Override
-  public void deleteIdentity(Cluster cluster, Component component, List<String> identities) throws AmbariException, KerberosOperationException {
+  public void deleteIdentities(Cluster cluster, List<Component> components, Set<String> identities) throws AmbariException, KerberosOperationException {
     if (identities.isEmpty()) {
       return;
     }
+    LOG.info("Deleting identities: ", identities);
     KerberosDetails kerberosDetails = getKerberosDetails(cluster, null);
     validateKDCCredentials(kerberosDetails, cluster);
     File dataDirectory = createTemporaryDirectory();
     RoleCommandOrder roleCommandOrder = ambariManagementController.getRoleCommandOrder(cluster);
     DeleteIdentityHandler handler = new DeleteIdentityHandler(customCommandExecutionHelper, configuration.getDefaultServerTaskTimeout(), stageFactory, ambariManagementController);
     DeleteIdentityHandler.CommandParams commandParameters = new DeleteIdentityHandler.CommandParams(
-      component,
+      components,
       identities,
       ambariManagementController.getAuthName(),
       dataDirectory,

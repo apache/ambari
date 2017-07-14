@@ -19,20 +19,39 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapAnonymizeDescriptor;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class MapAnonymizeDescriptorImpl implements MapAnonymizeDescriptor {
+@ShipperConfigTypeDescription(
+    name = "Map Anonymize",
+    description = "The name of the mapping element should be map_anonymize. The value json element should contain the following parameter:"
+)
+public class MapAnonymizeDescriptorImpl extends MapFieldDescriptorImpl implements MapAnonymizeDescriptor {
   @Override
   public String getJsonName() {
     return "map_anonymize";
   }
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_anonymize/pattern",
+    type = "string",
+    description = "The pattern to use to identify parts to anonymize. The parts to hide should be marked with the \"<hide>\" string.",
+    examples = {"Some secret is here: <hide>, and another one is here: <hide>"}
+  )
   @Expose
   private String pattern;
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_anonymize/hide_char",
+    type = "string",
+    description = "The character to hide with",
+    defaultValue = "*",
+    examples = {"X", "-"}
+  )
   @Expose
   @SerializedName("hide_char")
   private Character hideChar;
