@@ -23,7 +23,10 @@
     <name>content</name>
     <description>Spark2-javaopts-properties</description>
     <value> </value>
-    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
 

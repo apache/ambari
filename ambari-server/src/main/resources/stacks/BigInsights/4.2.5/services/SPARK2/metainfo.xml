@@ -79,7 +79,7 @@
        
       <configuration-dependencies>
         <config-type>spark2-defaults</config-type>
-	<config-type>spark2-javaopts-properties</config-type>
+        <config-type>spark2-javaopts-properties</config-type>
         <config-type>spark2-thrift-sparkconf</config-type>
       </configuration-dependencies>
       

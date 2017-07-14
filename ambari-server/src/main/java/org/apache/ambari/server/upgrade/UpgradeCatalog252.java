@@ -18,12 +18,19 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -34,6 +41,8 @@ import org.apache.commons.lang.StringUtils;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link org.apache.ambari.server.upgrade.UpgradeCatalog252} upgrades Ambari from 2.5.1 to 2.5.2.
@@ -53,6 +62,13 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_ID_COLUMN = "upgrade_id";
 
   private static final String CLUSTER_ENV = "cluster-env";
+
+  private static final List<String> configTypesToEnsureSelected = Arrays.asList("spark2-javaopts-properties");
+  
+  /**
+   * Logger.
+   */
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog252.class);
 
   /**
    * Constructor.
@@ -102,6 +118,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     resetStackToolsAndFeatures();
+    ensureConfigTypesHaveAtLeastOneVersionSelected();
   }
 
   /**
@@ -195,6 +212,88 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
       }
 
       updateConfigurationPropertiesForCluster(cluster, CLUSTER_ENV, newStackProperties, true, false);
+    }
+  }
+
+  /**
+   * When doing a cross-stack upgrade, we found that one config type (spark2-javaopts-properties)
+   * did not have any mappings that were selected, so it caused Ambari Server start to fail on the DB Consistency Checker.
+   * To fix this, iterate over all config types and ensure that at least one is selected.
+   * If none are selected, then pick the one with the greatest time stamp; this should be safe since we are only adding
+   * more data to use as opposed to removing.
+   */
+  private void ensureConfigTypesHaveAtLeastOneVersionSelected() {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    List<ClusterEntity> clusters = clusterDAO.findAll();
+
+    if (null == clusters) {
+      return;
+    }
+
+    for (ClusterEntity clusterEntity : clusters) {
+      LOG.info("Ensuring all config types have at least one selected config for cluster {}", clusterEntity.getClusterName());
+
+      boolean atLeastOneChanged = false;
+      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+
+      if (configMappingEntities != null) {
+        Set<String> configTypesNotSelected = new HashSet<>();
+        Set<String> configTypesWithAtLeastOneSelected = new HashSet<>();
+
+        for (ClusterConfigMappingEntity clusterConfigMappingEntity : configMappingEntities) {
+          String typeName = clusterConfigMappingEntity.getType();
+
+          if (clusterConfigMappingEntity.isSelected() == 1) {
+            configTypesWithAtLeastOneSelected.add(typeName);
+          } else {
+            configTypesNotSelected.add(typeName);
+          }
+        }
+
+        // Due to the ordering, eliminate any configs with at least one selected.
+        configTypesNotSelected.removeAll(configTypesWithAtLeastOneSelected);
+        if (!configTypesNotSelected.isEmpty()) {
+          LOG.info("The following config types have config mappings which don't have at least one as selected. {}", StringUtils.join(configTypesNotSelected, ", "));
+
+          LOG.info("Filtering only config types these config types: {}", StringUtils.join(configTypesToEnsureSelected, ", "));
+          // Get the intersection with a subset of configs that are allowed to be selected during the migration.
+          configTypesNotSelected.retainAll(configTypesToEnsureSelected);
+        }
+
+        if (!configTypesNotSelected.isEmpty()) {
+          LOG.info("The following config types have config mappings which don't have at least one as selected. {}", StringUtils.join(configTypesNotSelected, ", "));
+
+          for (String typeName : configTypesNotSelected) {
+            ClusterConfigMappingEntity clusterConfigMappingWithGreatestTimeStamp = null;
+
+            for (ClusterConfigMappingEntity clusterConfigMappingEntity : configMappingEntities) {
+              if (typeName.equals(clusterConfigMappingEntity.getType())) {
+
+                if (null == clusterConfigMappingWithGreatestTimeStamp) {
+                  clusterConfigMappingWithGreatestTimeStamp = clusterConfigMappingEntity;
+                } else {
+                  if (clusterConfigMappingEntity.getCreateTimestamp() >= clusterConfigMappingWithGreatestTimeStamp.getCreateTimestamp()) {
+                    clusterConfigMappingWithGreatestTimeStamp = clusterConfigMappingEntity;
+                  }
+                }
+              }
+            }
+
+            if (null != clusterConfigMappingWithGreatestTimeStamp) {
+              LOG.info("Saving. Config type {} has a mapping with tag {} and greatest timestamp {} that is not selected, so will mark it selected.",
+                  typeName, clusterConfigMappingWithGreatestTimeStamp.getTag(), clusterConfigMappingWithGreatestTimeStamp.getCreateTimestamp());
+              atLeastOneChanged = true;
+              clusterConfigMappingWithGreatestTimeStamp.setSelected(1);
+            }
+          }
+        } else {
+          LOG.info("All config types have at least one mapping that is selected. Nothing to do.");
+        }
+      }
+
+      if (atLeastOneChanged) {
+        clusterDAO.mergeConfigMappings(configMappingEntities);
+      }
     }
   }
 }
