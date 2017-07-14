@@ -162,6 +162,10 @@ public class Users {
     if (userEntity != null) {
       userEntities.add(userEntity);
     }
+    userEntity = userDAO.findUserByNameAndType(userName, UserType.PAM);
+    if (userEntity != null) {
+      userEntities.add(userEntity);
+    }
     return (userEntities.isEmpty() || userEntities.size() > 1) ? null : new User(userEntities.get(0));
   }
 
