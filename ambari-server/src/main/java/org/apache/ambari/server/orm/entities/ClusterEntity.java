@@ -114,9 +114,6 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   private Collection<ClusterConfigEntity> configEntities;
 
-  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
-  private Collection<ClusterConfigMappingEntity> configMappingEntities;
-
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   private Collection<ConfigGroupEntity> configGroupEntities;
 
@@ -295,14 +292,6 @@ public class ClusterEntity {
 
   public void setClusterConfigEntities(Collection<ClusterConfigEntity> entities) {
     configEntities = entities;
-  }
-
-  public Collection<ClusterConfigMappingEntity> getConfigMappingEntities() {
-    return configMappingEntities;
-  }
-
-  public void setConfigMappingEntities(Collection<ClusterConfigMappingEntity> entities) {
-    configMappingEntities = entities;
   }
 
   public Collection<ConfigGroupEntity> getConfigGroupEntities() {

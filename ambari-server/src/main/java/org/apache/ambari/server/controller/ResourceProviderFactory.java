@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 
 import com.google.inject.name.Named;
-import java.util.Set;
 
 public interface ResourceProviderFactory {
   @Named("host")
@@ -42,9 +41,7 @@ public interface ResourceProviderFactory {
       AmbariManagementController managementController);
 
   @Named("service")
-  ResourceProvider getServiceResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController);
+  ResourceProvider getServiceResourceProvider(AmbariManagementController managementController);
 
   @Named("component")
   ResourceProvider getComponentResourceProvider(Set<String> propertyIds,

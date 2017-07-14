@@ -642,10 +642,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, upgradeContext);
 
-    if (1 == 1 || groups.isEmpty()) {
-      throw new AmbariException("There are no groupings available");
-    }
-
     // Non Rolling Upgrades require a group with name "UPDATE_DESIRED_STACK_ID".
     // This is needed as a marker to indicate which version to use when an upgrade is paused.
     if (pack.getType() == UpgradeType.NON_ROLLING) {

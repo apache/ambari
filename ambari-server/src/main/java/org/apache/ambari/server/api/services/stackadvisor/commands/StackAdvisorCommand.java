@@ -348,13 +348,13 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
         return file.isDirectory() && !FileUtils.isFileNewer(file, cutoffDate);
       }
     });
-    
+
     if(oldDirectories.length > 0) {
       LOG.info(String.format("Deleting old directories %s from %s", StringUtils.join(oldDirectories, ", "), recommendationsDir));
     }
-    
+
     for(String oldDirectory:oldDirectories) {
-      FileUtils.deleteDirectory(new File(recommendationsDir, oldDirectory));
+      FileUtils.deleteQuietly(new File(recommendationsDir, oldDirectory));
     }
   }
 
@@ -392,7 +392,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private Collection<String> getUnregisteredHosts(String hostsJSON, List<String> hosts)
       throws StackAdvisorException {
     ObjectMapper mapper = new ObjectMapper();
-    List<String> registeredHosts = new ArrayList<String>();
+    List<String> registeredHosts = new ArrayList<>();
 
     try {
       JsonNode root = mapper.readTree(hostsJSON);
@@ -434,12 +434,12 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   }
 
   private ResourceInstance createHostResource() {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     return createResource(Resource.Type.Host, mapIds);
   }
 
   private ResourceInstance createStackVersionResource(String stackName, String stackVersion) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
 

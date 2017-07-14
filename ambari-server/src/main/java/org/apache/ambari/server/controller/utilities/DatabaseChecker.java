@@ -32,7 +32,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
@@ -193,57 +192,49 @@ public class DatabaseChecker {
     List<ClusterEntity> clusters = clusterDAO.findAll();
     if (clusters != null) {
       for (ClusterEntity clusterEntity : clusters) {
-        Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+
         Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
+        Map<String, Integer> selectedCountForType = new HashMap<>();
 
-        if (configMappingEntities != null) {
-          Map<String, Integer> selectedCountForType = new HashMap<>();
-          for (ClusterConfigMappingEntity clusterConfigMappingEntity : configMappingEntities) {
-            String typeName = clusterConfigMappingEntity.getType();
-            if (clusterConfigMappingEntity.isSelected() > 0) {
-              int selectedCount = selectedCountForType.get(typeName) != null ? selectedCountForType.get(typeName) : 0;
-              selectedCountForType.put(typeName, selectedCount + 1);
-
-              // Check that ClusterConfig contains type_name and tag from ClusterConfigMapping
-              if (!clusterConfigsContainTypeAndTag(clusterConfigEntities, typeName, clusterConfigMappingEntity.getTag())) {
-                checkPassed = false;
-                LOG.error("ClusterConfig does not contain mapping for type_name=" + typeName + " tag="
-                    + clusterConfigMappingEntity.getTag());
-              }
-            } else {
-              if (!selectedCountForType.containsKey(typeName)) {
-                selectedCountForType.put(typeName, 0);
-              }
+        for (ClusterConfigEntity configEntity : clusterConfigEntities) {
+          String typeName = configEntity.getType();
+          if (configEntity.isSelected()) {
+            int selectedCount = selectedCountForType.get(typeName) != null
+                ? selectedCountForType.get(typeName) : 0;
+            selectedCountForType.put(typeName, selectedCount + 1);
+          } else {
+            if (!selectedCountForType.containsKey(typeName)) {
+              selectedCountForType.put(typeName, 0);
             }
           }
+        }
 
-          // Check that every config type from stack is presented in ClusterConfigMapping
-          Collection<ClusterServiceEntity> clusterServiceEntities = clusterEntity.getClusterServiceEntities();
-          ClusterStateEntity clusterStateEntity = clusterEntity.getClusterStateEntity();
-          if (clusterStateEntity != null) {
-            StackEntity currentStack = clusterStateEntity.getCurrentStack();
-            StackInfo stack = ambariMetaInfo.getStack(currentStack.getStackName(), currentStack.getStackVersion());
+        // Check that every config type from stack is presented in ClusterConfigMapping
+        Collection<ClusterServiceEntity> clusterServiceEntities = clusterEntity.getClusterServiceEntities();
+        ClusterStateEntity clusterStateEntity = clusterEntity.getClusterStateEntity();
+        if (clusterStateEntity != null) {
+          StackEntity currentStack = clusterStateEntity.getCurrentStack();
+          StackInfo stack = ambariMetaInfo.getStack(currentStack.getStackName(), currentStack.getStackVersion());
 
-            for (ClusterServiceEntity clusterServiceEntity : clusterServiceEntities) {
-              if (!State.INIT.equals(clusterServiceEntity.getServiceDesiredStateEntity().getDesiredState())) {
-                String serviceName = clusterServiceEntity.getServiceName();
-                ServiceInfo serviceInfo = ambariMetaInfo.getService(stack.getName(), stack.getVersion(), serviceName);
-                for (String configTypeName : serviceInfo.getConfigTypeAttributes().keySet()) {
-                  if (selectedCountForType.get(configTypeName) == null) {
+          for (ClusterServiceEntity clusterServiceEntity : clusterServiceEntities) {
+            if (!State.INIT.equals(clusterServiceEntity.getServiceDesiredStateEntity().getDesiredState())) {
+              String serviceName = clusterServiceEntity.getServiceName();
+              ServiceInfo serviceInfo = ambariMetaInfo.getService(stack.getName(), stack.getVersion(), serviceName);
+              for (String configTypeName : serviceInfo.getConfigTypeAttributes().keySet()) {
+                if (selectedCountForType.get(configTypeName) == null) {
+                  checkPassed = false;
+                  LOG.error("ClusterConfigMapping does not contain mapping for service=" + serviceName + " type_name="
+                      + configTypeName);
+                } else {
+                  // Check that for each config type exactly one is selected
+                  if (selectedCountForType.get(configTypeName) == 0) {
                     checkPassed = false;
-                    LOG.error("ClusterConfigMapping does not contain mapping for service=" + serviceName + " type_name="
+                    LOG.error("ClusterConfigMapping selected count is 0 for service=" + serviceName + " type_name="
                         + configTypeName);
-                  } else {
-                    // Check that for each config type exactly one is selected
-                    if (selectedCountForType.get(configTypeName) == 0) {
-                      checkPassed = false;
-                      LOG.error("ClusterConfigMapping selected count is 0 for service=" + serviceName + " type_name="
-                          + configTypeName);
-                    } else if (selectedCountForType.get(configTypeName) > 1) {
-                      checkPassed = false;
-                      LOG.error("ClusterConfigMapping selected count is more than 1 for service=" + serviceName
-                          + " type_name=" + configTypeName);
-                    }
+                  } else if (selectedCountForType.get(configTypeName) > 1) {
+                    checkPassed = false;
+                    LOG.error("ClusterConfigMapping selected count is more than 1 for service=" + serviceName
+                        + " type_name=" + configTypeName);
                   }
                 }
               }
