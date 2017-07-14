@@ -825,70 +825,80 @@ class TestHDP25StackAdvisor(TestCase):
 
     services = {
       "services": [{
-        "StackServices": {
-          "service_name": "YARN",
-        },
-        "Versions": {
-          "stack_version": "2.5"
-        },
-        "components": [
-          {
-            "StackServiceComponents": {
-              "component_name": "NODEMANAGER",
-              "hostnames": ["c6401.ambari.apache.org"]
-            }
-          }
-        ]
-      }, {
-        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
-        "StackServices": {
-          "service_name": "HIVE",
-          "service_version": "1.2.1.2.5",
-          "stack_name": "HDP",
-          "stack_version": "2.5"
-        },
-        "components": [
-          {
-            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
-            "StackServiceComponents": {
-              "advertise_version": "true",
-              "bulk_commands_display_name": "",
-              "bulk_commands_master_component_name": "",
-              "cardinality": "0-1",
-              "component_category": "MASTER",
-              "component_name": "HIVE_SERVER_INTERACTIVE",
-              "custom_commands": ["RESTART_LLAP"],
-              "decommission_allowed": "false",
-              "display_name": "HiveServer2 Interactive",
-              "has_bulk_commands_definition": "false",
-              "is_client": "false",
-              "is_master": "true",
-              "reassign_allowed": "false",
-              "recovery_enabled": "false",
-              "service_name": "HIVE",
-              "stack_name": "HDP",
-              "stack_version": "2.5",
-              "hostnames": ["c6401.ambari.apache.org"]
-            },
-            "dependencies": []
-          },
-          {
-            "StackServiceComponents": {
-              "advertise_version": "true",
-              "cardinality": "1+",
-              "component_category": "SLAVE",
-              "component_name": "NODEMANAGER",
-              "display_name": "NodeManager",
-              "is_client": "false",
-              "is_master": "false",
-              "hostnames": [
-                "c6403.ambari.apache.org"
-              ]
-            },
-            "dependencies": []
-          },
-        ]
-      }
+                     "StackServices": {
+                       "service_name": "TEZ"
+                     }
+                   },
+                   {
+                     "StackServices": {
+                       "service_name": "SPARK"
+                     }
+                   },
+                   {
+                     "StackServices": {
+                       "service_name": "YARN",
+                     },
+                     "Versions": {
+                       "stack_version": "2.5"
+                     },
+                     "components": [
+                       {
+                         "StackServiceComponents": {
+                           "component_name": "NODEMANAGER",
+                           "hostnames": ["c6401.ambari.apache.org"]
+                         }
+                       }
+                     ]
+                   }, {
+                     "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+                     "StackServices": {
+                       "service_name": "HIVE",
+                       "service_version": "1.2.1.2.5",
+                       "stack_name": "HDP",
+                       "stack_version": "2.5"
+                     },
+                     "components": [
+                       {
+                         "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+                         "StackServiceComponents": {
+                           "advertise_version": "true",
+                           "bulk_commands_display_name": "",
+                           "bulk_commands_master_component_name": "",
+                           "cardinality": "0-1",
+                           "component_category": "MASTER",
+                           "component_name": "HIVE_SERVER_INTERACTIVE",
+                           "custom_commands": ["RESTART_LLAP"],
+                           "decommission_allowed": "false",
+                           "display_name": "HiveServer2 Interactive",
+                           "has_bulk_commands_definition": "false",
+                           "is_client": "false",
+                           "is_master": "true",
+                           "reassign_allowed": "false",
+                           "recovery_enabled": "false",
+                           "service_name": "HIVE",
+                           "stack_name": "HDP",
+                           "stack_version": "2.5",
+                           "hostnames": ["c6401.ambari.apache.org"]
+                         },
+                         "dependencies": []
+                       },
+                       {
+                         "StackServiceComponents": {
+                           "advertise_version": "true",
+                           "cardinality": "1+",
+                           "component_category": "SLAVE",
+                           "component_name": "NODEMANAGER",
+                           "display_name": "NodeManager",
+                           "is_client": "false",
+                           "is_master": "false",
+                           "hostnames": [
+                             "c6403.ambari.apache.org"
+                           ]
+                         },
+                         "dependencies": []
+                       },
+                     ]
+                   }
       ],
       "changed-configurations": [
         {
@@ -898,6 +908,12 @@ class TestHDP25StackAdvisor(TestCase):
         }
       ],
       "configurations": {
+        "cluster-env": {
+          "properties": {
+            "stack_root": "{\"HDP\":\"/usr/hdp\"}",
+            "stack_name": "HDP"
+          },
+        },
         "capacity-scheduler": {
           "properties": {
             "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
@@ -960,7 +976,8 @@ class TestHDP25StackAdvisor(TestCase):
             "tez.am.resource.memory.mb": "341"
           }
         }
-      }
+      },
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
 
     clusterData = {
@@ -990,6 +1007,9 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'default')
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'], 'default')
+    self.assertEquals(configurations['yarn-site']['properties']['yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes'],
+                      'org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl,org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
+    self.assertEquals(configurations['yarn-site']['properties']['yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath'], '/usr/hdp/${hdp.version}/spark/hdpLib/*')
     self.assertTrue('hive-interactive-env' not in configurations)
     self.assertTrue('property_attributes' not in configurations)
 

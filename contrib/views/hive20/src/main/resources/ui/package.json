@@ -24,6 +24,7 @@
     "bootstrap-daterangepicker": "2.1.24",
     "bower": "^1.7.9",
     "broccoli-asset-rev": "^2.4.2",
+    "babel-plugin-transform-es2015-block-scoping": "^6.24.1",
     "ember-ajax": "^2.0.1",
     "ember-cli": "2.7.0",
     "ember-cli-app-version": "^1.0.0",
