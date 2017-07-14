@@ -105,6 +105,9 @@ zookeeper_hosts.sort()
 secure_acls = default("/configurations/kafka-broker/zookeeper.set.acl", False)
 kafka_security_migrator = os.path.join(kafka_home, "bin", "zookeeper-security-migration.sh")
 
+all_hosts = default("/clusterHostInfo/all_hosts", [])
+all_racks = default("/clusterHostInfo/all_racks", [])
+
 #Kafka log4j
 kafka_log_maxfilesize = default('/configurations/kafka-log4j/kafka_log_maxfilesize',256)
 kafka_log_maxbackupindex = default('/configurations/kafka-log4j/kafka_log_maxbackupindex',20)

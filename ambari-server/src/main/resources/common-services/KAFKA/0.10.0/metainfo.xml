@@ -22,6 +22,7 @@
       <name>KAFKA</name>
       <extends>common-services/KAFKA/0.9.0</extends>
       <version>0.10.0</version>
+      <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>
   </services>
 </metainfo>

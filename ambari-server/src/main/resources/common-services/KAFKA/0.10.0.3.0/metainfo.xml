@@ -104,6 +104,7 @@
                 </osSpecific>
             </osSpecifics>
             <restartRequiredAfterChange>true</restartRequiredAfterChange>
+            <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
         </service>
     </services>
 </metainfo>
