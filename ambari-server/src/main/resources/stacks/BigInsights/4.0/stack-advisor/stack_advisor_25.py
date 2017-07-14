@@ -734,7 +734,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
 
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
-    stack_root = self.getStackRoot(services)
+    stack_root = self.getStackRoot(services
+    )
 
     timeline_plugin_classes_values = []
     timeline_plugin_classpath_values = []
