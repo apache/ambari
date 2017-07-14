@@ -19,6 +19,7 @@ limitations under the License.
 
 import math
 
+
 from ambari_commons.str_utils import string_set_equals
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -775,9 +776,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
 
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
-    stack_root = "/usr/hdp"
-    if cluster_env and "stack_root" in cluster_env:
-      stack_root = cluster_env["stack_root"]
+    stack_root = self.getStackRoot(services)
 
     timeline_plugin_classes_values = []
     timeline_plugin_classpath_values = []
