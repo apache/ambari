@@ -17,9 +17,8 @@
  */
 
 import {Component, Input, forwardRef} from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {ComponentActionsService} from '@app/services/component-actions.service';
-import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 
@@ -37,39 +36,34 @@ import {MenuButtonComponent} from '@app/components/menu-button/menu-button.compo
 })
 export class FilterButtonComponent extends MenuButtonComponent implements ControlValueAccessor {
 
-  constructor(protected actions: ComponentActionsService, private filtering: FilteringService, private utils: UtilsService) {
+  constructor(protected actions: ComponentActionsService, private utils: UtilsService) {
     super(actions);
   }
 
   @Input()
-  filterName: string;
+  defaultValue?: string;
 
-  @Input()
-  form: FormGroup;
+  private selectedValue: any;
 
   private onChange: (fn: any) => void;
 
-  get filterInstance(): any {
-    return this.filtering.filters[this.filterName];
-  }
-
   get value(): any {
-    return this.filterInstance.selectedValue;
+    return this.selectedValue;
   }
 
   set value(newValue: any) {
-    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
-      this.filterInstance.selectedValue = newValue;
-      this.onChange(newValue);
+    this.selectedValue = newValue;
+    this.onChange(newValue);
+  }
+
+  updateValue(options: any) {
+    const value = options && options.value;
+    if (this.utils.valueHasChanged(this.selectedValue, value)) {
+      this.value = value;
     }
   }
 
-  writeValue(options: any) {
-    const value = options && options.value;
-    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, value)) {
-      this.filterInstance.selectedValue = value;
-      this.filterInstance.selectedLabel = options.label;
-    }
+  writeValue() {
   }
 
   registerOnChange(callback: any): void {

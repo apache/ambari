@@ -16,8 +16,8 @@
 -->
 
 <form *ngIf="(logs | async).length" [formGroup]="filtersForm">
-  <filter-dropdown [(ngModel)]="filters.sorting.selectedValue" filterName="sorting" [form]="filtersForm"
-                   formControlName="sorting" [options]="filters.sorting.options" isRightAlign="true"></filter-dropdown>
+  <filter-dropdown [label]="filters.sorting.label" formControlName="sorting" [options]="filters.sorting.options"
+                   [defaultLabel]="filters.sorting.defaultLabel" isRightAlign="true"></filter-dropdown>
 </form>
 <div class="col-md-12 text-center" *ngIf="(logs | async).length">
   <div class="logs-header">
@@ -43,3 +43,5 @@
     </div>
   </ng-template>
 </accordion-panel>
+<pagination class="col-md-12" *ngIf="(logs | async).length" [totalCount]="totalCount" [filtersForm]="filtersForm"
+            [filterInstance]="filters.pageSize" [currentCount]="(logs | async).length"></pagination>

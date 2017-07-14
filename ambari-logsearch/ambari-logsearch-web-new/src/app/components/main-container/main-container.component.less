@@ -16,14 +16,9 @@
  * limitations under the License.
  */
 
-import {enableProdMode} from '@angular/core';
-import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
+@import '../variables';
 
-import {AppModule} from '@app/app.module';
-import {environment} from '@envs/environment';
-
-if (environment.production) {
-  enableProdMode();
+:host {
+  .full-size;
+  overflow-x: hidden;
 }
-
-platformBrowserDynamic().bootstrapModule(AppModule);

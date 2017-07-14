@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http; //www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,59 +16,50 @@
  * limitations under the License.
  */
 
-import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {StoreModule} from '@ngrx/store';
-import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
-import {ClustersService, clusters} from '@app/services/storage/clusters.service';
-import {ComponentsService, components} from '@app/services/storage/components.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
-import {FilteringService} from '@app/services/filtering.service';
-import {UtilsService} from '@app/services/utils.service';
 
-import {FilterButtonComponent} from './filter-button.component';
+import {PaginationComponent} from './pagination.component';
 
 export function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
 }
 
-describe('FilterButtonComponent', () => {
-  let component: FilterButtonComponent;
-  let fixture: ComponentFixture<FilterButtonComponent>;
+describe('PaginationComponent', () => {
+  let component: PaginationComponent;
+  let fixture: ComponentFixture<PaginationComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [FilterButtonComponent],
       imports: [
-        StoreModule.provideStore({
-          appSettings,
-          clusters,
-          components
-        }),
         TranslateModule.forRoot({
           provide: TranslateLoader,
           useFactory: HttpLoaderFactory,
           deps: [Http]
-        })],
-      providers: [
-        AppSettingsService,
-        ClustersService,
-        ComponentsService,
-        ComponentActionsService,
-        FilteringService,
-        UtilsService
+        })
       ],
+      declarations: [PaginationComponent],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(FilterButtonComponent);
+    fixture = TestBed.createComponent(PaginationComponent);
     component = fixture.componentInstance;
+    component.filterInstance = {};
+    component.filtersForm = {
+      controls: {
+        pageSize: {
+          valueChanges: {
+            subscribe: () => {}
+          }
+        }
+      }
+    };
     fixture.detectChanges();
   });
 

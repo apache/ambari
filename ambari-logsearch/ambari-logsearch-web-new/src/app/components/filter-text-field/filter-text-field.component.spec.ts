@@ -18,7 +18,7 @@
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {Http} from '@angular/http';
-import {FormsModule, FormControl, FormGroup} from '@angular/forms';
+import {FormsModule} from '@angular/forms';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
@@ -73,10 +73,6 @@ describe('FilterTextFieldComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(FilterTextFieldComponent);
     component = fixture.componentInstance;
-    component.filterName = 'f';
-    component.form = new FormGroup({
-      f: new FormControl()
-    });
     fixture.detectChanges();
   });
 

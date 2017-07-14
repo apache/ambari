@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-import {enableProdMode} from '@angular/core';
-import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
+@import '../variables';
 
-import {AppModule} from '@app/app.module';
-import {environment} from '@envs/environment';
+:host {
+  display: flex;
 
-if (environment.production) {
-  enableProdMode();
+  .pagination-form {
+    .flex-vertical-align;
+    justify-content: flex-end;
+  }
 }
-
-platformBrowserDynamic().bootstrapModule(AppModule);

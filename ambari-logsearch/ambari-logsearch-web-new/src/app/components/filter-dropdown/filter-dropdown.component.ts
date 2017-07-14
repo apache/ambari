@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import {Component, Input, forwardRef} from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
-import {FilteringService} from '@app/services/filtering.service';
+import {Component, forwardRef} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
@@ -36,58 +35,18 @@ import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-
 })
 export class FilterDropdownComponent extends DropdownButtonComponent implements ControlValueAccessor {
 
-  constructor(protected filtering: FilteringService, protected actions: ComponentActionsService, protected utils: UtilsService) {
-    super(filtering, actions, utils);
+  constructor(protected actions: ComponentActionsService, protected utils: UtilsService) {
+    super(actions, utils);
   }
-
-  ngOnInit() {
-  }
-
-  @Input()
-  form: FormGroup;
-
-  @Input()
-  filterName: string;
 
   private onChange: (fn: any) => void;
 
-  get filterInstance(): any {
-    return this.filtering.filters[this.filterName];
-  }
-
-  get label(): string {
-    return this.filterInstance.label;
-  }
-
-  get defaultValue(): any {
-    return this.filterInstance.defaultValue;
-  }
-
-  get defaultLabel(): any {
-    return this.filterInstance.defaultLabel;
-  }
-
-  get value(): any {
-    return this.filterInstance.selectedValue == null ? this.defaultValue : this.filterInstance.selectedValue;
-  }
-
   set value(newValue: any) {
-    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
-      this.filterInstance.selectedValue = newValue;
-      this.onChange(newValue);
-    }
+    this.selectedValue = newValue;
+    this.onChange(newValue);
   }
 
-  get selectedLabel(): string {
-    return this.filterInstance.selectedLabel == null ? this.defaultLabel : this.filterInstance.selectedLabel;
-  }
-
-  writeValue(options: any): void {
-    const value = options && options.value;
-    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, value)) {
-      this.filterInstance.selectedValue = value;
-      this.filterInstance.selectedLabel = options.label;
-    }
+  writeValue() {
   }
 
   registerOnChange(callback: any): void {

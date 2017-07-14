@@ -19,7 +19,6 @@ import {Component, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, FormGroup} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
-import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 
 @Component({
@@ -36,17 +35,16 @@ import {UtilsService} from '@app/services/utils.service';
 })
 export class FilterTextFieldComponent implements ControlValueAccessor {
 
-  constructor(private filtering: FilteringService, private utils: UtilsService) {
-    this.valueSubject.debounceTime(this.debounceInterval).subscribe(value => this.writeValue({
+  constructor(private utils: UtilsService) {
+    this.valueSubject.debounceTime(this.debounceInterval).subscribe(value => this.updateValue({
       value
     }));
   }
 
   @Input()
-  filterName: string;
+  label: string;
 
-  @Input()
-  form: FormGroup;
+  private selectedValue: string;
 
   private onChange: (fn: any) => void;
 
@@ -56,26 +54,23 @@ export class FilterTextFieldComponent implements ControlValueAccessor {
 
   private valueSubject = new Subject<string>();
 
-  get filterInstance(): any {
-    return this.filtering.filters[this.filterName];
-  }
-
   get value(): any {
-    return this.filterInstance.selectedValue;
+    return this.selectedValue;
   }
 
   set value(newValue: any) {
-    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, newValue)) {
-      this.filterInstance.selectedValue = newValue;
-      this.onChange(newValue);
+    this.selectedValue = newValue;
+    this.onChange(newValue);
+  }
+
+  updateValue(options: any) {
+    const value = options && options.value;
+    if (this.utils.valueHasChanged(this.selectedValue, value)) {
+      this.value = value;
     }
   }
 
-  writeValue(options: any) {
-    const value = options && options.value;
-    if (this.utils.valueHasChanged(this.filterInstance.selectedValue, value)) {
-      this.filterInstance.selectedValue = value;
-    }
+  writeValue() {
   }
 
   registerOnChange(callback: any): void {
@@ -85,7 +80,7 @@ export class FilterTextFieldComponent implements ControlValueAccessor {
   registerOnTouched() {
   }
 
-  updateValue(value: string): void {
+  updateInstantValue(value: string): void {
     this.valueSubject.next(value);
   }
 

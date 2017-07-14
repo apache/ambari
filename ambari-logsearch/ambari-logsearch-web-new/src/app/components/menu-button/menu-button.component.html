@@ -22,6 +22,6 @@
   <br>
   <a *ngIf="label" (mousedown)="onMouseDown($event)" [ngClass]="labelClass" (mouseup)="onMouseUp($event)"
      (click)="$event.stopPropagation()">{{label | translate}}</a>
-  <ul data-component="dropdown-list" class="dropdown-menu" *ngIf="hasSubItems" [items]="subItems"
-      (selectedItemChange)="writeValue($event)"></ul>
+  <ul data-component="dropdown-list" *ngIf="hasSubItems" [items]="subItems" (selectedItemChange)="updateValue($event)"
+      [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"></ul>
 </div>

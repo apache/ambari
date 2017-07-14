@@ -17,6 +17,9 @@
 
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {Http} from '@angular/http';
+import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
@@ -30,6 +33,10 @@ import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {LogsListComponent} from './logs-list.component';
+
+export function HttpLoaderFactory(http: Http) {
+  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+}
 
 describe('LogsListComponent', () => {
   let component: LogsListComponent;
@@ -55,7 +62,12 @@ describe('LogsListComponent', () => {
           components
         }),
         MomentModule,
-        MomentTimezoneModule
+        MomentTimezoneModule,
+        TranslateModule.forRoot({
+          provide: TranslateLoader,
+          useFactory: HttpLoaderFactory,
+          deps: [Http]
+        })
       ],
       providers: [
         {

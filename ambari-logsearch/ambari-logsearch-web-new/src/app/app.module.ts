@@ -27,7 +27,7 @@ import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
-import {environment} from '../environments/environment';
+import {environment} from '@envs/environment';
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
@@ -60,6 +60,8 @@ import {FilterButtonComponent} from '@app/components/filter-button/filter-button
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
+import {PaginationComponent} from '@app/components/pagination/pagination.component';
+import {PaginationControlsComponent} from '@app/components/pagination-controls/pagination-controls.component';
 
 export function HttpLoaderFactory(http: Http) {
   // adding 'static' parameter to step over mock data request
@@ -95,7 +97,9 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FilterButtonComponent,
     AccordionPanelComponent,
     LogsListComponent,
-    DropdownButtonComponent
+    DropdownButtonComponent,
+    PaginationComponent,
+    PaginationControlsComponent
   ],
   imports: [
     BrowserModule,

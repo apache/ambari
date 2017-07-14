@@ -15,14 +15,14 @@
   limitations under the License.
 -->
 
-<form [formGroup]="filtersForm">
+<form class="col-md-12" [formGroup]="filtersForm">
   <div class="form-inline filter-input-container col-md-8">
-    <filter-dropdown [(ngModel)]="filters.clusters.selectedValue" filterName="clusters" [form]="filtersForm"
-                     formControlName="clusters" [options]="filters.clusters.options"></filter-dropdown>
-    <filter-text-field [(ngModel)]="filters.text.selectedValue" filterName="text" formControlName="text"
-                       [form]="filtersForm"></filter-text-field>
-    <filter-dropdown [(ngModel)]="filters.timeRange.selectedValue" filterName="timeRange" [form]="filtersForm"
-                     formControlName="timeRange" [options]="filters.timeRange.options"></filter-dropdown>
+    <filter-dropdown [label]="filters.clusters.label" formControlName="clusters" [options]="filters.clusters.options"
+                     [defaultLabel]="filters.clusters.defaultLabel"></filter-dropdown>
+    <filter-text-field [label]="filters.text.label"
+                       formControlName="text"></filter-text-field>
+    <filter-dropdown formControlName="timeRange" [options]="filters.timeRange.options"
+                     [defaultLabel]="filters.timeRange.defaultLabel"></filter-dropdown>
     <dropdown-button [options]="timeZoneSelection.options" [defaultValue]="timeZoneSelection.defaultValue"
                      [defaultLabel]="timeZoneSelection.defaultLabel" action="setTimeZone"></dropdown-button>
     <!--button class="btn btn-success" type="button">
@@ -33,12 +33,11 @@
     <a href="#">
       <span class="fa fa-search-minus"></span> {{'filter.excluded' | translate}}
     </a>
-    <filter-button [(ngModel)]="filters.components.selectedValue" [form]="filtersForm" formControlName="components"
-                   [label]="filters.components.label" [iconClass]="filters.components.iconClass"
-                   [subItems]="filters.components.options" filterName="components"></filter-button>
-    <filter-button [(ngModel)]="filters.levels.selectedValue" [form]="filtersForm" formControlName="levels"
-                   [label]="filters.levels.label" [iconClass]="filters.levels.iconClass"
-                   [subItems]="filters.levels.options" filterName="levels"></filter-button>
+    <filter-button formControlName="components" [label]="filters.components.label"
+                   [iconClass]="filters.components.iconClass" [subItems]="filters.components.options"
+                   isRightAlign="true"></filter-button>
+    <filter-button formControlName="levels" [label]="filters.levels.label" [iconClass]="filters.levels.iconClass"
+                   [subItems]="filters.levels.options" isRightAlign="true"></filter-button>
     <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
   </div>
 </form>

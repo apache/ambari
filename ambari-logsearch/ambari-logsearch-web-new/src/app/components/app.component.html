@@ -24,9 +24,12 @@
   </nav>
 </header>
 
-<!-- hidden element for moving the main bar outside the fixed header -->
-<div class="navbar invisible">
-  <h1>&nbsp;</h1>
-</div>
 
-<main-container></main-container>
+<main-container>
+  <ng-template>
+    <!-- hidden element for moving the main bar outside the fixed header -->
+    <div class="navbar invisible">
+      <h1>&nbsp;</h1>
+    </div>
+  </ng-template>
+</main-container>

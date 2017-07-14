@@ -21,7 +21,6 @@
   display: block;
   overflow: hidden;
   padding-top: @block-margin-top;
-  background-color: @main-background-color; // TODO implement actual color
 
   .logs-header {
     // TODO get rid of magic numbers, base on actual design
@@ -32,7 +31,7 @@
     text-transform: uppercase;
   }
 
-  filter-dropdown {
+  /deep/ filter-dropdown {
     justify-content: flex-end;
   }
 

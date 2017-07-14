@@ -18,10 +18,22 @@
 
 import {QueryParams} from '@app/classes/queries/query-params.class';
 
+export const defaultParams = {
+  page: '0',
+  pageSize: '10'
+};
+
 export class AuditLogsQueryParams extends QueryParams {
-  startIndex?: string = '0';
-  page?: string = '0';
-  pageSize?: string = '25';
+  constructor(options: AuditLogsQueryParams) {
+    let finalParams = Object.assign({}, defaultParams, options);
+    const page = parseInt(finalParams.page),
+      pageSize = parseInt(finalParams.pageSize);
+    finalParams.startIndex = isNaN(page) || isNaN(pageSize) ? '' : (page * pageSize).toString();
+    super(finalParams);
+  }
+  page: string;
+  pageSize: string;
+  startIndex: string;
   sortBy?: string;
   sortType?: string;
   start_time?: string;

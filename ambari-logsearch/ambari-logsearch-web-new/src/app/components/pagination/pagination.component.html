@@ -15,7 +15,10 @@
   limitations under the License.
 -->
 
-<div class="input-group">
-  <span class="input-group-addon">{{label | translate}}</span>
-  <input type="text" class="form-control" [(ngModel)]="instantValue" (ngModelChange)="updateInstantValue($event)">
-</div>
+<form class="pagination-form col-md-12" [formGroup]="filtersForm">
+  <filter-dropdown [label]="filterInstance.label" formControlName="pageSize" [options]="filterInstance.options"
+                   [defaultLabel]="filterInstance.defaultLabel" isRightAlign="true" isDropup="true"></filter-dropdown>
+  <span>{{'pagination.numbers' | translate: numbersTranslateParams}}</span>
+  <pagination-controls formControlName="page" [totalCount]="totalCount" [pagesCount]="pagesCount"
+                       (currentPageChange)="setCurrentPage($event)"></pagination-controls>
+</form>

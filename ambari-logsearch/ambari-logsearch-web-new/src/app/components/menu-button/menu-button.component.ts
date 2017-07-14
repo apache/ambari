@@ -49,7 +49,10 @@ export class MenuButtonComponent {
   subItems?: any[];
 
   @Input()
-  hideCaret?: boolean;
+  hideCaret?: boolean = false;
+
+  @Input()
+  isRightAlign?: boolean = false;
 
   get hasSubItems(): boolean {
     return Boolean(this.subItems && this.subItems.length);
@@ -81,7 +84,7 @@ export class MenuButtonComponent {
     }
   }
   
-  writeValue(options: any) {
+  updateValue(options: any) {
     // TODO implement value change behaviour
   }
 

@@ -46,6 +46,9 @@
   "sorting.time.asc": "Ascending Time",
   "sorting.time.desc": "Descending Time",
 
+  "pagination.title": "Rows per page:",
+  "pagination.numbers": "{{startIndex}}-{{endIndex}} of {{totalCount}}",
+
   "logs.status": "Status",
   "logs.details": "Details"
 }

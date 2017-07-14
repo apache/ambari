@@ -15,7 +15,9 @@
   limitations under the License.
 -->
 
-<div class="input-group">
-  <span class="input-group-addon">{{label | translate}}</span>
-  <input type="text" class="form-control" [(ngModel)]="instantValue" (ngModelChange)="updateInstantValue($event)">
-</div>
+<button class="btn btn-link" [disabled]="currentPage === 0" (click)="updateValue(true)">
+  <span class="pagination-control fa fa-chevron-left"></span>
+</button>
+<button class="btn btn-link" [disabled]="currentPage === pagesCount - 1" (click)="updateValue()">
+  <span class="pagination-control fa fa-chevron-right"></span>
+</button>

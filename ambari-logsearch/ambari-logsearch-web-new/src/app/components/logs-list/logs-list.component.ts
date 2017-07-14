@@ -16,6 +16,7 @@
  */
 
 import {Component, OnInit, Input} from '@angular/core';
+import {FormGroup} from '@angular/forms';
 import 'rxjs/add/operator/map';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
@@ -41,6 +42,8 @@ export class LogsListComponent implements OnInit {
   @Input()
   private logsArrayId: string;
 
+  totalCount: number = 0;
+
   timeFormat: string = 'DD/MM/YYYY HH:mm:ss';
 
   private readonly usedFilters = {
@@ -49,7 +52,9 @@ export class LogsListComponent implements OnInit {
     timeRange: ['end_time', 'start_time'],
     components: ['component_name'],
     levels: ['level'],
-    sorting: ['sortType', 'sortBy']
+    sorting: ['sortType', 'sortBy'],
+    pageSize: ['pageSize'],
+    page: ['page']
   };
 
   logs = this.serviceLogsStorage.getAll().map(logs => logs.map(log => {
@@ -66,22 +71,26 @@ export class LogsListComponent implements OnInit {
     return this.filtering.timeZone;
   }
 
-  get filters() {
+  get filters(): any {
     return this.filtering.filters;
   }
   
-  get filtersForm() {
+  get filtersForm(): FormGroup {
     return this.filtering.filtersForm;
   }
 
   private loadLogs(): void {
     this.httpClient.get(this.logsArrayId, this.getParams()).subscribe(response => {
-      const jsonResponse = response.json(),
-        logs = jsonResponse && jsonResponse.logList;
+      const jsonResponse = response.json();
       this.serviceLogsStorage.clear();
-      if (logs) {
-        const logs = response.json().logList;
-        this.serviceLogsStorage.addInstances(logs);
+      if (jsonResponse) {
+        const logs = jsonResponse.logList,
+          count = jsonResponse.totalCount || 0;
+        if (logs) {
+          const logs = response.json().logList;
+          this.serviceLogsStorage.addInstances(logs);
+        }
+        this.totalCount = count;
       }
     });
   }
@@ -103,7 +112,7 @@ export class LogsListComponent implements OnInit {
         } else {
           value = inputValue;
         }
-        if (value) {
+        if (value != null && value !== '') {
           params[paramName] = value;
         }
       });

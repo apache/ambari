@@ -15,15 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@import '../variables';
 
-import {enableProdMode} from '@angular/core';
-import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
-
-import {AppModule} from '@app/app.module';
-import {environment} from '@envs/environment';
-
-if (environment.production) {
-  enableProdMode();
+.pagination-control {
+  .clickable-item;
 }
-
-platformBrowserDynamic().bootstrapModule(AppModule);

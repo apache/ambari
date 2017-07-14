@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, ContentChild, TemplateRef} from '@angular/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Component({
   selector: 'main-container',
-  templateUrl: './main-container.component.html'
+  templateUrl: './main-container.component.html',
+  styleUrls: ['./main-container.component.less']
 })
 export class MainContainerComponent {
 
@@ -29,6 +30,9 @@ export class MainContainerComponent {
     this.appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
     this.appState.getParameter('isInitialLoading').subscribe(value => this.isInitialLoading = value);
   }
+
+  @ContentChild(TemplateRef)
+  template;
 
   isAuthorized: boolean = false;
 

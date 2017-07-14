@@ -21,7 +21,7 @@ import {InMemoryDbService, InMemoryBackendService, createErrorResponse} from 'an
 import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
 import * as moment from 'moment';
-import {mockData} from '../../assets/mock-data';
+import {mockData} from '@app/mock-data';
 
 export class mockBackendService extends InMemoryBackendService {
   getLocation(url: string): any {
@@ -34,6 +34,7 @@ export class mockApiDataService implements InMemoryDbService {
   private readonly filterMap = {
     'api/v1/service/logs': {
       pathToCollection: 'logList',
+      totalCountKey: 'totalCount',
       filters: {
         clusters: {
           key: 'cluster'
@@ -105,8 +106,8 @@ export class mockApiDataService implements InMemoryDbService {
         if (query && filterMapItem) {
           filteredData = {};
           const pathToCollection = filterMapItem.pathToCollection,
-            collection = allData[pathToCollection],
-            filteredCollection = collection.filter(item => {
+            collection = allData[pathToCollection];
+          let filteredCollection = collection.filter(item => {
             let result = true;
               query.paramsMap.forEach((value, key) => {
               const paramValue = decodeURIComponent(value[0]), // TODO implement multiple conditions
@@ -135,6 +136,14 @@ export class mockApiDataService implements InMemoryDbService {
               }
               return ascResult * Math.pow(-1, Number(sortType === 'desc'));
             });
+          }
+          if (filterMapItem.totalCountKey) {
+            filteredData[filterMapItem.totalCountKey] = filteredCollection.length;
+          }
+          if (query && query.paramsMap.has('page') && query.paramsMap.has('pageSize')) {
+            const page = parseInt(query.paramsMap.get('page')[0]),
+              pageSize = parseInt(query.paramsMap.get('pageSize')[0]);
+            filteredCollection = filteredCollection.slice(page * pageSize, (page + 1) * pageSize);
           }
           filteredData[pathToCollection] = filteredCollection;
         } else {

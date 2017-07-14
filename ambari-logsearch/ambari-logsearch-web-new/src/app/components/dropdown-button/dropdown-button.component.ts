@@ -17,7 +17,6 @@
  */
 
 import {Component, OnInit, Input} from '@angular/core';
-import {FilteringService} from '@app/services/filtering.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 
@@ -28,7 +27,7 @@ import {UtilsService} from '@app/services/utils.service';
 })
 export class DropdownButtonComponent implements OnInit {
 
-  constructor(protected filtering: FilteringService, protected actions: ComponentActionsService, protected utils: UtilsService) {
+  constructor(protected actions: ComponentActionsService, protected utils: UtilsService) {
   }
 
   ngOnInit() {
@@ -53,18 +52,25 @@ export class DropdownButtonComponent implements OnInit {
   @Input()
   isRightAlign?: boolean = false;
 
-  private selectedValue?: any;
+  @Input()
+  isDropup?: boolean = false;
+
+  protected selectedValue?: any;
 
   selectedLabel: string;
 
   get value(): any {
-    return this.selectedValue == null ? this.defaultValue : this.selectedValue;
+    return this.selectedValue;
   }
 
-  writeValue(options: any) {
+  set value(value: any) {
+    this.selectedValue = value;
+  }
+
+  updateValue(options: any) {
     const value = options && options.value;
     if (this.utils.valueHasChanged(this.value, value)) {
-      this.selectedValue = value;
+      this.value = value;
       this.selectedLabel = options.label;
       if (this.action) {
         this.actions[this.action](value);

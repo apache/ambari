@@ -16,14 +16,28 @@
  * limitations under the License.
  */
 
-import {enableProdMode} from '@angular/core';
-import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {AppModule} from '@app/app.module';
-import {environment} from '@envs/environment';
+import {PaginationControlsComponent} from './pagination-controls.component';
 
-if (environment.production) {
-  enableProdMode();
-}
+describe('PaginationControlsComponent', () => {
+  let component: PaginationControlsComponent;
+  let fixture: ComponentFixture<PaginationControlsComponent>;
 
-platformBrowserDynamic().bootstrapModule(AppModule);
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [PaginationControlsComponent]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(PaginationControlsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+});

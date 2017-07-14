@@ -6,6 +6,9 @@
     "paths": {
       "@app/*": [
         "app/*"
+      ],
+      "@envs/*": [
+        "environments/*"
       ]
     },
     "sourceMap": true,

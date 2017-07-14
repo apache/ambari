@@ -17,6 +17,7 @@
  */
 
 import {Component} from '@angular/core';
+import {FormGroup} from '@angular/forms';
 import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
@@ -62,7 +63,7 @@ export class FiltersPanelComponent {
     });
   }
 
-  get filtersForm() {
+  get filtersForm(): FormGroup {
     return this.filtering.filtersForm;
   }
 

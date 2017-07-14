@@ -42,10 +42,7 @@ export class FilteringService {
 
   private readonly defaultTimeZone = moment.tz.guess();
 
-  private readonly sortMap = {
-    component_name: 'type',
-    start_time: 'logtime'
-  };
+  private readonly paginationOptions = ['10', '25', '50', '100'];
 
   timeZone: string = this.defaultTimeZone;
 
@@ -58,10 +55,8 @@ export class FilteringService {
           value: ''
         }
       ],
-      selectedValue: '',
       defaultValue: '',
-      defaultLabel: 'filter.all',
-      paramName: 'clusters',
+      defaultLabel: 'filter.all'
     },
     text: {
       label: 'filter.message',
@@ -136,11 +131,6 @@ export class FilteringService {
           }
         }
       ],
-      selectedValue: {
-        type: 'LAST',
-        unit: 'h',
-        interval: 1
-      },
       defaultValue: {
         type: 'LAST',
         unit: 'h',
@@ -157,9 +147,7 @@ export class FilteringService {
           value: ''
         }
       ],
-      selectedValue: '',
-      defaultValue: '',
-      defaultLabel: 'filter.all'
+      defaultValue: ''
     },
     levels: {
       label: 'filter.levels',
@@ -198,9 +186,7 @@ export class FilteringService {
           value: 'UNKNOWN'
         }
       ],
-      selectedValue: '',
-      defaultValue: '',
-      defaultLabel: 'filter.all'
+      defaultValue: ''
     },
     sorting: {
       label: 'sorting.title',
@@ -222,35 +208,48 @@ export class FilteringService {
         {
           label: 'sorting.component.asc',
           value: {
-            key: 'component_name',
+            key: 'type',
             type: 'asc'
           }
         },
         {
           label: 'sorting.component.desc',
           value: {
-            key: 'component_name',
+            key: 'type',
             type: 'desc'
           }
         },
         {
           label: 'sorting.time.asc',
           value: {
-            key: 'start_time',
+            key: 'logtime',
             type: 'asc'
           }
         },
         {
           label: 'sorting.time.desc',
           value: {
-            key: 'start_time',
+            key: 'logtime',
             type: 'desc'
           }
         }
       ],
-      selectedValue: '',
       defaultValue: '',
       defaultLabel: ''
+    },
+    pageSize: {
+      label: 'pagination.title',
+      options: this.paginationOptions.map(option => {
+        return {
+          label: option,
+          value: option
+        }
+      }),
+      defaultValue: '10',
+      defaultLabel: '10'
+    },
+    page: {
+      defaultValue: 0
     }
   };
 
@@ -269,7 +268,7 @@ export class FilteringService {
   private filtersFormItems = Object.keys(this.filters).reduce((currentObject, key) => {
     let formControl = new FormControl(),
       item = {
-        [key]: new FormControl()
+        [key]: formControl
       };
     formControl.setValue(this.filters[key].defaultValue);
     return Object.assign(currentObject, item);
@@ -318,7 +317,8 @@ export class FilteringService {
       return time ? time.toISOString() : '';
     },
     sortType: value => value && value.type,
-    sortBy: value => value && (this.sortMap[value.key] || value.key)
+    sortBy: value => value && value.key,
+    page: value => value == null ? value : value.toString()
   };
 
 }
