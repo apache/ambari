@@ -153,6 +153,10 @@
             <type>atlas-env</type>
             <replace key="content" find="-Xloggc:$ATLAS_LOG_DIRgc-worker.log" replace-with="-Xloggc:$ATLAS_LOG_DIR/gc-worker.log"/>
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete" summary="Updating Atlas Kafka configurations.">
+            <type>application-properties</type>
+            <transfer operation="delete" delete-key="atlas.kafka.auto.commit.enable"/>
+          </definition>
         </changes>
       </component>
     </service>
