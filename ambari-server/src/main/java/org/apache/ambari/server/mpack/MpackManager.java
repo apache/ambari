@@ -298,7 +298,7 @@ public class MpackManager {
     if (!stagingDir.exists()) {
       stagingDir.mkdir();
     }
-    Path targetPath = new File(stagingDir.getPath() + File.separator fileName).toPath();
+    Path targetPath = new File(stagingDir.getPath() + File.separator + fileName).toPath();
     Files.copy(url.openStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
     return targetPath;
