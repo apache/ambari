@@ -224,8 +224,9 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
   @Test
   public void testUpgradeInProgress() throws Exception {
     UpgradeEntity upgrade = createNiceMock(UpgradeEntity.class);
-    expect(upgrade.getToVersion()).andReturn("VERSION").once();
-    expect(m_cluster.getUpgradeInProgress()).andReturn(upgrade).once();
+    expect(upgrade.getToRepositoryVersion()).andReturn(EasyMock.createNiceMock(RepositoryVersionEntity.class)).atLeastOnce();
+    expect(upgrade.getFromRepositoryVersion()).andReturn(EasyMock.createNiceMock(RepositoryVersionEntity.class)).atLeastOnce();
+    expect(m_cluster.getUpgradeInProgress()).andReturn(upgrade).atLeastOnce();
 
     replayAll();
 

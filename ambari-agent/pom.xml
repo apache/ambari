@@ -272,17 +272,6 @@
               </sources>
             </mapping>
            <mapping>
-              <directory>/usr/sbin</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded> <!-- avoid managing /usr/sbin -->
-              <sources>
-                <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/sbin</location>
-                </source>
-              </sources>
-            </mapping>
-           <mapping>
               <directory>/usr/lib/ambari-agent</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -497,6 +486,7 @@
                     <include>common-services/**</include>
                     <include>stacks/stack_advisor.py</include>
                     <include>stacks/${stack.distribution}/**/*</include>
+                    <include>stacks/${supplemental.distribution}/**/*</include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -672,6 +662,7 @@
       <dirsep>/</dirsep>
       <pathsep>:</pathsep>
       <stack.distribution>HDP</stack.distribution>
+      <supplemental.distribution>BigInsights</supplemental.distribution>
       <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
       <executable.shell>sh</executable.shell>
       <fileextension.shell>sh</fileextension.shell>

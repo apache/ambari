@@ -523,8 +523,11 @@ public class TopologyManager {
     if (!logicalRequest.hasPendingHostRequests()) {
       outstandingRequests.remove(logicalRequest);
     }
+    if (logicalRequest.getHostRequests().isEmpty()) {
+      allRequests.remove(requestId);
+    }
 
-    persistedState.removeHostRequests(pendingHostRequests);
+    persistedState.removeHostRequests(requestId, pendingHostRequests);
 
     // set current host count to number of currently connected hosts
     for (HostGroupInfo currentHostGroupInfo : topology.getHostGroupInfo().values()) {
@@ -532,6 +535,31 @@ public class TopologyManager {
     }
 
     LOG.info("TopologyManager.removePendingHostRequests: Exit");
+  }
+
+  /**
+   * Removes topology host requests matched to the given host.  If the parent
+   * request has no more child host requests, then it is also removed.
+   * This is used when hosts are deleted from the cluster.
+   *
+   * @param hostName the host name for which requests should be removed
+   */
+  public void removeHostRequests(String hostName) {
+    ensureInitialized();
+
+    for (Iterator<LogicalRequest> iter = allRequests.values().iterator(); iter.hasNext(); ) {
+      LogicalRequest logicalRequest = iter.next();
+      Collection<HostRequest> removed = logicalRequest.removeHostRequestByHostName(hostName);
+      if (!logicalRequest.hasPendingHostRequests()) {
+        outstandingRequests.remove(logicalRequest);
+      }
+      if (logicalRequest.getHostRequests().isEmpty()) {
+        iter.remove();
+      }
+      if (!removed.isEmpty()) {
+        persistedState.removeHostRequests(logicalRequest.getRequestId(), removed);
+      }
+    }
   }
 
   /**

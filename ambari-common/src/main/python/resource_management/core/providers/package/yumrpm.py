@@ -36,6 +36,8 @@ REMOVE_CMD = {
   False: ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase'],
 }
 
+REMOVE_WITHOUT_DEPENDENCIES_CMD = ['rpm', '-e', '--nodeps']
+
 REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean','metadata']
 
 class YumProvider(PackageProvider):
@@ -55,9 +57,12 @@ class YumProvider(PackageProvider):
   def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):
     return self.install_package(name, use_repos, skip_repos, is_upgrade)
 
-  def remove_package(self, name):
+  def remove_package(self, name, ignore_dependencies = False):
     if self._check_existence(name):
-      cmd = REMOVE_CMD[self.get_logoutput()] + [name]
+      if ignore_dependencies:
+        cmd = REMOVE_WITHOUT_DEPENDENCIES_CMD + [name]
+      else:
+        cmd = REMOVE_CMD[self.get_logoutput()] + [name]
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:

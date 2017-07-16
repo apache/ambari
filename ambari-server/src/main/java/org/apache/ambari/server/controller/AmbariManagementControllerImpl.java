@@ -187,6 +187,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
@@ -198,6 +199,7 @@ import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
@@ -3062,7 +3064,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             // START task should run configuration script.
             if (newState == State.INSTALLED && skipInstallTaskForComponent(requestProperties, cluster, scHost)) {
               LOG.info("Skipping create of INSTALL task for {} on {}.", scHost.getServiceComponentName(), scHost.getHostName());
-              scHost.setState(State.INSTALLED);
+              // set state to INSTALLING, then immediately send an ServiceComponentHostOpSucceededEvent to allow
+              // transitioning from INSTALLING --> INSTALLED.
+              scHost.setState(State.INSTALLING);
+              long now = System.currentTimeMillis();
+              try {
+                scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost.getServiceComponentName(), scHost.getHostName(), now));
+              } catch (InvalidStateTransitionException e) {
+                LOG.error("Error transitioning ServiceComponentHost state to INSTALLED", e);
+              }
             } else {
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
                 roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended,
@@ -4163,7 +4173,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
-          requestProperties);
+          requestProperties, jsons);
     } else {
       actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestProperties);
     }

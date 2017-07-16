@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
+  <services>
+    <service name="RANGER">
+      <component name="RANGER_ADMIN">
+        <changes>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_admin_properties">
+            <type>admin-properties</type>
+            <transfer operation="delete" delete-key="audit_db_name" />
+            <transfer operation="delete" delete-key="audit_db_user" />
+            <transfer operation="delete" delete-key="audit_db_password" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_ranger_admin_site">
+            <type>ranger-admin-site</type>
+            <set key="ranger.audit.source.type" value="solr"/>
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.driver" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.url" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.user" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.password" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.credential.alias" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.dialect" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property">
+            <type>ranger-admin-site</type>
+            <transfer operation="delete" delete-key="ranger.sso.cookiename" />
+            <transfer operation="delete" delete-key="ranger.sso.query.param.originalurl" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag">
+            <type>ranger-env</type>
+            <set key="is_external_solrCloud_enabled" value="true"
+              if-type="ranger-env" if-key="is_solrCloud_enabled" if-value="true"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="bind_anonymous" />
+          </definition>
+        </changes>
+      </component>
+
+      <component name="RANGER_USERSYNC">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade">
+            <type>ranger-ugsync-site</type>
+            <set key="ranger.usersync.ldap.deltasync" value="false"
+              if-type="ranger-ugsync-site" if-key="ranger.usersync.source.impl.class" if-value="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db">
+            <type>ranger-kms-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+          <definition xsi:type="configure" id="kms_log4j_parameterize" summary="Parameterizing Ranger KMS Log4J Properties">
+            <type>kms-log4j</type>
+            <set key="ranger_kms_log_maxfilesize" value="256"/>
+            <set key="ranger_kms_log_maxbackupindex" value="20"/>
+            <set key="ranger_kms_audit_log_maxfilesize" value="256"/>
+            <set key="ranger_kms_audit_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize = {{ranger_kms_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxBackupIndex = {{ranger_kms_log_maxbackupindex}}"/>
+            <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize = {{ranger_kms_audit_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxBackupIndex = {{ranger_kms_audit_log_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl">
+            <type>ranger-kms-site</type>
+            <transfer operation="delete" delete-key="ranger.https.attrib.keystore.file"
+              if-type="ranger-kms-site" if-key="ranger.service.https.attrib.keystore.file" if-key-state="present"/>
+            <transfer operation="delete" delete-key="ranger.service.https.attrib.clientAuth"
+              if-type="ranger-kms-site" if-key="ranger.service.https.attrib.client.auth" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_namenode_update_hadoop_env" summary="Update Hadoop env">
+            <type>hadoop-env</type>
+            <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/hdp/current/hadoop-client/lib/native" />
+            <replace key="content" find="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}" replace-with="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}&#10;if [ -d &quot;/usr/lib/hadoop-lzo&quot; ]; then&#10;  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/hadoop-lzo/lib/*&#10;  export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop-lzo/lib/native&#10;fi"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
+            <type>yarn-site</type>
+            <replace key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="MAPREDUCE2">
+      <component name="HISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" summary="Update MapReduce2 configurations">
+            <type>mapred-site</type>
+            <set key="mapreduce.application.framework.path" value="/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_hbase_env_config" summary="Update HBase configurations">
+            <type>hbase-env</type>
+            <set key="backup_wal_dir" value="true"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HIVE">
+      <component name="HIVE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_server_configure_authentication" summary="Configuring hive authentication">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="hive.metastore.event.listeners" if-key="hive.metastore.event.listeners" if-type="hive-site" if-value="com.ibm.biginsights.bigsql.sync.BIEventListener"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+          </definition>
+          
+          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure" summary="Configuring hive env for MariaDB/RedHat7 support">
+            <type>hive-env</type>
+            <set key="mariadb_redhat_support" value="true"/>
+          </definition>
+        </changes>
+      </component>
+      
+      <component name="WEBHCAT_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" summary="Update Hadoop home">
+            <type>webhcat-env</type>
+            <replace key="content" find="export HADOOP_HOME={{hadoop_home}}" replace-with="export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}" />
+          </definition>
+          
+          <definition xsi:type="configure" id="biginsights_4_2_webhcat_server_update_configurations" summary="Updating Configuration Paths">
+            <type>webhcat-site</type>
+            <replace key="templeton.jar" find="/usr/iop/current/hive-webhcat" replace-with="/usr/hdp/${hdp.version}/hive"/>
+            <replace key="templeton.libjars" find="/usr/iop/current/zookeeper-client" replace-with="/usr/hdp/${hdp.version}/zookeeper"/>
+            <replace key="templeton.hadoop" find="/usr/iop/current/hadoop-client" replace-with="/usr/hdp/${hdp.version}/hadoop"/>
+            <replace key="templeton.hcat" find="/usr/iop/current/hive-client" replace-with="/usr/hdp/${hdp.version}/hive"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_configurations" summary="Updating oozie-site configurations">
+            <type>oozie-site</type>
+            <replace key="oozie.services" find="org.apache.oozie.service.JvmPauseMonitorService" replace-with="org.apache.oozie.service.JvmPauseMonitorService,     org.apache.oozie.service.SparkConfigurationService"/>
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_configurations" summary="Update oozie env">
+            <type>oozie-env</type>
+            <replace key="content" find="export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}" replace-with="export CATALINA_BASE={{oozie_server_dir}}" />            
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" summary="Updating oozie env">
+            <type>oozie-env</type>
+            <replace key="content" find="/usr/lib/bigtop-tomcat7-7.0.75" replace-with="/usr/lib/bigtop-tomcat" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+  </services>
+
+
+</upgrade-config-changes>

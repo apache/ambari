@@ -17,12 +17,13 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
-import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
 import java.lang.reflect.Field;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
@@ -31,12 +32,12 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -72,8 +73,6 @@ public class StackVersionListenerTest extends EasyMockSupport {
   private Service service;
   private ServiceComponent serviceComponent;
   private VersionEventPublisher publisher = new VersionEventPublisher();
-  private AmbariMetaInfo ambariMetaInfo;
-  private ComponentInfo componentInfo;
   private StackId stackId;
 
   @TestSubject
@@ -88,18 +87,12 @@ public class StackVersionListenerTest extends EasyMockSupport {
     sch = createNiceMock(ServiceComponentHost.class);
     service = createNiceMock(Service.class);
     serviceComponent = createNiceMock(ServiceComponent.class);
-    componentInfo = createNiceMock(ComponentInfo.class);
     stackId = createNiceMock(StackId.class);
 
-    ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-
-    expect(ambariMetaInfoProvider.get()).andReturn(ambariMetaInfo);
-    expect(ambariMetaInfo.getComponent(anyString(),anyString(),anyString(),anyString())).andReturn(componentInfo);
-
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
-    expect(stackId.getStackName()).andReturn(STACK_NAME);
-    expect(stackId.getStackVersion()).andReturn(STACK_VERSION);
-    expect(cluster.getClusterId()).andReturn(CLUSTER_ID);
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(stackId.getStackName()).andReturn(STACK_NAME).anyTimes();
+    expect(stackId.getStackVersion()).andReturn(STACK_VERSION).anyTimes();
+    expect(cluster.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
 
     expect(cluster.getService(SERVICE_NAME)).andReturn(service).atLeastOnce();
     expect(service.getServiceComponent(SERVICE_COMPONENT_NAME)).andReturn(serviceComponent).atLeastOnce();
@@ -109,8 +102,9 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testRecalculateHostVersionStateWhenVersionIsNullAndNewVersionIsNotBlank() throws AmbariException {
-    expect(sch.getVersion()).andReturn(null);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(sch.getVersion()).andReturn(null).atLeastOnce();
+    expect(serviceComponent.getDesiredVersion()).andReturn(INVALID_NEW_VERSION).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setVersion(INVALID_NEW_VERSION);
     expectLastCall().once();
     expect(sch.recalculateHostVersionState()).andReturn(null).once();
@@ -122,8 +116,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testRecalculateHostVersionStateWhenVersionIsUnknownAndNewVersionIsNotBlank() throws AmbariException {
-    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setVersion(INVALID_NEW_VERSION);
     expectLastCall().once();
     expect(sch.recalculateHostVersionState()).andReturn(null).once();
@@ -135,8 +129,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testRecalculateClusterVersionStateWhenVersionIsNullAndNewVersionIsValid() throws AmbariException {
-    expect(sch.getVersion()).andReturn(null);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(sch.getVersion()).andReturn(null).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setVersion(VALID_NEW_VERSION);
     expectLastCall().once();
     expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
@@ -150,8 +144,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testRecalculateClusterVersionStateWhenVersionIsUnknownAndNewVersionIsValid() throws AmbariException {
-    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setVersion(VALID_NEW_VERSION);
     expectLastCall().once();
     expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
@@ -165,8 +159,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testRecalculateHostVersionStateWhenComponentDesiredVersionIsUnknownAndNewVersionIsNotValid() throws AmbariException {
-    expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     serviceComponent.setDesiredVersion(INVALID_NEW_VERSION);
     expectLastCall().once();
     sch.setUpgradeState(UpgradeState.NONE);
@@ -182,8 +176,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testRecalculateClusterVersionStateWhenComponentDesiredVersionIsUnknownAndNewVersionIsValid() throws AmbariException {
-    expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     serviceComponent.setDesiredVersion(VALID_NEW_VERSION);
     expectLastCall().once();
     sch.setUpgradeState(UpgradeState.NONE);
@@ -201,7 +195,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testRecalculateClusterVersionStateWhenVersionNotAdvertised() throws AmbariException {
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.FALSE);
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.FALSE).atLeastOnce();
     replayAll();
     sendEventAndVerify(VALID_NEW_VERSION);
   }
@@ -218,9 +212,10 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testSetUpgradeStateToCompleteWhenUpgradeIsInProgressAndNewVersionIsEqualToComponentDesiredVersion() {
-    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
-    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(cluster.getUpgradeInProgress()).andReturn(EasyMock.niceMock(UpgradeEntity.class)).atLeastOnce();
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION).atLeastOnce();
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setUpgradeState(UpgradeState.COMPLETE);
     expectLastCall().once();
 
@@ -232,9 +227,10 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testSetUpgradeStateToVersionMismatchWhenUpgradeIsInProgressAndNewVersionIsNotEqualToComponentDesiredVersion() {
-    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
-    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(cluster.getUpgradeInProgress()).andReturn(createNiceMock(UpgradeEntity.class)).atLeastOnce();
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION).atLeastOnce();
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
     expectLastCall().once();
 
@@ -246,11 +242,11 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testSetUpgradeStateToCompleteWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersionAndClusterUpgradeIsInProgress() {
-    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
-    expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH);
-    expect(cluster.getUpgradeInProgress()).andReturn(DUMMY_UPGRADE_ENTITY);
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION).atLeastOnce();
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH).atLeastOnce();
+    expect(cluster.getUpgradeInProgress()).andReturn(DUMMY_UPGRADE_ENTITY).atLeastOnce();
     expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_NEW_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setUpgradeState(UpgradeState.COMPLETE);
     expectLastCall().once();
 
@@ -261,10 +257,10 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testSetUpgradeStateToNoneWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersion() {
-    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
-    expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH);
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION).atLeastOnce();
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH).atLeastOnce();
     expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_NEW_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
     sch.setUpgradeState(UpgradeState.NONE);
     expectLastCall().once();
 
@@ -274,9 +270,20 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
+  @Experimental(
+      feature = ExperimentalFeature.STACK_UPGRADES_BETWEEN_VENDORS,
+      comment = "Version Mismatch happened previously when not in an upgrade")
   public void testSetUpgradeStateToVersionMismatchByDefaultWhenHostAndNewVersionsAreValid() {
-    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION).atLeastOnce();
+    expect(serviceComponent.getDesiredVersion()).andReturn(VALID_PREVIOUS_VERSION).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
+
+    // !!! VERSION_MISMATCH might need to be allowed to happen when not in an
+    // upgrade
+    expect(cluster.getUpgradeInProgress()).andReturn(
+        EasyMock.niceMock(UpgradeEntity.class)).atLeastOnce();
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS).atLeastOnce();
+
     sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
     expectLastCall().once();
 
@@ -287,8 +294,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testSetRepositoryVersion() throws Exception {
-    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION);
-    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
+    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION).atLeastOnce();
+    expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE).atLeastOnce();
 
     RepositoryVersionDAO dao = createNiceMock(RepositoryVersionDAO.class);
     RepositoryVersionEntity entity = createNiceMock(RepositoryVersionEntity.class);
@@ -321,7 +328,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
   @Test
   public void testRepositoryVersionNotSetDuringUpgrade() throws Exception {
     // this call will make it seem like there is an upgrade in progress
-    expect(cluster.getUpgradeInProgress()).andReturn(createNiceMock(UpgradeEntity.class));
+    expect(cluster.getUpgradeInProgress()).andReturn(
+        createNiceMock(UpgradeEntity.class)).atLeastOnce();
 
     // create the DAO - nothing will be called on it, so make it strict
     RepositoryVersionDAO dao = createStrictMock(RepositoryVersionDAO.class);

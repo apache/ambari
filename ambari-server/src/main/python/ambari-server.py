@@ -52,8 +52,8 @@ from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SY
   SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, RESTART_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
-  DB_PURGE_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, KERBEROS_SETUP_ACTION
-from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam
+  DB_PURGE_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, MIGRATE_LDAP_PAM_ACTION, KERBEROS_SETUP_ACTION
+from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam, migrate_ldap_pam
 from ambari_server.userInput import get_validated_string_input
 from ambari_server.kerberos_setup import setup_kerberos
 
@@ -577,6 +577,9 @@ def init_parser_options(parser):
   parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
   parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
 
+  parser.add_option('--pam-config-file', default=None, help="Path to the PAM configuration file", dest="pam_config_file")
+  parser.add_option('--pam-auto-create-groups', default=None, help="Automatically create groups for authenticated users [true/false]", dest="pam_auto_create_groups")
+
   parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
   parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
   parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
@@ -766,7 +769,8 @@ def create_user_action_map(args, options):
         INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
         UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
         UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),
-        PAM_SETUP_ACTION: UserAction(setup_pam),
+        PAM_SETUP_ACTION: UserAction(setup_pam, options),
+        MIGRATE_LDAP_PAM_ACTION: UserAction(migrate_ldap_pam, options),
         KERBEROS_SETUP_ACTION: UserAction(setup_kerberos, options)
       }
   return action_map

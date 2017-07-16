@@ -187,7 +187,7 @@ public class ServiceComponentTest {
     h.setIPv4(hostname + "ipv4");
     h.setIPv6(hostname + "ipv6");
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     h.setHostAttributes(hostAttributes);
@@ -286,7 +286,7 @@ public class ServiceComponentTest {
     sch.setState(State.INSTALLED);
 
     Map<String, ServiceComponentHost> compHosts =
-      new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     compHosts.put("h1", sch);
     component.addServiceComponentHosts(compHosts);
     Assert.assertEquals(1, component.getServiceComponentHosts().size());
@@ -361,9 +361,9 @@ public class ServiceComponentTest {
     sc.setDesiredState(State.INSTALLED);
     Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
 
-    sc.setDesiredStackVersion(new StackId("HDP-2.2.0"));
-    StackId stackId = sc.getDesiredStackVersion();
-    Assert.assertEquals(new StackId("HDP", "2.2.0"), stackId);
+    StackId stackId = new StackId("HDP-2.2.0");
+    sc.setDesiredStackVersion(stackId);
+    Assert.assertEquals(stackId, sc.getDesiredStackVersion());
 
     Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
 
@@ -372,7 +372,7 @@ public class ServiceComponentTest {
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
-    UpgradeEntity upgradeEntity = createUpgradeEntity("2.2.0.0", "2.2.0.1");
+    UpgradeEntity upgradeEntity = createUpgradeEntity(stackId, "2.2.0.0", "2.2.0.1");
     ServiceComponentHistoryEntity history = new ServiceComponentHistoryEntity();
     history.setFromStack(serviceComponentDesiredStateEntity.getDesiredStack());
     history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
@@ -430,7 +430,7 @@ public class ServiceComponentTest {
         serviceComponentHostFactory.createNew(sc, "h2");
 
     Map<String, ServiceComponentHost> compHosts =
-        new HashMap<String, ServiceComponentHost>();
+        new HashMap<>();
     compHosts.put("h1", sch1);
     compHosts.put("h2", sch2);
     sc.addServiceComponentHosts(compHosts);
@@ -478,9 +478,9 @@ public class ServiceComponentTest {
     sc.setDesiredState(State.INSTALLED);
     Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
 
-    sc.setDesiredStackVersion(new StackId("HDP-2.2.0"));
-    StackId stackId = sc.getDesiredStackVersion();
-    Assert.assertEquals(new StackId("HDP", "2.2.0"), stackId);
+    StackId stackId = new StackId("HDP-2.2.0");
+    sc.setDesiredStackVersion(stackId);
+    Assert.assertEquals(stackId, sc.getDesiredStackVersion());
 
     Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
 
@@ -490,7 +490,7 @@ public class ServiceComponentTest {
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
-    UpgradeEntity upgradeEntity = createUpgradeEntity("2.2.0.0", "2.2.0.1");
+    UpgradeEntity upgradeEntity = createUpgradeEntity(stackId, "2.2.0.0", "2.2.0.1");
     ServiceComponentHistoryEntity history = new ServiceComponentHistoryEntity();
     history.setFromStack(serviceComponentDesiredStateEntity.getDesiredStack());
     history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
@@ -647,7 +647,10 @@ public class ServiceComponentTest {
    * @param toVersion
    * @return
    */
-  private UpgradeEntity createUpgradeEntity(String fromVersion, String toVersion) {
+  private UpgradeEntity createUpgradeEntity(StackId stackId, String fromVersion, String toVersion) {
+    RepositoryVersionEntity toRepositoryVersion = helper.getOrCreateRepositoryVersion(stackId, fromVersion);
+    RepositoryVersionEntity fromRepositoryVersion = helper.getOrCreateRepositoryVersion(stackId, fromVersion);
+
     RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(99L);
@@ -660,8 +663,8 @@ public class ServiceComponentTest {
     UpgradeEntity upgradeEntity = new UpgradeEntity();
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setDirection(Direction.UPGRADE);
-    upgradeEntity.setFromVersion(fromVersion);
-    upgradeEntity.setToVersion(toVersion);
+    upgradeEntity.setFromRepositoryVersion(fromRepositoryVersion);
+    upgradeEntity.setToRepositoryVersion(toRepositoryVersion);
     upgradeEntity.setUpgradePackage("upgrade_test");
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
     upgradeEntity.setRequestEntity(requestEntity);

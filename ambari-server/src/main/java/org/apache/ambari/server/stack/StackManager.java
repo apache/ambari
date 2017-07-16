@@ -19,6 +19,7 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +53,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -447,12 +449,22 @@ public class StackManager {
   public static void validateAllPropertyXmlsInFolderRecursively(File stackRoot, Validator validator) throws AmbariException {
     Collection<File> files = FileUtils.listFiles(stackRoot, new String[]{"xml"}, true);
     for (File file : files) {
+      String path;
+      try {
+        path = file.getCanonicalPath();
+      } catch (IOException ioe) {
+        path = file.getAbsolutePath();
+      }
       try {
         if (file.getParentFile().getName().contains("configuration")) {
           validator.validate(new StreamSource(file));
         }
+      } catch (SAXParseException e) {
+        String msg = String.format("File %s:%d didn't pass the validation. Error message: %s", path, e.getLineNumber(), e.getMessage());
+        LOG.error(msg);
+        throw new AmbariException(msg);
       } catch (Exception e) {
-        String msg = String.format("File %s didn't pass the validation. Error message is : %s", file.getAbsolutePath(), e.getMessage());
+        String msg = String.format("File %s didn't pass the validation. Error message: %s", path, e.getMessage());
         LOG.error(msg);
         throw new AmbariException(msg);
       }

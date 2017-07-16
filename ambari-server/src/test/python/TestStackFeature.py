@@ -28,6 +28,32 @@ from unittest import TestCase
 Logger.initialize_logger()
 
 class TestStackFeature(TestCase):
+  """
+  EU Upgrade (HDP 2.5 to HDP 2.6)
+    - STOP
+      hostLevelParams/stack_name = HDP
+      hostLevelParams/stack_version = 2.5
+      hostLevelParams/current_version = 2.5.0.0-1237
+      commandParams/version = 2.5.0.0-1237
+    - START
+      hostLevelParams/stack_name = HDP
+      hostLevelParams/stack_version = 2.6
+      hostLevelParams/current_version = 2.5.0.0-1237
+      commandParams/version = 2.6.0.0-334
+
+  EU Downgrade (HDP 2.6 to HDP 2.5)
+    - STOP
+    hostLevelParams/stack_name = HDP
+    hostLevelParams/stack_version = 2.6
+    hostLevelParams/current_version = 2.5.0.0-1237
+    commandParams/version = 2.6.0.0-334
+    - START
+    hostLevelParams/stack_name = HDP
+    hostLevelParams/stack_version = 2.5
+    hostLevelParams/current_version = 2.5.0.0-1237
+    commandParams/version = 2.5.0.0-1237
+  """
+
   def test_get_stack_feature_version_missing_params(self):
     try:
       stack_feature_version = get_stack_feature_version({})
@@ -122,7 +148,7 @@ class TestStackFeature(TestCase):
         "current_version":  "2.4.0.0-1234"
       },
       "commandParams": {
-        "original_stack": "2.4",
+        "source_stack": "2.4",
         "target_stack": "2.5",
         "upgrade_direction": "upgrade",
         "version": "2.5.9.9-9999"
@@ -143,8 +169,8 @@ class TestStackFeature(TestCase):
         "current_version":"2.4.0.0-1234"
       },
       "commandParams":{
-        "original_stack":"2.4",
-        "target_stack":"2.5",
+        "source_stack":"2.5",
+        "target_stack":"2.4",
         "upgrade_direction":"downgrade",
         "version":"2.4.0.0-1234",
         "downgrade_from_version": "2.5.9.9-9999"
@@ -166,10 +192,10 @@ class TestStackFeature(TestCase):
         "current_version":"2.4.0.0-1234"
       },
       "commandParams":{
-        "original_stack":"2.4",
-        "target_stack":"2.5",
+        "source_stack":"2.5",
+        "target_stack":"2.4",
         "upgrade_direction":"downgrade",
-        "version":"2.4.0.0-1234",
+        "version":"2.5.9.9-9999",
         "downgrade_from_version":"2.5.9.9-9999"
       }
     }
@@ -189,10 +215,10 @@ class TestStackFeature(TestCase):
         "custom_command":"STOP"
       },
       "commandParams":{
-        "original_stack":"2.4",
-        "target_stack":"2.5",
+        "source_stack":"2.5",
+        "target_stack":"2.4",
         "upgrade_direction":"downgrade",
-        "version":"2.4.0.0-1234",
+        "version":"2.5.9.9-9999",
         "downgrade_from_version":"2.5.9.9-9999"
       }
     }

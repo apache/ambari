@@ -306,65 +306,68 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
       if (null == notices || notices.size() == 0) {
         continue;
       }
+      try {
+        String targetType = target.getNotificationType();
+        NotificationDispatcher dispatcher = m_dispatchFactory.getDispatcher(targetType);
 
-      String targetType = target.getNotificationType();
-      NotificationDispatcher dispatcher = m_dispatchFactory.getDispatcher(targetType);
-
-      // create a single digest notification if supported
-      if (dispatcher.isDigestSupported()) {
-        AlertNotification notification = buildNotificationFromTarget(target);
-        notification.CallbackIds = new ArrayList<String>(notices.size());
-        List<AlertHistoryEntity> histories = new ArrayList<AlertHistoryEntity>(
-            notices.size());
-
-        // add callback IDs so that the notices can be marked as DELIVERED or
-        // FAILED, and create a list of just the alert histories
-        for (AlertNoticeEntity notice : notices) {
-          AlertHistoryEntity history = notice.getAlertHistory();
-          histories.add(history);
-
-          notification.CallbackIds.add(notice.getUuid());
-        }
-
-        // populate the subject and body fields; if there is a problem
-        // generating the content, then mark the notices as FAILED
-        try {
-          renderDigestNotificationContent(dispatcher, notification, histories, target);
-
-          // dispatch
-          DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
-          m_executor.execute(runnable);
-        } catch (Exception exception) {
-          LOG.error("Unable to create notification for alerts", exception);
-
-          // there was a problem generating content for the target; mark all
-          // notices as FAILED and skip this target
-          // mark these as failed
-          notification.Callback.onFailure(notification.CallbackIds);
-        }
-      } else {
-        // the dispatcher does not support digest, each notice must have a 1:1
-        // notification created for it
-        for (AlertNoticeEntity notice : notices) {
+        // create a single digest notification if supported
+        if (dispatcher.isDigestSupported()) {
           AlertNotification notification = buildNotificationFromTarget(target);
-          AlertHistoryEntity history = notice.getAlertHistory();
-          notification.CallbackIds = Collections.singletonList(notice.getUuid());
+          notification.CallbackIds = new ArrayList<String>(notices.size());
+          List<AlertHistoryEntity> histories = new ArrayList<AlertHistoryEntity>(
+                  notices.size());
+
+          // add callback IDs so that the notices can be marked as DELIVERED or
+          // FAILED, and create a list of just the alert histories
+          for (AlertNoticeEntity notice : notices) {
+            AlertHistoryEntity history = notice.getAlertHistory();
+            histories.add(history);
+
+            notification.CallbackIds.add(notice.getUuid());
+          }
 
           // populate the subject and body fields; if there is a problem
           // generating the content, then mark the notices as FAILED
           try {
-            renderNotificationContent(dispatcher, notification, history, target);
+            renderDigestNotificationContent(dispatcher, notification, histories, target);
 
             // dispatch
             DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
             m_executor.execute(runnable);
           } catch (Exception exception) {
-            LOG.error("Unable to create notification for alert", exception);
+            LOG.error("Unable to create notification for alerts", exception);
 
+            // there was a problem generating content for the target; mark all
+            // notices as FAILED and skip this target
             // mark these as failed
             notification.Callback.onFailure(notification.CallbackIds);
           }
+        } else {
+          // the dispatcher does not support digest, each notice must have a 1:1
+          // notification created for it
+          for (AlertNoticeEntity notice : notices) {
+            AlertNotification notification = buildNotificationFromTarget(target);
+            AlertHistoryEntity history = notice.getAlertHistory();
+            notification.CallbackIds = Collections.singletonList(notice.getUuid());
+
+            // populate the subject and body fields; if there is a problem
+            // generating the content, then mark the notices as FAILED
+            try {
+              renderNotificationContent(dispatcher, notification, history, target);
+
+              // dispatch
+              DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
+              m_executor.execute(runnable);
+            } catch (Exception exception) {
+              LOG.error("Unable to create notification for alert", exception);
+
+              // mark these as failed
+              notification.Callback.onFailure(notification.CallbackIds);
+            }
+          }
         }
+      } catch (Exception e) {
+        LOG.error("Caught exception during Alert Notice dispatching.", e);
       }
     }
   }
@@ -765,6 +768,14 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
      */
     public boolean hasComponentName() {
       return m_history.getComponentName() != null;
+    }
+
+    /**
+     *  Gets the time that the alert was received
+     * @return
+       */
+    public long getAlertTimestamp() {
+      return m_history.getAlertTimestamp();
     }
 
     /**

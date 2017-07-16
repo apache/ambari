@@ -794,13 +794,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     final CalculatedStatus status;
     LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
     if (summary.isEmpty() && null != logicalRequest) {
-      // in this case, it appears that there are no tasks but this is a logical
+      // In this case, it appears that there are no tasks but this is a logical
       // topology request, so it's a matter of hosts simply not registering yet
-      // for tasks to be created
-      if (logicalRequest.hasPendingHostRequests()) {
-        status = CalculatedStatus.PENDING;
-      } else {
+      // for tasks to be created ==> status = PENDING.
+      // For a new LogicalRequest there should be at least one HostRequest,
+      // while if they were removed already ==> status = COMPLETED.
+      if (logicalRequest.getHostRequests().isEmpty()) {
         status = CalculatedStatus.COMPLETED;
+      } else {
+        status = CalculatedStatus.PENDING;
       }
     } else {
       // there are either tasks or this is not a logical request, so do normal

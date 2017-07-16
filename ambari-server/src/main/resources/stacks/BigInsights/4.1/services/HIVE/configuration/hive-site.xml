@@ -1,0 +1,356 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<configuration supports_final="true">
+  
+  <property>
+    <name>hive.security.authenticator.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator</value>
+    <description>Hive client authenticator manager class name. The user-defined authenticator class should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  
+  <property>
+    <name>hive.security.authorization.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
+    <description>the hive client authorization manager class name.
+    The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>true</value>
+    <description>
+      Setting this property to true will have HiveServer2 execute
+      Hive operations as the user making the calls to it.
+    </description>
+    <display-name>Run as end user instead of Hive user</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+ 
+  <property>
+    <name>hive.exec.reducers.bytes.per.reducer</name>
+    <value>256000000</value>
+    <description>size per reducer.The default is 256Mb, i.e if the input size is 1G, it will use 4 reducers.</description>
+    <display-name>Data per Reducer</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>64</minimum>
+      <maximum>4294967296</maximum>
+      <unit>B</unit>
+      <increment-step></increment-step>
+    </value-attributes>
+  </property>
+    <property>
+    <name>hive.security.metastore.authorization.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
+    <description>
+      authorization manager class name to be used in the metastore for authorization.
+      The user defined authorization class should implement interface
+      org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider.
+    </description>
+     <display-name>Hive Authorization Manager</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hive.auto.convert.join.noconditionaltask.size</name>
+    <value>2147483648</value>
+    <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
+      is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
+      converted to a mapjoin(there is no conditional task). The default is 10MB.
+    </description>
+    <display-name>For Map Join, per Map memory threshold</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1073741824</minimum>
+      <maximum>17179869184</maximum>
+      <unit>B</unit>
+      <increment-step></increment-step>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.support.dynamic.service.discovery</name>
+    <value>false</value>
+    <description>Whether HiveServer2 supports dynamic service discovery for its clients.
+      To support this, each instance of HiveServer2 currently uses ZooKeeper to register itself,
+      when it is brought up. JDBC/ODBC clients should use the ZooKeeper ensemble: hive.zookeeper.quorum
+      in their connection string.
+    </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.vectorized.groupby.checkinterval</name>
+    <value>100000</value>
+    <description>Number of entries added to the group by aggregation hash before a recomputation of average entry size is performed.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+ 
+  <property>
+    <name>hive.cbo.enable</name>
+    <value>true</value>
+    <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
+    <display-name>Enable Cost Based Optimizer</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hive.exec.orc.default.stripe.size</name>
+    <value>67108864</value>
+    <description>Define the default ORC stripe size</description>
+    <display-name>Default ORC Stripe Size</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>8388608</minimum>
+      <maximum>268435456</maximum>
+      <unit>B</unit>
+      <increment-step>8388608</increment-step>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hive.exec.orc.default.compress</name>
+    <value>ZLIB</value>
+    <description>Define the default compression codec for ORC file</description>
+    <display-name>ORC Compression Algorithm</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>ZLIB</value>
+          <label>zlib Compression Library</label>
+        </entry>
+        <entry>
+          <value>SNAPPY</value>
+          <label>Snappy Compression Library</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+    <property>
+    <name>hive.stats.fetch.column.stats</name>
+    <value>false</value>
+    <description>
+      Annotation of operator tree with statistics information requires column statistics.
+      Column statistics are fetched from metastore. Fetching column statistics for each needed column
+      can be expensive when the number of columns is high. This flag can be used to disable fetching
+      of column statistics from metastore.
+    </description>
+    <display-name>Fetch column stats at compiler</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>cost_based_optimizer</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication</name>
+    <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
+    <value>NONE</value>
+    <display-name>HiveServer2 Authentication</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>NONE</value>
+          <label>None</label>
+        </entry>
+        <entry>
+          <value>LDAP</value>
+          <label>LDAP</label>
+        </entry>
+        <entry>
+          <value>KERBEROS</value>
+          <label>Kerberos</label>
+        </entry>
+        <entry>
+          <value>PAM</value>
+          <label>PAM</label>
+        </entry>
+        <entry>
+          <value>CUSTOM</value>
+          <label>Custom</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hive.server2.use.SSL</name>
+    <value>false</value>
+    <description/>
+    <display-name>Use SSL</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hive.execution.engine</name>
+    <value>mr</value>
+    <description>
+      Chooses execution engine. Option is: mr (Map reduce, default) 
+    </description>
+    <display-name>hive.execution.engine</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>mr</value>
+          <label>MapReduce</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+    <property>
+    <name>hive.compactor.initiator.on</name>
+    <value>false</value>
+    <description>Whether to run the compactor's initiator thread in this metastore instance or not. If there is more than one instance of the thrift metastore this should only be set to true for one of them.</description>
+    <display-name>Run Compactor</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.compactor.worker.threads</name>
+    <value>0</value>
+    <description>Number of compactor worker threads to run on this metastore instance. Can be different values on different metastore instances.</description>
+    <display-name>Number of threads used by Compactor</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>20</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
+  </property>
+    <property>
+    <name>hive.default.fileformat</name>
+    <value>TextFile</value>
+    <description>Default file format for CREATE TABLE statement.</description>
+    <display-name>Default File Format</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>ORC</value>
+          <description>The Optimized Row Columnar (ORC) file format provides a highly efficient way to store Hive data. It was designed to overcome limitations of the other Hive file formats. Using ORC files improves performance when Hive is reading, writing, and processing data.</description>
+        </entry>
+        <entry>
+          <value>TextFile</value>
+          <description>Text file format saves Hive data as normal text.</description>
+        </entry>
+      </entries>
+    </value-attributes>
+  </property>
+</configuration>

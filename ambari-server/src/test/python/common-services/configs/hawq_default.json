@@ -73,7 +73,11 @@
         "cluster-env": {
             "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
-            "user_group": "hadoop"
+            "user_group": "hadoop",
+            "stack_name": "PHD",
+            "stack_root": "{\"PHD\": \"/usr/phd\"}",
+            "stack_tools": "{\n \"PHD\": { \"stack_selector\": [\"phd-select\", \"/usr/bin/phd-select\", \"phd-select\"],\n  \"conf_selector\": [\"conf-select\", \"/usr/bin/conf-select\", \"conf-select\"]\n}\n}",
+            "stack_features": "{\"PHD\":{\"stack_features\":[{\"name\":\"express_upgrade\",\"description\":\"Express upgrade support\",\"min_version\":\"3.0.0.0\"},{\"name\":\"rolling_upgrade\",\"description\":\"Rolling upgrade support\",\"min_version\":\"3.0.0.0\"},{\"name\":\"config_versioning\",\"description\":\"Configurable versions support\",\"min_version\":\"3.0.0.0\"}]\n}\n}"
         }
     },
     "clusterHostInfo": {

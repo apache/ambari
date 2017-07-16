@@ -44,7 +44,7 @@ import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
-import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.state.Host;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +95,7 @@ public class LogicalRequest extends Request {
     createHostRequests(topology, requestEntity);
   }
 
-  public HostOfferResponse offer(HostImpl host) {
+  public HostOfferResponse offer(Host host) {
     // attempt to match to a host request with an explicit host reservation first
     synchronized (requestsWithReservedHosts) {
       LOG.info("LogicalRequest.offer: attempting to match a request to a request for a reserved host to hostname = {}", host.getHostName());
@@ -165,7 +165,7 @@ public class LogicalRequest extends Request {
   }
 
   public boolean hasPendingHostRequests() {
-    return !requestsWithReservedHosts.isEmpty() || !outstandingHostRequests.isEmpty();
+    return !(requestsWithReservedHosts.isEmpty() && outstandingHostRequests.isEmpty());
   }
 
   public Collection<HostRequest> getCompletedHostRequests() {
@@ -197,7 +197,11 @@ public class LogicalRequest extends Request {
         pendingHostRequests.add(hostRequest);
       }
     }
-    outstandingHostRequests.clear();
+    if (hostGroupName == null) {
+      outstandingHostRequests.clear();
+    } else {
+      outstandingHostRequests.removeAll(pendingHostRequests);
+    }
 
     Collection<String> pendingReservedHostNames = new ArrayList<>();
     for(String reservedHostName : requestsWithReservedHosts.keySet()) {
@@ -207,9 +211,7 @@ public class LogicalRequest extends Request {
         pendingReservedHostNames.add(reservedHostName);
       }
     }
-    for (String hostName : pendingReservedHostNames) {
-      requestsWithReservedHosts.remove(hostName);
-    }
+    requestsWithReservedHosts.keySet().removeAll(pendingReservedHostNames);
 
     allHostRequests.removeAll(pendingHostRequests);
     return pendingHostRequests;
@@ -371,31 +373,36 @@ public class LogicalRequest extends Request {
    * Removes all HostRequest associated with the passed host name from internal collections
    * @param hostName name of the host
    */
-  public void removeHostRequestByHostName(String hostName) {
+  public Set<HostRequest> removeHostRequestByHostName(String hostName) {
+    Set<HostRequest> removed = new HashSet<>();
     synchronized (requestsWithReservedHosts) {
       synchronized (outstandingHostRequests) {
         requestsWithReservedHosts.remove(hostName);
 
         Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
         while (hostRequestIterator.hasNext()) {
-          if (Objects.equals(hostRequestIterator.next().getHostName(), hostName)) {
+          HostRequest hostRequest = hostRequestIterator.next();
+          if (Objects.equals(hostRequest.getHostName(), hostName)) {
             hostRequestIterator.remove();
+            removed.add(hostRequest);
             break;
           }
         }
 
         //todo: synchronization
-        Iterator<HostRequest> allHostRequesIterator = allHostRequests.iterator();
-        while (allHostRequesIterator.hasNext()) {
-          if (Objects.equals(allHostRequesIterator.next().getHostName(), hostName)) {
-            allHostRequesIterator.remove();
+        Iterator<HostRequest> allHostRequestIterator = allHostRequests.iterator();
+        while (allHostRequestIterator.hasNext()) {
+          HostRequest hostRequest = allHostRequestIterator.next();
+          if (Objects.equals(hostRequest.getHostName(), hostName)) {
+            allHostRequestIterator.remove();
+            removed.add(hostRequest);
             break;
           }
         }
       }
     }
 
-
+    return removed;
   }
 
   private void createHostRequests(TopologyRequest request, ClusterTopology topology) {

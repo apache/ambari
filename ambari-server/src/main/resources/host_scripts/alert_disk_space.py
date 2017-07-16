@@ -23,6 +23,7 @@ import os
 import platform
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.libraries.functions import stack_tools
 
 DiskInfo = collections.namedtuple('DiskInfo', 'total used free path')
 
@@ -36,6 +37,7 @@ MIN_FREE_SPACE_DEFAULT = 5000000000L
 PERCENT_USED_WARNING_DEFAULT = 50
 PERCENT_USED_CRITICAL_DEFAULT = 80
 
+STACK_NAME = '{{cluster-env/stack_name}}'
 STACK_ROOT = '{{cluster-env/stack_root}}'
 
 def get_tokens():
@@ -43,7 +45,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (STACK_ROOT, )
+  return (STACK_NAME, STACK_ROOT)
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -64,10 +66,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   if configurations is None:
     return (('UNKNOWN', ['There were no configurations supplied to the script.']))
 
-  if not STACK_ROOT in configurations:
-    return (('STACK_ROOT', ['cluster-env/stack_root is not specified']))
+  if not STACK_NAME in configurations or not STACK_ROOT in configurations:
+    return (('STACK_ROOT', ['cluster-env/stack_name and cluster-env/stack_root are required']))
 
-  path = configurations[STACK_ROOT]
+  path = stack_tools.get_stack_root(configurations[STACK_NAME], configurations[STACK_ROOT])
 
   try:
     disk_usage = _get_disk_usage(path)

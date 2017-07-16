@@ -112,6 +112,7 @@ import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
@@ -145,6 +146,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.collections.CollectionUtils;
@@ -336,11 +338,11 @@ public class ClusterImpl implements Cluster {
   private Map<String, String> m_clusterPropertyCache = new ConcurrentHashMap<>();
 
   /**
-   * A simple cache of the effective cluster version during an upgrade. Since
-   * calculation of this during an upgrade is not very quick or clean, it's good
-   * to cache it.
+   * A simple cache of the effective cluster version. This is mainly used during
+   * upgrades to prevent calculating the value repeatedly. calculation of this
+   * during an upgrade is not very quick or clean, it's good to cache it.
    */
-  private final Map<Long, String> upgradeEffectiveVersionCache = new ConcurrentHashMap<>();
+  private final Map<Long, Long> upgradeEffectiveVersionCache = new ConcurrentHashMap<>();
 
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity, Injector injector,
@@ -1017,7 +1019,6 @@ public class ClusterImpl implements Cluster {
     Collection<ClusterVersionEntity> clusterVersionEntities = getClusterEntity().getClusterVersionEntities();
     for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
       if (clusterVersionEntity.getState() == RepositoryVersionState.CURRENT) {
-        // TODO assuming there's only 1 current version, return 1st found, exception was expected in previous implementation
         return clusterVersionEntity;
       }
     }
@@ -1036,52 +1037,62 @@ public class ClusterImpl implements Cluster {
 
     // see if this is in the cache first, and only walk the upgrade if it's not
     Long upgradeId = upgradeEntity.getId();
-    String effectiveVersion = upgradeEffectiveVersionCache.get(upgradeId);
-    if (null == effectiveVersion) {
-      switch (upgradeEntity.getUpgradeType()) {
-        case NON_ROLLING:
-          if (upgradeEntity.getDirection() == Direction.UPGRADE) {
-            boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
-            effectiveVersion = pastChangingStack ? upgradeEntity.getToVersion()
-                : upgradeEntity.getFromVersion();
-          } else {
-            // Should be the lower value during a Downgrade.
-            effectiveVersion = upgradeEntity.getToVersion();
-          }
-          break;
-        case ROLLING:
-        default:
-          // Version will be higher on upgrade and lower on downgrade
-          // directions.
-          effectiveVersion = upgradeEntity.getToVersion();
-          break;
+    Long effectiveClusterVersionId = upgradeEffectiveVersionCache.get(upgradeId);
+    if (null == effectiveClusterVersionId) {
+      boolean updateCache = true;
+      final ClusterVersionEntity effectiveClusterVersion;
+
+      if (upgradeEntity.getUpgradeType() != UpgradeType.NON_ROLLING) {
+        RepositoryVersionEntity repositoryVersion = upgradeEntity.getToRepositoryVersion();
+        effectiveClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
+            clusterName, repositoryVersion.getStackId(), repositoryVersion.getVersion());
+      } else {
+        if (upgradeEntity.getDirection() == Direction.UPGRADE) {
+          HostRoleStatus stackActionStatus = getExpressUpgradeDesiredStackStatus(upgradeEntity);
+          boolean pastChangingStack = stackActionStatus == HostRoleStatus.COMPLETED;
+          updateCache = stackActionStatus != HostRoleStatus.IN_PROGRESS;
+
+          RepositoryVersionEntity repositoryVersion = pastChangingStack
+              ? upgradeEntity.getToRepositoryVersion() : upgradeEntity.getFromRepositoryVersion();
+
+          effectiveClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
+              repositoryVersion.getStackId(), repositoryVersion.getVersion());
+        } else {
+          // Should be the lower value during a Downgrade.
+          RepositoryVersionEntity repositoryVersion = upgradeEntity.getToRepositoryVersion();
+          effectiveClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
+              repositoryVersion.getStackId(), repositoryVersion.getVersion());
+        }
       }
 
-      // cache for later use
-      upgradeEffectiveVersionCache.put(upgradeId, effectiveVersion);
-    }
+      if (null != effectiveClusterVersion) {
+        effectiveClusterVersionId = effectiveClusterVersion.getId();
+      }
 
-    if (effectiveVersion == null) {
-      throw new AmbariException("Unable to determine which version to use during Stack Upgrade, effectiveVersion is null.");
-    }
-
-    // Find the first cluster version whose repo matches the expected version.
-    Collection<ClusterVersionEntity> clusterVersionEntities = getClusterEntity().getClusterVersionEntities();
-    for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
-      if (clusterVersionEntity.getRepositoryVersion().getVersion().equals(effectiveVersion)) {
-        return clusterVersionEntity;
+      // cache for later use, but only if the action is completed
+      if (null != effectiveClusterVersion && updateCache) {
+        upgradeEffectiveVersionCache.put(upgradeId, effectiveClusterVersionId);
       }
     }
 
-    return null;
+    if (effectiveClusterVersionId == null) {
+      throw new AmbariException(
+          "Unable to determine which version to use during Stack Upgrade, effectiveVersion is null.");
+    }
+
+    // return cluster version which is "effective" given the upgrade state
+    return clusterVersionDAO.findByPK(effectiveClusterVersionId);
   }
 
   /**
-   * Given a NonRolling stack upgrade, determine if it has already crossed the point of using the newer version.
-   * @param upgrade Stack Upgrade
-   * @return Return true if should be using to_version, otherwise, false to mean the from_version.
+   * Gets the status of the {@link UpdateDesiredStackAction} for an express
+   * upgrade.
+   *
+   * @param upgrade
+   *          Stack Upgrade
+   * @return the status of the command
    */
-  private boolean isNonRollingUpgradePastUpgradingStack(UpgradeEntity upgrade) {
+  private HostRoleStatus getExpressUpgradeDesiredStackStatus(UpgradeEntity upgrade) {
     for (UpgradeGroupEntity group : upgrade.getUpgradeGroups()) {
       if (group.getName().equalsIgnoreCase(UpgradeResourceProvider.CONST_UPGRADE_GROUP_NAME)) {
         for (UpgradeItemEntity item : group.getItems()) {
@@ -1089,16 +1100,16 @@ public class ClusterImpl implements Cluster {
           List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByPKs(taskIds);
           for (HostRoleCommandEntity command : commands) {
             if (command.getCustomCommandName() != null &&
-                command.getCustomCommandName().equalsIgnoreCase(UpgradeResourceProvider.CONST_CUSTOM_COMMAND_NAME) &&
-                command.getStatus() == HostRoleStatus.COMPLETED) {
-              return true;
+                command.getCustomCommandName().equalsIgnoreCase(
+                    UpgradeResourceProvider.CONST_CUSTOM_COMMAND_NAME)) {
+              return command.getStatus();
             }
           }
         }
-        return false;
+        return HostRoleStatus.PENDING;
       }
     }
-    return false;
+    return HostRoleStatus.PENDING;
   }
 
   /**
@@ -2927,6 +2938,24 @@ public class ClusterImpl implements Cluster {
     }
 
     return components.get(componentName).getServiceComponentHosts().keySet();
+  }
+
+  @Override
+  public Host getHost(final String hostName) {
+    if (StringUtils.isEmpty(hostName)) {
+      return null;
+    }
+
+    Collection<Host> hosts = getHosts();
+    if(hosts != null) {
+      for (Host host : hosts) {
+        String hostString = host.getHostName();
+        if(hostName.equalsIgnoreCase(hostString)) {
+          return host;
+        }
+      }
+    }
+    return null;
   }
 
   @Override

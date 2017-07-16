@@ -106,7 +106,9 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
     // if there is an upgrade in progress, then skip running this alert
     UpgradeEntity upgrade = cluster.getUpgradeInProgress();
     if (null != upgrade) {
-      String message = MessageFormat.format(UPGRADE_IN_PROGRESS_MSG, upgrade.getToVersion());
+      RepositoryVersionEntity repositoryVersion = upgrade.getToRepositoryVersion();
+      String message = MessageFormat.format(UPGRADE_IN_PROGRESS_MSG,
+          repositoryVersion.getVersion());
 
       return Collections.singletonList(
           buildAlert(cluster, myDefinition, AlertState.SKIPPED, message));

@@ -19,9 +19,12 @@ package org.apache.ambari.server.state;
 
 import java.util.Map;
 
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+
+import com.google.inject.assistedinject.Assisted;
 
 /**
  * The {@link UpgradeContextFactory} is used to create dependency-injected
@@ -39,9 +42,12 @@ public interface UpgradeContextFactory {
    *          {@code null}).
    * @param direction
    *          the direction for the upgrade
-   * @param version
-   *          the version being upgrade-to or downgraded-from (not
+   * @param fromRepositoryVersion
+   *          the repository where any existing services are coming from
    *          {@code null}).
+   * @param toRepositoryVersion
+   *          the repository which is the target of the finalized
+   *          upgrade/downgrade {@code null}).
    * @param upgradeRequestMap
    *          the original map of parameters used to create the upgrade (not
    *          {@code null}).
@@ -49,7 +55,9 @@ public interface UpgradeContextFactory {
    * @return an initialized {@link UpgradeContext}.
    */
   UpgradeContext create(Cluster cluster, UpgradeType type, Direction direction,
-      String version, Map<String, Object> upgradeRequestMap);
+      @Assisted("fromRepositoryVersion") RepositoryVersionEntity fromRepositoryVersion,
+      @Assisted("toRepositoryVersion") RepositoryVersionEntity toRepositoryVersion,
+      Map<String, Object> upgradeRequestMap);
 
   /**
    * Creates an {@link UpgradeContext} which is injected with dependencies.

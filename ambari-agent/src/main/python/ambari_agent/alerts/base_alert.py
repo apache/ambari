@@ -46,6 +46,7 @@ class BaseAlert(object):
     self.alert_source_meta = alert_source_meta
     self.cluster_name = ''
     self.host_name = ''
+    self.public_host_name = ''
     self.config = config
     
   def interval(self):
@@ -86,10 +87,13 @@ class BaseAlert(object):
     self.cluster_configuration = cluster_configuration
 
 
-  def set_cluster(self, cluster_name, host_name):
+  def set_cluster(self, cluster_name, host_name, public_host_name = None):
     """ sets cluster information for the alert """
     self.cluster_name = cluster_name
     self.host_name = host_name
+    self.public_host_name = host_name
+    if public_host_name:
+      self.public_host_name = public_host_name
 
 
   def _get_alert_meta_value_safely(self, meta_key):
@@ -452,7 +456,7 @@ class BaseAlert(object):
       # get the host for dfs.namenode.http-address.c1ha.nn1 and see if it's
       # this host
       value = self._get_configuration_value(key)
-      if value is not None and self.host_name in value:
+      if value is not None and (self.host_name in value or self.public_host_name in value):
         return AlertUri(uri=value, is_ssl_enabled=is_ssl_enabled)
 
     return None

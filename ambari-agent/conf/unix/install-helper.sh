@@ -31,6 +31,8 @@ SIMPLEJSON_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
 AMBARI_AGENT="/usr/lib/python2.6/site-packages/ambari_agent"
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 AMBARI_AGENT_VAR="/var/lib/ambari-agent"
+AMBARI_AGENT_BINARY="/etc/init.d/ambari-agent"
+AMBARI_AGENT_BINARY_SYMLINK="/usr/sbin/ambari-agent"
 
 clean_pyc_files(){
   # cleaning old *.pyc files
@@ -46,6 +48,10 @@ do_install(){
     cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
   fi
+
+  # setting up /usr/sbin/ambari-agent symlink
+  rm -f "$AMBARI_AGENT_BINARY_SYMLINK"
+  ln -s "$AMBARI_AGENT_BINARY" "$AMBARI_AGENT_BINARY_SYMLINK"
     
   # setting ambari_commons shared resource
   rm -rf "$OLD_COMMON_DIR"
@@ -123,6 +129,8 @@ do_remove(){
   /usr/sbin/ambari-agent stop > /dev/null 2>&1
 
   clean_pyc_files
+
+  rm -f "$AMBARI_AGENT_BINARY_SYMLINK"
 
   if [ -d "/etc/ambari-agent/conf.save" ]; then
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save

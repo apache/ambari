@@ -76,6 +76,8 @@ import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -113,6 +115,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
   protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID  = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
   protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
+  protected static final String CLUSTER_STACK_VERSION_IGNORE_PACKAGE_DEPENDENCIES = PropertyHelper.getPropertyId("ClusterStackVersions", KeyNames.IGNORE_PACKAGE_DEPENDENCIES);
 
   /**
    * Forces the {@link HostVersionEntity}s to a specific
@@ -150,7 +153,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
       CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
-      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR, CLUSTER_STACK_VERSION_FORCE);
+      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR, CLUSTER_STACK_VERSION_IGNORE_PACKAGE_DEPENDENCIES, CLUSTER_STACK_VERSION_FORCE);
 
   private static Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
       .put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)
@@ -194,6 +197,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   private static HostComponentStateDAO hostComponentStateDAO;
 
   /**
+   * Used for updating the existing stack tools with those of the stack being
+   * distributed.
+   */
+  @Inject
+  private static Provider<ConfigHelper> configHelperProvider;
+
+  /**
    * We have to include such a hack here, because if we
    * make finalizeUpgradeAction field static and request injection
    * for it, there will be a circle dependency error
@@ -215,11 +225,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Override
   public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    List<ClusterVersionEntity> requestedEntities = new ArrayList<ClusterVersionEntity>();
+    List<ClusterVersionEntity> requestedEntities = new ArrayList<>();
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String clusterName = propertyMap.get(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).toString();
       final Long id;
@@ -243,7 +253,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     for (ClusterVersionEntity entity: requestedEntities) {
       final Resource resource = new ResourceImpl(Resource.Type.ClusterStackVersion);
 
-      final Map<String, List<String>> hostStates = new HashMap<String, List<String>>();
+      final Map<String, List<String>> hostStates = new HashMap<>();
       for (RepositoryVersionState state: RepositoryVersionState.values()) {
         hostStates.put(state.name(), new ArrayList<String>());
       }
@@ -294,12 +304,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     String clName;
     final String desiredRepoVersion;
-    String stackName;
-    String stackVersion;
 
     Map<String, Object> propertyMap = iterator.next();
 
-    Set<String> requiredProperties = new HashSet<String>();
+    Set<String> requiredProperties = new HashSet<>();
     requiredProperties.add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
     requiredProperties.add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
     requiredProperties.add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
@@ -334,19 +342,29 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           cluster.getClusterName(), entity.getDirection().getText(false)));
     }
 
-    final StackId stackId;
-    if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
-            propertyMap.containsKey(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)) {
-      stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      stackVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      stackId = new StackId(stackName, stackVersion);
-      if (! ami.isSupportedStack(stackName, stackVersion)) {
-        throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
-                stackId));
-      }
-    } else { // Using stack that is current for cluster
-      StackId currentStackVersion = cluster.getCurrentStackVersion();
-      stackId = currentStackVersion;
+    String stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
+    String stackVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
+    if (StringUtils.isBlank(stackName) || StringUtils.isBlank(stackVersion)) {
+      String message = String.format(
+          "Both the %s and %s properties are required when distributing a new stack",
+          CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
+
+      throw new SystemException(message);
+    }
+
+    final StackId stackId = new StackId(stackName, stackVersion);
+
+    if (!ami.isSupportedStack(stackName, stackVersion)) {
+      throw new NoSuchParentResourceException(String.format("Stack %s is not supported", stackId));
+    }
+
+    // bootstrap the stack tools if necessary for the stack which is being
+    // distributed
+    try {
+      bootstrapStackTools(stackId, cluster);
+    } catch (AmbariException ambariException) {
+      throw new SystemException("Unable to modify stack tools for new stack being distributed",
+          ambariException);
     }
 
     RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(
@@ -490,7 +508,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     // build the list of OS repos
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
-    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
+    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
 
       if (operatingSystem.isAmbariManagedRepos()) {
@@ -503,7 +521,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     RequestStageContainer req = createRequest();
 
     Iterator<Host> hostIterator = hosts.iterator();
-    Map<String, String> hostLevelParams = new HashMap<String, String>();
+    Map<String, String> hostLevelParams = new HashMap<>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
     String hostParamsJson = StageUtils.getGson().toJson(hostLevelParams);
 
@@ -532,9 +550,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       successFactor = Float.valueOf(successFactorProperty);
     }
 
+    Object ignorePackageDependenciesProperty = propertyMap.get(CLUSTER_STACK_VERSION_IGNORE_PACKAGE_DEPENDENCIES);
+    String ignorePackageDependencies = Boolean.valueOf(String.valueOf(ignorePackageDependenciesProperty)).toString();
+
     boolean hasStage = false;
 
-    ArrayList<Stage> stages = new ArrayList<Stage>(batchCount);
+    ArrayList<Stage> stages = new ArrayList<>(batchCount);
     for (int batchId = 1; batchId <= batchCount; batchId++) {
       // Create next stage
       String stageName;
@@ -574,6 +595,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           ActionExecutionContext actionContext = getHostVersionInstallCommand(repoVersionEnt,
                   cluster, managementController, ami, stackId, serviceNames, perOsRepos, stage, host);
           if (null != actionContext) {
+            actionContext.getParameters().put(KeyNames.IGNORE_PACKAGE_DEPENDENCIES, ignorePackageDependencies);
             try {
               actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
               hasStage = true;
@@ -613,8 +635,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
 
     // determine packages for all services that are installed on host
-    List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>();
-    Set<String> servicesOnHost = new HashSet<String>();
+    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
+    Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {
       if (repoServices.isEmpty() || repoServices.contains(component.getServiceName())) {
@@ -665,7 +687,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     final String packageList = gson.toJson(packages);
     final String repoList = gson.toJson(repoInfo);
 
-    Map<String, String> params = new HashMap<String, String>();
+    Map<String, String> params = new HashMap<>();
     params.put("stack_id", stackId.getStackId());
     params.put("repository_version", repoVersion.getVersion());
     params.put("base_urls", repoList);
@@ -684,19 +706,17 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       params.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
     }
 
-
     // add host to this stage
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
             Collections.singletonList(host.getHostName()));
 
-    ActionExecutionContext actionContext = new ActionExecutionContext(
-            cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
-            Collections.singletonList(filter),
-            params);
+    ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
+        INSTALL_PACKAGES_ACTION, Collections.singletonList(filter), params);
+
+    actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     return actionContext;
-
   }
 
 
@@ -782,7 +802,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
       Map<String, Object> propertyMap = iterator.next();
 
-      Set<String> requiredProperties = new HashSet<String>();
+      Set<String> requiredProperties = new HashSet<>();
       requiredProperties.add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
       requiredProperties.add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
       requiredProperties.add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
@@ -821,7 +841,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
 
       if (!force) {
-        Map<String, String> args = new HashMap<String, String>();
+        Map<String, String> args = new HashMap<>();
         if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
           // Finalize upgrade workflow
           args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
@@ -836,7 +856,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
         // Get a host name to populate the hostrolecommand table's hostEntity.
         String defaultHostName;
-        ArrayList<Host> hosts = new ArrayList<Host>(cluster.getHosts());
+        ArrayList<Host> hosts = new ArrayList<>(cluster.getHosts());
         if (!hosts.isEmpty()) {
           Collections.sort(hosts);
           defaultHostName = hosts.get(0).getHostName();
@@ -971,4 +991,101 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
 
+  /**
+   * Ensures that the stack tools and stack features are set on
+   * {@link ConfigHelper#CLUSTER_ENV} for the stack of the repository being
+   * distributed. This step ensures that the new repository can be distributed
+   * with the correct tools.
+   * <p/>
+   * If the cluster's current stack name matches that of the new stack or the
+   * new stack's tools are already added in the configuration, then this method
+   * will not change anything.
+   *
+   * @param stackId
+   *          the stack of the repository being distributed (not {@code null}).
+   * @param cluster
+   *          the cluster the new stack/repo is being distributed for (not
+   *          {@code null}).
+   * @throws AmbariException
+   */
+  private void bootstrapStackTools(StackId stackId, Cluster cluster) throws AmbariException {
+    // if the stack name is the same as the cluster's current stack name, then
+    // there's no work to do
+    if (StringUtils.equals(stackId.getStackName(),
+        cluster.getCurrentStackVersion().getStackName())) {
+      return;
+    }
+
+    ConfigHelper configHelper = configHelperProvider.get();
+
+    // get the stack tools/features for the stack being distributed
+    Map<String, Map<String, String>> defaultStackConfigurationsByType = configHelper.getDefaultProperties(
+        stackId, cluster);
+
+    Map<String, String> clusterEnvDefaults = defaultStackConfigurationsByType.get(
+        ConfigHelper.CLUSTER_ENV);
+
+    Config clusterEnv = cluster.getDesiredConfigByType(ConfigHelper.CLUSTER_ENV);
+    Map<String, String> clusterEnvProperties = clusterEnv.getProperties();
+
+    // the 3 properties we need to check and update
+    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY);
+
+    // any updates are stored here and merged into the existing config type
+    Map<String, String> updatedProperties = new HashMap<>();
+
+    for (String property : properties) {
+      // determine if the property exists in the stack being distributed (it
+      // kind of has to, but we'll be safe if it's not found)
+      String newStackDefaultJson = clusterEnvDefaults.get(property);
+      if (StringUtils.isBlank(newStackDefaultJson)) {
+        continue;
+      }
+
+      String existingPropertyJson = clusterEnvProperties.get(property);
+
+      // if the stack tools/features property doesn't exist, then just set the
+      // one from the new stack
+      if (StringUtils.isBlank(existingPropertyJson)) {
+        updatedProperties.put(property, newStackDefaultJson);
+        continue;
+      }
+
+      // now is the hard part - we need to check to see if the new stack tools
+      // exists alongside the current tools and if it doesn't, then add the new
+      // tools in
+      final Map<String, Object> existingJson;
+      final Map<String, ?> newStackJsonAsObject;
+      if (StringUtils.equals(property, ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY)) {
+        existingJson = gson.<Map<String, Object>> fromJson(existingPropertyJson, Map.class);
+        newStackJsonAsObject = gson.<Map<String, String>> fromJson(newStackDefaultJson, Map.class);
+      } else {
+        existingJson = gson.<Map<String, Object>> fromJson(existingPropertyJson,
+            Map.class);
+
+        newStackJsonAsObject = gson.<Map<String, Map<Object, Object>>> fromJson(newStackDefaultJson,
+            Map.class);
+      }
+
+      if (existingJson.keySet().contains(stackId.getStackName())) {
+        continue;
+      }
+
+      existingJson.put(stackId.getStackName(), newStackJsonAsObject.get(stackId.getStackName()));
+
+      String newJson = gson.toJson(existingJson);
+      updatedProperties.put(property, newJson);
+    }
+
+    if (!updatedProperties.isEmpty()) {
+      AmbariManagementController amc = getManagementController();
+      String serviceNote = String.format(
+          "Adding stack tools for %s while distributing a new repository", stackId.toString());
+
+      configHelper.updateConfigType(cluster, amc, clusterEnv.getType(), updatedProperties, null,
+          amc.getAuthName(), serviceNote);
+    }
+  }
 }

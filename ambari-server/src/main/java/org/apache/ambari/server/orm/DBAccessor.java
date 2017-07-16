@@ -323,6 +323,40 @@ public interface DBAccessor {
   void executeQuery(String query, boolean ignoreFailure) throws SQLException;
 
   /**
+   * Execute prepared statements
+   * @param query query to execute
+   * @param arguments list of arguments for prepared statement
+   * @throws SQLException
+   */
+  void executePreparedQuery(String query, Object...arguments) throws SQLException;
+
+  /**
+   * Execute prepared update statements
+   * @param query query to execute
+   * @param ignoreFailure determines if exceptions during query execution should be ignored
+   * @param arguments list of arguments for prepared statement
+   * @throws SQLException
+   */
+  void executePreparedQuery(String query, boolean ignoreFailure, Object...arguments) throws SQLException;
+
+  /**
+   * Execute prepared update statements
+   * @param query query to execute
+   * @param arguments list of arguments for prepared statement
+   * @throws SQLException
+   */
+  void executePreparedUpdate(String query, Object...arguments) throws SQLException;
+
+  /**
+   * Execute prepared statements which will not ignore failures
+   * @param query
+   * @param ignoreFailure
+   * @param arguments
+   * @throws SQLException
+   */
+  void executePreparedUpdate(String query, boolean ignoreFailure, Object...arguments) throws SQLException;
+
+  /**
    * Drop table from schema
    * @param tableName
    * @throws SQLException
@@ -639,13 +673,12 @@ public interface DBAccessor {
    *          the target column name
    * @param targetIDFieldName
    *          the target id key name matched with {@code sourceIDFieldName}
-   * @param isColumnNullable
-   *          should be target column nullable or not
-   *
+   * @param initialValue
+   *          initial value for null-contained cells
    * @throws SQLException
    */
   void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
-       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, boolean isColumnNullable) throws SQLException;
+       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, Object initialValue) throws SQLException;
 
   enum DbType {
     ORACLE,

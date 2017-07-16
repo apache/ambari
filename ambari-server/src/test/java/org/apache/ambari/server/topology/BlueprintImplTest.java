@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.state.SecurityType;
-import org.junit.Before;
-import org.junit.Test;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,9 +34,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.state.SecurityType;
+import org.junit.Before;
+import org.junit.Test;
 
 
 /**
@@ -121,16 +125,6 @@ public class BlueprintImplTest {
     verify(stack, group1, group2);
     assertTrue(entity.getSecurityType() == SecurityType.KERBEROS);
     assertTrue(entity.getSecurityDescriptorReference().equals("testRef"));
-  }
-
-  @Test(expected = InvalidTopologyException.class)
-  public void testValidateConfigurations__basic_negative() throws Exception {
-    expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
-    replay(stack, group1, group2);
-
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
-    blueprint.validateRequiredProperties();
-    verify(stack, group1, group2);
   }
 
   @Test

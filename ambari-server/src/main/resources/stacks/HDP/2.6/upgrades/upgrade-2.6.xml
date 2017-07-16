@@ -791,6 +791,8 @@
       <component name="HIVE_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes"/>
+          <task xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
@@ -1032,6 +1034,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_6_maint_ranger_atlas_plugin_cluster_name"/>
           <task xsi:type="configure" id="atlas_env_gc_worker"/>
+          <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>

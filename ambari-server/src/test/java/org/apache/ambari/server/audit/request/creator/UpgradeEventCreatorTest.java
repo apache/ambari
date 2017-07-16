@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.audit.request.creator;
 
-import junit.framework.Assert;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +31,8 @@ import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
+import junit.framework.Assert;
+
 public class UpgradeEventCreatorTest extends AuditEventCreatorTestBase{
 
   @Test
@@ -40,7 +40,7 @@ public class UpgradeEventCreatorTest extends AuditEventCreatorTestBase{
     UpgradeEventCreator creator = new UpgradeEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(UpgradeResourceProvider.UPGRADE_VERSION, "1.9");
+    properties.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION, "1.9");
     properties.put(UpgradeResourceProvider.UPGRADE_TYPE, "ROLLING");
     properties.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "mycluster");
 

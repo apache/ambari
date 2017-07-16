@@ -155,7 +155,7 @@ public class UpgradeSummaryResourceProviderTest {
     repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack(stackEntity);
-    repoVersionEntity.setVersion("2.2.0.0");
+    repoVersionEntity.setVersion("2.2.0.0-1234");
     repoVersionDAO.create(repoVersionEntity);
 
     clusters = injector.getInstance(Clusters.class);
@@ -164,12 +164,12 @@ public class UpgradeSummaryResourceProviderTest {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster("c1");
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId, "2.2.0.1-1234");
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
@@ -183,11 +183,11 @@ public class UpgradeSummaryResourceProviderTest {
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0");
+    sch.setVersion("2.2.0.0-1234");
 
     component = service.addServiceComponent("ZOOKEEPER_CLIENT");
     sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0");
+    sch.setVersion("2.2.0.0-1234");
   }
 
   /**
@@ -280,8 +280,16 @@ public class UpgradeSummaryResourceProviderTest {
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
-    upgrade.setFromVersion("2.2.0.0");
-    upgrade.setToVersion("2.2.0.1");
+
+    RepositoryVersionEntity repositoryVersion2200 = injector.getInstance(
+        RepositoryVersionDAO.class).findByStackNameAndVersion("HDP", "2.2.0.0-1234");
+
+    RepositoryVersionEntity repositoryVersion2201 = injector.getInstance(
+        RepositoryVersionDAO.class).findByStackNameAndVersion("HDP", "2.2.0.1-1234");
+
+    upgrade.setFromRepositoryVersion(repositoryVersion2200);
+    upgrade.setToRepositoryVersion(repositoryVersion2201);
+
     upgradeDAO.create(upgrade);
 
     // Resource used to make assertions.

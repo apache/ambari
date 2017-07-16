@@ -303,6 +303,16 @@
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating hive atlas application properties">
+        <task xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook">
+          <summary>Updating hive atlas application properties</summary>
+        </task>
+      </execute-stage>
+
       <!-- HBASE -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for Ranger Hbase plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hbase_plugin_cluster_name"/>
@@ -346,6 +356,10 @@
 
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas Env gc-worker configuration">
         <task xsi:type="configure" id="atlas_env_gc_worker"/>
+      </execute-stage>
+
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas Kafka configurations.">
+        <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
       </execute-stage>
 
       <!-- KMS -->

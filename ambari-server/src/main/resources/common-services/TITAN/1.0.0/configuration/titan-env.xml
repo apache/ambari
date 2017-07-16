@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration supports_final="false">
+
+  <property>
+    <name>titan_user</name>
+    <display-name>Titan User</display-name>
+    <description>User to run Titan as</description>
+    <property-type>USER</property-type>
+    <value>titan</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>titan_pid_dir</name>
+    <value>/var/run/titan</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>titan_log_dir</name>
+    <value>/var/log/titan</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>titan_server_port</name>
+    <value>8182</value>
+    <description>Sets the port Titan Server binds to, default is 8182</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>titan_hdfs_home_dir</name>
+    <value>/apps/titan/data</value>
+    <description>A root location in HDFS for Titan to write collection data to. Rather than specifying an HDFS location for the data directory or update log directory, use this to specify one root location and have everything automatically created within this HDFS</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SimpleAuthenticator</name>
+    <value>false</value>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <description>Set whether to enable SimpleAuthenticator(PLAIN SASL), the credentials database is located at /usr/iop/current/titan-client/data/credentials.kryo. Note: this option will not take effect if Knox is installed.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ssl.enabled</name>
+    <value>false</value>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <description>Set whether to enable ssl</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ssl.keyCertChainFile</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description>The X.509 certificate chain file in PEM format. If this value is not present and ssl.enabled is true a self-signed certificate will be used (not suitable for production).</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ssl.keyFile</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description>The PKCS#8 private key file in PEM format. If this value is not present and ssl.enabled is true a self-signed certificate will be used (not suitable for production).</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ssl.keyPassword</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description>The password of the keyFile if it's not password-protected.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>titan-env template</display-name>
+    <description>This is the template for titan-env.sh file</description>
+    <on-ambari-upgrade add="false"/>
+    <value>
+# Set JAVA HOME
+export JAVA_HOME={{java64_home}}
+
+# Add hadoop configuration directory into classpath
+export HADOOP_CONF_DIR={{hadoop_config_dir}}
+
+
+# Setup the environment for SparkGraphComputer
+# Add yarn and spark lib and config into classpath for SparkGraphComputer.
+export YARN_HOME={{yarn_home_dir}}
+export YARN_CONF_DIR=$HADOOP_CONF_DIR
+export SPARK_HOME={{spark_home_dir}}
+export SPARK_CONF_DIR={{spark_config_dir}}
+export TITAN_HOME={{titan_home_dir}}
+export CLASSPATH=$CLASSPATH:$HADOOP_CONF_DIR:$SPARK_CONF_DIR:$TITAN_HOME/conf
+
+#add hbase configuration directory into classpath
+if ([ -d "{{hbase_config_dir}}" ]); then
+   export HBASE_CONF_DIR={{hbase_config_dir}}
+   export CLASSPATH=$CLASSPATH:$HBASE_CONF_DIR
+fi
+
+if ([[ ! -d "{{titan_ext_spark_plugin_dir}}" ]] &amp;&amp; [[ -d "$SPARK_HOME/jars" ]]); then
+  for jar in $SPARK_HOME/jars/*.jar; do
+    if ([[ $jar != */guava*.jar ]] &amp;&amp; [[ $jar != */slf4j-log4j12*.jar ]] &amp;&amp; [[ $jar != */spark-core*.jar ]]) ;then
+      CLASSPATH=$CLASSPATH:$jar
+    fi
+  done
+fi
+
+export CLASSPATH
+
+# Add iop.version and native lib in java opt for hadoop config.
+export IOP_JAVA_OPTIONS="$JAVA_OPTIONS -D{{platform_name}}.version={{full_stack_version}} -Djava.library.path={{hadoop_lib_native_dir}}"
+
+{% if security_enabled -%}
+export JVMFLAGS="-Djava.security.auth.login.config={{titan_solr_client_jaas_file}}"
+export IOP_JAVA_OPTIONS="$IOP_JAVA_OPTIONS $JVMFLAGS"
+{% endif %}
+
+source "$HADOOP_CONF_DIR"/hadoop-env.sh
+export HADOOP_GREMLIN_LIBS=$TITAN_HOME/lib
+export TITAN_LOGDIR={{titan_log_dir}}
+    </value>
+  </property>
+</configuration>

@@ -1,0 +1,47 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"HTTP_ONLY"
+    },
+
+    "links": [
+      {
+        "name": "spark_history_server_ui",
+        "label": "Spark History Server UI",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@",
+        "port":{
+          "http_property": "spark.history.ui.port",
+          "http_default_port": "18080",
+          "https_property": "spark.history.ui.port",
+          "https_default_port": "18080",
+          "regex": "^(\\d+)$",
+          "site": "spark-defaults"
+        },
+        "knox_url": "%@://%@:%@/%@",
+        "knox_path": "gateway/sparkui/spark",
+        "supports_knox": "true"
+      },
+      {
+        "name": "spark_thrift_server_ui",
+        "label": "Spark Thrift Server UI",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@",
+        "port":{
+          "http_property": "spark.thriftserver.ui.port",
+          "http_default_port": "4039",
+          "https_property": "spark.thriftserver.ui.port",
+          "https_default_port": "4039",
+          "regex": "^(\\d+)$",
+          "site": "spark-defaults"
+        },
+        "knox_url": "%@://%@:%@/%@",
+        "knox_path": "gateway/thriftserverui/thrift",
+        "supports_knox": "true"
+      }
+    ]
+  }
+}

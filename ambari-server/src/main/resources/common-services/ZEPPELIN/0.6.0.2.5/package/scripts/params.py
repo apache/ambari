@@ -152,6 +152,29 @@ if 'hive_server_interactive_hosts' in master_configs and len(master_configs['hiv
     hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
     hive_server2_support_dynamic_service_discovery = config['configurations']['hive-site']['hive.server2.support.dynamic.service.discovery']
 
+spark_thrift_server_hosts = None
+spark_hive_thrift_port = None
+spark_hive_principal = None
+if 'spark_thriftserver_hosts' in master_configs and len(master_configs['spark_thriftserver_hosts']) != 0:
+  spark_thrift_server_hosts = str(master_configs['spark_thriftserver_hosts'][0])
+  if config['configurations']['spark-hive-site-override']:
+    spark_hive_thrift_port = config['configurations']['spark-hive-site-override']['hive.server2.thrift.port']
+  if config['configurations']['spark-thrift-sparkconf'] and \
+      'spark.sql.hive.hiveserver2.jdbc.url.principal' in config['configurations']['spark-thrift-sparkconf']:
+    spark_hive_principal = config['configurations']['spark-thrift-sparkconf']['spark.sql.hive.hiveserver2.jdbc.url.principal']
+
+spark2_thrift_server_hosts = None
+spark2_hive_thrift_port = None
+spark2_hive_principal = None
+if 'spark2_thriftserver_hosts' in master_configs and len(master_configs['spark2_thriftserver_hosts']) != 0:
+  spark2_thrift_server_hosts = str(master_configs['spark2_thriftserver_hosts'][0])
+  if config['configurations']['spark2-hive-site-override']:
+    spark2_hive_thrift_port = config['configurations']['spark2-hive-site-override']['hive.server2.thrift.port']
+  if config['configurations']['spark2-thrift-sparkconf'] and \
+      'spark.sql.hive.hiveserver2.jdbc.url.principal' in config['configurations']['spark2-thrift-sparkconf']:
+    spark2_hive_principal = config['configurations']['spark2-thrift-sparkconf']['spark.sql.hive.hiveserver2.jdbc.url.principal']
+
+
 # detect hbase details if installed
 zookeeper_znode_parent = None
 hbase_zookeeper_quorum = None

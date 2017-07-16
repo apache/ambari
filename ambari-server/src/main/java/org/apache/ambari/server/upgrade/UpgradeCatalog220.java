@@ -244,7 +244,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   }
 
   private void addKerberosDescriptorTable() throws SQLException {
-    List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_NAME_COLUMN, String.class, 255, null, false));
     columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_COLUMN, char[].class, null, null, false));
 
@@ -315,8 +315,8 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
       upgradeDAO.merge(upgrade);
 
       LOG.info(String.format("Updated upgrade id %s, upgrade pack %s from version %s to %s",
-        upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(),
-        upgrade.getToVersion()));
+        upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromRepositoryVersion().getVersion(),
+          upgrade.getToRepositoryVersion().getVersion()));
     }
 
     // make the columns nullable now that they have defaults
@@ -1026,7 +1026,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
 
       Config hiveEnvConfig = cluster.getDesiredConfigByType(HIVE_ENV_CONFIG);
       if (hiveEnvConfig != null) {
-        Map<String, String> hiveEnvProps = new HashMap<String, String>();
+        Map<String, String> hiveEnvProps = new HashMap<>();
         String content = hiveEnvConfig.getProperties().get(CONTENT_PROPERTY);
         // For HDP-2.3 we need to add hive heap size management to content,
         // for others we need to update content
@@ -1396,7 +1396,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
         if (clientProps != null) {
           Map<String, String> properties = clientProps.getProperties();
           if (properties == null) {
-            properties = new HashMap<String, String>();
+            properties = new HashMap<>();
           }
           // <2.2.0 did not account for a custom service principal.
           // Need to ensure that the client knows the server's principal (the primary) to properly authenticate.

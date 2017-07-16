@@ -272,17 +272,17 @@ public class CheckDescription {
           "After upgrading, Atlas can be reinstalled").build());
 
   public static CheckDescription SERVICE_PRESENCE_CHECK = new CheckDescription("SERVICE_PRESENCE_CHECK",
-      PrereqCheckType.SERVICE,
-      "Service Is Not Supported For Upgrades",
-      new ImmutableMap.Builder<String, String>()
-        .put(AbstractCheckDescriptor.DEFAULT,
-            "The %s service is currently installed on the cluster. " +
-            "This service does not support upgrades and must be removed before the upgrade can continue. " +
-            "After upgrading, %s can be reinstalled")
-        .put(ServicePresenceCheck.KEY_SERVICE_REMOVED,
-            "The %s service is currently installed on the cluster. " +
-            "This service is removed from the new release and must be removed before the upgrade can continue. " +
-            "After upgrading, %s can be installed").build());
+    PrereqCheckType.SERVICE,
+    "Service Is Not Supported For Upgrades",
+    new ImmutableMap.Builder<String, String>()
+      .put(AbstractCheckDescriptor.DEFAULT,
+          "The %s service is currently installed on the cluster. " +
+          "This service does not support upgrades and must be removed before the upgrade can continue. " +
+          "After upgrading, %s can be reinstalled")
+      .put(ServicePresenceCheck.KEY_SERVICE_REMOVED,
+          "The %s service is currently installed on the cluster. " +
+          "This service is removed from the new release and must be removed before the upgrade can continue. " +
+          "After upgrading, %s can be installed").build());
 
   public static CheckDescription RANGER_SERVICE_AUDIT_DB_CHECK = new CheckDescription("RANGER_SERVICE_AUDIT_DB_CHECK",
     PrereqCheckType.SERVICE,
@@ -325,9 +325,23 @@ public class CheckDescription {
     PrereqCheckType.SERVICE,
     "Change Ranger SSL configuration path for Keystore and Truststore.",
     new ImmutableMap.Builder<String, String>()
-            .put(AbstractCheckDescriptor.DEFAULT,
-              "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
-              "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
+      .put(AbstractCheckDescriptor.DEFAULT,
+        "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
+        "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
+
+  public static CheckDescription JAVA_VERSION = new CheckDescription("JAVA_VERSION",
+      PrereqCheckType.CLUSTER,
+      "Verify Java version requirement",
+      new ImmutableMap.Builder<String, String>()
+        .put(AbstractCheckDescriptor.DEFAULT, "Ambari requires JDK with minimum version %s. Reconfigure Ambari with a JDK that meets the version requirement.")
+          .build());
+
+  public static CheckDescription COMPONENTS_EXIST_IN_TARGET_REPO = new CheckDescription("COMPONENTS_EXIST_IN_TARGET_REPO",
+      PrereqCheckType.CLUSTER,
+      "Verify Cluster Components Exist In Target Repository",
+      new ImmutableMap.Builder<String, String>()
+        .put(AbstractCheckDescriptor.DEFAULT, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
+          .build());
 
   private String m_name;
   private PrereqCheckType m_type;

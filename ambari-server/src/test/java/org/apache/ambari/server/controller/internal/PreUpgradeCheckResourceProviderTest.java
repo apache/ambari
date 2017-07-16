@@ -101,6 +101,7 @@ public class PreUpgradeCheckResourceProviderTest {
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
 
+    String stackName = "Stack100";
     Map<String, Service> allServiceMap = new HashMap<String, Service>();
     allServiceMap.put("Service100", service);
     Map<String, ServiceInfo> allServiceInfoMap = new HashMap<String, ServiceInfo>();
@@ -116,14 +117,14 @@ public class PreUpgradeCheckResourceProviderTest {
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(currentStackId).anyTimes();
 
-    expect(currentStackId.getStackName()).andReturn("Stack100").anyTimes();
+    expect(currentStackId.getStackName()).andReturn(stackName).anyTimes();
     expect(currentStackId.getStackVersion()).andReturn("1.0").anyTimes();
-    expect(targetStackId.getStackName()).andReturn("Stack100").anyTimes();
+    expect(targetStackId.getStackName()).andReturn(stackName).anyTimes();
     expect(targetStackId.getStackVersion()).andReturn("1.1").anyTimes();
 
-    expect(repoDao.findByStackNameAndVersion("Stack100", "Repo100")).andReturn(repo).anyTimes();
+    expect(repoDao.findByStackNameAndVersion(stackName, "Repo100")).andReturn(repo).anyTimes();
     expect(repo.getStackId()).andReturn(targetStackId).atLeastOnce();
-    expect(upgradeHelper.suggestUpgradePack("Cluster100", "1.0", "Repo100", Direction.UPGRADE, UpgradeType.NON_ROLLING, "upgrade_pack11")).andReturn(upgradePack);
+    expect(upgradeHelper.suggestUpgradePack("Cluster100", "1.0", "Repo100", Direction.UPGRADE, UpgradeType.NON_ROLLING, stackName, "upgrade_pack11")).andReturn(upgradePack);
 
     List<AbstractCheckDescriptor> upgradeChecksToRun = new LinkedList<AbstractCheckDescriptor>();
     List<String> prerequisiteChecks = new LinkedList<String>();
@@ -132,7 +133,7 @@ public class PreUpgradeCheckResourceProviderTest {
     expect(upgradePack.getPrerequisiteChecks()).andReturn(prerequisiteChecks).anyTimes();
     expect(upgradePack.getTarget()).andReturn("1.1.*.*").anyTimes();
 
-    expect(ambariMetaInfo.getServices("Stack100", "1.0")).andReturn(allServiceInfoMap).anyTimes();
+    expect(ambariMetaInfo.getServices(stackName, "1.0")).andReturn(allServiceInfoMap).anyTimes();
     String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();
     expect(serviceInfo.getChecksFolder()).andReturn(new File(checks));
 
@@ -147,6 +148,7 @@ public class PreUpgradeCheckResourceProviderTest {
     Predicate predicate = builder.property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals("upgrade_pack11").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(UpgradeType.NON_ROLLING).and()
+        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_STACK_ID).equals(stackName + "-100").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals("Repo100").toPredicate();
 
 

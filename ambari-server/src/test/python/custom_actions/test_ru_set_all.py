@@ -225,7 +225,7 @@ class TestRUSetAll(RMFTestCase):
       # alter JSON for a downgrade from 2.3 to 2.2
       json_payload['commandParams']['version'] = "2.2.0.0-1234"
       json_payload['commandParams']['downgrade_from_version'] = "2.3.0.0-1234"
-      json_payload['commandParams']['original_stack'] = "HDP-2.2"
+      json_payload['commandParams']['source_stack'] = "HDP-2.2"
       json_payload['commandParams']['target_stack'] = "HDP-2.3"
       json_payload['commandParams']['upgrade_direction'] = "downgrade"
       json_payload['hostLevelParams']['stack_version'] = "2.2"
@@ -263,7 +263,7 @@ class TestRUSetAll(RMFTestCase):
 
       json_payload['commandParams']['version'] = "2.3.0.0-1234"
       json_payload['commandParams']['downgrade_from_version'] = "2.3.0.0-5678"
-      json_payload['commandParams']['original_stack'] = "HDP-2.3"
+      json_payload['commandParams']['source_stack'] = "HDP-2.3"
       json_payload['commandParams']['target_stack'] = "HDP-2.3"
       json_payload['commandParams']['upgrade_direction'] = "downgrade"
       json_payload['hostLevelParams']['stack_version'] = "2.3"
@@ -291,7 +291,7 @@ class TestRUSetAll(RMFTestCase):
       # alter JSON for a downgrade from 2.2 to 2.2
       json_payload['commandParams']['version'] = "2.2.0.0-1234"
       json_payload['commandParams']['downgrade_from_version'] = "2.2.0.0-5678"
-      json_payload['commandParams']['original_stack'] = "HDP-2.2"
+      json_payload['commandParams']['source_stack'] = "HDP-2.2"
       json_payload['commandParams']['target_stack'] = "HDP-2.2"
       json_payload['commandParams']['upgrade_direction'] = "downgrade"
       json_payload['hostLevelParams']['stack_version'] = "2.2"

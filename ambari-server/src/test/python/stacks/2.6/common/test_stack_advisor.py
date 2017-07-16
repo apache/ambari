@@ -966,19 +966,33 @@ class TestHDP26StackAdvisor(TestCase):
 
   def test_recommendHiveConfigurations(self):
     configurations = {
-      "ranger-hive-plugin-properties": {
-        "properties": {
-          "ranger-hive-plugin-enabled": "Yes",
-          "REPOSITORY_CONFIG_USERNAME":"hive"
+      "hive-env" : {
+        "properties" : {
+          "hive.atlas.hook" : "false",
+          "hive_user": "custom_hive",
+          "hive_security_authorization": "Ranger"
         }
       },
-      "hive-env":{
-        "properties":{
-          "hive_security_authorization":"ranger",
-          "hive_user":"custom_hive"
+      "ranger-env" : {
+        "properties" : {
+          "ranger-hive-plugin-enabled" : "Yes"
         }
+      },
+      "cluster-env" : {
+        "properties" : {
+          "security_enabled" : "false"
+        }
+      },
+      "ranger-hive-plugin-properties" : {
+        "properties" : {
+          "REPOSITORY_CONFIG_USERNAME": "hive"
+        }
+      },
+      "hive-atlas-application.properties" : {
+        "properties": {}
       }
     }
+
     clusterData = {
       "cpu": 4,
       "mapMemory": 3000,
@@ -1012,30 +1026,43 @@ class TestHDP26StackAdvisor(TestCase):
 
     services = {
       "services":
-        [{
-           "StackServices": {
-             "service_name": "YARN"
-           }, "components": []
-         },
-         {
-            "StackServices": {
+        [
+          {
+            "StackServices" : {
+             "service_name" : "YARN"
+            },
+            "components" : []
+          },
+          {
+            "StackServices" : {
               "service_name" : "HIVE",
               "service_version" : "1.2.1.2.6"
             },
-            "components": [
-            ]
+            "components": []
+          },
+          {
+            "StackServices" : {
+              "service_name" : "ATLAS",
+              "service_version": "0.8.0"
+            },
+            "components": []
+          },
+          {
+            "StackServices" : {
+              "service_name" : "RANGER",
+              "service_version": "0.7.0"
+            },
+            "components": []
           }
         ],
       "Versions": {
         "stack_name" : "HDP",
         "stack_version": "2.6"
       },
-      "changed-configurations": [
-      ],
+      "changed-configurations": [],
       "configurations": configurations,
       "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
-
 
     expected = {
       'yarn-env': {
@@ -1047,7 +1074,6 @@ class TestHDP26StackAdvisor(TestCase):
       },
       'ranger-hive-plugin-properties': {
         'properties': {
-          'ranger-hive-plugin-enabled': 'Yes',
           'REPOSITORY_CONFIG_USERNAME': 'custom_hive'
         }
       },
@@ -1068,12 +1094,11 @@ class TestHDP26StackAdvisor(TestCase):
       },
       'hive-env': {
         'properties': {
-          'hive.atlas.hook': 'false',
-          'hive_security_authorization': 'ranger',
+          'hive.atlas.hook': 'true',
+          'hive_security_authorization': 'Ranger',
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_timeline_logging_enabled': 'true',
-          'hive_txn_acid': 'off',
-          'hive_user': 'custom_hive'
+          'hive_txn_acid': 'off'
         }
       },
       'hiveserver2-site': {
@@ -1098,7 +1123,7 @@ class TestHDP26StackAdvisor(TestCase):
           'hive.exec.orc.encoding.strategy': 'SPEED',
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.security.authorization.enabled': 'true',
-          'hive.exec.post.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
+          'hive.exec.post.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook,org.apache.atlas.hive.hook.HiveHook',
           'hive.server2.tez.default.queues': 'default',
           'hive.prewarm.enabled': 'false',
           'hive.exec.orc.compression.strategy': 'SPEED',
@@ -1144,6 +1169,21 @@ class TestHDP26StackAdvisor(TestCase):
           },
           'atlas.rest.address': {
             'delete': 'true'
+          },
+          'hive.server2.authentication.pam.services': {
+            'delete': 'true'
+          },
+          'hive.server2.custom.authentication.class': {
+            'delete': 'true'
+          },
+          'hive.server2.authentication.kerberos.principal': {
+            'delete': 'true'
+          },
+          'hive.server2.authentication.kerberos.keytab': {
+            'delete': 'true'
+          },
+          'hive.server2.authentication.ldap.url': {
+            'delete': 'true'
           }
         }
       },
@@ -1174,16 +1214,35 @@ class TestHDP26StackAdvisor(TestCase):
             'delete': 'true'
           }
         }
+      },
+      'hive-atlas-application.properties' : {
+        'properties' : {},
+        'property_attributes' : {
+            'atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag': {'delete': 'true'},
+            'atlas.jaas.ticketBased-KafkaClient.loginModuleName': {'delete': 'true'},
+            'atlas.jaas.ticketBased-KafkaClient.option.useTicketCache': {'delete': 'true'}
+        }
       }
     }
 
-    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations,expected)
-    configurations['hive-env']['properties']['hive_user'] = 'hive'
-    expected['hive-env']['properties']['hive_user'] = 'hive'
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    services['configurations']['hive-env']['properties']['hive_user'] = 'hive'
     expected['ranger-hive-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'hive'
-    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations,expected)
+    services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
+    expected['hive-atlas-application.properties']['properties']['atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag'] = 'required'
+    expected['hive-atlas-application.properties']['properties']['atlas.jaas.ticketBased-KafkaClient.loginModuleName'] = 'com.sun.security.auth.module.Krb5LoginModule'
+    expected['hive-atlas-application.properties']['properties']['atlas.jaas.ticketBased-KafkaClient.option.useTicketCache'] = 'true'
+    del expected['hive-atlas-application.properties']['property_attributes']
+    expected['core-site'] = {
+      'properties': {}
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)
+    self.assertEquals(recommendedConfigurations, expected)
 
 
   def test_recommendHBASEConfigurations(self):

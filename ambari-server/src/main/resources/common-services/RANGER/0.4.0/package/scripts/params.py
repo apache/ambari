@@ -446,3 +446,5 @@ truststore_password = config['configurations']['ranger-admin-site']['ranger.trus
 
 # need this to capture cluster name for ranger tagsync
 cluster_name = config['clusterName']
+ranger_ldap_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.bind.password']
+ranger_ad_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.ad.bind.password']

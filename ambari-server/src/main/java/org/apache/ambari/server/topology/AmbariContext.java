@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,6 +30,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -69,6 +70,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
@@ -79,6 +81,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Striped;
+import com.google.inject.Provider;
 
 
 /**
@@ -99,6 +103,12 @@ public class AmbariContext {
   @Inject
   ConfigFactory configFactory;
 
+  /**
+   * Used for getting configuration property values from stack and services.
+   */
+  @Inject
+  private Provider<ConfigHelper> configHelper;
+
   private static AmbariManagementController controller;
   private static ClusterController clusterController;
   //todo: task id's.  Use existing mechanism for getting next task id sequence
@@ -111,6 +121,16 @@ public class AmbariContext {
   private static HostComponentResourceProvider hostComponentResourceProvider;
 
   private final static Logger LOG = LoggerFactory.getLogger(AmbariContext.class);
+
+
+  /**
+   * When config groups are created using Blueprints these are created when
+   * hosts join a hostgroup and are added to the corresponding config group.
+   * Since hosts join in parallel there might be a race condition in creating
+   * the config group a host is to be added to. Thus we need to synchronize
+   * the creation of config groups with the same name.
+   */
+  private Striped<Lock> configGroupCreateLock = Striped.lazyWeakLock(1);
 
   public boolean isClusterKerberosEnabled(long clusterId) {
     Cluster cluster;
@@ -205,8 +225,8 @@ public class AmbariContext {
     } catch (AmbariException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
-    Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
-    Set<ServiceComponentRequest> componentRequests = new HashSet<ServiceComponentRequest>();
+    Set<ServiceRequest> serviceRequests = new HashSet<>();
+    Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
       serviceRequests.add(new ServiceRequest(clusterName, service, null, credentialStoreEnabled));
@@ -223,13 +243,13 @@ public class AmbariContext {
     }
     // set all services state to INSTALLED->STARTED
     // this is required so the user can start failed services at the service level
-    Map<String, Object> installProps = new HashMap<String, Object>();
+    Map<String, Object> installProps = new HashMap<>();
     installProps.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INSTALLED");
     installProps.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    Map<String, Object> startProps = new HashMap<String, Object>();
+    Map<String, Object> startProps = new HashMap<>();
     startProps.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "STARTED");
     startProps.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    Predicate predicate = new EqualsPredicate<String>(
+    Predicate predicate = new EqualsPredicate<>(
         ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
     try {
       getServiceResourceProvider().updateResources(
@@ -262,7 +282,7 @@ public class AmbariContext {
     }
     String clusterName = cluster.getClusterName();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, hostName);
     properties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, host.getRackInfo());
@@ -275,7 +295,7 @@ public class AmbariContext {
           hostName, e.toString()), e);
     }
 
-    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+    final Set<ServiceComponentHostRequest> requests = new HashSet<>();
 
     for (Map.Entry<String, Collection<String>> entry : components.entrySet()) {
       String service = entry.getKey();
@@ -328,11 +348,17 @@ public class AmbariContext {
   }
 
   public void registerHostWithConfigGroup(final String hostName, final ClusterTopology topology, final String groupName) {
+    final String qualifiedGroupName = getConfigurationGroupName(topology.getBlueprint().getName(), groupName);
+
+    Lock configGroupLock = configGroupCreateLock.get(qualifiedGroupName);
+
     try {
+      configGroupLock.lock();
+
       boolean hostAdded = RetryHelper.executeWithRetry(new Callable<Boolean>() {
         @Override
         public Boolean call() throws Exception {
-          return addHostToExistingConfigGroups(hostName, topology, groupName);
+          return addHostToExistingConfigGroups(hostName, topology, qualifiedGroupName);
         }
       });
       if (!hostAdded) {
@@ -341,6 +367,9 @@ public class AmbariContext {
     } catch (Exception e) {
       LOG.error("Unable to register config group for host: ", e);
       throw new RuntimeException("Unable to register config group for host: " + hostName);
+    }
+    finally {
+      configGroupLock.unlock();
     }
   }
 
@@ -549,7 +578,7 @@ public class AmbariContext {
   /**
    * Add the new host to an existing config group.
    */
-  private boolean addHostToExistingConfigGroups(String hostName, ClusterTopology topology, String groupName) {
+  private boolean addHostToExistingConfigGroups(String hostName, ClusterTopology topology, String configGroupName) {
     boolean addedHost = false;
     Clusters clusters;
     Cluster cluster;
@@ -563,9 +592,8 @@ public class AmbariContext {
     // I don't know of a method to get config group by name
     //todo: add a method to get config group by name
     Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
-    String qualifiedGroupName = getConfigurationGroupName(topology.getBlueprint().getName(), groupName);
     for (ConfigGroup group : configGroups.values()) {
-      if (group.getName().equals(qualifiedGroupName)) {
+      if (group.getName().equals(configGroupName)) {
         try {
           Host host = clusters.getHost(hostName);
           addedHost = true;
@@ -589,7 +617,7 @@ public class AmbariContext {
    * and the hosts associated with the host group are assigned to the config group.
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
-    Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
+    Map<String, Map<String, Config>> groupConfigs = new HashMap<>();
     Stack stack = topology.getBlueprint().getStack();
 
     // get the host-group config with cluster creation template overrides
@@ -608,7 +636,7 @@ public class AmbariContext {
       //todo: attributes
       Map<String, Config> serviceConfigs = groupConfigs.get(service);
       if (serviceConfigs == null) {
-        serviceConfigs = new HashMap<String, Config>();
+        serviceConfigs = new HashMap<>();
         groupConfigs.put(service, serviceConfigs);
       }
       serviceConfigs.put(type, config);
@@ -667,6 +695,16 @@ public class AmbariContext {
    */
   private String getConfigurationGroupName(String bpName, String hostGroupName) {
     return String.format("%s:%s", bpName, hostGroupName);
+  }
+
+  /**
+   * Gets an instance of {@link ConfigHelper} for classes which are not
+   * dependency injected.
+   *
+   * @return a {@link ConfigHelper} instance.
+   */
+  public ConfigHelper getConfigHelper() {
+    return configHelper.get();
   }
 
   private synchronized HostResourceProvider getHostResourceProvider() {

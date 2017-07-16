@@ -22,5 +22,5 @@ package org.apache.ambari.server.topology;
  * Performs topology validation.
  */
 public interface TopologyValidator {
-  public void validate(ClusterTopology topology) throws InvalidTopologyException;
+  void validate(ClusterTopology topology) throws InvalidTopologyException;
 }

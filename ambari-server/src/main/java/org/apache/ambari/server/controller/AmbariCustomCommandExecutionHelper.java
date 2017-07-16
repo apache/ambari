@@ -75,12 +75,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -174,9 +172,6 @@ public class AmbariCustomCommandExecutionHelper {
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
-
-  @Inject
-  private RequestDAO requestDAO;
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
@@ -329,10 +324,6 @@ public class AmbariCustomCommandExecutionHelper {
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(
         stackId.getStackName(), stackId.getStackVersion(), serviceName);
-    StackInfo stackInfo = ambariMetaInfo.getStack
-       (stackId.getStackName(), stackId.getStackVersion());
-
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -476,12 +467,6 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
-      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-
-      if (effectiveClusterVersion != null) {
-       commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
-      }
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -813,7 +798,7 @@ public class AmbariCustomCommandExecutionHelper {
    * calls into the implementation of a custom command
    */
   private void addDecommissionAction(final ActionExecutionContext actionExecutionContext,
-      final RequestResourceFilter resourceFilter, Stage stage) throws AmbariException {
+      final RequestResourceFilter resourceFilter, Stage stage, ExecuteCommandJson executeCommandJson) throws AmbariException {
 
     String clusterName = actionExecutionContext.getClusterName();
     final Cluster cluster = clusters.getCluster(clusterName);
@@ -1008,11 +993,8 @@ public class AmbariCustomCommandExecutionHelper {
           StageUtils.getClusterHostInfo(cluster));
 
       // Reset cluster host info as it has changed
-      RequestEntity requestEntity = requestDAO.findByPK(stage.getRequestId());
-
-      if (requestEntity != null) {
-        requestEntity.setClusterHostInfo(clusterHostInfoJson);
-        requestDAO.merge(requestEntity);
+      if (executeCommandJson != null) {
+        executeCommandJson.setClusterHostInfo(clusterHostInfoJson);
       }
 
       Map<String, String> commandParams = new HashMap<>();
@@ -1090,11 +1072,12 @@ public class AmbariCustomCommandExecutionHelper {
    * @param actionExecutionContext  received request to execute a command
    * @param stage                   the initial stage for task creation
    * @param requestParams           the request params
+   * @param executeCommandJson      set of json arguments passed to the request
    *
    * @throws AmbariException if the commands can not be added
    */
   public void addExecutionCommandsToStage(ActionExecutionContext actionExecutionContext,
-      Stage stage, Map<String, String> requestParams) throws AmbariException {
+      Stage stage, Map<String, String> requestParams, ExecuteCommandJson executeCommandJson) throws AmbariException {
 
     List<RequestResourceFilter> resourceFilters = actionExecutionContext.getResourceFilters();
 
@@ -1108,7 +1091,7 @@ public class AmbariCustomCommandExecutionHelper {
       if (actionName.contains(SERVICE_CHECK_COMMAND_NAME)) {
         findHostAndAddServiceCheckAction(actionExecutionContext, resourceFilter, stage);
       } else if (actionName.equals(DECOMMISSION_COMMAND_NAME)) {
-        addDecommissionAction(actionExecutionContext, resourceFilter, stage);
+        addDecommissionAction(actionExecutionContext, resourceFilter, stage, executeCommandJson);
       } else if (isValidCustomCommand(actionExecutionContext, resourceFilter)) {
 
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);

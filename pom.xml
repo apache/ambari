@@ -52,6 +52,10 @@
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
     <stack.distribution>HDP</stack.distribution>
+
+    <!-- Default supplement distribution is BigInsights for Ambari 2.5.2 and higher. -->
+    <supplemental.distribution>BigInsights</supplemental.distribution>
+
     <ambari.dir>${project.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>

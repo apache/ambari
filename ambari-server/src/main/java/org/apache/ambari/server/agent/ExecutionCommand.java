@@ -67,7 +67,7 @@ public class ExecutionCommand extends AgentCommand {
   private String role;
 
   @SerializedName("hostLevelParams")
-  private Map<String, String> hostLevelParams = new HashMap<String, String>();
+  private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("roleParams")
   private Map<String, String> roleParams = null;
@@ -77,7 +77,7 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("clusterHostInfo")
   private Map<String, Set<String>> clusterHostInfo =
-      new HashMap<String, Set<String>>();
+      new HashMap<>();
 
   @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
@@ -92,7 +92,7 @@ public class ExecutionCommand extends AgentCommand {
   private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
-  private Map<String, String> commandParams = new HashMap<String, String>();
+  private Map<String, String> commandParams = new HashMap<>();
 
   @SerializedName("serviceName")
   private String serviceName;
@@ -104,10 +104,10 @@ public class ExecutionCommand extends AgentCommand {
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
-  private List<Map<String, String>> kerberosCommandParams = new ArrayList<Map<String, String>>();
+  private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")
-  private Set<String> localComponents = new HashSet<String>();
+  private Set<String> localComponents = new HashSet<>();
 
   @SerializedName("availableServices")
   private Map<String, String> availableServices = new HashMap<>();
@@ -149,7 +149,7 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   public Map<String, Map<String, String>> getConfigurationCredentials() {
-    return this.configurationCredentials;
+    return configurationCredentials;
   }
 
   public String getCommandId() {
@@ -410,6 +410,7 @@ public class ExecutionCommand extends AgentCommand {
     String STACK_VERSION = "stack_version";
     String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";
+    String IGNORE_PACKAGE_DEPENDENCIES = "ignore_package_dependencies";
     String JDK_LOCATION = "jdk_location";
     String JAVA_HOME = "java_home";
     String JAVA_VERSION = "java_version";
@@ -433,6 +434,8 @@ public class ExecutionCommand extends AgentCommand {
     String USER_GROUPS = "user_groups";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
     String VERSION = "version";
+    String SOURCE_STACK = "source_stack";
+    String TARGET_STACK = "target_stack";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";

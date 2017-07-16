@@ -53,4 +53,8 @@ public class ExecuteCommandJson {
     return clusterHostJson;
   }
 
+  public void setClusterHostInfo(String clusterHostJson){
+    this.clusterHostJson = clusterHostJson;
+  }
+
 }

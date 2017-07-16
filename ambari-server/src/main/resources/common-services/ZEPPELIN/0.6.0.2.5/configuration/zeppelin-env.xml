@@ -92,6 +92,11 @@ export ZEPPELIN_PID_DIR={{zeppelin_pid_dir}}
 export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"
 #### Spark interpreter configuration ####
 
+## Kerberos ticket refresh setting
+##
+export KINIT_FAIL_THRESHOLD=5
+export KERBEROS_REFRESH_INTERVAL=1d
+
 ## Use provided spark installation ##
 ## defining SPARK_HOME makes Zeppelin run spark interpreter process using spark-submit
 ##

@@ -18,6 +18,27 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -28,20 +49,11 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.google.common.collect.Maps;
-import org.easymock.EasyMock;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -52,18 +64,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.easymock.EasyMock.capture;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Maps;
 
 /**
  * ClusterConfigurationRequest unit tests
@@ -102,6 +103,13 @@ public class ClusterConfigurationRequestTest {
 
   @Mock(type = MockType.NICE)
   private KerberosHelper kerberosHelper;
+
+  @Mock(type = MockType.NICE)
+  private ConfigHelper configHelper;
+
+  private final String STACK_NAME = "testStack";
+  private final String STACK_VERSION = "1";
+  private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
 
   /**
    * testConfigType config type should be in updatedConfigTypes, as no custom property in Blueprint
@@ -198,7 +206,7 @@ public class ClusterConfigurationRequestTest {
     ConfigurationTopologyException {
 
 
-    Map<String, Map<String, String>> existingConfig = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> existingConfig = new HashMap<>();
     Configuration stackDefaultConfig = new Configuration(existingConfig,
       new HashMap<String, Map<String, Map<String, String>>>());
     if (stackPropertyValue != null) {
@@ -221,6 +229,8 @@ public class ClusterConfigurationRequestTest {
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getServiceForConfigType("testConfigType")).andReturn("KERBEROS").anyTimes();
     expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")
     ).anyTimes();
@@ -246,6 +256,7 @@ public class ClusterConfigurationRequestTest {
     expect(blueprint.getComponents("KERBEROS")).andReturn(kerberosComponents).anyTimes();
     expect(blueprint.getComponents("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
 
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.isValidConfigType("testConfigType")).andReturn(true).anyTimes();
@@ -256,9 +267,13 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getHostGroupsForComponent(anyString())).andReturn(Collections.<String>emptyList())
       .anyTimes();
 
-      expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
+    expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
     expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
       .<ConfigurationRequest>emptyList()).anyTimes();
+
+    expect(configHelper.getDefaultStackProperties(
+        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
 
     if (kerberosConfig == null) {
       kerberosConfig = new HashMap<>();
@@ -277,15 +292,14 @@ public class ClusterConfigurationRequestTest {
       (captureUpdatedConfigTypes));
     expectLastCall();
 
-    PowerMock.replay(stack, blueprint, topology, controller, clusters, kerberosHelper, ambariContext,
-      AmbariContext
-        .class);
+    PowerMock.replay(stack, blueprint, topology, controller, clusters, kerberosHelper,
+        ambariContext, AmbariContext.class, configHelper);
 
     ClusterConfigurationRequest clusterConfigurationRequest = new ClusterConfigurationRequest(
       ambariContext, topology, false, stackAdvisorBlueprintProcessor, true);
     clusterConfigurationRequest.process();
 
-    verify(blueprint, topology, ambariContext, controller, kerberosHelper);
+    verify(blueprint, topology, ambariContext, controller, kerberosHelper, configHelper);
 
 
     String clusterName = captureClusterName.getValue();
@@ -296,7 +310,7 @@ public class ClusterConfigurationRequestTest {
   @Test
   public void testProcessClusterConfigRequestDontIncludeKererosConfigs() throws Exception {
 
-    Map<String, Map<String, String>> existingConfig = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> existingConfig = new HashMap<>();
     Configuration stackConfig = new Configuration(existingConfig,
       new HashMap<String, Map<String, Map<String, String>>>());
 
@@ -308,8 +322,9 @@ public class ClusterConfigurationRequestTest {
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")
-    ).anyTimes();
+    expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.<String,
       Stack.ConfigProperty>emptyMap()).anyTimes();
@@ -331,25 +346,29 @@ public class ClusterConfigurationRequestTest {
     expect(blueprint.getComponents("KERBEROS")).andReturn(kerberosComponents).anyTimes();
     expect(blueprint.getComponents("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
 
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
     expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
       .<ConfigurationRequest>emptyList()).anyTimes();
 
+    expect(configHelper.getDefaultStackProperties(
+        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
 
     PowerMock.replay(stack, blueprint, topology, controller, clusters, ambariContext,
-      AmbariContext
-        .class);
+        AmbariContext.class, configHelper);
 
     ClusterConfigurationRequest clusterConfigurationRequest = new ClusterConfigurationRequest(
       ambariContext, topology, false, stackAdvisorBlueprintProcessor);
     clusterConfigurationRequest.process();
 
-    verify(blueprint, topology, ambariContext, controller);
+    verify(blueprint, topology, ambariContext, controller, configHelper);
 
   }
 
@@ -357,7 +376,7 @@ public class ClusterConfigurationRequestTest {
   public void testProcessClusterConfigRequestRemoveUnusedConfigTypes() throws Exception {
     // GIVEN
     Configuration configuration = createConfigurations();
-    Set<String> services = new HashSet<String>();
+    Set<String> services = new HashSet<>();
     services.add("HDFS");
     services.add("RANGER");
     Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();
@@ -365,6 +384,7 @@ public class ClusterConfigurationRequestTest {
     hg1.setConfiguration(createConfigurationsForHostGroup());
     hostGroupInfoMap.put("hg1", hg1);
 
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
@@ -377,7 +397,12 @@ public class ClusterConfigurationRequestTest {
     expect(blueprint.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
     expect(blueprint.isValidConfigType("global")).andReturn(true).anyTimes();
 
-    EasyMock.replay(stack, blueprint, topology);
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
+
+    expect(configHelper.getDefaultStackProperties(
+        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+
+    EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
     // WHEN
     new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
     // THEN
@@ -388,7 +413,7 @@ public class ClusterConfigurationRequestTest {
 
     assertFalse("SPARK service not present in topology host group config thus 'spark-env' config type should be removed from config.", hg1.getConfiguration().getFullAttributes().containsKey("spark-env"));
     assertTrue("HDFS service is present in topology host group config thus 'hdfs-site' config type should be left in the config.", hg1.getConfiguration().getFullAttributes().containsKey("hdfs-site"));
-    verify(stack, blueprint, topology);
+    verify(stack, blueprint, topology, ambariContext, configHelper);
   }
 
   @Test
@@ -409,6 +434,7 @@ public class ClusterConfigurationRequestTest {
     hg1.setConfiguration(createConfigurationsForHostGroup());
     hostGroupInfoMap.put("hg1", hg1);
 
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
@@ -419,7 +445,12 @@ public class ClusterConfigurationRequestTest {
     expect(blueprint.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
     expect(blueprint.isValidConfigType("global")).andReturn(true).anyTimes();
 
-    EasyMock.replay(stack, blueprint, topology);
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
+
+    expect(configHelper.getDefaultStackProperties(
+        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+
+    EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
 
     // When
 
@@ -431,7 +462,7 @@ public class ClusterConfigurationRequestTest {
 
     assertFalse("SPARK service not present in topology host group config thus 'spark-env' config type should be removed from config.", hg1.getConfiguration().getFullAttributes().containsKey("spark-env"));
     assertTrue("HDFS service is present in topology host group config thus 'hdfs-site' config type should be left in the config.", hg1.getConfiguration().getFullAttributes().containsKey("hdfs-site"));
-    verify(stack, blueprint, topology);
+    verify(stack, blueprint, topology, ambariContext, configHelper);
 
   }
 
