@@ -562,6 +562,9 @@ App.config = Em.Object.create({
    */
   getViewClass: function (displayType, dependentConfigPattern, unit) {
     switch (displayType) {
+      case 'user':
+      case 'group':
+        return App.ServiceConfigTextFieldUserGroupWithID;
       case 'checkbox':
       case 'boolean':
         return dependentConfigPattern ? App.ServiceConfigCheckboxWithDependencies : App.ServiceConfigCheckbox;
