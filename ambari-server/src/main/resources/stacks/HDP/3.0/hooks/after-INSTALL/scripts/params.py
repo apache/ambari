@@ -36,11 +36,11 @@ dfs_type = default("/commandParams/dfs_type", "")
 stack_root = Script.get_stack_root()
 
 is_parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # current host stack version
@@ -57,7 +57,7 @@ versioned_stack_root = format('{stack_root}/current')
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #java params
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
@@ -86,7 +86,7 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
 
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':

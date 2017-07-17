@@ -87,7 +87,7 @@ def get_stack_feature_version(config):
     raise Fail("Unable to determine the correct version since hostLevelParams and commandParams were not present in the configuration dictionary")
 
   # should always be there
-  stack_version = config['hostLevelParams']['stack_version']
+  stack_version = config['clusterLevelParams']['stack_version']
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)

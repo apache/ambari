@@ -67,7 +67,7 @@ def setup_config():
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['core-site'],
-              configuration_attributes=params.config['configuration_attributes']['core-site'],
+              configuration_attributes=params.config['configurationAttributes']['core-site'],
               owner=params.hdfs_user,
               group=params.user_group,
               only_if=format("ls {hadoop_conf_dir}"))

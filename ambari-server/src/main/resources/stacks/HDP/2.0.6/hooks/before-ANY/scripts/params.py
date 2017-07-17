@@ -48,16 +48,16 @@ architecture = get_architecture()
 dfs_type = default("/commandParams/dfs_type", "")
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
-jdk_name = default("/hostLevelParams/jdk_name", None)
-java_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_name = default("/ambariLevelParams/jdk_name", None)
+java_home = config['ambariLevelParams']['java_home']
+java_version = expect("/ambariLevelParams/java_version", int)
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
@@ -181,7 +181,7 @@ zeppelin_group = config['configurations']['zeppelin-env']["zeppelin_group"]
 user_group = config['configurations']['cluster-env']['user_group']
 
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
@@ -232,7 +232,7 @@ smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},
 if has_hbase_masters:
   hbase_user_dirs = format("/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
 #repo params
-repo_info = config['hostLevelParams']['repo_info']
+repo_info = config['hostLevelParams']['repoInfo']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
 
 user_to_groups_dict = collections.defaultdict(lambda:[user_group])
@@ -259,9 +259,9 @@ except ValueError:
   print('User Group mapping (user_group) is missing in the hostLevelParams')
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
-user_list = json.loads(config['hostLevelParams']['user_list'])
-group_list = json.loads(config['hostLevelParams']['group_list'])
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+user_list = json.loads(config['clusterLevelParams']['user_list'])
+group_list = json.loads(config['clusterLevelParams']['group_list'])
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
 tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
 override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()

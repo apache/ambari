@@ -28,9 +28,9 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #users and groups
@@ -50,17 +50,17 @@ repo_rhel_suse =  config['configurations']['cluster-env']['repo_suse_rhel_templa
 repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
 
 #hosts
-hostname = config["hostname"]
+hostname = config['agentLevelParams']['hostname']
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
-rm_host = default("/clusterHostInfo/rm_host", [])
-slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
+slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
 hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
-hs_host = default("/clusterHostInfo/hs_host", [])
+hs_host = default("/clusterHostInfo/historyserver_hosts", [])
 jtnode_host = default("/clusterHostInfo/jtnode_host", [])
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 storm_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
@@ -96,18 +96,18 @@ hbase_tmp_dir = "/tmp/hbase-hbase"
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #java params
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
-jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
+jdk_name = default("/ambariLevelParams/jdk_name", None) # None when jdk is already installed by user
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
-jdk_location = config['hostLevelParams']['jdk_location']
+jce_location = config['ambariLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 if has_hbase_masters:
   hbase_user_dirs = format("/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
 #repo params
-repo_info = config['hostLevelParams']['repo_info']
+repo_info = config['hostLevelParams']['repoInfo']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)

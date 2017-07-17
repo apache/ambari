@@ -29,6 +29,7 @@ import platform
 import inspect
 import tarfile
 import time
+import traceback
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
@@ -113,7 +114,7 @@ class LockedConfigureMeta(type):
       def locking_configure(obj, *args, **kw):
         # local import to avoid circular dependency (default imports Script)
         from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
+        parallel_execution_enabled = int(default("/agentLevelParams/agentConfigParams/agent/parallel_execution", 0)) == 1
         lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
         with lock:
           original_configure(obj, *args, **kw)
@@ -535,7 +536,7 @@ class Script(object):
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    return default("/hostLevelParams/stack_name", "HDP")
+    return default("/clusterLevelParams/stack_name", "HDP")
 
   @staticmethod
   def get_stack_root():
@@ -555,10 +556,10 @@ class Script(object):
     :return: a normalized stack version or None
     """
     config = Script.get_config()
-    if 'hostLevelParams' not in config or 'stack_version' not in config['hostLevelParams']:
+    if 'clusterLevelParams' not in config or 'stack_version' not in config['clusterLevelParams']:
       return None
 
-    stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+    stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
@@ -647,16 +648,15 @@ class Script(object):
     """
     config = self.get_config()
 
-    if 'host_sys_prepped' in config['hostLevelParams']:
+    if 'host_sys_prepped' in config['ambariLevelParams']:
       # do not install anything on sys-prepped host
-      if config['hostLevelParams']['host_sys_prepped'] == True:
+      if config['ambariLevelParams']['host_sys_prepped'] == True:
         Logger.info("Node has all packages pre-installed. Skipping.")
         return
-      pass
     try:
-      package_list_str = config['hostLevelParams']['package_list']
-      agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-      agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
+      package_list_str = config['commandParams']['package_list']
+      agent_stack_retry_on_unavailability = bool(config['ambariLevelParams']['agent_stack_retry_on_unavailability'])
+      agent_stack_retry_count = int(config['ambariLevelParams']['agent_stack_retry_count'])
 
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
@@ -674,15 +674,15 @@ class Script(object):
                       retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
                       retry_count=agent_stack_retry_count)
     except KeyError:
-      pass  # No reason to worry
+      traceback.print_exc()
 
     if OSCheck.is_windows_family():
       #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
       hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(config['hostLevelParams']['jdk_location'],
-                          config["hostLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
+      install_windows_msi(config['ambariLevelParams']['jdk_location'],
+                          config["agentLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
                           hadoop_user, self.get_password(hadoop_user),
-                          str(config['hostLevelParams']['stack_version']))
+                          str(config['clusterLevelParams']['stack_version']))
       reload_windows_env()
       
   def check_package_condition(self, package):

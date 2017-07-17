@@ -26,15 +26,15 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-group_list = json.loads(config['hostLevelParams']['group_list'])
-user_list = json.loads(config['hostLevelParams']['user_list'])
+group_list = json.loads(config['clusterLevelParams']['group_list'])
+user_list = json.loads(config['clusterLevelParams']['user_list'])
 
 user_group = config['configurations']['cluster-env']['user_group']
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 user_to_groups_dict = collections.defaultdict(lambda:[user_group])
 
-jdk_name = default("/hostLevelParams/jdk_name", None)
-java_home = config['hostLevelParams']['java_home']
+jdk_name = default("/ambariLevelParams/jdk_name", None)
+java_home = config['ambariLevelParams']['java_home']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_location = config['hostLevelParams']['jdk_location']
 java_version = expect("/hostLevelParams/java_version", int)

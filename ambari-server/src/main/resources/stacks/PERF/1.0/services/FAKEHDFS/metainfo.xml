@@ -223,7 +223,7 @@
       </commandScript>
 
       <requiredServices>
-        <service>FAKEZOOKEEPER</service>
+        <service>ZOOKEEPER</service>
       </requiredServices>
 
       <configuration-dependencies>

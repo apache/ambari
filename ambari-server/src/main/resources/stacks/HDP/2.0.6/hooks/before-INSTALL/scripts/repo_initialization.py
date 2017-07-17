@@ -25,13 +25,11 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 # components_lits = repoName + postfix
 _UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
 
-def _alter_repo(action, repo_string, repo_template):
+def _alter_repo(action, repo_dicts, repo_template):
   """
   @param action: "delete" or "create"
-  @param repo_string: e.g. "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
+  @param repo_dicts: e.g. "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
   """
-  repo_dicts = json.loads(repo_string)
-
   if not isinstance(repo_dicts, list):
     repo_dicts = [repo_dicts]
 
