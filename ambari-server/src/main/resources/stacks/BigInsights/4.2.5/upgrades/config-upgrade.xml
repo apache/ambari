@@ -134,7 +134,7 @@
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_server_configure_authentication" summary="Configuring hive authentication">
+          <definition xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication" summary="Configuring hive authentication">
             <type>hive-site</type>
             <transfer operation="delete" delete-key="hive.metastore.event.listeners" if-key="hive.metastore.event.listeners" if-type="hive-site" if-value="com.ibm.biginsights.bigsql.sync.BIEventListener"/>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
@@ -167,9 +167,14 @@
             <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
           </definition>
           
-          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure" summary="Configuring hive env for MariaDB/RedHat7 support">
+          <definition xsi:type="configure" id="biginsights_4_2_hive_env_configure" summary="Configuring hive-env for MariaDB/RedHat7 support">
             <type>hive-env</type>
             <set key="mariadb_redhat_support" value="true"/>
+          </definition>
+
+          <definition xsi:type="configure" id="biginsights_4_2_hive_permissions" summary="Configuring hive-site permissions">
+            <type>hive-site</type>
+            <set key="custom.hive.warehouse.mode" value="0770" if-type="hive-site" if-key="custom.hive.warehouse.mode" if-key-state="absent"/>
           </definition>
         </changes>
       </component>
