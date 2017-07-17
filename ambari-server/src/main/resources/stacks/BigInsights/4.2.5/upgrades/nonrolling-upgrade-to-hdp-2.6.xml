@@ -64,6 +64,11 @@
         <component>SPARK_JOBHISTORYSERVER</component>
         <component>SPARK_THRIFTSERVER</component>
       </service>
+      
+      <service name="SPARK2">
+        <component>SPARK2_JOBHISTORYSERVER</component>
+        <component>SPARK2_THRIFTSERVER</component>
+      </service>
 
       <service name="HIVE">
         <component>WEBHCAT_SERVER</component>
@@ -272,6 +277,13 @@
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie server">
         <task xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" />
       </execute-stage>
+      
+      <!-- SPARK2 -->
+      <execute-stage service="SPARK2" component="SPARK2_CLIENT" title="Apply config changes for Spark">
+        <task xsi:type="configure" id="hdp_2_6_0_0_spark2_yarn_queue">
+          <summary>Add queue customization property</summary>
+        </task>
+      </execute-stage>      
     </group>
 
 
@@ -513,6 +525,17 @@
         <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
+    
+    <group xsi:type="restart" name="SPARK2" title="Spark2">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="SPARK2">
+        <component>SPARK2_JOBHISTORYSERVER</component>
+        <component>SPARK2_THRIFTSERVER</component>
+      </service>
+    </group>
 
     <group xsi:type="restart" name="SPARK_CLIENTS" title="Spark Clients">
       <service-check>false</service-check>
@@ -520,6 +543,15 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+    
+    <group xsi:type="restart" name="SPARK2_CLIENTS" title="Spark2 Clients">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <parallel-scheduler/>
+      <service name="SPARK2">
+        <component>SPARK2_CLIENT</component>
       </service>
     </group>
 
@@ -563,6 +595,7 @@
         <service>SLIDER</service>
         <service>HIVE</service>
         <service>SPARK</service>
+        <service>SPARK2</service>
         <service>OOZIE</service>
       </priority>
     </group>
@@ -903,6 +936,24 @@
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+    
+    <service name="SPARK2">
+      <component name="SPARK2_JOBHISTORYSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK2_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK2_CLIENT">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
