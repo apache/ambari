@@ -139,7 +139,7 @@ public class AmbariCustomCommandExecutionHelper {
   public final static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
   public final static String DECOM_SLAVE_COMPONENT = "slave_type";
   public final static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
-  public final static String UPDATE_EXCLUDE_FILE_ONLY = "update_exclude_file_only";
+  public final static String UPDATE_FILES_ONLY = "update_files_only";
 
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
@@ -870,9 +870,9 @@ public class AmbariCustomCommandExecutionHelper {
               @Override
               public boolean shouldHostBeRemoved(final String hostname)
               throws AmbariException {
-                //Get UPDATE_EXCLUDE_FILE_ONLY parameter as string
+                //Get UPDATE_FILES_ONLY parameter as string
                 String upd_excl_file_only_str = actionExecutionContext.getParameters()
-                .get(UPDATE_EXCLUDE_FILE_ONLY);
+                .get(UPDATE_FILES_ONLY);
 
                 String decom_incl_hosts_str = actionExecutionContext.getParameters()
                 .get(DECOM_INCLUDED_HOSTS);
@@ -946,15 +946,17 @@ public class AmbariCustomCommandExecutionHelper {
         listOfExcludedHosts.add(sch.getHostName());
         if (alignMtnState) {
           sch.setMaintenanceState(MaintenanceState.ON);
+          LOG.info("marking Maintenance=ON on " + sch.getHostName());
         }
-        LOG.info("Decommissioning " + slaveCompType + " and marking Maintenance=ON on " + sch.getHostName());
+        LOG.info("Decommissioning " + slaveCompType + " on " + sch.getHostName());
       }
       if (filteredIncludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.INSERVICE);
         if (alignMtnState) {
           sch.setMaintenanceState(MaintenanceState.OFF);
+          LOG.info("marking Maintenance=OFF on " + sch.getHostName());
         }
-        LOG.info("Recommissioning " + slaveCompType + " and marking Maintenance=OFF on " + sch.getHostName());
+        LOG.info("Recommissioning " + slaveCompType + " on " + sch.getHostName());
       }
     }
 
@@ -1008,7 +1010,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       if (!serviceName.equals(Service.Type.HBASE.name()) || hostName.equals(primaryCandidate)) {
-        commandParams.put(UPDATE_EXCLUDE_FILE_ONLY, "false");
+        commandParams.put(UPDATE_FILES_ONLY, "false");
         addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString());
       }
     }
