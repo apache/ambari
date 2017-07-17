@@ -680,6 +680,20 @@ public interface DBAccessor {
   void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
        String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, Object initialValue) throws SQLException;
 
+  /**
+   * Remove all rows from the table
+   * @param tableName name of the table
+   */
+  void clearTable(String tableName) throws SQLException;
+
+  /**
+   * Reset all rows with {@code value} for {@code columnName} column
+   * @param tableName name of the table
+   * @param columnName name of the column name to be update
+   * @param value data to use for update
+   */
+  void clearTableColumn(String tableName, String columnName, Object value) throws SQLException;
+
   enum DbType {
     ORACLE,
     MYSQL,

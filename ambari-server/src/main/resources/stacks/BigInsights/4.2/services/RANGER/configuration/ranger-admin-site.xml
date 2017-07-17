@@ -568,4 +568,18 @@
     </value-attributes>
   </property>
 
+  <property>
+    <name>ranger.ldap.binddn.credential.alias</name>
+    <value>ranger.ldap.bind.password</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.binddn.credential.alias</name>
+    <value>ranger.ldap.ad.bind.password</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
 </configuration>

@@ -35,7 +35,7 @@ class ThriftServer(Script):
 
   def get_component_name(self):
     return "spark-thriftserver"
-  
+
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

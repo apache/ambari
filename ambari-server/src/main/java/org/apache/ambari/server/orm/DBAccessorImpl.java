@@ -1442,4 +1442,28 @@ public class DBAccessorImpl implements DBAccessor {
       dropColumn(sourceTableName, sourceColumn.getName());
     }
   }
+
+  /**
+   * Remove all rows from the table
+   *
+   * @param tableName name of the table
+   */
+  @Override
+  public void clearTable(String tableName) throws SQLException{
+    String sqlQuery = "DELETE FROM " + convertObjectName(tableName);
+    executeQuery(sqlQuery);
+  }
+
+  /**
+   * Reset all rows with {@code value} for {@code columnName} column
+   *
+   * @param tableName  name of the table
+   * @param columnName
+   * @param value      data to use for update
+   */
+  @Override
+  public void clearTableColumn(String tableName, String columnName, Object value) throws SQLException {
+    String sqlQuery = String.format("UPDATE %s SET %s = ?", convertObjectName(tableName), convertObjectName(columnName));
+    executePreparedUpdate(sqlQuery, value);
+  }
 }

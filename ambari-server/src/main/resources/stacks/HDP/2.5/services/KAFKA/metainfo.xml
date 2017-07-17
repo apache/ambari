@@ -21,6 +21,7 @@
     <service>
       <name>KAFKA</name>
       <version>0.10.0.2.5</version>
+      <extends>common-services/KAFKA/0.10.0</extends>
     </service>
   </services>
 </metainfo>

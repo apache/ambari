@@ -41,7 +41,7 @@ BACKUP_CONF_ARCHIVE = "oozie-conf-backup.tar"
 class OozieUpgrade(Script):
 
   @staticmethod
-  def prepare_libext_directory():
+  def prepare_libext_directory(upgrade_type=None):
     """
     Performs the following actions on libext:
       - creates <stack-root>/current/oozie/libext and recursively
@@ -86,17 +86,18 @@ class OozieUpgrade(Script):
         raise Fail("There are no files at {0} matching {1}".format(
           hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
-    # copy ext ZIP to libext dir
-    oozie_ext_zip_file = params.ext_js_path
+    # Copy ext ZIP to libext dir
+    # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip
+    source_ext_zip_path = oozie.get_oozie_ext_zip_source_path(upgrade_type, params)
 
     # something like <stack-root>/current/oozie-server/libext/ext-2.2.zip
     oozie_ext_zip_target_path = os.path.join(params.oozie_libext_dir, params.ext_js_file)
 
-    if not os.path.isfile(oozie_ext_zip_file):
-      raise Fail("Unable to copy {0} because it does not exist".format(oozie_ext_zip_file))
+    if not os.path.isfile(source_ext_zip_path):
+      raise Fail("Unable to copy {0} because it does not exist".format(source_ext_zip_path))
 
-    Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_dir))
-    Execute(("cp", oozie_ext_zip_file, params.oozie_libext_dir), sudo=True)
+    Logger.info("Copying {0} to {1}".format(source_ext_zip_path, params.oozie_libext_dir))
+    Execute(("cp", source_ext_zip_path, params.oozie_libext_dir), sudo=True)
     Execute(("chown", format("{oozie_user}:{user_group}"), oozie_ext_zip_target_path), sudo=True)
     File(oozie_ext_zip_target_path,
          mode=0644

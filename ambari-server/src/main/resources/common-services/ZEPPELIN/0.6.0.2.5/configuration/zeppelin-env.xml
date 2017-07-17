@@ -95,7 +95,7 @@ export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"
 ## Kerberos ticket refresh setting
 ##
 export KINIT_FAIL_THRESHOLD=5
-export LAUNCH_KERBEROS_REFRESH_INTERVAL=1d
+export KERBEROS_REFRESH_INTERVAL=1d
 
 ## Use provided spark installation ##
 ## defining SPARK_HOME makes Zeppelin run spark interpreter process using spark-submit

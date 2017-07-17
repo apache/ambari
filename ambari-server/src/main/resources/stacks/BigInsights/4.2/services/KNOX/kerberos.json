@@ -53,12 +53,6 @@
                 "oozie.service.ProxyUserService.proxyuser.${knox-env/knox_user}.groups": "${hadoop-env/proxyuser_group}",
                 "oozie.service.ProxyUserService.proxyuser.${knox-env/knox_user}.hosts": "${clusterHostInfo/knox_gateway_hosts}"
               }
-            },
-            {
-              "falcon-runtime.properties": {
-                "*.falcon.service.ProxyUserService.proxyuser.knox.groups": "${hadoop-env/proxyuser_group}",
-                "*.falcon.service.ProxyUserService.proxyuser.knox.hosts": "${host}"
-              }
             }
           ]
         }

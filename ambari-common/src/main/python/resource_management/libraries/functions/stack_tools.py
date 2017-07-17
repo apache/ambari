@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 __all__ = ["get_stack_tool", "get_stack_tool_name", "get_stack_tool_path",
-           "get_stack_tool_package", "STACK_SELECTOR_NAME", "CONF_SELECTOR_NAME"]
+           "get_stack_tool_package", "get_stack_name", "STACK_SELECTOR_NAME", "CONF_SELECTOR_NAME"]
 
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json

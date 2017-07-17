@@ -97,10 +97,10 @@ master_heapsize = treat_value_as_mb(master_heapsize_cfg)
 
 hbase_javaopts_properties = config['configurations']['hbase-javaopts-properties']['content']
 
-iop_full_version = get_iop_version()
-
 hbase_javaopts_properties = str(hbase_javaopts_properties)	
 if hbase_javaopts_properties.find('-Diop.version') == -1:
+  current_version = default("/hostLevelParams/current_version", None)
+  iop_full_version = format_stack_version(current_version)
   hbase_javaopts_properties = hbase_javaopts_properties+ ' -Diop.version=' + str(iop_full_version)
 
 regionserver_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_regionserver_heapsize'])

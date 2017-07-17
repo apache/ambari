@@ -83,7 +83,7 @@
             </dependency>
           </dependencies>
           <commandScript>
-            <script>scripts/thrift_server.py</script>
+            <script>scripts/spark_thrift_server.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>

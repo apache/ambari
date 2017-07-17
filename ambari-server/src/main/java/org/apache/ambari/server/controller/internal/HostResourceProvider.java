@@ -980,6 +980,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             throw new AmbariException(reason.toString());
           }
         } else {
+//          TODO why host with all components stopped can't be deleted? This functional is implemented and only this validation stops the request.
           if (!componentsToRemove.isEmpty()) {
             StringBuilder reason = new StringBuilder("Cannot remove host ")
                 .append(hostName)
