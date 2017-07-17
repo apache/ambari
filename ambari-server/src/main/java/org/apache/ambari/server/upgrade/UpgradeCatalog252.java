@@ -127,11 +127,12 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   private void addRepositoryColumnsToUpgradeTable() throws SQLException {
-    dbAccessor.executeQuery(String.format("UPDATE %s SET %s = NULL", CLUSTERS_TABLE, UPGRADE_ID_COLUMN));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", SERVICE_COMPONENT_HISTORY_TABLE));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_ITEM_TABLE));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_GROUP_TABLE));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_TABLE));
+    dbAccessor.clearTableColumn(CLUSTERS_TABLE, UPGRADE_ID_COLUMN, null);
+    dbAccessor.clearTable(SERVICE_COMPONENT_HISTORY_TABLE);
+    dbAccessor.clearTable(SERVICE_COMPONENT_HISTORY_TABLE);
+    dbAccessor.clearTable(UPGRADE_ITEM_TABLE);
+    dbAccessor.clearTable(UPGRADE_GROUP_TABLE);
+    dbAccessor.clearTable(UPGRADE_TABLE);
 
     dbAccessor.dropColumn(UPGRADE_TABLE, "to_version");
     dbAccessor.dropColumn(UPGRADE_TABLE, "from_version");
