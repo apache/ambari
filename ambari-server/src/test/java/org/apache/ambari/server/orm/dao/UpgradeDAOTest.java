@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -93,12 +93,12 @@ public class UpgradeDAOTest {
     repositoryVersion2500 = helper.getOrCreateRepositoryVersion(new StackId("HDP", "2.5.0"), "2.5.0.0-4567");
     repositoryVersion2511 = helper.getOrCreateRepositoryVersion(new StackId("HDP", "2.5.0"), "2.5.1.1-4567");
 
+
     // create upgrade entities
     UpgradeEntity entity = new UpgradeEntity();
     entity.setClusterId(clusterId.longValue());
     entity.setRequestEntity(requestEntity);
-    entity.setToRepositoryVersion(repositoryVersion2200);
-    entity.setFromRepositoryVersion(repositoryVersion2500);
+    entity.setRepositoryVersion(repositoryVersion2200);
     entity.setUpgradeType(UpgradeType.ROLLING);
     entity.setUpgradePackage("test-upgrade");
     entity.setDowngradeAllowed(true);
@@ -175,8 +175,7 @@ public class UpgradeDAOTest {
     entity1.setClusterId(clusterId.longValue());
     entity1.setDirection(Direction.UPGRADE);
     entity1.setRequestEntity(requestEntity);
-    entity1.setToRepositoryVersion(repositoryVersion2200);
-    entity1.setFromRepositoryVersion(repositoryVersion2500);
+    entity1.setRepositoryVersion(repositoryVersion2500);
     entity1.setUpgradeType(UpgradeType.ROLLING);
     entity1.setUpgradePackage("test-upgrade");
     entity1.setDowngradeAllowed(true);
@@ -186,8 +185,7 @@ public class UpgradeDAOTest {
     entity2.setClusterId(clusterId.longValue());
     entity2.setDirection(Direction.DOWNGRADE);
     entity2.setRequestEntity(requestEntity);
-    entity2.setToRepositoryVersion(repositoryVersion2500);
-    entity2.setFromRepositoryVersion(repositoryVersion2200);
+    entity2.setRepositoryVersion(repositoryVersion2200);
     entity2.setUpgradeType(UpgradeType.ROLLING);
     entity2.setUpgradePackage("test-upgrade");
     entity2.setDowngradeAllowed(true);
@@ -197,8 +195,7 @@ public class UpgradeDAOTest {
     entity3.setClusterId(clusterId.longValue());
     entity3.setDirection(Direction.UPGRADE);
     entity3.setRequestEntity(requestEntity);
-    entity3.setToRepositoryVersion(repositoryVersion2200);
-    entity3.setFromRepositoryVersion(repositoryVersion2500);
+    entity3.setRepositoryVersion(repositoryVersion2511);
     entity3.setUpgradeType(UpgradeType.ROLLING);
     entity3.setUpgradePackage("test-upgrade");
     entity3.setDowngradeAllowed(true);
@@ -227,8 +224,7 @@ public class UpgradeDAOTest {
     upgradeEntity.setClusterId(clusterId.longValue());
     upgradeEntity.setDirection(Direction.UPGRADE);
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setToRepositoryVersion(repositoryVersion2200);
-    upgradeEntity.setFromRepositoryVersion(repositoryVersion2500);
+    upgradeEntity.setRepositoryVersion(repositoryVersion2500);
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
     upgradeEntity.setUpgradePackage("test-upgrade");
     dao.create(upgradeEntity);

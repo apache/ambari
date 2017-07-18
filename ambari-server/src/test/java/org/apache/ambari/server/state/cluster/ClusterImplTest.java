@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -40,6 +40,8 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -60,12 +62,14 @@ public class ClusterImplTest {
 
   private static Injector injector;
   private static Clusters clusters;
+  private static OrmTestHelper ormTestHelper;
 
   @BeforeClass
   public static void setUpClass() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
+    ormTestHelper = injector.getInstance(OrmTestHelper.class);
   }
 
   @AfterClass
@@ -75,7 +79,7 @@ public class ClusterImplTest {
 
   @Test
   public void testAddSessionAttributes() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
@@ -101,14 +105,14 @@ public class ClusterImplTest {
 
   @Test
   public void testSetSessionAttribute() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
     attributes.put("foo2", "bar2");
 
-    Map<String, Object> updatedAttributes = new HashMap<String, Object>(attributes);
+    Map<String, Object> updatedAttributes = new HashMap<>(attributes);
     updatedAttributes.put("foo2", "updated value");
 
-    Map<String, Object> addedAttributes = new HashMap<String, Object>(updatedAttributes);
+    Map<String, Object> addedAttributes = new HashMap<>(updatedAttributes);
     updatedAttributes.put("foo3", "added value");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
@@ -144,11 +148,11 @@ public class ClusterImplTest {
 
   @Test
   public void testRemoveSessionAttribute() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
     attributes.put("foo2", "bar2");
 
-    Map<String, Object> trimmedAttributes = new HashMap<String, Object>(attributes);
+    Map<String, Object> trimmedAttributes = new HashMap<>(attributes);
     trimmedAttributes.remove("foo2");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
@@ -175,7 +179,7 @@ public class ClusterImplTest {
 
   @Test
   public void testGetSessionAttributes() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
@@ -207,9 +211,16 @@ public class ClusterImplTest {
     String clusterName = "TEST_CLUSTER";
     String hostName1 = "HOST1", hostName2 = "HOST2";
 
-    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+    String stackVersion = "HDP-2.1.1";
+    String repoVersion = "2.1.1-1234";
+    StackId stackId = new StackId(stackVersion);
+    ormTestHelper.createStack(stackId);
 
+    clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
+
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
+        new StackId(stackVersion), repoVersion);
 
     clusters.addHost(hostName1);
     clusters.addHost(hostName2);
@@ -222,7 +233,7 @@ public class ClusterImplTest {
 
     clusters.mapAndPublishHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
-    Service hdfs = cluster.addService("HDFS");
+    Service hdfs = cluster.addService("HDFS", repositoryVersion);
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.addServiceComponentHost(hostName1);
@@ -235,7 +246,7 @@ public class ClusterImplTest {
     hdfsClient.addServiceComponentHost(hostName1);
     hdfsClient.addServiceComponentHost(hostName2);
 
-    Service tez = cluster.addService(serviceToDelete);
+    Service tez = cluster.addService(serviceToDelete, repositoryVersion);
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
@@ -259,13 +270,13 @@ public class ClusterImplTest {
   @Test
   public void testDeleteHost() throws Exception {
     // Given
-
-
     String clusterName = "TEST_DELETE_HOST";
     String hostName1 = "HOSTNAME1", hostName2 = "HOSTNAME2";
     String hostToDelete = hostName2;
+    StackId stackId = new StackId("HDP-2.1.1");
 
-    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+    ormTestHelper.createStack(stackId);
+    clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);
 
@@ -296,8 +307,6 @@ public class ClusterImplTest {
     catch(HostNotFoundException e){
 
     }
-
-
   }
 
   @Test
@@ -305,7 +314,9 @@ public class ClusterImplTest {
     // Given
     String clusterName = "TEST_CLUSTER_SIZE";
     String hostName1 = "host1", hostName2 = "host2";
-    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+    StackId stackId = new StackId("HDP", "2.1.1");
+    ormTestHelper.createStack(stackId);
+    clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);
     clusters.addHost(hostName1);

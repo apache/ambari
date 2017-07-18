@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RootServiceComponentRequest;
 import org.apache.ambari.server.controller.RootServiceComponentResponse;
@@ -32,10 +39,6 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.EasyMock;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,14 +50,16 @@ public class RootServiceComponentResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<RootServiceComponentResponse> allResponse = new HashSet<RootServiceComponentResponse>();
-    allResponse.add(new RootServiceComponentResponse("component1", "1.1.1", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceComponentResponse("component2", "1.1.1", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceComponentResponse("component3", "1.1.1", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceComponentResponse(RootServiceResponseFactory.Components.AMBARI_SERVER.name(), "1.1.1", Collections.<String,String>emptyMap()));
+    Set<RootServiceComponentResponse> allResponse = new HashSet<>();
+    String serviceName = RootServiceResponseFactory.Services.AMBARI.name();
+    Map<String, String> emptyMap = Collections.emptyMap();
+    allResponse.add(new RootServiceComponentResponse(serviceName, "component1", "1.1.1", emptyMap));
+    allResponse.add(new RootServiceComponentResponse(serviceName, "component2", "1.1.1", emptyMap));
+    allResponse.add(new RootServiceComponentResponse(serviceName, "component3", "1.1.1", emptyMap));
+    allResponse.add(new RootServiceComponentResponse(serviceName, RootServiceResponseFactory.Components.AMBARI_SERVER.name(), "1.1.1", emptyMap));
 
-    Set<RootServiceComponentResponse> nameResponse = new HashSet<RootServiceComponentResponse>();
-    nameResponse.add(new RootServiceComponentResponse("component4", "1.1.1", Collections.<String,String>emptyMap()));
+    Set<RootServiceComponentResponse> nameResponse = new HashSet<>();
+    nameResponse.add(new RootServiceComponentResponse(serviceName, "component4", "1.1.1", emptyMap));
 
 
     // set expectations
@@ -69,7 +74,7 @@ public class RootServiceComponentResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RootServiceComponentResourceProvider.SERVICE_NAME_PROPERTY_ID);
     propertyIds.add(RootServiceComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
@@ -94,7 +99,7 @@ public class RootServiceComponentResourceProviderTest {
         Assert.assertNull(server_clock);
       }
       
-      Assert.assertTrue(allResponse.contains(new RootServiceComponentResponse(componentName, componentVersion, Collections.<String,String>emptyMap())));
+      Assert.assertTrue(allResponse.contains(new RootServiceComponentResponse(serviceName, componentName, componentVersion, emptyMap)));
     }
 
     // get service named service4

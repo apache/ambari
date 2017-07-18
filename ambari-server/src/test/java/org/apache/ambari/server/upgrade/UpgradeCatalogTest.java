@@ -17,35 +17,27 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.multibindings.Multibinder;
-import junit.framework.Assert;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ClusterRequest;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.multibindings.Multibinder;
+
+import junit.framework.Assert;
 
 public class UpgradeCatalogTest {
   private Injector injector;
@@ -90,8 +82,8 @@ public class UpgradeCatalogTest {
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
       catalogBinder.addBinding().to(UpgradeCatalog201.class);
-      catalogBinder.addBinding().to(UpgradeCatalog200.class);
-      catalogBinder.addBinding().to(UpgradeCatalog210.class);
+      catalogBinder.addBinding().to(UpgradeCatalog251.class);
+      catalogBinder.addBinding().to(UpgradeCatalog252.class);
     }
   }
 
@@ -121,13 +113,13 @@ public class UpgradeCatalogTest {
     Set<UpgradeCatalog> upgradeCatalogSet = schemaUpgradeHelper.getAllUpgradeCatalogs();
 
     Assert.assertNotNull(upgradeCatalogSet);
-    Assert.assertEquals(3, upgradeCatalogSet.size());
+    Assert.assertEquals(4, upgradeCatalogSet.size());
 
-    List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "2.0.1");
+    List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "2.5.1");
 
     Assert.assertNotNull(upgradeCatalogs);
     Assert.assertEquals(2, upgradeCatalogs.size());
-    Assert.assertEquals("2.0.0", upgradeCatalogs.get(0).getTargetVersion());
-    Assert.assertEquals("2.0.1", upgradeCatalogs.get(1).getTargetVersion());
+    Assert.assertEquals("2.0.1", upgradeCatalogs.get(0).getTargetVersion());
+    Assert.assertEquals("2.5.1", upgradeCatalogs.get(1).getTargetVersion());
   }
 }

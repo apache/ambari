@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,7 +30,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
@@ -63,6 +62,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -86,31 +86,23 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.UnitOfWork;
-
-import junit.framework.Assert;
 
 public class HeartbeatProcessorTest {
 
-  private static final Logger log = LoggerFactory.getLogger(TestHeartbeatHandler.class);
   private Injector injector;
   private long requestId = 23;
   private long stageId = 31;
 
   @Inject
   private Clusters clusters;
-
-  @Inject
-  private UnitOfWork unitOfWork;
 
   @Inject
   Configuration config;
@@ -136,6 +128,9 @@ public class HeartbeatProcessorTest {
   @Inject
   private AmbariMetaInfo metaInfo;
 
+  @Inject
+  private OrmTestHelper helper;
+
 
   public HeartbeatProcessorTest(){
     InMemoryDefaultTestModule module = HeartbeatTestHelper.getTestModule();
@@ -157,10 +152,9 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartbeatWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -182,7 +176,7 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -210,7 +204,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
         }});
@@ -226,10 +220,9 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testRestartRequiredAfterInstallClient() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(HDFS_CLIENT);
     hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
@@ -247,7 +240,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
 
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -272,7 +265,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -291,10 +284,9 @@ public class HeartbeatProcessorTest {
 
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartbeatCustomCommandWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -316,7 +308,7 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -356,7 +348,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -375,10 +367,9 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartbeatCustomStartStop() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -402,7 +393,7 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -438,7 +429,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -459,10 +450,9 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testStatusHeartbeat() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -490,7 +480,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
@@ -511,7 +501,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -524,7 +514,8 @@ public class HeartbeatProcessorTest {
     State componentState1 = serviceComponentHost1.getState();
     State componentState2 = serviceComponentHost2.getState();
     State componentState3 = serviceComponentHost3.getState();
-    assertEquals(State.STARTED, componentState1);assertEquals(State.INSTALLED, componentState2);
+    assertEquals(State.STARTED, componentState1);
+    assertEquals(State.INSTALLED, componentState2);
     assertEquals(SecurityState.SECURING, serviceComponentHost2.getSecurityState());
     //starting state will not be overridden by status command
     assertEquals(State.STARTING, componentState3);
@@ -547,7 +538,7 @@ public class HeartbeatProcessorTest {
     Assert.assertEquals(stageId, stage.getStageId());
     stage.setHostRoleStatus(DummyHostname1, HBASE_MASTER, HostRoleStatus.QUEUED);
     db.hostRoleScheduled(stage, DummyHostname1, HBASE_MASTER);
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
@@ -583,11 +574,10 @@ public class HeartbeatProcessorTest {
    * @throws InvalidStateTransitionException
    */
   @Test
-  @SuppressWarnings("unchecked")
   public void testCommandReportOnHeartbeatUpdatedState()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
@@ -603,7 +593,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
@@ -623,7 +613,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
         }}).anyTimes();
@@ -703,10 +693,9 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testUpgradeSpecificHandling() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
@@ -722,7 +711,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
@@ -742,7 +731,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
         }}).anyTimes();
@@ -797,10 +786,9 @@ public class HeartbeatProcessorTest {
 
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testCommandStatusProcesses() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
@@ -814,21 +802,21 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
 
-    List<Map<String, String>> procs = new ArrayList<Map<String, String>>();
-    Map<String, String> proc1info = new HashMap<String, String>();
+    List<Map<String, String>> procs = new ArrayList<>();
+    Map<String, String> proc1info = new HashMap<>();
     proc1info.put("name", "a");
     proc1info.put("status", "RUNNING");
     procs.add(proc1info);
 
-    Map<String, String> proc2info = new HashMap<String, String>();
+    Map<String, String> proc2info = new HashMap<>();
     proc2info.put("name", "b");
     proc2info.put("status", "NOT_RUNNING");
     procs.add(proc2info);
 
-    Map<String, Object> extra = new HashMap<String, Object>();
+    Map<String, Object> extra = new HashMap<>();
     extra.put("processes", procs);
 
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
@@ -844,7 +832,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
         }}).anyTimes();
@@ -876,94 +864,9 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testComponentUpgradeCompleteReport() throws Exception {
-    Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
-    hdfs.addServiceComponent(DATANODE);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(NAMENODE);
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(HDFS_CLIENT);
-    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
-
-    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
-        getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
-    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
-        getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
-
-    StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack120 = new StackId("HDP-1.2.0");
-
-    serviceComponentHost1.setState(State.UPGRADING);
-    serviceComponentHost2.setState(State.INSTALLING);
-
-    serviceComponentHost1.setStackVersion(stack120);
-    serviceComponentHost1.setDesiredStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack120);
-
-    HeartBeat hb = new HeartBeat();
-    hb.setTimestamp(System.currentTimeMillis());
-    hb.setResponseId(0);
-    hb.setHostname(DummyHostname1);
-    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    CommandReport cr1 = new CommandReport();
-    cr1.setActionId(StageUtils.getActionId(requestId, stageId));
-    cr1.setTaskId(1);
-    cr1.setClusterName(DummyCluster);
-    cr1.setServiceName(HDFS);
-    cr1.setRole(DATANODE);
-    cr1.setStatus(HostRoleStatus.COMPLETED.toString());
-    cr1.setStdErr("none");
-    cr1.setStdOut("dummy output");
-    cr1.setExitCode(0);
-    cr1.setRoleCommand(RoleCommand.UPGRADE.toString());
-
-    CommandReport cr2 = new CommandReport();
-    cr2.setActionId(StageUtils.getActionId(requestId, stageId));
-    cr2.setTaskId(2);
-    cr2.setClusterName(DummyCluster);
-    cr2.setServiceName(HDFS);
-    cr2.setRole(NAMENODE);
-    cr2.setStatus(HostRoleStatus.COMPLETED.toString());
-    cr2.setStdErr("none");
-    cr2.setStdOut("dummy output");
-    cr2.setExitCode(0);
-    cr2.setRoleCommand(RoleCommand.UPGRADE.toString());
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
-    reports.add(cr1);
-    reports.add(cr2);
-    hb.setReports(reports);
-
-    ActionQueue aq = new ActionQueue();
-    final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
-        Role.DATANODE, null, null);
-
-    ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
-        new ArrayList<HostRoleCommand>() {{
-          add(command);
-          add(command);
-        }});
-    replay(am);
-
-    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, aq);
-    HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
-    heartbeatProcessor.processHeartbeat(hb);
-
-    assertEquals("Stack version for SCH should be updated to " +
-            serviceComponentHost1.getDesiredStackVersion(),
-        stack130, serviceComponentHost1.getStackVersion());
-    assertEquals("Stack version for SCH should not change ",
-        stack120, serviceComponentHost2.getStackVersion());
-  }
-
-
-  @Test
-  @SuppressWarnings("unchecked")
   public void testComponentUpgradeFailReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -981,10 +884,6 @@ public class HeartbeatProcessorTest {
 
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
-
-    serviceComponentHost1.setStackVersion(stack120);
-    serviceComponentHost1.setDesiredStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack120);
 
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action manager test",
         "commandParamsStage", "hostParamsStage");
@@ -997,7 +896,7 @@ public class HeartbeatProcessorTest {
         new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
         DummyCluster, "HDFS", false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
     actionDBAccessor.persistActions(request);
@@ -1045,7 +944,7 @@ public class HeartbeatProcessorTest {
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
     cr2.setExitCode(0);
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     reports.add(cr2);
     hb.setReports(reports);
@@ -1055,7 +954,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -1071,19 +970,14 @@ public class HeartbeatProcessorTest {
     assertEquals("State of SCH should change after fail report",
         State.INSTALL_FAILED, serviceComponentHost2.getState());
     assertEquals("Stack version of SCH should not change after fail report",
-        stack120, serviceComponentHost1.getStackVersion());
-    assertEquals("Stack version of SCH should not change after fail report",
-        stack130, serviceComponentHost1.getDesiredStackVersion());
-    assertEquals("Stack version of SCH should not change after fail report",
         State.INSTALL_FAILED, serviceComponentHost2.getState());
   }
 
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testComponentUpgradeInProgressReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -1101,10 +995,6 @@ public class HeartbeatProcessorTest {
 
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
-
-    serviceComponentHost1.setStackVersion(stack120);
-    serviceComponentHost1.setDesiredStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack120);
 
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
@@ -1134,7 +1024,7 @@ public class HeartbeatProcessorTest {
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
     cr2.setExitCode(777);
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     reports.add(cr2);
     hb.setReports(reports);
@@ -1144,7 +1034,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -1155,8 +1045,6 @@ public class HeartbeatProcessorTest {
     handler.handleHeartBeat(hb);
     assertEquals("State of SCH not change while operation is in progress",
         State.UPGRADING, serviceComponentHost1.getState());
-    assertEquals("Stack version of SCH should not change after in progress report",
-        stack130, serviceComponentHost1.getDesiredStackVersion());
     assertEquals("State of SCH not change while operation is  in progress",
         State.INSTALLING, serviceComponentHost2.getState());
   }
@@ -1169,11 +1057,10 @@ public class HeartbeatProcessorTest {
    * @throws Exception
    */
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartBeatWithAlertAndInvalidCluster() throws Exception {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
 
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>());
 
     replay(am);
@@ -1235,11 +1122,12 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         Collections.singletonList(command)).anyTimes();
     replay(am);
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
+
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, new ActionQueue());
     HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
     HeartBeat hb = new HeartBeat();
@@ -1247,7 +1135,7 @@ public class HeartbeatProcessorTest {
     JsonObject json = new JsonObject();
     json.addProperty("actual_version", "2.2.1.0-2222");
     json.addProperty("package_installation_result", "SUCCESS");
-    json.addProperty("installed_repository_version", "0.1");
+    json.addProperty("installed_repository_version", "0.1-1234");
     json.addProperty("stack_id", cluster.getDesiredStackVersion().getStackId());
 
 
@@ -1273,23 +1161,19 @@ public class HeartbeatProcessorTest {
     StackId stackId = new StackId("HDP", "0.1");
 
     RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
-    RepositoryVersionEntity entity = dao.findByStackAndVersion(stackId, "0.1");
+    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
     Assert.assertNotNull(entity);
 
     heartbeatProcessor.processHeartbeat(hb);
 
-    entity = dao.findByStackAndVersion(stackId, "0.1");
+    entity = dao.findByStackAndVersion(stackId, "0.1-1234");
     Assert.assertNull(entity);
-
-    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
-    Assert.assertNotNull(entity);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testComponentInProgressStatusSafeAfterStatusReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).
         addServiceComponentHost(DummyHostname1);
@@ -1316,7 +1200,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
@@ -1340,7 +1224,7 @@ public class HeartbeatProcessorTest {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -1358,5 +1242,19 @@ public class HeartbeatProcessorTest {
   }
 
 
-
+  /**
+   * Adds the service to the cluster using the current cluster version as the
+   * repository version for the service.
+   *
+   * @param cluster
+   *          the cluster.
+   * @param serviceName
+   *          the service name.
+   * @return the newly added service.
+   * @throws AmbariException
+   */
+  private Service addService(Cluster cluster, String serviceName) throws AmbariException {
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    return cluster.addService(serviceName, repositoryVersion);
+  }
 }

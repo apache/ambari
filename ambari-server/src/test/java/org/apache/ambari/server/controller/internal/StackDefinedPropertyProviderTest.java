@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -57,12 +57,13 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.stack.Metric;
@@ -137,13 +138,28 @@ public class StackDefinedPropertyProviderTest {
     Cluster cluster = clusters.getCluster("c2");
 
     cluster.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-      RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    Service service = cluster.addService("HDFS", repositoryVersion);
+    service.addServiceComponent("NAMENODE");
+    service.addServiceComponent("DATANODE");
+    service.addServiceComponent("JOURNALNODE");
+
+    service = cluster.addService("YARN", repositoryVersion);
+    service.addServiceComponent("RESOURCEMANAGER");
+
+    service = cluster.addService("HBASE", repositoryVersion);
+    service.addServiceComponent("HBASE_MASTER");
+    service.addServiceComponent("HBASE_REGIONSERVER");
+
+    stackId = new StackId("HDP-2.1.1");
+    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+
+    service = cluster.addService("STORM", repositoryVersion);
+    service.addServiceComponent("STORM_REST_API");
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
@@ -429,7 +445,7 @@ public class StackDefinedPropertyProviderTest {
    */
   public static class CustomMetricProvider3 implements PropertyProvider {
     private static CustomMetricProvider3 instance = null;
-    private Map<String, String> providerProperties = new HashMap<String, String>();
+    private Map<String, String> providerProperties = new HashMap<>();
 
     public static CustomMetricProvider3 getInstance(Map<String, String> properties, Map<String, Metric> metrics) {
       if (null == instance) {
@@ -595,7 +611,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     Request request = PropertyHelper.getReadRequest(Collections.singleton("metrics/yarn/Queue/root/AvailableMB"), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
@@ -632,7 +648,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     Request request = PropertyHelper.getReadRequest(Collections.singleton("metrics/yarn/Queue"), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
@@ -684,7 +700,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     Request request = PropertyHelper.getReadRequest(Collections.singleton("metrics/yarn/Queue/root/default"), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
@@ -989,7 +1005,7 @@ public class StackDefinedPropertyProviderTest {
     String RM_AVAILABLE_MEMORY_PROPERTY = PropertyHelper.getPropertyId(RM_CATEGORY_1, "AvailableMB");
 
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     temporalInfoMap.put(RM_CATEGORY_1, new TemporalInfoImpl(10L, 20L, 1L));
 
     Request request = PropertyHelper.getReadRequest(Collections.singleton(RM_CATEGORY_1), temporalInfoMap);
@@ -1086,8 +1102,8 @@ public class StackDefinedPropertyProviderTest {
       {"metrics/dfs/journalNode", "txnsWritten", 0.0}
     };
 
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
-    Set<String> properties = new LinkedHashSet<String>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
+    Set<String> properties = new LinkedHashSet<>();
 
     for (Object[] row : testData) {
       properties.add(PropertyHelper.getPropertyId(row[0].toString(), row[1].toString()));
@@ -1152,7 +1168,7 @@ public class StackDefinedPropertyProviderTest {
       resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
 
       // only ask for one property
-      Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+      Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
       temporalInfoMap.put(metric, new TemporalInfoImpl(10L, 20L, 1L));
       Request request = PropertyHelper.getReadRequest(Collections.singleton(metric), temporalInfoMap);
 
@@ -1202,7 +1218,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_REGIONSERVER");
 
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     temporalInfoMap.put(metric, new TemporalInfoImpl(1429824611300L, 1429825241400L, 1L));
     Request request = PropertyHelper.getReadRequest(Collections.singleton(metric), temporalInfoMap);
 

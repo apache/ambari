@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,14 +18,22 @@
 
 package org.apache.ambari.server.api.resources;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.anyObject;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.handlers.BaseManagementHandler;
@@ -41,22 +49,13 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * BaseResourceDefinition tests.
@@ -83,29 +82,30 @@ public class BaseResourceDefinitionTest {
     Resource service = new ResourceImpl(Resource.Type.Service);
     service.setProperty("ServiceInfo/service_name", "Service1");
 
-    TreeNode<Resource> parentNode  = new TreeNodeImpl<Resource>(null, null, "services");
-    TreeNode<Resource> serviceNode = new TreeNodeImpl<Resource>(parentNode, service, "service1");
+    TreeNode<Resource> parentNode  = new TreeNodeImpl<>(null, null, "services");
+    TreeNode<Resource> serviceNode = new TreeNodeImpl<>(parentNode, service, "service1");
 
     parentNode.setProperty("isCollection", "true");
-    
+
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
             anyObject(Service.class))).andReturn(true).anyTimes();
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
-        .getPropertyIds(Resource.Type.Service),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Service),
-        managementController, maintenanceStateHelper);
-    
-    expect(factory.getServiceResourceProvider(anyObject(Set.class),
-        anyObject(Map.class),
+
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController,
+        maintenanceStateHelper, repositoryVersionDAO);
+
+    expect(
+        factory.getServiceResourceProvider(
         anyObject(AmbariManagementController.class))).andReturn(serviceResourceProvider);
-    
+
     AbstractControllerResourceProvider.init(factory);
-    
+
     replay(factory, managementController, maintenanceStateHelper);
-    
+
     processor.process(null, serviceNode, "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services");
 
     String href = serviceNode.getStringProperty("href");
@@ -116,8 +116,8 @@ public class BaseResourceDefinitionTest {
     Resource configGroup = new ResourceImpl(Resource.Type.ConfigGroup);
     configGroup.setProperty("ConfigGroup/id", "2");
 
-    TreeNode<Resource> resourcesNode   = new TreeNodeImpl<Resource>(null, null, BaseManagementHandler.RESOURCES_NODE_NAME);
-    TreeNode<Resource> configGroupNode = new TreeNodeImpl<Resource>(resourcesNode, configGroup, "configGroup1");
+    TreeNode<Resource> resourcesNode   = new TreeNodeImpl<>(null, null, BaseManagementHandler.RESOURCES_NODE_NAME);
+    TreeNode<Resource> configGroupNode = new TreeNodeImpl<>(resourcesNode, configGroup, "configGroup1");
 
     resourcesNode.setProperty("isCollection", "true");
 
@@ -148,9 +148,9 @@ public class BaseResourceDefinitionTest {
   public void testReadDirectives() {
     ResourceDefinition resource = getResourceDefinition();
 
-    assertEquals(Collections.EMPTY_SET, resource.getReadDirectives());
+    assertEquals(Collections.emptySet(), resource.getReadDirectives());
 
-    Map<BaseResourceDefinition.DirectiveType, List<String>> directives = new HashMap<BaseResourceDefinition.DirectiveType, List<String>>();
+    Map<BaseResourceDefinition.DirectiveType, List<String>> directives = new HashMap<>();
     directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("do_something_delete", "do_something_else_delete"));
     directives.put(BaseResourceDefinition.DirectiveType.READ, Arrays.asList("do_something_get", "do_something_else_get"));
     directives.put(BaseResourceDefinition.DirectiveType.CREATE, Arrays.asList("do_something_post", "do_something_else_post"));

@@ -57,7 +57,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
     super(propertyIds, keyPropertyIds);
     this.managementController = managementController;
   }
-  
+
   /**
    * Create a new resource provider for the given management controller. This
    * constructor will initialize the specified {@link Resource.Type} with the
@@ -155,7 +155,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case Service:
         return resourceProviderFactory.getServiceResourceProvider(managementController);
       case Component:
-        return resourceProviderFactory.getComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getComponentResourceProvider(managementController);
       case Host:
         return resourceProviderFactory.getHostResourceProvider(propertyIds, keyPropertyIds, managementController);
       case HostComponent:

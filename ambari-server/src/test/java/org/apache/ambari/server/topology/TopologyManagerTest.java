@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -46,7 +46,6 @@ import java.util.concurrent.Future;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -100,7 +99,6 @@ public class TopologyManagerTest {
   private static final String SAMPLE_QUICKLINKS_PROFILE_1 = "{\"filters\":[{\"visible\":true}],\"services\":[]}";
   private static final String SAMPLE_QUICKLINKS_PROFILE_2 =
       "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}";
-
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -182,19 +180,19 @@ public class TopologyManagerTest {
 
   private HostGroupInfo group1Info = new HostGroupInfo("group1");
   private HostGroupInfo group2Info = new HostGroupInfo("group2");
-  private Map<String, HostGroupInfo> groupInfoMap = new HashMap<String, HostGroupInfo>();
+  private Map<String, HostGroupInfo> groupInfoMap = new HashMap<>();
 
   private Collection<Component> group1Components = Arrays.asList(new Component("component1"), new Component("component2"), new Component("component3"));
   private Collection<Component> group2Components = Arrays.asList(new Component("component3"), new Component("component4"));
 
-  private Map<String, Collection<String>> group1ServiceComponents = new HashMap<String, Collection<String>>();
-  private Map<String, Collection<String>> group2ServiceComponents = new HashMap<String, Collection<String>>();
+  private Map<String, Collection<String>> group1ServiceComponents = new HashMap<>();
+  private Map<String, Collection<String>> group2ServiceComponents = new HashMap<>();
 
-  private Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
+  private Map<String, Collection<String>> serviceComponents = new HashMap<>();
 
   private String predicate = "Hosts/host_name=foo";
 
-  private List<TopologyValidator> topologyValidators = new ArrayList<TopologyValidator>();
+  private List<TopologyValidator> topologyValidators = new ArrayList<>();
 
   private Capture<ClusterTopology> clusterTopologyCapture;
   private Capture<Map<String, Object>> configRequestPropertiesCapture;
@@ -216,7 +214,7 @@ public class TopologyManagerTest {
     topoConfiguration.setProperty("service2-site", "s2-prop", "s2-prop-value");
     topoConfiguration.setProperty("cluster-env", "g-prop", "g-prop-value");
 
-    //clusterRequestCapture = new Capture<ClusterRequest>();
+    //clusterRequestCapture = EasyMock.newCapture();
     // group 1 has fqdn specified
     group1Info.addHost("host1");
     group1Info.setConfiguration(topoGroup1Config);
@@ -228,7 +226,7 @@ public class TopologyManagerTest {
     groupInfoMap.put("group1", group1Info);
     groupInfoMap.put("group2", group2Info);
 
-    Map<String, HostGroup> groupMap = new HashMap<String, HostGroup>();
+    Map<String, HostGroup> groupMap = new HashMap<>();
     groupMap.put("group1", group1);
     groupMap.put("group2", group2);
 
@@ -284,9 +282,8 @@ public class TopologyManagerTest {
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-
+    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
-
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
 
 
@@ -540,7 +537,7 @@ public class TopologyManagerTest {
     HashSet<Map<String, Object>> propertySet = new HashSet<>();
     Map<String,Object> properties = new TreeMap<>();
     properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, "host1");
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, "group1");
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, "group1");
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, BLUEPRINT_NAME);
     propertySet.add(properties);

@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -64,6 +63,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -98,11 +98,46 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
 
-  private static Set<String> pkPropertyIds =
-      new HashSet<>(Arrays.asList(new String[]{
-          COMPONENT_CLUSTER_NAME_PROPERTY_ID,
-          COMPONENT_SERVICE_NAME_PROPERTY_ID,
-          COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
+  private static Set<String> pkPropertyIds = Sets.newHashSet(COMPONENT_CLUSTER_NAME_PROPERTY_ID,
+      COMPONENT_SERVICE_NAME_PROPERTY_ID, COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+
+  /**
+   * The property ids for an servce resource.
+   */
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
+
+  /**
+   * The key property ids for an service resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_SERVICE_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_DISPLAY_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_STATE_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_CATEGORY_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_TOTAL_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_STARTED_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+
+    PROPERTY_IDS.add(COMPONENT_INIT_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_RECOVERY_ENABLED_ID);
+    PROPERTY_IDS.add(COMPONENT_DESIRED_STACK);
+    PROPERTY_IDS.add(COMPONENT_DESIRED_VERSION);
+    PROPERTY_IDS.add(COMPONENT_REPOSITORY_STATE);
+
+    PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.Component, COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, COMPONENT_SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+  }
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -116,11 +151,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
    * @param managementController  the management controller
    */
   @AssistedInject
-  ComponentResourceProvider(@Assisted Set<String> propertyIds,
-                            @Assisted Map<Resource.Type, String> keyPropertyIds,
-                            @Assisted AmbariManagementController managementController,
-                            MaintenanceStateHelper maintenanceStateHelper) {
-    super(propertyIds, keyPropertyIds, managementController);
+  ComponentResourceProvider(@Assisted AmbariManagementController managementController,
+      MaintenanceStateHelper maintenanceStateHelper) {
+    super(Resource.Type.Component, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES, RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -92,6 +92,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -102,12 +103,10 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
-import junit.framework.Assert;
-
 @Singleton
 public class OrmTestHelper {
 
-  private static Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
 
   private AtomicInteger uniqueCounter = new AtomicInteger();
 
@@ -178,7 +177,7 @@ public class OrmTestHelper {
     host2.setIpv4("192.168.0.2");
     host3.setIpv4("192.168.0.3");
 
-    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    List<HostEntity> hostEntities = new ArrayList<>();
     hostEntities.add(host1);
     hostEntities.add(host2);
 
@@ -200,7 +199,7 @@ public class OrmTestHelper {
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
     clusterServiceEntity.setServiceName("HDFS");
     clusterServiceEntity.setClusterEntity(clusterEntity);
-    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<ClusterServiceEntity>();
+    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<>();
     clusterServiceEntities.add(clusterServiceEntity);
     clusterEntity.setClusterServiceEntities(clusterServiceEntities);
 
@@ -232,7 +231,7 @@ public class OrmTestHelper {
     admin.setUserPassword(encoder.encode("admin"));
     admin.setPrincipal(principalEntity);
 
-    Set<UserEntity> users = new HashSet<UserEntity>();
+    Set<UserEntity> users = new HashSet<>();
 
     users.add(admin);
 
@@ -314,6 +313,20 @@ public class OrmTestHelper {
     hostDAO.merge(host2);
   }
 
+  @Transactional
+  public StackEntity createStack(StackId stackId) throws AmbariException {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+
+    if (null == stackEntity) {
+      stackEntity = new StackEntity();
+      stackEntity.setStackName(stackId.getStackName());
+      stackEntity.setStackVersion(stackId.getStackVersion());
+      stackDAO.create(stackEntity);
+    }
+
+    return stackEntity;
+  }
+
   /**
    * Creates an empty cluster with an ID.
    *
@@ -387,6 +400,8 @@ public class OrmTestHelper {
     String clusterName = "cluster-" + System.currentTimeMillis();
     StackId stackId = new StackId("HDP", "2.0.6");
 
+    createStack(stackId);
+
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
     cluster = initializeClusterWithStack(cluster);
@@ -403,8 +418,6 @@ public class OrmTestHelper {
     StackId stackId = new StackId("HDP", "2.0.6");
     cluster.setDesiredStackVersion(stackId);
     getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     return cluster;
   }
 
@@ -416,7 +429,7 @@ public class OrmTestHelper {
     clusters.addHost(hostName);
 
     Host host = clusters.getHost(hostName);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
@@ -432,15 +445,15 @@ public class OrmTestHelper {
     serviceComponentHost.setDesiredState(State.INSTALLED);
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install along with
-   * creating a single {@link Host} and {@link ServiceComponentHost}.
-   */
   public void installHdfsService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        cluster.getDesiredStackVersion(), cluster.getDesiredStackVersion().getStackVersion());
+
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceName);
+    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
     service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -454,8 +467,6 @@ public class OrmTestHelper {
     datanode.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
 
     ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE");
 
@@ -466,19 +477,17 @@ public class OrmTestHelper {
     namenode.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install along with
-   * creating a single {@link Host} and {@link ServiceComponentHost}.
-   */
   public void installYarnService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        cluster.getDesiredStackVersion(), cluster.getDesiredStackVersion().getStackVersion());
+
     String serviceName = "YARN";
-    Service service = serviceFactory.createNew(cluster, serviceName);
+    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
     service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -493,8 +502,6 @@ public class OrmTestHelper {
     resourceManager.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
   }
 
   /**
@@ -608,14 +615,15 @@ public class OrmTestHelper {
   }
 
   /**
-   * Convenient method to create or to get repository version for given stack.
+   * Convenient method to create or to get repository version for given cluster.  The repository
+   * version string is based on the cluster's stack version.
    *
-   * @param stackId stack object
-   * @param version stack version
    * @return repository version
    */
-  public RepositoryVersionEntity getOrCreateRepositoryVersion(StackId stackId,
-      String version) {
+  public RepositoryVersionEntity getOrCreateRepositoryVersion(Cluster cluster) {
+    StackId stackId = cluster.getCurrentStackVersion();
+    String version = stackId.getStackVersion() + ".1";
+
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
         stackId.getStackVersion());
@@ -631,6 +639,42 @@ public class OrmTestHelper {
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
+        ex.printStackTrace();
+        Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
+            stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
+      }
+    }
+    return repositoryVersion;
+  }
+
+  /**
+   * Convenient method to create or to get repository version for given stack.
+   *
+   * @param stackId stack object
+   * @param version stack version
+   * @return repository version
+   */
+  public RepositoryVersionEntity getOrCreateRepositoryVersion(StackId stackId,
+      String version) {
+    StackEntity stackEntity = null;
+    try {
+      stackEntity = createStack(stackId);
+    } catch (Exception e) {
+      LOG.error("Expected successful repository", e);
+    }
+
+    assertNotNull(stackEntity);
+
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        stackId, version);
+
+    if (repositoryVersion == null) {
+      try {
+        repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
+      } catch (Exception ex) {
+        LOG.error("Caught exception", ex);
+        ex.printStackTrace();
         Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
             stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
       }

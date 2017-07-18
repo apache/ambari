@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -32,7 +30,6 @@ import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.checks.ServicesUpCheck;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
@@ -51,6 +48,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Providers;
 
+import junit.framework.Assert;
 
 /**
  * Tests the {@link CheckHelper} class
@@ -69,7 +67,7 @@ public class CheckHelperTest {
   public void testPreUpgradeCheck() throws Exception {
     final CheckHelper helper = new CheckHelper();
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
 
     EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
@@ -90,7 +88,7 @@ public class CheckHelperTest {
   public void testPreUpgradeCheckNotApplicable() throws Exception {
     final CheckHelper helper = new CheckHelper();
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
     EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     EasyMock.expect(descriptor.isApplicable(EasyMock.<PrereqCheckRequest> anyObject())).andReturn(false);
@@ -106,7 +104,7 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckThrowsException() throws Exception {
     final CheckHelper helper = new CheckHelper();
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
 
@@ -131,7 +129,7 @@ public class CheckHelperTest {
     // a PrerequisiteCheck object whose status is FAIL.
     final CheckHelperMock helper =  new CheckHelperMock();
     Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
 
     PrereqCheckRequest checkRequest = EasyMock.createNiceMock(PrereqCheckRequest.class);
     EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(true);
@@ -166,7 +164,6 @@ public class CheckHelperTest {
       @Override
       protected void configure() {
         bind(Clusters.class).toInstance(clusters);
-        bind(ClusterVersionDAO.class).toProvider(Providers.<ClusterVersionDAO>of(null));
         bind(HostVersionDAO.class).toProvider(Providers.<HostVersionDAO>of(null));
         bind(UpgradeDAO.class).toProvider(Providers.<UpgradeDAO>of(null));
         bind(RepositoryVersionDAO.class).toProvider(Providers.<RepositoryVersionDAO>of(null));
@@ -178,7 +175,7 @@ public class CheckHelperTest {
     });
 
     final CheckHelper helper = injector.getInstance(CheckHelper.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
 
     EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
 

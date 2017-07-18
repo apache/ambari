@@ -1,4 +1,4 @@
-/**
+/*
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -34,10 +34,10 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -95,6 +95,8 @@ public class ConcurrentServiceConfigVersionTest {
    */
   private Cluster cluster;
 
+  private RepositoryVersionEntity repositoryVersion;
+
   /**
    * Creates a cluster and installs HDFS with NN and DN.
    *
@@ -107,11 +109,10 @@ public class ConcurrentServiceConfigVersionTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+    helper.createStack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
+    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     String hostName = "c6401.ambari.apache.org";
     clusters.addHost(hostName);
@@ -144,7 +145,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     Assert.assertEquals(nextVersion, 1);
 
-    List<Thread> threads = new ArrayList<Thread>();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       Thread thread = new ConcurrentServiceConfigThread(cluster);
       threads.add(thread);
@@ -181,8 +182,6 @@ public class ConcurrentServiceConfigVersionTest {
           ServiceConfigVersionResponse response = cluster.createServiceConfigVersion(
               "HDFS", null, getName() + "-serviceConfig" + i, null);
 
-          System.out.println("**** " + response.getVersion());
-
           Thread.sleep(100);
         }
       } catch (Exception exception) {
@@ -192,7 +191,7 @@ public class ConcurrentServiceConfigVersionTest {
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>(2);
+    Map<String, String> hostAttributes = new HashMap<>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     host.setHostAttributes(hostAttributes);
@@ -210,8 +209,6 @@ public class ConcurrentServiceConfigVersionTest {
     sc.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(stackId);
-    sch.setStackVersion(stackId);
 
     return sch;
   }
@@ -222,7 +219,7 @@ public class ConcurrentServiceConfigVersionTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName);
+      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 

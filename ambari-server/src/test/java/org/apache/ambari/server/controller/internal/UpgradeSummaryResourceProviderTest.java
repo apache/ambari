@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -38,7 +38,6 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.ServiceComponentHostEventWrapper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -69,16 +68,13 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -155,7 +151,7 @@ public class UpgradeSummaryResourceProviderTest {
     repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack(stackEntity);
-    repoVersionEntity.setVersion("2.2.0.0-1234");
+    repoVersionEntity.setVersion("2.2.0.0");
     repoVersionDAO.create(repoVersionEntity);
 
     clusters = injector.getInstance(Clusters.class);
@@ -165,7 +161,6 @@ public class UpgradeSummaryResourceProviderTest {
     Cluster cluster = clusters.getCluster("c1");
 
     helper.getOrCreateRepositoryVersion(stackId, "2.2.0.1-1234");
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -178,16 +173,15 @@ public class UpgradeSummaryResourceProviderTest {
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZOOKEEPER server
-    Service service = cluster.addService("ZOOKEEPER");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    Service service = cluster.addService("ZOOKEEPER", repoVersionEntity);
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0-1234");
+    sch.setVersion("2.2.0.0");
 
     component = service.addServiceComponent("ZOOKEEPER_CLIENT");
     sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.0.0-1234");
+    sch.setVersion("2.2.0.0");
   }
 
   /**
@@ -197,10 +191,8 @@ public class UpgradeSummaryResourceProviderTest {
    * @param stageId
    */
   @Transactional
-  private void createCommands(Cluster cluster, Long upgradeRequestId, Long stageId) {
+  void createCommands(Cluster cluster, Long upgradeRequestId, Long stageId) {
     HostEntity h1 = hostDAO.findByName("h1");
-    ServiceComponentHostEvent event = new ServiceComponentHostOpInProgressEvent("ZOOKEEPER_SERVER", "h1", 1L);
-    ServiceComponentHostEventWrapper eventWrapper = new ServiceComponentHostEventWrapper(event);
 
     RequestEntity requestEntity = requestDAO.findByPK(upgradeRequestId);
 
@@ -281,15 +273,10 @@ public class UpgradeSummaryResourceProviderTest {
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
 
-    RepositoryVersionEntity repositoryVersion2200 = injector.getInstance(
-        RepositoryVersionDAO.class).findByStackNameAndVersion("HDP", "2.2.0.0-1234");
-
     RepositoryVersionEntity repositoryVersion2201 = injector.getInstance(
         RepositoryVersionDAO.class).findByStackNameAndVersion("HDP", "2.2.0.1-1234");
 
-    upgrade.setFromRepositoryVersion(repositoryVersion2200);
-    upgrade.setToRepositoryVersion(repositoryVersion2201);
-
+    upgrade.setRepositoryVersion(repositoryVersion2201);
     upgradeDAO.create(upgrade);
 
     // Resource used to make assertions.

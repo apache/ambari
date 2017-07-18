@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,12 +33,12 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -78,6 +78,10 @@ public class EventsTest {
   private AlertDefinitionDAO m_definitionDao;
   private AlertDispatchDAO m_alertDispatchDao;
 
+  private final String STACK_VERSION = "2.0.6";
+  private final String REPO_VERSION = "2.0.6-1234";
+  private RepositoryVersionEntity m_repositoryVersion;
+
   /**
    *
    */
@@ -101,13 +105,14 @@ public class EventsTest {
     m_alertDispatchDao = m_injector.getInstance(AlertDispatchDAO.class);
 
     m_clusterName = "foo";
-    StackId stackId = new StackId("HDP", "2.0.6");
+    StackId stackId = new StackId("HDP", STACK_VERSION);
+    m_helper.createStack(stackId);
 
     m_clusters.addCluster(m_clusterName, stackId);
     m_clusters.addHost(HOSTNAME);
 
     Host host = m_clusters.getHost(HOSTNAME);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
@@ -117,9 +122,7 @@ public class EventsTest {
     Assert.assertNotNull(m_cluster);
 
     m_cluster.setDesiredStackVersion(stackId);
-    m_helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    m_cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }
@@ -282,8 +285,6 @@ public class EventsTest {
     // make sure there are at least 1
     Assert.assertTrue(hdfsDefinitions.size() > 0);
 
-    AlertDefinitionEntity definition = hdfsDefinitions.get(0);
-
     // delete the default alert group
     m_alertDispatchDao.remove(group);
 
@@ -376,13 +377,9 @@ public class EventsTest {
     Assert.assertEquals(AmbariEventType.CLUSTER_RENAME, ambariEvents.get(0).getType());
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install along with
-   * creating a single {@link Host} and {@link ServiceComponentHost}.
-   */
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    Service service = m_serviceFactory.createNew(m_cluster, serviceName);
+    Service service = m_serviceFactory.createNew(m_cluster, serviceName, m_repositoryVersion);
     service = m_cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
@@ -395,7 +392,5 @@ public class EventsTest {
     component.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
   }
 }

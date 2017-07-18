@@ -17,43 +17,30 @@
  */
 package org.apache.ambari.server.checks;
 
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.Assert;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.commons.collections.map.HashedMap;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Provider;
+
+import junit.framework.Assert;
 
 /**
  * Unit tests for AbstractCheckDescriptor
@@ -141,7 +128,7 @@ public class AbstractCheckDescriptorTest {
 
     Assert.assertEquals("", check.formatEntityList(null));
 
-    final LinkedHashSet<String> failedOn = new LinkedHashSet<String>();
+    final LinkedHashSet<String> failedOn = new LinkedHashSet<>();
     Assert.assertEquals("", check.formatEntityList(failedOn));
 
     failedOn.add("host1");
