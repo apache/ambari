@@ -220,6 +220,23 @@ public class ConfigHelper {
     return resolved;
   }
 
+
+  public Set<String> filterInvalidPropertyValues(Map<PropertyInfo, String> properties, String filteredListName) {
+    Set<String> resultSet = new HashSet<>();
+    for (Iterator<Entry<PropertyInfo, String>> iterator = properties.entrySet().iterator(); iterator.hasNext();) {
+      Entry<PropertyInfo, String> property = iterator.next();
+      PropertyInfo propertyInfo = property.getKey();
+      String propertyValue = property.getValue();
+      if (property == null || propertyValue == null || propertyValue.toLowerCase().equals("null") || propertyValue.isEmpty()) {
+        LOG.error(String.format("Excluding property %s from %s, because of invalid or empty value!", propertyInfo.getName(), filteredListName));
+        iterator.remove();
+      } else {
+        resultSet.add(propertyValue);
+      }
+    }
+    return resultSet;
+  }
+
   /**
    * Get all config properties for a cluster given a set of configType to
    * versionTags map. This helper method merges all the override tags with a
