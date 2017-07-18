@@ -764,6 +764,28 @@ public class ConfigHelperTest {
     }
 
     @Test
+    public void testFilterInvalidPropertyValues() {
+      Map<PropertyInfo, String> properties = new HashMap<>();
+      PropertyInfo prop1 = new PropertyInfo();
+      prop1.setName("1");
+      PropertyInfo prop2 = new PropertyInfo();
+      prop1.setName("2");
+      PropertyInfo prop3 = new PropertyInfo();
+      prop1.setName("3");
+      PropertyInfo prop4 = new PropertyInfo();
+      prop1.setName("4");
+
+      properties.put(prop1, "/tmp");
+      properties.put(prop2, "null");
+      properties.put(prop3, "");
+      properties.put(prop4, null);
+
+      Set<String> resultSet = configHelper.filterInvalidPropertyValues(properties, "testlist");
+      Assert.assertEquals(1, resultSet.size());
+      Assert.assertEquals(resultSet.iterator().next(), "/tmp");
+    }
+
+    @Test
     public void testMergeAttributesWithNullProperties() throws Exception {
       Map<String, Map<String, String>> persistedAttributes = new HashMap<>();
       Map<String, String> persistedFinalAttrs = new HashMap<>();
