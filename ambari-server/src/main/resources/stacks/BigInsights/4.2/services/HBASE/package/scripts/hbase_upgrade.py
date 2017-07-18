@@ -24,7 +24,7 @@ from resource_management.core.resources.system import Execute
 
 class HbaseMasterUpgrade(Script):
 
-  def snapshot(self, env):
+  def take_snapshot(self, env):
     import params
 
     snap_cmd = "echo 'snapshot_all' | {0} shell".format(params.hbase_cmd)
