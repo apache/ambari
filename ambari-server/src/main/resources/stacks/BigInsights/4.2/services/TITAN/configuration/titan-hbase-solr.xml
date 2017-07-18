@@ -58,10 +58,10 @@ index.search.solr.mode=cloud
 index.search.solr.zookeeper-url={{solr_server_host}}/solr
 index.search.solr.configset=titan
     </value>
-    <on-ambari-upgrade add="true"/>
     <value-attributes>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
 
 </configuration>

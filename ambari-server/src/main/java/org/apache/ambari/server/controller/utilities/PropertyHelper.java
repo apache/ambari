@@ -115,6 +115,10 @@ public class PropertyHelper {
     return propertyIds == null ? Collections.<String>emptySet() : propertyIds;
   }
 
+  public static void setPropertyIds(Resource.Type resourceType, Set<String> propertyIds) {
+    PROPERTY_IDS.put(resourceType.getInternalType(), propertyIds);
+  }
+
   /**
    * Extract the set of property ids from a component PropertyInfo map.
    *
@@ -145,6 +149,10 @@ public class PropertyHelper {
 
   public static Map<Resource.Type, String> getKeyPropertyIds(Resource.Type resourceType) {
     return KEY_PROPERTY_IDS.get(resourceType.getInternalType());
+  }
+  
+  public static void setKeyPropertyIds(Resource.Type resourceType, Map<Resource.Type, String> keyPropertyKeys) {
+    KEY_PROPERTY_IDS.put(resourceType.getInternalType(), keyPropertyKeys);
   }
 
   /**

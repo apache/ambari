@@ -734,9 +734,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
 
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
-    stack_root = "/usr/hdp"
-    if "cluster-env" in services["configurations"] and "stack_root" in services["configurations"]["cluster-env"]["properties"]:
-      stack_root = services["configurations"]["cluster-env"]["properties"]["stack_root"]
+    stack_root = self.getStackRoot(services
+    )
 
     timeline_plugin_classes_values = []
     timeline_plugin_classpath_values = []

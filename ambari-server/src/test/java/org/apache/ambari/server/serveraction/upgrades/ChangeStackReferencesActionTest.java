@@ -69,6 +69,7 @@ public class ChangeStackReferencesActionTest {
     originalProperties.put("mapreduce_tar_source", "/usr/iop/current/hadoop-client/mapreduce.tar.gz");
     originalProperties.put("pig_tar_destination_folder", "hdfs:///iop/apps/{{ stack_version }}/pig/");
     originalProperties.put("pig_tar_source", "/usr/iop/current/pig-client/pig.tar.gz");
+    originalProperties.put("stack_root", "/usr/iop");
     expect(clusterEnv.getProperties()).andReturn(originalProperties).anyTimes();
 
     // this is the crux of the test

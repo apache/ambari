@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="false">
+  <property>
+    <name>kernel_spark_opts</name>
+    <value>--master=yarn --deploy-mode=client --driver-java-options="-Dlog4j.logFile=/var/log/jnbg/spark-driver-USER.log -Dlog4j.configuration=file:/var/lib/jnbg/conf/log4j.properties"</value>
+    <display-name>spark_opts</display-name>
+    <description>
+      SPARK_OPTS used for all kernels (ToreeInstall.spark_opts, PYSPARK_SUBMIT_ARGS).
+      Optionally include -Dlog4j.logLevel and -Dlog4j.fileSize in --driver-java-options
+      to influence logging behavior. Default: -Dlog4j.logLevel=INFO -Dlog4j.fileSize=10MB
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>toree_opts</name>
+    <value></value>
+    <display-name>ToreeInstall.toree_opts</display-name>
+    <description>__TOREE_OPTS__ for Apache Toree kernel</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>notebook_user</name>
+    <value>notebook</value>
+    <display-name>Notebook service user</display-name>
+    <description>User to run JKG and kernel processes</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>notebook_group</name>
+    <value>notebook</value>
+    <display-name>Notebook service user group</display-name>
+    <description>Service user's group</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark_home</name>
+    <value>/usr/iop/current/spark2-client</value>
+    <display-name>spark_home</display-name>
+    <description>SPARK_HOME for kernels</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark_sql_warehouse_dir</name>
+    <value>/apps/jnbg/spark-warehouse</value>
+    <display-name>spark.sql.warehouse.dir</display-name>
+    <description>Warehouse for Notebook applications</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>jkg_port</name>
+    <value>8888</value>
+    <display-name>KernelGatewayApp.port</display-name>
+    <description>Jupyter Kernel Gateway port</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>jkg_loglevel</name>
+    <value>INFO</value>
+    <display-name>Application.log_level</display-name>
+    <description>Jupyter Kernel Gateway Log level</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>jkg_pid_dir_prefix</name>
+    <value>/var/run/jnbg</value>
+    <display-name>JNBG pid directory prefix</display-name>
+    <description>JNBG pid directory prefix for storing process ID</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>jkg_log_dir</name>
+    <value>/var/log/jnbg</value>
+    <display-name>Kernel Gateway log directory</display-name>
+    <description>Jupyter Kernel Gateway logfile directory</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>max_kernels</name>
+    <value>15</value>
+    <display-name>Maximum number of kernel instances</display-name>
+    <description>
+      Limits the number of kernel instances allowed to run by this gateway.
+      Unbounded by default.
+
+      Note: Number of kernel instances is also affected by the Spark2 property spark.port.maxRetries. Increase spark.port.maxRetries from its default value to a much higher value to enable controlling the number of active kernel instances using max_kernels.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>cull_idle_kernel_period</name>
+    <value>43200</value>
+    <display-name>Idle kernel culling period</display-name>
+    <description>Period in seconds kernel can idle before being culled</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>cull_idle_kernel_interval</name>
+    <value>300</value>
+    <display-name>Idle kernel culling interval</display-name>
+    <description>Check for idle kernels to cull every specified number of seconds</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>python_interpreter_path</name>
+    <value>/usr/bin/python</value>
+    <display-name>Python interpreter path</display-name>
+    <description>
+      PYTHON_EXE for virtualenv
+      Python interpreter must be version 2.7.x
+    </description>
+    <value-attributes>
+      <type>file</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>python_virtualenv_path_prefix</name>
+    <value>/var/lib/jnbg</value>
+    <display-name>Python virtualenv path prefix</display-name>
+    <description>
+      Python virtualenv path prefix
+      $VIRTUAL_ENV=python_virtualenv_path_prefix/python2.7
+    </description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>python_virtualenv_restrictive</name>
+    <value>true</value>
+    <display-name>Python virtualenv restrictive mode</display-name>
+    <description> 
+      Python virtualenv restrictive mode.
+      Check for restrictive mode so that service users cannot modify it.
+      Uncheck so that service users can install packages with "pip install ..."
+    </description>
+    <final>true</final>
+    <value-attributes>
+      <type>boolean</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>pythonpath</name>
+    <value>/usr/iop/current/spark2-client/python:/usr/iop/current/spark2-client/python/lib/pyspark.zip:/usr/iop/current/spark2-client/python/lib/py4j-0.10.4-src.zip</value>
+    <display-name>PYTHONPATH</display-name>
+    <description>PYTHONPATH for PySpark kernel</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark_conf_dir</name>
+    <value>/var/lib/jnbg/conf</value>
+    <display-name>SPARK_CONF_DIR</display-name>
+    <description>Spark configuration directory, currently only contains log4j.properties (see "-Dlog4j.configuration=file:/var/lib/jnbg/conf/log4j.properties" in spark_opts)</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

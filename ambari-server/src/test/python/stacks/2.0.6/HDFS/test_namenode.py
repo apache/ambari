@@ -1041,7 +1041,7 @@ class TestNamenode(RMFTestCase):
                               bin_dir = '/usr/bin')
     self.assertNoMoreResources()
 
-  def test_decommission_update_exclude_file_only(self):
+  def test_decommission_update_files_only(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",

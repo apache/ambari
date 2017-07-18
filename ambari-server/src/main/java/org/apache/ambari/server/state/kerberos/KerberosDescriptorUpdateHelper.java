@@ -340,6 +340,11 @@ public class KerberosDescriptorUpdateHelper {
   /**
    * Processes a {@link KerberosIdentityDescriptor} to change the user-supplied data based on the changes
    * observed between the previous stack version's data and the new stack version's data.
+   * <p>
+   * It is expected that <code>newStackIdentities</code> and <code>userIdentities</code> are not null.
+   * However, <code>previousStackIdentities</code> may be null in the event the user added a Kerberos
+   * identity that was then added in the new Kerberos descriptor.  In this case, the user's values
+   * for the principal name and keytab file are kept while adding any other changes from tne new stack.
    *
    * @param previousStackIdentity a {@link KerberosIdentityDescriptor} from the previous stack version's Kerberos descriptor
    * @param newStackIdentity      a {@link KerberosIdentityDescriptor} from the new stack version's Kerberos descriptor
@@ -357,7 +362,7 @@ public class KerberosDescriptorUpdateHelper {
     // If the new identity definition is a reference and no longer has a principal definition,
     // Ignore any user changes to the old principal definition.
     if (updatedValuePrincipal != null) {
-      KerberosPrincipalDescriptor oldValuePrincipal = previousStackIdentity.getPrincipalDescriptor();
+      KerberosPrincipalDescriptor oldValuePrincipal = (previousStackIdentity == null) ? null : previousStackIdentity.getPrincipalDescriptor();
       String previousValuePrincipalValue = null;
       KerberosPrincipalDescriptor userValuePrincipal = userIdentity.getPrincipalDescriptor();
       String userValuePrincipalValue = null;
@@ -380,7 +385,7 @@ public class KerberosDescriptorUpdateHelper {
     // If the new identity definition is a reference and no longer has a keytab definition,
     // Ignore any user changes to the old keytab definition.
     if (updatedValueKeytab != null) {
-      KerberosKeytabDescriptor oldValueKeytab = previousStackIdentity.getKeytabDescriptor();
+      KerberosKeytabDescriptor oldValueKeytab = (previousStackIdentity == null) ? null : previousStackIdentity.getKeytabDescriptor();
       String previousValueKeytabFile = null;
       KerberosKeytabDescriptor userValueKeytab = userIdentity.getKeytabDescriptor();
       String userValueKeytabFile = null;

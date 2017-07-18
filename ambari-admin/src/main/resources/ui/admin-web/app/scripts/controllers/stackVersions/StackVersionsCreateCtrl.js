@@ -195,8 +195,7 @@ angular.module('ambariAdminConsole')
           if (!existingOSHash[stackOs.OperatingSystems.os_type]) {
             stackOs.selected = false;
             stackOs.repositories.forEach(function(repo) {
-              repo.Repositories.base_url = '';
-              repo.Repositories.initial_base_url = '';
+              repo.Repositories.initial_base_url = repo.Repositories.default_base_url;
             });
             $scope.osList.push(stackOs);
           }

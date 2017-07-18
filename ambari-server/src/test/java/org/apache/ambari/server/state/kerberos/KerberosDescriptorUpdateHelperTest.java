@@ -269,6 +269,16 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "      \"keytab\": {" +
             "        \"file\": \"${keytab_dir}/ambari.server.keytab\"" +
             "      }" +
+            "    }," +
+            "    {" +
+            "      \"name\": \"future_identity\"," +
+            "      \"principal\": {" +
+            "        \"value\": \"CHANGED_future${principal_suffix}@${realm}\"," +
+            "        \"type\": \"user\"" +
+            "      }," +
+            "      \"keytab\": {" +
+            "        \"file\": \"${keytab_dir}/future.user.keytab\"" +
+            "      }" +
             "    }" +
             "  ]" +
             "}");
@@ -325,6 +335,26 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "      \"keytab\": {" +
             "        \"file\": \"${keytab_dir}/ambari.server.keytab\"" +
             "      }" +
+            "    }," +
+            "    {" +
+            "      \"name\": \"custom_identity\"," +
+            "      \"principal\": {" +
+            "        \"value\": \"custom${principal_suffix}@${realm}\"," +
+            "        \"type\": \"user\"" +
+            "      }," +
+            "      \"keytab\": {" +
+            "        \"file\": \"${keytab_dir}/custom.user.keytab\"" +
+            "      }" +
+            "    }," +
+            "    {" +
+            "      \"name\": \"future_identity\"," +
+            "      \"principal\": {" +
+            "        \"value\": \"future${principal_suffix}@${realm}\"," +
+            "        \"type\": \"user\"" +
+            "      }," +
+            "      \"keytab\": {" +
+            "        \"file\": \"${keytab_dir}/future.user.keytab\"" +
+            "      }" +
             "    }" +
             "  ]" +
             "}");
@@ -339,6 +369,26 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         GSON.toJson(KERBEROS_DESCRIPTOR_FACTORY.createInstance(
             "{\n" +
                 "  \"identities\": [\n" +
+                "    {\n" +
+                "      \"name\": \"future_identity\",\n" +
+                "      \"principal\": {\n" +
+                "        \"value\": \"future${principal_suffix}@${realm}\",\n" +
+                "        \"type\": \"user\"\n" +
+                "      },\n" +
+                "      \"keytab\": {\n" +
+                "        \"file\": \"${keytab_dir}/future.user.keytab\"\n" +
+                "      }\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"name\": \"custom_identity\",\n" +
+                "      \"principal\": {\n" +
+                "        \"value\": \"custom${principal_suffix}@${realm}\",\n" +
+                "        \"type\": \"user\"\n" +
+                "      },\n" +
+                "      \"keytab\": {\n" +
+                "        \"file\": \"${keytab_dir}/custom.user.keytab\"\n" +
+                "      }\n" +
+                "    },\n" +
                 "    {\n" +
                 "      \"name\": \"spnego\",\n" +
                 "      \"principal\": {\n" +
@@ -399,6 +449,26 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
                 "      },\n" +
                 "      \"keytab\": {\n" +
                 "        \"file\": \"${keytab_dir}/ambari.server.keytab\"\n" +
+                "      }\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"name\": \"custom_identity\",\n" +
+                "      \"principal\": {\n" +
+                "        \"value\": \"custom${principal_suffix}@${realm}\",\n" +
+                "        \"type\": \"user\"\n" +
+                "      },\n" +
+                "      \"keytab\": {\n" +
+                "        \"file\": \"${keytab_dir}/custom.user.keytab\"\n" +
+                "      }\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"name\": \"future_identity\",\n" +
+                "      \"principal\": {\n" +
+                "        \"value\": \"future${principal_suffix}@${realm}\",\n" +
+                "        \"type\": \"user\"\n" +
+                "      },\n" +
+                "      \"keytab\": {\n" +
+                "        \"file\": \"${keytab_dir}/future.user.keytab\"\n" +
                 "      }\n" +
                 "    },\n" +
                 "    {\n" +

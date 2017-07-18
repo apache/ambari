@@ -30,6 +30,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
@@ -1169,12 +1170,18 @@ public class HostImpl implements Host {
     HostEntity hostEntity = getHostEntity();
 
     for (HostComponentStateEntity componentState : hostEntity.getHostComponentStateEntities()) {
-      ComponentInfo component = ambariMetaInfo.getComponent(stackId.getStackName(),
-          stackId.getStackVersion(), componentState.getServiceName(),
-          componentState.getComponentName());
+      try {
+        ComponentInfo component = ambariMetaInfo.getComponent(stackId.getStackName(),
+            stackId.getStackVersion(), componentState.getServiceName(),
+            componentState.getComponentName());
 
-      if (component.isVersionAdvertised()) {
-        return true;
+        if (component.isVersionAdvertised()) {
+          return true;
+        }
+      } catch( StackAccessException stackAccessException ){
+        LOG.info("{}/{} does not exist in {} and will not advertise its version for that stack.",
+            componentState.getServiceName(), componentState.getComponentName(),
+            stackId.getStackId());
       }
     }
 

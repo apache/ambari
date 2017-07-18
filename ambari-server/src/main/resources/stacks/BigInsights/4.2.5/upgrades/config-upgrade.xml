@@ -52,10 +52,89 @@
       </component>
     </service>
     
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_hbase_env_config" summary="Update HBase configurations">
+            <type>hbase-env</type>
+            <set key="backup_wal_dir" value="true"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="RANGER">
+      <component name="RANGER_ADMIN">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="bind_anonymous" />
+          </definition>
+          <definition xsi:type="configure" id="admin_log4j_parameterize" summary="Parameterizing Ranger Log4J Properties">
+            <type>admin-log4j</type>
+            <set key="ranger_xa_log_maxfilesize" value="256"/>
+            <set key="ranger_xa_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxFileSize={{ranger_xa_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxBackupIndex={{ranger_xa_log_maxbackupindex}}"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="RANGER_USERSYNC">
+        <changes>
+          <definition xsi:type="configure" id="usersync_log4j_parameterize" summary="Parameterizing Ranger Usersync Log4J Properties">
+            <type>usersync-log4j</type>
+            <set key="ranger_usersync_log_maxfilesize" value="256"/>
+            <set key="ranger_usersync_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_usersync_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_usersync_log_maxbackupindex}}"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade">
+            <type>ranger-ugsync-site</type>
+            <set key="ranger.usersync.ldap.deltasync" value="false"
+              if-type="ranger-ugsync-site" if-key="ranger.usersync.source.impl.class" if-value="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="RANGER_TAGSYNC">
+        <changes>
+          <definition xsi:type="configure" id="tagsync_log4j_parameterize" summary="Parameterizing Ranger Tagsync Log4J Properties">
+            <type>tagsync-log4j</type>
+            <set key="ranger_tagsync_log_maxfilesize" value="256"/>
+            <set key="ranger_tagsync_log_number_of_backup_files" value="20"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_tagsync_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_tagsync_log_number_of_backup_files}}"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="RANGER_KMS">
+    <component name="RANGER_KMS_SERVER">
+      <changes>
+        <definition xsi:type="configure" id="kms_log4j_parameterize" summary="Parameterizing Ranger KMS Log4J Properties">
+          <type>kms-log4j</type>
+          <set key="ranger_kms_log_maxfilesize" value="256"/>
+          <set key="ranger_kms_log_maxbackupindex" value="20"/>
+          <set key="ranger_kms_audit_log_maxfilesize" value="256"/>
+          <set key="ranger_kms_audit_log_maxbackupindex" value="20"/>
+          <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize = {{ranger_kms_log_maxfilesize}}MB"/>
+          <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxBackupIndex = {{ranger_kms_log_maxbackupindex}}"/>
+          <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize = {{ranger_kms_audit_log_maxfilesize}}MB"/>
+          <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxBackupIndex = {{ranger_kms_audit_log_maxbackupindex}}"/>
+        </definition>
+        <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl">
+          <type>ranger-kms-site</type>
+          <transfer operation="delete" delete-key="ranger.https.attrib.keystore.file" if-type="ranger-kms-site" if-key="ranger.service.https.attrib.keystore.file" if-key-state="present"/>
+          <transfer operation="delete" delete-key="ranger.service.https.attrib.clientAuth" if-type="ranger-kms-site" if-key="ranger.service.https.attrib.client.auth" if-key-state="present"/>
+        </definition>
+      </changes>
+    </component>
+    </service>
+
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_server_configure_authentication" summary="Configuring hive authentication">
+          <definition xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication" summary="Configuring hive authentication">
             <type>hive-site</type>
             <transfer operation="delete" delete-key="hive.metastore.event.listeners" if-key="hive.metastore.event.listeners" if-type="hive-site" if-value="com.ibm.biginsights.bigsql.sync.BIEventListener"/>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
@@ -88,9 +167,14 @@
             <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
           </definition>
           
-          <definition xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure" summary="Configuring hive env for MariaDB/RedHat7 support">
+          <definition xsi:type="configure" id="biginsights_4_2_hive_env_configure" summary="Configuring hive-env for MariaDB/RedHat7 support">
             <type>hive-env</type>
             <set key="mariadb_redhat_support" value="true"/>
+          </definition>
+
+          <definition xsi:type="configure" id="biginsights_4_2_hive_permissions" summary="Configuring hive-site permissions">
+            <type>hive-site</type>
+            <set key="custom.hive.warehouse.mode" value="0770" if-type="hive-site" if-key="custom.hive.warehouse.mode" if-key-state="absent"/>
           </definition>
         </changes>
       </component>
@@ -125,8 +209,19 @@
             <replace key="content" find="export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}" replace-with="export CATALINA_BASE={{oozie_server_dir}}" />            
           </definition>
           <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" summary="Updating oozie env">
-            <type>oozie-site</type>
+            <type>oozie-env</type>
             <replace key="content" find="/usr/lib/bigtop-tomcat7-7.0.75" replace-with="/usr/lib/bigtop-tomcat" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+    
+    <service name="SPARK2">
+      <component name="SPARK2_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_spark2_yarn_queue">
+            <type>spark2-defaults</type>
+            <set key="spark.yarn.queue" value="default" if-type="spark-defaults" if-key="spark.yarn.queue" if-key-state="absent"/>
           </definition>
         </changes>
       </component>

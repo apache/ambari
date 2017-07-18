@@ -25,6 +25,7 @@
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
     <check>org.apache.ambari.server.checks.JavaVersionCheck</check>
+    <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
@@ -107,7 +108,7 @@
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>snapshot</function>
+          <function>take_snapshot</function>
         </task>
       </execute-stage>
 
@@ -115,6 +116,18 @@
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
           <function>prepare_express_upgrade</function>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger Database">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup the Ranger Admin database on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Backup Ranger KMS Database">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
     </group>
@@ -138,6 +151,16 @@
         <component>ZKFC</component>
         <component>JOURNALNODE</component>
         <component>NFS_GATEWAY</component>
+      </service>
+
+      <service name="RANGER">
+        <component>RANGER_USERSYNC</component>
+        <component>RANGER_ADMIN</component>
+        <component>RANGER_TAGSYNC</component>
+      </service>
+
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
       </service>
 
       <service name="ZOOKEEPER">
@@ -181,13 +204,21 @@
       <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
         <task xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" />
       </execute-stage>
-      
+
+      <!-- HBASE -->
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase">
+        <task xsi:type="configure" id="biginsights_4_2_hbase_env_config" />
+      </execute-stage>
+
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
-        <task xsi:type="configure" id="biginsights_4_2_0_0_hive_env_configure"/>
+        <task xsi:type="configure" id="biginsights_4_2_hive_env_configure"/>
+      </execute-stage>
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply permission config changes for Hive Server">
+        <task xsi:type="configure" id="biginsights_4_2_hive_permissions"/>
       </execute-stage>
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
-        <task xsi:type="configure" id="biginsights_4_2_0_0_hive_server_configure_authentication"/>
+        <task xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication"/>
       </execute-stage>      
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for Hive WebHCat server">
         <task xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" />
@@ -205,6 +236,70 @@
       </execute-stage>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie server">
         <task xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" />
+      </execute-stage>
+
+      <!-- RANGER -->
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_admin_properties"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_ranger_admin_site"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Calculating Ranger Properties">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation">
+          <summary>Calculating Ranger Properties</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Configuring Ranger Alerts">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerWebAlertConfigAction">
+          <summary>Configuring Ranger Alerts</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Apply config changes for Ranger Usersync">
+        <task xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade"/>
+      </execute-stage>
+
+      <!-- RANGER KMS -->
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Parameterizing Ranger Kms Log4J Properties">
+        <task xsi:type="configure" id="kms_log4j_parameterize">
+          <summary>Updating the KMS Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Calculating Ranger Properties">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKmsProxyConfig">
+          <summary>Adding Ranger proxy user properties</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl"/>
       </execute-stage>
     </group>
 
@@ -249,6 +344,18 @@
       </service>
     </group>
 
+    <group xsi:type="restart" name="RANGER" title="Ranger">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="RANGER">
+        <component>RANGER_ADMIN</component>
+        <component>RANGER_USERSYNC</component>
+        <component>RANGER_TAGSYNC</component>
+      </service>
+    </group>
+
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -285,6 +392,16 @@
           <function>wait_for_safemode_off</function>
         </task>
       </execute-stage>
+    </group>
+
+    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
+      </service>
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">
@@ -369,6 +486,8 @@
       <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
+        <service>RANGER</service>
+        <service>RANGER_KMS</service>
         <service>HDFS</service>
         <service>KAFKA</service>
         <service>YARN</service>
@@ -562,6 +681,61 @@
       </component>
     </service>
 
+    <service name="RANGER">
+      <component name="RANGER_ADMIN">
+        <pre-upgrade>
+
+          <task xsi:type="execute" hosts="all">
+            <script>scripts/ranger_admin.py</script>
+            <function>set_pre_start</function>
+          </task>
+
+          <task xsi:type="execute" hosts="any">
+            <summary>Upgrading Ranger database schema</summary>
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+
+          <task xsi:type="configure_function" hosts="all" />
+
+          <task xsi:type="execute" hosts="any">
+            <summary>Applying Ranger java patches</summary>
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade copy-upgrade="true" />
+
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+
+      </component>
+
+      <component name="RANGER_USERSYNC">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="RANGER_TAGSYNC">
+
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="all">
+            <script>scripts/ranger_tagsync.py</script>
+            <function>configure_atlas_user_for_tagsync</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade copy-upgrade="true" />
+
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
@@ -594,6 +768,30 @@
       </component>
 
       <component name="NFS_GATEWAY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Downgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

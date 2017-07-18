@@ -18,18 +18,27 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -53,6 +62,13 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_ID_COLUMN = "upgrade_id";
 
   private static final String CLUSTER_ENV = "cluster-env";
+
+  private static final List<String> configTypesToEnsureSelected = Arrays.asList("spark2-javaopts-properties");
+
+  /**
+   * Logger.
+   */
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog252.class);
 
   /**
    * Constructor.
@@ -102,6 +118,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     resetStackToolsAndFeatures();
+    ensureConfigTypesHaveAtLeastOneVersionSelected();
   }
 
   /**
@@ -127,11 +144,12 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   private void addRepositoryColumnsToUpgradeTable() throws SQLException {
-    dbAccessor.executeQuery(String.format("UPDATE %s SET %s = NULL", CLUSTERS_TABLE, UPGRADE_ID_COLUMN));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", SERVICE_COMPONENT_HISTORY_TABLE));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_ITEM_TABLE));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_GROUP_TABLE));
-    dbAccessor.executeQuery(String.format("DELETE FROM %s", UPGRADE_TABLE));
+    dbAccessor.clearTableColumn(CLUSTERS_TABLE, UPGRADE_ID_COLUMN, null);
+    dbAccessor.clearTable(SERVICE_COMPONENT_HISTORY_TABLE);
+    dbAccessor.clearTable(SERVICE_COMPONENT_HISTORY_TABLE);
+    dbAccessor.clearTable(UPGRADE_ITEM_TABLE);
+    dbAccessor.clearTable(UPGRADE_GROUP_TABLE);
+    dbAccessor.clearTable(UPGRADE_TABLE);
 
     dbAccessor.dropColumn(UPGRADE_TABLE, "to_version");
     dbAccessor.dropColumn(UPGRADE_TABLE, "from_version");
@@ -194,6 +212,88 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
       }
 
       updateConfigurationPropertiesForCluster(cluster, CLUSTER_ENV, newStackProperties, true, false);
+    }
+  }
+
+  /**
+   * When doing a cross-stack upgrade, we found that one config type (spark2-javaopts-properties)
+   * did not have any mappings that were selected, so it caused Ambari Server start to fail on the DB Consistency Checker.
+   * To fix this, iterate over all config types and ensure that at least one is selected.
+   * If none are selected, then pick the one with the greatest time stamp; this should be safe since we are only adding
+   * more data to use as opposed to removing.
+   */
+  private void ensureConfigTypesHaveAtLeastOneVersionSelected() {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    List<ClusterEntity> clusters = clusterDAO.findAll();
+
+    if (null == clusters) {
+      return;
+    }
+
+    for (ClusterEntity clusterEntity : clusters) {
+      LOG.info("Ensuring all config types have at least one selected config for cluster {}", clusterEntity.getClusterName());
+
+      boolean atLeastOneChanged = false;
+      Collection<ClusterConfigEntity> configEntities = clusterEntity.getClusterConfigEntities();
+
+      if (configEntities != null) {
+        Set<String> configTypesNotSelected = new HashSet<>();
+        Set<String> configTypesWithAtLeastOneSelected = new HashSet<>();
+
+        for (ClusterConfigEntity clusterConfigEntity : configEntities) {
+          String typeName = clusterConfigEntity.getType();
+
+          if (clusterConfigEntity.isSelected()) {
+            configTypesWithAtLeastOneSelected.add(typeName);
+          } else {
+            configTypesNotSelected.add(typeName);
+          }
+        }
+
+        // Due to the ordering, eliminate any configs with at least one selected.
+        configTypesNotSelected.removeAll(configTypesWithAtLeastOneSelected);
+        if (!configTypesNotSelected.isEmpty()) {
+          LOG.info("The following config types have entries which are not enabled: {}", StringUtils.join(configTypesNotSelected, ", "));
+
+          LOG.info("Filtering only config types these config types: {}", StringUtils.join(configTypesToEnsureSelected, ", "));
+          // Get the intersection with a subset of configs that are allowed to be selected during the migration.
+          configTypesNotSelected.retainAll(configTypesToEnsureSelected);
+        }
+
+        if (!configTypesNotSelected.isEmpty()) {
+          LOG.info("The following config types have entries which don't have at least one as selected. {}", StringUtils.join(configTypesNotSelected, ", "));
+
+          for (String typeName : configTypesNotSelected) {
+            ClusterConfigEntity clusterConfigMappingWithGreatestTimeStamp = null;
+
+            for (ClusterConfigEntity clusterConfigEntity : configEntities) {
+              if (typeName.equals(clusterConfigEntity.getType())) {
+
+                if (null == clusterConfigMappingWithGreatestTimeStamp) {
+                  clusterConfigMappingWithGreatestTimeStamp = clusterConfigEntity;
+                } else {
+                  if (clusterConfigEntity.getTimestamp() >= clusterConfigMappingWithGreatestTimeStamp.getTimestamp()) {
+                    clusterConfigMappingWithGreatestTimeStamp = clusterConfigEntity;
+                  }
+                }
+              }
+            }
+
+            if (null != clusterConfigMappingWithGreatestTimeStamp) {
+              LOG.info("Saving. Config type {} has a mapping with tag {} and greatest timestamp {} that is not selected, so will mark it selected.",
+                  typeName, clusterConfigMappingWithGreatestTimeStamp.getTag(), clusterConfigMappingWithGreatestTimeStamp.getTimestamp());
+              atLeastOneChanged = true;
+              clusterConfigMappingWithGreatestTimeStamp.setSelected(true);
+            }
+          }
+        } else {
+          LOG.info("All config types have at least one mapping that is selected. Nothing to do.");
+        }
+      }
+
+      if (atLeastOneChanged) {
+        clusterDAO.merge(clusterEntity);
+      }
     }
   }
 }

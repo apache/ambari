@@ -75,7 +75,7 @@ class OozieServer(Script):
         conf_select.select(params.stack_name, "oozie", params.version)
 
     env.set_params(params)
-    oozie(is_server=True)
+    oozie(is_server=True, upgrade_type=upgrade_type)
 
   def start(self, env, upgrade_type=None):
     import params
@@ -129,7 +129,7 @@ class OozieServerDefault(OozieServer):
       conf_select.select(params.stack_name, "oozie", params.version)
       stack_select.select("oozie-server", params.version)
 
-    OozieUpgrade.prepare_libext_directory()
+    OozieUpgrade.prepare_libext_directory(upgrade_type=upgrade_type)
 
   def disable_security(self, env):
     import params

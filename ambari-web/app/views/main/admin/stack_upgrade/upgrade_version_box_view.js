@@ -195,6 +195,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
             action: 'installRepoVersionConfirmation',
             isDisabled: isDisabled
           });
+          if (App.get('currentStackName') === 'BigInsights' && !App.get('upgradeIsRunning')) {
+            element.get('buttons').pushObject({
+              text: Em.I18n.t('admin.stackVersions.removeIopSelect'),
+              action: 'removeIopSelect',
+              isDisabled: isDisabled
+            });
+          }
         }
         element.set('isDisabled', isDisabled);
       }
@@ -241,7 +248,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'isUpgrading',
     'controller.requestInProgress',
     'controller.requestInProgressRepoId',
-    'parentView.repoVersions.@each.status'
+    'parentView.repoVersions.@each.status',
+    'App.currentStackName',
+    'App.upgradeIsRunning'
   ),
 
   /**

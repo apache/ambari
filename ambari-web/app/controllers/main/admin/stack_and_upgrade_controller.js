@@ -1431,6 +1431,28 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
   },
 
+  removeIopSelect: function() {
+    return App.showConfirmationPopup(function () {
+      App.ajax.send({
+        name: 'admin.stack_versions.removeIopSelect',
+        sender: this,
+        data: {
+          hosts: App.get('allHostNames').join(',')
+        }
+      }).fail(function(xhr) {
+        App.ModalPopup.show({
+          header: Em.I18n.t('admin.stackVersions.removeIopSelect.fail'),
+          secondary: false,
+          bodyClass: App.AjaxDefaultErrorPopupBodyView.extend({
+            type: 'POST',
+            status: xhr.status,
+            message: xhr.responseText
+          })
+        });
+      });
+    });
+  },
+
   /**
    * sends request to install repoVersion to the cluster
    * and create clusterStackVersion resourse

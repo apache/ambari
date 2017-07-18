@@ -108,6 +108,18 @@ def kafka(upgrade_type=None):
 
     kafka_data_dir = kafka_server_config['log.dirs']
     kafka_data_dirs = filter(None, kafka_data_dir.split(","))
+
+    rack="/default-rack"
+    i=0
+    if len(params.all_racks) > 0:
+     for host in params.all_hosts:
+      if host == params.hostname:
+        rack=params.all_racks[i]
+        break
+      i=i+1
+
+    kafka_server_config['broker.rack']=rack
+
     Directory(kafka_data_dirs,
               mode=0755,
               cd_access='a',

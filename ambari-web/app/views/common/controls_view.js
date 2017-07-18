@@ -219,6 +219,40 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 });
 
 /**
+ * Customized input control for user/group configs with corresponding uid/gid specified
+ * @type {Em.View}
+ */
+App.ServiceConfigTextFieldUserGroupWithID = Ember.View.extend(App.ServiceConfigPopoverSupport, {
+  valueBinding: 'serviceConfig.value',
+  placeholderBinding: 'serviceConfig.savedValue',
+  classNames: 'display-inline-block',
+
+  templateName: require('templates/wizard/controls_service_config_usergroup_with_id'),
+
+  isUIDGIDVisible: function () {
+    var overrideUidDisabled = this.get('parentView').serviceConfigs.findProperty('name', 'override_uid').value === 'false';
+    //don't display the ugid field if there is no uid/gid for this property or override_uid is unchecked
+    if (Em.isNone(this.get('serviceConfig.ugid')) || overrideUidDisabled) {
+      return false;
+    }
+
+    var serviceName = this.get('serviceConfig').name.substr(0, this.get('serviceConfig').name.indexOf('_')).toUpperCase();
+    if (serviceName === 'ZK') {
+      serviceName = 'ZOOKEEPER';
+    }
+    if (serviceName === 'MAPRED') {
+      serviceName = 'YARN';
+    }
+    //addServiceController and service already installed or Hadoop user group
+    if (App.Service.find(serviceName).get('isLoaded') || serviceName === 'USER') {
+      return false;
+    }
+
+    return this.get('parentView.isUIDGIDVisible');
+  }.property('parentView.isUIDGIDVisible')
+});
+
+/**
  * Customized input control with Units type specified
  * @type {Em.View}
  */
@@ -415,6 +449,11 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
       this.set('serviceConfig.value', this.get(this.get('checked') + 'Value'));
       this.get('serviceConfig').set("editDone", true);
       this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
+
+      //if the checkbox being toggled is the 'Have Ambari manage UIDs' in Misc Tab, show/hide uid/gid column accordingly
+      if (this.get('serviceConfig.name') === 'override_uid') {
+         this.set('parentView.isUIDGIDVisible', this.get('checked'));
+      }
     }
   }.observes('checked'),
 

@@ -27,6 +27,7 @@ import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 
 /**
@@ -55,6 +56,28 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
                                                AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds);
     this.managementController = managementController;
+  }
+  
+  /**
+   * Create a new resource provider for the given management controller. This
+   * constructor will initialize the specified {@link Resource.Type} with the
+   * provided keys. It should be used in cases where the provider declares its
+   * own keys instead of reading them from a JSON file.
+   *
+   * @param type
+   *          the type to set the properties for (not {@code null}).
+   * @param propertyIds
+   *          the property ids
+   * @param keyPropertyIds
+   *          the key property ids
+   * @param managementController
+   *          the management controller
+   */
+  AbstractControllerResourceProvider(Resource.Type type, Set<String> propertyIds,
+      Map<Resource.Type, String> keyPropertyIds, AmbariManagementController managementController) {
+    this(propertyIds, keyPropertyIds, managementController);
+    PropertyHelper.setPropertyIds(type, propertyIds);
+    PropertyHelper.setKeyPropertyIds(type, keyPropertyIds);
   }
 
   public static void init(ResourceProviderFactory factory) {

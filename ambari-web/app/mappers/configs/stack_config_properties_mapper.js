@@ -197,8 +197,13 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * @param config
    */
   handleSpecialProperties: function(config) {
-    if (!config.StackConfigurations.property_type.contains('ADDITIONAL_USER_PROPERTY')) {
+    var types = config.StackConfigurations.property_type;
+    if (!types.contains('ADDITIONAL_USER_PROPERTY')) {
       config.index = App.StackService.displayOrder.indexOf(config.StackConfigurations.service_name) + 1 || 30;
+    }
+    // displayType from stack ignored, cause UID and GID should be shown along with service's user config
+    if (types.contains('UID') || types.contains('GID')) {
+      config.StackConfigurations.property_value_attributes.type = 'uid_gid';
     }
     config.StackConfigurations.service_name = 'MISC';
     config.category = 'Users and Groups';
@@ -210,7 +215,12 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * @returns {Boolean}
    */
   isMiscService: function(type) {
-    return type.length && (type.contains('USER') || type.contains('GROUP') || type.contains('ADDITIONAL_USER_PROPERTY'));
+    return type.length &&
+      (type.contains('USER')
+      || type.contains('GROUP')
+      || type.contains('ADDITIONAL_USER_PROPERTY')
+      || type.contains('UID')
+      || type.contains('GID'));
   },
 
   /**

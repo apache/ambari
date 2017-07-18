@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -109,8 +110,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = PropertyHelper.getPropertyId(
       "ServiceInfo", "desired_stack");
 
-  public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "desired_repository_version_id");
+  public static final String SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "desired_repository_version");
 
   protected static final String SERVICE_REPOSITORY_STATE = "ServiceInfo/repository_state";
 
@@ -144,7 +145,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_ATTRIBUTES_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_DESIRED_STACK_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_REPOSITORY_STATE);
 
     PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
@@ -180,7 +181,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public ServiceResourceProvider(
       @Assisted AmbariManagementController managementController,
       MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.Service, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
     this.repositoryVersionDAO = repositoryVersionDAO;
 
@@ -251,15 +252,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID,
           String.valueOf(response.isCredentialStoreEnabled()), requestedIds);
 
-      RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByPK(response.getDesiredRepositoryVersionId());
+      setResourceProperty(resource, SERVICE_DESIRED_STACK_PROPERTY_ID,
+          response.getDesiredStackId(), requestedIds);
 
-      // !!! TODO is the UI using this?
-      if (null != repoVersion) {
-        setResourceProperty(resource, SERVICE_DESIRED_STACK_PROPERTY_ID, repoVersion.getStackId(), requestedIds);
-      }
-
-      setResourceProperty(resource, SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID,
-          response.getDesiredRepositoryVersionId(), requestedIds);
+      setResourceProperty(resource, SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID,
+          response.getDesiredRepositoryVersion(), requestedIds);
 
       setResourceProperty(resource, SERVICE_REPOSITORY_STATE,
           response.getRepositoryVersionState(), requestedIds);
@@ -385,13 +382,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    * @return the service request object
    */
   private ServiceRequest getRequest(Map<String, Object> properties) {
-
-    String desiredRepoId = (String) properties.get(SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID);
+    String desiredStack = (String)properties.get(SERVICE_DESIRED_STACK_PROPERTY_ID);
+    String desiredRepositoryVersion = (String)properties.get(SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID);
 
     ServiceRequest svcRequest = new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
-        null == desiredRepoId ? null : Long.valueOf(desiredRepoId),
+        desiredStack, desiredRepositoryVersion,
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID),
         (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID));
 
@@ -423,10 +420,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     for (ServiceRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
+      String desiredStack = request.getDesiredStack();
+
       RepositoryVersionEntity repositoryVersion = request.getResolvedRepository();
 
       if (null == repositoryVersion) {
-        throw new AmbariException("Could not find any repository on the request.");
+        throw new AmbariException(String.format("Could not find any repositories defined by %s", desiredStack));
+      } else {
+        desiredStack = repositoryVersion.getStackId().toString();
       }
 
       Service s = cluster.addService(request.getServiceName(), repositoryVersion);
@@ -1065,18 +1066,33 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         // Expected
       }
 
-      Long desiredRepositoryVersion = request.getDesiredRepositoryVersionId();
-      if (null == desiredRepositoryVersion) {
-        throw new IllegalArgumentException(String.format("%s is required when adding a service.", SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID));
-      }
+      String desiredStack = request.getDesiredStack();
+      StackId stackId = new StackId(desiredStack);
 
-      RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(desiredRepositoryVersion);
+      String desiredRepositoryVersion = request.getDesiredRepositoryVersion();
+      RepositoryVersionEntity repositoryVersion = null;
+      if (StringUtils.isNotBlank(desiredRepositoryVersion)){
+        repositoryVersion = repositoryVersionDAO.findByVersion(desiredRepositoryVersion);
+      }
 
       if (null == repositoryVersion) {
-        throw new IllegalArgumentException(String.format("Could not find any repositories defined by %d", desiredRepositoryVersion));
+        // !!! FIXME hack until the UI always sends the repository
+        if (null == desiredStack) {
+          desiredStack = cluster.getDesiredStackVersion().toString();
+        }
+
+        List<RepositoryVersionEntity> allVersions = repositoryVersionDAO.findByStack(new StackId(desiredStack));
+
+        if (CollectionUtils.isNotEmpty(allVersions)) {
+          repositoryVersion = allVersions.get(0);
+        }
       }
 
-      StackId stackId = repositoryVersion.getStackId();
+      if (null == repositoryVersion) {
+        throw new AmbariException(String.format("Could not find any repositories defined by %s", desiredStack));
+      } else {
+        stackId = repositoryVersion.getStackId();
+      }
 
       request.setResolvedRepository(repositoryVersion);
 

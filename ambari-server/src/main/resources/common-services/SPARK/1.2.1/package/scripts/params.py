@@ -21,6 +21,7 @@ limitations under the License.
 import socket
 import status_params
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import Direction
 from setup_spark import *
@@ -57,10 +58,8 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 java_home = config['hostLevelParams']['java_home']
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
-stack_version_unformatted = config['hostLevelParams']['stack_version']
-if upgrade_direction == Direction.DOWNGRADE:
-  stack_version_unformatted = config['commandParams']['original_stack'].split("-")[1]
-stack_version_formatted = format_stack_version(stack_version_unformatted)
+
+version_for_stack_feature_checks = get_stack_feature_version(config)
 
 sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 
@@ -71,7 +70,7 @@ spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
-if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+if check_stack_feature(StackFeature.ROLLING_UPGRADE, version_for_stack_feature_checks):
   hadoop_home = stack_select.get_hadoop_dir("home")
   spark_conf = format("{stack_root}/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
@@ -212,7 +211,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 # livy is only supported from HDP 2.5
 has_livyserver = False
 
-if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted) and "livy-env" in config['configurations']:
+if check_stack_feature(StackFeature.SPARK_LIVY, version_for_stack_feature_checks) and "livy-env" in config['configurations']:
   livy_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY_SERVER")
   livy_conf = format("{stack_root}/current/{livy_component_directory}/conf")
   livy_log_dir = config['configurations']['livy-env']['livy_log_dir']

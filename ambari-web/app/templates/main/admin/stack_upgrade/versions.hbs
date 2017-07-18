@@ -40,13 +40,6 @@
       {{/each}}
     </ul>
   </div>
-  {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
-    {{#if view.showRemoveIopSelect}}
-      <button class="btn btn-danger pull-right" {{action removeIopSelect target="view"}} id="remove-iop-select">
-        {{t admin.stackVersions.removeIopSelect}}
-      </button>
-    {{/if}}
-  {{/isAuthorized}}
 </div>
 <div id="versions-section" class="row-fluid">
   <div class="span2 left-menu-table">
