@@ -33,6 +33,8 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
@@ -45,13 +47,15 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 @Table(name = "user_authentication")
 @Entity
 @NamedQueries({
-    @NamedQuery(name = "UserAuthenticationEntity.findAll", query = "SELECT entity FROM UserAuthenticationEntity entity")
+    @NamedQuery(name = "UserAuthenticationEntity.findAll",
+        query = "SELECT entity FROM UserAuthenticationEntity entity"),
+    @NamedQuery(name = "UserAuthenticationEntity.findByType",
+        query = "SELECT entity FROM UserAuthenticationEntity entity where lower(entity.authenticationType)=lower(:authenticationType)")
 })
 @TableGenerator(name = "user_authentication_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "user_authentication_id_seq"
     , initialValue = 2
-    , allocationSize = 500
 )
 public class UserAuthenticationEntity {
 
@@ -134,6 +138,22 @@ public class UserAuthenticationEntity {
     this.user = user;
   }
 
+  /**
+   * Ensure the create time and update time are set properly when the record is created.
+   */
+  @PrePersist
+  protected void onCreate() {
+    createTime = new Date();
+    updateTime = new Date();
+  }
+
+  /**
+   * Ensure the update time is set properly when the record is updated.
+   */
+  @PreUpdate
+  protected void onUpdate() {
+    updateTime = new Date();
+  }
 
   @Override
   public boolean equals(Object o) {

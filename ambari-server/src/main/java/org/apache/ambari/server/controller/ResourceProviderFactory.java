@@ -52,9 +52,10 @@ public interface ResourceProviderFactory {
       AmbariManagementController managementController);
 
   @Named("user")
-  ResourceProvider getUserResourceProvider(Set<String> propertyIds,
-                                           Map<Type, String> keyPropertyIds,
-                                           AmbariManagementController managementController);
+  ResourceProvider getUserResourceProvider(AmbariManagementController managementController);
+
+  @Named("userAuthenticationSource")
+  ResourceProvider getUserAuthenticationSourceResourceProvider();
 
   @Named("hostKerberosIdentity")
   ResourceProvider getHostKerberosIdentityResourceProvider(AmbariManagementController managementController);

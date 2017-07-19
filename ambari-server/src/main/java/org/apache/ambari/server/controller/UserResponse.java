@@ -18,8 +18,10 @@
 package org.apache.ambari.server.controller;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.internal.UserResourceProvider;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -27,38 +29,48 @@ import io.swagger.annotations.ApiModelProperty;
 /**
  * Represents a user maintenance request.
  */
-public class
-UserResponse implements ApiModel {
+public class UserResponse implements ApiModel {
 
   private final String userName;
+  private final String displayName;
+  private final String localUserName;
   private final UserAuthenticationType authenticationType;
   private final boolean isLdapUser;
   private final boolean isActive;
   private final boolean isAdmin;
   private Set<String> groups = Collections.emptySet();
 
-  public UserResponse(String userName, UserAuthenticationType userType, boolean isLdapUser, boolean isActive, boolean isAdmin) {
+  private final Date createTime;
+  private final Integer consecutiveFailures;
+
+  public UserResponse(String userName, String displayName, String localUserName, UserAuthenticationType userType, boolean isLdapUser, boolean isActive, boolean isAdmin, Integer consecutiveFailures, Date createTime) {
     this.userName = userName;
+    this.displayName = displayName;
+    this.localUserName = localUserName;
     this.authenticationType = userType;
     this.isLdapUser = isLdapUser;
     this.isActive = isActive;
     this.isAdmin = isAdmin;
+    this.consecutiveFailures = consecutiveFailures;
+    this.createTime = createTime;
   }
 
-  public UserResponse(String name, boolean isLdapUser, boolean isActive, boolean isAdmin) {
-    this.userName = name;
-    this.isLdapUser = isLdapUser;
-    this.isActive = isActive;
-    this.isAdmin = isAdmin;
-    this.authenticationType = UserAuthenticationType.LOCAL;
-  }
-
-  @ApiModelProperty(name = "Users/user_name",required = true)
+  @ApiModelProperty(name = UserResourceProvider.USERNAME_PROPERTY_ID)
   public String getUsername() {
     return userName;
   }
 
-  @ApiModelProperty(name = "Users/groups")
+  @ApiModelProperty(name = UserResourceProvider.DISPLAY_NAME_PROPERTY_ID)
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  @ApiModelProperty(name = UserResourceProvider.LOCAL_USERNAME_PROPERTY_ID)
+  public String getLocalUsername() {
+    return localUserName;
+  }
+
+  @ApiModelProperty(name = UserResourceProvider.GROUPS_PROPERTY_ID)
   public Set<String> getGroups() {
     return groups;
   }
@@ -70,34 +82,50 @@ UserResponse implements ApiModel {
   /**
    * @return the isLdapUser
    */
-  @ApiModelProperty(name = "Users/ldap_user")
+  @ApiModelProperty(name = UserResourceProvider.LDAP_USER_PROPERTY_ID)
   public boolean isLdapUser() {
     return isLdapUser;
   }
 
-  @ApiModelProperty(name = "Users/active")
+  @ApiModelProperty(name = UserResourceProvider.ACTIVE_PROPERTY_ID)
   public boolean isActive() {
     return isActive;
   }
 
-  @ApiModelProperty(name = "Users/admin")
+  @ApiModelProperty(name = UserResourceProvider.ADMIN_PROPERTY_ID)
   public boolean isAdmin() {
     return isAdmin;
   }
 
-  @ApiModelProperty(name = "Users/authentication_type")
+  @ApiModelProperty(name = UserResourceProvider.USER_TYPE_PROPERTY_ID)
   public UserAuthenticationType getAuthenticationType() {
     return authenticationType;
   }
 
+  @ApiModelProperty(name = UserResourceProvider.CONSECUTIVE_FAILURES_PROPERTY_ID)
+  public Integer getConsecutiveFailures() {
+    return consecutiveFailures;
+  }
+
+  @ApiModelProperty(name = UserResourceProvider.CREATE_TIME_PROPERTY_ID)
+  public Date getCreateTime() {
+    return createTime;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     UserResponse that = (UserResponse) o;
 
-    if (userName != null ? !userName.equals(that.userName) : that.userName != null) return false;
+    if (userName != null ? !userName.equals(that.userName) : that.userName != null) {
+      return false;
+    }
     return authenticationType == that.authenticationType;
 
   }
@@ -107,5 +135,13 @@ UserResponse implements ApiModel {
     int result = userName != null ? userName.hashCode() : 0;
     result = 31 * result + (authenticationType != null ? authenticationType.hashCode() : 0);
     return result;
+  }
+
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface UserResponseSwagger {
+    @ApiModelProperty(name = UserResourceProvider.USER_RESOURCE_CATEGORY)
+    UserResponse getUserResponse();
   }
 }

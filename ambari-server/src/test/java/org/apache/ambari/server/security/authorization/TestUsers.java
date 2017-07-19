@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -47,12 +48,7 @@ import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Guice;
@@ -89,8 +85,6 @@ public class TestUsers {
     injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    Authentication auth = new UsernamePasswordAuthenticationToken("admin", null);
-    SecurityContextHolder.getContext().setAuthentication(auth);
 
     // create admin permission
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
@@ -166,20 +160,53 @@ public class TestUsers {
     assertNotNull(foundUserEntity);
 
     UserAuthenticationEntity foundLocalAuthenticationEntity;
-    foundLocalAuthenticationEntity = getLocalAuthenticationEntity(foundUserEntity);
+    foundLocalAuthenticationEntity = getAuthenticationEntity(foundUserEntity, UserAuthenticationType.LOCAL);
     assertNotNull(foundLocalAuthenticationEntity);
     assertNotSame("user", foundLocalAuthenticationEntity.getAuthenticationKey());
     assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
 
     foundUserEntity = userDAO.findUserByName("admin");
     assertNotNull(foundUserEntity);
-    users.modifyPassword(foundUserEntity, "admin", "user_new_password");
+    users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "user_new_password", false);
 
-    foundUserEntity = userDAO.findUserByName("admin");
+    foundUserEntity = userDAO.findUserByName("user");
     assertNotNull(foundUserEntity);
-    foundLocalAuthenticationEntity = getLocalAuthenticationEntity(foundUserEntity);
+    foundLocalAuthenticationEntity = getAuthenticationEntity(foundUserEntity, UserAuthenticationType.LOCAL);
     assertNotNull(foundLocalAuthenticationEntity);
     assertTrue(passwordEncoder.matches("user_new_password", foundLocalAuthenticationEntity.getAuthenticationKey()));
+  }
+
+  @Test
+  public void testModifyPassword_EmptyPassword() throws Exception {
+    UserEntity userEntity;
+
+    userEntity = users.createUser("user", "user", "user");
+    users.addLocalAuthentication(userEntity, "user");
+
+    UserEntity foundUserEntity = userDAO.findUserByName("user");
+    assertNotNull(foundUserEntity);
+
+    UserAuthenticationEntity foundLocalAuthenticationEntity;
+    foundLocalAuthenticationEntity = getAuthenticationEntity(foundUserEntity, UserAuthenticationType.LOCAL);
+    assertNotNull(foundLocalAuthenticationEntity);
+    assertNotSame("user", foundLocalAuthenticationEntity.getAuthenticationKey());
+    assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
+
+    try {
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, false);
+      fail("Null password should not be allowed");
+    }
+    catch (AmbariException e) {
+      assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
+    }
+
+    try {
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "", false);
+      fail("Empty password should not be allowed");
+    }
+    catch (AmbariException e) {
+      assertEquals("The new password does not meet the Ambari password requirements", e.getLocalizedMessage());
+    }
   }
 
   @Test
@@ -238,14 +265,14 @@ public class TestUsers {
     // create duplicate user
     try {
       users.createUser("user1", "user1", null);
-      Assert.fail("It shouldn't be possible to create duplicate user");
+      fail("It shouldn't be possible to create duplicate user");
     } catch (AmbariException e) {
       // This is expected
     }
 
     try {
       users.createUser("USER1", "user1", null);
-      Assert.fail("It shouldn't be possible to create duplicate user");
+      fail("It shouldn't be possible to create duplicate user");
     } catch (AmbariException e) {
       // This is expected
     }
@@ -294,7 +321,7 @@ public class TestUsers {
 
     try {
       users.setUserActive("fake user", true);
-      Assert.fail("It shouldn't be possible to call setUserActive() on non-existing user");
+      fail("It shouldn't be possible to call setUserActive() on non-existing user");
     } catch (Exception ex) {
       // This is expected
     }
@@ -315,7 +342,7 @@ public class TestUsers {
 
     try {
       users.addLdapAuthentication(users.getUserEntity("fake user"), "some other dn");
-      Assert.fail("It shouldn't be possible to call setUserLdap() on non-existing user");
+      fail("It shouldn't be possible to call setUserLdap() on non-existing user");
     } catch (AmbariException ex) {
       // This is expected
     }
@@ -331,7 +358,7 @@ public class TestUsers {
 
     try {
       users.setGroupLdap("fake group");
-      Assert.fail("It shouldn't be possible to call setGroupLdap() on non-existing group");
+      fail("It shouldn't be possible to call setGroupLdap() on non-existing group");
     } catch (AmbariException ex) {
       // This is expected
     }
@@ -379,7 +406,7 @@ public class TestUsers {
 
     try {
       users.getAllMembers("non existing");
-      Assert.fail("It shouldn't be possible to call getAllMembers() on non-existing group");
+      fail("It shouldn't be possible to call getAllMembers() on non-existing group");
     } catch (Exception ex) {
       // This is expected
     }
@@ -395,22 +422,19 @@ public class TestUsers {
 
   @Test
   public void testModifyPassword_UserByHimselfPasswordOk() throws Exception {
-    Authentication auth = new UsernamePasswordAuthenticationToken("user", null);
-    SecurityContextHolder.getContext().setAuthentication(auth);
-
     UserEntity userEntity = users.createUser("user", "user", null);
     users.addLocalAuthentication(userEntity, "user");
 
     userEntity = userDAO.findUserByName("user");
-    UserAuthenticationEntity localAuthenticationEntity = getLocalAuthenticationEntity(userEntity);
+    UserAuthenticationEntity localAuthenticationEntity = getAuthenticationEntity(userEntity, UserAuthenticationType.LOCAL);
     assertNotNull(localAuthenticationEntity);
 
     assertNotSame("user", localAuthenticationEntity.getAuthenticationKey());
     assertTrue(passwordEncoder.matches("user", localAuthenticationEntity.getAuthenticationKey()));
 
-    users.modifyPassword("user", "user", "user_new_password");
+    users.modifyAuthentication(localAuthenticationEntity, "user", "user_new_password", true);
     userEntity = userDAO.findUserByName("user");
-    localAuthenticationEntity = getLocalAuthenticationEntity(userEntity);
+    localAuthenticationEntity = getAuthenticationEntity(userEntity, UserAuthenticationType.LOCAL);
     assertNotNull(localAuthenticationEntity);
 
     assertTrue(passwordEncoder.matches("user_new_password", localAuthenticationEntity.getAuthenticationKey()));
@@ -418,66 +442,101 @@ public class TestUsers {
 
   @Test
   public void testModifyPassword_UserByHimselfPasswordNotOk() throws Exception {
-    Authentication auth = new UsernamePasswordAuthenticationToken("user", null);
-    SecurityContextHolder.getContext().setAuthentication(auth);
-
     UserEntity userEntity = users.createUser("user", "user", null);
     users.addLocalAuthentication(userEntity, "user");
 
     userEntity = userDAO.findUserByName("user");
     UserAuthenticationEntity foundLocalAuthenticationEntity;
-    foundLocalAuthenticationEntity = getLocalAuthenticationEntity(userEntity);
+    foundLocalAuthenticationEntity = getAuthenticationEntity(userEntity, UserAuthenticationType.LOCAL);
     assertNotNull(foundLocalAuthenticationEntity);
     assertNotSame("user", foundLocalAuthenticationEntity.getAuthenticationKey());
     assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
 
     try {
-      users.modifyPassword("user", "admin", "user_new_password");
-      Assert.fail("Exception should be thrown here as password is incorrect");
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "admin", "user_new_password", true);
+      fail("Exception should be thrown here as password is incorrect");
     } catch (AmbariException ex) {
       // This is expected
     }
   }
 
   @Test
-  public void testModifyPassword_UserByNonAdmin() throws Exception {
-    Authentication auth = new UsernamePasswordAuthenticationToken("user2", null);
-    SecurityContextHolder.getContext().setAuthentication(auth);
+  public void testAddAndRemoveAuthentication() throws Exception {
+    users.createUser("user", "user", "user");
 
-    UserEntity userEntity;
-    userEntity = users.createUser("user", "user", null);
-    users.addLocalAuthentication(userEntity, "user");
+    UserEntity userEntity = userDAO.findUserByName("user");
+    assertNotNull(userEntity);
+    assertEquals("user", userEntity.getUserName());
 
-    userEntity = users.createUser("user2", "user2", null);
-    users.addLocalAuthentication(userEntity, "user2");
+    UserEntity userEntity2 = userDAO.findUserByName("user");
+    assertNotNull(userEntity2);
+    assertEquals("user", userEntity2.getUserName());
 
-    UserAuthenticationEntity foundLocalAuthenticationEntity = getLocalAuthenticationEntity(userDAO.findUserByName("user"));
-    assertNotNull(foundLocalAuthenticationEntity);
-    assertNotSame("user", foundLocalAuthenticationEntity.getAuthenticationKey());
-    assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
+    assertEquals(0, users.getUserAuthenticationEntities("user", null).size());
 
-    try {
-      users.modifyPassword("user", "user2", "user_new_password");
-      Assert.fail("Exception should be thrown here as user2 can't change password of user");
-    } catch (AuthorizationException ex) {
-      // This is expected
-    }
+    users.addAuthentication(userEntity, UserAuthenticationType.LOCAL, "local_key");
+    assertEquals(1, users.getUserAuthenticationEntities("user", null).size());
+    assertEquals(1, users.getUserAuthenticationEntities("user", UserAuthenticationType.LOCAL).size());
+    assertTrue(passwordEncoder.matches("local_key", users.getUserAuthenticationEntities("user", UserAuthenticationType.LOCAL).iterator().next().getAuthenticationKey()));
+    assertEquals(0, users.getUserAuthenticationEntities("user", UserAuthenticationType.KERBEROS).size());
+
+    users.addAuthentication(userEntity, UserAuthenticationType.PAM, "pam_key");
+    assertEquals(2, users.getUserAuthenticationEntities("user", null).size());
+    assertEquals(1, users.getUserAuthenticationEntities("user", UserAuthenticationType.PAM).size());
+    assertEquals("pam_key", users.getUserAuthenticationEntities("user", UserAuthenticationType.PAM).iterator().next().getAuthenticationKey());
+    assertEquals(0, users.getUserAuthenticationEntities("user", UserAuthenticationType.KERBEROS).size());
+
+    users.addAuthentication(userEntity, UserAuthenticationType.JWT, "jwt_key");
+    assertEquals(3, users.getUserAuthenticationEntities("user", null).size());
+    assertEquals(1, users.getUserAuthenticationEntities("user", UserAuthenticationType.JWT).size());
+    assertEquals("jwt_key", users.getUserAuthenticationEntities("user", UserAuthenticationType.JWT).iterator().next().getAuthenticationKey());
+    assertEquals(0, users.getUserAuthenticationEntities("user", UserAuthenticationType.KERBEROS).size());
+
+    users.addAuthentication(userEntity, UserAuthenticationType.LDAP, "ldap_key");
+    assertEquals(4, users.getUserAuthenticationEntities("user", null).size());
+    assertEquals(1, users.getUserAuthenticationEntities("user", UserAuthenticationType.LDAP).size());
+    assertEquals("ldap_key", users.getUserAuthenticationEntities("user", UserAuthenticationType.LDAP).iterator().next().getAuthenticationKey());
+    assertEquals(0, users.getUserAuthenticationEntities("user", UserAuthenticationType.KERBEROS).size());
+
+    users.addAuthentication(userEntity, UserAuthenticationType.KERBEROS, "kerberos_key");
+    assertEquals(5, users.getUserAuthenticationEntities("user", null).size());
+    assertEquals("kerberos_key", users.getUserAuthenticationEntities("user", UserAuthenticationType.KERBEROS).iterator().next().getAuthenticationKey());
+    assertEquals(1, users.getUserAuthenticationEntities("user", UserAuthenticationType.KERBEROS).size());
+
+    // UserEntity was updated by user.addAuthentication
+    assertEquals(5, userEntity.getAuthenticationEntities().size());
+
+    // UserEntity2 needs to be refreshed...
+    assertEquals(0, userEntity2.getAuthenticationEntities().size());
+    userEntity2 = userDAO.findUserByName("user");
+    assertEquals(5, userEntity2.getAuthenticationEntities().size());
+
+
+    // Test Remove
+    Long kerberosAuthenticationId = users.getUserAuthenticationEntities("user", UserAuthenticationType.KERBEROS).iterator().next().getUserAuthenticationId();
+    Long pamAuthenticationId = users.getUserAuthenticationEntities("user", UserAuthenticationType.PAM).iterator().next().getUserAuthenticationId();
+
+    users.removeAuthentication("user", kerberosAuthenticationId);
+    assertEquals(4, users.getUserAuthenticationEntities("user", null).size());
+
+    users.removeAuthentication(userEntity, kerberosAuthenticationId);
+    assertEquals(4, users.getUserAuthenticationEntities("user", null).size());
+
+    users.removeAuthentication(userEntity, pamAuthenticationId);
+    assertEquals(3, users.getUserAuthenticationEntities("user", null).size());
+
+    // UserEntity2 needs to be refreshed...
+    assertEquals(5, userEntity2.getAuthenticationEntities().size());
+    userEntity2 = userDAO.findUserByName("user");
+    assertEquals(3, userEntity2.getAuthenticationEntities().size());
   }
 
-  @Test
-  @Ignore // TODO @Transactional annotation breaks this test
-  public void testCreateUserDefaultParams() throws Exception {
-    final Users spy = Mockito.spy(users);
-    spy.createUser("user", "user", null);
-    Mockito.verify(spy).createUser("user", "user", null);
-  }
-
-  private UserAuthenticationEntity getLocalAuthenticationEntity(UserEntity userEntity) {
+    private UserAuthenticationEntity getAuthenticationEntity(UserEntity userEntity, UserAuthenticationType type) {
     assertNotNull(userEntity);
     Collection<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
     assertNotNull(authenticationEntities);
     for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
-      if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
+      if (authenticationEntity.getAuthenticationType() == type) {
         return authenticationEntity;
       }
     }

@@ -152,76 +152,6 @@ public class Users {
   }
 
   /**
-   * Modifies password of local user
-   *
-   * @throws AmbariException
-   */
-  public synchronized void modifyPassword(String userName, String currentUserPassword, String newPassword) throws AmbariException, AuthorizationException {
-    UserEntity userEntity = userDAO.findUserByName(userName);
-    modifyPassword(userEntity, currentUserPassword, newPassword);
-  }
-
-  /**
-   * Modifies password of local user
-   *
-   * @throws AmbariException
-   */
-  public synchronized void modifyPassword(UserEntity userEntity, String currentUserPassword, String newPassword) throws AmbariException, AuthorizationException {
-
-    String authenticatedUserName = AuthorizationHelper.getAuthenticatedName();
-    if (authenticatedUserName == null) {
-      throw new AmbariException("Authentication required. Please sign in.");
-    }
-
-    if (userEntity != null) {
-    /* **************************************************
-     * Ensure that the authenticated user can change the password for the subject user. at least one
-     * of the following must be true
-     *  * The authenticate user is requesting to change his/her own password
-     *  * The authenticated user has permissions to manage users
-     *  ************************************************** */
-      boolean isSelf = userEntity.getUserName().equalsIgnoreCase(authenticatedUserName);
-      if (!isSelf && !AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_USERS)) {
-        throw new AuthorizationException("You are not authorized perform this operation");
-      }
-
-      List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
-      UserAuthenticationEntity localAuthenticationEntity = null;
-
-      // Find the authentication entity for the local authentication type - only one should exist, if one exists at all.
-      for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
-        if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
-          localAuthenticationEntity = authenticationEntity;
-          break;
-        }
-      }
-
-      if (localAuthenticationEntity == null) {
-        // The user account does not have a local authentication record.  Therefore there is no local
-        // password to change...
-        throw new AmbariException("An Ambari-specific password is not set for this user. The user's password cannot be changed at this time.");
-      } else if (isSelf &&
-          (StringUtils.isEmpty(currentUserPassword) || !passwordEncoder.matches(currentUserPassword, localAuthenticationEntity.getAuthenticationKey()))) {
-        // The authenticated user is the same user as subject user and the correct current password
-        // was not supplied.
-        throw new AmbariException("Wrong current password provided");
-      }
-
-      // TODO: validate the new password...
-      if (StringUtils.isEmpty(newPassword)) {
-        throw new AmbariException("The new password does not meet the Ambari password requirements");
-      }
-
-      // If we get here the authenticated user is authorized to change the password for the subject
-      // user and the correct current password was supplied (if required).
-      localAuthenticationEntity.setAuthenticationKey(passwordEncoder.encode(newPassword));
-      userAuthenticationDAO.merge(localAuthenticationEntity);
-    } else {
-      throw new AmbariException("User not found");
-    }
-  }
-
-  /**
    * Enables/disables user.
    *
    * @param userName user name
@@ -245,7 +175,7 @@ public class Users {
    * @throws AmbariException if user does not exist
    */
   public synchronized void setUserActive(UserEntity userEntity, final boolean active) throws AmbariException {
-    if(userEntity != null) {
+    if (userEntity != null) {
       Command command = new Command() {
         @Override
         public void perform(UserEntity userEntity) {
@@ -347,7 +277,7 @@ public class Users {
   /**
    * Removes a user from the Ambari database.
    * <p>
-   * It is expected that the assoicated user authencation records are removed by this operation
+   * It is expected that the associated user authentication records are removed by this operation
    * as well.
    *
    * @param user the user to remove
@@ -366,7 +296,7 @@ public class Users {
   /**
    * Removes a user from the Ambari database.
    * <p>
-   * It is expected that the assoicated user authencation records are removed by this operation
+   * It is expected that the associated user authentication records are removed by this operation
    * as well.
    *
    * @param userEntity the user to remove
@@ -792,14 +722,14 @@ public class Users {
         List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
         boolean createNew = true;
 
-          for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
-            if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LDAP) {
-              // TODO: check for the relevant LDAP entry... for now there will be only one.
-              LOG.debug("Found existing LDAP authentication record for the user account with the username {}.", userName);
-              createNew = false;
-              break;
-            }
+        for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+          if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LDAP) {
+            // TODO: check for the relevant LDAP entry... for now there will be only one.
+            LOG.debug("Found existing LDAP authentication record for the user account with the username {}.", userName);
+            createNew = false;
+            break;
           }
+        }
 
         if (createNew) {
           LOG.debug("Creating new LDAP authentication record for the user account with the username {}.", userName);
@@ -1110,6 +1040,154 @@ public class Users {
     return implicitPrivileges;
   }
 
+
+  /**
+   * Gets the collection of {@link UserAuthenticationEntity}s for a given user.
+   *
+   * @param username           the username of a user; if null assumes all users
+   * @param authenticationType the authentication type, if null assumes all
+   * @return a collection of the requested {@link UserAuthenticationEntity}s
+   */
+  public Collection<UserAuthenticationEntity> getUserAuthenticationEntities(String username, UserAuthenticationType authenticationType) {
+    if (StringUtils.isEmpty(username)) {
+      if (authenticationType == null) {
+        // Get all
+        return userAuthenticationDAO.findAll();
+      } else {
+        // Get for the specified type
+        return userAuthenticationDAO.findByType(authenticationType);
+      }
+    } else {
+      UserEntity entity = userDAO.findUserByName(username);
+
+      if (entity == null) {
+        return null;
+      } else {
+        List<UserAuthenticationEntity> authenticationEntities = entity.getAuthenticationEntities();
+
+        if (authenticationType == null) {
+          // Get for the specified user
+          return authenticationEntities;
+        } else {
+          // Get for the specified user and type
+          List<UserAuthenticationEntity> pruned = new ArrayList<>();
+          for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+            if (authenticationEntity.getAuthenticationType() == authenticationType) {
+              pruned.add(authenticationEntity);
+            }
+          }
+
+          return pruned;
+        }
+      }
+    }
+  }
+
+  /**
+   * Modifies authentication key of an authentication source for a user
+   *
+   * @throws AmbariException
+   */
+  @Transactional
+  public synchronized void modifyAuthentication(UserAuthenticationEntity userAuthenticationEntity, String currentKey, String newKey, boolean isSelf) throws AmbariException {
+
+    if (userAuthenticationEntity != null) {
+      if (userAuthenticationEntity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
+        // If the authentication record represents a local password and the authenticated user is
+        // changing the password for himself, ensure the old key value matches the current key value
+        // If the authenticated user is can manager users and is not changing his own password, there
+        // is no need to check that the authenticated user knows the current password - just update it.
+        if (isSelf &&
+            (StringUtils.isEmpty(currentKey) || !passwordEncoder.matches(currentKey, userAuthenticationEntity.getAuthenticationKey()))) {
+          // The authenticated user is the same user as subject user and the correct current password
+          // was not supplied.
+          throw new AmbariException("Wrong current password provided");
+        }
+
+        validatePassword(newKey);
+
+        // If we get here the authenticated user is authorized to change the password for the subject
+        // user and the correct current password was supplied (if required).
+        userAuthenticationEntity.setAuthenticationKey(passwordEncoder.encode(newKey));
+      } else {
+        // If we get here the authenticated user is authorized to change the key for the subject.
+        userAuthenticationEntity.setAuthenticationKey(newKey);
+      }
+
+      userAuthenticationDAO.merge(userAuthenticationEntity);
+    }
+  }
+
+  public void removeAuthentication(String username, Long authenticationId) {
+    removeAuthentication(getUserEntity(username), authenticationId);
+  }
+
+  @Transactional
+  public void removeAuthentication(UserEntity userEntity, Long authenticationId) {
+    if ((userEntity != null) && (authenticationId != null)) {
+      boolean changed = false;
+
+      // Ensure we have a latest version of an attached UserEntity...
+      userEntity = userDAO.findByPK(userEntity.getUserId());
+
+      // Find the remove the specified UserAuthenticationEntity from the user's collection of
+      // UserAuthenticationEntities
+      List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+      Iterator<UserAuthenticationEntity> iterator = authenticationEntities.iterator();
+      while (iterator.hasNext()) {
+        UserAuthenticationEntity authenticationEntity = iterator.next();
+        if (authenticationId.equals(authenticationEntity.getUserAuthenticationId())) {
+          userAuthenticationDAO.remove(authenticationEntity);
+          iterator.remove();
+          changed = true;
+          break;
+        }
+      }
+
+      if (changed) {
+        // Update the UserEntity to realize the changed set of authentication sources...
+        userDAO.merge(userEntity);
+      }
+    }
+  }
+
+
+  /**
+   * Adds a new authentication type for the given user.
+   *
+   * @param userEntity         the user
+   * @param authenticationType the authentication type
+   * @param key                the relevant key
+   * @throws AmbariException
+   * @see #addLocalAuthentication(UserEntity, String)
+   * @see #addLdapAuthentication(UserEntity, String)
+   * @see #addJWTAuthentication(UserEntity, String)
+   * @see #addKerberosAuthentication(UserEntity, String)
+   * @see #addPamAuthentication(UserEntity, String)
+   */
+  public void addAuthentication(UserEntity userEntity, UserAuthenticationType authenticationType, String key) throws AmbariException {
+    switch (authenticationType) {
+      case LOCAL:
+        addLocalAuthentication(userEntity, key);
+        break;
+      case LDAP:
+        addLdapAuthentication(userEntity, key);
+        break;
+      case JWT:
+        addJWTAuthentication(userEntity, key);
+        break;
+      case PAM:
+        addPamAuthentication(userEntity, key);
+        break;
+      case KERBEROS:
+        addKerberosAuthentication(userEntity, key);
+        break;
+      default:
+        throw new AmbariException("Unexpected user authentication type");
+    }
+  }
+
+
   /**
    * TODO: This is to be revisited for AMBARI-21217 (Update JWT Authentication process to work with improved user management facility)
    * Adds the ability for a user to authenticate using a JWT token.
@@ -1171,6 +1249,8 @@ public class Users {
    * @throws AmbariException
    */
   public void addLocalAuthentication(UserEntity userEntity, String password) throws AmbariException {
+
+    validatePassword(password);
 
     // Encode the password..
     String encodedPassword = passwordEncoder.encode(password);
@@ -1341,6 +1421,22 @@ public class Users {
    * Attempts to update the specified {@link UserEntity} while handling {@link OptimisticLockException}s
    * by obtaining the latest version of the {@link UserEntity} and retrying the operation.
    *
+   * If the maximum number of retries is exceeded (see {@link #MAX_RETRIES}), then the operation
+   * will fail by rethrowing the last exception encountered.
+   *
+   *
+   * @param userEntity the user entity
+   * @param command  a command to perform on the user entity object that changes it state thus needing
+   *                 to be persisted
+   */
+  public UserEntity safelyUpdateUserEntity(UserEntity userEntity, Command command) {
+    return safelyUpdateUserEntity(userEntity, command, MAX_RETRIES);
+  }
+
+  /***
+   * Attempts to update the specified {@link UserEntity} while handling {@link OptimisticLockException}s
+   * by obtaining the latest version of the {@link UserEntity} and retrying the operation.
+   *
    * If the maximum number of retries is exceeded, then the operation will fail by rethrowing the last
    * exception encountered.
    *
@@ -1348,8 +1444,9 @@ public class Users {
    * @param userEntity the user entity
    * @param command  a command to perform on the user entity object that changes it state thus needing
    *                 to be persisted
+   * @param maxRetries the maximum number of reties to peform before failing
    */
-  private UserEntity safelyUpdateUserEntity(UserEntity userEntity, Command command, int maxRetries) {
+  public UserEntity safelyUpdateUserEntity(UserEntity userEntity, Command command, int maxRetries) {
     int retriesLeft = maxRetries;
 
     do {
@@ -1361,6 +1458,7 @@ public class Users {
         return userEntity;
       } catch (Throwable t) {
         Throwable cause = t;
+        int failSafe = 50; // counter to ensure the following do/while loop does not loop indefinitely
 
         do {
           if (cause instanceof OptimisticLockException) {
@@ -1393,11 +1491,35 @@ public class Users {
             // Get the cause to see if it is an OptimisticLockException
             cause = cause.getCause();
           }
-        } while ((cause != null) && (cause != t)); // We are out of causes
+
+          // decrement the failsafe counter to ensure we do not get stuck in an infinite loop.
+          failSafe--;
+        } while ((cause != null) && (cause != t) && (failSafe > 0)); // We are out of causes
+
+        if ((cause == null) || (cause == t) || failSafe == 0) {
+          throw t;
+        }
       }
     } while (retriesLeft > 0); // We are out of retries
 
     return userEntity;
+  }
+
+  /**
+   * Validates the password meets configured requirements.
+   * <p>
+   * In the future this may be configurable. For now just make sure the password is not empty.
+   *
+   * @param password the password
+   * @return true if the password is valid; false otherwise
+   */
+  public boolean validatePassword(String password) throws AmbariException {
+    // TODO: validate the new password...
+    if (StringUtils.isEmpty(password)) {
+      throw new AmbariException("The new password does not meet the Ambari password requirements");
+    }
+
+    return true;
   }
 
   /**
@@ -1423,7 +1545,7 @@ public class Users {
    *
    * @see #safelyUpdateUserEntity(UserEntity, Command, int)
    */
-  private interface Command {
+  public interface Command {
     void perform(UserEntity userEntity);
   }
 }

@@ -29,8 +29,11 @@
     "name" : "Stacks",
     "description" : "Endpoint for stack specific operations"
   }, {
+    "name" : "User Authentication Sources",
+    "description" : "Endpoint for user specific authentication source operations"
+  }, {
     "name" : "Users",
-    "description" : "Endpoint for user specific operations"
+    "description" : "Endpoint for User specific operations"
   }, {
     "name" : "Views"
   }, {
@@ -4681,20 +4684,20 @@
       "get" : {
         "tags" : [ "Users" ],
         "summary" : "Get all users",
-        "description" : "Returns details of all users.",
-        "operationId" : "UserService#getUsers",
+        "description" : "",
+        "operationId" : "getUsers",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter user details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "Users/*"
+          "default" : "Users/user_name"
         }, {
           "name" : "sortBy",
           "in" : "query",
-          "description" : "Sort users (asc | desc)",
+          "description" : "Sort resources in result by (asc | desc)",
           "required" : false,
           "type" : "string",
           "default" : "Users/user_name.asc"
@@ -4708,16 +4711,18 @@
         }, {
           "name" : "from",
           "in" : "query",
-          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
           "required" : false,
-          "type" : "string",
-          "default" : "0"
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
         }, {
           "name" : "to",
           "in" : "query",
-          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
           "required" : false,
-          "type" : "string"
+          "type" : "integer",
+          "minimum" : 1.0
         } ],
         "responses" : {
           "200" : {
@@ -4725,9 +4730,62 @@
             "schema" : {
               "type" : "array",
               "items" : {
-                "$ref" : "#/definitions/UserResponse"
+                "$ref" : "#/definitions/UserResponseSwagger"
               }
             }
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Users" ],
+        "summary" : "Creates one or more users in a single request",
+        "description" : "",
+        "operationId" : "createUsers",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/UserRequestCreateUsersSwagger"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "409" : {
+            "description" : "The requested resource already exists."
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -4736,38 +4794,49 @@
       "get" : {
         "tags" : [ "Users" ],
         "summary" : "Get single user",
-        "description" : "Returns user details.",
-        "operationId" : "UserService#getUser",
+        "description" : "",
+        "operationId" : "getUser",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "userName",
           "in" : "path",
           "description" : "user name",
           "required" : true,
-          "type" : "string",
-          "default" : "admin"
+          "type" : "string"
         }, {
           "name" : "fields",
           "in" : "query",
-          "description" : "Filter user details",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
           "required" : false,
           "type" : "string",
-          "default" : "Users"
+          "default" : "Users/*"
         } ],
         "responses" : {
           "200" : {
             "description" : "Successful operation",
             "schema" : {
-              "$ref" : "#/definitions/UserResponse"
+              "$ref" : "#/definitions/UserResponseSwagger"
             }
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       },
       "post" : {
         "tags" : [ "Users" ],
         "summary" : "Create new user",
-        "description" : "Creates user resource.",
-        "operationId" : "UserService#createUser",
+        "description" : "",
+        "operationId" : "createUser",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "userName",
@@ -4778,26 +4847,43 @@
         }, {
           "in" : "body",
           "name" : "body",
-          "description" : "input parameters in json form",
-          "required" : true,
+          "required" : false,
           "schema" : {
-            "$ref" : "#/definitions/UserRequest"
+            "$ref" : "#/definitions/UserRequestCreateUserSwagger"
           }
         } ],
         "responses" : {
-          "200" : {
+          "201" : {
             "description" : "Successful operation"
           },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "409" : {
+            "description" : "The requested resource already exists."
+          },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
           }
         }
       },
       "put" : {
         "tags" : [ "Users" ],
-        "summary" : "Update user detail",
-        "description" : "Updates user resource.",
-        "operationId" : "UserService#updateUser",
+        "summary" : "Update user details",
+        "description" : "",
+        "operationId" : "updateUser",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "userName",
@@ -4808,26 +4894,40 @@
         }, {
           "in" : "body",
           "name" : "body",
-          "description" : "input parameters in json form",
-          "required" : true,
+          "required" : false,
           "schema" : {
-            "$ref" : "#/definitions/UserRequest"
+            "$ref" : "#/definitions/UserRequestUpdateUserSwagger"
           }
         } ],
         "responses" : {
-          "200" : {
-            "description" : "Successful operation"
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "409" : {
+            "description" : "The requested resource already exists."
           },
           "500" : {
-            "description" : "Server Error"
+            "description" : "Internal server error"
           }
         }
       },
       "delete" : {
         "tags" : [ "Users" ],
         "summary" : "Delete single user",
-        "description" : "Delete user resource.",
-        "operationId" : "UserService#deleteUser",
+        "description" : "",
+        "operationId" : "deleteUser",
         "produces" : [ "text/plain" ],
         "parameters" : [ {
           "name" : "userName",
@@ -5130,6 +5230,264 @@
             "schema" : {
               "$ref" : "#/definitions/UserPrivilegeResponse"
             }
+          }
+        }
+      }
+    },
+    "/users/{userName}/sources" : {
+      "get" : {
+        "tags" : [ "User Authentication Sources" ],
+        "summary" : "Get all authentication sources",
+        "description" : "",
+        "operationId" : "getAuthenticationSources",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "AuthenticationSourceInfo/source_id,AuthenticationSourceInfo/user_name"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort resources in result by (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "AuthenticationSourceInfo/source_id.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive).  \"start\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "minimum" : 0.0
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive).  \"end\" is also accepted.",
+          "required" : false,
+          "type" : "integer",
+          "minimum" : 1.0
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/UserAuthenticationSourceResponseSwagger"
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "User Authentication Sources" ],
+        "summary" : "Create one or more new authentication sources for a user",
+        "description" : "",
+        "operationId" : "createAuthenticationSources",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/UserAuthenticationSourceRequestCreateSwagger"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successful operation"
+          },
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "409" : {
+            "description" : "The requested resource already exists."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/{userName}/sources/{sourceId}" : {
+      "get" : {
+        "tags" : [ "User Authentication Sources" ],
+        "summary" : "Get user authentication source",
+        "description" : "",
+        "operationId" : "getAuthenticationSource",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "sourceId",
+          "in" : "path",
+          "description" : "source id",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter fields in the response (identifier fields are mandatory)",
+          "required" : false,
+          "type" : "string",
+          "default" : "AuthenticationSourceInfo/*"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/UserAuthenticationSourceResponseSwagger"
+            }
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "User Authentication Sources" ],
+        "summary" : "Updates an existing authentication source",
+        "description" : "",
+        "operationId" : "updateAuthenticationSource",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "sourceId",
+          "in" : "path",
+          "description" : "source id",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/UserAuthenticationSourceRequestUpdateSwagger"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "description" : "Request is accepted, but not completely processed yet"
+          },
+          "400" : {
+            "description" : "Invalid arguments"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "409" : {
+            "description" : "The requested resource already exists."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "User Authentication Sources" ],
+        "summary" : "Deletes an existing authentication source",
+        "description" : "",
+        "operationId" : "deleteAuthenticationSource",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "sourceId",
+          "in" : "path",
+          "description" : "source id",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "401" : {
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "description" : "Not permitted to perform the operation"
+          },
+          "404" : {
+            "description" : "The requested resource doesn't exist."
+          },
+          "500" : {
+            "description" : "Internal server error"
           }
         }
       }
@@ -6086,13 +6444,13 @@
     "Artifacts" : {
       "type" : "object",
       "properties" : {
+        "stack_name" : {
+          "type" : "string"
+        },
         "service_name" : {
           "type" : "string"
         },
         "stack_version" : {
-          "type" : "string"
-        },
-        "stack_name" : {
           "type" : "string"
         },
         "artifact_name" : {
@@ -6103,6 +6461,9 @@
     "BlueprintInfo" : {
       "type" : "object",
       "properties" : {
+        "stack_name" : {
+          "type" : "string"
+        },
         "security" : {
           "$ref" : "#/definitions/SecurityInfo"
         },
@@ -6110,9 +6471,6 @@
           "type" : "string"
         },
         "blueprint_name" : {
-          "type" : "string"
-        },
-        "stack_name" : {
           "type" : "string"
         }
       }
@@ -6187,14 +6545,14 @@
     "ClusterArtifactResponse" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterArtifactResponseInfo"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterArtifactResponseInfo"
         }
       }
     },
@@ -6380,14 +6738,14 @@
     "ClusterServiceArtifactResponse" : {
       "type" : "object",
       "properties" : {
+        "Artifacts" : {
+          "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
+        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
-        },
-        "Artifacts" : {
-          "$ref" : "#/definitions/ClusterServiceArtifactResponseInfo"
         }
       }
     },
@@ -6419,13 +6777,16 @@
         "scope" : {
           "type" : "string"
         },
+        "stack_name" : {
+          "type" : "string"
+        },
         "service_name" : {
           "type" : "string"
         },
-        "component_name" : {
+        "stack_version" : {
           "type" : "string"
         },
-        "stack_version" : {
+        "component_name" : {
           "type" : "string"
         },
         "conditions" : {
@@ -6438,9 +6799,6 @@
           "type" : "string"
         },
         "dependent_service_name" : {
-          "type" : "string"
-        },
-        "stack_name" : {
           "type" : "string"
         }
       }
@@ -6620,6 +6978,66 @@
               "type" : "string"
             }
           }
+        }
+      }
+    },
+    "CreateUserAuthenticationSourceInfo" : {
+      "type" : "object",
+      "required" : [ "authentication_type", "key" ],
+      "properties" : {
+        "key" : {
+          "type" : "string"
+        },
+        "authentication_type" : {
+          "type" : "string",
+          "enum" : [ "LOCAL", "LDAP", "JWT", "PAM", "KERBEROS" ]
+        }
+      }
+    },
+    "CreateUserInfo" : {
+      "type" : "object",
+      "properties" : {
+        "display_name" : {
+          "type" : "string"
+        },
+        "active" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "password" : {
+          "type" : "string"
+        },
+        "admin" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "local_user_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CreateUsersInfo" : {
+      "type" : "object",
+      "properties" : {
+        "display_name" : {
+          "type" : "string"
+        },
+        "active" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "user_name" : {
+          "type" : "string"
+        },
+        "password" : {
+          "type" : "string"
+        },
+        "admin" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "local_user_name" : {
+          "type" : "string"
         }
       }
     },
@@ -6825,12 +7243,12 @@
             "$ref" : "#/definitions/ComponentInfo"
           }
         },
-        "name" : {
-          "type" : "string"
-        },
         "cardinality" : {
           "type" : "integer",
           "format" : "int32"
+        },
+        "name" : {
+          "type" : "string"
         }
       }
     },
@@ -6888,13 +7306,13 @@
         "maintenance_state" : {
           "type" : "string"
         },
-        "host_group" : {
+        "public_host_name" : {
           "type" : "string"
         },
         "blueprint" : {
           "type" : "string"
         },
-        "public_host_name" : {
+        "host_group" : {
           "type" : "string"
         }
       }
@@ -6975,10 +7393,10 @@
           "type" : "string",
           "enum" : [ "OFF", "ON", "IMPLIED_FROM_SERVICE", "IMPLIED_FROM_HOST", "IMPLIED_FROM_SERVICE_AND_HOST" ]
         },
-        "public_host_name" : {
+        "host_health_report" : {
           "type" : "string"
         },
-        "host_health_report" : {
+        "public_host_name" : {
           "type" : "string"
         }
       }
@@ -7331,16 +7749,16 @@
         "file_name" : {
           "type" : "string"
         },
-        "service_name" : {
+        "stack_name" : {
           "type" : "string"
         },
         "quicklink_data" : {
           "$ref" : "#/definitions/QuickLinksConfiguration"
         },
-        "stack_version" : {
+        "service_name" : {
           "type" : "string"
         },
-        "stack_name" : {
+        "stack_version" : {
           "type" : "string"
         }
       }
@@ -7408,16 +7826,13 @@
           "type" : "boolean",
           "default" : false
         },
+        "repoName" : {
+          "type" : "string"
+        },
         "baseUrl" : {
           "type" : "string"
         },
         "mirrorsList" : {
-          "type" : "string"
-        },
-        "latestUri" : {
-          "type" : "string"
-        },
-        "repoName" : {
           "type" : "string"
         },
         "repoId" : {
@@ -7465,9 +7880,6 @@
           "type" : "string"
         },
         "defaultBaseUrl" : {
-          "type" : "string"
-        },
-        "latestBaseUrl" : {
           "type" : "string"
         },
         "repoSaved" : {
@@ -7525,6 +7937,15 @@
             "$ref" : "#/definitions/RepositoryVersionEntity"
           }
         },
+        "stackId" : {
+          "$ref" : "#/definitions/StackId"
+        },
+        "repositoryXml" : {
+          "$ref" : "#/definitions/VersionDefinitionXml"
+        },
+        "stackName" : {
+          "type" : "string"
+        },
         "operatingSystemsJson" : {
           "type" : "string"
         },
@@ -7534,15 +7955,6 @@
         },
         "stackVersion" : {
           "type" : "string"
-        },
-        "stackId" : {
-          "$ref" : "#/definitions/StackId"
-        },
-        "stackName" : {
-          "type" : "string"
-        },
-        "repositoryXml" : {
-          "$ref" : "#/definitions/VersionDefinitionXml"
         }
       }
     },
@@ -7568,14 +7980,14 @@
             "$ref" : "#/definitions/RepositoryInfo"
           }
         },
-        "latestURI" : {
-          "type" : "string"
-        },
         "errors" : {
           "type" : "array",
           "items" : {
             "type" : "string"
           }
+        },
+        "latestURI" : {
+          "type" : "string"
         }
       },
       "xml" : {
@@ -7609,14 +8021,14 @@
             "type" : "object"
           }
         },
-        "action" : {
-          "type" : "string"
+        "operation_level" : {
+          "$ref" : "#/definitions/OperationLevel"
         },
         "command" : {
           "type" : "string"
         },
-        "operation_level" : {
-          "$ref" : "#/definitions/OperationLevel"
+        "action" : {
+          "type" : "string"
         }
       }
     },
@@ -7673,6 +8085,9 @@
     "RequestResourceFilter" : {
       "type" : "object",
       "properties" : {
+        "hosts" : {
+          "type" : "string"
+        },
         "service_name" : {
           "type" : "string"
         },
@@ -7680,9 +8095,6 @@
           "type" : "string"
         },
         "hosts_predicate" : {
-          "type" : "string"
-        },
-        "hosts" : {
           "type" : "string"
         }
       }
@@ -7701,10 +8113,21 @@
         "type" : {
           "type" : "string"
         },
-        "start_time" : {
-          "type" : "string"
+        "create_time" : {
+          "type" : "integer",
+          "format" : "int64"
         },
         "request_context" : {
+          "type" : "string"
+        },
+        "task_count" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "completed_task_count" : {
+          "type" : "string"
+        },
+        "start_time" : {
           "type" : "string"
         },
         "request_status" : {
@@ -7713,19 +8136,12 @@
         "cluster_name" : {
           "type" : "string"
         },
-        "request_schedule" : {
-          "type" : "string"
-        },
         "id" : {
           "type" : "string"
         },
         "aborted_task_count" : {
           "type" : "integer",
           "format" : "int32"
-        },
-        "create_time" : {
-          "type" : "integer",
-          "format" : "int64"
         },
         "end_time" : {
           "type" : "string"
@@ -7737,9 +8153,6 @@
         "failed_task_count" : {
           "type" : "integer",
           "format" : "int32"
-        },
-        "inputs" : {
-          "type" : "string"
         },
         "operation_level" : {
           "type" : "string"
@@ -7762,11 +8175,10 @@
             "$ref" : "#/definitions/RequestResourceFilter"
           }
         },
-        "task_count" : {
-          "type" : "integer",
-          "format" : "int32"
+        "request_schedule" : {
+          "type" : "string"
         },
-        "completed_task_count" : {
+        "inputs" : {
           "type" : "string"
         }
       }
@@ -8172,14 +8584,14 @@
     "StackArtifactResponse" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/Artifacts"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/Artifacts"
         }
       }
     },
@@ -8317,14 +8729,14 @@
     "StackServiceArtifactResponse" : {
       "type" : "object",
       "properties" : {
-        "Artifacts" : {
-          "$ref" : "#/definitions/Artifacts"
-        },
         "artifact_data" : {
           "type" : "object",
           "additionalProperties" : {
             "type" : "object"
           }
+        },
+        "Artifacts" : {
+          "$ref" : "#/definitions/Artifacts"
         }
       }
     },
@@ -8687,17 +9099,17 @@
         "file_name" : {
           "type" : "string"
         },
+        "theme_data" : {
+          "$ref" : "#/definitions/Theme"
+        },
+        "stack_name" : {
+          "type" : "string"
+        },
         "service_name" : {
           "type" : "string"
         },
         "stack_version" : {
           "type" : "string"
-        },
-        "stack_name" : {
-          "type" : "string"
-        },
-        "theme_data" : {
-          "$ref" : "#/definitions/Theme"
         }
       }
     },
@@ -8714,6 +9126,95 @@
       "properties" : {
         "unit-name" : {
           "type" : "string"
+        }
+      }
+    },
+    "UpdateUserInfo" : {
+      "type" : "object",
+      "properties" : {
+        "display_name" : {
+          "type" : "string"
+        },
+        "active" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "password" : {
+          "type" : "string"
+        },
+        "admin" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "local_user_name" : {
+          "type" : "string"
+        },
+        "old_password" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UserAuthenticationSourceRequestCreateSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "AuthenticationSourceInfo" : {
+          "$ref" : "#/definitions/CreateUserAuthenticationSourceInfo"
+        }
+      }
+    },
+    "UserAuthenticationSourceRequestUpdateInfo" : {
+      "type" : "object",
+      "required" : [ "key" ],
+      "properties" : {
+        "key" : {
+          "type" : "string"
+        },
+        "old_key" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UserAuthenticationSourceRequestUpdateSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "AuthenticationSourceInfo" : {
+          "$ref" : "#/definitions/UserAuthenticationSourceRequestUpdateInfo"
+        }
+      }
+    },
+    "UserAuthenticationSourceResponse" : {
+      "type" : "object",
+      "required" : [ "authentication_type", "source_id", "user_name" ],
+      "properties" : {
+        "user_name" : {
+          "type" : "string"
+        },
+        "source_id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "authentication_type" : {
+          "type" : "string",
+          "enum" : [ "LOCAL", "LDAP", "JWT", "PAM", "KERBEROS" ]
+        },
+        "key" : {
+          "type" : "string"
+        },
+        "created" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "updated" : {
+          "type" : "string",
+          "format" : "date-time"
+        }
+      }
+    },
+    "UserAuthenticationSourceResponseSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "AuthenticationSourceInfo" : {
+          "$ref" : "#/definitions/UserAuthenticationSourceResponse"
         }
       }
     },
@@ -8800,60 +9301,80 @@
         }
       }
     },
-    "UserRequest" : {
+    "UserRequestCreateUserSwagger" : {
       "type" : "object",
       "properties" : {
-        "Users/password" : {
-          "type" : "string"
-        },
-        "Users/old_password" : {
-          "type" : "string"
-        },
-        "Users/active" : {
-          "type" : "boolean",
-          "default" : false
-        },
-        "Users/admin" : {
-          "type" : "boolean",
-          "default" : false
-        },
-        "Users/display_name" : {
-          "type" : "string"
-        },
-        "Users/local_user_name" : {
-          "type" : "string"
+        "Users" : {
+          "$ref" : "#/definitions/CreateUserInfo"
+        }
+      }
+    },
+    "UserRequestCreateUsersSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "Users" : {
+          "$ref" : "#/definitions/CreateUsersInfo"
+        }
+      }
+    },
+    "UserRequestUpdateUserSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "Users" : {
+          "$ref" : "#/definitions/UpdateUserInfo"
         }
       }
     },
     "UserResponse" : {
       "type" : "object",
-      "required" : [ "Users/user_name" ],
       "properties" : {
-        "Users/authentication_type" : {
+        "display_name" : {
+          "type" : "string"
+        },
+        "user_type" : {
           "type" : "string",
           "enum" : [ "LOCAL", "LDAP", "JWT", "PAM", "KERBEROS" ]
         },
-        "Users/groups" : {
+        "groups" : {
           "type" : "array",
           "uniqueItems" : true,
           "items" : {
             "type" : "string"
           }
         },
-        "Users/active" : {
+        "created" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "consecutive_failures" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "active" : {
           "type" : "boolean",
           "default" : false
         },
-        "Users/user_name" : {
+        "user_name" : {
           "type" : "string"
         },
-        "Users/admin" : {
+        "admin" : {
           "type" : "boolean",
           "default" : false
         },
-        "Users/ldap_user" : {
+        "ldap_user" : {
           "type" : "boolean",
           "default" : false
+        },
+        "local_user_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UserResponseSwagger" : {
+      "type" : "object",
+      "properties" : {
+        "Users" : {
+          "$ref" : "#/definitions/UserResponse"
         }
       }
     },

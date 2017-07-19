@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.controller.internal.UserResourceProvider;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -38,12 +40,12 @@ public class UserRequest {
     this.userName = name;
   }
 
-  @ApiModelProperty(name = "Users/user_name",hidden = true)
+  @ApiModelProperty(name = UserResourceProvider.USERNAME_PROPERTY_ID)
   public String getUsername() {
     return userName;
   }
 
-  @ApiModelProperty(name = "Users/password")
+  @ApiModelProperty(name = UserResourceProvider.PASSWORD_PROPERTY_ID)
   public String getPassword() {
     return password;
   }
@@ -52,7 +54,7 @@ public class UserRequest {
     password = userPass;
   }
 
-  @ApiModelProperty(name = "Users/old_password")
+  @ApiModelProperty(name = UserResourceProvider.OLD_PASSWORD_PROPERTY_ID)
   public String getOldPassword() {
     return oldPassword;
   }
@@ -61,7 +63,7 @@ public class UserRequest {
     oldPassword = oldUserPass;
   }
 
-  @ApiModelProperty(name = "Users/active")
+  @ApiModelProperty(name = UserResourceProvider.ACTIVE_PROPERTY_ID)
   public Boolean isActive() {
     return active;
   }
@@ -70,7 +72,7 @@ public class UserRequest {
     this.active = active;
   }
 
-  @ApiModelProperty(name = "Users/admin")
+  @ApiModelProperty(name = UserResourceProvider.ADMIN_PROPERTY_ID)
   public Boolean isAdmin() {
     return admin;
   }
@@ -79,7 +81,7 @@ public class UserRequest {
     this.admin = admin;
   }
 
-  @ApiModelProperty(name = "Users/display_name")
+  @ApiModelProperty(name = UserResourceProvider.DISPLAY_NAME_PROPERTY_ID)
   public String getDisplayName() {
     return displayName;
   }
@@ -88,7 +90,7 @@ public class UserRequest {
     this.displayName = displayName;
   }
 
-  @ApiModelProperty(name = "Users/local_user_name")
+  @ApiModelProperty(name = UserResourceProvider.LOCAL_USERNAME_PROPERTY_ID)
   public String getLocalUserName() {
     return localUserName;
   }
@@ -103,5 +105,4 @@ public class UserRequest {
     sb.append("User, username=").append(userName);
     return sb.toString();
   }
-
 }

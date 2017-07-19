@@ -139,17 +139,6 @@
         "Tasks/ops_display_name",
         "_"
     ],
-    "User":[
-        "Users/user_name",
-        "Users/password",
-        "Users/old_password",
-        "Users/ldap_user",
-        "Users/user_type",
-        "Users/active",
-        "Users/groups",
-        "Users/admin",
-        "_"
-    ],
     "Group":[
         "Groups/group_name",
         "Groups/ldap_group",

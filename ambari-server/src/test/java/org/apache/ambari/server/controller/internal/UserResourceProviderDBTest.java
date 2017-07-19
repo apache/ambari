@@ -18,9 +18,12 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.powermock.api.easymock.PowerMock.createMock;
+import static org.powermock.api.easymock.PowerMock.replay;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -68,6 +72,7 @@ public class UserResourceProviderDBTest {
   private static AmbariManagementController amc;
   private static Resource.Type userType = Resource.Type.User;
   private static UserResourceProvider userResourceProvider;
+  private static UserAuthenticationSourceResourceProvider userAuthenticationSourceResourceProvider;
   private static String JDBC_IN_MEMORY_URL_CREATE =
       String.format("jdbc:derby:memory:myDB/%s;create=true", Configuration.DEFAULT_DERBY_SCHEMA);
   private static String JDBC_IN_MEMORY_URL_DROP =
@@ -89,11 +94,18 @@ public class UserResourceProviderDBTest {
 
     amc = injector.getInstance(AmbariManagementController.class);
 
-    Set<String> propertyIds = PropertyHelper.getPropertyIds(userType);
-    Map<Resource.Type, String> keyPropertyIds = PropertyHelper.getKeyPropertyIds(userType);
-
-    userResourceProvider = new UserResourceProvider(propertyIds, keyPropertyIds, amc);
+    userResourceProvider = new UserResourceProvider(amc);
     injector.injectMembers(userResourceProvider);
+
+    userAuthenticationSourceResourceProvider = new UserAuthenticationSourceResourceProvider();
+    injector.injectMembers(userAuthenticationSourceResourceProvider);
+
+
+    ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
+    expect(factory.getUserAuthenticationSourceResourceProvider()).andReturn(userAuthenticationSourceResourceProvider).anyTimes();
+    replay(factory);
+    AbstractControllerResourceProvider.init(factory);
+
   }
 
   /**
@@ -177,7 +189,7 @@ public class UserResourceProviderDBTest {
       requestStatus = userResourceProvider.createResources(request);
       assertTrue("Should fail with user exists", false);
     } catch (Exception ex) {
-      assertTrue(ex.getMessage().contains("User already exists"));
+      assertTrue(ex.getMessage().contains("already exists"));
     }
 
     // delete the created username
