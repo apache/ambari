@@ -68,7 +68,10 @@ zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
 zk_data_dir = config['configurations']['zoo.cfg']['dataDir']
 zk_pid_dir = status_params.zk_pid_dir
 zk_pid_file = status_params.zk_pid_file
-zk_server_heapsize_value = default('configurations/zookeeper-env/zk_server_heapsize', "1024m")
+zk_server_heapsize_value = str(default('configurations/zookeeper-env/zk_server_heapsize', "1024"))
+zk_server_heapsize_value = zk_server_heapsize_value.strip()
+if len(zk_server_heapsize_value) > 0 and zk_server_heapsize_value[-1].isdigit():
+  zk_server_heapsize_value = zk_server_heapsize_value + "m"
 zk_server_heapsize = format("-Xmx{zk_server_heapsize_value}")
 
 client_port = default('/configurations/zoo.cfg/clientPort', None)
