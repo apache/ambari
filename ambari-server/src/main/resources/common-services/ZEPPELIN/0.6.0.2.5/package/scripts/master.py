@@ -295,6 +295,7 @@ class Master(Script):
           interpreter['properties']['zeppelin.jdbc.keytab.location'] = params.zeppelin_kerberos_keytab
           if params.zookeeper_znode_parent \
               and params.hbase_zookeeper_quorum \
+              and 'phoenix.url' in interpreter['properties'] \
               and params.zookeeper_znode_parent not in interpreter['properties']['phoenix.url']:
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                        params.hbase_zookeeper_quorum + ':' + \
