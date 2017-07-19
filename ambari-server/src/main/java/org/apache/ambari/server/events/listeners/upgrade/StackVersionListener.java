@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -29,8 +30,10 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -64,6 +68,13 @@ public class StackVersionListener {
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
+
+  /**
+   * Used for looking up a component's advertising version status given a stack
+   * and name.
+   */
+  @Inject
+  private Provider<AmbariMetaInfo> ambariMetaInfoProvider;
 
   /**
    * Constructor.
@@ -108,19 +119,29 @@ public class StackVersionListener {
 
     // Update host component version value if needed
     try {
-      ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(
-          sch.getServiceComponentName());
+      // get the component information for the desired stack; if a component
+      // moves from UNKNOWN to providing a version, we must do the version
+      // advertised check against the target stack
+      StackId desiredStackId = sch.getDesiredStackVersion();
+
+      AmbariMetaInfo ambariMetaInfo = ambariMetaInfoProvider.get();
+      ComponentInfo componentInfo = ambariMetaInfo.getComponent(desiredStackId.getStackName(),
+          desiredStackId.getStackVersion(), sch.getServiceName(), sch.getServiceComponentName());
 
       // not advertising a version, do nothing
-      if (!sc.isVersionAdvertised()) {
+      if (!componentInfo.isVersionAdvertised()) {
         // that's odd; a version came back - log it and still do nothing
         if (!StringUtils.equalsIgnoreCase(UNKNOWN_VERSION, newVersion)) {
-          LOG.debug(
+          LOG.warn(
               "ServiceComponent {} doesn't advertise version, however ServiceHostComponent {} on host {} advertised version as {}. Skipping version update",
-              sc.getName(), sch.getServiceComponentName(), sch.getHostName(), newVersion);
+              sch.getServiceComponentName(), sch.getServiceComponentName(), sch.getHostName(),
+              newVersion);
         }
         return;
       }
+
+      ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(
+          sch.getServiceComponentName());
 
       boolean desiredVersionIsCurrentlyUnknown = StringUtils.equalsIgnoreCase(UNKNOWN_VERSION,
           sc.getDesiredVersion());
