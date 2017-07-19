@@ -514,7 +514,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * {@inheritDoc}
    */
   @Override
-  public RegistryResponse addRegistry(RegistryRequest request) {
+  public RegistryResponse addRegistry(RegistryRequest request) throws AmbariException {
     Registry registry = registryManager.addRegistry(
       request.getRegistryName(), request.getRegistryType(), request.getRegistryUri());
     return new RegistryResponse(registry);
@@ -531,6 +531,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       responses.addAll(getRegistries(request));
     }
     return responses;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @param registryId registry id
+   *
+   * @return
+   * @throws AmbariException
+   */
+  @Override
+  public Registry getRegistry(final Long registryId) throws AmbariException {
+    return registryManager.getRegistry(registryId);
   }
 
   private Set<RegistryResponse> getRegistries(RegistryRequest request)

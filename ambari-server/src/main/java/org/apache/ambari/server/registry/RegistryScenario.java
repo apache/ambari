@@ -15,22 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.registry;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+import java.util.List;
 
 /**
- * Factory interface for Guice injections
+ * Represents a single instance of a registry scenario
  */
-public interface RegistryFactory {
+public interface RegistryScenario {
+  /**
+   * Get scenario nmae
+   * @return
+   */
+  public String getScenarioName();
 
   /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
+   * Get scenario description
+   * @return
    */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+  public String getScenarioDescription();
+
+  /**
+   * Get mpacks that define this scenario
+   * @return
+   */
+  public List<? extends RegistryScenarioMpack> getScenarioMpacks();
 }

@@ -55,7 +55,7 @@ public class RegistryResourceProvider extends AbstractControllerResourceProvider
   public static final String REGISTRY_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "registry_uri";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(REGISTRY_ID, REGISTRY_NAME));
+    Arrays.asList(REGISTRY_ID));
 
   /**
    * The property ids for a software registry resource.
@@ -188,7 +188,7 @@ public class RegistryResourceProvider extends AbstractControllerResourceProvider
    *
    * @param requests software registry requests
    */
-  private Set<RegistryResponse> addRegistries(Set<RegistryRequest> requests) {
+  private Set<RegistryResponse> addRegistries(Set<RegistryRequest> requests) throws AmbariException {
     Set<RegistryResponse> responses = new HashSet<>();
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");

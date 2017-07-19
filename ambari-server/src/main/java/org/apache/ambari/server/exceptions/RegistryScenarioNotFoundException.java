@@ -16,21 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.registry;
+package org.apache.ambari.server.exceptions;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+import org.apache.ambari.server.ObjectNotFoundException;
 
-/**
- * Factory interface for Guice injections
- */
-public interface RegistryFactory {
+@SuppressWarnings("serial")
+public class RegistryScenarioNotFoundException extends ObjectNotFoundException {
 
-  /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
-   */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+  public RegistryScenarioNotFoundException(String registryName, String scenarioName) {
+    super("Registry scenario not found, registryName=" + registryName + " scenarioName=" + scenarioName);
+  }
 }

@@ -33,7 +33,8 @@ public interface RegistryManager {
    * @param registryType software registry type
    * @param registryUri software registry uri
    */
-  public Registry addRegistry(String registryName, RegistryType registryType, String registryUri);
+  public Registry addRegistry(String registryName, RegistryType registryType, String registryUri)
+    throws AmbariException;
 
   /**
    * Get a software registry given the registry ID

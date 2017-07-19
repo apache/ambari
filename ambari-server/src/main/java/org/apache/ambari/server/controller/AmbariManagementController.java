@@ -42,6 +42,7 @@ import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -154,7 +155,7 @@ public interface AmbariManagementController {
    *
    * @param request the request object which defines the software registry to be added
    */
-  RegistryResponse addRegistry(RegistryRequest request);
+  RegistryResponse addRegistry(RegistryRequest request) throws AmbariException;
 
   /**
    * Register the mpack defined by the attributes in the given request object.
@@ -954,5 +955,15 @@ public interface AmbariManagementController {
    */
   Set<RegistryResponse> getRegistries(Set<RegistryRequest> requests)
     throws AmbariException;
+
+  /**
+   * Get information about specific software registry
+   * @param registryId registry id
+   *
+   * @return {@link Registry}
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
+  Registry getRegistry(Long registryId) throws AmbariException;
 }
 

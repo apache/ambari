@@ -15,22 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.registry;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * Factory interface for Guice injections
+ * Represents a single instance of a software registry
  */
-public interface RegistryFactory {
+public interface RegistryMpackCompatiblity {
+  /**
+   * Get name
+   * @return
+   */
+  @JsonProperty("name")
+  public String getName();
 
   /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
+   * Get min version
+   * @return
    */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+  @JsonProperty("minVersion")
+  public String getMinVersion();
+
+  /**
+   * Get max version
+   * @return
+   */
+  @JsonProperty("maxVersion")
+  public String getMaxVersion();
 }

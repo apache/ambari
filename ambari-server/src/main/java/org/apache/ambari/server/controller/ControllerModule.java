@@ -101,9 +101,8 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.registry.RegistryFactory;
-import org.apache.ambari.server.registry.RegistryImpl;
+import org.apache.ambari.server.registry.RegistryFactoryImpl;
 import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.registry.RegistryManagerImpl;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
@@ -500,9 +499,8 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
     install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
     install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
-    install(new FactoryModuleBuilder().implement(
-      Registry.class, RegistryImpl.class).build(RegistryFactory.class));
 
+    bind(RegistryFactory.class).to(RegistryFactoryImpl.class);
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
     bind(BlueprintFactory.class);

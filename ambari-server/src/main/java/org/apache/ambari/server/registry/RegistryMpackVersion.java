@@ -15,22 +15,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.registry;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+import java.util.List;
 
 /**
- * Factory interface for Guice injections
+ * Represents a single instance of a registry mpack version
  */
-public interface RegistryFactory {
+public interface RegistryMpackVersion {
+  /**
+   * Get mpack version
+   * @return
+   */
+  public String getMpackVersion();
 
   /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
+   * Get mpack build number
+   * @return
    */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+  public String getMpackBuildNumber();
+
+  /**
+   * Get mpack url
+   * @return
+   */
+  public String getMpackUrl();
+
+  /**
+   * Get mpack doc url
+   * @return
+   */
+  public String getMpackDocUrl();
+
+  /**
+   * Get list of services in the mpack version
+   * @return
+   */
+  public List<? extends RegistryMpackService> getMpackServices();
+
+  /**
+   * Get list of compatible mpacks
+   * @return
+   */
+  public List<? extends RegistryMpackCompatiblity> getCompatibleMpacks();
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,22 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.api.services.registry;
 
-package org.apache.ambari.server.registry;
+import org.apache.ambari.server.controller.ApiModel;
+import org.apache.ambari.server.controller.RegistryMpackVersionRequest;
+import org.apache.ambari.server.controller.internal.RegistryMpackVersionResourceProvider;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+import io.swagger.annotations.ApiModelProperty;
 
-/**
- * Factory interface for Guice injections
- */
-public interface RegistryFactory {
-
-  /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
-   */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+@SuppressWarnings("unused") // for Swagger
+public interface RegistryMpackVersionRequestSwagger extends ApiModel {
+  @ApiModelProperty(name = RegistryMpackVersionResourceProvider.RESPONSE_KEY)
+  RegistryMpackVersionRequest getRegistryMpackVersionRequest();
 }

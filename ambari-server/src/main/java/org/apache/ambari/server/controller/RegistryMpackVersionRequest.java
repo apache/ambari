@@ -15,54 +15,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.api.resources;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
+package org.apache.ambari.server.controller;
 
 /**
- * Resource Definition for registry resource types.
+ * Request for registry mpack resource version type.
  */
-public class RegistryResourceDefinition extends BaseResourceDefinition {
+public class RegistryMpackVersionRequest {
+  private Long registryId;
+  private String mpackName;
+  private String mpackVersion;
 
   /**
    * Constructor
+   * @param registryId    registry id
+   * @param mpackName     mpack name
+   * @param mpackVersion  mpack version
    */
-  public RegistryResourceDefinition() {
-    super(Type.Registry);
+  public RegistryMpackVersionRequest(
+    Long registryId, String mpackName, String mpackVersion) {
+    this.registryId = registryId;
+    this.mpackName = mpackName;
+    this.mpackVersion = mpackVersion;
   }
 
   /**
-   * {@inheritDoc}
-   *
+   * Get registry id
    * @return
    */
-  @Override
-  public String getPluralName() {
-    return "registries";
+  public Long getRegistryId() {
+    return registryId;
   }
 
   /**
-   * {@inheritDoc}
+   * Get mpack name
    * @return
    */
-  @Override
-  public String getSingularName() {
-    return "registry";
+  public String getMpackName() {
+    return mpackName;
   }
 
   /**
-   * {@inheritDoc}
+   * Get mpack version
    * @return
    */
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<>();
-    subs.add(new SubResourceDefinition(Resource.Type.RegistryScenario));
-    subs.add(new SubResourceDefinition(Resource.Type.RegistryMpack));
-    return subs;
+  public String getMpackVersion() {
+    return mpackVersion;
   }
 }

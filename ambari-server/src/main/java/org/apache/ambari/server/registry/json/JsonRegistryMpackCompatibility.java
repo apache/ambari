@@ -15,16 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.api.services;
+package org.apache.ambari.server.registry.json;
 
-import org.apache.ambari.server.controller.ApiModel;
-import org.apache.ambari.server.controller.RegistryRequest;
-import org.apache.ambari.server.controller.internal.RegistryResourceProvider;
+import org.apache.ambari.server.registry.RegistryMpackCompatiblity;
 
-import io.swagger.annotations.ApiModelProperty;
+import com.google.gson.annotations.SerializedName;
 
-@SuppressWarnings("unused") // for Swagger
-public interface RegistryRequestSwagger extends ApiModel {
-  @ApiModelProperty(name = RegistryResourceProvider.RESPONSE_KEY)
-  RegistryRequest getRegistryRequest();
+/**
+ * JSON implementation of {@link RegistryMpackCompatiblity}
+ */
+public class JsonRegistryMpackCompatibility implements RegistryMpackCompatiblity {
+
+  @SerializedName("name")
+  private String name;
+
+  @SerializedName("minVersion")
+  private String minVersion;
+
+  @SerializedName("maxVersion")
+  private String maxVersion;
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String getMinVersion() {
+    return minVersion;
+  }
+
+  @Override
+  public String getMaxVersion() {
+    return maxVersion;
+  }
 }

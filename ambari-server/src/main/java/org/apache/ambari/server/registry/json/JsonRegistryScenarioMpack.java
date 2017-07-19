@@ -15,22 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.registry.json;
 
-package org.apache.ambari.server.registry;
+import org.apache.ambari.server.registry.RegistryScenarioMpack;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Factory interface for Guice injections
+ * JSON implementation of {@link RegistryScenarioMpack}
  */
-public interface RegistryFactory {
+public class JsonRegistryScenarioMpack implements RegistryScenarioMpack {
 
-  /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
-   */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+  @SerializedName("name")
+  private String name;
+
+  @Override
+  public String getName() {
+    return name;
+  }
 }

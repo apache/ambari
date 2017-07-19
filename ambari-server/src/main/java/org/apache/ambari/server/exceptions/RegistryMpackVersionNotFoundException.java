@@ -16,21 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.registry;
+package org.apache.ambari.server.exceptions;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+import org.apache.ambari.server.ObjectNotFoundException;
 
-/**
- * Factory interface for Guice injections
- */
-public interface RegistryFactory {
+@SuppressWarnings("serial")
+public class RegistryMpackVersionNotFoundException extends ObjectNotFoundException {
 
-  /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
-   */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+  public RegistryMpackVersionNotFoundException(String mpackName, String mpackVersion) {
+    super("Registry mpack version not found, mpackName=" + mpackName + " mpackVersion=" + mpackVersion);
+  }
 }

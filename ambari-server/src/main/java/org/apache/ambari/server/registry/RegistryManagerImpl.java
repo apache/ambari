@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.EntityManager;
 
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.exceptions.RegistryNotFoundException;
@@ -36,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
 
 /**
  * Provides high-level access to software registries
@@ -58,6 +56,7 @@ public class RegistryManagerImpl implements RegistryManager {
    */
   @Inject
   private AmbariEventPublisher eventPublisher;
+
 
   private Map<Long, Registry> registriesById = new ConcurrentHashMap<>();
   private Map<String, Registry> registriesByName = new ConcurrentHashMap<>();
@@ -81,8 +80,7 @@ public class RegistryManagerImpl implements RegistryManager {
    * instantiated and injected.
    */
   @Inject
-  @Transactional
-  void loadRegistries() {
+  void loadRegistries() throws AmbariException {
     for (RegistryEntity registryEntity : registryDAO.findAll()) {
       Registry registry = registryFactory.create(registryEntity);
       registriesById.put(registryEntity.getRegistryId(), registry);
@@ -94,7 +92,8 @@ public class RegistryManagerImpl implements RegistryManager {
    * {@inheritDoc}
    */
   @Override
-  public synchronized Registry addRegistry(String registryName, RegistryType registryType, String registryUri) {
+  public synchronized Registry addRegistry(String registryName, RegistryType registryType, String registryUri)
+    throws AmbariException {
 
     RegistryEntity registryEntity = new RegistryEntity();
     registryEntity.setRegistryName(registryName);

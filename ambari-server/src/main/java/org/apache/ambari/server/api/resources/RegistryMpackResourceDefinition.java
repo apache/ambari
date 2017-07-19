@@ -21,28 +21,26 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
- * Resource Definition for registry resource types.
+ * Resource definition for registry mpack resource types.
  */
-public class RegistryResourceDefinition extends BaseResourceDefinition {
+public class RegistryMpackResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor
    */
-  public RegistryResourceDefinition() {
-    super(Type.Registry);
+  public RegistryMpackResourceDefinition() {
+    super(Resource.Type.RegistryMpack);
   }
 
   /**
    * {@inheritDoc}
-   *
    * @return
    */
   @Override
   public String getPluralName() {
-    return "registries";
+    return "mpacks";
   }
 
   /**
@@ -51,7 +49,7 @@ public class RegistryResourceDefinition extends BaseResourceDefinition {
    */
   @Override
   public String getSingularName() {
-    return "registry";
+    return "mpack";
   }
 
   /**
@@ -61,8 +59,7 @@ public class RegistryResourceDefinition extends BaseResourceDefinition {
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
     Set<SubResourceDefinition> subs = new HashSet<>();
-    subs.add(new SubResourceDefinition(Resource.Type.RegistryScenario));
-    subs.add(new SubResourceDefinition(Resource.Type.RegistryMpack));
+    subs.add(new SubResourceDefinition(Resource.Type.RegistryMpackVersion));
     return subs;
   }
 }

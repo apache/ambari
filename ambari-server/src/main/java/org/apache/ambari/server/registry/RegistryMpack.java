@@ -24,52 +24,34 @@ import org.apache.ambari.server.AmbariException;
 /**
  * Represents a single instance of a software registry
  */
-public interface Registry {
+public interface RegistryMpack {
   /**
-   * Get software registry id
-   * @return registry id
-   */
-  public Long getRegistryId();
-
-  /**
-   * Get software registry name
-   * @return registry name
-   */
-  public String getRegistryName();
-
-  /**
-   * Get software registry type
-   * @return registry type
-   */
-  public RegistryType getRegistryType();
-
-  /**
-   * Get software registry Uri
-   * @return registry uri
-   */
-  public String getRegistryUri();
-
-  /**
-   * Get list of scenarios defined in the software registry
-   * @return list of {@link RegistryScenario}'s
-   */
-  public List<? extends RegistryScenario> getRegistryScenarios();
-
-  /**
-   *
+   * Get mpack name
    * @return
    */
-  public RegistryScenario getRegistryScenario(String scenarioName) throws AmbariException;
+  public String getMpackName();
 
   /**
-   * Get list of mpacks defined in the software registry
-   * @return list of {@link RegistryMpack}'s
+   * Get mpack description
+   * @return
    */
-  public List<? extends RegistryMpack> getRegistryMpacks();
+  public String getMpackDescription();
 
   /**
-   * Get specific mpack from the software registry
-   * @return {@link RegistryMpack}
+   * Get mpack logo url
+   * @return
    */
-  public RegistryMpack getRegistryMpack(String mpackName) throws AmbariException;
+  public String getMpackLogoUrl();
+
+  /**
+   * Get list of mpack versions
+   * @return
+   */
+  public List<? extends RegistryMpackVersion> getMpackVersions();
+
+  /**
+   * Get specific mpack version
+   * @return {@link RegistryMpackVersion}
+   */
+  public RegistryMpackVersion getMpackVersion(String mpackVersion) throws AmbariException;
 }

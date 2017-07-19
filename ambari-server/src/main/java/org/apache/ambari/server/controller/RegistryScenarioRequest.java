@@ -6,31 +6,47 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.ambari.server.registry;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.entities.RegistryEntity;
+package org.apache.ambari.server.controller;
 
 /**
- * Factory interface for Guice injections
+ * Represents a registry scenario request
  */
-public interface RegistryFactory {
+public class RegistryScenarioRequest {
+  private Long registryId;
+  private String scenarioName;
 
   /**
-   * Create a new {@link Registry}
-   * @param registryEntity registry entity
-   * @return  new {@link Registry}
-   * @throws AmbariException
+   * Constructor
+   * @param registryId    registry id
+   * @param scenarioName  scenario name
    */
-  Registry create(RegistryEntity registryEntity) throws AmbariException;
+  public RegistryScenarioRequest(Long registryId, String scenarioName) {
+    this.registryId = registryId;
+    this.scenarioName = scenarioName;
+  }
+
+  /**
+   * Get registry id
+   * @return
+   */
+  public Long getRegistryId() {
+    return registryId;
+  }
+
+  /**
+   * Get registry name
+   * @return
+   */
+  public String getScenarioName() {
+    return scenarioName;
+  }
 }
