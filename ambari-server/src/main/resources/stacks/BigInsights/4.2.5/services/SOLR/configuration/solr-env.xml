@@ -82,6 +82,7 @@
     <name>solr_hdfs_home_dir</name>
     <value>/apps/solr/data</value>
     <description>A root location in HDFS for Solr to write collection data to. Rather than specifying an HDFS location for the data directory or update log directory, use this to specify one root location and have everything automatically created within this HDFS</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>solr_ssl_enabled</name>
