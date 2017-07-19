@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +28,7 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
@@ -199,15 +201,30 @@ public class ExecutionCommandWrapper {
       Map<String,String> commandParams = executionCommand.getCommandParams();
 
       // set the version for the command if it's not already set
-      ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-      if (null != effectiveClusterVersion && !commandParams.containsKey(KeyNames.VERSION)) {
-        commandParams.put(KeyNames.VERSION,
-            effectiveClusterVersion.getRepositoryVersion().getVersion());
+      if (!commandParams.containsKey(KeyNames.VERSION)) {
+        // the cluster's effective version should be used for this command
+        ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+
+        // in the event that the effective version is NULL (meaning that most
+        // likely the cluster is still being provisioned), then send down the
+        // version if this is not an install command
+        if (null == effectiveClusterVersion
+            && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
+          Collection<ClusterVersionEntity> clusterVersions = cluster.getAllClusterVersions();
+          if (clusterVersions.size() == 1) {
+            effectiveClusterVersion = clusterVersions.iterator().next();
+          }
+        }
+
+        if (null != effectiveClusterVersion) {
+          commandParams.put(KeyNames.VERSION,
+              effectiveClusterVersion.getRepositoryVersion().getVersion());
+        }
       }
 
       // add the stack and common-services folders to the command, but only if
-      // they don't exist - they may have been put on here with specific values
-      // ahead of time
+      // they don't exist - they may have been put on here with specific
+      // values ahead of time
       StackId stackId = cluster.getDesiredStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
           stackId.getStackVersion());

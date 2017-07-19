@@ -34,12 +34,16 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -94,6 +98,7 @@ public class ExecutionCommandWrapperTest {
   private static ConfigFactory configFactory;
   private static ConfigHelper configHelper;
   private static StageFactory stageFactory;
+  private static OrmTestHelper ormTestHelper;
 
   @BeforeClass
   public static void setup() throws AmbariException {
@@ -102,6 +107,7 @@ public class ExecutionCommandWrapperTest {
     configHelper = injector.getInstance(ConfigHelper.class);
     configFactory = injector.getInstance(ConfigFactory.class);
     stageFactory = injector.getInstance(StageFactory.class);
+    ormTestHelper = injector.getInstance(OrmTestHelper.class);
 
     clusters = injector.getInstance(Clusters.class);
     clusters.addHost(HOST1);
@@ -109,37 +115,41 @@ public class ExecutionCommandWrapperTest {
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
-    SERVICE_SITE_CLUSTER = new HashMap<String, String>();
+    SERVICE_SITE_CLUSTER = new HashMap<>();
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2);
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME3, SERVICE_SITE_VAL3);
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME4, SERVICE_SITE_VAL4);
 
-    SERVICE_SITE_SERVICE = new HashMap<String, String>();
+    SERVICE_SITE_SERVICE = new HashMap<>();
     SERVICE_SITE_SERVICE.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1_S);
     SERVICE_SITE_SERVICE.put(SERVICE_SITE_NAME5, SERVICE_SITE_VAL5_S);
 
-    SERVICE_SITE_HOST = new HashMap<String, String>();
+    SERVICE_SITE_HOST = new HashMap<>();
     SERVICE_SITE_HOST.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2_H);
     SERVICE_SITE_HOST.put(SERVICE_SITE_NAME6, SERVICE_SITE_VAL6_H);
 
-    GLOBAL_CLUSTER = new HashMap<String, String>();
+    GLOBAL_CLUSTER = new HashMap<>();
     GLOBAL_CLUSTER.put(GLOBAL_NAME1, GLOBAL_CLUSTER_VAL1);
     GLOBAL_CLUSTER.put(GLOBAL_NAME2, GLOBAL_CLUSTER_VAL2);
 
-    CONFIG_ATTRIBUTES = new HashMap<String, Map<String,String>>();
+    CONFIG_ATTRIBUTES = new HashMap<>();
 
     //Cluster level global config
-    configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER,
+        CONFIG_ATTRIBUTES);
 
     //Cluster level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG,
+        SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
 
     //Service level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG,
+        SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
 
     //Host level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST,
+        CONFIG_ATTRIBUTES);
 
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
 
@@ -155,7 +165,7 @@ public class ExecutionCommandWrapperTest {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.NAMENODE.toString(),
             hostName, System.currentTimeMillis()), clusterName, "HDFS", false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
     db.persistActions(request);
@@ -165,13 +175,13 @@ public class ExecutionCommandWrapperTest {
   public void testGetExecutionCommand() throws JSONException, AmbariException {
 
 
-    Map<String, Map<String, String>> confs = new HashMap<String, Map<String, String>>();
-    Map<String, String> configurationsGlobal = new HashMap<String, String>();
+    Map<String, Map<String, String>> confs = new HashMap<>();
+    Map<String, String> configurationsGlobal = new HashMap<>();
     configurationsGlobal.put(GLOBAL_NAME1, GLOBAL_VAL1);
     confs.put(GLOBAL_CONFIG, configurationsGlobal);
 
-    Map<String, Map<String, String>> confTags = new HashMap<String, Map<String, String>>();
-    Map<String, String> confTagServiceSite = new HashMap<String, String>();
+    Map<String, Map<String, String>> confTags = new HashMap<>();
+    Map<String, String> confTagServiceSite = new HashMap<>();
 
     confTagServiceSite.put("tag", CLUSTER_VERSION_TAG);
     confTagServiceSite.put("service_override_tag", SERVICE_VERSION_TAG);
@@ -223,7 +233,7 @@ public class ExecutionCommandWrapperTest {
 
 
     //Union of all keys of service site configs
-    Set<String> serviceSiteKeys = new HashSet<String>();
+    Set<String> serviceSiteKeys = new HashSet<>();
     serviceSiteKeys.addAll(SERVICE_SITE_CLUSTER.keySet());
     serviceSiteKeys.addAll(SERVICE_SITE_SERVICE.keySet());
     serviceSiteKeys.addAll(SERVICE_SITE_HOST.keySet());
@@ -234,7 +244,7 @@ public class ExecutionCommandWrapperTest {
 
   @Test
   public void testGetMergedConfig() {
-    Map<String, String> baseConfig = new HashMap<String, String>();
+    Map<String, String> baseConfig = new HashMap<>();
 
     baseConfig.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);
     baseConfig.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2);
@@ -242,7 +252,7 @@ public class ExecutionCommandWrapperTest {
     baseConfig.put(SERVICE_SITE_NAME4, SERVICE_SITE_VAL4);
     baseConfig.put(SERVICE_SITE_NAME5, SERVICE_SITE_VAL5);
 
-    Map<String, String> overrideConfig = new HashMap<String, String>();
+    Map<String, String> overrideConfig = new HashMap<>();
 
     overrideConfig.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2_H);
     overrideConfig.put(SERVICE_SITE_NAME6, SERVICE_SITE_VAL6_H);
@@ -252,7 +262,7 @@ public class ExecutionCommandWrapperTest {
       overrideConfig);
 
 
-    Set<String> configsKeys = new HashSet<String>();
+    Set<String> configsKeys = new HashSet<>();
     configsKeys.addAll(baseConfig.keySet());
     configsKeys.addAll(overrideConfig.keySet());
 
@@ -264,6 +274,72 @@ public class ExecutionCommandWrapperTest {
     Assert.assertEquals(SERVICE_SITE_VAL4, mergedConfig.get(SERVICE_SITE_NAME4));
     Assert.assertEquals(SERVICE_SITE_VAL5, mergedConfig.get(SERVICE_SITE_NAME5));
     Assert.assertEquals(SERVICE_SITE_VAL6_H, mergedConfig.get(SERVICE_SITE_NAME6));
+  }
+
+  /**
+   * Test that the execution command wrapper properly sets the version
+   * information when the cluster is in the INSTALLING state.
+   *
+   * @throws JSONException
+   * @throws AmbariException
+   */
+  @Test
+  public void testExecutionCommandHasVersionInfoWithoutCurrentClusterVersion()
+      throws JSONException, AmbariException {
+    Cluster cluster = clusters.getCluster(CLUSTER1);
+
+    StackId stackId = cluster.getDesiredStackVersion();
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+
+    cluster.createClusterVersion(stackId, repositoryVersion.getVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+
+    // first try with an INSTALL command - this should not populate version info
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    Map<String, String> commandParams = new HashMap<>();
+
+    executionCommand.setClusterName(CLUSTER1);
+    executionCommand.setTaskId(1);
+    executionCommand.setRequestAndStage(1, 1);
+    executionCommand.setHostname(HOST1);
+    executionCommand.setRole("NAMENODE");
+    executionCommand.setRoleParams(Collections.<String, String>emptyMap());
+    executionCommand.setRoleCommand(RoleCommand.INSTALL);
+    executionCommand.setServiceName("HDFS");
+    executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
+    executionCommand.setCommandParams(commandParams);
+
+    String json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
+    ExecutionCommandWrapper execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    ExecutionCommand processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
+
+    // now try with a START command which should populate the version even
+    // though the state is INSTALLING
+    executionCommand = new ExecutionCommand();
+    commandParams = new HashMap<>();
+
+    executionCommand.setClusterName(CLUSTER1);
+    executionCommand.setTaskId(1);
+    executionCommand.setRequestAndStage(1, 1);
+    executionCommand.setHostname(HOST1);
+    executionCommand.setRole("NAMENODE");
+    executionCommand.setRoleParams(Collections.<String, String> emptyMap());
+    executionCommand.setRoleCommand(RoleCommand.START);
+    executionCommand.setServiceName("HDFS");
+    executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
+    executionCommand.setCommandParams(commandParams);
+
+    json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
+    execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
   }
 
   @AfterClass
