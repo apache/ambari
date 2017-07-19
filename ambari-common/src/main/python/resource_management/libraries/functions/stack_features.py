@@ -123,7 +123,7 @@ def get_stack_feature_version(config):
   # if this is not an upgrade, then we take the simple path
   if upgrade_direction is None:
     Logger.info(
-      "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3}-> {4}".format(
+      "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3} -> {4}".format(
         stack_version, current_cluster_version, command_stack, command_version, version_for_stack_feature_checks))
 
     return version_for_stack_feature_checks
