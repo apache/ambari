@@ -402,6 +402,12 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>manage.include.files</name>
+    <value>false</value>
+    <description>If true Ambari will manage include file if yarn.resourcemanager.nodes.include-path is configured.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>yarn.http.policy</name>
     <value>HTTP_ONLY</value>
     <description>

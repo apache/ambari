@@ -96,6 +96,10 @@ class NameNode(Script):
     env.set_params(params)
     self.configure(env)
     hdfs_binary = self.get_hdfs_binary()
+
+    if not params.hdfs_tmp_dir or params.hdfs_tmp_dir == None or params.hdfs_tmp_dir.lower() == 'null':
+      Logger.error("WARNING: HDFS tmp dir property (hdfs_tmp_dir) is empty or invalid. Ambari will change permissions for the folder on regular basis.")
+
     namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type,
       upgrade_suspended=params.upgrade_suspended, env=env)
 

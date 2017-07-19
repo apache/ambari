@@ -59,4 +59,12 @@ hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
 
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
-update_exclude_file_only = config['commandParams']['update_exclude_file_only']
+
+nm_hosts = default("/clusterHostInfo/nm_hosts", [])
+#incude file
+include_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.include-path", None)
+include_hosts = None
+manage_include_files = default("/configurations/yarn-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  include_hosts = list(set(nm_hosts) - set(exclude_hosts))
+update_files_only = default("/commandParams/update_files_only", False)

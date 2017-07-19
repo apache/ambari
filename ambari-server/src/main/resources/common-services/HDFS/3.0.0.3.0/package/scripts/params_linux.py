@@ -158,7 +158,13 @@ falcon_user = config['configurations']['falcon-env']['falcon_user']
 #exclude file
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
-update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
+slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)
+hdfs_include_file = None
+manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  hdfs_include_file = list(set(slave_hosts) - set(hdfs_exclude_file))
+update_files_only = default("/commandParams/update_files_only", False)
 command_phase = default("/commandParams/phase","")
 
 klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))

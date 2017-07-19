@@ -1013,8 +1013,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Set 'num_llap_nodes_requested' for 1st invocation, as it gets passed as 1 otherwise, read from config.
 
       # Check if its : 1. 1st invocation from UI ('enable_hive_interactive' in changed-configurations)
-      # OR 2. 1st invocation from BP (services['changed-configurations'] should be empty in this case)
-      if (changed_configs_has_enable_hive_int or  0 == len(services['changed-configurations'])) \
+      # OR 2. 1st invocation from BP (services['changed-configurations'] should be empty in this case and 'num_llap_nodes' not defined)
+      if (changed_configs_has_enable_hive_int
+          or (0 == len(services['changed-configurations'])
+              and not services['configurations']['hive-interactive-env']['properties']['num_llap_nodes'])) \
         and services['configurations']['hive-interactive-env']['properties']['enable_hive_interactive']:
         num_llap_nodes_requested = min_nodes_required
       else:
@@ -1250,11 +1252,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     if not llap_concurrency_in_changed_configs:
       min_llap_concurrency = 1
-      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', llap_concurrency)
-      putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum",
-                                              min_llap_concurrency)
+      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', long(llap_concurrency))
+      putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", min_llap_concurrency)
 
-    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", max_llap_concurreny)
+    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", long(max_llap_concurreny))
 
     num_llap_nodes = long(num_llap_nodes)
 

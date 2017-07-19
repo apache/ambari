@@ -98,6 +98,13 @@ yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 #exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
+nm_hosts = default("/clusterHostInfo/nm_hosts", [])
+#incude file
+include_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.include-path", None)
+include_hosts = None
+manage_include_files = default("/configurations/yarn-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  include_hosts = list(set(nm_hosts) - set(exclude_hosts))
 
 hostname = config['hostname']
 
@@ -128,7 +135,7 @@ HdfsDirectory = functools.partial(
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local
 )
-update_exclude_file_only = config['commandParams']['update_exclude_file_only']
+update_files_only = default("/commandParams/update_files_only", False)
 
 hadoop_bin = "/usr/lib/hadoop/sbin"
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)

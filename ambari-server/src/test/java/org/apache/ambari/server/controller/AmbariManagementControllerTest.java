@@ -5955,8 +5955,8 @@ public class AmbariManagementControllerTest {
     execCmd = storedTasks.get(0).getExecutionCommandWrapper
         ().getExecutionCommand();
     Map<String, String> cmdParams = execCmd.getCommandParams();
-    Assert.assertTrue(cmdParams.containsKey("update_exclude_file_only"));
-    Assert.assertTrue(cmdParams.get("update_exclude_file_only").equals("false"));
+    Assert.assertTrue(cmdParams.containsKey("update_files_only"));
+    Assert.assertTrue(cmdParams.get("update_files_only").equals("false"));
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
@@ -6011,8 +6011,8 @@ public class AmbariManagementControllerTest {
       Assert.assertTrue(hrc.getCommandDetail().contains(host1));
       Assert.assertTrue(hrc.getCommandDetail().contains(host2));
       cmdParams = hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
-      if(!cmdParams.containsKey("update_exclude_file_only")
-          || !cmdParams.get("update_exclude_file_only").equals("true")) {
+      if(!cmdParams.containsKey("update_files_only")
+          || !cmdParams.get("update_files_only").equals("true")) {
         countRefresh++;
       }
     }
