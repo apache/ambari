@@ -52,7 +52,7 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
@@ -74,7 +74,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
 
 spark_daemon_memory = config['configurations']['spark-env']['spark_daemon_memory']
 spark_thrift_server_conf_file = spark_conf + "/spark-thrift-sparkconf.conf"
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -242,7 +242,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
   if len(livy_livyserver_hosts) > 0:
     has_livyserver = True
     if security_enabled:
-      livy_principal = livy_kerberos_principal.replace('_HOST', config['hostname'].lower())
+      livy_principal = livy_kerberos_principal.replace('_HOST', config['agentLevelParams']['hostname'].lower())
 
   livy_livyserver_port = default('configurations/livy-conf/livy.server.port',8999)
 

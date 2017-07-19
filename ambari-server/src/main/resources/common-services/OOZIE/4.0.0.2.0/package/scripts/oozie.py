@@ -62,7 +62,7 @@ def oozie(is_server=False):
             configurations=params.config['configurations']['oozie-site'],
             owner=params.oozie_user,
             mode='f',
-            configuration_attributes=params.config['configuration_attributes']['oozie-site']
+            configuration_attributes=params.config['configurationAttributes']['oozie-site']
   )
 
   File(os.path.join(params.oozie_conf_dir, "oozie-env.cmd"),
@@ -82,18 +82,18 @@ def oozie(is_server=False):
                   username = params.oozie_user,
                   password = Script.get_password(params.oozie_user))
 
-  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+  download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                       os.path.join(params.oozie_root, "extra_libs", "sqljdbc4.jar")
   )
   webapps_sqljdbc_path = os.path.join(params.oozie_home, "oozie-server", "webapps", "oozie", "WEB-INF", "lib", "sqljdbc4.jar")
   if os.path.isfile(webapps_sqljdbc_path):
-    download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+    download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                         webapps_sqljdbc_path
     )
-  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+  download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                       os.path.join(params.oozie_home, "share", "lib", "oozie", "sqljdbc4.jar")
   )
-  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+  download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                       os.path.join(params.oozie_home, "temp", "WEB-INF", "lib", "sqljdbc4.jar")
   )
 
@@ -126,7 +126,7 @@ def oozie(is_server=False):
   XmlConfig("oozie-site.xml",
     conf_dir = params.conf_dir,
     configurations = params.oozie_site,
-    configuration_attributes=params.config['configuration_attributes']['oozie-site'],
+    configuration_attributes=params.config['configurationAttributes']['oozie-site'],
     owner = params.oozie_user,
     group = params.user_group,
     mode = 0664
@@ -306,7 +306,7 @@ def oozie_server_specific():
       XmlConfig("hive-site.xml",
         conf_dir=params.hive_conf_dir,
         configurations=hive_site_config,
-        configuration_attributes=params.config['configuration_attributes']['hive-site'],
+        configuration_attributes=params.config['configurationAttributes']['hive-site'],
         owner=params.oozie_user,
         group=params.user_group,
         mode=0644
@@ -315,7 +315,7 @@ def oozie_server_specific():
       XmlConfig( "tez-site.xml",
         conf_dir = params.hive_conf_dir,
         configurations = params.config['configurations']['tez-site'],
-        configuration_attributes=params.config['configuration_attributes']['tez-site'],
+        configuration_attributes=params.config['configurationAttributes']['tez-site'],
         owner = params.oozie_user,
         group = params.user_group,
         mode = 0664

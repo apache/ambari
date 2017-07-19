@@ -91,7 +91,7 @@ def yarn(name=None, config_dir=None):
   XmlConfig("core-site.xml",
             conf_dir=config_dir,
             configurations=params.config['configurations']['core-site'],
-            configuration_attributes=params.config['configuration_attributes']['core-site'],
+            configuration_attributes=params.config['configurationAttributes']['core-site'],
             owner=params.hdfs_user,
             group=params.user_group,
             mode=0644
@@ -103,7 +103,7 @@ def yarn(name=None, config_dir=None):
   XmlConfig("hdfs-site.xml",
             conf_dir=config_dir,
             configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.hdfs_user,
             group=params.user_group,
             mode=0644
@@ -112,7 +112,7 @@ def yarn(name=None, config_dir=None):
   XmlConfig("mapred-site.xml",
             conf_dir=config_dir,
             configurations=params.config['configurations']['mapred-site'],
-            configuration_attributes=params.config['configuration_attributes']['mapred-site'],
+            configuration_attributes=params.config['configurationAttributes']['mapred-site'],
             owner=params.yarn_user,
             group=params.user_group,
             mode=0644
@@ -121,7 +121,7 @@ def yarn(name=None, config_dir=None):
   XmlConfig("yarn-site.xml",
             conf_dir=config_dir,
             configurations=params.config['configurations']['yarn-site'],
-            configuration_attributes=params.config['configuration_attributes']['yarn-site'],
+            configuration_attributes=params.config['configurationAttributes']['yarn-site'],
             owner=params.yarn_user,
             group=params.user_group,
             mode=0644
@@ -130,7 +130,7 @@ def yarn(name=None, config_dir=None):
   XmlConfig("capacity-scheduler.xml",
             conf_dir=config_dir,
             configurations=params.config['configurations']['capacity-scheduler'],
-            configuration_attributes=params.config['configuration_attributes']['capacity-scheduler'],
+            configuration_attributes=params.config['configurationAttributes']['capacity-scheduler'],
             owner=params.yarn_user,
             group=params.user_group,
             mode=0644
@@ -202,7 +202,7 @@ def yarn(name=None, config_dir=None):
   XmlConfig("mapred-site.xml",
             conf_dir=config_dir,
             configurations=params.config['configurations']['mapred-site'],
-            configuration_attributes=params.config['configuration_attributes']['mapred-site'],
+            configuration_attributes=params.config['configurationAttributes']['mapred-site'],
             owner=params.mapred_user,
             group=params.user_group
   )
@@ -211,7 +211,7 @@ def yarn(name=None, config_dir=None):
             conf_dir=config_dir,
             configurations=params.config['configurations'][
               'capacity-scheduler'],
-            configuration_attributes=params.config['configuration_attributes']['capacity-scheduler'],
+            configuration_attributes=params.config['configurationAttributes']['capacity-scheduler'],
             owner=params.hdfs_user,
             group=params.user_group
   )
@@ -220,7 +220,7 @@ def yarn(name=None, config_dir=None):
     XmlConfig("ssl-client.xml",
               conf_dir=config_dir,
               configurations=params.config['configurations']['ssl-client'],
-              configuration_attributes=params.config['configuration_attributes']['ssl-client'],
+              configuration_attributes=params.config['configurationAttributes']['ssl-client'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -235,7 +235,7 @@ def yarn(name=None, config_dir=None):
     XmlConfig("ssl-client.xml",
               conf_dir=params.hadoop_conf_secure_dir,
               configurations=params.config['configurations']['ssl-client'],
-              configuration_attributes=params.config['configuration_attributes']['ssl-client'],
+              configuration_attributes=params.config['configurationAttributes']['ssl-client'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -244,7 +244,7 @@ def yarn(name=None, config_dir=None):
     XmlConfig("ssl-server.xml",
               conf_dir=config_dir,
               configurations=params.config['configurations']['ssl-server'],
-              configuration_attributes=params.config['configuration_attributes']['ssl-server'],
+              configuration_attributes=params.config['configurationAttributes']['ssl-server'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -493,7 +493,7 @@ def yarn(name = None):
             configurations=params.config['configurations']['yarn-site'],
             owner=params.yarn_user,
             mode='f',
-            configuration_attributes=params.config['configuration_attributes']['yarn-site']
+            configuration_attributes=params.config['configurationAttributes']['yarn-site']
   )
   XmlConfig("capacity-scheduler.xml",
             conf_dir=params.config_dir,

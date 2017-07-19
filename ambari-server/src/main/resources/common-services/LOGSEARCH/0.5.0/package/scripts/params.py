@@ -75,7 +75,7 @@ logfeeder_pid_file = status_params.logfeeder_pid_file
 user_group = config['configurations']['cluster-env']['user_group']
 
 # shared configs
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 cluster_name = str(config['clusterName'])
 
 configurations = config['configurations'] # need reference inside logfeeder jinja templates
@@ -115,7 +115,7 @@ infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/inf
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
 
-_hostname_lowercase = config['hostname'].lower()
+_hostname_lowercase = config['agentLevelParams']['hostname'].lower()
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
@@ -158,7 +158,7 @@ else:
   logsearch_solr_zk_quorum = ""
   zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
   if 'zookeeper_hosts' in config['clusterHostInfo']:
-    for host in config['clusterHostInfo']['zookeeper_hosts']:
+    for host in config['clusterHostInfo']['zookeeper_server_hosts']:
       if logsearch_solr_zk_quorum:
         logsearch_solr_zk_quorum += ','
       logsearch_solr_zk_quorum += host + ":" + str(zookeeper_port)

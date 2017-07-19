@@ -27,7 +27,7 @@ else:
   from resource_management.libraries.script.script import Script
 
   _config = Script.get_config()
-  stack_version_unformatted = str(_config['hostLevelParams']['stack_version'])
+  stack_version_unformatted = str(_config['clusterLevelParams']['stack_version'])
 
   # The logic for LZO also exists in OOZIE's params.py
   io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)

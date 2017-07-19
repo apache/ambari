@@ -61,16 +61,15 @@ rrdcached_write_threads = default("/configurations/ganglia-env/rrdcached_write_t
 
 ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
 
-hostname = config["hostname"]
-namenode_host = set(default("/clusterHostInfo/namenode_host", []))
+hostname = config['agentLevelParams']['hostname']
+namenode_host = set(default("/clusterHostInfo/namenode_hosts", []))
 jtnode_host = set(default("/clusterHostInfo/jtnode_host", []))
-rm_host = set(default("/clusterHostInfo/rm_host", []))
-hs_host = set(default("/clusterHostInfo/hs_host", []))
+rm_host = set(default("/clusterHostInfo/resourcemanager_hosts", []))
+hs_host = set(default("/clusterHostInfo/historyserver_hosts", []))
 hbase_master_hosts = set(default("/clusterHostInfo/hbase_master_hosts", []))
-# datanodes are marked as slave_hosts
-slave_hosts = set(default("/clusterHostInfo/slave_hosts", []))
+slave_hosts = set(default("/clusterHostInfo/datanode_hosts", []))
 tt_hosts = set(default("/clusterHostInfo/mapred_tt_hosts", []))
-nm_hosts = set(default("/clusterHostInfo/nm_hosts", []))
+nm_hosts = set(default("/clusterHostInfo/nodemanager_hosts", []))
 hbase_rs_hosts = set(default("/clusterHostInfo/hbase_rs_hosts", []))
 flume_hosts = set(default("/clusterHostInfo/flume_hosts", []))
 jn_hosts = set(default("/clusterHostInfo/journalnode_hosts", []))

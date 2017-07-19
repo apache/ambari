@@ -51,10 +51,10 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
 # there is a stack upgrade which has not yet been finalized; it's currently suspended
 upgrade_suspended = default("roleParams/upgrade_suspended", False)
@@ -162,16 +162,16 @@ command_phase = default("/commandParams/phase","")
 klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 #hosts
-hostname = config["hostname"]
-rm_host = default("/clusterHostInfo/rm_host", [])
-slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+hostname = config['agentLevelParams']['hostname']
+rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
+slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
 hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
-hs_host = default("/clusterHostInfo/hs_host", [])
+hs_host = default("/clusterHostInfo/historyserver_hosts", [])
 jtnode_host = default("/clusterHostInfo/jtnode_host", [])
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 nm_host = default("/clusterHostInfo/nm_host", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", [])
@@ -374,8 +374,8 @@ lzo_packages = get_lzo_packages(stack_version_unformatted)
   
 name_node_params = default("/commandParams/namenode", None)
 
-java_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
+java_home = config['ambariLevelParams']['java_home']
+java_version = expect("/ambariLevelParams/java_version", int)
 java_exec = format("{java_home}/bin/java")
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
@@ -404,7 +404,7 @@ if security_enabled:
   sn_principal_name = sn_principal_name.replace('_HOST',hostname.lower())
 
 # for curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 
 is_https_enabled = is_https_enabled_in_hdfs(config['configurations']['hdfs-site']['dfs.http.policy'],

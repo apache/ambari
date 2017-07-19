@@ -38,7 +38,7 @@ def hbase(name=None):
   XmlConfig("hbase-site.xml",
             conf_dir = params.hbase_conf_dir,
             configurations = params.config['configurations']['hbase-site'],
-            configuration_attributes=params.config['configuration_attributes']['hbase-site']
+            configuration_attributes=params.config['configurationAttributes']['hbase-site']
   )
 
   if params.service_map.has_key(name):
@@ -98,7 +98,7 @@ def hbase(name=None):
   XmlConfig( "hbase-site.xml",
             conf_dir = params.hbase_conf_dir,
             configurations = params.config['configurations']['hbase-site'],
-            configuration_attributes=params.config['configuration_attributes']['hbase-site'],
+            configuration_attributes=params.config['configurationAttributes']['hbase-site'],
             owner = params.hbase_user,
             group = params.user_group
   )
@@ -107,7 +107,7 @@ def hbase(name=None):
     XmlConfig( "core-site.xml",
                conf_dir = params.hbase_conf_dir,
                configurations = params.config['configurations']['core-site'],
-               configuration_attributes=params.config['configuration_attributes']['core-site'],
+               configuration_attributes=params.config['configurationAttributes']['core-site'],
                owner = params.hbase_user,
                group = params.user_group
     )
@@ -115,7 +115,7 @@ def hbase(name=None):
       XmlConfig( "hdfs-site.xml",
               conf_dir = params.hbase_conf_dir,
               configurations = params.config['configurations']['hdfs-site'],
-              configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+              configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
               owner = params.hbase_user,
               group = params.user_group
       )
@@ -131,7 +131,7 @@ def hbase(name=None):
     XmlConfig( "hbase-policy.xml",
             conf_dir = params.hbase_conf_dir,
             configurations = params.config['configurations']['hbase-policy'],
-            configuration_attributes=params.config['configuration_attributes']['hbase-policy'],
+            configuration_attributes=params.config['configurationAttributes']['hbase-policy'],
             owner = params.hbase_user,
             group = params.user_group
     )

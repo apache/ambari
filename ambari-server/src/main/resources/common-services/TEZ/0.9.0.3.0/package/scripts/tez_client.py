@@ -116,7 +116,7 @@ class TezClientWindows(TezClient):
       hadoop_lzo_file = os.path.split(hadoop_lzo_dest_path)[1]
 
       config = Script.get_config()
-      file_url = urlparse.urljoin(config['hostLevelParams']['jdk_location'], hadoop_lzo_file)
+      file_url = urlparse.urljoin(config['ambariLevelParams']['jdk_location'], hadoop_lzo_file)
       hadoop_lzo_dl_path = os.path.join(config["hostLevelParams"]["agentCacheDir"], hadoop_lzo_file)
       download_file(file_url, hadoop_lzo_dl_path)
       #This is for protection against configuration changes. It will infect every new destination with the lzo jar,

@@ -34,11 +34,11 @@ config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # get the correct version to use for checking stack features
@@ -59,7 +59,7 @@ if stack_supports_config_versioning:
   kms_conf_dir = format('{stack_root}/current/ranger-kms/conf')
 
 kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/kms")
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")
 
@@ -68,7 +68,7 @@ ranger_kms_audit_log_maxbackupindex = default('/configurations/kms-log4j/ranger_
 ranger_kms_log_maxfilesize = default('/configurations/kms-log4j/ranger_kms_log_maxfilesize',256)
 ranger_kms_log_maxbackupindex = default('/configurations/kms-log4j/ranger_kms_log_maxbackupindex',20)
 
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
 
 # ranger host
@@ -231,7 +231,7 @@ ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr
 if xa_audit_db_flavor == 'sqla':
   xa_audit_db_is_enabled = False
 
-current_host = config['hostname']
+current_host = config['agentLevelParams']['hostname']
 ranger_kms_hosts = config['clusterHostInfo']['ranger_kms_server_hosts']
 if current_host in ranger_kms_hosts:
   kms_host = current_host
@@ -293,7 +293,7 @@ ranger_kms_ssl_passwd = config['configurations']['ranger-kms-site']['ranger.serv
 ranger_kms_ssl_enabled = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.ssl.enabled']
 
 xa_audit_hdfs_is_enabled = default("/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False)
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 
 # need this to capture cluster name from where ranger kms plugin is enabled
 cluster_name = config['clusterName']

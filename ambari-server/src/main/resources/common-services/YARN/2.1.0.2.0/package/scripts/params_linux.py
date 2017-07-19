@@ -67,7 +67,7 @@ config_path = os.path.join(stack_root, "current/hadoop-client/conf")
 config_dir = os.path.realpath(config_path)
 
 # This is expected to be of the form #.#.#.#
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanager')
 
@@ -84,7 +84,7 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 
 # hadoop default parameters
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
@@ -164,7 +164,7 @@ container_executor_mode = 06050 if is_linux_container_executor else 02050
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
 yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
-rm_hosts = config['clusterHostInfo']['rm_host']
+rm_hosts = config['clusterHostInfo']['resourcemanager_hosts']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = default('/configurations/yarn-site/yarn.resourcemanager.webapp.https.address', ":8090").split(':')[-1]
@@ -172,7 +172,7 @@ rm_https_port = default('/configurations/yarn-site/yarn.resourcemanager.webapp.h
 rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 rm_nodes_exclude_dir = os.path.dirname(rm_nodes_exclude_path)
 
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
 
@@ -244,7 +244,7 @@ exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.node
 ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0
 
-nm_hosts = default("/clusterHostInfo/nm_hosts", [])
+nm_hosts = default("/clusterHostInfo/nodemanager_hosts", [])
 
 # don't using len(nm_hosts) here, because check can take too much time on large clusters
 number_of_nm = 1
@@ -356,7 +356,7 @@ dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_name
 if dfs_ha_namenode_active is not None: 
   namenode_hostname = dfs_ha_namenode_active
 else:
-  namenode_hostname = config['clusterHostInfo']['namenode_host'][0]
+  namenode_hostname = config['clusterHostInfo']['namenode_hosts'][0]
 
 ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
 
@@ -382,7 +382,7 @@ if rm_ha_enabled:
     rm_webapp_addresses_list.append(rm_webapp_address)
 
 # for curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 # ranger yarn plugin section start
 

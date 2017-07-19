@@ -46,13 +46,13 @@ cluster_name = config['clusterName']
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
@@ -122,7 +122,7 @@ if "jdbc_drivers" in config['configurations']['sqoop-env']:
     sqoop_jdbc_drivers_dict.append(jdbc_name)
     sqoop_jdbc_drivers_to_remove[jdbc_name] = previous_jdbc_jar_name
     sqoop_jdbc_drivers_name_dict[jdbc_name] = jdbc_driver_name
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 
 ########################################################

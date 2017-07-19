@@ -54,8 +54,8 @@ else:
 
   hadoop_conf_dir = functions.conf_select.get_hadoop_conf_dir()
 
-  hostname = config['hostname']
+  hostname = config['agentLevelParams']['hostname']
   kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

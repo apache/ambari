@@ -80,7 +80,7 @@ if 'spark2-defaults' in config['configurations']:
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 
 # params from zeppelin-config
 zeppelin_port = str(config['configurations']['zeppelin-config']['zeppelin.server.port'])
@@ -113,8 +113,7 @@ log4j_properties_content = config['configurations']['zeppelin-log4j-properties']
 
 # detect configs
 master_configs = config['clusterHostInfo']
-java64_home = config['hostLevelParams']['java_home']
-ambari_host = str(master_configs['ambari_server_host'][0])
+java64_home = config['ambariLevelParams']['java_home']
 zeppelin_host = str(master_configs['zeppelin_master_hosts'][0])
 ui_ssl_enabled = config['configurations']['zeppelin-config']['zeppelin.ssl']
 
@@ -173,7 +172,7 @@ zeppelin_kerberos_keytab = config['configurations']['zeppelin-env']['zeppelin.se
 zeppelin_kerberos_principal = config['configurations']['zeppelin-env']['zeppelin.server.kerberos.principal']
 
 # e.g. 2.3
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 
 # e.g. 2.3.0.0
 stack_version_formatted = format_stack_version(stack_version_unformatted)

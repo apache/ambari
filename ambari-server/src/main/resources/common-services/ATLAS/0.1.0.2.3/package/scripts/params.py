@@ -86,14 +86,14 @@ stack_root = Script.get_stack_root()
 # Needed since this is an Atlas Hook service.
 cluster_name = config['clusterName']
 
-java_version = expect("/hostLevelParams/java_version", int)
+java_version = expect("/ambariLevelParams/java_version", int)
 
 zk_root = default('/configurations/application-properties/atlas.server.ha.zookeeper.zkroot', '/apache_atlas')
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 atlas_kafka_group_id = default('/configurations/application-properties/atlas.kafka.hook.group.id', None)
 
 if security_enabled:
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   _atlas_principal_name = config['configurations']['application-properties']['atlas.authentication.principal']
   atlas_jaas_principal = _atlas_principal_name.replace('_HOST',_hostname_lowercase)
   atlas_keytab_path = config['configurations']['application-properties']['atlas.authentication.keytab']
@@ -102,7 +102,7 @@ if security_enabled:
 version = default("/commandParams/version", None)
 
 # stack version
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 metadata_home = format('{stack_root}/current/atlas-server')
@@ -125,7 +125,7 @@ atlas_jaas_file = format("{conf_dir}/atlas_jaas.conf")
 user_group = config['configurations']['cluster-env']['user_group']
 
 # metadata env
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
 env_sh_template = config['configurations']['atlas-env']['content']
 
@@ -143,7 +143,7 @@ else:
   metadata_port = http_port
   metadata_protocol = 'http'
 
-metadata_host = config['hostname']
+metadata_host = config['agentLevelParams']['hostname']
 
 atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
 metadata_server_host = atlas_hosts[0] if len(atlas_hosts) > 0 else "UNKNOWN_HOST"
@@ -218,7 +218,7 @@ infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_sol
 infra_solr_role_ranger_audit = default('configurations/infra-solr-security-json/infra_solr_role_ranger_audit', 'ranger_audit_user')
 
 # zookeeper
-zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts = config['clusterHostInfo']['zookeeper_server_hosts']
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
 
 # get comma separated lists of zookeeper hosts from clusterHostInfo
@@ -276,7 +276,7 @@ if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_fea
                              (config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_PLAINTEXT")))
   if security_enabled and stack_version_formatted != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] \
     and check_stack_feature(StackFeature.KAFKA_KERBEROS, stack_version_formatted):
-    _hostname_lowercase = config['hostname'].lower()
+    _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
     _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
     kafka_jaas_principal = _kafka_principal_name.replace('_HOST', _hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
@@ -287,7 +287,7 @@ if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_fea
     kafka_jaas_principal = None
     kafka_keytab_path = None
 
-namenode_host = set(default("/clusterHostInfo/namenode_host", []))
+namenode_host = set(default("/clusterHostInfo/namenode_hosts", []))
 has_namenode = not len(namenode_host) == 0
 
 # ranger altas plugin section start
@@ -380,11 +380,11 @@ if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
 
   ranger_plugin_properties = config['configurations']['ranger-atlas-plugin-properties']
   ranger_atlas_audit = config['configurations']['ranger-atlas-audit']
-  ranger_atlas_audit_attrs = config['configuration_attributes']['ranger-atlas-audit']
+  ranger_atlas_audit_attrs = config['configurationAttributes']['ranger-atlas-audit']
   ranger_atlas_security = config['configurations']['ranger-atlas-security']
-  ranger_atlas_security_attrs = config['configuration_attributes']['ranger-atlas-security']
+  ranger_atlas_security_attrs = config['configurationAttributes']['ranger-atlas-security']
   ranger_atlas_policymgr_ssl = config['configurations']['ranger-atlas-policymgr-ssl']
-  ranger_atlas_policymgr_ssl_attrs = config['configuration_attributes']['ranger-atlas-policymgr-ssl']
+  ranger_atlas_policymgr_ssl_attrs = config['configurationAttributes']['ranger-atlas-policymgr-ssl']
 
   policy_user = config['configurations']['ranger-atlas-plugin-properties']['policy_user']
 

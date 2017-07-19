@@ -44,7 +44,7 @@ _authentication = config['configurations']['core-site']['hadoop.security.authent
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-rm_host = config['clusterHostInfo']['rm_host'][0]
+rm_host = config['clusterHostInfo']['resourcemanager_hosts'][0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = "8090"
 rm_webui_address = format("{rm_host}:{rm_port}")

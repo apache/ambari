@@ -294,7 +294,7 @@ def kms(upgrade_type=None):
     XmlConfig("dbks-site.xml",
       conf_dir=params.kms_conf_dir,
       configurations=dbks_site_copy,
-      configuration_attributes=params.config['configuration_attributes']['dbks-site'],
+      configuration_attributes=params.config['configurationAttributes']['dbks-site'],
       owner=params.kms_user,
       group=params.kms_group,
       mode=0644
@@ -311,7 +311,7 @@ def kms(upgrade_type=None):
     XmlConfig("ranger-kms-site.xml",
       conf_dir=params.kms_conf_dir,
       configurations=ranger_kms_site_copy,
-      configuration_attributes=params.config['configuration_attributes']['ranger-kms-site'],
+      configuration_attributes=params.config['configurationAttributes']['ranger-kms-site'],
       owner=params.kms_user,
       group=params.kms_group,
       mode=0644
@@ -320,7 +320,7 @@ def kms(upgrade_type=None):
     XmlConfig("kms-site.xml",
       conf_dir=params.kms_conf_dir,
       configurations=params.config['configurations']['kms-site'],
-      configuration_attributes=params.config['configuration_attributes']['kms-site'],
+      configuration_attributes=params.config['configurationAttributes']['kms-site'],
       owner=params.kms_user,
       group=params.kms_group,
       mode=0644
@@ -337,7 +337,7 @@ def kms(upgrade_type=None):
       XmlConfig("core-site.xml",
         conf_dir=params.kms_conf_dir,
         configurations=params.config['configurations']['core-site'],
-        configuration_attributes=params.config['configuration_attributes']['core-site'],
+        configuration_attributes=params.config['configurationAttributes']['core-site'],
         owner=params.kms_user,
         group=params.kms_group,
         mode=0644
@@ -461,7 +461,7 @@ def enable_kms_plugin():
     XmlConfig("ranger-kms-audit.xml",
       conf_dir=params.kms_conf_dir,
       configurations=plugin_audit_properties_copy,
-      configuration_attributes=params.config['configuration_attributes']['ranger-kms-audit'],
+      configuration_attributes=params.config['configurationAttributes']['ranger-kms-audit'],
       owner=params.kms_user,
       group=params.kms_group,
       mode=0744)
@@ -469,7 +469,7 @@ def enable_kms_plugin():
     XmlConfig("ranger-kms-security.xml",
       conf_dir=params.kms_conf_dir,
       configurations=params.config['configurations']['ranger-kms-security'],
-      configuration_attributes=params.config['configuration_attributes']['ranger-kms-security'],
+      configuration_attributes=params.config['configurationAttributes']['ranger-kms-security'],
       owner=params.kms_user,
       group=params.kms_group,
       mode=0744)
@@ -485,7 +485,7 @@ def enable_kms_plugin():
     XmlConfig("ranger-policymgr-ssl.xml",
       conf_dir=params.kms_conf_dir,
       configurations=ranger_kms_policymgr_ssl_copy,
-      configuration_attributes=params.config['configuration_attributes']['ranger-kms-policymgr-ssl'],
+      configuration_attributes=params.config['configurationAttributes']['ranger-kms-policymgr-ssl'],
       owner=params.kms_user,
       group=params.kms_group,
       mode=0744)
@@ -511,7 +511,7 @@ def enable_kms_plugin():
       XmlConfig("hdfs-site.xml",
         conf_dir=params.kms_conf_dir,
         configurations=params.config['configurations']['hdfs-site'],
-        configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+        configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
         owner=params.kms_user,
         group=params.kms_group,
         mode=0644

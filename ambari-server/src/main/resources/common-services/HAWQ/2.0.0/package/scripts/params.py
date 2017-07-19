@@ -29,7 +29,7 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 
 config = Script.get_config()
-config_attrs = config['configuration_attributes']
+config_attrs = config['configurationAttributes']
 
 def __get_component_host(component):
   """
@@ -41,7 +41,7 @@ def __get_component_host(component):
   return component_host
 
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 
 # Users and Groups
 hdfs_superuser = config['configurations']['hadoop-env']['hdfs_user']

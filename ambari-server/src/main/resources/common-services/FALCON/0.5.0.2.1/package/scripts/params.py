@@ -25,7 +25,7 @@ if OSCheck.is_windows_family():
 else:
   from params_linux import *
 
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
 # Needed since this is an Atlas Hook service.
 cluster_name = config['clusterName']

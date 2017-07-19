@@ -33,7 +33,7 @@ else:
 config = Script.get_config()
 stack_root = Script.get_stack_root()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -43,11 +43,11 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 if security_enabled :
-    _hostname_lowercase = config['hostname'].lower()
+    _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
     flume_jaas_princ = config['configurations']['flume-env']['flume_principal_name']
     flume_keytab_path = config['configurations']['flume-env']['flume_keytab_path']
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # hadoop default parameters
@@ -61,7 +61,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
   flume_hive_home = format('{stack_root}/current/hive-metastore')
   flume_hcat_home = format('{stack_root}/current/hive-webhcat')
 
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 flume_log_dir = config['configurations']['flume-env']['flume_log_dir']
 flume_run_dir = config['configurations']['flume-env']['flume_run_dir']
 ambari_state_file = format("{flume_run_dir}/ambari-state.txt")
@@ -88,7 +88,7 @@ if 0 != len(ganglia_server_hosts):
 
 hostname = None
 if config.has_key('hostname'):
-  hostname = config['hostname']
+  hostname = config['agentLevelParams']['hostname']
 
 ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
@@ -126,7 +126,7 @@ if not len(default("/clusterHostInfo/zookeeper_hosts", [])) == 0:
     zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
   else:
     zookeeper_clientPort = '2181'
-  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
+  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_server_hosts'])
   # last port config
   zookeeper_quorum += ':' + zookeeper_clientPort
 

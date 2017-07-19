@@ -66,14 +66,14 @@ if 'credentialStoreEnabled' in config:
 stack_root = status_params.stack_root
 stack_name = status_params.stack_name
 stack_name_uppercase = stack_name.upper()
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
 # Needed since this is an Atlas Hook service.
 cluster_name = config['clusterName']
 
 # node hostname
-hostname = config["hostname"]
+hostname = config['agentLevelParams']['hostname']
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = status_params.stack_version_unformatted
@@ -226,12 +226,12 @@ execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 if credential_store_enabled:
   if 'hadoop.security.credential.provider.path' in config['configurations']['hive-site']:
     cs_lib_path = config['configurations']['hive-site']['credentialStoreClassPath']
-    java_home = config['hostLevelParams']['java_home']
+    java_home = config['ambariLevelParams']['java_home']
     alias = 'javax.jdo.option.ConnectionPassword'
     provider_path = config['configurations']['hive-site']['hadoop.security.credential.provider.path']
     hive_metastore_user_passwd = PasswordString(get_password_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location))
@@ -444,9 +444,9 @@ else:
 
 hive_metastore_heapsize = config['configurations']['hive-env']['hive.metastore.heapsize']
 
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
-java_version = expect("/hostLevelParams/java_version", int)
+java_version = expect("/ambariLevelParams/java_version", int)
 
 ##### MYSQL
 db_name = config['configurations']['hive-env']['hive_database_name']

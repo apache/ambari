@@ -45,7 +45,7 @@ stack_name = status_params.stack_name
 
 # stack version
 version = default("/commandParams/version", None)
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 has_secure_user_auth = False
@@ -77,7 +77,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 pid_dir = status_params.pid_dir
 
 # accumulo env
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 accumulo_master_heapsize = config['configurations']['accumulo-env']['accumulo_master_heapsize']
 accumulo_tserver_heapsize = config['configurations']['accumulo-env']['accumulo_tserver_heapsize']
 accumulo_monitor_heapsize = config['configurations']['accumulo-env']['accumulo_monitor_heapsize']
@@ -147,7 +147,7 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 
 # if accumulo is selected accumulo_tserver_hosts should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
-  tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/slave_hosts')
+  tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/datanode_hosts')
 else:
   tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/all_hosts')
 master_hosts = default('/clusterHostInfo/accumulo_master_hosts', [])

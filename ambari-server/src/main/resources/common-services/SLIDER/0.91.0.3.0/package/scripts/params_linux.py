@@ -33,7 +33,7 @@ config = Script.get_config()
 stack_root = Script.get_stack_root()
 
 slider_home_dir = format('{stack_root}/current/slider-client')
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #hadoop params

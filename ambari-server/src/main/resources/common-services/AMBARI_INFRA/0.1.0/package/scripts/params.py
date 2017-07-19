@@ -59,9 +59,9 @@ user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 # shared configs
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
-zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_server_hosts']
 zookeeper_hosts_list.sort()
 # get comma separated list of zookeeper hosts from clusterHostInfo
 zookeeper_hosts = ",".join(zookeeper_hosts_list)
@@ -102,17 +102,17 @@ zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
 # get comma separated list of zookeeper hosts from clusterHostInfo
 index = 0
 zookeeper_quorum = ""
-for host in config['clusterHostInfo']['zookeeper_hosts']:
+for host in config['clusterHostInfo']['zookeeper_server_hosts']:
   zookeeper_quorum += host + ":" + str(zookeeper_port)
   index += 1
-  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
+  if index < len(config['clusterHostInfo']['zookeeper_server_hosts']):
     zookeeper_quorum += ","
 
 default_ranger_audit_users = 'nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi'
 
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   infra_solr_jaas_file = infra_solr_conf + '/infra_solr_jaas.conf'
   infra_solr_kerberos_keytab = config['configurations']['infra-solr-env']['infra_solr_kerberos_keytab']
   infra_solr_kerberos_principal = config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
