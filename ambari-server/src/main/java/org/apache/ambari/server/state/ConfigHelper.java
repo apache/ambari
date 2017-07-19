@@ -698,7 +698,9 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
@@ -764,11 +766,34 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
     return result;
+  }
+
+  public void checkAllStageConfigsPresentInDesiredConfigs(Cluster cluster) throws AmbariException {
+    StackId stackId = cluster.getDesiredStackVersion();
+    Set<String> stackConfigTypes = ambariMetaInfo.getStack(stackId.getStackName(),
+            stackId.getStackVersion()).getConfigTypeAttributes().keySet();
+    Map<String, Config> actualConfigs = new HashMap<>();
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
+    }
+
+    for (String stackConfigType : stackConfigTypes) {
+      if (!actualConfigs.containsKey(stackConfigType)) {
+        LOG.error(String.format("Unable to find stack configuration %s in ambari configs!", stackConfigType));
+      }
+    }
+
   }
 
   /***

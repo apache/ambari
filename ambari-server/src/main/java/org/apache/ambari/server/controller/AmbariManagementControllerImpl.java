@@ -2727,6 +2727,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       return requestStages;
     }
 
+    // check all stack configs are present in desired configs
+    configHelper.checkAllStageConfigsPresentInDesiredConfigs(cluster);
+
+
     // caching effective cluster version
     ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
 
