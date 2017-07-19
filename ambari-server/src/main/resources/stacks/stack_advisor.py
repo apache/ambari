@@ -2017,9 +2017,10 @@ class DefaultStackAdvisor(StackAdvisor):
     if cluster_env and "stack_root" in cluster_env:
       stack_root_as_str = cluster_env["stack_root"]
       stack_roots = json.loads(stack_root_as_str)
-      stack_name = cluster_env["stack_name"]
-      if stack_name in stack_roots:
-        stack_root = stack_roots[stack_name]
+      if "stack_name" in cluster_env:
+        stack_name = cluster_env["stack_name"]
+        if stack_name in stack_roots:
+          stack_root = stack_roots[stack_name]
 
     return stack_root
 
