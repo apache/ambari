@@ -2409,5 +2409,4 @@ public class AmbariManagementControllerImplTest {
     verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
   }
 
-
 }

@@ -3362,9 +3362,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
             try {
-              Service s = cluster.getService(serviceName);
               //Filter services whose masters are not started
-              if (s.getServiceComponent(masterComponentName).getDesiredState() == State.STARTED) {
+              if (isServiceComponentStartedOnAnyHost(cluster, serviceName, masterComponentName)) {
                 serviceMasterForDecommissionMap.put(serviceName, masterComponentName);
               } else {
                 LOG.info(String.format("Not adding %s service from include/exclude files refresh map because it's master is not started", serviceName));
@@ -3391,6 +3390,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         scHost.setDesiredState(scHost.getState());
       }
     }
+  }
+
+  private boolean isServiceComponentStartedOnAnyHost(Cluster cluster, String serviceName, String masterComponentName) throws AmbariException {
+    Service service = cluster.getService(serviceName);
+    ServiceComponent serviceComponent = service.getServiceComponent(masterComponentName);
+    Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+    for (ServiceComponentHost sch : schMap.values()) {
+       if (sch.getState() == State.STARTED) {
+         return true;
+       }
+    }
+    return false;
   }
 
   @Override
