@@ -2707,6 +2707,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       return requestStages;
     }
 
+    // check all stack configs are present in desired configs
+    configHelper.checkAllStageConfigsPresentInDesiredConfigs(cluster);
+
     // caching upgrade suspended
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
 
