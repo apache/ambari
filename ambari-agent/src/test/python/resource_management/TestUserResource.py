@@ -163,7 +163,7 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = _get_user_entity()
 
     with Environment('/') as env:
-      user = User("mapred", action = "create", uid = "1", shell = "/bin/bash")
+      user = User("mapred", action = "create", uid = 1, shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/bash -u 1 mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
