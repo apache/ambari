@@ -44,19 +44,12 @@ def setup_users():
       )
 
     for user in params.user_list:
-      if params.override_uid == "true":
-        User(user,
-             uid = get_uid(user),
-             gid = params.user_to_gid_dict[user],
-             groups = params.user_to_groups_dict[user],
-             fetch_nonlocal_groups = params.fetch_nonlocal_groups,
-             )
-      else:
-        User(user,
-             gid = params.user_to_gid_dict[user],
-             groups = params.user_to_groups_dict[user],
-             fetch_nonlocal_groups = params.fetch_nonlocal_groups,
-             )
+      User(user,
+           uid = get_uid(user) if params.override_uid == "true" else None,
+           gid = params.user_to_gid_dict[user],
+           groups = params.user_to_groups_dict[user],
+           fetch_nonlocal_groups = params.fetch_nonlocal_groups,
+           )
 
     if params.override_uid == "true":
       set_uid(params.smoke_user, params.smoke_user_dirs)
