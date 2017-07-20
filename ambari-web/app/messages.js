@@ -1744,7 +1744,7 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.title': "Express Upgrade",
   'admin.stackVersions.version.upgrade.upgradeOptions.HOU.title': "Host Ordered Upgrade",
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.description': "Services are stopped while the upgrade is performed. Incurs downtime, but faster upgrade.",
-  'admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed': "Bypassed errors,<br/>proceed at your own risk.",
+  'admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed': "Upgrade Checks Bypassed.",
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun':'Rerun Checks',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title':'Checks:',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking': 'Checking...',
