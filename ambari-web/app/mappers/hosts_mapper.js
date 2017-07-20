@@ -172,7 +172,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         for (var j = 0; j < item.stack_versions.length; j++) {
           var stackVersion = item.stack_versions[j];
           var versionNumber = Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version');
-          var isDifferentStack = stackVersion.HostStackVersions.stack !== currentVersion.HostStackVersions.stack;
+          var isDifferentStack = currentVersion && (stackVersion.HostStackVersions.stack !== currentVersion.HostStackVersions.stack);
           var isCompatible = App.RepositoryVersion.find(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.id')).get('isCompatible');
           stackVersion.host_name = item.Hosts.host_name;
           if (isDifferentStack && !isCompatible) {
