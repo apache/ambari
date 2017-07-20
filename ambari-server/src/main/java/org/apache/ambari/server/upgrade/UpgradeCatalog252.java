@@ -91,6 +91,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    addNewConfigurationsFromXml();
     resetStackToolsAndFeatures();
   }
 
