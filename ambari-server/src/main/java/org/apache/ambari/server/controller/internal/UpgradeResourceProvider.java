@@ -1337,6 +1337,37 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
+   * Adds the hooks and service folders based on the effective stack ID and the
+   * name of the service from the wrapper.
+   *
+   * @param wrapper
+   *          the stage wrapper to use when detemrining the service name.
+   * @param effectiveStackId
+   *          the stack ID to use when getting the hooks and service folders.
+   * @param commandParams
+   *          the params to update with the new values
+   * @throws AmbariException
+   */
+  private void applyRepositoryAssociatedParameters(StageWrapper wrapper, StackId effectiveStackId,
+      Map<String, String> commandParams) throws AmbariException {
+    if (CollectionUtils.isNotEmpty(wrapper.getTasks())
+        && wrapper.getTasks().get(0).getService() != null) {
+
+      AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
+
+      StackInfo stackInfo = ambariMetaInfo.getStack(effectiveStackId.getStackName(),
+          effectiveStackId.getStackVersion());
+
+      String serviceName = wrapper.getTasks().get(0).getService();
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(effectiveStackId.getStackName(),
+          effectiveStackId.getStackVersion(), serviceName);
+
+      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+    }
+  }
+
+  /**
    * Creates an action stage using the {@link #EXECUTE_TASK_ROLE} custom action
    * to execute some Python command.
    *
@@ -1389,21 +1420,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // the ru_execute_tasks invokes scripts - it needs information about where
     // the scripts live and for that it should always use the target repository
     // stack
-    if (CollectionUtils.isNotEmpty(wrapper.getTasks())
-        && wrapper.getTasks().get(0).getService() != null) {
-
-      AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
-
-      StackInfo stackInfo = ambariMetaInfo.getStack(effectiveStackId.getStackName(),
-          effectiveStackId.getStackVersion());
-
-      String serviceName = wrapper.getTasks().get(0).getService();
-      ServiceInfo serviceInfo = ambariMetaInfo.getService(effectiveStackId.getStackName(),
-          effectiveStackId.getStackVersion(), serviceName);
-
-      params.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-    }
+    applyRepositoryAssociatedParameters(wrapper, effectiveStackId, params);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         EXECUTE_TASK_ROLE, Collections.singletonList(filter), params);
@@ -1566,6 +1583,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
+
+    // add things like hooks and service folders based on effective repo
+    applyRepositoryAssociatedParameters(wrapper, effectiveStackId, commandParams);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
