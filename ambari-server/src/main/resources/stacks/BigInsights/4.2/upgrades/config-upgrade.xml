@@ -118,6 +118,13 @@
             <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/hdp/current/hadoop-client/lib/native" />
             <replace key="content" find="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}" replace-with="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}&#10;if [ -d &quot;/usr/lib/hadoop-lzo&quot; ]; then&#10;  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/hadoop-lzo/lib/*&#10;  export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop-lzo/lib/native&#10;fi"/>
           </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_namenode_adjustments">
+            <type>hdfs-site</type>
+            <transfer operation="delete" delete-key="dfs.namenode.rpc-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+            <transfer operation="delete" delete-key="dfs.namenode.http-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+            <transfer operation="delete" delete-key="dfs.namenode.https-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+            <transfer operation="delete" delete-key="dfs.namenode.rpc-address" if-type="core-site" if-key="fs.defaultFS" if-key-state="present"/> <!-- Make sure to use the existing fs.defaultFS for the non-HA case -->
+          </definition>
         </changes>
       </component>
     </service>
