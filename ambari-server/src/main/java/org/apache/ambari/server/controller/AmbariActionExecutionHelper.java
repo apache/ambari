@@ -466,8 +466,9 @@ public class AmbariActionExecutionHelper {
         Service service = cluster.getService(serviceName);
         addRepoInfoToHostLevelParams(actionContext, service.getDesiredRepositoryVersion(),
             hostLevelParams, hostName);
+      } else {
+        addRepoInfoToHostLevelParams(actionContext, null, hostLevelParams, hostName);
       }
-
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {

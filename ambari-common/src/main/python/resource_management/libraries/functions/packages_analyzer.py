@@ -26,6 +26,7 @@ from threading import Thread
 import threading
 from ambari_commons import OSCheck, OSConst
 from ambari_commons import shell
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
 from resource_management.core import shell as rmf_shell
 from resource_management.core.exceptions import Fail
@@ -34,8 +35,8 @@ __all__ = ["installedPkgsByName", "allInstalledPackages", "allAvailablePackages"
            "getInstalledRepos", "getInstalledPkgsByRepo", "getInstalledPkgsByNames", "getPackageDetails"]
 
 LIST_INSTALLED_PACKAGES_UBUNTU = "COLUMNS=9999 ; for i in $(dpkg -l |grep ^ii |awk -F' ' '{print $2}'); do      apt-cache showpkg \"$i\"|head -3|grep -v '^Versions'| tr -d '()' | awk '{ print $1\" \"$2 }'|sed -e 's/^Package: //;' | paste -d ' ' - -;  done"
-LIST_AVAILABLE_PACKAGES_UBUNTU = "packages=`for  i in $(ls -1 /var/lib/apt/lists  | grep -v \"ubuntu.com\") ; do grep ^Package: /var/lib/apt/lists/$i |  awk '{print $2}' ; done` ; for i in $packages; do      apt-cache showpkg \"$i\"|head -3|grep -v '^Versions'| tr -d '()' | awk '{ print $1\" \"$2 }'|sed -e 's/^Package: //;' | paste -d ' ' - -;  done"
-
+LIST_AVAILABLE_PACKAGES_UBUNTU = "packages=`for  i in $(ls -1 /var/lib/apt/lists  | grep %s ) ; do grep ^Package: /var/lib/apt/lists/$i |  awk '{print $2}' ; done` ; for i in $packages; do      apt-cache showpkg \"$i\"|head -3|grep -v '^Versions'| tr -d '()' | awk '{ print $1\" \"$2 }'|sed -e 's/^Package: //;' | paste -d ' ' - -;  done"
+GREP_REPO_EXCLUDE_SYSTEM = "-v \"ubuntu.com\""
 logger = logging.getLogger()
 
 # default timeout for async invoked processes
@@ -91,15 +92,13 @@ def allInstalledPackages(allInstalledPackages):
   """
   All installed packages in system
   """
-  osType = OSCheck.get_os_family()
-
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["sudo", "zypper", "--no-gpg-checks", "search", "--installed-only", "--details"],
+      [AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--installed-only", "--details"],
       allInstalledPackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
-      ["sudo", "yum", "list", "installed"],
+      [AMBARI_SUDO_BINARY, "yum", "list", "installed"],
       'Installed Packages',
       allInstalledPackages)
   elif OSCheck.is_ubuntu_family():
@@ -108,21 +107,59 @@ def allInstalledPackages(allInstalledPackages):
       allInstalledPackages)
 
 
-def allAvailablePackages(allAvailablePackages):
-  osType = OSCheck.get_os_family()
+def get_available_packages_in_repos(repositories):
+  """
+  Gets all (both installed and available) packages that are available at given repositories.
+  :param repositories: from command configs like config['repositoryFile']['repositories']
+  :return: installed and available packages from these repositories
+  """
 
+  available_packages = []
+  installed_packages = []
+  available_packages_in_repos = []
+  repo_ids = [repository['repoId'] for repository in repositories]
+  if OSCheck.is_ubuntu_family():
+    allInstalledPackages(installed_packages)
+    repo_urls = [repository['baseUrl'] for repository in repositories]
+    repo_urls = [repo_url.replace("http://","") for repo_url in repo_urls]
+    repo_urls = [repo_url.replace("/","_") for repo_url in repo_urls]
+    for url in repo_urls:
+      _lookUpAptPackages(
+        LIST_AVAILABLE_PACKAGES_UBUNTU % url,
+        available_packages)
+      for package in installed_packages:
+        if url in package[2]:
+          available_packages_in_repos.append(package[0])
+    for package in available_packages:
+      available_packages_in_repos.append(package[0])
+  elif OSCheck.is_suse_family():
+    for repo in repo_ids:
+      _lookUpZypperPackages([AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--details", "--repo", repo],
+                            available_packages)
+    available_packages_in_repos += [package[0] for package in available_packages]
+  elif OSCheck.is_redhat_family():
+    for repo in repo_ids:
+      _lookUpYumPackages([AMBARI_SUDO_BINARY, "yum", "list", "available", "--disablerepo=*", "--enablerepo=" + repo],
+                         'Available Packages', available_packages)
+      _lookUpYumPackages([AMBARI_SUDO_BINARY, "yum", "list", "installed", "--disablerepo=*", "--enablerepo=" + repo],
+                         'Installed Packages', installed_packages)
+    available_packages_in_repos += [package[0] for package in available_packages + installed_packages]
+  return available_packages_in_repos
+
+
+def allAvailablePackages(allAvailablePackages):
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["sudo", "zypper", "--no-gpg-checks", "search", "--uninstalled-only", "--details"],
+      [AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--uninstalled-only", "--details"],
       allAvailablePackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
-      ["sudo", "yum", "list", "available"],
+      [AMBARI_SUDO_BINARY, "yum", "list", "available"],
       'Available Packages',
       allAvailablePackages)
   elif OSCheck.is_ubuntu_family():
      return _lookUpAptPackages(
-      LIST_AVAILABLE_PACKAGES_UBUNTU,
+       LIST_AVAILABLE_PACKAGES_UBUNTU % GREP_REPO_EXCLUDE_SYSTEM,
       allAvailablePackages)
 
 # ToDo: add execution via sudo for ubuntu (currently Ubuntu is not supported)
@@ -170,7 +207,6 @@ def _lookUpZypperPackages(command, allPackages):
     if 0 == result['retCode']:
       lines = result['out'].split('\n')
       lines = [line.strip() for line in lines]
-      items = []
       for index in range(len(lines)):
         if "--+--" in lines[index]:
           skipIndex = index + 1
@@ -186,7 +222,7 @@ def _lookUpZypperPackages(command, allPackages):
 def nameMatch(lookupName, actualName):
   tokens = actualName.strip().split()
   for token in tokens:
-    if token.lower().find(lookupName.lower()) == 0:
+    if lookupName.lower() in token.lower():
       return True
   return False
 
@@ -281,7 +317,7 @@ def getInstalledPackageVersion(package_name):
     code, out, err = rmf_shell.checked_call("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name), stderr=subprocess.PIPE)
   else:
     code, out, err = rmf_shell.checked_call("rpm -q --queryformat '%{{version}}-%{{release}}' {0} | sed -e 's/\.el[0-9]//g'".format(package_name), stderr=subprocess.PIPE)
-    
+
   return out
 
 

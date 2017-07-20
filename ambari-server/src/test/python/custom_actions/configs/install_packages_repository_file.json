@@ -24,10 +24,26 @@
         "mysql_jdbc_url": "http://0b3.vm:8080/resources//mysql-connector-java.jar"
     },
     "commandType": "EXECUTION_COMMAND",
+    "repositoryFile": {
+        "stackName": "HDP",
+        "repoVersionId": 4,
+        "repoVersion": "2.2.0.1-885",
+        "repositories": [
+          {
+            "repoName": "HDP-UTILS",
+            "baseUrl": "http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0",
+            "repoId": "HDP-UTILS-1.1.0.20-repo-4"
+          },
+          {
+            "repoName": "HDP",
+            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
+            "repoId": "HDP-2.2-repo-4"
+          }
+        ]
+    },
     "roleParams": {
         "stack_id": "HDP-2.2",
         "repository_version": "2.2.0.1-885",
-        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
         "package_list": "[{\"name\":\"hadoop_${stack_version}\", \"condition\": \"\"},{\"name\":\"snappy\", \"condition\": \"\"},{\"name\":\"snappy-devel\", \"condition\": \"\"},{\"name\":\"lzo\", \"condition\": \"\"},{\"name\":\"hadooplzo_${stack_version}\", \"condition\": \"\"},{\"name\":\"hadoop_${stack_version}-libhdfs\", \"condition\": \"\"},{\"name\":\"ambari-log4j\", \"condition\": \"\"}]"
     },
     "serviceName": "null",
@@ -45,28 +61,10 @@
         "command_timeout": "60",
         "script_type": "PYTHON",
         "repository_version": "2.2.0.1-885",
-        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
         "package_list": "[{\"name\":\"hadoop_${stack_version}\", \"condition\": \"\"},{\"name\":\"snappy\", \"condition\": \"\"},{\"name\":\"snappy-devel\", \"condition\": \"\"},{\"name\":\"lzo\", \"condition\": \"\"},{\"name\":\"hadooplzo_${stack_version}\", \"condition\": \"\"},{\"name\":\"hadoop_${stack_version}-libhdfs\", \"condition\": \"\"},{\"name\":\"ambari-log4j\", \"condition\": \"\"}]",
         "script": "install_packages.py"
     },
     "commandId": "14-1",
-    "repositoryFile": {
-        "stackName": "HDP",
-        "repoVersionId": 1,
-        "repoVersion": "2",
-        "repositories": [
-            {
-                "repoName": "HDP-UTILS",
-                "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
-                "repoId": "HDP-UTILS-1.1.0.20"
-            },
-            {
-                "repoName": "HDP",
-                "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
-                "repoId": "HDP-2.2"
-            }
-        ]
-    },
     "clusterHostInfo": {
         "snamenode_host": [
             "0b3.vm"

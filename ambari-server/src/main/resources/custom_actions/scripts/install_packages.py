@@ -16,36 +16,33 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
-import os
 import signal
 
 import re
-import os.path
 
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import ambari_simplejson as json
+import sys, traceback
 
-from resource_management import *
-import resource_management
-from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
-from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.os_check import OSCheck
 from ambari_commons.str_utils import cbool, cint
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources import Package
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages, verifyDependencies
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.repo_version_history \
-  import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
-from resource_management.libraries.script.script import Script
+    import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 from resource_management.core.resources.system import Link
-from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
-
-from resource_management.core.logger import Logger
-
+from resource_management.libraries.functions import packages_analyzer
+from resource_management.libraries.functions.repository_util import create_repo_files, CommandRepository
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.resources.repository import Repository
+from resource_management.libraries.script.script import Script
 
 class InstallPackages(Script):
   """
@@ -72,25 +69,21 @@ class InstallPackages(Script):
     signal.signal(signal.SIGINT, self.abort_handler)
 
     self.repository_version_id = None
-    self.ignore_package_dependencies = False
 
+    base_urls = []
     # Select dict that contains parameters
     try:
-      self.ignore_package_dependencies = 'ignore_package_dependencies' in config['roleParams'] and config['roleParams']['ignore_package_dependencies']
+      if 'base_urls' in config['roleParams']:
+        base_urls = json.loads(config['roleParams']['base_urls'])
+
       self.repository_version = config['roleParams']['repository_version']
-      base_urls = json.loads(config['roleParams']['base_urls'])
       package_list = json.loads(config['roleParams']['package_list'])
       stack_id = config['roleParams']['stack_id']
+
       if 'repository_version_id' in config['roleParams']:
         self.repository_version_id = config['roleParams']['repository_version_id']
     except KeyError:
-      # Last try
-      self.repository_version = config['commandParams']['repository_version']
-      base_urls = json.loads(config['commandParams']['base_urls'])
-      package_list = json.loads(config['commandParams']['package_list'])
-      stack_id = config['commandParams']['stack_id']
-      if 'repository_version_id' in config['commandParams']:
-        self.repository_version_id = config['commandParams']['repository_version_id']
+      pass
 
     # current stack information
     self.current_stack_version_formatted = None
@@ -112,9 +105,7 @@ class InstallPackages(Script):
 
     self.repository_version = self.repository_version.strip()
 
-
     # Install/update repositories
-    installed_repositories = []
     self.current_repositories = []
     self.current_repo_files = set()
 
@@ -129,24 +120,25 @@ class InstallPackages(Script):
     Logger.info("Will install packages for repository version {0}".format(self.repository_version))
 
     if 0 == len(base_urls):
-      Logger.info("Repository list is empty. Ambari may not be managing the repositories for {0}.".format(self.repository_version))
+      Logger.warning("Repository list is empty. Ambari may not be managing the repositories for {0}.".format(self.repository_version))
 
     try:
-      append_to_file = False
-      for url_info in base_urls:
-        repo_name, repo_file = self.install_repository(url_info, append_to_file, template)
-        self.current_repositories.append(repo_name)
-        self.current_repo_files.add(repo_file)
-        append_to_file = True
+      if 'repositoryFile' in config:
+        create_repo_files(template, CommandRepository(config['repositoryFile']))
+      else:
+        append_to_file = False
+        for url_info in base_urls:
+          repo_name, repo_file = self.install_repository(url_info, append_to_file, template)
+          self.current_repositories.append(repo_name)
+          self.current_repo_files.add(repo_file)
+          append_to_file = True
 
-      installed_repositories = list_ambari_managed_repos(self.stack_name)
     except Exception, err:
-      Logger.logger.exception("Cannot distribute repositories. Error: {0}".format(str(err)))
+      Logger.logger.exception("Cannot install repository files. Error: {0}".format(str(err)))
       num_errors += 1
 
     # Build structured output with initial values
     self.structured_output = {
-      'ambari_repositories': installed_repositories,
       'installed_repository_version': self.repository_version,
       'stack_id': stack_id,
       'package_installation_result': 'FAIL'
@@ -213,18 +205,11 @@ class InstallPackages(Script):
       Link("/usr/bin/conf-select", to = "/usr/bin/hdfconf-select")
 
     for package_name, directories in conf_select.get_package_dirs().iteritems():
-      # if already on HDP 2.3, then we should skip making conf.backup folders
-      if self.current_stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, self.current_stack_version_formatted):
-        conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
-        Logger.info("The current cluster stack of {0} does not require backing up configurations; "
-                    "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
-        # only link configs for all known packages
-        conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
-      else:
-        # link configs and create conf.backup folders for all known packages
-        # this will also call conf-select select
-        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
-          skip_existing_links = False, link_to = "backup")
+      conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
+      Logger.info("The current cluster stack of {0} does not require backing up configurations; "
+                  "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
+      # only link configs for all known packages
+      conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
 
 
   def compute_actual_version(self):
@@ -355,7 +340,7 @@ class InstallPackages(Script):
     :return: Returns 0 if no errors were found, and 1 otherwise.
     """
     ret_code = 0
-    
+
     config = self.get_config()
     agent_stack_retry_on_unavailability = cbool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
     agent_stack_retry_count = cint(config['hostLevelParams']['agent_stack_retry_count'])
@@ -369,16 +354,20 @@ class InstallPackages(Script):
               retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
               retry_count=agent_stack_retry_count
       )
-      
+
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
       packages_installed_before = [package[0] for package in packages_installed_before]
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
+      try:
+        available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+      except Exception:
+        available_packages_in_repos = []
       for package in filtered_package_list:
-        name = self.format_package_name(package['name'])
+        name = self.get_package_from_available(package['name'], available_packages_in_repos)
         Package(name,
-          action="upgrade", # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated     
+          action="upgrade", # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated
           retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
           retry_count=agent_stack_retry_count
         )
@@ -404,9 +393,7 @@ class InstallPackages(Script):
           if package_version_string and (package_version_string in package):
             Package(package, action="remove")
 
-    if self.ignore_package_dependencies:
-      Logger.info("Ignoring package dependencies")
-    elif not verifyDependencies():
+    if not verifyDependencies():
       ret_code = 1
       Logger.logger.error("Failure while verifying dependencies")
       Logger.logger.error("*******************************************************************************")
@@ -457,13 +444,13 @@ class InstallPackages(Script):
   def abort_handler(self, signum, frame):
     Logger.error("Caught signal {0}, will handle it gracefully. Compute the actual version if possible before exiting.".format(signum))
     self.check_partial_install()
-    
+
   def filter_package_list(self, package_list):
     """
     Note: that we have skipUpgrade option in metainfo.xml to filter packages,
     as well as condition option to filter them conditionally,
     so use this method only if, for some reason the metainfo option cannot be used.
-  
+
     :param package_list: original list
     :return: filtered package_list
     """
