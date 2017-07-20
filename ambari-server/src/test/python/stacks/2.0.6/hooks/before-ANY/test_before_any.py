@@ -58,8 +58,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'hive',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -67,8 +68,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'oozie',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -76,13 +78,15 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'nobody',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'nobody'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'ambari-qa',
                               gid = 'hadoop',
-                              uid = 0,
+                              uid = None,
                               groups = [u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -90,8 +94,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'flume',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -99,8 +104,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'hdfs',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -108,8 +114,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'storm',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -117,8 +124,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'mapred',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -126,8 +134,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'hbase',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -135,8 +144,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'tez',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -144,8 +154,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'zookeeper',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -153,8 +164,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'falcon',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -162,8 +174,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'sqoop',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -171,8 +184,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'yarn',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -180,8 +194,9 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('User', 'hcat',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = 1000,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
