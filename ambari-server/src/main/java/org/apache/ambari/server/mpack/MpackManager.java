@@ -85,10 +85,12 @@ public class MpackManager {
    * @throws IOException
    */
   private void parseMpackDirectories() {
+
     try {
       for (final File dirEntry : mpacksStaging.listFiles()) {
         if (dirEntry.isDirectory()) {
           String mpackName = dirEntry.getName();
+
           if (!mpackName.equals(MPACK_TAR_LOCATION)) {
             for (final File file : dirEntry.listFiles()) {
               if (file.isDirectory()) {
@@ -138,7 +140,6 @@ public class MpackManager {
       mpackVersion = mpackRequest.getMpackVersion();
       mpack.setRegistryId(mpackRequest.getRegistryId());
 
-      //Todo : Madhu implement GET /registries/{registryId}/mpacks
       mpackTarPath = downloadMpack(mpackRequest.getMpackUri());
 
       if (createMpackDirectory(mpack, mpackTarPath)) {
@@ -156,10 +157,10 @@ public class MpackManager {
 
       if (createMpackDirectory(mpack, mpackTarPath)) {
         mpackDirectory = mpacksStaging + File.separator + mpack.getName() + File.separator + mpack.getVersion();
-        mpack.setMpackUri(mpackRequest.getMpackUri());
       }
     }
     extractMpackTar(mpack, mpackTarPath, mpackDirectory);
+    mpack.setMpackUri(mpackRequest.getMpackUri());
     mpackId = populateDB(mpack);
 
     if (mpackId != null) {
@@ -176,16 +177,17 @@ public class MpackManager {
   /**
    * Mpack is downloaded as a tar.gz file. It is extracted into mpack-v2-staging/{mpack-name}/{mpack-version}/ directory
    *
-   * @param mpack Mpack to process
-   * @param mpackTarPath Path to mpack tarball
+   * @param mpack          Mpack to process
+   * @param mpackTarPath   Path to mpack tarball
    * @param mpackDirectory Mpack directory
    * @throws IOException
    */
   private void extractMpackTar(Mpack mpack, Path mpackTarPath, String mpackDirectory) throws IOException {
+
     TarArchiveInputStream mpackTarFile = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(new File(String.valueOf(mpackTarPath))))));
-    // To read individual TAR file
     TarArchiveEntry entry = null;
     File outputFile = null;
+
     //Create a loop to read every single entry in TAR file
     while ((entry = mpackTarFile.getNextTarEntry()) != null) {
       outputFile = new File(mpacksStaging, entry.getName());
@@ -204,7 +206,9 @@ public class MpackManager {
         outputFileStream.close();
       }
     }
+
     mpackTarFile.close();
+
     String mpackTarDirectory = mpackTarPath.toString();
     Path extractedMpackDirectory = Files.move
             (Paths.get(mpacksStaging + File.separator + mpackTarDirectory.substring(mpackTarDirectory.lastIndexOf('/') + 1, mpackTarDirectory.indexOf(".tar")) + File.separator),
@@ -217,30 +221,30 @@ public class MpackManager {
    * Reads the mpack.json file within the {mpack-name}.tar.gz file and populates Mpack object.
    * Extract the mpack-name and mpack-version from mpack.json to create the new mpack directory to hold the mpack files.
    *
-   * @param mpack Mpack to process
+   * @param mpack        Mpack to process
    * @param mpackTarPath Path to mpack tarball
    * @return boolean
    * @throws IOException
    */
-  private Boolean createMpackDirectory(Mpack mpack, Path mpackTarPath) throws IOException {
+  private Boolean createMpackDirectory(Mpack mpack, Path mpackTarPath) throws IOException, ResourceAlreadyExistsException {
+
     TarArchiveInputStream mpackTarFile = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(new File(mpackTarPath.toString())))));
-    // To read individual TAR file
     TarArchiveEntry entry = null;
     String individualFiles;
     int offset;
+
     // Create a loop to read every single entry in TAR file
     while ((entry = mpackTarFile.getNextTarEntry()) != null) {
       // Get the name of the file
       individualFiles = entry.getName();
       String[] dirFile = individualFiles.split(File.separator);
+
       //Search for mpack.json
       String fileName = dirFile[dirFile.length - 1];
       if (fileName.contains("mpack") && fileName.contains(".json")) {
-        // Get Size of the file and create a byte array for the size
         byte[] content = new byte[(int) entry.getSize()];
         offset = 0;
         LOG.debug("Size of the File is: " + entry.getSize());
-        // Read file from the archive into byte array
         mpackTarFile.read(content, offset, content.length - offset);
 
         //Read the mpack.json file into Mpack Object for further use.
@@ -251,11 +255,20 @@ public class MpackManager {
 
         mpackTarFile.close();
 
-        File mpackDirectory = new File(mpacksStaging + File.separator + mpack.getName());
-        if (!mpackDirectory.exists())
-          return mpackDirectory.mkdir();
-        else
-          return true;
+        //Check if the mpack already exists
+        List<MpackEntity> mpackEntities = mpackDAO.findByNameVersion(mpack.getName(), mpack.getVersion());
+        if (mpackEntities.size() == 0) {
+          File mpackDirectory = new File(mpacksStaging + File.separator + mpack.getName());
+
+          if (!mpackDirectory.exists()) {
+            return mpackDirectory.mkdir();
+          } else {
+            return true;
+          }
+        } else {
+          String message = "Mpack :" + mpack.getName() + " version: " + mpack.getVersion() + " already exists in server";
+          throw new ResourceAlreadyExistsException(message);
+        }
       }
     }
 
@@ -270,18 +283,21 @@ public class MpackManager {
    * @throws IOException
    */
   private void createSymLinks(Mpack mpack) throws IOException {
+
     String stackId = mpack.getStackId();
     String[] stackMetaData = stackId.split("-");
     String stackName = stackMetaData[0];
     String stackVersion = stackMetaData[1];
     File stack = new File(stackRoot + "/" + stackName);
-    if(!stack.exists()) {
-      stack.mkdir();
-    }
     Path stackPath = Paths.get(stackRoot + "/" + stackName + "/" + stackVersion);
     Path mpackPath = Paths.get(mpacksStaging + "/" + mpack.getName() + "/" + mpack.getVersion());
-    if(Files.isSymbolicLink(stackPath))
+
+    if (!stack.exists()) {
+      stack.mkdir();
+    }
+    if (Files.isSymbolicLink(stackPath)) {
       Files.delete(stackPath);
+    }
     Files.createSymbolicLink(stackPath, mpackPath);
   }
 
@@ -292,15 +308,17 @@ public class MpackManager {
    * @return
    */
   public Path downloadMpack(String mpackURI) throws IOException {
+
     URL url = new URL(mpackURI);
-    String fileName = mpackURI.substring(mpackURI.lastIndexOf('/') + 1, mpackURI.length());
+    String mpackTarFile = mpackURI.substring(mpackURI.lastIndexOf('/') + 1, mpackURI.length());
     File stagingDir = new File(mpacksStaging.toString() + File.separator + MPACK_TAR_LOCATION);
+    Path targetPath = new File(stagingDir.getPath() + File.separator + mpackTarFile).toPath();
+
     if (!stagingDir.exists()) {
       stagingDir.mkdir();
     }
-    Path targetPath = new File(stagingDir.getPath() + File.separator + fileName).toPath();
-    Files.copy(url.openStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
+    Files.copy(url.openStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
     return targetPath;
   }
 
@@ -315,11 +333,14 @@ public class MpackManager {
    * @return boolean
    */
   protected boolean validateMpackInfo(String expectedMpackName, String expectedMpackVersion, String actualMpackName, String actualMpackVersion) {
-    if (expectedMpackName.equalsIgnoreCase(actualMpackName) && expectedMpackVersion.equalsIgnoreCase(actualMpackVersion))
+
+    if (expectedMpackName.equalsIgnoreCase(actualMpackName) && expectedMpackVersion.equalsIgnoreCase(actualMpackVersion)) {
       return true;
-    else
+    }
+    else {
       LOG.info("Incorrect information : Mismatch in - (" + expectedMpackName + "," + actualMpackName + ") or (" + expectedMpackVersion + "," + actualMpackVersion + ")");
-    return false;
+      return false;
+    }
   }
 
   /**
@@ -330,15 +351,19 @@ public class MpackManager {
    * @throws IOException
    */
   protected Long populateDB(Mpack mpack) throws IOException {
+
     String mpackName = mpack.getName();
     String mpackVersion = mpack.getVersion();
     List resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
+
     if (resultSet.size() == 0) {
       LOG.info("Adding mpack {}-{} to the database", mpackName, mpackVersion);
+
       MpackEntity mpackEntity = new MpackEntity();
       mpackEntity.setMpackName(mpackName);
       mpackEntity.setMpackVersion(mpackVersion);
       mpackEntity.setMpackUri(mpack.getMpackUri());
+      mpackEntity.setRegistryId(mpack.getRegistryId());
 
       Long mpackId = mpackDAO.create(mpackEntity);
       return mpackId;
@@ -363,12 +388,14 @@ public class MpackManager {
     if (stackEntity == null) {
       LOG.info("Adding stack {}-{} to the database", stackName, stackVersion);
       stackEntity = new StackEntity();
+
       stackEntity.setStackName(stackName);
       stackEntity.setStackVersion(stackVersion);
       stackEntity.setCurrentMpackId(mpack.getMpackId());
       stackDAO.create(stackEntity);
     } else {
       LOG.info("Updating stack {}-{} to the database", stackName, stackVersion);
+
       stackEntity.setCurrentMpackId(mpack.getMpackId());
       stackDAO.merge(stackEntity);
     }
@@ -380,6 +407,7 @@ public class MpackManager {
    * @return ArrayList
    */
   public ArrayList<Packlet> getPacklets(Long mpackId) {
+
     Mpack mpack = mpackMap.get(mpackId);
     if (mpack.getPacklets() != null)
       return mpack.getPacklets();

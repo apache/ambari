@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -48,6 +50,9 @@ import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.registry.Registry;
+import org.apache.ambari.server.registry.RegistryMpack;
+import org.apache.ambari.server.registry.RegistryMpackVersion;
 import org.apache.ambari.server.state.Packlet;
 
 import com.google.inject.Inject;
@@ -121,9 +126,11 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   public RequestStatus createResourcesAuthorized(final Request request)
     throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException,
     NoSuchParentResourceException, IllegalArgumentException {
+
+    MpackRequest mpackRequest = null;
     Set<Resource> associatedResources = new HashSet<>();
     try {
-      MpackRequest mpackRequest = getRequest(request);
+      mpackRequest = getRequest(request);
       if (mpackRequest == null)
         throw new BodyParseException("Please provide " + MPACK_NAME + " ," + MPACK_VERSION + " ," + MPACK_URI);
       MpackResponse response = getManagementController().registerMpack(mpackRequest);
@@ -140,6 +147,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         return getRequestStatus(null, associatedResources);
       }
     } catch (IOException e) {
+      if (e instanceof ConnectException)
+        throw new SystemException("The Mpack Uri : " + mpackRequest.getMpackUri() + " is not valid. Please try again");
       e.printStackTrace();
     } catch (BodyParseException e1) {
       e1.printStackTrace();
@@ -147,18 +156,19 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     return null;
   }
 
-  public MpackRequest getRequest(Request request) {
+  public MpackRequest getRequest(Request request) throws AmbariException {
     MpackRequest mpackRequest = new MpackRequest();
     Set<Map<String, Object>> properties = request.getProperties();
     for (Map propertyMap : properties) {
       //Mpack Download url is either given in the request body or is fetched using the registry id
       if (!propertyMap.containsKey(MPACK_URI) && !propertyMap.containsKey(REGISTRY_ID))
         return null;
-      //Fetch Mpack Download Url using the given registry id
+        //Fetch Mpack Download Url using the given registry id
       else if (!propertyMap.containsKey(MPACK_URI)) {
-        mpackRequest.setRegistryId((Long) propertyMap.get(REGISTRY_ID));
+        mpackRequest.setRegistryId(Long.valueOf ((String) propertyMap.get(REGISTRY_ID)));
         mpackRequest.setMpackName((String) propertyMap.get(MPACK_NAME));
         mpackRequest.setMpackVersion((String) propertyMap.get(MPACK_VERSION));
+        mpackRequest.setMpackUri(getMpackUri(mpackRequest));
       }
       //Directly download the mpack using the given url
       else
@@ -166,6 +176,19 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     }
     return mpackRequest;
 
+  }
+
+  /***
+   * Uses the Registries functions to get the mpack uri.
+   * @param mpackRequest
+   * @return
+   * @throws AmbariException
+   */
+  private String getMpackUri(MpackRequest mpackRequest) throws AmbariException {
+    Registry registry = getManagementController().getRegistry(mpackRequest.getRegistryId());
+    RegistryMpack registryMpack = registry.getRegistryMpack(mpackRequest.getMpackName());
+    RegistryMpackVersion registryMpackVersion = registryMpack.getMpackVersion(mpackRequest.getMpackVersion());
+    return registryMpackVersion.getMpackUrl();
   }
 
   @Override
@@ -216,7 +239,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
       if (propertyMap.containsKey(MPACK_ID)) {
         Object objMpackId = propertyMap.get(MPACK_ID);
-        if(objMpackId != null)
+        if (objMpackId != null)
           mpackId = Long.valueOf((String) objMpackId);
 
         MpackEntity entity = mpackDAO.findById(mpackId);
