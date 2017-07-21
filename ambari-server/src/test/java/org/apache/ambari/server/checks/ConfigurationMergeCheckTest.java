@@ -44,6 +44,7 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.google.inject.Provider;
 //
@@ -57,9 +58,11 @@ public class ConfigurationMergeCheckTest {
   private static final String CONFIG_PROPERTY = "hdfs.property";
 
   private Clusters clusters = EasyMock.createMock(Clusters.class);
-  private Map<String, String> m_configMap = new HashMap<String, String>();
+  private Map<String, String> m_configMap = new HashMap<>();
 
   private static final StackId stackId_1_0 = new StackId("HDP-1.0");
+
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
 
   @Before
   public void before() throws Exception {
@@ -79,6 +82,9 @@ public class ConfigurationMergeCheckTest {
 
     expect(cluster.getDesiredConfigByType(CONFIG_TYPE)).andReturn(config).anyTimes();
 
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("1.1.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.1"));
+
     replay(clusters, cluster, config);
   }
 
@@ -86,7 +92,7 @@ public class ConfigurationMergeCheckTest {
   public void testApplicable() throws Exception {
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetStackId(stackId_1_0);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     ConfigurationMergeCheck cmc = new ConfigurationMergeCheck();
     Configuration config = EasyMock.createMock(Configuration.class);
@@ -102,7 +108,7 @@ public class ConfigurationMergeCheckTest {
 
     final RepositoryVersionDAO repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
     expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.0")).andReturn(createFor("1.0")).anyTimes();
-    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.1")).andReturn(createFor("1.1")).anyTimes();
+    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.1.0.0-1234")).andReturn(createFor("1.1")).anyTimes();
 
     replay(repositoryVersionDAO);
 
@@ -159,8 +165,7 @@ public class ConfigurationMergeCheckTest {
     replay(ami);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetStackId(stackId_1_0);
-    request.setRepositoryVersion("1.1");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, "cluster");
     cmc.perform(check, request);

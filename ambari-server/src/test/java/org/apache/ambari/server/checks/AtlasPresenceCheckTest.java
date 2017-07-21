@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.checks;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+import org.mockito.Mockito;
 
 
 public class AtlasPresenceCheckTest {
@@ -32,7 +34,7 @@ public class AtlasPresenceCheckTest {
   public void perform() throws Exception {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("2.5.0.0");
+    request.setTargetRepositoryVersion(Mockito.mock(RepositoryVersionEntity.class));
     m_check.perform(check, request);
 
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());

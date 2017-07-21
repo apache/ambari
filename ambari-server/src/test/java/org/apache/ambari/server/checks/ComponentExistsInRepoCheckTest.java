@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -92,6 +93,9 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   @Mock
   private ServiceComponent m_zookeeperServer;
 
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
   @Before
   public void before() throws Exception {
 
@@ -131,6 +135,9 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     expect(m_ambariMetaInfo.getComponent(TARGET_STACK.getStackName(),
         TARGET_STACK.getStackVersion(), "ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(
             m_zookeeperServerInfo).anyTimes();
+
+    expect(m_repositoryVersion.getStackId()).andReturn(TARGET_STACK).anyTimes();
+    expect(m_repositoryVersion.getVersion()).andReturn("2.2.0").anyTimes();
   }
 
   /**
@@ -143,7 +150,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(SOURCE_STACK);
-    request.setTargetStackId(TARGET_STACK);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
@@ -172,7 +179,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(SOURCE_STACK);
-    request.setTargetStackId(TARGET_STACK);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
 
@@ -208,7 +215,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(SOURCE_STACK);
-    request.setTargetStackId(TARGET_STACK);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
@@ -234,7 +241,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(SOURCE_STACK);
-    request.setTargetStackId(TARGET_STACK);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
@@ -263,7 +270,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
         CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(SOURCE_STACK);
-    request.setTargetStackId(TARGET_STACK);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
     CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
@@ -297,7 +304,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
         CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(SOURCE_STACK);
-    request.setTargetStackId(TARGET_STACK);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
 

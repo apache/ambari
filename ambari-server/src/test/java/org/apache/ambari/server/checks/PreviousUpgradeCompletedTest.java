@@ -44,7 +44,6 @@ public class PreviousUpgradeCompletedTest {
   private final Cluster cluster = Mockito.mock(Cluster.class);
   private StackId sourceStackId = new StackId("HDP", "2.2");
   private StackId targetStackId = new StackId("HDP", "2.2");
-  private String sourceRepositoryVersion = "2.2.6.0-1234";
   private String destRepositoryVersion = "2.2.8.0-5678";
   private String clusterName = "cluster";
   private PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
@@ -67,9 +66,12 @@ public class PreviousUpgradeCompletedTest {
     stack.setStackName(stackId.getStackName());
     stack.setStackVersion(stackId.getStackVersion());
 
-    checkRequest.setRepositoryVersion(sourceRepositoryVersion);
+    toRepsitoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+    Mockito.when(toRepsitoryVersion.getVersion()).thenReturn(destRepositoryVersion);
+    Mockito.when(toRepsitoryVersion.getStackId()).thenReturn(targetStackId);
+
     checkRequest.setSourceStackId(sourceStackId);
-    checkRequest.setTargetStackId(targetStackId);
+    checkRequest.setTargetRepositoryVersion(toRepsitoryVersion);
 
     puc.clustersProvider = new Provider<Clusters>() {
       @Override
@@ -77,9 +79,6 @@ public class PreviousUpgradeCompletedTest {
         return clusters;
       }
     };
-
-    toRepsitoryVersion = Mockito.mock(RepositoryVersionEntity.class);
-    Mockito.when(toRepsitoryVersion.getVersion()).thenReturn(destRepositoryVersion);
   }
 
   @Test

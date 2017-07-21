@@ -288,8 +288,8 @@ public class UpgradeContext {
 
       if (null == revertUpgrade) {
           throw new AmbariException(String.format("Could not find Upgrade with id %s to revert.", revertUpgradeId));
-      }      
-      
+      }
+
       if (revertUpgrade.getOrchestration() != RepositoryType.PATCH) {
         throw new AmbariException("Can only revert upgrades that have been done as a patch.");
       }
@@ -422,12 +422,12 @@ public class UpgradeContext {
     String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
 
     @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-    String upgradePackFromVersion = cluster.getService(
-        m_services.iterator().next()).getDesiredRepositoryVersion().getVersion();
+    RepositoryVersionEntity upgradeFromRepositoryVersion = cluster.getService(
+        m_services.iterator().next()).getDesiredRepositoryVersion();
 
     m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
-        upgradePackFromVersion, m_repositoryVersion.getVersion(), m_direction, m_type,
-        preferredUpgradePackName);
+        upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
+        m_type, preferredUpgradePackName);
 
     // the validator will throw an exception if the upgrade request is not valid
     UpgradeRequestValidator upgradeRequestValidator = buildValidator(m_type);
@@ -1031,16 +1031,13 @@ public class UpgradeContext {
         return;
       }
 
-      RepositoryVersionEntity repositoryVersion = m_repoVersionDAO.findByPK(
-          Long.valueOf(repositoryVersionId));
-
       // Validate pre-req checks pass
       PreUpgradeCheckResourceProvider provider = (PreUpgradeCheckResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
           Resource.Type.PreUpgradeCheck);
 
       Predicate preUpgradeCheckPredicate = new PredicateBuilder().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals(repositoryVersion.getVersion()).and().property(
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID).equals(repositoryVersionId).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).equals(m_isRevert).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(type).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();

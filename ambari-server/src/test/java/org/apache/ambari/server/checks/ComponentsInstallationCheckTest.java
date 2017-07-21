@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -39,6 +40,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -61,12 +63,22 @@ public class ComponentsInstallationCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
   private AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
 
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
+  /**
+   *
+   */
+  @Before
+  public void setup() {
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
+  }
+
   @Test
   public void testIsApplicable() throws Exception {
     PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setRepositoryVersion("HDP-2.2.0.0");
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
-    checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
     ComponentsInstallationCheck cic = new ComponentsInstallationCheck();
     Configuration config = Mockito.mock(Configuration.class);
     cic.config = config;
@@ -106,7 +118,7 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
     Mockito.when(amsService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
 
-    HashMap<String, Service> clusterServices = new HashMap<String, Service>();
+    HashMap<String, Service> clusterServices = new HashMap<>();
     clusterServices.put("HDFS", hdfsService);
     clusterServices.put("TEZ", tezService);
     clusterServices.put("AMBARI_METRICS", amsService);
@@ -138,7 +150,7 @@ public class ComponentsInstallationCheckTest {
 
     // Put Components inside Services
     // HDFS
-    Map<String, ServiceComponent> hdfsComponents = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> hdfsComponents = new HashMap<>();
 
     ServiceComponent nameNode = Mockito.mock(ServiceComponent.class);
     Mockito.when(nameNode.getName()).thenReturn("NAMENODE");
@@ -165,7 +177,7 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(hdfsService.getServiceComponents()).thenReturn(hdfsComponents);
 
     // TEZ
-    Map<String, ServiceComponent> tezComponents = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> tezComponents = new HashMap<>();
 
     ServiceComponent tezClient = Mockito.mock(ServiceComponent.class);
     Mockito.when(tezClient.getName()).thenReturn("TEZ_CLIENT");
@@ -177,7 +189,7 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(tezService.getServiceComponents()).thenReturn(tezComponents);
 
     // AMS
-    Map<String, ServiceComponent> amsComponents = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> amsComponents = new HashMap<>();
 
     ServiceComponent metricsCollector = Mockito.mock(ServiceComponent.class);
     Mockito.when(metricsCollector.getName()).thenReturn("METRICS_COLLECTOR");
@@ -203,7 +215,7 @@ public class ComponentsInstallationCheckTest {
     final HostComponentSummary hcsMetricsCollector = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsMetricsMonitor = Mockito.mock(HostComponentSummary.class);
 
-    List<HostComponentSummary> allHostComponentSummaries = new ArrayList<HostComponentSummary>();
+    List<HostComponentSummary> allHostComponentSummaries = new ArrayList<>();
     allHostComponentSummaries.add(hcsNameNode);
     allHostComponentSummaries.add(hcsDataNode1);
     allHostComponentSummaries.add(hcsDataNode2);
@@ -213,7 +225,7 @@ public class ComponentsInstallationCheckTest {
     allHostComponentSummaries.add(hcsMetricsCollector);
     allHostComponentSummaries.add(hcsMetricsMonitor);
 
-    final Map<String, Host> hosts = new HashMap<String, Host>();
+    final Map<String, Host> hosts = new HashMap<>();
     final Host host1 = Mockito.mock(Host.class);
     final Host host2 = Mockito.mock(Host.class);
     final Host host3 = Mockito.mock(Host.class);
