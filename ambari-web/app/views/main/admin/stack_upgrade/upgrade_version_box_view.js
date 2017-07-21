@@ -71,6 +71,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
   isPatch: Em.computed.equal('content.type', 'PATCH'),
 
+  isService: Em.computed.equal('content.type', 'SERVICE'),
+
   /**
    * @type {boolean}
    */
