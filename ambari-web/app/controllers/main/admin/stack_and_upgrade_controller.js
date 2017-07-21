@@ -371,20 +371,24 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       self.loadStackVersionsToModel(true).done(function () {
         self.loadRepoVersionsToModel().done(function() {
           self.loadCompatibleVersions().done(function() {
-            var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
-            if (currentVersion) {
-              self.set('currentVersion', {
-                stack_name: currentVersion.get('repositoryVersion.stackVersionType'),
-                repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
-                repository_name: currentVersion.get('repositoryVersion.displayName')
-              });
-            }
+            self.updateCurrentStackVersion();
             dfd.resolve();
           });
         });
       });
     });
     return dfd.promise();
+  },
+
+  updateCurrentStackVersion: function(){
+    var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
+    if (currentVersion) {
+      this.set('currentVersion', {
+        repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
+        repository_name: currentVersion.get('repositoryVersion.displayName'),
+        id: currentVersion.get('repositoryVersion.id')
+      });
+    }
   },
 
   /**
@@ -701,6 +705,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         from: App.RepositoryVersion.find().findProperty('displayName', this.get('upgradeVersion')).get('repositoryVersion'),
         value: currentVersion.repository_version,
         label: currentVersion.repository_name,
+        id: currentVersion.id,
         isDowngrade: true,
         upgradeType: this.get('upgradeType')
       },
@@ -1318,8 +1323,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
-      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false',
-      targetStack: version.get('displayName')
+      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
     };
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);
