@@ -25,6 +25,7 @@ from ambari_commons import OSConst
 from resource_management.core.shell import as_user, as_sudo
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.core.logger import Logger
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def service(componentName, action='start', serviceName='yarn'):
@@ -42,6 +43,9 @@ def service(componentName, action='start', serviceName='yarn'):
   import params
 
   if serviceName == 'mapreduce' and componentName == 'historyserver':
+    if not params.hdfs_tmp_dir or params.hdfs_tmp_dir == None or params.hdfs_tmp_dir.lower() == 'null':
+      Logger.error("WARNING: HDFS tmp dir property (hdfs_tmp_dir) is empty or invalid. Ambari will change permissions for the folder on regular basis.")
+
     delete_pid_file = True
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")
     pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-{componentName}.pid")

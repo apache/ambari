@@ -28,7 +28,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
@@ -36,7 +35,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_V
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
@@ -1541,7 +1539,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         Map.Entry<String, String> pair = (Map.Entry) it.next();
         // Check the value if both keys exist
         if (newConfigValues.containsKey(pair.getKey())) {
-          if (!newConfigValues.get((String) pair.getKey()).equals(pair.getValue())) {
+          if (!newConfigValues.get(pair.getKey()).equals(pair.getValue())) {
             configsChanged.put(pair.getKey(), "changed");
           }
         } else {
@@ -2447,9 +2445,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     commandParams.put(COMMAND_TIMEOUT, actualTimeout);
-    commandParams.put(SERVICE_PACKAGE_FOLDER,
-      serviceInfo.getServicePackageFolder());
-    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
     String customCacheDirectory = componentInfo.getCustomFolder();
     if (customCacheDirectory != null) {
@@ -2512,7 +2507,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
 
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -2696,6 +2692,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       LOG.info("Created 0 stages");
       return requestStages;
     }
+
+    // check all stack configs are present in desired configs
+    configHelper.checkAllStageConfigsPresentInDesiredConfigs(cluster);
 
     // caching upgrade suspended
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
@@ -3344,9 +3343,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
             try {
-              Service s = cluster.getService(serviceName);
               //Filter services whose masters are not started
-              if (s.getServiceComponent(masterComponentName).getDesiredState() == State.STARTED) {
+              if (isServiceComponentStartedOnAnyHost(cluster, serviceName, masterComponentName)) {
                 serviceMasterForDecommissionMap.put(serviceName, masterComponentName);
               } else {
                 LOG.info(String.format("Not adding %s service from include/exclude files refresh map because it's master is not started", serviceName));
@@ -3373,6 +3371,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         scHost.setDesiredState(scHost.getState());
       }
     }
+  }
+
+  private boolean isServiceComponentStartedOnAnyHost(Cluster cluster, String serviceName, String masterComponentName) throws AmbariException {
+    Service service = cluster.getService(serviceName);
+    ServiceComponent serviceComponent = service.getServiceComponent(masterComponentName);
+    Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+    for (ServiceComponentHost sch : schMap.values()) {
+       if (sch.getState() == State.STARTED) {
+         return true;
+       }
+    }
+    return false;
   }
 
   @Override

@@ -44,6 +44,8 @@ if [ -z $2 ]; then
   fi
   echo $newUid
   exit 0
+else
+  find_available_uid
 fi
 
 if [ $newUid -eq 0 ]

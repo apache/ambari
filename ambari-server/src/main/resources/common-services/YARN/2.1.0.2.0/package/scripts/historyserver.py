@@ -92,7 +92,7 @@ class HistoryServerDefault(HistoryServer):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
 
-    if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
+    if check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.version_for_stack_feature_checks):
       # MC Hammer said, "Can't touch this"
       resource_created = copy_to_hdfs(
         "mapreduce",

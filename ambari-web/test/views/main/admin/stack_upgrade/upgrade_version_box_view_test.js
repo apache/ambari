@@ -1137,4 +1137,47 @@ describe('App.UpgradeVersionBoxView', function () {
       });
     });
   });
+
+  describe('#addRemoveIopSelectButton', function() {
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it('should add remove Iop Select button', function() {
+      this.mock.withArgs('currentStackName').returns('BigInsights');
+      this.mock.withArgs('upgradeIsRunning').returns(false);
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.addRemoveIopSelectButton(element, true);
+      expect(element.get('buttons')[0]).to.be.eql({
+        text: Em.I18n.t('admin.stackVersions.removeIopSelect'),
+        action: 'removeIopSelect',
+        isDisabled: true
+      });
+    });
+
+    it('should not add remove Iop Select button when upgrade is running', function() {
+      this.mock.withArgs('currentStackName').returns('BigInsights-1');
+      this.mock.withArgs('upgradeIsRunning').returns(true);
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.addRemoveIopSelectButton(element, true);
+      expect(element.get('buttons')).to.be.empty;
+    });
+
+    it('should not add remove Iop Select button when stack not BigInsights', function() {
+      this.mock.withArgs('currentStackName').returns('HDP');
+      this.mock.withArgs('upgradeIsRunning').returns(false);
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.addRemoveIopSelectButton(element, true);
+      expect(element.get('buttons')).to.be.empty;
+    });
+  });
 });

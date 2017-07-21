@@ -117,7 +117,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     },
     'INIT': {
       isButton: true,
-      text: Em.I18n.t('admin.stackVersions.version.installNow'),
+      text: Em.I18n.t('common.install'),
       action: 'installRepoVersionConfirmation'
     },
     'LOADING': {
@@ -173,6 +173,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
     else if (status === 'INIT') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
       element.set('isDisabled', this.isDisabledOnInit());
+      if (this.addRemoveIopSelectButton(element, this.isDisabledOnInit())) {
+        element.set('isButtonGroup', true);
+        element.set('isButton', false);
+      }
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
@@ -195,13 +199,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
             action: 'installRepoVersionConfirmation',
             isDisabled: isDisabled
           });
-          if (App.get('currentStackName') === 'BigInsights' && !App.get('upgradeIsRunning')) {
-            element.get('buttons').pushObject({
-              text: Em.I18n.t('admin.stackVersions.removeIopSelect'),
-              action: 'removeIopSelect',
-              isDisabled: isDisabled
-            });
-          }
+          this.addRemoveIopSelectButton(element, isDisabled);
         }
         element.set('isDisabled', isDisabled);
       }
@@ -252,6 +250,23 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'App.currentStackName',
     'App.upgradeIsRunning'
   ),
+
+  /**
+   * @param {Em.Object} element
+   * @param {boolean} isDisabled
+   * @returns {boolean}
+   */
+  addRemoveIopSelectButton: function(element, isDisabled) {
+    if (App.get('currentStackName') === 'BigInsights' && !App.get('upgradeIsRunning')) {
+      element.get('buttons').pushObject({
+        text: Em.I18n.t('admin.stackVersions.removeIopSelect'),
+        action: 'removeIopSelect',
+        isDisabled: isDisabled
+      });
+      return true;
+    }
+    return false;
+  },
 
   /**
    * check if actions of INIT stack version disabled

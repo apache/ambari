@@ -21,7 +21,7 @@ Ambari Agent
 """
 __all__ = ["Group", "User"]
 
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument, IntegerArgument
 
 
 class Group(Resource):
@@ -37,7 +37,7 @@ class User(Resource):
   action = ForcedListArgument(default="create")
   username = ResourceArgument(default=lambda obj: obj.name)
   comment = ResourceArgument()
-  uid = ResourceArgument()
+  uid = IntegerArgument()
   gid = ResourceArgument()
   """
   If the user exists, and there are some groups, appends to existant

@@ -34,6 +34,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -95,6 +96,7 @@ public class ExecutionCommandWrapperTest {
   private static ConfigFactory configFactory;
   private static ConfigHelper configHelper;
   private static StageFactory stageFactory;
+  private static OrmTestHelper ormTestHelper;
 
   @BeforeClass
   public static void setup() throws AmbariException {
@@ -103,6 +105,7 @@ public class ExecutionCommandWrapperTest {
     configHelper = injector.getInstance(ConfigHelper.class);
     configFactory = injector.getInstance(ConfigFactory.class);
     stageFactory = injector.getInstance(StageFactory.class);
+    ormTestHelper = injector.getInstance(OrmTestHelper.class);
 
     clusters = injector.getInstance(Clusters.class);
     clusters.addHost(HOST1);
@@ -131,16 +134,20 @@ public class ExecutionCommandWrapperTest {
     CONFIG_ATTRIBUTES = new HashMap<>();
 
     //Cluster level global config
-    configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER,
+        CONFIG_ATTRIBUTES);
 
     //Cluster level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG,
+        SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
 
     //Service level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG,
+        SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
 
     //Host level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST,
+        CONFIG_ATTRIBUTES);
 
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
 
@@ -271,6 +278,69 @@ public class ExecutionCommandWrapperTest {
     Assert.assertEquals(SERVICE_SITE_VAL4, mergedConfig.get(SERVICE_SITE_NAME4));
     Assert.assertEquals(SERVICE_SITE_VAL5, mergedConfig.get(SERVICE_SITE_NAME5));
     Assert.assertEquals(SERVICE_SITE_VAL6_H, mergedConfig.get(SERVICE_SITE_NAME6));
+  }
+
+  /**
+   * Test that the execution command wrapper properly sets the version
+   * information when the cluster is in the INSTALLING state.
+   *
+   * @throws JSONException
+   * @throws AmbariException
+   */
+  @Test
+  public void testExecutionCommandHasVersionInfoWithoutCurrentClusterVersion()
+      throws JSONException, AmbariException {
+    Cluster cluster = clusters.getCluster(CLUSTER1);
+
+    StackId stackId = cluster.getDesiredStackVersion();
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+
+    // first try with an INSTALL command - this should not populate version info
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    Map<String, String> commandParams = new HashMap<>();
+
+    executionCommand.setClusterName(CLUSTER1);
+    executionCommand.setTaskId(1);
+    executionCommand.setRequestAndStage(1, 1);
+    executionCommand.setHostname(HOST1);
+    executionCommand.setRole("NAMENODE");
+    executionCommand.setRoleParams(Collections.<String, String>emptyMap());
+    executionCommand.setRoleCommand(RoleCommand.INSTALL);
+    executionCommand.setServiceName("HDFS");
+    executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
+    executionCommand.setCommandParams(commandParams);
+
+    String json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
+    ExecutionCommandWrapper execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    ExecutionCommand processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
+
+    // now try with a START command which should populate the version even
+    // though the state is INSTALLING
+    executionCommand = new ExecutionCommand();
+    commandParams = new HashMap<>();
+
+    executionCommand.setClusterName(CLUSTER1);
+    executionCommand.setTaskId(1);
+    executionCommand.setRequestAndStage(1, 1);
+    executionCommand.setHostname(HOST1);
+    executionCommand.setRole("NAMENODE");
+    executionCommand.setRoleParams(Collections.<String, String> emptyMap());
+    executionCommand.setRoleCommand(RoleCommand.START);
+    executionCommand.setServiceName("HDFS");
+    executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
+    executionCommand.setCommandParams(commandParams);
+
+    json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
+    execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
   }
 
   @AfterClass

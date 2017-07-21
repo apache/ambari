@@ -200,6 +200,11 @@
         <task xsi:type="configure" id="biginsights_4_2_namenode_update_hadoop_env" />
       </execute-stage>
 
+      <!-- HDFS -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hadoop NameNode">
+        <task xsi:type="configure" id="biginsights_4_2_namenode_adjustments" />
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Update Yarn configurations">
         <task xsi:type="configure" id="biginsights_4_2_yarn_config_update" />

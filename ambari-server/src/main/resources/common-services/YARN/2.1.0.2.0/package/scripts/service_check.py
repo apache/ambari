@@ -95,11 +95,7 @@ class ServiceCheckDefault(ServiceCheck):
                         mode=params.smoke_hdfs_user_mode,
                         )
 
-    if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):
-      path_to_distributed_shell_jar = format("{stack_root}/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar")
-    else:
-      path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
-
+    path_to_distributed_shell_jar = format("{stack_root}/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar")
     yarn_distrubuted_shell_check_params = ["yarn org.apache.hadoop.yarn.applications.distributedshell.Client",
                                            "-shell_command", "ls", "-num_containers", "{number_of_nm}",
                                            "-jar", "{path_to_distributed_shell_jar}", "-timeout", "300000",

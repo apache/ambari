@@ -44,6 +44,7 @@ import org.junit.Test;
 public class HttpPropertyProviderTest {
   private static final String PROPERTY_ID_CLUSTER_NAME = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String PROPERTY_ID_HOST_NAME = PropertyHelper.getPropertyId("HostRoles", "host_name");
+  private static final String PROPERTY_ID_PUBLIC_HOST_NAME = PropertyHelper.getPropertyId("HostRoles", "public_host_name");
   private static final String PROPERTY_ID_COMPONENT_NAME = PropertyHelper.getPropertyId("HostRoles", "component_name");
 
   private static final String PROPERTY_ID_STALE_CONFIGS = PropertyHelper.getPropertyId(
@@ -85,12 +86,14 @@ public class HttpPropertyProviderTest {
             streamProvider, clusters,
             PROPERTY_ID_CLUSTER_NAME,
             PROPERTY_ID_HOST_NAME,
+            PROPERTY_ID_PUBLIC_HOST_NAME,
             PROPERTY_ID_COMPONENT_NAME,
             HTTP_PROPERTY_REQUESTS);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "RESOURCEMANAGER");
 
@@ -134,12 +137,14 @@ public class HttpPropertyProviderTest {
         streamProvider, clusters,
         PROPERTY_ID_CLUSTER_NAME,
         PROPERTY_ID_HOST_NAME,
+        PROPERTY_ID_PUBLIC_HOST_NAME,
         PROPERTY_ID_COMPONENT_NAME,
         HTTP_PROPERTY_REQUESTS);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(PROPERTY_ID_HOST_NAME, "lc6402.ambari.apache.org");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "lc6402.ambari.apache.org");
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "RESOURCEMANAGER");
 
@@ -174,6 +179,7 @@ public class HttpPropertyProviderTest {
         streamProvider, clusters,
         PROPERTY_ID_CLUSTER_NAME,
         PROPERTY_ID_HOST_NAME,
+        PROPERTY_ID_PUBLIC_HOST_NAME,
         PROPERTY_ID_COMPONENT_NAME,
         HTTP_PROPERTY_REQUESTS);
 
@@ -181,6 +187,7 @@ public class HttpPropertyProviderTest {
 
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "ATLAS_SERVER");
 
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -214,6 +221,7 @@ public class HttpPropertyProviderTest {
         streamProvider, clusters,
         PROPERTY_ID_CLUSTER_NAME,
         PROPERTY_ID_HOST_NAME,
+        PROPERTY_ID_PUBLIC_HOST_NAME,
         PROPERTY_ID_COMPONENT_NAME,
         HTTP_PROPERTY_REQUESTS);
 
@@ -221,6 +229,7 @@ public class HttpPropertyProviderTest {
 
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "ATLAS_SERVER");
 
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
@@ -249,12 +258,14 @@ public class HttpPropertyProviderTest {
        streamProvider, clusters,
        PROPERTY_ID_CLUSTER_NAME,
        PROPERTY_ID_HOST_NAME,
+       PROPERTY_ID_PUBLIC_HOST_NAME,
        PROPERTY_ID_COMPONENT_NAME,
        HTTP_PROPERTY_REQUESTS);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, componentName);
 

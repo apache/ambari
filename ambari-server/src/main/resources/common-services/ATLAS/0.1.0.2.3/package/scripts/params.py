@@ -28,6 +28,7 @@ from resource_management import format_stack_version, Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
@@ -98,6 +99,7 @@ if security_enabled:
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
+version_for_stack_feature_checks = get_stack_feature_version(config)
 
 # stack version
 stack_version_unformatted = config['hostLevelParams']['stack_version']

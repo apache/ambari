@@ -44,17 +44,12 @@ def setup_users():
       )
 
     for user in params.user_list:
-      if params.override_uid == "true":
-        User(user,
-             uid = get_uid(user),
-             gid = params.user_to_gid_dict[user],
-             groups = params.user_to_groups_dict[user],
-             )
-      else:
-        User(user,
-             gid = params.user_to_gid_dict[user],
-             groups = params.user_to_groups_dict[user],
-             )
+      User(user,
+           uid = get_uid(user) if params.override_uid == "true" else None,
+           gid = params.user_to_gid_dict[user],
+           groups = params.user_to_groups_dict[user],
+           fetch_nonlocal_groups = params.fetch_nonlocal_groups,
+           )
 
     if params.override_uid == "true":
       set_uid(params.smoke_user, params.smoke_user_dirs)
@@ -96,7 +91,7 @@ def create_dfs_cluster_admins():
 
   User(params.hdfs_user,
     groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
+    fetch_nonlocal_groups = params.fetch_nonlocal_groups
   )
 
 def create_tez_am_view_acls():
@@ -145,7 +140,7 @@ def set_uid(user, user_dirs):
        mode=0555)
   ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
   uid = get_uid(user)
-  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {uid}"),
+  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {new_uid}", new_uid=0 if uid is None else uid),
           not_if = format("(test $(id -u {user}) -gt 1000) || ({ignore_groupsusers_create_str})"))
 
 def get_uid(user):
@@ -161,12 +156,12 @@ def get_uid(user):
     return uid
   else:
     if user == params.smoke_user:
-      return 0
+      return None
     File(format("{tmp_dir}/changeUid.sh"),
          content=StaticFile("changeToSecureUid.sh"),
          mode=0555)
-    conde, newUid = shell.call((format("{tmp_dir}/changeUid.sh"), format("{user}")), sudo=True)
-    return newUid
+    code, newUid = shell.call(format("{tmp_dir}/changeUid.sh {user}"))
+    return int(newUid)
 
 def setup_hadoop_env():
   import params

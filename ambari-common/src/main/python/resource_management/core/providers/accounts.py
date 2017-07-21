@@ -66,7 +66,9 @@ class UserProvider(Provider):
         groups = self.resource.groups
         if self.user and self.user_groups:
           groups += self.user_groups
-        option_value = ",".join(groups)
+        option_value = ",".join(groups) 
+      elif attributes[1] == "-u" and self.user and self.user.pw_uid == getattr(self.resource, option_name):
+        option_value = None
       else:
         option_value = getattr(self.resource, option_name)
         
@@ -78,7 +80,7 @@ class UserProvider(Provider):
       return
 
     command.append(self.resource.username)
-
+    
     shell.checked_call(command, sudo=True)
 
   def action_remove(self):
