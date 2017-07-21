@@ -31,21 +31,10 @@ App.StackUpgradeHistory = DS.Model.extend({
   endTime: DS.attr('number'),
   startTime: DS.attr('number'),
   createTime: DS.attr('number'),
-
-  displayFromVersion: function() {
-    var stackName = App.RepositoryVersion.find()
-      .findProperty('repositoryVersion', this.get('fromVersion'))
-      .get('stackVersionType');
-    return stackName + '-' + this.get('fromVersion');
-  }.property('fromVersion'),
-
-  displayToVersion: function() {
-    var stackName = App.RepositoryVersion.find()
-      .findProperty('repositoryVersion', this.get('toVersion'))
-      .get('stackVersionType');
-    return stackName + '-' + this.get('toVersion');
-  }.property('toVersion')
-
+  versions: DS.attr('object'),
+  displayStatus: function() {
+    return stringUtils.upperUnderscoreToText(this.get('requestStatus'));
+  }.property('requestStatus')
 });
 
 App.StackUpgradeHistory.FIXTURES = [];

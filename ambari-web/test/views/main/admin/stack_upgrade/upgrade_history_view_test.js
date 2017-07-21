@@ -135,13 +135,13 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       event = {
         context: Em.Object.create({
           isSelected: false,
-          value: 'ALL',
+          value: 'ALL'
         })
       };
       view.set('categories', [
         Em.Object.create({
           isSelected: true,
-          value: 'UPGRADE_COMPLETED',
+          value: 'UPGRADE_COMPLETED'
         }),
         event.context
       ]);
@@ -170,6 +170,61 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
     });
   });
 
+  describe('#filteredCount', function () {
+
+    [
+      {
+        filteredContent: [
+          Em.Object.create({
+            versions: {s1: {}}
+          })
+        ],
+        m: '1 version',
+        e: 1
+      },
+      {
+        filteredContent: [
+          Em.Object.create({
+            versions: {s1: {}, s2: {}}
+          })
+        ],
+        m: '2 versions',
+        e: 2
+      },
+      {
+        filteredContent: [
+          Em.Object.create({
+            versions: {s1: {}, s2: {}}
+          }),
+          Em.Object.create({
+            versions: {s1: {}, s2: {}, s3: {}}
+          })
+        ],
+        m: '5 versions',
+        e: 5
+      }
+    ].forEach(function (test) {
+      describe(test.m, function () {
+        beforeEach(function () {
+          sinon.stub(view, 'get', function (key) {
+            if (key === 'filteredContent') {
+              return test.filteredContent;
+            }
+            return Em.get(this, key);
+          });
+        });
+        afterEach(function () {
+          view.get.restore();
+        });
+        it('should map versions', function () {
+          view.set('filteredContent', test.filteredContent);
+          expect(view.get('filteredCount')).to.be.equal(test.e);
+        });
+      });
+    });
+
+  });
+
   describe('#processForDisplay', function () {
 
     var timestamp = 1484698121448;
@@ -179,13 +234,15 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
         direction: 'UPGRADE',
         upgradeType: 'ROLLING',
         startTime: timestamp,
-        endTime: timestamp + 3600 * 1000
+        endTime: timestamp + 3600 * 1000,
+        versions: {s1: {}}
       }),
       Em.Object.create({
         direction: 'DOWNGRADE',
         upgradeType: 'HOST_ORDERED',
         startTime: timestamp,
-        endTime: timestamp + 3600 * 1000 * 2
+        endTime: timestamp + 3600 * 1000 * 2,
+        versions: {s1: {}}
       })
     ];
 
@@ -193,16 +250,18 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       Em.Object.create({
         directionLabel: Em.I18n.t('common.upgrade'),
         upgradeTypeLabel: Em.I18n.t('common.rolling'),
-        duration: '1.00 hours'
+        duration: '1.00 hours',
+        serviceName: 'S1'
       }),
       Em.Object.create({
         directionLabel: Em.I18n.t('common.downgrade'),
         upgradeTypeLabel: Em.I18n.t('common.hostOrdered'),
-        duration: '2.00 hours'
+        duration: '2.00 hours',
+        serviceName: 'S1'
       })
     ];
 
-    var fields = ['directionLabel', 'upgradeTypeLabel', 'duration'];
+    var fields = ['directionLabel', 'upgradeTypeLabel', 'duration', 'serviceName'];
 
     var processedContent;
 
@@ -217,13 +276,17 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       App.dateTimeWithTimeZone.restore();
     });
 
+    it('2 items mapped', function () {
+      expect(processedContent.length).to.be.equal(2);
+    })
+
     expected.forEach(function (item, index) {
 
       describe('test #' + (index + 1), function () {
 
         fields.forEach(function (field) {
           it('#' + field, function () {
-            expect(processedContent[index].get(field)).to.be.equal(item.get(field));
+            expect(processedContent[index][field]).to.be.equal(item.get(field));
           });
         });
 
@@ -233,8 +296,8 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
 
 
     it('End Time for upgrade in progress is `Not finished`', function () {
-      processedContent = view.processForDisplay([Em.Object.create({endTime: -1})]);
-      expect(processedContent[0].get('endTimeLabel')).to.be.equal('Not finished');
+      processedContent = view.processForDisplay([Em.Object.create({endTime: -1, versions: {s1:{}}})]);
+      expect(processedContent[0].endTimeLabel).to.be.equal('Not finished');
     });
   });
 
