@@ -130,6 +130,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   isWizardRestricted: false,
 
   /**
+   * @type {string}
+   */
+  wizardModalTitle: function () {
+    if (this.get('isDowngrade')) {
+      return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(this.get('upgradeVersion'));
+    }
+    return Em.I18n.t('admin.stackUpgrade.dialog.header').format(this.get('upgradeVersion'));
+  }.property('upgradeTypeDisplayName', 'upgradeVersion', 'isDowngrade'),
+
+  /**
    * methods through which cluster could be upgraded, "allowed" indicated if the method is allowed
    * by stack upgrade path
    * @type {Array}
@@ -865,6 +875,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeSuccessCallback: function (data, opt, params) {
     this.set('upgradeData', null);
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
+    this.set('fromVersion', params.isDowngrade ? data.resources[0].Upgrade.associated_version : null);
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
     var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type),
@@ -888,6 +899,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.setDBProperties({
       upgradeVersion: params.label,
       upgradeId: data.resources[0].Upgrade.request_id,
+      fromVersion: params.isDowngrade ? data.resources[0].Upgrade.associated_version : null,
       upgradeState: 'PENDING',
       isDowngrade: !!params.isDowngrade,
       upgradeType: upgradeType,
@@ -1134,13 +1146,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           version.skipComponentFailures = this.get('skipComponentFailures');
           version.skipSCFailures = this.get('skipSCFailures');
 
-          var fromVersion = self.get('upgradeVersion') || App.RepositoryVersion.find().findProperty('status', 'CURRENT').get('displayName');
           var toVersion = version.get('displayName');
           var bodyMessage = Em.Object.create({
             confirmButton: Em.I18n.t('yes'),
             confirmMsg: upgradeMethod.get('type') === 'ROLLING' ?
-              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg').format(fromVersion, toVersion) :
-              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg').format(fromVersion, toVersion)
+              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg').format(toVersion) :
+              Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg').format(toVersion)
           });
           return App.showConfirmationFeedBackPopup(function (query) {
             return self.runPreUpgradeCheck.call(self, version);
@@ -1944,10 +1955,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   restoreLastUpgrade: function(lastUpgradeData) {
     var self = this;
     var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
-
+    var isDowngrade = lastUpgradeData.Upgrade.direction === 'DOWNGRADE';
     this.setDBProperties({
+      fromVersion: isDowngrade ? lastUpgradeData.Upgrade.associated_version : null,
       upgradeId: lastUpgradeData.Upgrade.request_id,
-      isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
+      isDowngrade: isDowngrade,
       upgradeState: lastUpgradeData.Upgrade.request_status,
       upgradeType: lastUpgradeData.Upgrade.upgrade_type,
       isWizardRestricted: upgradeType.get('isWizardRestricted'),
@@ -1959,7 +1971,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       })
     });
     this.loadRepoVersionsToModel().done(function () {
-      var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
+      var toVersion = isDowngrade ? null : App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
       self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
       self.initDBProperties();
       self.loadUpgradeData(true);

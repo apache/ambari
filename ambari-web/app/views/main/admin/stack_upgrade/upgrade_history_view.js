@@ -290,16 +290,17 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   showUpgradeHistoryRecord: function (event) {
     var record = event.context;
     var direction = App.format.normalizeName(record.get('direction'));
-    var toVersion = record.get('displayToVersion');
+    var associatedVersion = record.get('associatedVersion');
     var type = this.get('upgradeMethods').findProperty('type', record.get('upgradeType'));
-    var displayName = type ? type.get('displayName') : record.get('upgradeType');
+    var displayName = type ? type.get('displayName') : App.format.normalizeName(record.get('upgradeType'));
+    var i18nKeySuffix = direction === 'UPGRADE' ? 'upgrade' : 'downgrade';
 
     this.get('controller').set('currentUpgradeRecord', record);
 
     App.ModalPopup.show({
       classNames: ['wizard-modal-wrapper'],
       modalDialogClasses: ['modal-xlg'],
-      header: Em.I18n.t('admin.stackVersions.upgradeHistory.record.title').format(displayName, direction, toVersion),
+      header: Em.I18n.t('admin.stackVersions.upgradeHistory.record.title.' + i18nKeySuffix).format(displayName, direction, associatedVersion),
       bodyClass: App.MainAdminStackUpgradeHistoryDetailsView,
       primary: Em.I18n.t('common.dismiss'),
       secondary: null,
