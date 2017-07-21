@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -229,16 +230,20 @@ public class AbstractCheckDescriptorTest {
     VersionDefinitionXml repoXml = EasyMock.createMock(VersionDefinitionXml.class);
     expect(repoVersion.getType()).andReturn(RepositoryType.PATCH).atLeastOnce();
     expect(repoVersion.getRepositoryXml()).andReturn(repoXml).atLeastOnce();
+    expect(repoVersion.getStackId()).andReturn(new StackId("HDP-2.5")).atLeastOnce();
+    expect(repoVersion.getVersion()).andReturn("2.5.0.0-1234").atLeastOnce();
     expect(repoXml.getAvailableServiceNames()).andReturn(Collections.singleton("SERVICE2")).atLeastOnce();
 
-    expect(repositoryVersionDao.findByStackNameAndVersion(
-        anyString(), anyString())).andReturn(repoVersion).atLeastOnce();
+    expect(repositoryVersionDao.findByPK(anyLong())).andReturn(repoVersion).atLeastOnce();
+
+    expect(repositoryVersionDao.findByStackNameAndVersion(anyString(), anyString())).andReturn(
+        repoVersion).atLeastOnce();
 
     replay(clusters, cluster, repositoryVersionDao, repoVersion, repoXml);
 
     AbstractCheckDescriptor check = new TestCheckImpl(PrereqCheckType.SERVICE);
     PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
-    request.setTargetStackId(new StackId("HDP-2.5"));
+    request.setTargetRepositoryVersion(repoVersion);
 
     List<String> allServicesList = Arrays.asList("SERVICE1", "SERVICE2");
 
