@@ -147,6 +147,7 @@
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_MASTER</component>
         <component>HBASE_REST_SERVER</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="HDFS">
@@ -456,6 +457,7 @@
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_CLIENT</component>
         <component>HBASE_REST_SERVER</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
     </group>
 
