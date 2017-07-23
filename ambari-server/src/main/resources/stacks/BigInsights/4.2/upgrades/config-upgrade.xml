@@ -125,6 +125,10 @@
             <transfer operation="delete" delete-key="dfs.namenode.https-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
             <transfer operation="delete" delete-key="dfs.namenode.rpc-address" if-type="core-site" if-key="fs.defaultFS" if-key-state="present"/> <!-- Make sure to use the existing fs.defaultFS for the non-HA case -->
           </definition>
+          <definition xsi:type="configure" id="hadoop_env_zkfc_security_opts" summary="Adding HDFS ZKFC Security ACLs">
+            <type>hadoop-env</type>
+            <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
         </changes>
       </component>
     </service>
@@ -135,6 +139,10 @@
           <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
             <type>yarn-site</type>
             <replace key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+          </definition>
+          <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
+            <type>yarn-env</type>
+            <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
           </definition>
         </changes>
       </component>

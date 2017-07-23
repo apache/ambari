@@ -123,7 +123,6 @@
           <function>prepare_express_upgrade</function>
         </task>
       </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please backup the Ranger Admin database on the following host(s): {{hosts.all}}.</message>
@@ -206,9 +205,23 @@
         <task xsi:type="configure" id="biginsights_4_2_namenode_adjustments" />
       </execute-stage>
 
+      <!-- HDFS -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Adding HDFS ZKFC Security ACLs">
+        <task xsi:type="configure" id="hadoop_env_zkfc_security_opts">
+          <summary>Adding HDFS ZKFC Security ACLs</summary>
+        </task>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Update Yarn configurations">
         <task xsi:type="configure" id="biginsights_4_2_yarn_config_update" />
+      </execute-stage>
+
+      <!-- YARN -->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Adding YARN Security ACLs">
+        <task xsi:type="configure" id="yarn_env_security_opts">
+          <summary>Adding YARN Security ACLs</summary>
+        </task>
       </execute-stage>
 
       <!-- YARN -->
