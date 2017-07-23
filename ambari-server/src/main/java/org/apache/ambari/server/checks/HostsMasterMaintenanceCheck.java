@@ -59,7 +59,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-      return super.isApplicable(request) && request.getRepositoryVersion() != null;
+      return super.isApplicable(request) && request.getTargetVersion() != null;
   }
 
   @Override
@@ -70,7 +70,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     final Set<String> hostsWithMasterComponent = new HashSet<String>();
 
     // TODO AMBARI-12698, need to pass the upgrade pack to use in the request, or at least the type.
-    final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getRepositoryVersion(), null);
+    final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getTargetVersion(), null);
     if (upgradePackName == null) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       String fail = getFailReason(KEY_NO_UPGRADE_NAME, prerequisiteCheck, request);

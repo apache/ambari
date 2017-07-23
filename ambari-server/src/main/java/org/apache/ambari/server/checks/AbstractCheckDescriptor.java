@@ -218,8 +218,8 @@ public abstract class AbstractCheckDescriptor {
       PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
     String fail = m_description.getFail(key);
 
-    if (fail.contains("{{version}}") && null != request.getRepositoryVersion()) {
-      fail = fail.replace("{{version}}", request.getRepositoryVersion());
+    if (fail.contains("{{version}}") && null != request.getTargetVersion()) {
+      fail = fail.replace("{{version}}", request.getTargetVersion());
     }
 
     if (fail.contains("{{fails}}")) {

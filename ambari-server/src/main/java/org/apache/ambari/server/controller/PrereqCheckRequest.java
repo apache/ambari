@@ -64,7 +64,7 @@ public class PrereqCheckRequest {
     return m_upgradeType;
   }
 
-  public String getRepositoryVersion() {
+  public String getTargetVersion() {
     return m_targetRepositoryVersion.getVersion();
   }
 
@@ -112,6 +112,15 @@ public class PrereqCheckRequest {
    */
   public StackId getTargetStackId() {
     return m_targetRepositoryVersion.getStackId();
+  }
+
+  /**
+   * Gets the target repository of the upgrade.
+   *
+   * @return the target repository.
+   */
+  public RepositoryVersionEntity getTargetRepositoryVersion() {
+    return m_targetRepositoryVersion;
   }
 
   /**

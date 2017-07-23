@@ -231,10 +231,10 @@ public class UpgradeHelper {
     Cluster cluster = m_clusters.get().getCluster(clusterName);
     StackId currentStack = cluster.getCurrentStackVersion();
 
-    StackId stackForUpgradePack = sourceStackId;
+    StackId stackForUpgradePack = targetStackId;
 
     if (direction.isDowngrade()) {
-      stackForUpgradePack = targetStackId;
+      stackForUpgradePack = sourceStackId;
     }
 
     Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(
