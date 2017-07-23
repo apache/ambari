@@ -491,6 +491,7 @@ class TestHiveServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
+        group = 'hadoop',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/hive',
@@ -703,6 +704,7 @@ class TestHiveServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        group = 'hadoop',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/hive',

@@ -22,11 +22,14 @@ import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
@@ -44,6 +47,10 @@ public class ClientRetryPropertyCheckTest {
 
   private final ClientRetryPropertyCheck m_check = new ClientRetryPropertyCheck();
 
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+  private final RepositoryVersionDAO repositoryVersionDAO = Mockito.mock(
+      RepositoryVersionDAO.class);
+
   /**
    *
    */
@@ -58,6 +65,9 @@ public class ClientRetryPropertyCheckTest {
     };
     Configuration config = Mockito.mock(Configuration.class);
     m_check.config = config;
+
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.3.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.3"));
   }
 
   /**
@@ -73,10 +83,20 @@ public class ClientRetryPropertyCheckTest {
     Mockito.when(cluster.getServices()).thenReturn(services);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("2.3.0.0");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     // nothing installed
     Assert.assertFalse(m_check.isApplicable(request));
+
+    m_check.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
+      @Override
+      public RepositoryVersionDAO get() {
+        return repositoryVersionDAO;
+      }
+    };
+
+    Mockito.when(repositoryVersionDAO.findByStackNameAndVersion(Mockito.anyString(),
+        Mockito.anyString())).thenReturn(m_repositoryVersion);
 
     // HDFS installed
     services.put("HDFS", Mockito.mock(Service.class));

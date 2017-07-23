@@ -13,7 +13,7 @@
         "upgrade_type": "nonrolling_upgrade",
         "version": "2.3.2.0-2950", 
         "forceRefreshConfigTagsBeforeExecution": "*", 
-        "original_stack": "HDP-2.3", 
+        "source_stack": "HDP-2.3",
         "command_timeout": "1200", 
         "target_stack": "HDP-2.3", 
         "script_type": "PYTHON"

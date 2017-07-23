@@ -2287,7 +2287,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type',
+    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version',
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {
@@ -2351,6 +2351,28 @@ var urls = {
             "operation_level": data.operation_level
           },
           "Requests/resource_filters": data.resource_filters
+        })
+      }
+    }
+  },
+
+  'restart.allServices': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": 'Restart all services',
+            "operation_level": 'host_component'
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts_predicate": "HostRoles/cluster_name=" + data.clusterName
+            }
+          ]
         })
       }
     }

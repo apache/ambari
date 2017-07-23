@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -51,10 +52,18 @@ public class HostsRepositoryVersionCheckTest {
   private final HostVersionDAO hostVersionDAO = Mockito.mock(HostVersionDAO.class);
   private final RepositoryVersionDAO repositoryVersionDAO = Mockito.mock(RepositoryVersionDAO.class);
 
+  final RepositoryVersionEntity repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
+  @Before
+  public void setup() {
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("1.0.0.0-1234");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.0"));
+  }
+
   @Test
   public void testIsApplicable() throws Exception {
     final PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("not null");
+    request.setTargetRepositoryVersion(repositoryVersion);
     HostsRepositoryVersionCheck hrvc = new HostsRepositoryVersionCheck();
     Configuration config = Mockito.mock(Configuration.class);
     hrvc.config = config;
@@ -63,7 +72,9 @@ public class HostsRepositoryVersionCheckTest {
     HostsRepositoryVersionCheck hrvc2 = new HostsRepositoryVersionCheck();
     hrvc2.config = config;
     Assert.assertTrue(hrvc2.isApplicable(request));
-    request.setRepositoryVersion(null);
+
+    Mockito.reset(repositoryVersion);
+    request.setTargetRepositoryVersion(repositoryVersion);
 
     HostsMasterMaintenanceCheck hmmc2 = new HostsMasterMaintenanceCheck();
     hmmc2.config = config;
@@ -119,7 +130,10 @@ public class HostsRepositoryVersionCheckTest {
         null);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    hostsRepositoryVersionCheck.perform(check, new PrereqCheckRequest("cluster"));
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest("cluster");
+    checkRequest.setTargetRepositoryVersion(repositoryVersion);
+
+    hostsRepositoryVersionCheck.perform(check, checkRequest);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     StackEntity stackEntity = new StackEntity();
@@ -146,7 +160,10 @@ public class HostsRepositoryVersionCheckTest {
             Mockito.anyString())).thenReturn(hostVersion);
 
     check = new PrerequisiteCheck(null, null);
-    hostsRepositoryVersionCheck.perform(check, new PrereqCheckRequest("cluster"));
+    checkRequest = new PrereqCheckRequest("cluster");
+    checkRequest.setTargetRepositoryVersion(repositoryVersion);
+
+    hostsRepositoryVersionCheck.perform(check, checkRequest);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
 
@@ -189,11 +206,8 @@ public class HostsRepositoryVersionCheckTest {
     hosts.put("host3", host3);
     Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
 
-    RepositoryVersionEntity rve = new RepositoryVersionEntity();
-    rve.setVersion("1.1.1");
-
     HostVersionEntity hve = new HostVersionEntity();
-    hve.setRepositoryVersion(rve);
+    hve.setRepositoryVersion(repositoryVersion);
     hve.setState(RepositoryVersionState.INSTALLED);
 
     Mockito.when(
@@ -202,7 +216,8 @@ public class HostsRepositoryVersionCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("1.1.1");
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     hostsRepositoryVersionCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
@@ -246,11 +261,8 @@ public class HostsRepositoryVersionCheckTest {
     hosts.put("host3", host3);
     Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
 
-    RepositoryVersionEntity rve = new RepositoryVersionEntity();
-    rve.setVersion("1.1.1");
-
     HostVersionEntity hve = new HostVersionEntity();
-    hve.setRepositoryVersion(rve);
+    hve.setRepositoryVersion(repositoryVersion);
     hve.setState(RepositoryVersionState.NOT_REQUIRED);
 
     Mockito.when(
@@ -259,7 +271,7 @@ public class HostsRepositoryVersionCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("1.1.1");
+    request.setTargetRepositoryVersion(repositoryVersion);
     hostsRepositoryVersionCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

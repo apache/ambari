@@ -37,7 +37,7 @@ class AtlasClient(Script):
     import params
     env.set_params(params)
 
-    if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, params.version):
+    if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, params.version_for_stack_feature_checks):
       conf_select.select(params.stack_name, "atlas", params.version)
       stack_select.select("atlas-client", params.version)
 

@@ -76,8 +76,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       call_mocks = [(0, None, None)]
     )
 
-    self.assert_call_to_get_hadoop_conf_dir()
-
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
       environment = {'JAVA_HOME':'/usr/jdk64/jdk1.8.0_40',
@@ -133,8 +131,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, None)]
     )
-
-    self.assert_call_to_get_hadoop_conf_dir()
 
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
@@ -217,18 +213,7 @@ class TestPhoenixQueryServer(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def assert_call_to_get_hadoop_conf_dir(self):
-    # From call to conf_select.get_hadoop_conf_dir()
-    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
-                              not_if = "test -e /etc/hadoop/conf.backup",
-                              sudo = True)
-    self.assertResourceCalled("Directory", "/etc/hadoop/conf",
-                              action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
-
   def assert_configure_default(self):
-    self.assert_call_to_get_hadoop_conf_dir()
-
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755
     )
@@ -330,8 +315,6 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
 
   def assert_configure_secured(self):
-    self.assert_call_to_get_hadoop_conf_dir()
-
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755
     )
@@ -459,10 +442,4 @@ class TestPhoenixQueryServer(RMFTestCase):
         cd_access = 'a',
     )
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
-
-    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
-                              not_if = "test -e /etc/hadoop/conf.backup",
-                              sudo = True)
-    self.assertResourceCalled("Directory", "/etc/hadoop/conf", action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
     self.assertNoMoreResources()

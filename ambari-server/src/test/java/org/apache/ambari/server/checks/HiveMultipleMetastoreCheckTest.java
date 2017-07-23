@@ -23,11 +23,14 @@ import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
@@ -43,6 +46,10 @@ import com.google.inject.Provider;
 public class HiveMultipleMetastoreCheckTest {
   private final Clusters m_clusters = Mockito.mock(Clusters.class);
   private final HiveMultipleMetastoreCheck m_check = new HiveMultipleMetastoreCheck();
+  private final RepositoryVersionDAO repositoryVersionDAO = Mockito.mock(
+      RepositoryVersionDAO.class);
+
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
 
   /**
    *
@@ -58,6 +65,9 @@ public class HiveMultipleMetastoreCheckTest {
     };
     Configuration config = Mockito.mock(Configuration.class);
     m_check.config = config;
+
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("1.0.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.0"));
   }
 
   /**
@@ -77,13 +87,23 @@ public class HiveMultipleMetastoreCheckTest {
     services.put("HDFS", Mockito.mock(Service.class));
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("2.3.0.0");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     // HIVE not installed
     Assert.assertFalse(m_check.isApplicable(request));
 
     // install HIVE
     services.put("HIVE", Mockito.mock(Service.class));
+
+    m_check.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
+      @Override
+      public RepositoryVersionDAO get() {
+        return repositoryVersionDAO;
+      }
+    };
+
+    Mockito.when(repositoryVersionDAO.findByStackNameAndVersion(Mockito.anyString(),
+        Mockito.anyString())).thenReturn(m_repositoryVersion);
 
     // HIVE installed
     Assert.assertTrue(m_check.isApplicable(request));
@@ -112,7 +132,7 @@ public class HiveMultipleMetastoreCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("2.3.0.0");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
@@ -144,7 +164,7 @@ public class HiveMultipleMetastoreCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("2.3.0.0");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());

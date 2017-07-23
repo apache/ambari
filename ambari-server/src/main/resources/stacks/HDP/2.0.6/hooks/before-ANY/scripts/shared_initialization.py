@@ -24,6 +24,7 @@ import tempfile
 from copy import copy
 from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
+from resource_management.core import shell
 
 def setup_users():
   """
@@ -44,10 +45,11 @@ def setup_users():
 
     for user in params.user_list:
       User(user,
-          gid = params.user_to_gid_dict[user],
-          groups = params.user_to_groups_dict[user],
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
-      )
+           uid = get_uid(user) if params.override_uid == "true" else None,
+           gid = params.user_to_gid_dict[user],
+           groups = params.user_to_groups_dict[user],
+           fetch_nonlocal_groups = params.fetch_nonlocal_groups,
+           )
 
     if params.override_uid == "true":
       set_uid(params.smoke_user, params.smoke_user_dirs)
@@ -65,6 +67,7 @@ def setup_users():
                create_parents = True,
                cd_access="a",
     )
+
     if params.override_uid == "true":
       set_uid(params.hbase_user, params.hbase_user_dirs)
     else:
@@ -88,7 +91,7 @@ def create_dfs_cluster_admins():
 
   User(params.hdfs_user,
     groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
+    fetch_nonlocal_groups = params.fetch_nonlocal_groups
   )
 
 def create_tez_am_view_acls():
@@ -125,7 +128,7 @@ def create_users_and_groups(user_and_groups):
     Group(copy(groups_list),
     )
   return groups_list
-    
+
 def set_uid(user, user_dirs):
   """
   user_dirs - comma separated directories
@@ -136,9 +139,30 @@ def set_uid(user, user_dirs):
        content=StaticFile("changeToSecureUid.sh"),
        mode=0555)
   ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
-  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs}"),
+  uid = get_uid(user)
+  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {new_uid}", new_uid=0 if uid is None else uid),
           not_if = format("(test $(id -u {user}) -gt 1000) || ({ignore_groupsusers_create_str})"))
-    
+
+def get_uid(user):
+  import params
+  user_str = str(user) + "_uid"
+  service_env = [ serviceEnv for serviceEnv in params.config['configurations'] if user_str in params.config['configurations'][serviceEnv]]
+
+  if service_env and params.config['configurations'][service_env[0]][user_str]:
+    service_env_str = str(service_env[0])
+    uid = params.config['configurations'][service_env_str][user_str]
+    if len(service_env) > 1:
+      Logger.warning("Multiple values found for %s, using %s"  % (user_str, uid))
+    return uid
+  else:
+    if user == params.smoke_user:
+      return None
+    File(format("{tmp_dir}/changeUid.sh"),
+         content=StaticFile("changeToSecureUid.sh"),
+         mode=0555)
+    code, newUid = shell.call(format("{tmp_dir}/changeUid.sh {user}"))
+    return int(newUid)
+
 def setup_hadoop_env():
   import params
   stackversion = params.stack_version_unformatted

@@ -49,6 +49,8 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
 
   private final MapReduce2JobHistoryStatePreservingCheck m_check = new MapReduce2JobHistoryStatePreservingCheck();
 
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
   /**
    *
    */
@@ -75,6 +77,9 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     RepositoryVersionEntity rve = Mockito.mock(RepositoryVersionEntity.class);
     Mockito.when(rve.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersionDao.findByStackNameAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(rve);
+
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.3.1.1-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.3"));
   }
 
   /**
@@ -91,8 +96,8 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     Mockito.when(cluster.getServices()).thenReturn(services);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetStackId(new StackId("HDP", "2.3.1.1"));
     request.setSourceStackId(new StackId("HDP", "2.3.0.0"));
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     // MAPREDUCE2 not installed
     Assert.assertFalse(m_check.isApplicable(request));

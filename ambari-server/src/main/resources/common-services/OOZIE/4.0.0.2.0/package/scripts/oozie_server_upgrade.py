@@ -86,21 +86,31 @@ class OozieUpgrade(Script):
         raise Fail("There are no files at {0} matching {1}".format(
           hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
-    # copy ext ZIP to libext dir
-    oozie_ext_zip_file = params.ext_js_path
-
     # something like <stack-root>/current/oozie-server/libext/ext-2.2.zip
     oozie_ext_zip_target_path = os.path.join(params.oozie_libext_dir, params.ext_js_file)
 
-    if not os.path.isfile(oozie_ext_zip_file):
-      raise Fail("Unable to copy {0} because it does not exist".format(oozie_ext_zip_file))
+    # Copy ext ZIP to libext dir
+    # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip as the first path
+    source_ext_zip_paths = oozie.get_oozie_ext_zip_source_paths(upgrade_type, params)
 
-    Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_dir))
-    Execute(("cp", oozie_ext_zip_file, params.oozie_libext_dir), sudo=True)
-    Execute(("chown", format("{oozie_user}:{user_group}"), oozie_ext_zip_target_path), sudo=True)
-    File(oozie_ext_zip_target_path,
-         mode=0644
-    )
+    found_at_least_one_oozie_ext_file = False
+
+    # Copy the first oozie ext-2.2.zip file that is found.
+    # This uses a list to handle the cases when migrating from some versions of BigInsights to HDP.
+    if source_ext_zip_paths is not None:
+      for source_ext_zip_path in source_ext_zip_paths:
+        if os.path.isfile(source_ext_zip_path):
+          found_at_least_one_oozie_ext_file = True
+          Logger.info("Copying {0} to {1}".format(source_ext_zip_path, params.oozie_libext_dir))
+          Execute(("cp", source_ext_zip_path, params.oozie_libext_dir), sudo=True)
+          Execute(("chown", format("{oozie_user}:{user_group}"), oozie_ext_zip_target_path), sudo=True)
+          File(oozie_ext_zip_target_path,
+               mode=0644
+               )
+          break
+
+    if not found_at_least_one_oozie_ext_file:
+      raise Fail("Unable to find any Oozie source extension files from the following paths {0}".format(source_ext_zip_paths))
 
     # Redownload jdbc driver to a new current location
     oozie.download_database_library_if_needed()

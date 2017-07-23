@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.checks.CheckDescription;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
@@ -31,9 +32,8 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
  */
 public class PrereqCheckRequest {
   private String m_clusterName;
-  private String m_repositoryVersion;
   private StackId m_sourceStackId;
-  private StackId m_targetStackId;
+  private RepositoryVersionEntity m_targetRepositoryVersion;
   private PrerequisiteCheckConfig m_prereqCheckConfig;
 
   private UpgradeType m_upgradeType;
@@ -64,12 +64,12 @@ public class PrereqCheckRequest {
     return m_upgradeType;
   }
 
-  public String getRepositoryVersion() {
-    return m_repositoryVersion;
-  }
+  public String getTargetVersion() {
+    if (null == m_targetRepositoryVersion) {
+      return null;
+    }
 
-  public void setRepositoryVersion(String repositoryVersion) {
-    m_repositoryVersion = repositoryVersion;
+    return m_targetRepositoryVersion.getVersion();
   }
 
   /**
@@ -115,17 +115,30 @@ public class PrereqCheckRequest {
    * @return the targetStackId
    */
   public StackId getTargetStackId() {
-    return m_targetStackId;
+    if (null == m_targetRepositoryVersion) {
+      return null;
+    }
+
+    return m_targetRepositoryVersion.getStackId();
   }
 
   /**
-   * Sets the target stack of the upgrade.
+   * Gets the target repository of the upgrade.
    *
-   * @param targetStackId
-   *          the targetStackId to set
+   * @return the target repository.
    */
-  public void setTargetStackId(StackId targetStackId) {
-    m_targetStackId = targetStackId;
+  public RepositoryVersionEntity getTargetRepositoryVersion() {
+    return m_targetRepositoryVersion;
+  }
+
+  /**
+   * Sets the target of the upgrade.
+   *
+   * @param targetRepositoryVersion
+   *          the target repository version
+   */
+  public void setTargetRepositoryVersion(RepositoryVersionEntity targetRepositoryVersion) {
+    m_targetRepositoryVersion = targetRepositoryVersion;
   }
 
   /**

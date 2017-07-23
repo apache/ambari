@@ -433,7 +433,7 @@ describe('App.MainServiceController', function () {
 
   });
 
-  describe("#restartAllServices()", function() {
+  describe("#stopAndStartAllServices()", function() {
 
     beforeEach(function() {
       sinon.stub(mainServiceController, 'silentStopAllServices');
@@ -443,7 +443,7 @@ describe('App.MainServiceController', function () {
     });
 
     it("silentStopAllServices should be called", function() {
-      mainServiceController.restartAllServices();
+      mainServiceController.stopAndStartAllServices();
       expect(mainServiceController.silentStopAllServices.calledOnce).to.be.true;
     });
   });

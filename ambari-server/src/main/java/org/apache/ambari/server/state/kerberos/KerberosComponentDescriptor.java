@@ -17,9 +17,7 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -111,19 +109,6 @@ public class KerberosComponentDescriptor extends AbstractKerberosDescriptorConta
   public AbstractKerberosDescriptorContainer getChildContainer(String name) {
     // KerberosComponentDescriptors do not have child components
     return null;
-  }
-
-  /**
-   * @return identities which are not references to other identities
-   */
-  public List<KerberosIdentityDescriptor> getIdentitiesSkipReferences() {
-    List<KerberosIdentityDescriptor> result = new ArrayList<>();
-    for (KerberosIdentityDescriptor each : nullToEmpty(getIdentities())) {
-      if (!each.getReferencedServiceName().isPresent() && each.getName() != null && !each.getName().startsWith("/")) {
-        result.add(each);
-      }
-    }
-    return result;
   }
 
   @Override

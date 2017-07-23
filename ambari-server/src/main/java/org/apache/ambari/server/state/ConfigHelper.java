@@ -220,6 +220,23 @@ public class ConfigHelper {
     return resolved;
   }
 
+
+  public Set<String> filterInvalidPropertyValues(Map<PropertyInfo, String> properties, String filteredListName) {
+    Set<String> resultSet = new HashSet<>();
+    for (Iterator<Entry<PropertyInfo, String>> iterator = properties.entrySet().iterator(); iterator.hasNext();) {
+      Entry<PropertyInfo, String> property = iterator.next();
+      PropertyInfo propertyInfo = property.getKey();
+      String propertyValue = property.getValue();
+      if (property == null || propertyValue == null || propertyValue.toLowerCase().equals("null") || propertyValue.isEmpty()) {
+        LOG.error(String.format("Excluding property %s from %s, because of invalid or empty value!", propertyInfo.getName(), filteredListName));
+        iterator.remove();
+      } else {
+        resultSet.add(propertyValue);
+      }
+    }
+    return resultSet;
+  }
+
   /**
    * Get all config properties for a cluster given a set of configType to
    * versionTags map. This helper method merges all the override tags with a
@@ -682,7 +699,9 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
@@ -759,11 +778,34 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
     return result;
+  }
+
+  public void checkAllStageConfigsPresentInDesiredConfigs(Cluster cluster) throws AmbariException {
+    StackId stackId = cluster.getDesiredStackVersion();
+    Set<String> stackConfigTypes = ambariMetaInfo.getStack(stackId.getStackName(),
+            stackId.getStackVersion()).getConfigTypeAttributes().keySet();
+    Map<String, Config> actualConfigs = new HashMap<>();
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
+    }
+
+    for (String stackConfigType : stackConfigTypes) {
+      if (!actualConfigs.containsKey(stackConfigType)) {
+        LOG.error(String.format("Unable to find stack configuration %s in ambari configs!", stackConfigType));
+      }
+    }
+
   }
 
   /***
