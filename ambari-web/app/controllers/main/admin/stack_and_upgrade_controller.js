@@ -712,7 +712,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       name: 'admin.downgrade.start',
       sender: this,
       data: {
-        from: App.RepositoryVersion.find().findProperty('displayName', this.get('upgradeVersion')).get('repositoryVersion'),
         value: currentVersion.repository_version,
         label: currentVersion.repository_name,
         id: currentVersion.id,
