@@ -82,8 +82,6 @@ def execute(configurations={}, parameters={}, host_name=None):
   http_uri = None
   https_uri = None
   http_policy = 'HTTP_ONLY'
-  percent_warning = PERCENT_WARNING
-  percent_critical = PERCENT_CRITICAL
   checkpoint_tx = CHECKPOINT_TX_DEFAULT
   checkpoint_period = CHECKPOINT_PERIOD_DEFAULT
   
