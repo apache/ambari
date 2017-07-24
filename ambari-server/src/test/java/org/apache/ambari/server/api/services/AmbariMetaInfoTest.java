@@ -242,7 +242,7 @@ public class AmbariMetaInfoTest {
     assertNotNull(redhat6Repo);
     for (RepositoryInfo ri : redhat6Repo) {
       if (STACK_NAME_HDP.equals(ri.getRepoName())) {
-        assertTrue(ri.getBaseUrl().equals(ri.getDefaultBaseUrl()));
+        assertEquals(ri.getBaseUrl(), ri.getDefaultBaseUrl());
       }
     }
   }
@@ -1702,7 +1702,7 @@ public class AmbariMetaInfoTest {
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
     List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
-    assertEquals(13, definitions.size());
+    assertEquals(12, definitions.size());
 
     // figure out how many of these alerts were merged into from the
     // non-stack alerts.json

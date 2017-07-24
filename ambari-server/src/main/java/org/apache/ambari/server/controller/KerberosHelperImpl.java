@@ -60,7 +60,6 @@ import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CleanupServerAction;
 import org.apache.ambari.server.serveraction.kerberos.ConfigureAmbariIdentitiesServerAction;
@@ -129,7 +128,7 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class KerberosHelperImpl implements KerberosHelper {
 
-  private static final String BASE_LOG_DIR = "/tmp/ambari";
+  public static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private static final Logger LOG = LoggerFactory.getLogger(KerberosHelperImpl.class);
 
@@ -338,7 +337,8 @@ public class KerberosHelperImpl implements KerberosHelper {
         existingConfigurations, installedServices, serviceFilter, previouslyExistingServices, true, true);
 
     for (Map.Entry<String, Map<String, String>> entry : updates.entrySet()) {
-      configHelper.updateConfigType(cluster, cluster.getDesiredStackVersion(), ambariManagementController, entry.getKey(), entry.getValue(), null,
+      configHelper.updateConfigType(cluster, cluster.getDesiredStackVersion(),
+          ambariManagementController, entry.getKey(), entry.getValue(), null,
           ambariManagementController.getAuthName(), "Enabling Kerberos for added components");
     }
   }
@@ -420,55 +420,6 @@ public class KerberosHelperImpl implements KerberosHelper {
         : kerberosConfigurations;
   }
 
-  /**
-   * Processes the configuration values related to a particular Kerberos descriptor identity definition
-   * by:
-   * <ol>
-   * <li>
-   * merging the declared properties and their values from <code>identityConfigurations</code> with the set of
-   * Kerberos-related configuration updates in <code>kerberosConfigurations</code>, using the existing cluster
-   * configurations in <code>configurations</code>
-   * </li>
-   * <li>
-   * ensuring that these properties are not overwritten by recommendations by the stack advisor later
-   * in the workflow by adding them to the <code>propertiesToIgnore</code> map
-   * </li>
-   * </ol>
-   *
-   * @param identityConfigurations a map of config-types to property name/value pairs to process
-   * @param kerberosConfigurations a map of config-types to property name/value pairs to be applied
-   *                               as configuration updates
-   * @param configurations         a map of config-types to property name/value pairs representing
-   *                               the existing configurations for the cluster
-   * @param propertiesToIgnore     a map of config-types to property names to be ignored while
-   *                               processing stack advisor recommendations
-   * @throws AmbariException
-   */
-  private void processIdentityConfigurations(Map<String, Map<String, String>> identityConfigurations,
-                                             Map<String, Map<String, String>> kerberosConfigurations,
-                                             Map<String, Map<String, String>> configurations,
-                                             Map<String, Set<String>> propertiesToIgnore)
-      throws AmbariException {
-    if (identityConfigurations != null) {
-      for (Map.Entry<String, Map<String, String>> identitiyEntry : identityConfigurations.entrySet()) {
-        String configType = identitiyEntry.getKey();
-        Map<String, String> properties = identitiyEntry.getValue();
-
-        mergeConfigurations(kerberosConfigurations, configType, identitiyEntry.getValue(), configurations);
-
-        if ((properties != null) && !properties.isEmpty()) {
-          Set<String> propertyNames = propertiesToIgnore.get(configType);
-          if (propertyNames == null) {
-            propertyNames = new HashSet<>();
-            propertiesToIgnore.put(configType, propertyNames);
-          }
-          propertyNames.addAll(properties.keySet());
-        }
-      }
-    }
-
-  }
-
   @Override
   public Map<String, Map<String, String>> applyStackAdvisorUpdates(Cluster cluster, Set<String> services,
                                                                    Map<String, Map<String, String>> existingConfigurations,
@@ -476,8 +427,6 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                                    Map<String, Set<String>> propertiesToIgnore,
                                                                    Map<String, Set<String>> propertiesToRemove,
                                                                    boolean kerberosEnabled) throws AmbariException {
-
-    StackId stackVersion = cluster.getCurrentStackVersion();
 
     List<String> hostNames = new ArrayList<>();
     Collection<Host> hosts = cluster.getHosts();
@@ -539,44 +488,58 @@ public class KerberosHelperImpl implements KerberosHelper {
         }
       }
 
-      StackAdvisorRequest request = StackAdvisorRequest.StackAdvisorRequestBuilder
-          .forStack(stackVersion.getStackName(), stackVersion.getStackVersion())
-          .forServices(new ArrayList<>(services))
-          .forHosts(hostNames)
-          .withComponentHostsMap(cluster.getServiceComponentHostMap(null, services))
-          .withConfigurations(requestConfigurations)
-          .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
-          .build();
+      Set<StackId> visitedStacks = new HashSet<>();
 
-      try {
-        RecommendationResponse response = stackAdvisorHelper.recommend(request);
+      for (String serviceName : services) {
+        Service service = cluster.getService(serviceName);
+        StackId stackId = service.getDesiredStackId();
 
-        RecommendationResponse.Recommendation recommendation = (response == null) ? null : response.getRecommendations();
-        RecommendationResponse.Blueprint blueprint = (recommendation == null) ? null : recommendation.getBlueprint();
-        Map<String, RecommendationResponse.BlueprintConfigurations> configurations = (blueprint == null) ? null : blueprint.getConfigurations();
-
-        if (configurations != null) {
-          for (Map.Entry<String, RecommendationResponse.BlueprintConfigurations> configuration : configurations.entrySet()) {
-            String configType = configuration.getKey();
-            Map<String, String> recommendedConfigProperties = configuration.getValue().getProperties();
-            Map<String, ValueAttributesInfo> recommendedConfigPropertyAttributes = configuration.getValue().getPropertyAttributes();
-            Map<String, String> existingConfigProperties = (existingConfigurations == null) ? null : existingConfigurations.get(configType);
-            Map<String, String> kerberosConfigProperties = kerberosConfigurations.get(configType);
-            Set<String> ignoreProperties = (propertiesToIgnore == null) ? null : propertiesToIgnore.get(configType);
-
-            addRecommendedPropertiesForConfigType(kerberosConfigurations, configType, recommendedConfigProperties,
-                existingConfigProperties, kerberosConfigProperties, ignoreProperties);
-
-            if (recommendedConfigPropertyAttributes != null) {
-              removeRecommendedPropertiesForConfigType(configType, recommendedConfigPropertyAttributes,
-                  existingConfigProperties, kerberosConfigurations, ignoreProperties, propertiesToRemove);
-            }
-          }
+        if (visitedStacks.contains(stackId)) {
+          continue;
         }
 
-      } catch (Exception e) {
-        throw new AmbariException(e.getMessage(), e);
+        StackAdvisorRequest request = StackAdvisorRequest.StackAdvisorRequestBuilder
+            .forStack(stackId.getStackName(), stackId.getStackVersion())
+            .forServices(new ArrayList<>(services))
+            .forHosts(hostNames)
+            .withComponentHostsMap(cluster.getServiceComponentHostMap(null, services))
+            .withConfigurations(requestConfigurations)
+            .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
+            .build();
+
+        try {
+          RecommendationResponse response = stackAdvisorHelper.recommend(request);
+
+          RecommendationResponse.Recommendation recommendation = (response == null) ? null : response.getRecommendations();
+          RecommendationResponse.Blueprint blueprint = (recommendation == null) ? null : recommendation.getBlueprint();
+          Map<String, RecommendationResponse.BlueprintConfigurations> configurations = (blueprint == null) ? null : blueprint.getConfigurations();
+
+          if (configurations != null) {
+            for (Map.Entry<String, RecommendationResponse.BlueprintConfigurations> configuration : configurations.entrySet()) {
+              String configType = configuration.getKey();
+              Map<String, String> recommendedConfigProperties = configuration.getValue().getProperties();
+              Map<String, ValueAttributesInfo> recommendedConfigPropertyAttributes = configuration.getValue().getPropertyAttributes();
+              Map<String, String> existingConfigProperties = (existingConfigurations == null) ? null : existingConfigurations.get(configType);
+              Map<String, String> kerberosConfigProperties = kerberosConfigurations.get(configType);
+              Set<String> ignoreProperties = (propertiesToIgnore == null) ? null : propertiesToIgnore.get(configType);
+
+              addRecommendedPropertiesForConfigType(kerberosConfigurations, configType, recommendedConfigProperties,
+                  existingConfigProperties, kerberosConfigProperties, ignoreProperties);
+
+              if (recommendedConfigPropertyAttributes != null) {
+                removeRecommendedPropertiesForConfigType(configType, recommendedConfigPropertyAttributes,
+                    existingConfigProperties, kerberosConfigurations, ignoreProperties, propertiesToRemove);
+              }
+            }
+          }
+
+        } catch (Exception e) {
+          throw new AmbariException(e.getMessage(), e);
+        }
+
+        visitedStacks.add(stackId);
       }
+
     }
 
     return kerberosConfigurations;
@@ -817,7 +780,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param kerberosDetails      a KerberosDetails containing information about relevant Kerberos configuration
    * @param updateJAASFile       true to update Ambari's JAAS file; false otherwise
    * @throws AmbariException
-   * @see ConfigureAmbariIdentitiesServerAction#configureJAAS(String, String, ActionLog)
+   * @see ConfigureAmbariIdentitiesServerAction#configureJAAS(String, String, org.apache.ambari.server.serveraction.ActionLog)
    */
   private void installAmbariIdentity(KerberosIdentityDescriptor ambariServerIdentity,
                                      Keytab keytab, Map<String, Map<String, String>> configurations,
@@ -1754,6 +1717,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     // Gather data needed to create stages and tasks...
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+
     Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster, cluster.getDesiredStackVersion());
     String hostParamsJson = StageUtils.getGson().toJson(hostParams);
     String ambariServerHostname = StageUtils.getHostName();
@@ -1954,6 +1918,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       // Gather data needed to create stages and tasks...
       Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+
       Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster, cluster.getDesiredStackVersion());
       String hostParamsJson = StageUtils.getGson().toJson(hostParams);
       String ambariServerHostname = StageUtils.getHostName();
@@ -2108,43 +2073,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
   }
 
-  /**
-   * Creates a temporary file within the system temporary directory
-   * <p/>
-   * The resulting file is to be removed by the caller when desired.
-   *
-   * @return a File pointing to the new temporary file, or null if one was not created
-   * @throws AmbariException if a new temporary directory cannot be created
-   */
-  protected File createTemporaryFile() throws AmbariException {
-    try {
-      return File.createTempFile("tmp", ".tmp", getConfiguredTemporaryDirectory());
-    } catch (IOException e) {
-      String message = "Failed to create a temporary file.";
-      LOG.error(message, e);
-      throw new AmbariException(message, e);
-    }
-  }
-
-  /**
-   * Gets the configured temporary directory.
-   *
-   * @return a File pointing to the configured temporary directory
-   * @throws IOException
-   */
-  protected File getConfiguredTemporaryDirectory() throws IOException {
-    String tempDirectoryPath = configuration.getServerTempDir();
-
-    if (StringUtils.isEmpty(tempDirectoryPath)) {
-      tempDirectoryPath = System.getProperty("java.io.tmpdir");
-    }
-
-    if (tempDirectoryPath == null) {
-      throw new IOException("The System property 'java.io.tmpdir' does not specify a temporary directory");
-    }
-
-    return new File(tempDirectoryPath);
-  }
 
   /**
    * Merges the specified configuration property in a map of configuration types.
@@ -2237,6 +2165,43 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
   }
 
+  /**
+   * Creates a temporary file within the system temporary directory
+   * <p/>
+   * The resulting file is to be removed by the caller when desired.
+   *
+   * @return a File pointing to the new temporary file, or null if one was not created
+   * @throws AmbariException if a new temporary directory cannot be created
+   */
+  protected File createTemporaryFile() throws AmbariException {
+    try {
+      return File.createTempFile("tmp", ".tmp", getConfiguredTemporaryDirectory());
+    } catch (IOException e) {
+      String message = "Failed to create a temporary file.";
+      LOG.error(message, e);
+      throw new AmbariException(message, e);
+    }
+  }
+
+  /**
+   * Gets the configured temporary directory.
+   *
+   * @return a File pointing to the configured temporary directory
+   * @throws IOException
+   */
+  protected File getConfiguredTemporaryDirectory() throws IOException {
+    String tempDirectoryPath = configuration.getServerTempDir();
+
+    if (StringUtils.isEmpty(tempDirectoryPath)) {
+      tempDirectoryPath = System.getProperty("java.io.tmpdir");
+    }
+
+    if (tempDirectoryPath == null) {
+      throw new IOException("The System property 'java.io.tmpdir' does not specify a temporary directory");
+    }
+
+    return new File(tempDirectoryPath);
+  }
 
   /**
    * Creates a new stage
@@ -2245,7 +2210,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param cluster         the relevant Cluster
    * @param requestId       the relevant request Id
    * @param requestContext  a String describing the stage
-   * @param clusterHostInfo JSON-encoded clusterHostInfo structure
    * @param commandParams   JSON-encoded command parameters
    * @param hostParams      JSON-encoded host parameters
    * @return a newly created Stage
@@ -2273,7 +2237,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param cluster           the relevant Cluster
    * @param requestId         the relevant request Id
    * @param requestContext    a String describing the stage
-   * @param clusterHostInfo   JSON-encoded clusterHostInfo structure
    * @param commandParams     JSON-encoded command parameters
    * @param hostParams        JSON-encoded host parameters
    * @param actionClass       The ServeAction class that implements the action to invoke
@@ -2429,9 +2392,9 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param componentName      the name of a component for which to find results, null indicates all
    *                           components
    * @param kerberosDescriptor the relevant Kerberos Descriptor
+   *                           requested service component
    * @param filterContext      the context to use for filtering identities based on the state of the cluster
    * @return a list of KerberosIdentityDescriptors representing the active identities for the
-   * requested service component
    * @throws AmbariException if an error occurs processing the cluster's active identities
    */
   private List<KerberosIdentityDescriptor> getActiveIdentities(Cluster cluster,
@@ -2623,7 +2586,18 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @throws AmbariException if an error occurs while retrieving the Kerberos descriptor
    */
   private KerberosDescriptor getKerberosDescriptorFromStack(Cluster cluster) throws AmbariException {
-    StackId stackId = cluster.getCurrentStackVersion();
+    // !!! FIXME in a per-service view, what does this become?
+    Set<StackId> stackIds = new HashSet<>();
+
+    for (Service service : cluster.getServices().values()) {
+      stackIds.add(service.getDesiredStackId());
+    }
+
+    if (1 != stackIds.size()) {
+      throw new AmbariException("Services are deployed from multiple stacks and cannot determine a unique one.");
+    }
+
+    StackId stackId = stackIds.iterator().next();
 
     // -------------------------------
     // Get the default Kerberos descriptor from the stack, which is the same as the value from
@@ -2677,6 +2651,55 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     return identitiesToRemove;
+  }
+
+  /**
+   * Processes the configuration values related to a particular Kerberos descriptor identity definition
+   * by:
+   * <ol>
+   * <li>
+   * merging the declared properties and their values from <code>identityConfigurations</code> with the set of
+   * Kerberos-related configuration updates in <code>kerberosConfigurations</code>, using the existing cluster
+   * configurations in <code>configurations</code>
+   * </li>
+   * <li>
+   * ensuring that these properties are not overwritten by recommendations by the stack advisor later
+   * in the workflow by adding them to the <code>propertiesToIgnore</code> map
+   * </li>
+   * </ol>
+   *
+   * @param identityConfigurations a map of config-types to property name/value pairs to process
+   * @param kerberosConfigurations a map of config-types to property name/value pairs to be applied
+   *                               as configuration updates
+   * @param configurations         a map of config-types to property name/value pairs representing
+   *                               the existing configurations for the cluster
+   * @param propertiesToIgnore     a map of config-types to property names to be ignored while
+   *                               processing stack advisor recommendations
+   * @throws AmbariException
+   */
+  private void processIdentityConfigurations(Map<String, Map<String, String>> identityConfigurations,
+                                             Map<String, Map<String, String>> kerberosConfigurations,
+                                             Map<String, Map<String, String>> configurations,
+                                             Map<String, Set<String>> propertiesToIgnore)
+      throws AmbariException {
+    if (identityConfigurations != null) {
+      for (Map.Entry<String, Map<String, String>> identitiyEntry : identityConfigurations.entrySet()) {
+        String configType = identitiyEntry.getKey();
+        Map<String, String> properties = identitiyEntry.getValue();
+
+        mergeConfigurations(kerberosConfigurations, configType, identitiyEntry.getValue(), configurations);
+
+        if ((properties != null) && !properties.isEmpty()) {
+          Set<String> propertyNames = propertiesToIgnore.get(configType);
+          if (propertyNames == null) {
+            propertyNames = new HashSet<>();
+            propertiesToIgnore.put(configType, propertyNames);
+          }
+          propertyNames.addAll(properties.keySet());
+        }
+      }
+    }
+
   }
 
   /* ********************************************************************************************
@@ -2959,7 +2982,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           hostParamsJson);
 
       Collection<ServiceComponentHost> filteredComponents = filterServiceComponentHostsForHosts(
-          new ArrayList<>(serviceComponentHosts), hostsWithValidKerberosClient);
+        new ArrayList<>(serviceComponentHosts), hostsWithValidKerberosClient);
 
       if (!filteredComponents.isEmpty()) {
         List<String> hostsToUpdate = createUniqueHostList(filteredComponents, Collections.singleton(HostState.HEALTHY));
@@ -3100,7 +3123,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           hostParamsJson);
 
       Collection<ServiceComponentHost> filteredComponents = filterServiceComponentHostsForHosts(
-          new ArrayList<>(serviceComponentHosts), hostsWithValidKerberosClient);
+        new ArrayList<>(serviceComponentHosts), hostsWithValidKerberosClient);
 
       if (!filteredComponents.isEmpty()) {
         List<String> hostsToUpdate = createUniqueHostList(filteredComponents, Collections.singleton(HostState.HEALTHY));

@@ -204,6 +204,7 @@ import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -451,18 +452,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (stackInfo == null) {
       throw new StackAccessException("stackName=" + stackId.getStackName() + ", stackVersion=" + stackId.getStackVersion());
-    }
-
-    RepositoryVersionEntity versionEntity = null;
-
-    if (null != request.getRepositoryVersion()) {
-      versionEntity = repositoryVersionDAO.findByStackAndVersion(stackId,
-          request.getRepositoryVersion());
-
-      if (null == versionEntity) {
-        throw new AmbariException(String.format("Tried to create a cluster on version %s, but that version doesn't exist",
-            request.getRepositoryVersion()));
-      }
     }
 
     // FIXME add support for desired configs at cluster level
@@ -756,22 +745,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public void registerRackChange(String clusterName) throws AmbariException {
     Cluster cluster = clusters.getCluster(clusterName);
-    StackId stackId = cluster.getCurrentStackVersion();
 
-    Set<String> rackSensitiveServices =
-        ambariMetaInfo.getRackSensitiveServicesNames(stackId.getStackName(), stackId.getStackVersion());
+    for (Service service : cluster.getServices().values()) {
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
 
-    Map<String, Service> services = cluster.getServices();
+      if (!BooleanUtils.toBoolean(serviceInfo.isRestartRequiredAfterRackChange())) {
+        continue;
+      }
 
-    for (Service service : services.values()) {
-      if(rackSensitiveServices.contains(service.getName())) {
-        Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
-        for (ServiceComponent serviceComponent : serviceComponents.values()) {
-          Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
-          for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
-            ServiceComponentHost serviceComponentHost = sch.getValue();
-            serviceComponentHost.setRestartRequired(true);
-          }
+      Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+
+      for (ServiceComponent serviceComponent : serviceComponents.values()) {
+        Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+        for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
+          ServiceComponentHost serviceComponentHost = sch.getValue();
+          serviceComponentHost.setRestartRequired(true);
         }
       }
     }
@@ -1048,10 +1036,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Set<ClusterResponse> response = new HashSet<>();
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a getClusters request"
-        + ", clusterName=" + request.getClusterName()
-        + ", clusterId=" + request.getClusterId()
-        + ", stackInfo=" + request.getStackVersion());
+      LOG.debug("Received a getClusters request, clusterName={}, clusterId={}, stackInfo={}",
+        request.getClusterName(), request.getClusterId(), request.getStackVersion());
     }
 
     Cluster singleCluster = null;
@@ -1159,20 +1145,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (request.getComponentName() != null) {
-      if (request.getServiceName() == null
-          || request.getServiceName().isEmpty()) {
-        StackId stackId = cluster.getDesiredStackVersion();
-        String serviceName =
-            ambariMetaInfo.getComponentToService(stackId.getStackName(),
-                stackId.getStackVersion(), request.getComponentName());
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Looking up service name for component"
-              + ", componentName=" + request.getComponentName()
-              + ", serviceName=" + serviceName
-              + ", stackInfo=" + stackId.getStackId());
-        }
-        if (serviceName == null
-            || serviceName.isEmpty()) {
+      if (StringUtils.isBlank(request.getServiceName())) {
+
+        // !!! FIXME the assumption that a component is unique across all stacks is a ticking
+        // time bomb.  Blueprints are making this assumption.
+        String serviceName = findServiceName(cluster, request.getComponentName());
+
+        if (StringUtils.isBlank(serviceName)) {
           LOG.error("Unable to find service for component {}", request.getComponentName());
           throw new ServiceComponentHostNotFoundException(
               cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
@@ -1897,7 +1876,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       ClusterResponse clusterResponse =
-          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, null, null, null);
+          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, 0,
+              null, null);
 
       Map<String, Collection<ServiceConfigVersionResponse>> map =
         new HashMap<>();
@@ -3468,24 +3448,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
-    StackId stackId = cluster.getDesiredStackVersion();
-    String serviceName =
-        ambariMetaInfo.getComponentToService(stackId.getStackName(),
-            stackId.getStackVersion(), componentName);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Looking up service name for component"
-          + ", componentName=" + componentName
-          + ", serviceName=" + serviceName);
-    }
-
-    if (serviceName == null
-        || serviceName.isEmpty()) {
-      throw new AmbariException("Could not find service for component"
-          + ", componentName=" + componentName
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId());
-    }
-    return serviceName;
+    return cluster.getServiceByComponentName(componentName).getName();
   }
 
   /**
@@ -5256,52 +5219,52 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @SuppressWarnings("unchecked")
   @Override
   public void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException {
-    StackId stackId = cluster.getDesiredStackVersion();
     Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
 
-    try {
-      Map<String, Object> widgetDescriptor = null;
-      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-      if (service != null) {
-        // Service widgets
-        ServiceInfo serviceInfo = stackInfo.getService(service.getName());
-        File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
-        if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
-          try {
-            widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-          } catch (Exception ex) {
-            String msg = "Error loading widgets from file: " + widgetDescriptorFile;
-            LOG.error(msg, ex);
-            throw new AmbariException(msg);
-          }
-        }
-      } else {
-        // Cluster level widgets
+    Set<File> widgetDescriptorFiles = new HashSet<>();
+
+    if (null != service) {
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
+      File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
+      if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
+        widgetDescriptorFiles.add(widgetDescriptorFile);
+      }
+    } else {
+      Set<StackId> stackIds = new HashSet<>();
+
+      for (Service svc : cluster.getServices().values()) {
+        stackIds.add(svc.getDesiredStackId());
+      }
+
+      for (StackId stackId : stackIds) {
+        StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
+
         String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
         if (widgetDescriptorFileLocation != null) {
           File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
           if (widgetDescriptorFile.exists()) {
-            try {
-              widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-            } catch (Exception ex) {
-              String msg = "Error loading widgets from file: " + widgetDescriptorFile;
-              LOG.error(msg, ex);
-              throw new AmbariException(msg);
-            }
+            widgetDescriptorFiles.add(widgetDescriptorFile);
           }
         }
       }
-      if (widgetDescriptor != null) {
-        LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
+    }
+
+    for (File widgetDescriptorFile : widgetDescriptorFiles) {
+      Map<String, Object> widgetDescriptor = null;
+
+      try {
+        widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+
         for (Object artifact : widgetDescriptor.values()) {
           List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
           createWidgetsAndLayouts(cluster, widgetLayouts);
         }
+
+      } catch (Exception ex) {
+        String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+        LOG.error(msg, ex);
+        throw new AmbariException(msg);
       }
-    } catch (Exception e) {
-      throw new AmbariException("Error creating stack widget artifacts. " +
-        (service != null ? "Service: " + service.getName() + ", " : "") +
-        "Cluster: " + cluster.getClusterName(), e);
     }
   }
 

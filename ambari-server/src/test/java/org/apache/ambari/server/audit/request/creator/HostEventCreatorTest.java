@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.audit.request.creator;
 
-import junit.framework.Assert;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,6 +36,8 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
+import junit.framework.Assert;
+
 public class HostEventCreatorTest extends AuditEventCreatorTestBase{
 
   @Test
@@ -45,7 +45,7 @@ public class HostEventCreatorTest extends AuditEventCreatorTestBase{
     HostEventCreator creator = new HostEventCreator();
 
     Map<String,Object> properties = new HashMap<>();
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, "ambari1.example.com");
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, "ambari1.example.com");
 
     Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.POST, Resource.Type.Host, properties, null);
     Result result = AuditEventCreatorTestHelper.createResult(new ResultStatus(ResultStatus.STATUS.OK));
@@ -73,7 +73,7 @@ public class HostEventCreatorTest extends AuditEventCreatorTestBase{
 
     properties.put("host_components", set);
 
-    Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.QUERY_POST, Resource.Type.Host, properties, null, HostResourceProvider.HOST_NAME_PROPERTY_ID + "=ambari1.example.com");
+    Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.QUERY_POST, Resource.Type.Host, properties, null, HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID + "=ambari1.example.com");
     Result result = AuditEventCreatorTestHelper.createResult(new ResultStatus(ResultStatus.STATUS.OK));
 
     AuditEvent event = AuditEventCreatorTestHelper.getEvent(creator, request, result);

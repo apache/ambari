@@ -91,7 +91,7 @@ public class ComponentVersionCheckActionTest {
   private static final StackId HDP_21_STACK = new StackId("HDP-2.1.1");
   private static final StackId HDP_22_STACK = new StackId("HDP-2.2.0");
 
-  private static final String HDP_211_CENTOS6_REPO_URL = "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0";
+  private static final String HDP_211_CENTOS6_REPO_URL = "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.1.1.0-118";
 
   private Injector m_injector;
 

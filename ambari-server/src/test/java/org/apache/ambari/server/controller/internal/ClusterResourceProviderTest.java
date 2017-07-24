@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -145,14 +145,14 @@ public class ClusterResourceProviderTest {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     Map<String, Object> properties = requestProperties.iterator().next();
     properties.put(BaseClusterRequest.PROVISION_ACTION_PROPERTY, "INSTALL_ONLY");
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");
 
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn(null)
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn(null)
       .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
@@ -174,7 +174,7 @@ public class ClusterResourceProviderTest {
   public void testCreateResource_blueprint_withInvalidSecurityConfiguration() throws Exception {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     Map<String, Object> properties = requestProperties.iterator().next();
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"security\" : {\n\"type\" : \"NONE\"," +
       "\n\"kerberos_descriptor_reference\" : " + "\"testRef\"\n}}");
     SecurityConfiguration blueprintSecurityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef",
@@ -185,7 +185,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
     expect(topologyRequest.getBlueprint()).andReturn(blueprint).anyTimes();
@@ -203,7 +203,7 @@ public class ClusterResourceProviderTest {
     Map<String, Object> properties = requestProperties.iterator().next();
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"security\" : {\n\"type\" : \"KERBEROS\",\n\"kerberos_descriptor_reference\" : " +
       "\"testRef\"\n}}");
 
@@ -212,7 +212,7 @@ public class ClusterResourceProviderTest {
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
     expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
-    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
@@ -284,10 +284,10 @@ public class ClusterResourceProviderTest {
     ((ObservableResourceProvider)provider).addObserver(observer);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
     // Cluster 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add the cluster name to the properties map
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -332,21 +332,21 @@ public class ClusterResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
 
-    Set<ClusterResponse> allResponse = new HashSet<ClusterResponse>();
-    allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(101L, "Cluster101", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, null, null, null));
-    allResponse.add(new ClusterResponse(104L, "Cluster104", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    Set<ClusterResponse> allResponse = new HashSet<>();
+    allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(101L, "Cluster101", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
+    allResponse.add(new ClusterResponse(104L, "Cluster104", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
-    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    Set<ClusterResponse> nameResponse = new HashSet<>();
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
-    Set<ClusterResponse> idResponse = new HashSet<ClusterResponse>();
-    idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    Set<ClusterResponse> idResponse = new HashSet<>();
+    idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
     // set expectations
-    Capture<Set<ClusterRequest>> captureClusterRequests = new Capture<Set<ClusterRequest>>();
+    Capture<Set<ClusterRequest>> captureClusterRequests = EasyMock.newCapture();
 
     expect(managementController.getClusters(capture(captureClusterRequests))).andReturn(allResponse).once();
     expect(managementController.getClusters(capture(captureClusterRequests))).andReturn(nameResponse).once();
@@ -365,7 +365,7 @@ public class ClusterResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID);
     propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
@@ -452,40 +452,40 @@ public class ClusterResourceProviderTest {
 
   //todo: configuration properties are not being added to props
   private Set<Map<String, Object>> createBlueprintRequestProperties(String clusterName, String blueprintName) {
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
     propertySet.add(properties);
 
-    Collection<Map<String, Object>> hostGroups = new ArrayList<Map<String, Object>>();
-    Map<String, Object> hostGroupProperties = new HashMap<String, Object>();
+    Collection<Map<String, Object>> hostGroups = new ArrayList<>();
+    Map<String, Object> hostGroupProperties = new HashMap<>();
     hostGroups.add(hostGroupProperties);
     hostGroupProperties.put("name", "group1");
-    Collection<Map<String, String>> hostGroupHosts = new ArrayList<Map<String, String>>();
+    Collection<Map<String, String>> hostGroupHosts = new ArrayList<>();
     hostGroupProperties.put("hosts", hostGroupHosts);
-    Map<String, String> hostGroupHostProperties = new HashMap<String, String>();
+    Map<String, String> hostGroupHostProperties = new HashMap<>();
     hostGroupHostProperties.put("fqdn", "host.domain");
     hostGroupHosts.add(hostGroupHostProperties);
     properties.put("host_groups", hostGroups);
 
-    Map<String, String> mapGroupConfigProperties = new HashMap<String, String>();
+    Map<String, String> mapGroupConfigProperties = new HashMap<>();
     mapGroupConfigProperties.put("myGroupProp", "awesomeValue");
 
     // blueprint core-site cluster configuration properties
-    Map<String, String> blueprintCoreConfigProperties = new HashMap<String, String>();
+    Map<String, String> blueprintCoreConfigProperties = new HashMap<>();
     blueprintCoreConfigProperties.put("property1", "value2");
     blueprintCoreConfigProperties.put("new.property", "new.property.value");
 
-    Map<String, String> blueprintGlobalConfigProperties = new HashMap<String, String>();
+    Map<String, String> blueprintGlobalConfigProperties = new HashMap<>();
     blueprintGlobalConfigProperties.put("hive_database", "New MySQL Database");
 
-    Map<String, String> oozieEnvConfigProperties = new HashMap<String, String>();
+    Map<String, String> oozieEnvConfigProperties = new HashMap<>();
     oozieEnvConfigProperties.put("property1","value2");
-    Map<String, String> hbaseEnvConfigProperties = new HashMap<String, String>();
+    Map<String, String> hbaseEnvConfigProperties = new HashMap<>();
     hbaseEnvConfigProperties.put("property1","value2");
-    Map<String, String> falconEnvConfigProperties = new HashMap<String, String>();
+    Map<String, String> falconEnvConfigProperties = new HashMap<>();
     falconEnvConfigProperties.put("property1","value2");
 
     return propertySet;
@@ -494,14 +494,14 @@ public class ClusterResourceProviderTest {
   private void testCreateResource_blueprint(Authentication authentication) throws Exception {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     Map<String, Object> properties = requestProperties.iterator().next();
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");
 
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn(null)
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn(null)
         .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
@@ -545,10 +545,10 @@ public class ClusterResourceProviderTest {
     ((ObservableResourceProvider)provider).addObserver(observer);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
     // Cluster 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add the cluster name to the properties map
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -559,7 +559,7 @@ public class ClusterResourceProviderTest {
     propertySet.add(properties);
 
     // Cluster 2: create a map of properties for the request
-    properties = new LinkedHashMap<String, Object>();
+    properties = new LinkedHashMap<>();
 
     // add the cluster id to the properties map
     properties.put(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, 99L);
@@ -593,10 +593,10 @@ public class ClusterResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INIT, SecurityType.NONE, null, null, null, null));
+    Set<ClusterResponse> nameResponse = new HashSet<>();
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INIT, SecurityType.NONE, null, 0, null, null));
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
@@ -628,7 +628,7 @@ public class ClusterResourceProviderTest {
 
     ((ObservableResourceProvider)provider).addObserver(observer);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
 
@@ -661,10 +661,10 @@ public class ClusterResourceProviderTest {
     Clusters clusters = createMock(Clusters.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    Set<ClusterResponse> nameResponse = new HashSet<>();
+    nameResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, 0, null, null));
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
@@ -680,7 +680,7 @@ public class ClusterResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(PropertyHelper.getPropertyId("Clusters.desired_config", "type"), "global");
@@ -689,7 +689,7 @@ public class ClusterResourceProviderTest {
     properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "x"), "y");
 
 
-    Map<String, Object> properties2 = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties2 = new LinkedHashMap<>();
 
     properties2.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties2.put(PropertyHelper.getPropertyId("Clusters.desired_config", "type"), "mapred-site");
@@ -697,7 +697,7 @@ public class ClusterResourceProviderTest {
     properties2.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "foo"), "A1");
     properties2.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "bar"), "B2");
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
 
     propertySet.add(properties);
     propertySet.add(properties2);
@@ -806,10 +806,10 @@ public class ClusterResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
     // Cluster 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
     properties.put(ClusterResourceProvider.CLUSTER_REPO_VERSION, "2.1.1");
@@ -826,7 +826,6 @@ public class ClusterResourceProviderTest {
 
     assertTrue(cap.hasCaptured());
     assertNotNull(cap.getValue());
-    assertEquals("2.1.1", cap.getValue().getRepositoryVersion());
   }
 
   @Test
@@ -844,7 +843,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn(null)
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn(null)
         .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();

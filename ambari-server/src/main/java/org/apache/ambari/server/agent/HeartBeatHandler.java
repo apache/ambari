@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,9 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,51 +31,22 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
-import org.apache.ambari.server.events.AlertEvent;
-import org.apache.ambari.server.events.AlertReceivedEvent;
-import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
-import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.VersionEventPublisher;
-import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReaderFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostHealthStatus;
-import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityState;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -85,26 +54,14 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
-import org.apache.ambari.server.state.scheduler.RequestExecution;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStoppedEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -129,9 +86,6 @@ public class HeartBeatHandler {
   private HeartbeatProcessor heartbeatProcessor;
 
   @Inject
-  private Injector injector;
-
-  @Inject
   private Configuration config;
 
   @Inject
@@ -152,9 +106,9 @@ public class HeartBeatHandler {
   @Inject
   private KerberosIdentityDataFileReaderFactory kerberosIdentityDataFileReaderFactory;
 
-  private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
+  private Map<String, Long> hostResponseIds = new ConcurrentHashMap<>();
 
-  private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<String, HeartBeatResponse>();
+  private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<>();
 
   @Inject
   public HeartBeatHandler(Clusters fsm, ActionQueue aq, ActionManager am,
@@ -201,10 +155,7 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    LOG.debug("Received heartbeat from host"
-        + ", hostname=" + hostname
-        + ", currentResponseId=" + currentResponseId
-        + ", receivedResponseId=" + heartbeat.getResponseId());
+    LOG.debug("Received heartbeat from host, hostname={}, currentResponseId={}, receivedResponseId={}", hostname, currentResponseId, heartbeat.getResponseId());
 
     if (heartbeat.getResponseId() == currentResponseId - 1) {
       HeartBeatResponse heartBeatResponse = hostResponses.get(hostname);
@@ -279,10 +230,9 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
-     *
      *
      * TODO: Handle the case when a host is a part of multiple clusters.
      */
@@ -296,7 +246,7 @@ public class HeartBeatHandler {
         response.setRecoveryConfig(rc);
 
         if (response.getRecoveryConfig() != null) {
-          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig().toString());
+          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig());
         }
       }
     }
@@ -315,7 +265,7 @@ public class HeartBeatHandler {
 
 
   protected void processRecoveryReport(RecoveryReport recoveryReport, String hostname) throws AmbariException {
-    LOG.debug("Received recovery report: " + recoveryReport.toString());
+    LOG.debug("Received recovery report: {}", recoveryReport);
     Host host = clusterFsm.getHost(hostname);
     host.setRecoveryReport(recoveryReport);
   }
@@ -330,7 +280,7 @@ public class HeartBeatHandler {
       for (AgentCommand ac : cmds) {
         try {
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Sending command string = " + StageUtils.jaxbToString(ac));
+            LOG.debug("Sending command string = {}", StageUtils.jaxbToString(ac));
           }
         } catch (Exception e) {
           throw new AmbariException("Could not get jaxb string for command", e);
@@ -493,10 +443,10 @@ public class HeartBeatHandler {
 
     response.setAgentConfig(config.getAgentConfigsMap());
     if(response.getAgentConfig() != null) {
-      LOG.debug("Agent configuration map set to " + response.getAgentConfig());
+      LOG.debug("Agent configuration map set to {}", response.getAgentConfig());
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
      *
@@ -511,7 +461,7 @@ public class HeartBeatHandler {
       response.setRecoveryConfig(rc);
 
       if(response.getRecoveryConfig() != null) {
-        LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
+        LOG.info("Recovery configuration set to " + response.getRecoveryConfig());
       }
     }
 
@@ -542,7 +492,7 @@ public class HeartBeatHandler {
     }
 
     if(actionQueue.hasPendingTask(hostname)) {
-      LOG.debug("Host " + hostname + " has pending tasks");
+      LOG.debug("Host {} has pending tasks", hostname);
       response.setHasPendingTasks(true);
     }
   }
@@ -558,36 +508,26 @@ public class HeartBeatHandler {
     ComponentsResponse response = new ComponentsResponse();
 
     Cluster cluster = clusterFsm.getCluster(clusterName);
-    StackId stackId = cluster.getCurrentStackVersion();
-    if (stackId == null) {
-      throw new AmbariException("Cannot provide stack components map. " +
-        "Stack hasn't been selected yet.");
+
+    Map<String, Map<String, String>> componentsMap = new HashMap<>();
+
+    for (org.apache.ambari.server.state.Service service : cluster.getServices().values()) {
+      componentsMap.put(service.getName(), new HashMap<String, String>());
+
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        StackId stackId = component.getDesiredStackId();
+
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+            stackId.getStackName(), stackId.getStackVersion(), service.getName(), component.getName());
+
+        componentsMap.get(service.getName()).put(component.getName(), componentInfo.getCategory());
+      }
     }
-    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
 
     response.setClusterName(clusterName);
-    response.setStackName(stackId.getStackName());
-    response.setStackVersion(stackId.getStackVersion());
-    response.setComponents(getComponentsMap(stack));
+    response.setComponents(componentsMap);
 
     return response;
-  }
-
-  private Map<String, Map<String, String>> getComponentsMap(StackInfo stack) {
-    Map<String, Map<String, String>> result = new HashMap<String, Map<String, String>>();
-
-    for (ServiceInfo service : stack.getServices()) {
-      Map<String, String> components = new HashMap<String, String>();
-
-      for (ComponentInfo component : service.getComponents()) {
-        components.put(component.getName(), component.getCategory());
-      }
-
-      result.put(service.getName(), components);
-    }
-
-    return result;
   }
 
   /**
@@ -606,7 +546,7 @@ public class HeartBeatHandler {
       return null;
     }
 
-    List<AlertDefinitionCommand> commands = new ArrayList<AlertDefinitionCommand>();
+    List<AlertDefinitionCommand> commands = new ArrayList<>();
 
     // for every cluster this host is a member of, build the command
     for (Cluster cluster : hostClusters) {
@@ -662,7 +602,7 @@ public class HeartBeatHandler {
                 File keytabFile = new File(dataDir + File.separator + hostName + File.separator + sha1Keytab);
 
                 if (keytabFile.canRead()) {
-                  Map<String, String> keytabMap = new HashMap<String, String>();
+                  Map<String, String> keytabMap = new HashMap<>();
                   String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
                   String isService = record.get(KerberosIdentityDataFileReader.SERVICE);
 
@@ -690,7 +630,7 @@ public class HeartBeatHandler {
                 }
               }
             } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
-              Map<String, String> keytabMap = new HashMap<String, String>();
+              Map<String, String> keytabMap = new HashMap<>();
 
               keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
               keytabMap.put(KerberosIdentityDataFileReader.SERVICE, record.get(KerberosIdentityDataFileReader.SERVICE));

@@ -116,12 +116,12 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * The cluster primary key properties.
    */
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
+      new HashSet<>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
 
   /**
    * The key property ids for a cluster resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID);
   }
@@ -129,7 +129,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   /**
    * The property ids for a cluster resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
 
   /**
    * Used to serialize to/from json.
@@ -237,7 +237,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ClusterRequest> requests = new HashSet<ClusterRequest>();
+    final Set<ClusterRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -257,7 +257,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Found clusters matching getClusters request"
           + ", clusterResponseCount=" + responses.size());
@@ -297,7 +297,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ClusterRequest>   requests = new HashSet<ClusterRequest>();
+    final Set<ClusterRequest>   requests = new HashSet<>();
     RequestStatusResponse       response;
 
     for (Map<String, Object> requestPropertyMap : request.getProperties()) {
@@ -321,7 +321,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       if (updateResults != null) {
         Map<String, Collection<ServiceConfigVersionResponse>> serviceConfigVersions = updateResults.getDesiredServiceConfigVersions();
         if (serviceConfigVersions != null) {
-          associatedResources = new HashSet<Resource>();
+          associatedResources = new HashSet<>();
           for (Collection<ServiceConfigVersionResponse> scvCollection : serviceConfigVersions.values()) {
             for (ServiceConfigVersionResponse serviceConfigVersionResponse : scvCollection) {
               Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
@@ -401,9 +401,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private ClusterRequest getRequest(Map<String, Object> properties) {
     SecurityType securityType;
     String requestedSecurityType = (String) properties.get(CLUSTER_SECURITY_TYPE_PROPERTY_ID);
-    if(requestedSecurityType == null)
+    if(requestedSecurityType == null) {
       securityType = null;
-    else {
+    } else {
       try {
         securityType = SecurityType.valueOf(requestedSecurityType.toUpperCase());
       } catch (IllegalArgumentException e) {
@@ -420,16 +420,13 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         null,
         getSessionAttributes(properties));
 
-    if (properties.containsKey(CLUSTER_REPO_VERSION)) {
-      cr.setRepositoryVersion(properties.get(CLUSTER_REPO_VERSION).toString());
-    }
-
     List<ConfigurationRequest> configRequests = getConfigurationRequests("Clusters", properties);
 
     ServiceConfigVersionRequest serviceConfigVersionRequest = getServiceConfigVersionRequest("Clusters", properties);
 
-    if (!configRequests.isEmpty())
+    if (!configRequests.isEmpty()) {
       cr.setDesiredConfig(configRequests);
+    }
 
     if (serviceConfigVersionRequest != null) {
       cr.setServiceConfigVersionRequest(serviceConfigVersionRequest);
@@ -447,7 +444,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @return the map of session attributes
    */
   private Map<String, Object> getSessionAttributes(Map<String, Object> properties) {
-    Map<String, Object> sessionAttributes = new HashMap<String, Object>();
+    Map<String, Object> sessionAttributes = new HashMap<>();
 
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
 
@@ -475,11 +472,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         serviceConfigVersionRequest =
             (serviceConfigVersionRequest ==null ) ? new ServiceConfigVersionRequest() : serviceConfigVersionRequest;
 
-        if (propName.equals("service_name"))
+        if (propName.equals("service_name")) {
           serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
-        else if (propName.equals("service_config_version"))
+        } else if (propName.equals("service_config_version")) {
           serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
-        else if (propName.equals("service_config_version_note")) {
+        } else if (propName.equals("service_config_version_note")) {
           serviceConfigVersionRequest.setNote(entry.getValue().toString());
         }
       }

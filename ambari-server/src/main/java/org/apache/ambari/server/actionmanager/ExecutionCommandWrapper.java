@@ -26,6 +26,7 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -224,8 +225,14 @@ public class ExecutionCommandWrapper {
         Map<String, String> commandParams = executionCommand.getCommandParams();
 
         if (null != repositoryVersion) {
-          commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
-          executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
+          // only set the version if it's not set and this is NOT an install
+          // command
+          if (!commandParams.containsKey(KeyNames.VERSION)
+              && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
+            commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
+            executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
+
+          }
 
           StackId stackId = repositoryVersion.getStackId();
           StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),

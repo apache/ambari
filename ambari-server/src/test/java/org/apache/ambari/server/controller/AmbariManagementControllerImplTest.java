@@ -556,19 +556,14 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testUpdateClusters() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
+    Capture<AmbariManagementController> controllerCapture = new Capture<>();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
     ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
-    ConfigurationRequest configurationRequest = createNiceMock(ConfigurationRequest.class);
 
     // requests
-    Set<ClusterRequest> setRequests = new HashSet<ClusterRequest>();
-    setRequests.add(clusterRequest);
-
-    List<ConfigurationRequest> configRequests = new ArrayList<>();
-    configRequests.add(configurationRequest);
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
     // expectations
@@ -578,22 +573,17 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
-    expect(clusterRequest.getDesiredConfig()).andReturn(configRequests);
-    expect(configurationRequest.getVersionTag()).andReturn(null).times(1);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(anyObject(Map.class));
     expectLastCall().once();
 
     cluster.setClusterName("clusterNew");
     expectLastCall();
 
-    configurationRequest.setVersionTag(EasyMock.anyObject(String.class));
-    expectLastCall();
-
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -601,9 +591,8 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
   }
-
   /**
    * Ensure that processing update request does not fail on configuration
    * properties with no value specified (no value = null reference value)
@@ -2034,7 +2023,7 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-    
+
     OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
     EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
@@ -2229,7 +2218,7 @@ public class AmbariManagementControllerImplTest {
 
     public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector, OsFamily osFamilyMock) throws Exception {
       super(actionManager, clusters, injector);
-      this.osFamily = osFamilyMock;
+      osFamily = osFamilyMock;
     }
 
 //    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
@@ -2398,7 +2387,6 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, configuration);
 
     ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
-    cr.setRepositoryVersion("2.1.1.0-1234");
     controller.createCluster(cr);
 
     // verification

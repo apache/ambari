@@ -137,12 +137,9 @@ public class ConfigureActionTest {
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.injectMembers(this);
 
-    repoVersion2110 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.1.1"),
-        "2.1.1.0-1234");
-    repoVersion2111 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.1.1"),
-        "2.1.1.1-5678");
-    repoVersion2200 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.2.0"),
-        "2.2.0.0-1234");
+    repoVersion2110 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.1.1"), "2.1.1.0-1234");
+    repoVersion2111 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.1.1"), "2.1.1.1-5678");
+    repoVersion2200 = m_helper.getOrCreateRepositoryVersion(new StackId("HDP-2.2.0"), "2.2.0.0-1234");
 
     makeUpgradeCluster();
   }
@@ -170,7 +167,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -220,13 +217,16 @@ public class ConfigureActionTest {
     Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
+    c.setCurrentStackVersion(repoVersion2110.getStackId());
+    c.setDesiredStackVersion(repoVersion2200.getStackId());
+
     Map<String, String> properties = new HashMap<String, String>() {
       {
         put("initLimit", "10");
       }
     };
 
-    Config config = createConfig(c, repoVersion2200, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -282,7 +282,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -340,7 +340,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -470,7 +470,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -528,7 +528,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -594,7 +594,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -643,13 +643,16 @@ public class ConfigureActionTest {
     Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
+    c.setCurrentStackVersion(repoVersion2110.getStackId());
+    c.setDesiredStackVersion(repoVersion2200.getStackId());
+
     Map<String, String> properties = new HashMap<String, String>() {
       {
         put("fooKey", "barValue");
       }
     };
 
-    Config config = createConfig(c, repoVersion2200, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -701,6 +704,9 @@ public class ConfigureActionTest {
     Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
+    c.setCurrentStackVersion(repoVersion2110.getStackId());
+    c.setDesiredStackVersion(repoVersion2200.getStackId());
+
     Map<String, String> properties = new HashMap<String, String>() {
       {
         put("set.key.1", "s1");
@@ -710,7 +716,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2200, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -798,7 +804,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2200, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -863,9 +869,11 @@ public class ConfigureActionTest {
   @Test
   public void testAllowedReplacment() throws Exception {
 
-
     Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
+
+    c.setCurrentStackVersion(repoVersion2110.getStackId());
+    c.setDesiredStackVersion(repoVersion2200.getStackId());
 
     Map<String, String> properties = new HashMap<String, String>() {
       {
@@ -877,7 +885,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2200, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -964,7 +972,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1044,7 +1052,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1153,7 +1161,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1249,7 +1257,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1351,7 +1359,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1448,7 +1456,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1542,7 +1550,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1633,7 +1641,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version2", properties);
+    Config config = createConfig(c, "zoo.cfg", "version2", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
@@ -1735,7 +1743,7 @@ public class ConfigureActionTest {
       }
     };
 
-    Config config = createConfig(c, repoVersion2110, "zoo.cfg", "version1", properties);
+    Config config = createConfig(c, "zoo.cfg", "version1", properties);
 
     c.addDesiredConfig("user", Collections.singleton(config));
 
@@ -1847,8 +1855,8 @@ public class ConfigureActionTest {
     return executionCommand;
   }
 
-  private Config createConfig(Cluster cluster, RepositoryVersionEntity repoVersion, String type,
-      String tag, Map<String, String> properties) {
+  private Config createConfig(Cluster cluster, String type, String tag,
+      Map<String, String> properties) {
     return configFactory.createNew(cluster, type, tag, properties,
         NO_ATTRIBUTES);
   }

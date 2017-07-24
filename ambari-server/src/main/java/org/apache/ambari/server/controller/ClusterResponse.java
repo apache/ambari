@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.server.state.ClusterHealthReport;
@@ -29,38 +30,23 @@ import org.apache.ambari.server.state.State;
 
 public class ClusterResponse {
 
-  private final Long clusterId;
-
+  private final long clusterId;
   private final String clusterName;
-
   private final Set<String> hostNames;
-
   private final String desiredStackVersion;
+  private final State provisioningState;
+  private final SecurityType securityType;
+  private final int totalHosts;
 
   private Map<String, DesiredConfig> desiredConfigs;
-
   private Map<String, Collection<ServiceConfigVersionResponse>> desiredServiceConfigVersions;
-
-  private String provisioningState;
-
-  /**
-   * The cluster's security.
-   * <p/>
-   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
-   */
-  private String securityType;
-
-  private Integer totalHosts;
-
   private ClusterHealthReport clusterHealthReport;
+  private Map<String, String> credentialStoreServiceProperties;
 
-  private Map<String, String> credentialStoreServiceProperties = null;
-
-  public ClusterResponse(Long clusterId, String clusterName,
-                         State provisioningState, SecurityType securityType, Set<String> hostNames, Integer totalHosts,
+  public ClusterResponse(long clusterId, String clusterName,
+                         State provisioningState, SecurityType securityType, Set<String> hostNames, int totalHosts,
                          String desiredStackVersion, ClusterHealthReport clusterHealthReport) {
 
-    super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.hostNames = hostNames;
@@ -69,13 +55,15 @@ public class ClusterResponse {
     this.clusterHealthReport = clusterHealthReport;
 
     if (null != provisioningState) {
-      this.provisioningState = provisioningState.name();
+      this.provisioningState = provisioningState;
+    } else {
+      this.provisioningState = State.UNKNOWN;
     }
 
     if (null == securityType) {
-      this.securityType = SecurityType.NONE.name();
+      this.securityType = SecurityType.NONE;
     } else {
-      this.securityType = securityType.name();
+      this.securityType = securityType;
     }
   }
 
@@ -94,19 +82,12 @@ public class ClusterResponse {
   }
 
   /**
-   * @return the host names
-   */
-  public Set<String> getHostNames() {
-    return hostNames;
-  }
-
-  /**
    * Gets whether the cluster is still initializing or has finished with its
    * deployment requests.
    *
    * @return either {@code INIT} or {@code INSTALLED}, never {@code null}.
    */
-  public String getProvisioningState() {
+  public State getProvisioningState() {
     return provisioningState;
   }
 
@@ -117,31 +98,19 @@ public class ClusterResponse {
    *
    * @return the cluster's security type
    */
-  public String getSecurityType() {
+  public SecurityType getSecurityType() {
     return securityType;
-  }
-
-  /**
-   * Sets the cluster's security type.
-   * <p/>
-   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
-   *
-   * @param securityType a String declaring the cluster's security type
-   */
-  public void setSecurityType(String securityType) {
-    this.securityType = securityType;
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("{"
-        + " clusterName=" + clusterName
-        + ", clusterId=" + clusterId
-        + ", provisioningState=" + provisioningState
-        + ", desiredStackVersion=" + desiredStackVersion
-        + ", totalHosts=" + totalHosts
-        + ", hosts=[");
+    sb.append("{ clusterName=").append(clusterName)
+      .append(", clusterId=").append(clusterId)
+      .append(", provisioningState=").append(provisioningState)
+      .append(", desiredStackVersion=").append(desiredStackVersion)
+      .append(", totalHosts=").append(totalHosts)
+      .append(", hosts=[");
 
     if (hostNames != null) {
       int i = 0;
@@ -153,9 +122,7 @@ public class ClusterResponse {
         sb.append(hostName);
       }
     }
-    sb.append("]"
-        + ", clusterHealthReport= " + clusterHealthReport
-        + "}");
+    sb.append("], clusterHealthReport= ").append(clusterHealthReport).append("}");
     return sb.toString();
   }
 
@@ -168,25 +135,15 @@ public class ClusterResponse {
       return false;
     }
 
-    ClusterResponse that = (ClusterResponse) o;
+    ClusterResponse other = (ClusterResponse) o;
 
-    if (clusterId != null ?
-        !clusterId.equals(that.clusterId) : that.clusterId != null) {
-      return false;
-    }
-    if (clusterName != null ?
-        !clusterName.equals(that.clusterName) : that.clusterName != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(clusterId, other.clusterId) &&
+      Objects.equals(clusterName, other.clusterName);
   }
 
   @Override
   public int hashCode() {
-    int result = clusterId != null ? clusterId.intValue() : 0;
-    result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
-    return result;
+    return Objects.hash(clusterId, clusterName);
   }
 
   /**
@@ -196,9 +153,6 @@ public class ClusterResponse {
     return desiredStackVersion;
   }
 
-  /**
-   * @param configs
-   */
   public void setDesiredConfigs(Map<String, DesiredConfig> configs) {
     desiredConfigs = configs;
   }

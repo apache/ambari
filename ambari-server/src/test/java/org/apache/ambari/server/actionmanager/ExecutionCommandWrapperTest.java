@@ -294,6 +294,7 @@ public class ExecutionCommandWrapperTest {
 
     StackId stackId = cluster.getDesiredStackVersion();
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+    cluster.addService("HDFS", repositoryVersion);
 
     // first try with an INSTALL command - this should not populate version info
     ExecutionCommand executionCommand = new ExecutionCommand();

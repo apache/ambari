@@ -224,7 +224,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_INIT_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("initCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_UNKNOWN_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
-
+      setResourceProperty(resource, COMPONENT_DESIRED_STACK, response.getDesiredStackId(), requestedIds);
+      setResourceProperty(resource, COMPONENT_DESIRED_VERSION, response.getDesiredVersion(), requestedIds);
+      setResourceProperty(resource, COMPONENT_REPOSITORY_STATE, response.getRepositoryState(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -436,7 +438,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     return response;
   }
 
-  // Get the components for the given request.
   private Set<ServiceComponentResponse> getComponents(ServiceComponentRequest request) throws AmbariException {
 
     final AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
@@ -446,7 +447,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     Set<ServiceComponentResponse> response = new HashSet<>();
     String category = null;
 
-    StackId stackId = cluster.getDesiredStackVersion();
 
     if (request.getComponentName() != null) {
       setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
@@ -454,6 +454,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final Service s = getServiceFromCluster(request, cluster);
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
+
+      StackId stackId = sc.getDesiredStackId();
 
       try {
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
@@ -485,6 +487,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           // skip non matching state
           continue;
         }
+
+        StackId stackId = sc.getDesiredStackId();
 
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {

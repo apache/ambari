@@ -218,7 +218,7 @@ public class BackgroundCustomCommandExecutionTest {
       dStateStr = desiredState.toString();
     }
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        m_repositoryVersion.getStackId().getStackId(), m_repositoryVersion.getVersion(), dStateStr);
+        m_repositoryVersion.getId(), m_repositoryVersion.getVersion(), dStateStr);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);

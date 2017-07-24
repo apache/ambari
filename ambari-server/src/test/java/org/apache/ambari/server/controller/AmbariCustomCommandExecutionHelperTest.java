@@ -695,7 +695,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException {
 
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getStackId().getStackId(), repositoryVersion.getVersion(), null, "false");
+        repositoryVersion.getId(), null, "false");
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);

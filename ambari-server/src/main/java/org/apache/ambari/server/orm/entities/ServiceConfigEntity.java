@@ -21,7 +21,6 @@ package org.apache.ambari.server.orm.entities;
 import java.util.List;
 
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -47,12 +46,24 @@ import javax.persistence.TableGenerator;
   , initialValue = 1
 )
 @NamedQueries({
-    @NamedQuery(name = "ServiceConfigEntity.findAll", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId ORDER BY serviceConfig.version DESC"),
-    @NamedQuery(name = "ServiceConfigEntity.findNextServiceConfigVersion", query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceName=:serviceName AND serviceConfig.clusterId=:clusterId"),
-    @NamedQuery(name = "ServiceConfigEntity.findAllServiceConfigsByStack", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId AND serviceConfig.stack=:stack"),
-    @NamedQuery(name = "ServiceConfigEntity.findLatestServiceConfigsByStack", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId = :clusterId AND serviceConfig.version = (SELECT MAX(serviceConfig2.version) FROM ServiceConfigEntity serviceConfig2 WHERE serviceConfig2.clusterId=:clusterId AND serviceConfig2.stack=:stack AND serviceConfig2.serviceName = serviceConfig.serviceName)"),
-    @NamedQuery(name = "ServiceConfigEntity.findLatestServiceConfigsByService", query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceName = :serviceName AND scv.version = (SELECT MAX(scv2.version) FROM ServiceConfigEntity scv2 WHERE (scv2.serviceName = :serviceName AND scv2.clusterId = :clusterId) AND (scv2.groupId = scv.groupId OR (scv2.groupId IS NULL AND scv.groupId IS NULL)))"),
-    @NamedQuery(name = "ServiceConfigEntity.findLatestServiceConfigsByCluster", query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceConfigId IN (SELECT MAX(scv1.serviceConfigId) FROM ServiceConfigEntity scv1 WHERE (scv1.clusterId = :clusterId) AND (scv1.groupId IS NULL) GROUP BY scv1.serviceName)")})
+    @NamedQuery(
+        name = "ServiceConfigEntity.findAll",
+        query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId ORDER BY serviceConfig.version DESC"),
+    @NamedQuery(
+        name = "ServiceConfigEntity.findNextServiceConfigVersion",
+        query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceName=:serviceName AND serviceConfig.clusterId=:clusterId"),
+    @NamedQuery(
+        name = "ServiceConfigEntity.findServiceConfigsByStack",
+        query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId AND serviceConfig.stack=:stack AND serviceConfig.serviceName=:serviceName"),
+    @NamedQuery(
+        name = "ServiceConfigEntity.findLatestServiceConfigsByStack",
+        query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId = :clusterId AND (serviceConfig.groupId = null OR serviceConfig.groupId IN (SELECT cg.groupId from ConfigGroupEntity cg)) AND serviceConfig.version = (SELECT MAX(serviceConfig2.version) FROM ServiceConfigEntity serviceConfig2 WHERE serviceConfig2.clusterId= :clusterId AND serviceConfig2.stack = :stack AND serviceConfig2.serviceName = serviceConfig.serviceName)"),
+    @NamedQuery(
+        name = "ServiceConfigEntity.findLatestServiceConfigsByService",
+        query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceName = :serviceName AND (scv.groupId = null OR scv.groupId IN (SELECT cg.groupId from ConfigGroupEntity cg)) AND scv.version = (SELECT MAX(scv2.version) FROM ServiceConfigEntity scv2 WHERE (scv2.serviceName = :serviceName AND scv2.clusterId = :clusterId) AND (scv2.groupId = scv.groupId OR (scv2.groupId IS NULL AND scv.groupId IS NULL)))"),
+    @NamedQuery(
+        name = "ServiceConfigEntity.findLatestServiceConfigsByCluster",
+        query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceConfigId IN (SELECT MAX(scv1.serviceConfigId) FROM ServiceConfigEntity scv1 WHERE (scv1.clusterId = :clusterId) AND (scv1.groupId IS NULL) GROUP BY scv1.serviceName)") })
 public class ServiceConfigEntity {
   @Id
   @Column(name = "service_config_id")
