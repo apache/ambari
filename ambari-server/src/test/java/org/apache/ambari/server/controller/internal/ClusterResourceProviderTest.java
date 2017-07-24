@@ -812,7 +812,6 @@ public class ClusterResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
-    properties.put(ClusterResourceProvider.CLUSTER_REPO_VERSION, "2.1.1");
 
     propertySet.add(properties);
 
@@ -826,7 +825,6 @@ public class ClusterResourceProviderTest {
 
     assertTrue(cap.hasCaptured());
     assertNotNull(cap.getValue());
-    assertEquals("2.1.1", cap.getValue().getRepositoryVersion());
   }
 
   @Test

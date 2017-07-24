@@ -30,26 +30,24 @@ public class ServiceRequest {
   private String credentialStoreEnabled; // CREATE/UPDATE/GET
   private String credentialStoreSupported; //GET
 
-  private String desiredStack;
-  private String desiredRepositoryVersion;
+  private Long desiredRepositoryVersionId;
   /**
    * Short-lived object that gets set while validating a request
    */
   private RepositoryVersionEntity resolvedRepository;
 
-  public ServiceRequest(String clusterName, String serviceName, String desiredStack,
-      String desiredRepositoryVersion, String desiredState) {
-    this(clusterName, serviceName, desiredStack, desiredRepositoryVersion, desiredState, null);
+  public ServiceRequest(String clusterName, String serviceName,
+      Long desiredRepositoryVersionId, String desiredState) {
+    this(clusterName, serviceName, desiredRepositoryVersionId, desiredState, null);
   }
 
-  public ServiceRequest(String clusterName, String serviceName, String desiredStack,
-      String desiredRepositoryVersion, String desiredState, String credentialStoreEnabled) {
+  public ServiceRequest(String clusterName, String serviceName,
+      Long desiredRepositoryVersionId, String desiredState, String credentialStoreEnabled) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.desiredState = desiredState;
 
-    this.desiredStack = desiredStack;
-    this.desiredRepositoryVersion = desiredRepositoryVersion;
+    this.desiredRepositoryVersionId = desiredRepositoryVersionId;
 
     this.credentialStoreEnabled = credentialStoreEnabled;
     // Credential store supported cannot be changed after
@@ -87,12 +85,8 @@ public class ServiceRequest {
     this.desiredState = desiredState;
   }
 
-  public String getDesiredStack() {
-    return desiredStack;
-  }
-
-  public String getDesiredRepositoryVersion() {
-    return desiredRepositoryVersion;
+  public Long getDesiredRepositoryVersionId() {
+    return desiredRepositoryVersionId;
   }
 
   /**

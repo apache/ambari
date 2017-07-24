@@ -130,7 +130,7 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
         final String message;
         RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getRepositoryVersion();
 
-        if (upgradeContext.getRepositoryType() == RepositoryType.STANDARD) {
+        if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
           message = MessageFormat.format(
               "Updating the desired repository version to {0} for all cluster services.",
               targetRepositoryVersion.getVersion());

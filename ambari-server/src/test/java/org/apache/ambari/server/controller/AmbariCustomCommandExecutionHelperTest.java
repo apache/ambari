@@ -552,7 +552,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
 
     ambariManagementController.createAction(actionRequest, requestProperties);
-    StackId stackId = clusters.getCluster("c1").getDesiredStackVersion();
+
     Request request = requestCapture.getValue();
     Stage stage = request.getStages().iterator().next();
     List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c1-c6401");
@@ -695,7 +695,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException {
 
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getStackId().getStackId(), repositoryVersion.getVersion(), null, "false");
+        repositoryVersion.getId(), null, "false");
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);

@@ -363,6 +363,8 @@ public class ServiceImpl implements Service {
         getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
 
+    r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
+
     r.setMaintenanceState(getMaintenanceState().name());
     return r;
   }

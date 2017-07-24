@@ -2393,7 +2393,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(context.getSupportedServices()).andReturn(Sets.newHashSet("ZOOKEEPER")).atLeastOnce();
     expect(context.getSourceRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion211).atLeastOnce();
     expect(context.getTargetRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion220).atLeastOnce();
-    expect(context.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(context.getOrchestrationType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(context.getHostRoleCommandFactory()).andStubReturn(injector.getInstance(HostRoleCommandFactory.class));
     expect(context.getRoleGraphFactory()).andStubReturn(injector.getInstance(RoleGraphFactory.class));
@@ -2492,7 +2492,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(context.getDirection()).andReturn(direction).anyTimes();
     expect(context.getRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
     expect(context.getSupportedServices()).andReturn(services).anyTimes();
-    expect(context.getRepositoryType()).andReturn(repositoryType).anyTimes();
+    expect(context.getOrchestrationType()).andReturn(repositoryType).anyTimes();
     expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(context.getHostRoleCommandFactory()).andStubReturn(
         injector.getInstance(HostRoleCommandFactory.class));

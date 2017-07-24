@@ -38,6 +38,7 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -117,6 +118,10 @@ public class UpgradeEntity {
 
   @Column(name="downgrade_allowed", nullable = false)
   private Short downgrade_allowed = 1;
+
+  @Column(name="orchestration", nullable = false)
+  @Enumerated(value = EnumType.STRING)
+  private RepositoryType orchestration = RepositoryType.STANDARD;
 
   /**
    * {@code true} if the upgrade has been marked as suspended.
@@ -369,6 +374,23 @@ public class UpgradeEntity {
    */
   public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
     this.repositoryVersion = repositoryVersion;
+  }
+
+  /**
+   * Sets the orchestration for the upgrade.  Only different when an upgrade is a revert of a patch.
+   * In that case, the orchestration is set to PATCH even if the target repository is type STANDARD.
+   *
+   * @param type  the orchestration
+   */
+  public void setOrchestration(RepositoryType type) {
+    orchestration = type;
+  }
+
+  /**
+   * @return  the orchestration type
+   */
+  public RepositoryType getOrchestration() {
+    return orchestration;
   }
 
   /**

@@ -457,18 +457,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new StackAccessException("stackName=" + stackId.getStackName() + ", stackVersion=" + stackId.getStackVersion());
     }
 
-    RepositoryVersionEntity versionEntity = null;
-
-    if (null != request.getRepositoryVersion()) {
-      versionEntity = repositoryVersionDAO.findByStackAndVersion(stackId,
-          request.getRepositoryVersion());
-
-      if (null == versionEntity) {
-        throw new AmbariException(String.format("Tried to create a cluster on version %s, but that version doesn't exist",
-            request.getRepositoryVersion()));
-      }
-    }
-
     // FIXME add support for desired configs at cluster level
 
     boolean foundInvalidHosts = false;

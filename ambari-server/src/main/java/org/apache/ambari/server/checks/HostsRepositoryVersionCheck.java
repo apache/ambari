@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -69,8 +71,6 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     final Map<String, Host> clusterHosts = clustersProvider.get().getHostsForCluster(clusterName);
     final StackId stackId = request.getSourceStackId();
 
-
-
     for (Host host : clusterHosts.values()) {
       // hosts in MM will produce a warning if they do not have the repo version
       MaintenanceState maintenanceState = host.getMaintenanceState(cluster.getClusterId());
@@ -80,10 +80,17 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
       if (null != request.getTargetVersion()) {
         boolean found = false;
+
+        Set<RepositoryVersionState> allowed = EnumSet.of(RepositoryVersionState.INSTALLED,
+            RepositoryVersionState.NOT_REQUIRED);
+        if (request.isRevert()) {
+          allowed.add(RepositoryVersionState.CURRENT);
+        }
+
         for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
 
           if (hve.getRepositoryVersion().getVersion().equals(request.getTargetVersion())
-              && (hve.getState() == RepositoryVersionState.INSTALLED || hve.getState() == RepositoryVersionState.NOT_REQUIRED)) {
+              && allowed.contains(hve.getState())) {
             found = true;
             break;
           }
