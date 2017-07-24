@@ -30,11 +30,6 @@ from resource_management.core import shell
 from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.security_commons import build_expectations
-from resource_management.libraries.functions.security_commons import cached_kinit_executor
-from resource_management.libraries.functions.security_commons import get_params_from_filesystem
-from resource_management.libraries.functions.security_commons import validate_security_config_properties
-from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
@@ -144,8 +139,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
-    if params.version and check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version) \
-        and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+    if check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version_for_stack_feature_checks):
       conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-hdfs-zkfc", params.version)
 

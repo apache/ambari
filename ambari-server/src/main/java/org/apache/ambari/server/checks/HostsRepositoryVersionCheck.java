@@ -60,7 +60,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    return super.isApplicable(request) && request.getRepositoryVersion() != null;
+    return super.isApplicable(request) && request.getTargetVersion() != null;
   }
 
   @Override
@@ -78,7 +78,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
         continue;
       }
 
-      if (null != request.getRepositoryVersion()) {
+      if (null != request.getTargetVersion()) {
         boolean found = false;
 
         Set<RepositoryVersionState> allowed = EnumSet.of(RepositoryVersionState.INSTALLED,
@@ -89,7 +89,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
         for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
 
-          if (hve.getRepositoryVersion().getVersion().equals(request.getRepositoryVersion())
+          if (hve.getRepositoryVersion().getVersion().equals(request.getTargetVersion())
               && allowed.contains(hve.getState())) {
             found = true;
             break;
@@ -101,7 +101,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
         }
       } else {
         final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(
-            stackId, request.getRepositoryVersion());
+            stackId, request.getTargetVersion());
         if (repositoryVersion == null) {
           prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
           prerequisiteCheck.setFailReason(

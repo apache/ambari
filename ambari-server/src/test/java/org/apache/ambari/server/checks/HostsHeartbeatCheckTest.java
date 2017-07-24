@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -44,12 +46,22 @@ import com.google.inject.Provider;
 public class HostsHeartbeatCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
 
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
+  /**
+   *
+   */
+  @Before
+  public void setup() {
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
+  }
+
   @Test
   public void testIsApplicable() throws Exception {
     PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setRepositoryVersion("HDP-2.2.0.0");
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
-    checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
     HostsHeartbeatCheck hhc = new HostsHeartbeatCheck();
     Configuration config = Mockito.mock(Configuration.class);
     hhc.config = config;

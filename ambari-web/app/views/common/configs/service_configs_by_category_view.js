@@ -50,6 +50,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
    * @type {App.ServiceConfigProperty[]}
    */
   serviceConfigs: null,
+  isUIDGIDVisible: true,
 
   /**
    * This is array of all the properties which apply
@@ -744,6 +745,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
   setRecommendedValue: function (event) {
     var serviceConfigProperty = event.contexts[0];
     serviceConfigProperty.set('value', serviceConfigProperty.get('recommendedValue'));
+
+    //in case of USER/GROUP fields, if they have uid/gid set, then these need to be reset to the recommended value as well
+    if (serviceConfigProperty.get('ugid')) {
+      serviceConfigProperty.set('ugid.value', serviceConfigProperty.get('ugid.recommendedValue'));
+    }
     serviceConfigProperty = null;
   },
 

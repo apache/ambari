@@ -411,7 +411,7 @@ class Script(object):
     status_method = getattr(self, 'status')
     component_is_stopped = False
     counter = 0
-    while not component_is_stopped :
+    while not component_is_stopped:
       try:
         if counter % 100 == 0:
           Logger.logger.info("Waiting for actual component stop")
@@ -597,7 +597,11 @@ class Script(object):
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    return default("/hostLevelParams/stack_name", "HDP")
+    stack_name = default("/hostLevelParams/stack_name", None)
+    if stack_name is None:
+      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
+
+    return stack_name
 
   @staticmethod
   def get_stack_root():
@@ -607,7 +611,18 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
     stack_name = Script.get_stack_name()
-    return default("/configurations/cluster-env/stack_root", "/usr/{0}".format(stack_name.lower()))
+    stack_root_json = default("/configurations/cluster-env/stack_root", None)
+
+    if stack_root_json is None:
+      return "/usr/{0}".format(stack_name.lower())
+
+    stack_root = json.loads(stack_root_json)
+
+    if stack_name not in stack_root:
+      Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
+      return "/usr/{0}".format(stack_name.lower())
+
+    return stack_root[stack_name]
 
   @staticmethod
   def get_stack_version():

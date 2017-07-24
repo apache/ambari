@@ -225,6 +225,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         String serviceName = response.getServiceName();
         String componentName = response.getComponentName();
         String hostName = response.getHostname();
+        String publicHostName = response.getPublicHostname();
         ComponentInfo componentInfo = null;
         String packageFolder = null;
 
@@ -406,7 +407,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         String groupList = gson.toJson(groupSet);
         hostLevelParams.put(GROUP_LIST, groupList);
 
-        Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredClusterConfigs);
+        Map<org.apache.ambari.server.state.PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredClusterConfigs);
+        Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
         String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
         hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -441,6 +443,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("clusterHostInfo", clusterHostInfo);
         jsonContent.put("hostLevelParams", hostLevelParams);
         jsonContent.put("hostname", hostName);
+        jsonContent.put("public_hostname", publicHostName);
         jsonContent.put("clusterName", cluster.getClusterName());
         jsonConfigurations = gson.toJson(jsonContent);
 

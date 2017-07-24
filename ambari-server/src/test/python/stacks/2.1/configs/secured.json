@@ -1,5 +1,18 @@
 {
-    "roleCommand": "INSTALL", 
+  "localComponents": [
+    "APP_TIMELINE_SERVER",
+    "TEZ_CLIENT",
+    "DATANODE",
+    "HDFS_CLIENT",
+    "ZOOKEEPER_SERVER",
+    "RESOURCEMANAGER",
+    "MAPREDUCE2_CLIENT",
+    "YARN_CLIENT",
+    "HISTORYSERVER",
+    "ZOOKEEPER_CLIENT",
+    "NAMENODE"
+  ],
+    "roleCommand": "INSTALL",
     "clusterName": "c1", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {

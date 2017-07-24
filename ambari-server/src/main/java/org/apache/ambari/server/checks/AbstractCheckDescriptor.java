@@ -145,7 +145,7 @@ public abstract class AbstractCheckDescriptor {
     if (serviceFound && null != request.getTargetStackId()) {
       String stackName = request.getTargetStackId().getStackName();
       RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().
-        findByStackNameAndVersion(stackName, request.getRepositoryVersion());
+          findByStackNameAndVersion(stackName, request.getTargetVersion());
 
       if (RepositoryType.STANDARD != rve.getType()) {
         try {
@@ -155,7 +155,7 @@ public abstract class AbstractCheckDescriptor {
             serviceFound = false;
           }
         } catch (Exception e) {
-          LOG.warn("Could not parse xml for %s", request.getRepositoryVersion(), e);
+          LOG.warn("Could not parse xml for %s", request.getTargetVersion(), e);
         }
       }
     }
@@ -253,8 +253,8 @@ public abstract class AbstractCheckDescriptor {
       PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
     String fail = m_description.getFail(key);
 
-    if (fail.contains("{{version}}") && null != request.getRepositoryVersion()) {
-      fail = fail.replace("{{version}}", request.getRepositoryVersion());
+    if (fail.contains("{{version}}") && null != request.getTargetVersion()) {
+      fail = fail.replace("{{version}}", request.getTargetVersion());
     }
 
     if (fail.contains("{{fails}}")) {

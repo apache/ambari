@@ -51,6 +51,7 @@ import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -590,6 +591,7 @@ public class ServiceImpl implements Service {
   @Override
   @Transactional
   public void delete() throws AmbariException {
+    List<Component> components = getComponents(); // XXX temporal coupling, need to call this BEFORE deletingAllComponents
     deleteAllComponents();
     deleteAllServiceConfigs();
 
@@ -603,9 +605,19 @@ public class ServiceImpl implements Service {
     }
 
     ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(), stackId.getStackName(),
-        stackId.getStackVersion(), getName());
+        stackId.getStackVersion(), getName(), components);
 
     eventPublisher.publish(event);
+  }
+
+  private List<Component> getComponents() {
+    List<Component> result = new ArrayList<>();
+    for (ServiceComponent component : getServiceComponents().values()) {
+      for (ServiceComponentHost host : component.getServiceComponentHosts().values()) {
+        result.add(new Component(host.getHostName(), getName(), component.getName()));
+      }
+    }
+    return result;
   }
 
   @Transactional

@@ -465,7 +465,10 @@ public class AmbariActionExecutionHelper {
 
       if (StringUtils.isNotBlank(serviceName)) {
         Service service = cluster.getService(serviceName);
-        addRepoInfoToHostLevelParams(service.getDesiredRepositoryVersion(), hostLevelParams, hostName);
+        addRepoInfoToHostLevelParams(actionContext, service.getDesiredRepositoryVersion(),
+            hostLevelParams, hostName);
+      } else {
+        addRepoInfoToHostLevelParams(actionContext, null, hostLevelParams, hostName);
       }
 
 
@@ -529,10 +532,25 @@ public class AmbariActionExecutionHelper {
   *
   * */
 
-  private void addRepoInfoToHostLevelParams(RepositoryVersionEntity repositoryVersion,
-      Map<String, String> hostLevelParams, String hostName) throws AmbariException {
+  private void addRepoInfoToHostLevelParams(ActionExecutionContext actionContext,
+      RepositoryVersionEntity repositoryVersion, Map<String, String> hostLevelParams,
+      String hostName) throws AmbariException {
+
+    // if the repo is null, see if any values from the context should go on the
+    // host params and then return
     if (null == repositoryVersion) {
+      // see if the action context has a repository set to use for the command
+      if (null != actionContext.getRepositoryVersion()) {
+        StackId stackId = actionContext.getRepositoryVersion().getStackId();
+        hostLevelParams.put(STACK_NAME, stackId.getStackName());
+        hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+      }
+
       return;
+    } else {
+      StackId stackId = repositoryVersion.getStackId();
+      hostLevelParams.put(STACK_NAME, stackId.getStackName());
+      hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
     }
 
     JsonObject rootJsonObject = new JsonObject();
@@ -556,8 +574,5 @@ public class AmbariActionExecutionHelper {
     }
 
     hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
-
-    hostLevelParams.put(STACK_NAME, repositoryVersion.getStackName());
-    hostLevelParams.put(STACK_VERSION, repositoryVersion.getStackVersion());
   }
 }

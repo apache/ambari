@@ -2056,6 +2056,14 @@ public class AmbariManagementControllerImplTest {
     String JCE_NAME = "jceName";
     String OJDBC_JAR_NAME = "OjdbcJarName";
     String SERVER_DB_NAME = "ServerDBName";
+    Map<PropertyInfo, String> notManagedHdfsPathMap = new HashMap<>();
+    PropertyInfo propertyInfo1 = new PropertyInfo();
+    propertyInfo1.setName("1");
+    PropertyInfo propertyInfo2 = new PropertyInfo();
+    propertyInfo2.setName("2");
+    notManagedHdfsPathMap.put(propertyInfo1, "/tmp");
+    notManagedHdfsPathMap.put(propertyInfo2, "/apps/falcon");
+
     Set<String> notManagedHdfsPathSet = new HashSet<>(Arrays.asList("/tmp", "/apps/falcon"));
     Gson gson = new Gson();
 
@@ -2086,8 +2094,10 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getPreviousDatabaseConnectorNames()).andReturn(new HashMap<String, String>()).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
     expect(repositoryVersionEntity.getStackId()).andReturn(stackId).anyTimes();
-    expect(configHelper.getPropertyValuesWithPropertyType(stackId,
+    expect(configHelper.getPropertiesWithPropertyType(stackId,
         PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs)).andReturn(
+            notManagedHdfsPathMap);
+    expect(configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST)).andReturn(
             notManagedHdfsPathSet);
 
     replay(manager, clusters, cluster, injector, stackId, configuration, repositoryVersionEntity, configHelper);
@@ -2336,4 +2346,59 @@ public class AmbariManagementControllerImplTest {
     verify(injector, cluster, clusters, ambariMetaInfo, service, serviceComponent, serviceComponentHost, stackId);
   }
 
+  @Test
+  public void testCreateClusterWithRepository() throws Exception {
+    Injector injector = createNiceMock(Injector.class);
+
+    RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
+    RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+    expect(repoVersionDAO.findByStackAndVersion(anyObject(StackId.class),
+        anyObject(String.class))).andReturn(repoVersion).anyTimes();
+
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+
+    StackId stackId = new StackId("HDP-2.1");
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    expect(service.getDesiredStackId()).andReturn(stackId).atLeastOnce();
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", service)
+        .build());
+
+    expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
+
+
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(stackInfo.getWidgetsDescriptorFileLocation()).andReturn(null).once();
+
+    expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
+    expect(ambariMetaInfo.getStack(stackId)).andReturn(stackInfo).atLeastOnce();
+
+    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, service, repoVersionDAO, repoVersion);
+
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+    Class<?> c = controller.getClass();
+
+    Field f = c.getDeclaredField("repositoryVersionDAO");
+    f.setAccessible(true);
+    f.set(controller, repoVersionDAO);
+
+    Properties p = new Properties();
+    p.setProperty("", "");
+    Configuration configuration = new Configuration(p);
+    f = c.getDeclaredField("configs");
+    f.setAccessible(true);
+    f.set(controller, configuration);
+
+    ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
+    cr.setRepositoryVersion("2.1.1.0-1234");
+    controller.createCluster(cr);
+
+    // verification
+    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
+  }
 }

@@ -2356,6 +2356,28 @@ var urls = {
     }
   },
 
+  'restart.allServices': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": 'Restart all services',
+            "operation_level": 'host_component'
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts_predicate": "HostRoles/cluster_name=" + data.clusterName
+            }
+          ]
+        })
+      }
+    }
+  },
+
   'restart.staleConfigs': {
     'real': "/clusters/{clusterName}/requests",
     'mock': "",

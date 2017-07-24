@@ -436,7 +436,15 @@ def decommission():
        group=user_group
   )
 
-  if not params.update_exclude_file_only:
+  if params.hdfs_include_file:
+    File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user,
+         group=params.user_group
+         )
+    pass
+
+  if not params.update_files_only:
     Execute(nn_kinit_cmd,
             user=hdfs_user
     )
@@ -462,6 +470,13 @@ def decommission():
        content=Template("exclude_hosts_list.j2"),
        owner=hdfs_user
   )
+
+  if params.hdfs_include_file:
+    File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user
+         )
+    pass
 
   if params.dfs_ha_enabled:
     # due to a bug in hdfs, refreshNodes will not run on both namenodes so we

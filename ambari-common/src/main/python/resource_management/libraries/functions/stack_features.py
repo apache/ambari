@@ -43,6 +43,12 @@ def check_stack_feature(stack_feature, stack_version):
 
   from resource_management.libraries.functions.default import default
   from resource_management.libraries.functions.version import compare_versions
+
+  stack_name = default("/hostLevelParams/stack_name", None)
+  if stack_name is None:
+    Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
+    return False
+
   stack_features_config = default("/configurations/cluster-env/stack_features", None)
 
   if not stack_version:
@@ -51,6 +57,13 @@ def check_stack_feature(stack_feature, stack_version):
 
   if stack_features_config:
     data = json.loads(stack_features_config)
+
+    if stack_name not in data:
+      Logger.warning("Cannot find stack features for the stack named {0}".format(stack_name))
+      return False
+
+    data = data[stack_name]
+
     for feature in data["stack_features"]:
       if feature["name"] == stack_feature:
         if "min_version" in feature:
@@ -92,7 +105,10 @@ def get_stack_feature_version(config):
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)
-  version = default("/commandParams/version", None)
+  # this is always guaranteed to be the correct version for the command, even in
+  # upgrade and downgrade scenarios
+  command_version = default("/commandParams/version", None)
+  command_stack = default("/commandParams/target_stack", None)
 
   # something like 2.4.0.0-1234
   # (or None if this is a cluster install and it hasn't been calculated yet)
@@ -102,13 +118,13 @@ def get_stack_feature_version(config):
   upgrade_direction = default("/commandParams/upgrade_direction", None)
 
   # start out with the value that's right 99% of the time
-  version_for_stack_feature_checks = version if version is not None else stack_version
+  version_for_stack_feature_checks = command_version if command_version is not None else stack_version
 
   # if this is not an upgrade, then we take the simple path
   if upgrade_direction is None:
     Logger.info(
-      "Stack Feature Version Info: stack_version={0}, version={1}, current_cluster_version={2} -> {3}".format(
-        stack_version, version, current_cluster_version, version_for_stack_feature_checks))
+      "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3} -> {4}".format(
+        stack_version, current_cluster_version, command_stack, command_version, version_for_stack_feature_checks))
 
     return version_for_stack_feature_checks
 
@@ -117,14 +133,11 @@ def get_stack_feature_version(config):
   is_stop_command = _is_stop_command(config)
   if not is_stop_command:
     Logger.info(
-      "Stack Feature Version Info: stack_version={0}, version={1}, current_cluster_version={2}, upgrade_direction={3} -> {4}".format(
-        stack_version, version, current_cluster_version, upgrade_direction,
+      "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3}, Upgrade Direction={4} -> {5}".format(
+        stack_version, current_cluster_version, command_stack, command_version, upgrade_direction,
         version_for_stack_feature_checks))
 
     return version_for_stack_feature_checks
-
-  original_stack = default("/commandParams/original_stack", None)
-  target_stack = default("/commandParams/target_stack", None)
 
   # something like 2.5.0.0-5678 (or None)
   downgrade_from_version = default("/commandParams/downgrade_from_version", None)
@@ -141,15 +154,13 @@ def get_stack_feature_version(config):
     # UPGRADE
     if current_cluster_version is not None:
       version_for_stack_feature_checks = current_cluster_version
-    elif original_stack is not None:
-      version_for_stack_feature_checks = format_stack_version(original_stack)
     else:
-      version_for_stack_feature_checks = version if version is not None else stack_version
+      version_for_stack_feature_checks = command_version if command_version is not None else stack_version
 
   Logger.info(
-    "Stack Feature Version Info: stack_version={0}, version={1}, current_cluster_version={2}, upgrade_direction={3}, original_stack={4}, target_stack={5}, downgrade_from_version={6}, stop_command={7} -> {8}".format(
-      stack_version, version, current_cluster_version, upgrade_direction, original_stack,
-      target_stack, downgrade_from_version, is_stop_command, version_for_stack_feature_checks))
+    "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3}, Upgrade Direction={4}, stop_command={5} -> {6}".format(
+      stack_version, current_cluster_version, command_stack, command_version, upgrade_direction,
+      is_stop_command, version_for_stack_feature_checks))
 
   return version_for_stack_feature_checks
 

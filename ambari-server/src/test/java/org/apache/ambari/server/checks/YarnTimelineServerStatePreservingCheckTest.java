@@ -50,6 +50,8 @@ public class YarnTimelineServerStatePreservingCheckTest {
 
   private final YarnTimelineServerStatePreservingCheck m_check = new YarnTimelineServerStatePreservingCheck();
 
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
   /**
    *
    */
@@ -64,6 +66,9 @@ public class YarnTimelineServerStatePreservingCheckTest {
     };
     Configuration config = Mockito.mock(Configuration.class);
     m_check.config = config;
+
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.3.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.3"));
   }
 
   /**
@@ -89,7 +94,7 @@ public class YarnTimelineServerStatePreservingCheckTest {
         m_check.getClass().getName())).thenReturn(checkProperties);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("2.3.0.0");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
     request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
     // YARN not installed

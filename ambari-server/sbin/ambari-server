@@ -137,6 +137,10 @@ case "${1:-}" in
         echo -e "Setting up PAM properties..."
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
+  migrate-ldap-pam)
+        echo -e "Migration LDAP to PAM"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
   setup-ldap)
         echo -e "Setting up LDAP properties..."
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
@@ -203,7 +207,7 @@ case "${1:-}" in
         ;;
   *)
         echo "Usage: $AMBARI_EXECUTABLE
-        {start|stop|reset|restart|upgrade|status|upgradestack|setup|setup-jce|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names|check-database|enable-stack|setup-sso|db-purge-history|install-mpack|uninstall-mpack|upgrade-mpack|setup-kerberos} [options]
+        {start|stop|reset|restart|upgrade|status|upgradestack|setup|setup-jce|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names|check-database|enable-stack|setup-sso|db-purge-history|install-mpack|uninstall-mpack|upgrade-mpack|setup-kerberos|setup-pam|migrate-ldap-pam} [options]
         Use $AMBARI_PYTHON_EXECUTABLE <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1

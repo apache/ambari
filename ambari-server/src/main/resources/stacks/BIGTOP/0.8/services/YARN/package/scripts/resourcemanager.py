@@ -89,7 +89,14 @@ class Resourcemanager(Script):
          group=user_group
     )
 
-    if params.update_exclude_file_only == False:
+    if params.include_hosts:
+      File(params.include_file_path,
+           content=Template("include_hosts_list.j2"),
+           owner=yarn_user,
+           group=user_group
+           )
+
+    if params.update_files_only == False:
       Execute(yarn_refresh_cmd,
             environment= {'PATH' : params.execute_path },
             user=yarn_user)

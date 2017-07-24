@@ -2678,7 +2678,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         var popup = this;
         var completeCallback = function () {
           var remainingHosts = App.db.getSelectedHosts('mainHostController').removeObject(self.get('content.hostName'));
-          App.db.setSelectedHosts('mainHostController', remainingHosts);
+          App.db.setSelectedHosts(remainingHosts);
           popup.hide();
         };
         self.doDeleteHost(completeCallback);

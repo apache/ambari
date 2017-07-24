@@ -105,7 +105,13 @@ public class UpgradeContext {
   public static final String COMMAND_PARAM_TASKS = "tasks";
   public static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
 
-  /**
+  @Deprecated
+  @Experimental(
+      feature = ExperimentalFeature.PATCH_UPGRADES,
+      comment = "This isn't needed anymore, but many python classes still use it")
+  public static final String COMMAND_PARAM_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
+
+  /*
    * The cluster that the upgrade is for.
    */
   final private Cluster m_cluster;
@@ -422,12 +428,12 @@ public class UpgradeContext {
     String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
 
     @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-    String upgradePackFromVersion = cluster.getService(
-        m_services.iterator().next()).getDesiredRepositoryVersion().getVersion();
+    RepositoryVersionEntity upgradeFromRepositoryVersion = cluster.getService(
+        m_services.iterator().next()).getDesiredRepositoryVersion();
 
     m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
-        upgradePackFromVersion, m_repositoryVersion.getVersion(), m_direction, m_type,
-        preferredUpgradePackName);
+        upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
+        m_type, preferredUpgradePackName);
 
     // the validator will throw an exception if the upgrade request is not valid
     UpgradeRequestValidator upgradeRequestValidator = buildValidator(m_type);
@@ -825,6 +831,7 @@ public class UpgradeContext {
    * <ul>
    * <li>{@link #COMMAND_PARAM_CLUSTER_NAME}
    * <li>{@link #COMMAND_PARAM_DIRECTION}
+   * <li>{@link #COMMAND_PARAM_DOWNGRADE_FROM_VERSION}
    * <li>{@link #COMMAND_PARAM_UPGRADE_TYPE}
    * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
    * order to have the commands contain the correct configurations. Otherwise,
@@ -839,8 +846,13 @@ public class UpgradeContext {
   public Map<String, String> getInitializedCommandParameters() {
     Map<String, String> parameters = new HashMap<>();
 
+    Direction direction = getDirection();
     parameters.put(COMMAND_PARAM_CLUSTER_NAME, m_cluster.getClusterName());
-    parameters.put(COMMAND_PARAM_DIRECTION, getDirection().name().toLowerCase());
+    parameters.put(COMMAND_PARAM_DIRECTION, direction.name().toLowerCase());
+
+    if (direction == Direction.DOWNGRADE) {
+      parameters.put(COMMAND_PARAM_DOWNGRADE_FROM_VERSION, m_repositoryVersion.getVersion());
+    }
 
     if (null != getType()) {
       // use the serialized attributes of the enum to convert it to a string,
@@ -1031,16 +1043,12 @@ public class UpgradeContext {
         return;
       }
 
-      RepositoryVersionEntity repositoryVersion = m_repoVersionDAO.findByPK(
-          Long.valueOf(repositoryVersionId));
-
       // Validate pre-req checks pass
       PreUpgradeCheckResourceProvider provider = (PreUpgradeCheckResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
           Resource.Type.PreUpgradeCheck);
 
       Predicate preUpgradeCheckPredicate = new PredicateBuilder().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals(repositoryVersion.getVersion()).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).equals(m_isRevert).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(type).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();
@@ -1199,5 +1207,4 @@ public class UpgradeContext {
       return hostOrderItems;
     }
   }
-
 }

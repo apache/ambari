@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.internal;
 
 
+import static java.util.stream.Collectors.groupingBy;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +38,9 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
 import org.apache.ambari.server.topology.Blueprint;
@@ -46,6 +50,7 @@ import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -356,7 +361,7 @@ public class BlueprintConfigurationProcessor {
             final String originalValue = typeMap.get(propertyName);
             final String updatedValue =
               updater.updateForClusterCreate(propertyName, originalValue, clusterProps, clusterTopology);
-            
+
             if(updatedValue == null ) {
               continue;
             }
@@ -419,6 +424,7 @@ public class BlueprintConfigurationProcessor {
     }
 
     // Explicitly set any properties that are required but not currently provided in the stack definition.
+    setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
     setRetryConfiguration(clusterConfig, configTypesUpdated);
     setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
     addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getStack());
@@ -531,7 +537,7 @@ public class BlueprintConfigurationProcessor {
     try {
       String clusterName = clusterTopology.getAmbariContext().getClusterName(clusterTopology.getClusterId());
       Cluster cluster = clusterTopology.getAmbariContext().getController().getClusters().getCluster(clusterName);
-      authToLocalPerClusterMap = new HashMap<Long, Set<String>>();
+      authToLocalPerClusterMap = new HashMap<>();
       authToLocalPerClusterMap.put(Long.valueOf(clusterTopology.getClusterId()), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster).getAllAuthToLocalProperties());
       } catch (AmbariException e) {
         LOG.error("Error while getting authToLocal properties. ", e);
@@ -2038,39 +2044,6 @@ public class BlueprintConfigurationProcessor {
   }
 
   /**
-   * Updater which appends "m" to the original property value.
-   * For example, "1024" would be updated to "1024m".
-   */
-  private static class MPropertyUpdater implements PropertyUpdater {
-    /**
-     * Append 'm' to the original property value if it doesn't already exist.
-     *
-     * @param propertyName  property name
-     * @param origValue     original value of property
-     * @param properties    all properties
-     * @param topology      cluster topology
-     *
-     * @return property with 'm' appended
-     */
-    @Override
-    public String updateForClusterCreate(String propertyName,
-                                         String origValue,
-                                         Map<String, Map<String, String>> properties,
-                                         ClusterTopology topology) {
-
-      return origValue.endsWith("m") ? origValue : origValue + 'm';
-    }
-
-    @Override
-    public Collection<String> getRequiredHostGroups(String propertyName,
-                                                    String origValue,
-                                                    Map<String, Map<String, String>> properties,
-                                                    ClusterTopology topology) {
-      return Collections.emptySet();
-    }
-  }
-
-  /**
    * Class to facilitate special formatting needs of property values.
    */
   private abstract static class AbstractPropertyValueDecorator implements PropertyUpdater {
@@ -2186,8 +2159,9 @@ public class BlueprintConfigurationProcessor {
       StringBuilder sb = new StringBuilder();
 
       Matcher m = REGEX_IN_BRACKETS.matcher(origValue);
-      if (m.matches())
+      if (m.matches()) {
         origValue = m.group("INNER");
+      }
 
       if (origValue != null) {
         sb.append("[");
@@ -2195,8 +2169,9 @@ public class BlueprintConfigurationProcessor {
         for (String value : origValue.split(",")) {
 
           m = REGEX_IN_QUOTES.matcher(value);
-          if (m.matches())
+          if (m.matches()) {
             value = m.group("INNER");
+          }
 
           if (!isFirst) {
             sb.append(",");
@@ -2230,6 +2205,7 @@ public class BlueprintConfigurationProcessor {
    */
   private static class OriginalValuePropertyUpdater implements PropertyUpdater {
 
+    @Override
     public String updateForClusterCreate(String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
@@ -2778,20 +2754,7 @@ public class BlueprintConfigurationProcessor {
       new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
-    mHadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_newsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_maxnewsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_permsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_maxpermsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("dtnode_heapsize", new MPropertyUpdater());
-    mapredEnvMap.put("jtnode_opt_newsize", new MPropertyUpdater());
-    mapredEnvMap.put("jtnode_opt_maxnewsize", new MPropertyUpdater());
-    mapredEnvMap.put("jtnode_heapsize", new MPropertyUpdater());
-    hbaseEnvMap.put("hbase_master_heapsize", new MPropertyUpdater());
-    hbaseEnvMap.put("hbase_regionserver_heapsize", new MPropertyUpdater());
-    oozieEnvHeapSizeMap.put("oozie_heapsize", new MPropertyUpdater());
-    oozieEnvHeapSizeMap.put("oozie_permsize", new MPropertyUpdater());
-    zookeeperEnvMap.put("zk_server_heapsize", new MPropertyUpdater());
+    addUnitPropertyUpdaters();
 
     hawqSiteMap.put("hawq_master_address_host", new SingleHostTopologyUpdater("HAWQMASTER"));
     hawqSiteMap.put("hawq_standby_address_host", new SingleHostTopologyUpdater("HAWQSTANDBY"));
@@ -2808,6 +2771,19 @@ public class BlueprintConfigurationProcessor {
         }
       }
     });
+  }
+
+  private static void addUnitPropertyUpdaters() {
+    Map<String, List<UnitValidatedProperty>> propsPerConfigType = UnitValidatedProperty.ALL
+      .stream()
+      .collect(groupingBy(UnitValidatedProperty::getConfigType));
+    for (String configType : propsPerConfigType.keySet()) {
+      Map<String, PropertyUpdater> unitUpdaters = new HashMap<>();
+      for (UnitValidatedProperty each : propsPerConfigType.get(configType)) {
+        unitUpdaters.put(each.getPropertyName(), new UnitUpdater(each.getServiceName(), each.getConfigType()));
+      }
+      mPropertyUpdaters.put(configType, unitUpdaters);
+    }
   }
 
   private Collection<String> setupHDFSProxyUsers(Configuration configuration, Set<String> configTypesUpdated) {
@@ -2948,6 +2924,49 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
+
+  /**
+   * Sets the read-only properties for stack features & tools, overriding
+   * anything provided in the blueprint.
+   *
+   * @param configuration
+   *          the configuration to update with values from the stack.
+   * @param configTypesUpdated
+   *          the list of configuration types updated (cluster-env will be added
+   *          to this).
+   * @throws ConfigurationTopologyException
+   */
+  private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
+      throws ConfigurationTopologyException {
+    ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
+    Stack stack = clusterTopology.getBlueprint().getStack();
+    String stackName = stack.getName();
+    String stackVersion = stack.getVersion();
+
+    StackId stackId = new StackId(stackName, stackVersion);
+
+    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY);
+
+    try {
+      Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
+      Map<String,String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
+
+      for( String property : properties ){
+        if (defaultStackProperties.containsKey(property)) {
+          configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
+              clusterEnvDefaultProperties.get(property));
+
+          // make sure to include the configuration type as being updated
+          configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+        }
+      }
+    } catch( AmbariException ambariException ){
+      throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features",
+          ambariException);
+    }
+  }
 
   /**
    * Ensure that the specified property exists.
@@ -3099,7 +3118,7 @@ public class BlueprintConfigurationProcessor {
 
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-      return !(this.propertyConfigType.equals(configType) &&
+      return !(propertyConfigType.equals(configType) &&
              this.propertyName.equals(propertyName));
     }
   }

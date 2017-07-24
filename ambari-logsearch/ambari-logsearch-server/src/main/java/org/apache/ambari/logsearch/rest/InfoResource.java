@@ -29,12 +29,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.manager.InfoManager;
 import org.apache.ambari.logsearch.model.response.PropertyDescriptionData;
+import org.apache.ambari.logsearch.model.response.ShipperConfigDescriptionData;
 import org.springframework.context.annotation.Scope;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_ALL_PROPERTIES_INFO_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_ALL_SHIPPER_CONFIG_INFO_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_LOGSEARCH_PROPERTIES_INFO_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_AUTH_DETAILS_OD;
 
@@ -69,5 +71,13 @@ public class InfoResource {
   @ApiOperation(GET_LOGSEARCH_PROPERTIES_INFO_OD)
   public List<PropertyDescriptionData> getPropertyFileDescription(@PathParam("propertyFile") String propertyFile) {
     return infoManager.getLogSearchPropertyDescriptions(propertyFile);
+  }
+
+  @GET
+  @Path("/shipperconfig")
+  @Produces({"application/json"})
+  @ApiOperation(GET_ALL_SHIPPER_CONFIG_INFO_OD)
+  public List<ShipperConfigDescriptionData> getShipperConfigDescription() {
+    return infoManager.getLogSearchShipperConfigDescription();
   }
 }

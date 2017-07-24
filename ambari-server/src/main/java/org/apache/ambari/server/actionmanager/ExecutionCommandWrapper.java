@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,6 +30,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -35,6 +39,9 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -62,6 +69,12 @@ public class ExecutionCommandWrapper {
 
   @Inject
   private Gson gson;
+
+  /**
+   * Used for injecting hooks and common-services into the command.
+   */
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
 
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
@@ -208,9 +221,28 @@ public class ExecutionCommandWrapper {
           }
         }
 
+        Map<String, String> commandParams = executionCommand.getCommandParams();
+
         if (null != repositoryVersion) {
-          executionCommand.getCommandParams().put(KeyNames.VERSION, repositoryVersion.getVersion());
+          commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
           executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
+
+          StackId stackId = repositoryVersion.getStackId();
+          StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+              stackId.getStackVersion());
+
+          if (!commandParams.containsKey(HOOKS_FOLDER)) {
+            commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+          }
+
+          if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
+            if (!StringUtils.isEmpty(serviceName)) {
+              ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+                  stackId.getStackVersion(), serviceName);
+
+              commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+            }
+          }
         }
       } catch (ServiceNotFoundException serviceNotFoundException) {
         // it's possible that there are commands specified for a service where

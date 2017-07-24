@@ -191,15 +191,15 @@ public class UpgradeHelperTest extends EasyMockSupport {
   @Test
   public void testSuggestUpgradePack() throws Exception{
     final String clusterName = "c1";
-    final String upgradeFromVersion = "2.1.1";
-    final String upgradeToVersion = "2.2.0";
+    final StackId sourceStackId = new StackId("HDP", "2.1.1");
+    final StackId targetStackId = new StackId("HDP", "2.2.0");
     final Direction upgradeDirection = Direction.UPGRADE;
     final UpgradeType upgradeType = UpgradeType.ROLLING;
 
     makeCluster();
     try {
       String preferredUpgradePackName = "upgrade_test";
-      UpgradePack up = m_upgradeHelper.suggestUpgradePack(clusterName, upgradeFromVersion, upgradeToVersion, upgradeDirection, upgradeType, preferredUpgradePackName);
+      UpgradePack up = m_upgradeHelper.suggestUpgradePack(clusterName, sourceStackId, targetStackId, upgradeDirection, upgradeType, preferredUpgradePackName);
       assertEquals(upgradeType, up.getType());
     } catch (AmbariException e){
       assertTrue(false);
@@ -1734,8 +1734,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
   @Test
   public void testRollingUpgradesCanUseAdvancedGroupings() throws Exception {
     final String clusterName = "c1";
-    final String upgradeFromVersion = "2.1.1";
-    final String upgradeToVersion = "2.2.0";
+    final StackId sourceStackId = new StackId("HDP", "2.1.1");
+    final StackId targetStackId = new StackId("HDP", "2.2.0");
     final Direction upgradeDirection = Direction.UPGRADE;
     final UpgradeType upgradeType = UpgradeType.ROLLING;
 
@@ -1743,8 +1743,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     // grab the right pack
     String preferredUpgradePackName = "upgrade_grouping_rolling";
-    UpgradePack upgradePack = m_upgradeHelper.suggestUpgradePack(clusterName, upgradeFromVersion,
-        upgradeToVersion, upgradeDirection, upgradeType, preferredUpgradePackName);
+    UpgradePack upgradePack = m_upgradeHelper.suggestUpgradePack(clusterName, sourceStackId,
+        targetStackId, upgradeDirection, upgradeType, preferredUpgradePackName);
 
     assertEquals(upgradeType, upgradePack.getType());
 

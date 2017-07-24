@@ -25,6 +25,7 @@ import re
 import socket
 import string
 import traceback
+import json
 import sys
 import logging
 from math import ceil, floor
@@ -33,7 +34,6 @@ from urlparse import urlparse
 # Local imports
 from resource_management.libraries.functions.data_structure_utils import get_from_dict
 from resource_management.core.exceptions import Fail
-
 
 class StackAdvisor(object):
   """
@@ -2005,6 +2005,24 @@ class DefaultStackAdvisor(StackAdvisor):
         mount_points.append(item["Hosts"]["disk_info"])
 
     return mount_points
+
+  def getStackRoot(self, services):
+    """
+    Gets the stack root associated with the stack
+    :param services: the services structure containing the current configurations
+    :return: the stack root as specified in the config or /usr/hdp
+    """
+    cluster_env = self.getServicesSiteProperties(services, "cluster-env")
+    stack_root = "/usr/hdp"
+    if cluster_env and "stack_root" in cluster_env:
+      stack_root_as_str = cluster_env["stack_root"]
+      stack_roots = json.loads(stack_root_as_str)
+      if "stack_name" in cluster_env:
+        stack_name = cluster_env["stack_name"]
+        if stack_name in stack_roots:
+          stack_root = stack_roots[stack_name]
+
+    return stack_root
 
   def isSecurityEnabled(self, services):
     """

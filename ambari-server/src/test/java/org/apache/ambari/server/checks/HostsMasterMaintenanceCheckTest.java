@@ -24,6 +24,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -51,19 +52,29 @@ public class HostsMasterMaintenanceCheckTest {
   private final RepositoryVersionHelper repositoryVersionHelper = Mockito.mock(RepositoryVersionHelper.class);
   private final AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
 
+  final RepositoryVersionEntity repositoryVersion = Mockito.mock(
+      RepositoryVersionEntity.class);
+
   @Test
   public void testIsApplicable() throws Exception {
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("1.0.0.0-1234");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.0"));
+
     final PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setRepositoryVersion("not null");
+    request.setTargetRepositoryVersion(repositoryVersion);
     HostsMasterMaintenanceCheck hmmc = new HostsMasterMaintenanceCheck();
     Configuration config = Mockito.mock(Configuration.class);
     hmmc.config = config;
     Assert.assertTrue(hmmc.isApplicable(request));
     Assert.assertTrue(new HostsMasterMaintenanceCheck().isApplicable(request));
+
     HostsMasterMaintenanceCheck hmmc2 = new HostsMasterMaintenanceCheck();
     hmmc2.config = config;
     Assert.assertTrue(hmmc2.isApplicable(request));
-    request.setRepositoryVersion(null);
+    request.setTargetRepositoryVersion(repositoryVersion);
+
+    // reset the mock
+    Mockito.reset(repositoryVersion);
 
     hmmc2.config = config;
     Assert.assertFalse(hmmc2.isApplicable(request));
@@ -71,6 +82,9 @@ public class HostsMasterMaintenanceCheckTest {
 
   @Test
   public void testPerform() throws Exception {
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("1.0.0.0-1234");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.0"));
+
     final String upgradePackName = "upgrade_pack";
     final HostsMasterMaintenanceCheck hostsMasterMaintenanceCheck = new HostsMasterMaintenanceCheck();
     hostsMasterMaintenanceCheck.clustersProvider = new Provider<Clusters>() {
@@ -108,6 +122,7 @@ public class HostsMasterMaintenanceCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(new StackId("HDP-1.0"));
+    request.setTargetRepositoryVersion(repositoryVersion);
     hostsMasterMaintenanceCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
@@ -115,6 +130,10 @@ public class HostsMasterMaintenanceCheckTest {
     Mockito.when(ambariMetaInfo.getUpgradePacks(Mockito.anyString(), Mockito.anyString())).thenReturn(new HashMap<String, UpgradePack>());
 
     check = new PrerequisiteCheck(null, null);
+    request = new PrereqCheckRequest("cluster");
+    request.setSourceStackId(new StackId("HDP-1.0"));
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     hostsMasterMaintenanceCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
@@ -128,6 +147,10 @@ public class HostsMasterMaintenanceCheckTest {
     Mockito.when(clusters.getHostsForCluster(Mockito.anyString())).thenReturn(new HashMap<String, Host>());
 
     check = new PrerequisiteCheck(null, null);
+    request = new PrereqCheckRequest("cluster");
+    request.setSourceStackId(new StackId("HDP-1.0"));
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     hostsMasterMaintenanceCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

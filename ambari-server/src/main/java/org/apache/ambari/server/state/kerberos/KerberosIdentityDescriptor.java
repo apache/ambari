@@ -17,10 +17,8 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.collections.Predicate;
 import org.apache.ambari.server.collections.PredicateUtils;
 
@@ -371,16 +369,12 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     }
   }
 
+
   /**
-   * @return true if this identity either has the same principal or keytab as any of the given identities.
+   * @return true if the given identity has the same principal or keytab as me
    */
-  public boolean isShared(List<KerberosIdentityDescriptor> identities) throws AmbariException {
-    for (KerberosIdentityDescriptor each : identities) {
-      if (hasSamePrincipal(each) || hasSameKeytab(each)) {
-        return true;
-      }
-    }
-    return false;
+  public boolean isShared(KerberosIdentityDescriptor that) {
+    return hasSamePrincipal(that) || hasSameKeytab(that);
   }
 
   private boolean hasSameKeytab(KerberosIdentityDescriptor that) {

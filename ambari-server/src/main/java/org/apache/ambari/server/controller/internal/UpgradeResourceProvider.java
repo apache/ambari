@@ -866,6 +866,63 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
+  /**
+   * Adds the hooks and service folders based on the effective stack ID and the
+   * name of the service from the wrapper.
+   *
+   * @param wrapper
+   *          the stage wrapper to use when detemrining the service name.
+   * @param effectiveStackId
+   *          the stack ID to use when getting the hooks and service folders.
+   * @param commandParams
+   *          the params to update with the new values
+   * @throws AmbariException
+   */
+  private void applyRepositoryAssociatedParameters(StageWrapper wrapper, StackId effectiveStackId,
+      Map<String, String> commandParams) throws AmbariException {
+    if (CollectionUtils.isNotEmpty(wrapper.getTasks())
+        && wrapper.getTasks().get(0).getService() != null) {
+
+      AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
+
+      StackInfo stackInfo = ambariMetaInfo.getStack(effectiveStackId.getStackName(),
+          effectiveStackId.getStackVersion());
+
+      String serviceName = wrapper.getTasks().get(0).getService();
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(effectiveStackId.getStackName(),
+          effectiveStackId.getStackVersion(), serviceName);
+
+      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+    }
+  }
+
+  /**
+   * Creates an action stage using the {@link #EXECUTE_TASK_ROLE} custom action
+   * to execute some Python command.
+   *
+   * @param context
+   *          the upgrade context.
+   * @param request
+   *          the request object to add the stage to.
+   * @param effectiveRepositoryVersion
+   *          the stack/version to use when generating content for the command.
+   *          On some upgrade types, this may change during the course of the
+   *          upgrade orchestration. An express upgrade changes this after
+   *          stopping all services.
+   * @param entity
+   *          the upgrade entity to set the stage information on
+   * @param wrapper
+   *          the stage wrapper containing information to generate the stage.
+   * @param skippable
+   *          {@code true} to mark the stage as being skippable if a failure
+   *          occurs.
+   * @param supportsAutoSkipOnFailure
+   *          {@code true} to automatically skip on a failure.
+   * @param allowRetry
+   *          {@code true} to be able to retry the failed stage.
+   * @throws AmbariException
+   */
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
       RepositoryVersionEntity effectiveRepositoryVersion, UpgradeItemEntity entity,
       StageWrapper wrapper, boolean skippable, boolean supportsAutoSkipOnFailure,
@@ -879,38 +936,28 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Cluster cluster = context.getCluster();
 
     LOG.debug("Analyzing upgrade item {} with tasks: {}.", entity.getText(), entity.getTasks());
+
+    // if the service/component are specified, then make sure to grab them off
+    // of the wrapper so they can be stored on the command for use later
+    String serviceName = null;
+    String componentName = null;
+    if (wrapper.getTasks() != null && wrapper.getTasks().size() > 0
+        && wrapper.getTasks().get(0).getService() != null) {
+      TaskWrapper taskWrapper = wrapper.getTasks().get(0);
+      serviceName = taskWrapper.getService();
+      componentName = taskWrapper.getComponent();
+    }
+
     Map<String, String> params = getNewParameterMap(request, context);
     params.put(UpgradeContext.COMMAND_PARAM_TASKS, entity.getTasks());
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, params);
 
-    // Because custom task may end up calling a script/function inside a
-    // service, it is necessary to set the
-    // service_package_folder and hooks_folder params.
-    AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
-    StackId stackId = effectiveRepositoryVersion.getStackId();
-
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
-
-    // if the service/component are specified, then make sure to grab them off
-    // of the wrapper so they can be stored on the command for use later
-    String serviceName = null;
-    String componentName = null;
-
-    if (wrapper.getTasks() != null && wrapper.getTasks().size() > 0
-        && wrapper.getTasks().get(0).getService() != null) {
-      TaskWrapper taskWrapper = wrapper.getTasks().get(0);
-      serviceName = taskWrapper.getService();
-      componentName = taskWrapper.getComponent();
-
-      ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), serviceName);
-
-      params.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-    }
+    // the ru_execute_tasks invokes scripts - it needs information about where
+    // the scripts live and for that it should always use the target repository
+    // stack
+    applyRepositoryAssociatedParameters(wrapper, effectiveRepositoryVersion.getStackId(), params);
 
     // add each host to this stage
     RequestResourceFilter filter = new RequestResourceFilter(serviceName, componentName,
@@ -1057,6 +1104,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
+
+    // add things like hooks and service folders based on effective repo
+    applyRepositoryAssociatedParameters(wrapper, effectiveRepositoryVersion.getStackId(),
+        commandParams);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);

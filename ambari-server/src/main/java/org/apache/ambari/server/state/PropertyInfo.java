@@ -281,7 +281,9 @@ public class PropertyInfo {
   public enum PropertyType {
     PASSWORD,
     USER,
+    UID,
     GROUP,
+    GID,
     TEXT,
     ADDITIONAL_USER_PROPERTY,
     NOT_MANAGED_HDFS_PATH,

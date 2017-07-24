@@ -61,9 +61,9 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final StackId targetStackId = request.getTargetStackId();
     final String stackName = targetStackId.getStackName();
-    final String repoVersion = request.getRepositoryVersion();
+    final String repoVersion = request.getTargetVersion();
 
-    final RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, request.getRepositoryVersion());
+    final RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, request.getTargetVersion());
     if (StringUtils.isBlank(rve.getVersion()) || !rve.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
       String message = MessageFormat.format("The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. " +
               "Make sure that another registered repository does not have the same repo URL or " +
@@ -79,7 +79,7 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
     for (Host host : cluster.getHosts()) {
       if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
         for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
-          if (hve.getRepositoryVersion().getVersion().equals(request.getRepositoryVersion())
+          if (hve.getRepositoryVersion().getVersion().equals(request.getTargetVersion())
               && hve.getState() == RepositoryVersionState.INSTALL_FAILED) {
             failedHosts.add(host.getHostName());
           }

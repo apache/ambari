@@ -757,7 +757,7 @@ public class Stack {
     private Set<PropertyDependencyInfo> dependsOnProperties =
       Collections.emptySet();
 
-    ConfigProperty(StackConfigurationResponse config) {
+    public ConfigProperty(StackConfigurationResponse config) {
       this.name = config.getPropertyName();
       this.value = config.getPropertyValue();
       this.attributes = config.getPropertyAttributes();

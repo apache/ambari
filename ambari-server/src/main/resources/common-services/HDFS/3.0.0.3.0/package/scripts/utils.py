@@ -22,6 +22,7 @@ import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 from resource_management.core.resources.system import Directory, File, Execute
+from resource_management.libraries.functions.check_process_status import wait_process_stopped
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions import StackFeature
@@ -278,6 +279,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     except:
       show_logs(log_dir, user)
       raise
+    wait_process_stopped(pid_file)
     File(pid_file, action="delete")
 
 def get_jmx_data(nn_address, modeler_type, metric, encrypted=False, security_enabled=False):

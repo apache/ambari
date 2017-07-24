@@ -17,10 +17,30 @@
 sdir="`dirname \"$0\"`"
 : ${1:?"argument is missing: (start|stop|build-and-run|build|build-docker-and-run|build-mvn-and-run|build-docker-only|build-mvn-only)"}
 command="$1"
+shift
+
+while getopts "bf" opt; do
+  case $opt in
+    b) # build backend only
+      maven_build_options="-pl !ambari-logsearch-web"
+      ;;
+    f) # build frontend only
+      maven_build_options="-pl ambari-logsearch-web"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
 
 function build_logsearch_project() {
   pushd $sdir/../
-  mvn clean package -DskipTests
+  mvn clean package -DskipTests $maven_build_options
   popd
 }
 

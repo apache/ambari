@@ -37,9 +37,9 @@ from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import is_root, set_file_permissions, \
   run_os_command, search_file, is_valid_filepath, change_owner, get_ambari_repo_file_full_name, get_file_owner
-from ambari_server.serverConfiguration import configDefaults, \
+from ambari_server.serverConfiguration import configDefaults, parse_properties_file, \
   encrypt_password, find_jdk, find_properties_file, get_alias_string, get_ambari_properties, get_conf_dir, \
-  get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, write_property, \
+  get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, get_db_type, write_property, \
   get_original_master_key, get_value_from_properties, get_java_exe_path, is_alias_string, read_ambari_user, \
   read_passwd_for_alias, remove_password_file, save_passwd_for_alias, store_password_file, update_properties_2, \
   BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, IS_LDAP_CONFIGURED, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
@@ -54,6 +54,8 @@ from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_ba
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, quit_if_has_answer
 from ambari_server.serverClassPath import ServerClassPath
+from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, \
+  get_jdbc_driver_path, ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +66,9 @@ REGEX_TRUE_FALSE = "^(true|false)?$"
 REGEX_SKIP_CONVERT = "^(skip|convert)?$"
 REGEX_REFERRAL = "^(follow|ignore)?$"
 REGEX_ANYTHING = ".*"
+LDAP_TO_PAM_MIGRATION_HELPER_CMD = "{0} -cp {1} " + \
+                                   "org.apache.ambari.server.security.authentication.LdapToPamMigrationHelper" + \
+                                   " >> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 CLIENT_SECURITY_KEY = "client.security"
 
@@ -621,8 +626,12 @@ def setup_ldap(options):
   properties = get_ambari_properties()
 
   if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'pam':
-    err = "PAM is configured. Can not setup LDAP."
-    raise FatalException(1, err)
+    query = "PAM is currently configured, do you wish to use LDAP instead [y/n] (n)? "
+    if get_YN_input(query, False):
+      pass
+    else:
+      err = "PAM is configured. Can not setup LDAP."
+      raise FatalException(1, err)
 
   isSecure = get_is_secure(properties)
 
@@ -824,38 +833,112 @@ def ensure_can_start_under_current_user(ambari_user):
   return current_user
 
 class PamPropTemplate:
-  def __init__(self, properties, i_prop_name, i_prop_val_pattern, i_prompt_regex, i_allow_empty_prompt, i_prop_name_default=None):
+  def __init__(self, properties, i_option, i_prop_name, i_prop_val_pattern, i_prompt_regex, i_allow_empty_prompt, i_prop_name_default=None):
     self.prop_name = i_prop_name
+    self.option = i_option
     self.pam_prop_name = get_value_from_properties(properties, i_prop_name, i_prop_name_default)
     self.pam_prop_val_prompt = i_prop_val_pattern.format(get_prompt_default(self.pam_prop_name))
     self.prompt_regex = i_prompt_regex
     self.allow_empty_prompt = i_allow_empty_prompt
 
-def setup_pam():
+def init_pam_properties_list_reqd(properties, options):
+  properties = [
+    PamPropTemplate(properties, options.pam_config_file, PAM_CONFIG_FILE, "PAM configuration file* {0}: ", REGEX_ANYTHING, False, "/etc/pam.d/ambari"),
+    PamPropTemplate(properties, options.pam_auto_create_groups, AUTO_GROUP_CREATION, "Do you want to allow automatic group creation* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+  ]
+  return properties
+
+def setup_pam(options):
   if not is_root():
-    err = 'Ambari-server setup-pam should be run with ' \
-          'root-level privileges'
+    err = 'Ambari-server setup-pam should be run with root-level privileges'
     raise FatalException(4, err)
 
   properties = get_ambari_properties()
 
   if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'ldap':
-    err = "LDAP is configured. Can not setup PAM."
-    raise FatalException(1, err)
+    query = "LDAP is currently configured, do you wish to use PAM instead [y/n] (n)? "
+    if get_YN_input(query, False):
+      pass
+    else:
+      err = "LDAP is configured. Can not setup PAM."
+      raise FatalException(1, err)
+
+  pam_property_list_reqd = init_pam_properties_list_reqd(properties, options)
 
   pam_property_value_map = {}
   pam_property_value_map[CLIENT_SECURITY_KEY] = 'pam'
 
-  pamConfig = get_validated_string_input("Enter PAM configuration file: ", PAM_CONFIG_FILE, REGEX_ANYTHING,
-                                         "Invalid characters in the input!", False, False)
+  for pam_prop in pam_property_list_reqd:
+    input = get_validated_string_input(pam_prop.pam_prop_val_prompt, pam_prop.pam_prop_name, pam_prop.prompt_regex,
+                                       "Invalid characters in the input!", False, pam_prop.allow_empty_prompt,
+                                       answer = pam_prop.option)
+    if input is not None and input != "":
+      pam_property_value_map[pam_prop.prop_name] = input
 
-  pam_property_value_map[PAM_CONFIG_FILE] = pamConfig
-
-  if get_YN_input("Do you want to allow automatic group creation [y/n] (y)? ", True):
-    pam_property_value_map[AUTO_GROUP_CREATION] = 'true'
-  else:
-    pam_property_value_map[AUTO_GROUP_CREATION] = 'false'
+  # Verify that the PAM config file exists, else show warning...
+  pam_config_file = pam_property_value_map[PAM_CONFIG_FILE]
+  if not os.path.exists(pam_config_file):
+    print_warning_msg("The PAM configuration file, {0} does not exist.  " \
+                      "Please create it before restarting Ambari.".format(pam_config_file))
 
   update_properties_2(properties, pam_property_value_map)
   print 'Saving...done'
   return 0
+
+#
+# Migration of LDAP users & groups to PAM
+#
+def migrate_ldap_pam(args):
+  properties = get_ambari_properties()
+
+  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") != 'pam':
+    err = "PAM is not configured. Please configure PAM authentication first."
+    raise FatalException(1, err)
+
+  db_title = get_db_type(properties).title
+  confirm = get_YN_input("Ambari Server configured for %s. Confirm "
+                        "you have made a backup of the Ambari Server database [y/n] (y)? " % db_title, True)
+
+  if not confirm:
+    print_error_msg("Database backup is not confirmed")
+    return 1
+
+  jdk_path = get_java_exe_path()
+  if jdk_path is None:
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
+    return 1
+
+  # At this point, the args does not have the ambari database information.
+  # Augment the args with the correct ambari database information
+  parse_properties_file(args)
+
+  ensure_jdbc_driver_is_installed(args, properties)
+
+  print 'Migrating LDAP Users & Groups to PAM'
+
+  serverClassPath = ServerClassPath(properties, args)
+  class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
+
+  command = LDAP_TO_PAM_MIGRATION_HELPER_CMD.format(jdk_path, class_path)
+
+  ambari_user = read_ambari_user()
+  current_user = ensure_can_start_under_current_user(ambari_user)
+  environ = generate_env(args, ambari_user, current_user)
+
+  (retcode, stdout, stderr) = run_os_command(command, env=environ)
+  print_info_msg("Return code from LDAP to PAM migration command, retcode = " + str(retcode))
+  if stdout:
+    print "Console output from LDAP to PAM migration command:"
+    print stdout
+    print
+  if stderr:
+    print "Error output from LDAP to PAM migration command:"
+    print stderr
+    print
+  if retcode > 0:
+    print_error_msg("Error executing LDAP to PAM migration, please check the server logs.")
+  else:
+    print_info_msg('LDAP to PAM migration completed')
+  return retcode

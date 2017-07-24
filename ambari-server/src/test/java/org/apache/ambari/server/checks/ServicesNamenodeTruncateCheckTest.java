@@ -56,6 +56,8 @@ public class ServicesNamenodeTruncateCheckTest {
   private final Map<String, String> m_configMap = new HashMap<>();
   private RepositoryVersionDAO m_repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
 
+  final RepositoryVersionEntity repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
   @Before
   public void setup() throws Exception {
     Cluster cluster = EasyMock.createMock(Cluster.class);
@@ -97,6 +99,8 @@ public class ServicesNamenodeTruncateCheckTest {
     expect(m_repositoryVersionDAO.findByStackNameAndVersion(EasyMock.anyString(), EasyMock.anyString())).andReturn(rve).anyTimes();
     replay(m_repositoryVersionDAO, rve);
 
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("HDP-2.2.0.0");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2.0"));
   }
 
 
@@ -104,9 +108,8 @@ public class ServicesNamenodeTruncateCheckTest {
   public void testIsApplicable() throws Exception {
 
     PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setRepositoryVersion("HDP-2.2.0.0");
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
-    checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+    checkRequest.setTargetRepositoryVersion(repositoryVersion);
 
     Assert.assertTrue(m_check.isApplicable(checkRequest));
   }
@@ -121,7 +124,11 @@ public class ServicesNamenodeTruncateCheckTest {
     // Check HDP-2.2.x => HDP-2.2.y is FAIL
     m_configMap.put("dfs.allow.truncate", "true");
     request.setSourceStackId(new StackId("HDP-2.2.4.2"));
-    request.setTargetStackId(new StackId("HDP-2.2.8.4"));
+
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("2.2.8.4");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2.8.4"));
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, request);
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
@@ -134,7 +141,11 @@ public class ServicesNamenodeTruncateCheckTest {
     // Check HDP-2.2.x => HDP-2.3.y is FAIL
     m_configMap.put("dfs.allow.truncate", "true");
     request.setSourceStackId(new StackId("HDP-2.2.4.2"));
-    request.setTargetStackId(new StackId("HDP-2.3.8.4"));
+
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("2.3.8.4");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.3.8.4"));
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, request);
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());

@@ -252,8 +252,8 @@ gpgcheck=0</value>
   </property>
   <property>
     <name>stack_root</name>
-    <value>/usr/hdp</value>
-    <description>Stack root folder</description>
+    <value>{"HDP":"/usr/hdp"}</value>
+    <description>JSON which defines the stack root by stack name</description>
     <value-attributes>
       <read-only>true</read-only>
       <overridable>false</overridable>

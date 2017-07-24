@@ -17,12 +17,13 @@
  */
 package org.apache.ambari.server.controller;
 
-import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.BASE_LOG_DIR;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +46,14 @@ import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
+
+import com.google.gson.reflect.TypeToken;
+
 
 /**
  * I delete kerberos identities (principals and keytabs) of a given component.
@@ -78,7 +84,7 @@ class DeleteIdentityHandler {
     if (manageIdentities) {
       addPrepareDeleteIdentity(cluster, hostParamsJson, event, commandParameters, stageContainer);
       addDestroyPrincipals(cluster, hostParamsJson, event, commandParameters, stageContainer);
-      addDeleteKeytab(cluster, newHashSet(commandParameters.component.getHostName()), hostParamsJson, commandParameters, stageContainer);
+      addDeleteKeytab(cluster, commandParameters.getAffectedHostNames(), hostParamsJson, commandParameters, stageContainer);
     }
     addFinalize(cluster, hostParamsJson, event, stageContainer, commandParameters);
   }
@@ -172,15 +178,15 @@ class DeleteIdentityHandler {
 
 
   public static class CommandParams {
-    private final Component component;
-    private final List<String> identities;
+    private final List<Component> components;
+    private final Set<String> identities;
     private final String authName;
     private final File dataDirectory;
     private final String defaultRealm;
     private final KDCType kdcType;
 
-    public CommandParams(Component component, List<String> identities, String authName, File dataDirectory, String defaultRealm, KDCType kdcType) {
-      this.component = component;
+    public CommandParams(List<Component> components, Set<String> identities, String authName, File dataDirectory, String defaultRealm, KDCType kdcType) {
+      this.components = components;
       this.identities = identities;
       this.authName = authName;
       this.dataDirectory = dataDirectory;
@@ -194,9 +200,13 @@ class DeleteIdentityHandler {
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, defaultRealm);
       commandParameters.put(KerberosServerAction.KDC_TYPE, kdcType.name());
       commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identities));
-      commandParameters.put(KerberosServerAction.COMPONENT_FILTER, StageUtils.getGson().toJson(component));
+      commandParameters.put(KerberosServerAction.COMPONENT_FILTER, StageUtils.getGson().toJson(components));
       commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
       return commandParameters;
+    }
+
+    public Set<String> getAffectedHostNames() {
+      return components.stream().map(Component::getHostName).collect(toSet());
     }
 
     public String asJson() {
@@ -211,22 +221,57 @@ class DeleteIdentityHandler {
       processServiceComponents(
         getCluster(),
         kerberosDescriptor,
-        Collections.singletonList(getComponentFilter()),
+        componentFilter(),
         getIdentityFilter(),
         dataDirectory(),
-        calculateConfig(kerberosDescriptor),
-        new HashMap<String, Map<String, String>>(),
+        calculateConfig(kerberosDescriptor, serviceNames()),
+        new HashMap<>(),
         false,
-        new HashMap<String, Set<String>>());
+        new HashMap<>());
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
     }
 
-    protected Component getComponentFilter() {
-      return StageUtils.getGson().fromJson(getCommandParameterValue(KerberosServerAction.COMPONENT_FILTER), Component.class);
+    private Set<String> serviceNames() {
+      return componentFilter().stream().map(component -> component.getServiceName()).collect(toSet());
     }
 
-    private Map<String, Map<String, String>> calculateConfig(KerberosDescriptor kerberosDescriptor) throws AmbariException {
-      return getKerberosHelper().calculateConfigurations(getCluster(), null, kerberosDescriptor.getProperties());
+    private List<Component> componentFilter() {
+      Type jsonType = new TypeToken<List<Component>>() {}.getType();
+      return StageUtils.getGson().fromJson(getCommandParameterValue(KerberosServerAction.COMPONENT_FILTER), jsonType);
+    }
+
+    /**
+     * Cleaning identities is asynchronous, it can happen that the service and its configuration is already deleted at this point.
+     * We're extending the actual config with the properties of the latest deleted configuration of the service.
+     * The service configuration is needed because principal names may contain placeholder variables which are replaced based on the service configuration.
+     */
+    private Map<String, Map<String, String>> calculateConfig(KerberosDescriptor kerberosDescriptor, Set<String> serviceNames) throws AmbariException {
+      Map<String, Map<String, String>> actualConfig = getKerberosHelper().calculateConfigurations(getCluster(), null, kerberosDescriptor.getProperties());
+      extendWithDeletedConfigOfService(actualConfig, serviceNames);
+      return actualConfig;
+    }
+
+    private void extendWithDeletedConfigOfService(Map<String, Map<String, String>> configToBeExtended, Set<String> serviceNames) throws AmbariException {
+      Set<String> deletedConfigTypes = serviceNames.stream()
+        .flatMap(serviceName -> configTypesOfService(serviceName).stream())
+        .collect(toSet());
+      for (Config deletedConfig : getCluster().getLatestConfigsWithTypes(deletedConfigTypes)) {
+        configToBeExtended.put(deletedConfig.getType(), deletedConfig.getProperties());
+      }
+    }
+
+    private Set<String> configTypesOfService(String serviceName) {
+      try {
+        StackId stackId = getCluster().getCurrentStackVersion();
+        StackServiceRequest stackServiceRequest = new StackServiceRequest(stackId.getStackName(), stackId.getStackVersion(), serviceName);
+        return AmbariServer.getController().getStackServices(singleton(stackServiceRequest)).stream()
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException("Could not find stack service " + serviceName))
+          .getConfigTypes()
+          .keySet();
+      } catch (AmbariException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     private String dataDirectory() {

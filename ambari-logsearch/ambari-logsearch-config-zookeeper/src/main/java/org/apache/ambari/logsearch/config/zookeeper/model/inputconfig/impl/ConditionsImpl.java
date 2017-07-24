@@ -19,11 +19,24 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Conditions;
 
 import com.google.gson.annotations.Expose;
 
+@ShipperConfigTypeDescription(
+  name = "Conditions",
+  description = "Describes the conditions that should be met in order to match a filter to an input element.\n" +
+                "\n" +
+                "It has the following attributes:"
+)
 public class ConditionsImpl implements Conditions {
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/conditions/fields",
+    type = "json object",
+    description = "The fields in the input element of which's value should be met."
+  )
   @Expose
   private FieldsImpl fields;
 

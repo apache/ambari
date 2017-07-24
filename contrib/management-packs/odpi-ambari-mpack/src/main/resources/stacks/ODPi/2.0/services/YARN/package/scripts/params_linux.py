@@ -233,6 +233,13 @@ has_ats = not len(ats_host) == 0
 
 nm_hosts = default("/clusterHostInfo/nm_hosts", [])
 
+#incude file
+include_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.include-path", None)
+include_hosts = None
+manage_include_files = default("/configurations/yarn-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  include_hosts = list(set(nm_hosts) - set(exclude_hosts))
+
 # don't using len(nm_hosts) here, because check can take too much time on large clusters
 number_of_nm = 1
 
@@ -315,7 +322,7 @@ HdfsResource = functools.partial(
   immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
  )
-update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
+update_files_only = default("/commandParams/update_files_only",False)
 
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
