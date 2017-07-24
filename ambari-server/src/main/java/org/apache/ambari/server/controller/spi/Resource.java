@@ -91,6 +91,8 @@ public interface Resource {
     Group,
     Member,
     Registry,
+    RegistryRecommendation,
+    RegistryValidation,
     RegistryScenario,
     RegistryMpack,
     RegistryMpackVersion,
@@ -217,6 +219,8 @@ public interface Resource {
     public static final Type Group = InternalType.Group.getType();
     public static final Type Member = InternalType.Member.getType();
     public static final Type Registry = InternalType.Registry.getType();
+    public static final Type RegistryRecommendation = InternalType.RegistryRecommendation.getType();
+    public static final Type RegistryValidation = InternalType.RegistryValidation.getType();
     public static final Type RegistryScenario = InternalType.RegistryScenario.getType();
     public static final Type RegistryMpack = InternalType.RegistryMpack.getType();
     public static final Type RegistryMpackVersion = InternalType.RegistryMpackVersion.getType();

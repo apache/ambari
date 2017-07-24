@@ -64,9 +64,9 @@ public class RegistryService extends BaseService {
   /**
    * Handles: POST /registries/
    *
+   * @param body    request body
    * @param headers http headers
    * @param ui      uri info
-   * @param body    request body
    * @return        information regarding the software registry created
    */
   @POST

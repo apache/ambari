@@ -92,6 +92,16 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new AlertResourceProvider(managementController);
       case Registry:
         return new RegistryResourceProvider(managementController);
+      case RegistryRecommendation:
+        return new RegistryRecommendationResourceProvider(managementController);
+      case RegistryValidation:
+        return new RegistryValidationResourceProvider(managementController);
+      case RegistryScenario:
+        return new RegistryScenarioResourceProvider(managementController);
+      case RegistryMpack:
+        return new RegistryMpackResourceProvider(managementController);
+      case RegistryMpackVersion:
+        return new RegistryMpackVersionResourceProvider(managementController);
       case Mpack:
         return new MpackResourceProvider(managementController);
       case AlertDefinition:

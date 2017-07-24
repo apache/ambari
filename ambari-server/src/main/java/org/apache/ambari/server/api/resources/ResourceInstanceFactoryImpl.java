@@ -153,6 +153,14 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RegistryResourceDefinition();
         break;
 
+      case RegistryRecommendation:
+        resourceDefinition = new RegistryRecommendationResourceDefinition();
+        break;
+
+      case RegistryValidation:
+        resourceDefinition = new RegistryValidationResourceDefinition();
+        break;
+
       case RegistryScenario:
         resourceDefinition = new RegistryScenarioResourceDefinition();
         break;

@@ -18,9 +18,11 @@
 package org.apache.ambari.server.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -58,5 +60,43 @@ public class SetUtils {
       subsets.add(subset);
     }
     return subsets;
+  }
+
+  /**
+   * Create all possible permutations of a list of collections.
+   * @param collections List of collections
+   * @param <T>
+   * @return  Permutations between the collections
+   */
+  public static <T> List<Collection<T>> permutations(List<Collection<T>> collections) {
+    if(collections == null || collections.isEmpty()) {
+      return Collections.emptyList();
+    } else {
+      List<Collection<T>> results = new LinkedList<>();
+      permutationsImpl(collections, results, 0, new LinkedList<T>());
+      return results;
+    }
+  }
+
+  /**
+   * Permutations implementation
+   * @param original
+   * @param results
+   * @param depth
+   * @param current
+   * @param <T>
+   */
+  private static <T> void permutationsImpl(List<Collection<T>> original,
+    List<Collection<T>> results, int depth, Collection<T> current) {
+    if(depth == original.size()) {
+      results.add(current);
+      return;
+    }
+    Collection<T> currentList = original.get(depth);
+    for(T element : currentList) {
+      List<T> copyList = new LinkedList<T>(current);
+      copyList.add(element);
+      permutationsImpl(original, results, depth + 1, copyList);
+    }
   }
 }
