@@ -249,7 +249,6 @@ public class AlertDefinitionFactory {
     entity.setDefinitionName(definition.getName());
     entity.setEnabled(definition.isEnabled());
     entity.setHostIgnored(definition.isHostIgnored());
-    entity.setHash(UUID.randomUUID().toString());
     entity.setLabel(definition.getLabel());
     entity.setDescription(definition.getDescription());
     entity.setScheduleInterval(definition.getInterval());
@@ -263,21 +262,39 @@ public class AlertDefinitionFactory {
 
     entity.setScope(scope);
 
-    Source source = definition.getSource();
+    return mergeSource(definition.getSource(), entity);
+  }
+
+  /**
+   * Updates source and source type of <code>entity</code> from <code>source</code>.
+   * Also updates UUID, which must be done for any change in to the entity for it
+   * to take effect on the agents.
+   *
+   * @return the updated entity to be persisted, or null if alert source cannot be serialized to JSON
+   */
+  public AlertDefinitionEntity mergeSource(Source source, AlertDefinitionEntity entity) {
     entity.setSourceType(source.getType());
 
     try {
       String sourceJson = m_gson.toJson(source);
       entity.setSource(sourceJson);
-    } catch (Exception exception) {
-      LOG.error(
-          "Unable to serialize the alert definition source during coercion",
-          exception);
-
+    } catch (Exception e) {
+      LOG.error("Unable to serialize the alert definition source during merge", e);
       return null;
     }
 
+    assignNewUUID(entity);
+
     return entity;
+  }
+
+  /**
+   * Updates <code>entity</code> with a new UUID.
+   */
+  private static void assignNewUUID(AlertDefinitionEntity entity) {
+    if (entity != null) {
+      entity.setHash(UUID.randomUUID().toString());
+    }
   }
 
   /**

@@ -533,7 +533,7 @@ public class AmbariServer {
       LOG.info(clusterDump.toString());
 
       LOG.info("********* Reconciling Alert Definitions **********");
-      ambariMetaInfo.reconcileAlertDefinitions(clusters);
+      ambariMetaInfo.reconcileAlertDefinitions(clusters, false);
 
       LOG.info("********* Initializing ActionManager **********");
       ActionManager manager = injector.getInstance(ActionManager.class);
