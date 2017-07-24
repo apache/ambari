@@ -275,10 +275,6 @@ class LdapSyncOptions:
 #
 def sync_ldap(options):
   logger.info("Sync users and groups with configured LDAP.")
-  if not is_root():
-    err = 'Ambari-server sync-ldap should be run with ' \
-          'root-level privileges'
-    raise FatalException(4, err)
 
   properties = get_ambari_properties()
 
