@@ -3334,7 +3334,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    //keep 2 maps for simpler maintenance
     Map<String, String> serviceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
     for (Map<State, List<ServiceComponentHost>> stateScHostMap :
         changedScHosts.values()) {
       for (Entry<State, List<ServiceComponentHost>> entry :
@@ -3356,6 +3358,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               //Filter services whose masters are not started
               if (isServiceComponentStartedOnAnyHost(cluster, serviceName, masterComponentName)) {
                 serviceMasterForDecommissionMap.put(serviceName, masterComponentName);
+                masterSlaveHostsMap.putIfAbsent(masterComponentName, new HashSet<String>());
+                masterSlaveHostsMap.get(masterComponentName).add(sch.getHostName());
               } else {
                 LOG.info(String.format("Not adding %s service from include/exclude files refresh map because it's master is not started", serviceName));
               }
@@ -3371,7 +3375,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     try {
-      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(serviceMasterForDecommissionMap, cluster.getClusterName());
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(serviceMasterForDecommissionMap, masterSlaveHostsMap, cluster.getClusterName(), false);
     } catch (AmbariException e) {
       LOG.error("Exception during refresh include exclude files action : ", e);
     }
@@ -3625,7 +3629,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    //keep 2 maps for simpler maintenance
     Map<String, Map<String, String>> clusterServiceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Map<String, Set<String>>> clusterMasterSlaveHostsMap = new HashMap<>();
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
         try {
@@ -3642,10 +3648,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
             if (clusterServiceMasterForDecommissionMap.containsKey(componentHost.getClusterName())) {
               clusterServiceMasterForDecommissionMap.get(componentHost.getClusterName()).put(componentHost.getServiceName(), masterComponentName);
+              Map<String, Set<String>> masterSlaveMap  = clusterMasterSlaveHostsMap.get(componentHost.getClusterName());
+              masterSlaveMap.putIfAbsent(masterComponentName, new HashSet<String>());
+              masterSlaveMap.get(masterComponentName).add(componentHost.getHostName());
             } else {
-              Map<String, String> tempMap = new HashMap<>();
-              tempMap.put(componentHost.getServiceName(), masterComponentName);
-              clusterServiceMasterForDecommissionMap.put(componentHost.getClusterName(), tempMap);
+              Map<String, String> serviceMasterMap = new HashMap<>();
+              serviceMasterMap.put(componentHost.getServiceName(), masterComponentName);
+              clusterServiceMasterForDecommissionMap.put(componentHost.getClusterName(), serviceMasterMap);
+
+              Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
+              masterSlaveHostsMap.put(masterComponentName, new HashSet<String>(Collections.singletonList(componentHost.getHostName())));
+              clusterMasterSlaveHostsMap.put(componentHost.getClusterName(), masterSlaveHostsMap);
             }
           }
         } catch (Exception ex) {
@@ -3655,7 +3668,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     for (String cluster : clusterServiceMasterForDecommissionMap.keySet()) {
-      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(clusterServiceMasterForDecommissionMap.get(cluster), cluster);
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(clusterServiceMasterForDecommissionMap.get(cluster), clusterMasterSlaveHostsMap.get(cluster), cluster, true);
     }
 
     //Do not break behavior for existing clients where delete request contains only 1 host component.
@@ -3739,10 +3752,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   /**
    * Creates and triggers an action to update include and exclude files for the master components depending on current cluster topology and components state
    * @param serviceMasterMap
-   * @param clusterName
-   * @throws AmbariException
+   * @param masterSlaveHostsMap
+   *@param clusterName  @throws AmbariException
    */
-  private void createAndExecuteRefreshIncludeExcludeFilesActionForMasters(Map<String, String> serviceMasterMap, String clusterName) throws AmbariException {
+  private void createAndExecuteRefreshIncludeExcludeFilesActionForMasters(Map<String, String> serviceMasterMap, Map<String, Set<String>> masterSlaveHostsMap, String clusterName, boolean isDecommission) throws AmbariException {
     //Clear include/exclude files or draining list except HBASE
     serviceMasterMap.remove(Service.Type.HBASE.toString());
     //exit if empty
@@ -3755,6 +3768,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     requestProperties.put("exclusive", "true");
     HashMap<String, String> params = new HashMap<>();
     params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, "false");
+
+    for (String masterName : masterSlaveHostsMap.keySet()) {
+      if (!isDecommission) {
+        params.put(masterName + "_" + AmbariCustomCommandExecutionHelper.DECOM_INCLUDED_HOSTS, StringUtils.join(masterSlaveHostsMap.get(masterName).toArray(), ","));
+      }
+    }
+
+    params.put(AmbariCustomCommandExecutionHelper.MULTI_SERVICES_DECOM_REQUEST, "true");
 
     //Create filter for command
     List<RequestResourceFilter> resourceFilters = new ArrayList<>(serviceMasterMap.size());
