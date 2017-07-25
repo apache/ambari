@@ -175,4 +175,29 @@ public class StackDAO {
       entityManager.remove(stack);
     }
   }
+
+  /**
+   * Removes the specified stack based on mpackid.
+   *
+   * @param mpackId
+   *
+   */
+  @Transactional
+  public void removeByMpack(Long mpackId) {
+    entityManagerProvider.get().remove(findByMpack(mpackId));
+  }
+
+  /**
+   * Gets the stack that matches the specified mpackid.
+   *
+   * @return the stack matching the specified mpackid or {@code null}
+   *         if none.
+   */
+  public StackEntity findByMpack(Long mpackId) {
+    TypedQuery<StackEntity> query = entityManagerProvider.get().createNamedQuery(
+            "StackEntity.findByMpack", StackEntity.class);
+    query.setParameter("currentMpackId", mpackId);
+
+    return daoUtils.selectOne(query);
+  }
 }

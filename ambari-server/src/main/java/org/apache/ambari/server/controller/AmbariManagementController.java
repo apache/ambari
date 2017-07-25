@@ -42,6 +42,8 @@ import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -965,5 +967,14 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be read
    */
   Registry getRegistry(Long registryId) throws AmbariException;
+
+  /***
+   * Remove Mpack from the mpackMap and stackMap which is used to power the Mpack and Stack APIs.
+   * @param mpackEntity
+   * @param stackEntity
+   * @throws IOException
+   */
+  void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException;
+
 }
 

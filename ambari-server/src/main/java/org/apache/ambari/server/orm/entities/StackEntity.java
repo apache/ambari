@@ -40,6 +40,7 @@ import javax.persistence.UniqueConstraint;
 @TableGenerator(name = "stack_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "stack_id_seq", initialValue = 0)
 @NamedQueries({
     @NamedQuery(name = "StackEntity.findAll", query = "SELECT stack FROM StackEntity stack"),
+    @NamedQuery(name = "StackEntity.findByMpack", query = "SELECT stack FROM StackEntity stack where stack.currentMpackId = :currentMpackId"),
     @NamedQuery(name = "StackEntity.findByNameAndVersion", query = "SELECT stack FROM StackEntity stack WHERE stack.stackName = :stackName AND stack.stackVersion = :stackVersion",
                 hints = {
                   @QueryHint(name = "eclipselink.query-results-cache", value = "true"),

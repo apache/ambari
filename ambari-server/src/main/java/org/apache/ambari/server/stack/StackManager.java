@@ -678,4 +678,9 @@ public class StackManager {
     }
     return extensionModules;
   }
+
+  public void removeStack(StackEntity stackEntity) {
+    String stackKey = stackEntity.getStackName() + StackManager.PATH_DELIMITER +  stackEntity.getStackVersion();
+    stackMap.remove(stackKey);
+  }
 }

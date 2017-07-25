@@ -19,6 +19,7 @@ package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -147,6 +148,26 @@ public class MpacksService extends BaseService {
     @PathParam("mpack_id") String mpackId) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
+            createMpackResource(mpackId));
+  }
+
+  @DELETE
+  @Path("{mpack_id}")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes a selected management pack")
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING,
+                  paramType = PARAM_TYPE_QUERY, defaultValue = MpackResourceProvider.ALL_PROPERTIES),
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response deleteMpack(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("mpack_id") String mpackId) {
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
             createMpackResource(mpackId));
   }
 

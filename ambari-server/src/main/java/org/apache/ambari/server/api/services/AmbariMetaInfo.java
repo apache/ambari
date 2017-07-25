@@ -60,6 +60,8 @@ import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -1473,4 +1475,19 @@ public class AmbariMetaInfo {
     return versionDefinitions;
   }
 
+  /***
+   * Remove Mpack from the mpackMap and stackMap which is used to power the Mpack and Stack APIs.
+   * Stack should be removed from stackMap only if it points to the mpack that is being removed.
+   * @param mpackEntity
+   * @param stackEntity
+   * @throws IOException
+   */
+  public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException {
+
+    boolean stackDelete = mpackManager.removeMpack(mpackEntity, stackEntity);
+
+    if(stackDelete) {
+      stackManager.removeStack(stackEntity);
+    }
+  }
 }
