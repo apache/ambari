@@ -1019,9 +1019,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (this.get('isInstaller')) {
       selectedStack = App.Stack.find().findProperty('isSelected', true);
     }
-    return this.get('selectedServices').map(service => selectedStack ?
+    return this.get('selectedServices').map(function(service) {return selectedStack ?
       {"ServiceInfo": { "service_name": service.get('serviceName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
-      {"ServiceInfo": { "service_name": service.get('serviceName') }});
+      {"ServiceInfo": { "service_name": service.get('serviceName') }}});
   },
 
   /**
