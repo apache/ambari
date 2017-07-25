@@ -128,6 +128,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String ACTION_ID = "action";
   protected static final String INPUTS_ID = "parameters";
   protected static final String EXLUSIVE_ID = "exclusive";
+  public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
         REQUEST_ID_PROPERTY_ID}));
@@ -442,12 +443,14 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> resourceFilterList = null;
     Set<Map<String, Object>> resourceFilters;
 
+    Map<String, String> params = new HashMap<String, String>();
     Object resourceFilterObj = propertyMap.get(REQUEST_RESOURCE_FILTER_ID);
     if (resourceFilterObj != null && resourceFilterObj instanceof HashSet) {
       resourceFilters = (HashSet<Map<String, Object>>) resourceFilterObj;
       resourceFilterList = new ArrayList<RequestResourceFilter>();
 
       for (Map<String, Object> resourceMap : resourceFilters) {
+        params.put(HAS_RESOURCE_FILTERS, "true");
         resourceFilterList.addAll(parseRequestResourceFilter(resourceMap,
           (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID)));
       }
@@ -459,7 +462,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       operationLevel = new RequestOperationLevel(requestInfoProperties);
     }
 
-    Map<String, String> params = new HashMap<String, String>();
     String keyPrefix = INPUTS_ID + "/";
     for (String key : requestInfoProperties.keySet()) {
       if (key.startsWith(keyPrefix)) {

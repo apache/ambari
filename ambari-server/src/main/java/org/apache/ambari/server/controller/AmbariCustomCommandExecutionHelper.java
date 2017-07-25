@@ -43,6 +43,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAM
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.controller.internal.RequestResourceProvider.HAS_RESOURCE_FILTERS;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -1043,6 +1044,13 @@ public class AmbariCustomCommandExecutionHelper {
   public void validateAction(ExecuteActionRequest actionRequest) throws AmbariException {
 
     List<RequestResourceFilter> resourceFilters = actionRequest.getResourceFilters();
+
+    if (resourceFilters != null && resourceFilters.isEmpty() &&
+            actionRequest.getParameters().containsKey(HAS_RESOURCE_FILTERS) &&
+            actionRequest.getParameters().get(HAS_RESOURCE_FILTERS).equalsIgnoreCase("true")) {
+      LOG.warn("Couldn't find any resource that satisfies given resource filters");
+      return;
+    }
 
     if (resourceFilters == null || resourceFilters.isEmpty()) {
       throw new AmbariException("Command execution cannot proceed without a " +
