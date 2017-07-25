@@ -464,15 +464,32 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var self = this;
     var recommendations = event ? this.get('changedProperties') : this.get('recommendations'),
       recommendedChanges = recommendations.filterProperty('isEditable'),
-      requiredChanges = recommendations.filterProperty('isEditable', false);
-    if (recommendations.length > 0) {
+      requiredChanges = this.filterRequiredChanges(recommendations);
+    if (recommendedChanges.length > 0 || requiredChanges.length > 0) {
       App.showDependentConfigsPopup(recommendedChanges, requiredChanges, function() {
-        self.onSaveRecommendedPopup(recommendations);
+        self.onSaveRecommendedPopup(recommendedChanges.concat(requiredChanges));
         if (callback) callback();
       }, secondary);
     } else {
       if (callback) callback();
     }
+  },
+
+  /**
+   *
+   * @param {Array} recommendations
+   * @returns {Array}
+   */
+  filterRequiredChanges: function(recommendations) {
+    return recommendations.filter(function(recommendation) {
+      if (recommendation.isEditable === false) {
+        if (!this.get('selectedConfigGroup.isDefault')) {
+          return App.ServiceConfigGroup.defaultGroupName !== recommendation.configGroup
+        } else {
+          return true;
+        }
+      }
+    }, this);
   },
 
   /**

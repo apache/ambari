@@ -1094,12 +1094,14 @@ describe('App.EnhancedConfigsMixin', function () {
         callback();
       });
       sinon.stub(mixin, 'onSaveRecommendedPopup');
+      sinon.stub(mixin, 'filterRequiredChanges').returns([]);
       sinon.stub(mock, 'callback');
     });
 
     afterEach(function() {
       App.showDependentConfigsPopup.restore();
       mixin.onSaveRecommendedPopup.restore();
+      mixin.filterRequiredChanges.restore();
       mock.callback.restore();
     });
 
@@ -1110,9 +1112,9 @@ describe('App.EnhancedConfigsMixin', function () {
     });
 
     it("onSaveRecommendedPopup should be called", function() {
-      mixin.set('recommendations', [{}]);
+      mixin.set('recommendations', [{isEditable: true}]);
       mixin.showChangedDependentConfigs(null, mock.callback, Em.K);
-      expect(mixin.onSaveRecommendedPopup.calledWith([{}])).to.be.true;
+      expect(mixin.onSaveRecommendedPopup.calledWith([{isEditable: true}])).to.be.true;
       expect(mock.callback.calledOnce).to.be.true;
     });
   });
@@ -1411,6 +1413,48 @@ describe('App.EnhancedConfigsMixin', function () {
 
   });
 
+  describe('#filterRequiredChanges', function() {
 
+    it('all recommendations editable', function() {
+      var recommendations = [
+        {
+          isEditable: true
+        }
+      ];
+      expect(mixin.filterRequiredChanges(recommendations)).to.be.empty;
+    });
+
+    it('recommendations not editable when editing default config group', function() {
+      mixin.set('selectedConfigGroup', Em.Object.create({isDefault: true}));
+      var recommendations = [
+        {
+          isEditable: false
+        }
+      ];
+      expect(mixin.filterRequiredChanges(recommendations)).to.be.eql(recommendations);
+    });
+
+    it('recommendations not editable when editing non-default config group for default group', function() {
+      mixin.set('selectedConfigGroup', Em.Object.create({isDefault: false}));
+      var recommendations = [
+        {
+          isEditable: false,
+          configGroup: App.ServiceConfigGroup.defaultGroupName
+        }
+      ];
+      expect(mixin.filterRequiredChanges(recommendations)).to.be.empty;
+    });
+
+    it('recommendations not editable when editing non-default config group for non-default group', function() {
+      mixin.set('selectedConfigGroup', Em.Object.create({isDefault: false}));
+      var recommendations = [
+        {
+          isEditable: false,
+          configGroup: 'g1'
+        }
+      ];
+      expect(mixin.filterRequiredChanges(recommendations)).to.be.eql(recommendations);
+    });
+  });
 });
 
