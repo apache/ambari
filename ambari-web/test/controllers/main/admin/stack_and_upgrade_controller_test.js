@@ -129,6 +129,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         state: 'CURRENT',
         repositoryVersion: {
           id: '1',
+          stackVersionType: 'HDP',
           repositoryVersion: '2.2',
           displayName: 'HDP-2.2'
         }
@@ -157,6 +158,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     it('currentVersion is corrent', function () {
       expect(controller.get('currentVersion')).to.eql({
         "id": "1",
+        "stack_name": 'HDP',
         "repository_version": "2.2",
         "repository_name": "HDP-2.2"
       });
