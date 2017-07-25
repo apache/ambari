@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 -->
-<configuration supports_do_not_extend="true">
+<configuration>
   <property>
     <name>hbase.rootdir</name>
     <value>file:///var/lib/ambari-metrics-collector/hbase</value>
@@ -29,6 +29,16 @@
       HBase to either local filesystem path if using Ambari Metrics in embedded mode or
       to a HDFS dir, example: hdfs://namenode.example.org:8020/amshbase.
     </description>
+    <depends-on>
+      <property>
+        <type>core-site</type>
+        <name>fs.defaultFS</name>
+      </property>
+      <property>
+        <type>ams-site</type>
+        <name>timeline.metrics.service.operation.mode</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -40,6 +50,9 @@
       than '/tmp' (The '/tmp' directory is often cleared on
       machine restart).
     </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -57,6 +70,12 @@
       standalone mode and true for distributed mode. If false, startup will run
       all HBase and ZooKeeper daemons together in the one JVM.
     </description>
+    <depends-on>
+      <property>
+        <type>ams-site</type>
+        <name>timeline.metrics.service.operation.mode</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -149,7 +168,7 @@
   </property>
   <property>
     <name>hbase.normalizer.enabled</name>
-    <value>true</value>
+    <value>false</value>
     <description>If set to true, Master will try to keep region size
     within each table approximately the same.</description>
     <on-ambari-upgrade add="true"/>
@@ -212,7 +231,7 @@
     <name>hbase.hregion.max.filesize</name>
     <value>4294967296</value>
     <description>
-      Maximum HFile size. If the sum of the sizes of a region’s HFiles has grown
+      Maximum HFile size. If the sum of the sizes of a region&#x2019;s HFiles has grown
       to exceed this value, the region is split in two. Default is 10Gb.
     </description>
     <on-ambari-upgrade add="true"/>
@@ -239,19 +258,39 @@
   </property>
   <property>
     <name>phoenix.query.timeoutMs</name>
-    <value>1200000</value>
+    <value>300000</value>
     <description>
       Number of milliseconds after which a query will timeout on the client.
-      Default is 10 min.
+      Default is 5 min.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>phoenix.query.keepAliveMs</name>
+    <value>300000</value>
+    <description>
+      Number of milliseconds after which a query will keep the connection to HBase alive.
+      Default is 5 min.
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.client.scanner.timeout.period</name>
-    <value>900000</value>
+    <value>300000</value>
     <description>
       Client scanner lease period in milliseconds.
     </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.rpc.timeout</name>
+    <value>300000</value>
+    <description>
+      This is for the RPC layer to define how long HBase client applications
+      take for a remote call to time out. It uses pings to check connections
+      but will eventually throw a TimeoutException.
+    </description>
+    <display-name>HBase RPC Timeout</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -272,7 +311,17 @@
   </property>
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
-    <value>61181</value>
+    <value>{{zookeeper_clientPort}}</value>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -307,11 +356,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>phoenix.query.spoolThresholdBytes</name>
-    <value>12582912</value>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>hbase.snapshot.enabled</name>
     <value>false</value>
     <description>Enable/Disable HBase snapshots.</description>
@@ -321,6 +365,16 @@
     <name>hbase.replication</name>
     <value>false</value>
     <description>Enable/Disable HBase replication.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.tickTime</name>
+    <value>6000</value>
+    <description>
+      The length of a single tick, which is the basic time unit used by
+      ZooKeeper, as measured in milliseconds. This property setting only
+      affects the ZK server started by AMS in embedded mode. Unit = ms.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -392,8 +446,8 @@
       Maximum living time (in milliseconds) of server caches. A cache entry
       expires after this amount of time has passed since last access. Consider
       adjusting this parameter when a server-side IOException(
-      “Could not find hash cache for joinId”) happens. Getting warnings like
-      “Earlier hash cache(s) might have expired on servers” might also be a
+      &#x201C;Could not find hash cache for joinId&#x201D;) happens. Getting warnings like
+      &#x201C;Earlier hash cache(s) might have expired on servers&#x201D; might also be a
       sign that this number should be increased.
     </description>
     <on-ambari-upgrade add="true"/>
@@ -415,7 +469,6 @@
       Hadoop servers should be configured to allow short circuit read
       for the hbase user for this to take effect
     </description>
-    <on-ambari-upgrade add="true"/>
     <depends-on>
       <property>
         <type>ams-hbase-site</type>
@@ -426,6 +479,11 @@
         <name>hbase.rootdir</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
-
+  <property>
+    <name>zookeeper.znode.parent</name>
+    <value>/ams-hbase-unsecure</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

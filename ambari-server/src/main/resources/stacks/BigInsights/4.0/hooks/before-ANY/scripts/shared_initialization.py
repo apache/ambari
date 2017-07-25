@@ -147,7 +147,7 @@ def get_uid(user):
        mode=0555)
     ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
     newUid=commands.getoutput(format("{tmp_dir}/changeUid.sh {user}"))
-    return newUid
+    return int(newUid)
     
 def setup_hadoop_env():
   import params

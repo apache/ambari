@@ -141,6 +141,7 @@ public class AmbariCustomCommandExecutionHelper {
   public final static String DECOM_SLAVE_COMPONENT = "slave_type";
   public final static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
   public final static String UPDATE_FILES_ONLY = "update_files_only";
+  public final static String MULTI_SERVICES_DECOM_REQUEST = "multi_services_decom_request";
 
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
@@ -853,6 +854,10 @@ public class AmbariCustomCommandExecutionHelper {
     Set<String> includedHosts = getHostList(actionExecutionContext.getParameters(),
                                             DECOM_INCLUDED_HOSTS);
 
+    if (actionExecutionContext.getParameters().get(MULTI_SERVICES_DECOM_REQUEST) != null &&
+            actionExecutionContext.getParameters().get(MULTI_SERVICES_DECOM_REQUEST).equalsIgnoreCase("true")) {
+      includedHosts = getHostList(actionExecutionContext.getParameters(), masterCompType + "_" + DECOM_INCLUDED_HOSTS);
+    }
 
     Set<String> cloneSet = new HashSet<>(excludedHosts);
     cloneSet.retainAll(includedHosts);

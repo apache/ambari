@@ -18,6 +18,26 @@
 
 <!-- HBase Master Server -->
 {{view view.dashboardMasterComponentView}}
+<!-- HBaseRESTServer -->
+{{#if view.isRestServerCreated}}
+  <tr {{bindAttr class=":component view.restServerComponent.componentName"}}>
+    <td class="summary-label"><a
+      href="#" {{action filterHosts view.restServerComponent}}>{{t dashboard.services.hbase.restServers}}</a>
+    </td>
+    <td class="summary-value">
+        {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+          <span>
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.restServersStarted" totalComponentsBinding="view.service.restServersTotal"}}
+                  {{view.liveComponents}}/{{view.totalComponents}}
+              {{/view}}
+          </span>
+            {{t services.service.summary.RestServersLIVE}}
+        {{else}}
+            {{t common.loading.eclipses}}
+        {{/if}}
+    </td>
+  </tr>
+{{/if}}
 <!-- RegionServers -->
 {{#if view.isRegionServerCreated}}
   <tr {{bindAttr class=":component view.regionServerComponent.componentName"}}>

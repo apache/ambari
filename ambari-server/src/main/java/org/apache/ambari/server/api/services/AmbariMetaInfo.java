@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -73,6 +74,9 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.ScriptSource;
+import org.apache.ambari.server.state.alert.Source;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
@@ -1106,9 +1110,10 @@ public class AmbariMetaInfo {
    * service.
    *
    * @param clusters all clusters
-   * @throws AmbariException
+   * @param updateScriptPaths whether existing script-based alerts should be updated
+   *        with possibly new paths from the stack definition
    */
-  public void reconcileAlertDefinitions(Clusters clusters)
+  public void reconcileAlertDefinitions(Clusters clusters, boolean updateScriptPaths)
       throws AmbariException {
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
@@ -1185,6 +1190,26 @@ public class AmbariMetaInfo {
           LOG.debug(
               "The alert named {} has been modified from the stack definition and will not be merged",
               stackDefinition.getName());
+
+          if (updateScriptPaths) {
+            Source databaseSource = databaseDefinition.getSource();
+            Source stackSource = stackDefinition.getSource();
+            if (databaseSource.getType() == SourceType.SCRIPT && stackSource.getType() == SourceType.SCRIPT) {
+              ScriptSource databaseScript = (ScriptSource) databaseSource;
+              ScriptSource stackScript = (ScriptSource) stackSource;
+              String oldPath = databaseScript.getPath();
+              String newPath = stackScript.getPath();
+              if (!Objects.equals(oldPath, newPath)) {
+                databaseScript.setPath(newPath);
+                entity = alertDefinitionFactory.mergeSource(databaseScript, entity);
+                persist.add(entity);
+
+                LOG.info("Updating script path for the alert named {} from '{}' to '{}'",
+                  stackDefinition.getName(), oldPath, newPath
+                );
+              }
+            }
+          }
         }
       }
 
@@ -1214,10 +1239,7 @@ public class AmbariMetaInfo {
 
       // persist any new or updated definition
       for (AlertDefinitionEntity entity : persist) {
-        if (LOG.isDebugEnabled()) {
-          LOG.info("Merging Alert Definition {} into the database",
-              entity.getDefinitionName());
-        }
+        LOG.debug("Merging Alert Definition {} into the database", entity.getDefinitionName());
         alertDefinitionDao.createOrUpdate(entity);
       }
 

@@ -117,6 +117,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     region_servers_started: 'region_servers_started',
     region_servers_installed: 'region_servers_installed',
     region_servers_total: 'region_servers_total',
+    rest_servers_started: 'rest_servers_started',
+    rest_servers_installed: 'rest_servers_installed',
+    rest_servers_total: 'rest_servers_total',
     phoenix_servers_started: 'phoenix_servers_started',
     phoenix_servers_installed: 'phoenix_servers_installed',
     phoenix_servers_total: 'phoenix_servers_total'

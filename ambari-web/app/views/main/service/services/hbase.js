@@ -89,12 +89,20 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     componentName: 'HBASE_REGIONSERVER'
   }),
 
+  restServerComponent: Em.Object.create({
+    componentName: 'HBASE_REST_SERVER'
+  }),
+
   phoenixServerComponent: Em.Object.create({
     componentName: 'PHOENIX_QUERY_SERVER'
   }),
 
   isRegionServerCreated: function () {
     return this.isServiceComponentCreated('HBASE_REGIONSERVER');
+  }.property('App.router.clusterController.isComponentsStateLoaded'),
+
+  isRestServerCreated: function () {
+    return this.isServiceComponentCreated('HBASE_REST_SERVER');
   }.property('App.router.clusterController.isComponentsStateLoaded'),
 
   isPhoenixQueryServerCreated: function () {

@@ -22,7 +22,9 @@ require('views/wizard/step1_view');
 var view;
 
 function getView() {
-  return App.WizardStep1View.create();
+  return App.WizardStep1View.create({
+    controller: Em.Object.create()
+  });
 }
 
 describe('App.WizardStep1View', function () {
@@ -53,6 +55,50 @@ describe('App.WizardStep1View', function () {
       var repository = view.get('allRepositories.firstObject');
       expect(repository.get('lastBaseUrl')).to.equal(repository.get('baseUrl'));
       expect(repository.get('validation')).to.be.empty;
+    });
+  });
+
+  describe('#isNoOsFilled', function() {
+
+    it('should be false when useRedhatSatellite is true', function() {
+      view.set('controller.selectedStack', Em.Object.create({
+        useRedhatSatellite: true
+      }));
+      expect(view.get('isNoOsFilled')).to.be.false;
+    });
+
+    it('should be false when operatingSystems is null', function() {
+      view.set('controller.selectedStack', Em.Object.create({
+        useRedhatSatellite: false,
+        operatingSystems: null
+      }));
+      expect(view.get('isNoOsFilled')).to.be.false;
+    });
+
+    it('should be false when operatingSystem is filled', function() {
+      view.set('controller.selectedStack', Em.Object.create({
+        useRedhatSatellite: false,
+        operatingSystems: [
+          Em.Object.create({
+            isSelected: true,
+            isNotFilled: false
+          })
+        ]
+      }));
+      expect(view.get('isNoOsFilled')).to.be.false;
+    });
+
+    it('should be true when operatingSystem is not filled', function() {
+      view.set('controller.selectedStack', Em.Object.create({
+        useRedhatSatellite: false,
+        operatingSystems: [
+          Em.Object.create({
+            isSelected: true,
+            isNotFilled: true
+          })
+        ]
+      }));
+      expect(view.get('isNoOsFilled')).to.be.true;
     });
   });
 });

@@ -215,18 +215,25 @@ def oozie_ownership():
     group = params.user_group
   )
 
-def get_oozie_ext_zip_source_path(upgrade_type, params):
+def get_oozie_ext_zip_source_paths(upgrade_type, params):
   """
-  Get the Oozie ext zip file path from the source stack.
+  Get an ordered list of Oozie ext zip file paths from the source stack.
   :param upgrade_type:  Upgrade type will be None if not in the middle of a stack upgrade.
   :param params: Expected to contain fields for ext_js_path, upgrade_direction, source_stack_name, and ext_js_file
-  :return: Source path to use for Oozie extension zip file
+  :return: Source paths to use for Oozie extension zip file
   """
   # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip
+  paths = []
   source_ext_js_path = params.ext_js_path
+  # Preferred location used by HDP and BigInsights 4.2.5
   if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE:
     source_ext_js_path = "/usr/share/" + params.source_stack_name.upper() + "-oozie/" + params.ext_js_file
-  return source_ext_js_path
+  paths.append(source_ext_js_path)
+
+  # Alternate location used by BigInsights 4.2.0 when migrating to another stack.
+  paths.append("/var/lib/oozie/" + params.ext_js_file)
+
+  return paths
 
 def oozie_server_specific(upgrade_type):
   import params
@@ -262,16 +269,23 @@ def oozie_server_specific(upgrade_type):
   )
 
   configure_cmds = []
-  # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip
-  source_ext_zip_path = get_oozie_ext_zip_source_path(upgrade_type, params)
-
-  configure_cmds.append(('cp', source_ext_zip_path, params.oozie_libext_dir))
-  configure_cmds.append(('chown', format('{oozie_user}:{user_group}'), format('{oozie_libext_dir}/{ext_js_file}')))
+  # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip as the first path
+  source_ext_zip_paths = get_oozie_ext_zip_source_paths(upgrade_type, params)
   
-  Execute( configure_cmds,
-    not_if  = no_op_test,
-    sudo = True,
-  )
+  # Copy the first oozie ext-2.2.zip file that is found.
+  # This uses a list to handle the cases when migrating from some versions of BigInsights to HDP.
+  if source_ext_zip_paths is not None:
+    for source_ext_zip_path in source_ext_zip_paths:
+      if os.path.isfile(source_ext_zip_path):
+        configure_cmds.append(('cp', source_ext_zip_path, params.oozie_libext_dir))
+        configure_cmds.append(('chown', format('{oozie_user}:{user_group}'), format('{oozie_libext_dir}/{ext_js_file}')))
+
+        Execute(configure_cmds,
+                not_if=no_op_test,
+                sudo=True,
+                )
+        break
+  
   
   Directory(params.oozie_webapps_conf_dir,
             owner = params.oozie_user,

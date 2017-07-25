@@ -1698,7 +1698,7 @@ public class AmbariMetaInfoTest {
 
     cluster.addService("HDFS", repositoryVersion);
 
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
     List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
@@ -1722,7 +1722,7 @@ public class AmbariMetaInfoTest {
       dao.merge(definition);
     }
 
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     definitions = dao.findAll();
     assertEquals(13, definitions.size());
@@ -1756,7 +1756,7 @@ public class AmbariMetaInfoTest {
     assertEquals(13, definitions.size());
 
     // reconcile, which should disable our bad definition
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     // find all enabled for the cluster should find 6
     definitions = dao.findAllEnabled(cluster.getClusterId());

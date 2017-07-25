@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,9 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_ID_COLUMN = "upgrade_id";
 
   private static final String CLUSTER_ENV = "cluster-env";
+
+  private static final String HIVE_ENV = "hive-env";
+  private static final String MARIADB_REDHAT_SUPPORT = "mariadb_redhat_support";
 
   private static final List<String> configTypesToEnsureSelected = Arrays.asList("spark2-javaopts-properties");
 
@@ -119,6 +124,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     resetStackToolsAndFeatures();
     ensureConfigTypesHaveAtLeastOneVersionSelected();
+    updateMariaDBRedHatSupportHive();
   }
 
   /**
@@ -293,6 +299,31 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
 
       if (atLeastOneChanged) {
         clusterDAO.merge(clusterEntity);
+      }
+    }
+  }
+
+  /**
+   * Insert mariadb_redhat_support to hive-env if the current stack is BigInsights 4.2.5
+   * @throws AmbariException
+   * */
+  private void updateMariaDBRedHatSupportHive() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+          if (installedServices.contains("HIVE")) {
+            StackId currentStack = cluster.getCurrentStackVersion();
+            if (currentStack.getStackName().equals("BigInsights") && currentStack.getStackVersion().equals("4.2.5")) {
+              Map<String, String> newProperties = new HashMap<>();
+              newProperties.put(MARIADB_REDHAT_SUPPORT, "true");
+              updateConfigurationPropertiesForCluster(cluster, HIVE_ENV, newProperties, true, false);
+            }
+          }
+        }
       }
     }
   }

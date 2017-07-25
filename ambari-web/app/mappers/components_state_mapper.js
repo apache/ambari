@@ -82,6 +82,11 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       region_servers_installed: 'INSTALLED_PATH',
       region_servers_total: 'TOTAL_PATH'
     },
+    'HBASE_REST_SERVER': {
+      rest_servers_started: 'STARTED_PATH',
+      rest_servers_installed: 'INSTALLED_PATH',
+      rest_servers_total: 'TOTAL_PATH'
+    },
     'PHOENIX_QUERY_SERVER': {
       phoenix_servers_started: 'STARTED_PATH',
       phoenix_servers_installed: 'INSTALLED_PATH',

@@ -44,7 +44,9 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
-  def test_configure_default(self, call_mocks):
+  @patch("os.path.isfile")
+  def test_configure_default(self, isfile_mock, call_mocks):
+    isfile_mock.return_value = True
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
@@ -59,7 +61,10 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, False, True]))
-  def test_configure_default_mysql(self, call_mocks):
+  @patch("os.path.isfile")
+  def test_configure_default_mysql(self, isfile_mock, iscall_mocks):
+    # Mock call when checking if need to copy oozie ext-2.2.zip file
+    isfile_mock.side_effect = [True, False]
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
@@ -281,7 +286,10 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, False, True]))
-  def test_configure_existing_sqla(self, call_mocks):
+  @patch("os.path.isfile")
+  def test_configure_existing_sqla(self, isfile_mock, call_mocks):
+    # Mock call when checking if need to copy oozie ext-2.2.zip file
+    isfile_mock.side_effect = [True, False]
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
@@ -602,7 +610,10 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True, True]))
-  def test_configure_secured(self, call_mocks):
+  @patch("os.path.isfile")
+  def test_configure_secured(self, isfile_mock, call_mocks):
+    # Mock call when checking if need to copy oozie ext-2.2.zip file
+    isfile_mock.side_effect = [True, False]
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
@@ -616,8 +627,11 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch.object(shell, "call")
+  @patch("os.path.isfile")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True, True]))
-  def test_configure_secured_ha(self, call_mocks):
+  def test_configure_secured_ha(self, isfile_mock, call_mocks):
+    # Mock call when checking if need to copy oozie ext-2.2.zip file
+    isfile_mock.side_effects = [True, False]
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
 
     config_file = "stacks/2.0.6/configs/secured.json"
@@ -650,7 +664,8 @@ class TestOozieServer(RMFTestCase):
   @patch("os.path.isfile")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True, True]))
   def test_start_secured(self, isfile_mock, call_mocks):
-    isfile_mock.return_value = True
+    # Mock call when checking if need to copy oozie ext-2.2.zip file
+    isfile_mock.side_effects = [True, False]
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                          classname = "OozieServer",
@@ -1133,7 +1148,10 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True]))
-  def test_configure_default_hdp22(self, call_mocks):
+  @patch("os.path.isfile")
+  def test_configure_default_hdp22(self, isfile_mock, call_mocks):
+    # Mock call when checking if need to copy oozie ext-2.2.zip file
+    isfile_mock.side_effect = [True, False]
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     config_file = "stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
