@@ -45,6 +45,8 @@ import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -973,6 +975,14 @@ public interface AmbariManagementController {
    * @return List of packlets
    */
   ArrayList<Packlet> getPacklets(Long mpackId);
+
+  /***
+   * Remove Mpack from the mpackMap and stackMap which is used to power the Mpack and Stack APIs.
+   * @param mpackEntity
+   * @param stackEntity
+   * @throws IOException
+   */
+  void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException;
 
 }
 

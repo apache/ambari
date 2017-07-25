@@ -64,6 +64,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
     this.managementController = managementController;
   }
 
+
+
   public static void init(ResourceProviderFactory factory) {
     resourceProviderFactory = factory;
   }

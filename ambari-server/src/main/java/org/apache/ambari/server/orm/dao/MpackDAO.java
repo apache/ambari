@@ -95,5 +95,9 @@ public class MpackDAO {
     return m_daoUtils.selectList(query);
   }
 
+  @Transactional
+  public void removeById(Long mpackId) {
+    m_entityManagerProvider.get().remove(findById(mpackId));
+  }
 
 }

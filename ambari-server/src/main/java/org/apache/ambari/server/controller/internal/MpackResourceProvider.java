@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -106,7 +107,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   }
 
   MpackResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.Mpack, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override
@@ -187,8 +188,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(REGISTRY_ID, entity.getRegistryId());
         results.add(resource);
       }
-    } //Fetch a particular mpack based on id
-    else {
+    } else {
+      // Fetch a particular mpack based on id
       Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
       if (propertyMap.containsKey(STACK_NAME_PROPERTY_ID) && propertyMap.containsKey(STACK_VERSION_PROPERTY_ID)) {
         String stackName = (String) propertyMap.get(STACK_NAME_PROPERTY_ID);
@@ -235,6 +236,60 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       }
     }
     return results;
+  }
+
+  @Override
+  protected RequestStatus deleteResourcesAuthorized(final Request request, Predicate predicate)
+          throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Long mpackId;
+    Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
+    DeleteStatusMetaData deleteStatusMetaData = null;
+
+    //Allow deleting mpack only if there are no cluster services deploying using this mpack. Support deleting mpacks only if no cluster has been deployed
+    // (i.e. you should be able to delete an mpack during install wizard only).
+    //Todo : Relax the rule
+    if (getManagementController().getClusters().getClusters().size() > 0) {
+      throw new SystemException("Delete request cannot be completed since there is a cluster deployed");
+    } else {
+      if (propertyMap.containsKey(MPACK_ID)) {
+        Object objMpackId = propertyMap.get(MPACK_ID);
+        if (objMpackId != null) {
+          mpackId = Long.valueOf((String) objMpackId);
+          LOG.info("Deleting Mpack, id = " + mpackId.toString());
+
+          MpackEntity mpackEntity = mpackDAO.findById(mpackId);
+          StackEntity stackEntity = stackDAO.findByMpack(mpackId);
+          try {
+            getManagementController().removeMpack(mpackEntity, stackEntity);
+            if (mpackEntity != null) {
+              deleteStatusMetaData = modifyResources(new Command<DeleteStatusMetaData>() {
+                @Override
+                public DeleteStatusMetaData invoke() throws AmbariException {
+                  if (stackEntity != null) {
+                    stackDAO.removeByMpack(mpackId);
+                    notifyDelete(Resource.Type.Stack, predicate);
+                  }
+                  mpackDAO.removeById(mpackId);
+
+                  return new DeleteStatusMetaData();
+                }
+              });
+              notifyDelete(Resource.Type.Mpack, predicate);
+              deleteStatusMetaData.addDeletedKey(mpackId.toString());
+            } else {
+              throw new NoSuchResourceException("The requested resource doesn't exist: " + predicate);
+            }
+          } catch (IOException e) {
+            throw new SystemException("There is an issue with the Files");
+          }
+        }
+      } else {
+        throw new UnsupportedPropertyException(Resource.Type.Mpack, null);
+      }
+
+      return getRequestStatus(null, null, deleteStatusMetaData);
+    }
   }
 
 }

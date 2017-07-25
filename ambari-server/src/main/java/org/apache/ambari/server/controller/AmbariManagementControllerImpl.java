@@ -159,9 +159,11 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -591,7 +593,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     createHostComponents(requests, false);
   }
 
-  public MpackResponse registerMpack(MpackRequest request) throws IOException, AuthorizationException, ResourceAlreadyExistsException{
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MpackResponse registerMpack(MpackRequest request)
+    throws IOException, AuthorizationException, ResourceAlreadyExistsException{
     MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
     updateStacks();
     return mpackResponse;
@@ -3803,6 +3810,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       LOG.debug("Received a delete member request, {}", request);
       users.removeMemberFromGroup(request.getGroupName(), request.getUserName());
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException{
+
+    ambariMetaInfo.removeMpack(mpackEntity, stackEntity);
   }
 
   /**

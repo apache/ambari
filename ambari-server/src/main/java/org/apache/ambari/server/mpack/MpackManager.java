@@ -32,6 +32,7 @@ import org.apache.ambari.server.state.Packlet;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -328,8 +329,8 @@ public class MpackManager {
       MpackEntity mpackEntity = new MpackEntity();
       mpackEntity.setMpackName(mpackName);
       mpackEntity.setMpackVersion(mpackVersion);
-      mpackEntity.setMpackUri(mpacks.getMpacksUri());
-
+      mpackEntity.setMpackUri(mpack.getMpacksUri());
+      mpackEntity.setRegistryId(mpack.getRegistryId());
       Long mpackId = mpackDAO.create(mpackEntity);
       return mpackId;
     }
@@ -374,5 +375,45 @@ public class MpackManager {
     if (mpack.getPacklets() != null)
       return mpack.getPacklets();
     return null;
+  }
+
+  /***
+   * Remove the mpack and stack directories when a request comes in to delete a particular mpack.
+   * @param mpackEntity
+   * @throws IOException
+   */
+  public boolean removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException {
+
+    boolean stackDelete = false;
+    File mpackDirToDelete = new File(mpackStaging + File.separator + mpackEntity.getMpackName() + File.separator + mpackEntity.getMpackVersion());
+    File mpackDirectory = new File(mpackStaging + "/" + mpackEntity.getMpackName());
+    String mpackName = mpackEntity.getMpackName() + "-" + mpackEntity.getMpackVersion() + ".tar.gz";
+    Path mpackTarFile = Paths.get(mpackStaging + File.separator + MPACK_TAR_LOCATION +File.separator + mpackName);
+
+    mpackMap.remove(mpackEntity.getMpackId());
+    FileUtils.deleteDirectory(mpackDirToDelete);
+
+    if (mpackDirectory.isDirectory()) {
+      if (mpackDirectory.list().length == 0) {
+        Files.delete(mpackDirectory.toPath());
+      }
+    }
+    if (stackEntity != null) {
+      Path stackPath = Paths.get(stackRoot + "/" + stackEntity.getStackName() + "/" + stackEntity.getStackVersion());
+      File stackDirectory = new File(stackRoot + "/" + stackEntity.getStackName());
+      if (!Files.exists(stackPath))
+        Files.delete(stackPath);
+      if (stackDirectory.isDirectory()) {
+        if (stackDirectory.list().length == 0) {
+          Files.delete(stackDirectory.toPath());
+        }
+      }
+      stackDelete = true;
+    }
+
+    if (Files.exists(mpackTarFile)){
+      Files.delete(mpackTarFile);
+    }
+    return stackDelete;
   }
 }
