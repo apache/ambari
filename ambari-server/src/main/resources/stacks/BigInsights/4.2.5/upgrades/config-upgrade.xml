@@ -81,6 +81,17 @@
       </component>
     </service>
     
+    <service name="PIG">
+      <component name="PIG">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_pig_exectype_change" summary="Update Pig configurations">
+            <type>pig-properties</type>
+            <replace key="content" find="exectype=tez" replace-with="exectype=mapreduce"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <changes>

@@ -239,6 +239,11 @@
         <task xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" />
       </execute-stage>
       
+      <!-- PIG -->
+      <execute-stage service="PIG" component="PIG" title="Apply config changes for Pig">
+        <task xsi:type="configure" id="biginsights_4_2_pig_exectype_change" />
+      </execute-stage>
+
       <!-- HBASE -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase">
         <task xsi:type="configure" id="biginsights_4_2_hbase_env_config" />
