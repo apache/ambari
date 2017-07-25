@@ -18,6 +18,20 @@
 
 <upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
   <services>
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <changes>
+          <!-- BigInsights used to have security.inter.broker.protocol=SASL_PLAINTEXT but the preferred value in HDP 2.6
+          is PLAINTEXTSASL and set also set listeners to use the same value, only when the cluster is kerberized. -->
+          <definition xsi:type="configure" id="hdp_2_6_fix_kafka_protocol">
+            <type>kafka-broker</type>
+            <set key="security.inter.broker.protocol" value="PLAINTEXTSASL"/>
+            <replace key="listeners" find="SASL_PLAINTEXT" replace-with="PLAINTEXTSASL"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="HDFS">
       <component name="NAMENODE">
         <changes>

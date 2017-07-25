@@ -190,6 +190,16 @@
       <skippable>true</skippable>       <!-- May fix configuration problems manually -->
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
+      <!-- KAFKA -->
+      <!-- BigInsights used to have security.inter.broker.protocol=SASL_PLAINTEXT but the preferred value in HDP 2.6
+      is PLAINTEXTSASL and set also set listeners to use the same value, only when the cluster is kerberized. -->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply Kerberos config changes for Kafka">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="configure" id="hdp_2_6_fix_kafka_protocol">
+          <summary>Apply Kerberos config changes for Kafka</summary>
+        </task>
+      </execute-stage>
+
       <!-- HDFS -->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hadoop NameNode">
         <task xsi:type="configure" id="biginsights_4_2_namenode_update_hadoop_env" />
