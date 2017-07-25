@@ -114,13 +114,14 @@ class AmbariStompConnection(WsConnection):
   def send(self, destination, message, content_type=None, headers=None, **keyword_headers):
     with self.lock:
       self.correlation_id += 1
+      correlation_id = self.correlation_id
 
-    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, self.correlation_id, message))
+    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, correlation_id, message))
 
     body = json.dumps(message)
-    WsConnection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)
+    WsConnection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=correlation_id, **keyword_headers)
 
-    return self.correlation_id
+    return correlation_id
 
   def add_listener(self, listener):
     self.set_listener(listener.__class__.__name__, listener)
