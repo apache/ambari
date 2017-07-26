@@ -64,9 +64,6 @@ class WebHCatServerWindows(WebHCatServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class WebHCatServerDefault(WebHCatServer):
-  def get_component_name(self):
-    return "hive-webhcat"
-
   def status(self, env):
     import status_params
     env.set_params(status_params)
@@ -81,7 +78,7 @@ class WebHCatServerDefault(WebHCatServer):
       # webhcat has no conf, but uses hadoop home, so verify that regular hadoop conf is set
       conf_select.select(params.stack_name, "hive-hcatalog", params.version)
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hive-webhcat", params.version)
+      stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

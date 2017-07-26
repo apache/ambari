@@ -27,6 +27,8 @@ class TestTezClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "TEZ/0.4.0.2.1/package"
   STACK_VERSION = "2.1"
 
+  CONFIG_OVERRIDES = {"serviceName":"TEZ", "role":"TEZ_CLIENT"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
@@ -70,6 +72,7 @@ class TestTezClient(RMFTestCase):
                        classname = "TezClient",
                        command = "restart",
                        config_file="client-upgrade.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -84,6 +87,7 @@ class TestTezClient(RMFTestCase):
                        classname = "TezClient",
                        command = "restart",
                        config_file="client-upgrade.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 

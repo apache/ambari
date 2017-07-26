@@ -34,7 +34,7 @@ class DataNode(Script):
     Get the name or path to the hdfs binary depending on the stack and version.
     """
     import params
-    stack_to_comp = self.get_component_name()
+    stack_to_comp = stack_select.get_package_name()
     if params.stack_name in stack_to_comp:
       return get_hdfs_binary(stack_to_comp[params.stack_name])
     return "hdfs"
@@ -74,16 +74,13 @@ class DataNode(Script):
     env.set_params(status_params)
     check_process_status(status_params.datanode_pid_file)
 
-  def get_component_name(self):
-    return "hadoop-hdfs-datanode"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing DataNode Stack Upgrade pre-restart")
     import params
     env.set_params(params)
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-datanode", params.version)
+      stack_select.select_packages(params.version)
       #Execute(format("iop-select set hadoop-hdfs-datanode {version}"))
 
 

@@ -42,9 +42,6 @@ from oozie_service import oozie_service
 
 class OozieServer(Script):
 
-  def get_component_name(self):
-    return "oozie-server"
-
   def install(self, env):
     self.install_packages(env)
 
@@ -61,9 +58,8 @@ class OozieServer(Script):
       # This is required as both need to be pointing to new installed oozie version.
 
       # Sets the symlink : eg: /usr/hdp/current/oozie-client -> /usr/hdp/2.3.x.y-<version>/oozie
-      stack_select.select("oozie-client", params.version)
       # Sets the symlink : eg: /usr/hdp/current/oozie-server -> /usr/hdp/2.3.x.y-<version>/oozie
-      stack_select.select("oozie-server", params.version)
+      stack_select.select_packages(params.version)
 
     env.set_params(params)
     oozie(is_server=True)
@@ -181,7 +177,7 @@ class OozieServer(Script):
     oozie_server_upgrade.backup_configuration()
 
     conf_select.select(params.stack_name, "oozie", params.version)
-    stack_select.select("oozie-server", params.version)
+    stack_select.select_packages(params.version)
     #Execute(format("stack-select set oozie-server {version}"))
 
     oozie_server_upgrade.restore_configuration()

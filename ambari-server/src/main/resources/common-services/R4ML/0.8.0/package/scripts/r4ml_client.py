@@ -34,9 +34,6 @@ class R4MLClient(Script):
     import params
     env.set_params(params)
 
-  def get_component_name(self):
-    return "r4ml-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
@@ -44,7 +41,7 @@ class R4MLClient(Script):
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing R4ML Client Stack Upgrade pre-restart")
       conf_select.select(params.stack_name, "r4ml", params.version)
-      stack_select.select("r4ml-client", params.version)
+      stack_select.select_packages(params.version)
 
   def stack_upgrade_save_new_config(self, env):
     import params

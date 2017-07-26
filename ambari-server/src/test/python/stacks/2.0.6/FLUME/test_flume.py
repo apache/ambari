@@ -27,7 +27,9 @@ import os
 class TestFlumeHandler(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "FLUME/1.4.0.2.0/package"
   STACK_VERSION = "2.0.6"
-  
+
+  CONFIG_OVERRIDES = {"serviceName":"FLUME", "role":"FLUME_HANDLER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/flume_handler.py",
                        classname = "FlumeHandler",
@@ -560,6 +562,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "pre_upgrade_restart",
                        config_file="flume_22.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 

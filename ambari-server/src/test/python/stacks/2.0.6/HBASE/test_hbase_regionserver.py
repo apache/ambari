@@ -30,6 +30,8 @@ class TestHbaseRegionServer(RMFTestCase):
   STACK_VERSION = "2.0.6"
   TMP_PATH = '/hadoop'
 
+  CONFIG_OVERRIDES = {"serviceName":"HBASE", "role":"HBASE_REGIONSERVER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
@@ -540,6 +542,7 @@ class TestHbaseRegionServer(RMFTestCase):
                        classname = "HbaseRegionServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -580,6 +583,7 @@ class TestHbaseRegionServer(RMFTestCase):
                        classname = "HbaseRegionServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None), (0, None), (0, None)],

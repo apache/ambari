@@ -52,20 +52,16 @@ class HbaseClientWindows(HbaseClient):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseClientDefault(HbaseClient):
-  def get_component_name(self):
-    return "hbase-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
       conf_select.select(params.stack_name, "hbase", params.version)
-      stack_select.select("hbase-client", params.version)
 
       # phoenix may not always be deployed
       try:
-        stack_select.select("phoenix-client", params.version)
+        stack_select.select_packages(params.version)
       except Exception as e:
         print "Ignoring error due to missing phoenix-client"
         print str(e)
@@ -75,7 +71,6 @@ class HbaseClientDefault(HbaseClient):
       # of the final "CLIENTS" group and we need to ensure that hadoop-client
       # is also set
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-client", params.version)
 
 
 if __name__ == "__main__":

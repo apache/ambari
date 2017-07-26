@@ -27,6 +27,8 @@ from test_storm_base import TestStormBase
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, '123', '')))
 class TestStormDrpcServer(TestStormBase):
 
+  CONFIG_OVERRIDES = {"serviceName":"STORM", "role":"DRPC_SERVER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
                        classname = "DrpcServer",
@@ -144,6 +146,7 @@ class TestStormDrpcServer(TestStormBase):
                      classname = "DrpcServer",
                      command = "pre_upgrade_restart",
                      config_file="default.json",
+                     config_overrides = self.CONFIG_OVERRIDES,
                      stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -161,6 +164,7 @@ class TestStormDrpcServer(TestStormBase):
                      classname = "DrpcServer",
                      command = "pre_upgrade_restart",
                      config_dict = json_content,
+                     config_overrides = self.CONFIG_OVERRIDES,
                      stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,
                      call_mocks = [(0, None, ''), (0, None)],

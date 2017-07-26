@@ -38,9 +38,6 @@ class FalconClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FalconClientLinux(FalconClient):
-  def get_component_name(self):
-    return "falcon-client"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -57,7 +54,7 @@ class FalconClientLinux(FalconClient):
 
     Logger.info("Executing Falcon Client Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
-    stack_select.select("falcon-client", params.version)
+    stack_select.select_packages(params.version)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FalconClientWindows(FalconClient):

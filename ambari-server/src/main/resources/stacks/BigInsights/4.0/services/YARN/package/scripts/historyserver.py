@@ -41,9 +41,6 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 class HistoryServer(Script):
 
-  def get_component_name(self):
-    return "hadoop-mapreduce-historyserver"
-
   def install(self, env):
     self.install_packages(env)
 
@@ -59,7 +56,7 @@ class HistoryServer(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-mapreduce-historyserver", params.version)
+      stack_select.select_packages(params.version)
       # MC Hammer said, "Can't touch this"
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
       copy_to_hdfs("slider", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)

@@ -43,10 +43,6 @@ from knox_ldap import ldap
 
 class KnoxGateway(Script):
 
-
-  def get_component_name(self):
-    return "knox-server"
-
   def install(self, env):
     self.install_packages(env)
     import params
@@ -115,7 +111,7 @@ class KnoxGateway(Script):
 
       # conf-select will change the symlink to the conf folder.
       conf_select.select(params.stack_name, "knox", params.version)
-      stack_select.select("knox-server", params.version)
+      stack_select.select_packages(params.version)
 
       # Extract the tar of the old conf folder into the new conf directory
       if absolute_backup_dir is not None and params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:

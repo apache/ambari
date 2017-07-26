@@ -32,6 +32,8 @@ class TestPhoenixQueryServer(RMFTestCase):
   STACK_VERSION = "2.3"
   TMP_PATH = "/hadoop"
 
+  CONFIG_OVERRIDES = {"serviceName":"HBASE", "role":"PHOENIX_QUERY_SERVER"}
+
   def test_configure_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -432,6 +434,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0", ''), (0, None, None), (0, None, None)],
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)

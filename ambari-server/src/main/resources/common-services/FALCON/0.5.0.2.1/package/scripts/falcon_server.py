@@ -60,9 +60,6 @@ class FalconServer(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FalconServerLinux(FalconServer):
-  def get_component_name(self):
-    return "falcon-server"
-
   def install(self, env):
     import params
     self.install_packages(env)
@@ -85,7 +82,7 @@ class FalconServerLinux(FalconServer):
 
     Logger.info("Executing Falcon Server Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
-    stack_select.select("falcon-server", params.version)
+    stack_select.select_packages(params.version)
 
     falcon_server_upgrade.pre_start_restore()
 

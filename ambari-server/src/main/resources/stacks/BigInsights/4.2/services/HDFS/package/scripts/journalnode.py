@@ -34,9 +34,6 @@ import journalnode_upgrade
 
 class JournalNode(Script):
 
-  def get_component_name(self):
-    return "hadoop-hdfs-journalnode"
-
   def install(self, env):
     import params
 
@@ -50,7 +47,7 @@ class JournalNode(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-journalnode", params.version)
+      stack_select.select_packages(params.version)
       #Execute(format("iop-select set hadoop-hdfs-journalnode {version}"))
 
   def start(self, env, upgrade_type=None):

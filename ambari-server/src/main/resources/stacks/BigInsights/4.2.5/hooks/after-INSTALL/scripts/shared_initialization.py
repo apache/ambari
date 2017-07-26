@@ -43,10 +43,21 @@ def setup_stack_symlinks():
     # which would only be during an intial cluster installation
     version = params.current_version if params.current_version is not None else params.stack_version_unformatted
 
-    if not params.upgrade_suspended:
-      # On parallel command execution this should be executed by a single process at a time.
-      with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-        stack_select.select_all(version)
+    if params.upgrade_suspended:
+      Logger.warning(
+        "Skipping running stack-selector-tool for stack {0} because there is a suspended upgrade")
+      return
+
+    # get the packages which the stack-select tool should be used on
+    stack_select_packages = stack_select.get_packages(stack_select.PACKAGE_SCOPE_INSTALL)
+    if stack_select_packages is None:
+      return
+
+    # On parallel command execution this should be executed by a single process at a time.
+    with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+      for package in stack_select_packages:
+        stack_select.select(package, version)
+
 
 def setup_config():
   import params

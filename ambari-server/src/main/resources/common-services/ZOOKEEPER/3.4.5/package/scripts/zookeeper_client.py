@@ -55,8 +55,6 @@ class ZookeeperClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperClientLinux(ZookeeperClient):
-  def get_component_name(self):
-    return "zookeeper-client"
 
   def install(self, env):
     self.install_packages(env)
@@ -69,7 +67,7 @@ class ZookeeperClientLinux(ZookeeperClient):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
       conf_select.select(params.stack_name, "zookeeper", params.version)
-      stack_select.select("zookeeper-client", params.version)
+      stack_select.select_packages(params.version)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ZookeeperClientWindows(ZookeeperClient):

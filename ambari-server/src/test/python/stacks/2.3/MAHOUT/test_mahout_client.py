@@ -29,6 +29,8 @@ class TestMahoutClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "MAHOUT/1.0.0.2.3/package"
   STACK_VERSION = "2.3"
 
+  CONFIG_OVERRIDES = {"serviceName":"MAHOUT", "role":"MAHOUT"}
+
   def test_configure_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
@@ -73,6 +75,7 @@ class TestMahoutClient(RMFTestCase):
       classname = "MahoutClient",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -98,6 +101,7 @@ class TestMahoutClient(RMFTestCase):
       classname = "MahoutClient",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = itertools.cycle([(0, None, '')]),

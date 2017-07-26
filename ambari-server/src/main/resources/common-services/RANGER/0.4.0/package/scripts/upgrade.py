@@ -28,4 +28,4 @@ def prestart(env, stack_component):
 
   if params.version and params.stack_supports_rolling_upgrade:
     conf_select.select(params.stack_name, stack_component, params.version)
-    stack_select.select(stack_component, params.version)
+    stack_select.select_packages(params.version)

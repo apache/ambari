@@ -1,0 +1,775 @@
+{
+  "BigInsights": {
+    "stack-select": {
+      "ATLAS": {
+        "ATLAS_CLIENT": {
+          "STACK-SELECT-PACKAGE": "atlas-client",
+          "INSTALL": [
+            "atlas-client"
+          ],
+          "PATCH": [
+            "atlas-client"
+          ],
+          "STANDARD": [
+            "atlas-client"
+          ]
+        },
+        "ATLAS_SERVER": {
+          "STACK-SELECT-PACKAGE": "atlas-server",
+          "INSTALL": [
+            "atlas-server"
+          ],
+          "PATCH": [
+            "atlas-server"
+          ],
+          "STANDARD": [
+            "atlas-server"
+          ]
+        }
+      },
+      "FLUME": {
+        "FLUME_HANDLER": {
+          "STACK-SELECT-PACKAGE": "flume-server",
+          "INSTALL": [
+            "flume-server"
+          ],
+          "PATCH": [
+            "flume-server"
+          ],
+          "STANDARD": [
+            "flume-server"
+          ]
+        }
+      },
+      "HBASE": {
+        "HBASE_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hbase-client",
+          "INSTALL": [
+            "hbase-client",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hbase-client"
+          ],
+          "STANDARD": [
+            "hbase-client",
+            "hadoop-client"
+          ]
+        },
+        "HBASE_MASTER": {
+          "STACK-SELECT-PACKAGE": "hbase-master",
+          "INSTALL": [
+            "hbase-master"
+          ],
+          "PATCH": [
+            "hbase-master"
+          ],
+          "STANDARD": [
+            "hbase-master"
+          ]
+        },
+        "HBASE_REGIONSERVER": {
+          "STACK-SELECT-PACKAGE": "hbase-regionserver",
+          "INSTALL": [
+            "hbase-regionserver"
+          ],
+          "PATCH": [
+            "hbase-regionserver"
+          ],
+          "STANDARD": [
+            "hbase-regionserver"
+          ]
+        },
+        "HBASE_REST_SERVER": {
+          "STACK-SELECT-PACKAGE": "hbase-restserver",
+          "INSTALL": [
+            "hbase-restserver"
+          ],
+          "PATCH": [
+            "hbase-restserver"
+          ],
+          "STANDARD": [
+            "hbase-restserver"
+          ]
+        },
+
+        "PHOENIX_QUERY_SERVER": {
+          "STACK-SELECT-PACKAGE": "phoenix-server",
+          "INSTALL": [
+            "phoenix-server"
+          ],
+          "PATCH": [
+            "phoenix-server"
+          ],
+          "STANDARD": [
+            "phoenix-server"
+          ]
+        }
+      },
+      "HDFS": {
+        "DATANODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-datanode",
+          "INSTALL": [
+            "hadoop-hdfs-datanode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-datanode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-datanode"
+          ]
+        },
+        "HDFS_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "INSTALL": [
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        },
+        "NAMENODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-namenode",
+          "INSTALL": [
+            "hadoop-hdfs-namenode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-namenode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-namenode"
+          ]
+        },
+        "NFS_GATEWAY": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-nfs3",
+          "INSTALL": [
+            "hadoop-hdfs-nfs3"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-nfs3"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-nfs3"
+          ]
+        },
+        "JOURNALNODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-journalnode",
+          "INSTALL": [
+            "hadoop-hdfs-journalnode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-journalnode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-journalnode"
+          ]
+        },
+        "SECONDARY_NAMENODE": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-secondarynamenode",
+          "INSTALL": [
+            "hadoop-hdfs-secondarynamenode"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-secondarynamenode"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-secondarynamenode"
+          ]
+        },
+        "ZKFC": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-zkfc",
+          "INSTALL": [
+            "hadoop-hdfs-zkfc"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-zkfc"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-zkfc"
+          ]
+        }
+      },
+      "HIVE": {
+        "HCAT": {
+          "STACK-SELECT-PACKAGE": "hive-webhcat",
+          "INSTALL": [
+            "hive-webhcat"
+          ],
+          "PATCH": [
+            "hive-webhcat"
+          ],
+          "STANDARD": [
+            "hive-webhcat"
+          ]
+        },
+        "HIVE_METASTORE": {
+          "STACK-SELECT-PACKAGE": "hive-metastore",
+          "INSTALL": [
+            "hive-metastore"
+          ],
+          "PATCH": [
+            "hive-metastore"
+          ],
+          "STANDARD": [
+            "hive-metastore"
+          ]
+        },
+        "HIVE_SERVER": {
+          "STACK-SELECT-PACKAGE": "hive-server2",
+          "INSTALL": [
+            "hive-server2"
+          ],
+          "PATCH": [
+            "hive-server2"
+          ],
+          "STANDARD": [
+            "hive-server2"
+          ]
+        },
+        "HIVE_SERVER_INTERACTIVE": {
+          "STACK-SELECT-PACKAGE": "hive-server2-hive2",
+          "INSTALL": [
+            "hive-server2-hive2"
+          ],
+          "PATCH": [
+            "hive-server2-hive2"
+          ],
+          "STANDARD": [
+            "hive-server2-hive2"
+          ]
+        },
+        "HIVE_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "INSTALL": [
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        },
+        "WEBHCAT_SERVER": {
+          "STACK-SELECT-PACKAGE": "hive-webhcat",
+          "INSTALL": [
+            "hive-webhcat"
+          ],
+          "PATCH": [
+            "hive-webhcat"
+          ],
+          "STANDARD": [
+            "hive-webhcat"
+          ]
+        }
+      },
+      "KAFKA": {
+        "KAFKA_BROKER": {
+          "STACK-SELECT-PACKAGE": "kafka-broker",
+          "INSTALL": [
+            "kafka-broker"
+          ],
+          "PATCH": [
+            "kafka-broker"
+          ],
+          "STANDARD": [
+            "kafka-broker"
+          ]
+        }
+      },
+      "KNOX": {
+        "KNOX_GATEWAY": {
+          "STACK-SELECT-PACKAGE": "knox-server",
+          "INSTALL": [
+            "knox-server"
+          ],
+          "PATCH": [
+            "knox-server"
+          ],
+          "STANDARD": [
+            "knox-server"
+          ]
+        }
+      },
+      "MAPREDUCE2": {
+        "HISTORYSERVER": {
+          "STACK-SELECT-PACKAGE": "hadoop-mapreduce-historyserver",
+          "INSTALL": [
+            "hadoop-mapreduce-historyserver"
+          ],
+          "PATCH": [
+            "hadoop-mapreduce-historyserver"
+          ],
+          "STANDARD": [
+            "hadoop-mapreduce-historyserver"
+          ]
+        },
+        "MAPREDUCE2_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "INSTALL": [
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        }
+      },
+      "OOZIE": {
+        "OOZIE_CLIENT": {
+          "STACK-SELECT-PACKAGE": "oozie-client",
+          "INSTALL": [
+            "oozie-client"
+          ],
+          "PATCH": [
+            "oozie-client"
+          ],
+          "STANDARD": [
+            "oozie-client"
+          ]
+        },
+        "OOZIE_SERVER": {
+          "STACK-SELECT-PACKAGE": "oozie-server",
+          "INSTALL": [
+            "oozie-client",
+            "oozie-server"
+          ],
+          "PATCH": [
+            "oozie-server"
+          ],
+          "STANDARD": [
+            "oozie-client",
+            "oozie-server"
+          ]
+        }
+      },
+      "PIG": {
+        "PIG": {
+          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "INSTALL": [
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        }
+      },
+      "R4ML": {
+        "R4ML": {
+          "STACK-SELECT-PACKAGE": "r4ml-client",
+          "INSTALL": [
+            "r4ml-client"
+          ],
+          "PATCH": [
+            "r4ml-client"
+          ],
+          "STANDARD": [
+            "r4ml-client"
+          ]
+        }
+      },
+      "RANGER": {
+        "RANGER_ADMIN": {
+          "STACK-SELECT-PACKAGE": "ranger-admin",
+          "INSTALL": [
+            "ranger-admin"
+          ],
+          "PATCH": [
+            "ranger-admin"
+          ],
+          "STANDARD": [
+            "ranger-admin"
+          ]
+        },
+        "RANGER_TAGSYNC": {
+          "STACK-SELECT-PACKAGE": "ranger-tagsync",
+          "INSTALL": [
+            "ranger-tagsync"
+          ],
+          "PATCH": [
+            "ranger-tagsync"
+          ],
+          "STANDARD": [
+            "ranger-tagsync"
+          ]
+        },
+        "RANGER_USERSYNC": {
+          "STACK-SELECT-PACKAGE": "ranger-usersync",
+          "INSTALL": [
+            "ranger-usersync"
+          ],
+          "PATCH": [
+            "ranger-usersync"
+          ],
+          "STANDARD": [
+            "ranger-usersync"
+          ]
+        }
+      },
+      "RANGER_KMS": {
+        "RANGER_KMS_SERVER": {
+          "STACK-SELECT-PACKAGE": "ranger-kms",
+          "INSTALL": [
+            "ranger-kms"
+          ],
+          "PATCH": [
+            "ranger-kms"
+          ],
+          "STANDARD": [
+            "ranger-kms"
+          ]
+        }
+      },
+      "SLIDER": {
+        "SLIDER": {
+          "STACK-SELECT-PACKAGE": "slider-client",
+          "INSTALL": [
+            "slider-client",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "slider-client"
+          ],
+          "STANDARD": [
+            "slider-client",
+            "hadoop-client"
+          ]
+        }
+      },
+      "SOLR": {
+        "SOLR": {
+          "STACK-SELECT-PACKAGE": "solr-server",
+          "INSTALL": [
+            "solr-server"
+          ],
+          "PATCH": [
+            "solr-server"
+          ],
+          "STANDARD": [
+            "solr-server"
+          ]
+        }
+      },
+      "SPARK": {
+        "LIVY_SERVER": {
+          "STACK-SELECT-PACKAGE": "livy-server",
+          "INSTALL": [
+            "livy-server"
+          ],
+          "PATCH": [
+            "livy-server"
+          ],
+          "STANDARD": [
+            "livy-server"
+          ]
+        },
+        "SPARK_CLIENT": {
+          "STACK-SELECT-PACKAGE": "spark-client",
+          "INSTALL": [
+            "spark-client"
+          ],
+          "PATCH": [
+            "spark-client"
+          ],
+          "STANDARD": [
+            "spark-client"
+          ]
+        },
+        "SPARK_JOBHISTORYSERVER": {
+          "STACK-SELECT-PACKAGE": "spark-historyserver",
+          "INSTALL": [
+            "spark-historyserver"
+          ],
+          "PATCH": [
+            "spark-historyserver"
+          ],
+          "STANDARD": [
+            "spark-historyserver"
+          ]
+        },
+        "SPARK_THRIFTSERVER": {
+          "STACK-SELECT-PACKAGE": "spark-thriftserver",
+          "INSTALL": [
+            "spark-thriftserver"
+          ],
+          "PATCH": [
+            "spark-thriftserver"
+          ],
+          "STANDARD": [
+            "spark-thriftserver"
+          ]
+        }
+      },
+      "SPARK2": {
+        "LIVY2_SERVER": {
+          "STACK-SELECT-PACKAGE": "livy2-server",
+          "INSTALL": [
+            "livy2-server"
+          ],
+          "PATCH": [
+            "livy2-server"
+          ],
+          "STANDARD": [
+            "livy2-server"
+          ]
+        },
+        "SPARK2_CLIENT": {
+          "STACK-SELECT-PACKAGE": "spark2-client",
+          "INSTALL": [
+            "spark2-client"
+          ],
+          "PATCH": [
+            "spark2-client"
+          ],
+          "STANDARD": [
+            "spark2-client"
+          ]
+        },
+        "SPARK2_JOBHISTORYSERVER": {
+          "STACK-SELECT-PACKAGE": "spark2-historyserver",
+          "INSTALL": [
+            "spark2-historyserver"
+          ],
+          "PATCH": [
+            "spark2-historyserver"
+          ],
+          "STANDARD": [
+            "spark2-historyserver"
+          ]
+        },
+        "SPARK2_THRIFTSERVER": {
+          "STACK-SELECT-PACKAGE": "spark2-thriftserver",
+          "INSTALL": [
+            "spark2-thriftserver"
+          ],
+          "PATCH": [
+            "spark2-thriftserver"
+          ],
+          "STANDARD": [
+            "spark2-thriftserver"
+          ]
+        }
+      },
+      "SQOOP": {
+        "SQOOP": {
+          "STACK-SELECT-PACKAGE": "sqoop-client",
+          "INSTALL": [
+            "sqoop-client"
+          ],
+          "PATCH": [
+            "sqoop-client"
+          ],
+          "STANDARD": [
+            "sqoop-client"
+          ]
+        }
+      },
+      "STORM": {
+        "NIMBUS": {
+          "STACK-SELECT-PACKAGE": "storm-nimbus",
+          "INSTALL": [
+            "storm-client",
+            "storm-nimbus"
+          ],
+          "PATCH": [
+            "storm-client",
+            "storm-nimbus"
+          ],
+          "STANDARD": [
+            "storm-client",
+            "storm-nimbus"
+          ]
+        },
+        "SUPERVISOR": {
+          "STACK-SELECT-PACKAGE": "storm-supervisor",
+          "INSTALL": [
+            "storm-supervisor"
+          ],
+          "PATCH": [
+            "storm-supervisor"
+          ],
+          "STANDARD": [
+            "storm-client",
+            "storm-supervisor"
+          ]
+        },
+        "DRPC_SERVER": {
+          "STACK-SELECT-PACKAGE": "storm-client",
+          "INSTALL": [
+            "storm-client"
+          ],
+          "PATCH": [
+            "storm-client"
+          ],
+          "STANDARD": [
+            "storm-client"
+          ]
+        },
+        "STORM_UI_SERVER": {
+          "STACK-SELECT-PACKAGE": "storm-client",
+          "INSTALL": [
+            "storm-client"
+          ],
+          "PATCH": [
+            "storm-client"
+          ],
+          "STANDARD": [
+            "storm-client"
+          ]
+        }
+      },
+      "SYSTEMML": {
+        "SYSTEMML": {
+          "STACK-SELECT-PACKAGE": "systemml-client",
+          "INSTALL": [
+            "systemml-client"
+          ],
+          "PATCH": [
+            "systemml-client"
+          ],
+          "STANDARD": [
+            "systemml-client"
+          ]
+        }
+      },
+      "TEZ": {
+        "TEZ_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "INSTALL": [
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        }
+      },
+      "TITAN": {
+        "TITAN_CLIENT": {
+          "STACK-SELECT-PACKAGE": "titan-client",
+          "INSTALL": [
+            "titan-client"
+          ],
+          "PATCH": [
+            "titan-client"
+          ],
+          "STANDARD": [
+            "titan-client"
+          ]
+        },
+        "TITAN_SERVER": {
+          "STACK-SELECT-PACKAGE": "titan-server",
+          "INSTALL": [
+            "titan-server"
+          ],
+          "PATCH": [
+            "titan-server"
+          ],
+          "STANDARD": [
+            "titan-server"
+          ]
+        }
+      },
+      "YARN": {
+        "APP_TIMELINE_SERVER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-timelineserver",
+          "INSTALL": [
+            "hadoop-yarn-timelineserver"
+          ],
+          "PATCH": [
+            "hadoop-yarn-timelineserver"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-timelineserver"
+          ]
+        },
+        "NODEMANAGER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-nodemanager",
+          "INSTALL": [
+            "hadoop-yarn-nodemanager"
+          ],
+          "PATCH": [
+            "hadoop-yarn-nodemanager"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-nodemanager"
+          ]
+        },
+        "RESOURCEMANAGER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-resourcemanager",
+          "INSTALL": [
+            "hadoop-yarn-resourcemanager"
+          ],
+          "PATCH": [
+            "hadoop-yarn-resourcemanager"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-resourcemanager"
+          ]
+        },
+        "YARN_CLIENT": {
+          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "INSTALL": [
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-client"
+          ],
+          "STANDARD": [
+            "hadoop-client"
+          ]
+        }
+      },
+      "ZEPPELIN": {
+        "ZEPPELIN_MASTER": {
+          "STACK-SELECT-PACKAGE": "zeppelin-server",
+          "INSTALL": [
+            "zeppelin-server"
+          ],
+          "PATCH": [
+            "zeppelin-server"
+          ],
+          "STANDARD": [
+            "zeppelin-server"
+          ]
+        }
+      },
+      "ZOOKEEPER": {
+        "ZOOKEEPER_CLIENT": {
+          "STACK-SELECT-PACKAGE": "zookeeper-client",
+          "INSTALL": [
+            "zookeeper-client"
+          ],
+          "PATCH": [
+            "zookeeper-client"
+          ],
+          "STANDARD": [
+            "zookeeper-client"
+          ]
+        },
+        "ZOOKEEPER_SERVER": {
+          "STACK-SELECT-PACKAGE": "zookeeper-server",
+          "INSTALL": [
+            "zookeeper-server"
+          ],
+          "PATCH": [
+            "zookeeper-server"
+          ],
+          "STANDARD": [
+            "zookeeper-server"
+          ]
+        }
+      }
+    }
+  }
+}

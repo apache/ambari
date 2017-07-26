@@ -40,9 +40,6 @@ class FlumeHandler(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FlumeHandlerLinux(FlumeHandler):
-  def get_component_name(self):
-    return "flume-server"
-
   def install(self, env):
     import params
     self.install_packages(env)
@@ -90,7 +87,7 @@ class FlumeHandlerLinux(FlumeHandler):
 
     Logger.info("Executing Flume Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "flume", params.version)
-    stack_select.select("flume-server", params.version)
+    stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

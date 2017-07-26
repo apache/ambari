@@ -29,6 +29,8 @@ class TestHBaseClient(RMFTestCase):
   STACK_VERSION = "2.0.6"
   TMP_PATH = '/hadoop'
 
+  CONFIG_OVERRIDES = {"serviceName":"HBASE", "role":"HBASE_CLIENT"}
+
   def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_client.py",
                    classname = "HbaseClient",
@@ -239,6 +241,7 @@ class TestHBaseClient(RMFTestCase):
                        classname = "HbaseClient",
                        command = "restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
@@ -258,7 +261,7 @@ class TestHBaseClient(RMFTestCase):
        mocks_dict['call'].call_args_list[0][0][0])
     self.assertEquals(
       ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[4][0][0])
+       mocks_dict['checked_call'].call_args_list[5][0][0])
     self.assertEquals(
       ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[1][0][0])

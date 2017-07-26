@@ -31,9 +31,6 @@ from hdfs import hdfs
 
 class SNameNode(Script):
 
-  def get_component_name(self):
-    return "hadoop-hdfs-secondarynamenode"
-
   def install(self, env):
     import params
 
@@ -48,7 +45,7 @@ class SNameNode(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-secondarynamenode", params.version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params

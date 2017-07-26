@@ -80,9 +80,9 @@ def run_migration(env, upgrade_type):
       Logger.info("Did not find Kafka acls script: {0}".format(kafka_acls_script))
 
 
-def prestart(env, component):
+def prestart(env):
   import params
 
   if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
     conf_select.select(params.stack_name, "kafka", params.version)
-    stack_select.select(component, params.version)
+    stack_select.select_packages(params.version)

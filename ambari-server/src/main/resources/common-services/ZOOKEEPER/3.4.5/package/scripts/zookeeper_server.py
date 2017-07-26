@@ -64,9 +64,6 @@ class ZookeeperServer(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperServerLinux(ZookeeperServer):
 
-  def get_component_name(self):
-    return "zookeeper-server"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -78,7 +75,7 @@ class ZookeeperServerLinux(ZookeeperServer):
 
     if check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
       conf_select.select(params.stack_name, "zookeeper", params.version)
-      stack_select.select("zookeeper-server", params.version)
+      stack_select.select_packages(params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     # during an express upgrade, there is no quorum, so don't try to perform the check

@@ -27,9 +27,6 @@ from hbase_decommission import hbase_decommission
 import upgrade
 
 class HbaseRestGatewayServer(Script):
-  def get_component_name(self):
-    return "hbase-restserver"
-
   def install(self, env):
     self.install_packages(env)
     
@@ -42,7 +39,7 @@ class HbaseRestGatewayServer(Script):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env, "hbase-restserver")
+    upgrade.prestart(env)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     import params

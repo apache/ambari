@@ -35,9 +35,6 @@ class RangerAdmin(Script):
 
   upgrade_marker_file = '/tmp/rangeradmin_ru.inprogress'
 
-  def get_component_name(self):
-    return "ranger-admin"
-
   def install(self, env):
     self.install_packages(env)
     import params
@@ -178,7 +175,7 @@ class RangerAdmin(Script):
     stack_name = upgrade_stack[0]
     stack_version = upgrade_stack[1]
 
-    stack_select.select("ranger-admin", stack_version)
+    stack_select.select_packages(params.version)
     conf_select.select(stack_name, "ranger-admin", stack_version)
 
   def get_log_folder(self):

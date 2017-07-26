@@ -27,6 +27,8 @@ from test_storm_base import TestStormBase
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, '123', '')))
 class TestStormSupervisor(TestStormBase):
 
+  CONFIG_OVERRIDES = {"serviceName":"STORM", "role":"SUPERVISOR"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/supervisor_prod.py",
                        classname = "Supervisor",
@@ -159,6 +161,7 @@ class TestStormSupervisor(TestStormBase):
                        classname = "Supervisor",
                        command = "pre_upgrade_restart",
                        config_file="default.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -178,6 +181,7 @@ class TestStormSupervisor(TestStormBase):
                      classname = "Supervisor",
                      command = "pre_upgrade_restart",
                      config_dict = json_content,
+                     config_overrides = self.CONFIG_OVERRIDES,
                      stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,
                      call_mocks = [(0, None, ''), (0, None)],

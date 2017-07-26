@@ -26,16 +26,13 @@ from resource_management.libraries.functions import stack_select
 
 class SystemMLClient(Script):
 
-  def get_component_name(self):
-    return "systemml-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       #conf_select.select(params.stack_name, "systemml", params.version)
-      stack_select.select("systemml-client", params.version)
+      stack_select.select_packages(params.version)
 
   def install(self, env):
     self.install_packages(env)

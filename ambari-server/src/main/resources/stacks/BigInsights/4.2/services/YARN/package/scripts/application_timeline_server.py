@@ -33,9 +33,6 @@ from service import service
 
 class ApplicationTimelineServer(Script):
 
-  def get_component_name(self):
-    return "hadoop-yarn-timelineserver"
-
   def install(self, env):
     self.install_packages(env)
     #self.configure(env)
@@ -52,7 +49,7 @@ class ApplicationTimelineServer(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-yarn-timelineserver", params.version)
+      stack_select.select_packages(params.version)
       #Execute(format("iop-select set hadoop-yarn-timelineserver {version}"))
 
   def start(self, env, upgrade_type=None):

@@ -31,9 +31,6 @@ import titan
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class TitanClient(Script):
-    def get_component_name(self):
-        return "titan-client"
-
     def configure(self, env):
         import params
         env.set_params(params)
@@ -51,7 +48,7 @@ class TitanClientLinux(TitanClient):
 
         if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
             conf_select.select(params.stack_name, "titan", params.version)
-            stack_select.select("titan-client", params.version)
+            stack_select.select_packages(params.version)
 
     def install(self, env):
         self.install_packages(env)

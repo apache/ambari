@@ -36,9 +36,6 @@ from kafka import kafka
 
 class KafkaBroker(Script):
 
-  def get_component_name(self):
-    return "kafka-broker"
-
   def install(self, env):
     self.install_packages(env)
 
@@ -57,7 +54,7 @@ class KafkaBroker(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
-      stack_select.select("kafka-broker", params.version)
+      stack_select.select_packages(params.version)
 
     if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
       conf_select.select(params.stack_name, "kafka", params.version)

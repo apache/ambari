@@ -30,11 +30,6 @@ class PhoenixQueryServer(Script):
     import params
     self.install_packages(env)
 
-
-  def get_component_name(self):
-    return "phoenix-server"
-
-
   def configure(self, env):
     import params
     env.set_params(params)
@@ -61,7 +56,7 @@ class PhoenixQueryServer(Script):
     if Script.is_stack_greater_or_equal("4.2"):
       # phoenix uses hbase configs
       conf_select.select(params.stack_name, "hbase", params.version)
-      stack_select.select("phoenix-server", params.version)
+      stack_select.select_packages(params.version)
 
 
   def status(self, env):

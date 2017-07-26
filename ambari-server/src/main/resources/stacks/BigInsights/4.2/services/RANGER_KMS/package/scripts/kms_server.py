@@ -30,9 +30,6 @@ import upgrade
 
 class KmsServer(Script):
 
-  def get_component_name(self):
-    return "ranger-kms"
-
   def install(self, env):
     self.install_packages(env)
     import params

@@ -24,9 +24,6 @@ from resource_management import *
 
 class SqoopServiceCheck(Script):
 
-  def get_component_name(self):
-    return "sqoop-server"
-
   def service_check(self, env):
     import params
     env.set_params(params)

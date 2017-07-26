@@ -34,6 +34,8 @@ class TestNodeManager(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"YARN", "role":"NODEMANAGER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
@@ -577,6 +579,7 @@ class TestNodeManager(RMFTestCase):
       classname = "Nodemanager",
       command = "post_upgrade_restart",
       config_file = "default.json",
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       checked_call_mocks = [(0, process_output)],
@@ -605,6 +608,7 @@ class TestNodeManager(RMFTestCase):
                          classname="Nodemanager",
                          command = "post_upgrade_restart",
                          config_file="default.json",
+                         config_overrides = self.CONFIG_OVERRIDES,
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = [(0, process_output)],
@@ -628,6 +632,7 @@ class TestNodeManager(RMFTestCase):
                          classname="Nodemanager",
                          command = "post_upgrade_restart",
                          config_file="default.json",
+                         config_overrides = self.CONFIG_OVERRIDES,
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = [(999, process_output)],
@@ -651,6 +656,7 @@ class TestNodeManager(RMFTestCase):
                        classname = "Nodemanager",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

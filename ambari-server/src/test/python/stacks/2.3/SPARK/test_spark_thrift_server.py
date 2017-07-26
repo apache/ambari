@@ -30,6 +30,8 @@ class TestSparkThriftServer(RMFTestCase):
   STACK_VERSION = "2.3"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
+  CONFIG_OVERRIDES = {"serviceName":"SPARK", "role":"SPARK_THRIFTSERVER"}
+
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_configure_default(self, copy_to_hdfs_mock):
     copy_to_hdfs_mock = True
@@ -180,6 +182,7 @@ class TestSparkThriftServer(RMFTestCase):
                        classname = "SparkThriftServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

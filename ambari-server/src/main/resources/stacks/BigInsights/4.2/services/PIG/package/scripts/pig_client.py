@@ -39,9 +39,6 @@ class PigClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class PigClientLinux(PigClient):
-  def get_component_name(self):
-    return "hadoop-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
@@ -49,7 +46,7 @@ class PigClientLinux(PigClient):
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "pig", params.version)
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-client", params.version) # includes pig-client
+      stack_select.select_packages(params.version)
 
   def install(self, env):
     self.install_packages(env)

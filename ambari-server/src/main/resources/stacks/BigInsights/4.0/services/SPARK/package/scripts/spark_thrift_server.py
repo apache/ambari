@@ -33,17 +33,13 @@ from spark import *
 
 class ThriftServer(Script):
 
-  def get_component_name(self):
-    return "spark-thriftserver"
-
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "spark", params.version)
-      stack_select.select("spark-thriftserver", params.version)
+      stack_select.select_packages(params.version)
 
   def install(self, env):
     self.install_packages(env)

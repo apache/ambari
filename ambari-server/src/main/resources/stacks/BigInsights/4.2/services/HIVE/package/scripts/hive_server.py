@@ -56,9 +56,6 @@ class HiveServer(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveServerDefault(HiveServer):
-  def get_component_name(self):
-    return "hive-server2"
-
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
@@ -99,7 +96,7 @@ class HiveServerDefault(HiveServer):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hive", params.version)
-      stack_select.select("hive-server2", params.version)
+      stack_select.select_packages(params.version)
       
       # Copy mapreduce.tar.gz and tez.tar.gz to HDFS
       resource_created = copy_to_hdfs(

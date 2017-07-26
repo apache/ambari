@@ -86,10 +86,7 @@ class RangerTagsync(Script):
     if params.stack_supports_ranger_tagsync:
       Logger.info("Executing Ranger Tagsync Stack Upgrade pre-restart")
       conf_select.select(params.stack_name, "ranger-tagsync", params.version)
-      stack_select.select("ranger-tagsync", params.version)
-
-  def get_component_name(self):
-    return "ranger-tagsync"
+      stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params
@@ -111,7 +108,7 @@ class RangerTagsync(Script):
     stack_name = upgrade_stack[0]
     stack_version = upgrade_stack[1]
 
-    stack_select.select("ranger-tagsync", stack_version)
+    stack_select.select_packages(params.version)
     conf_select.select(stack_name, "ranger-tagsync", stack_version)
     if params.stack_supports_ranger_tagsync_ssl_xml_support:
       Logger.info("Upgrading Tagsync, stack support Atlas user for Tagsync, creating keystore for same.")

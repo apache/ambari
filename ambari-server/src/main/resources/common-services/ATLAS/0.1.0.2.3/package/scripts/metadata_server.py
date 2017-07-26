@@ -38,10 +38,6 @@ from setup_ranger_atlas import setup_ranger_atlas
 from resource_management.core.resources.zkmigrator import ZkMigrator
 
 class MetadataServer(Script):
-
-  def get_component_name(self):
-    return "atlas-server"
-
   def install(self, env):
     import params
     env.set_params(params)
@@ -63,7 +59,7 @@ class MetadataServer(Script):
 
     if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, params.version):
       conf_select.select(params.stack_name, "atlas", params.version)
-      stack_select.select("atlas-server", params.version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params

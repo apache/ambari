@@ -109,9 +109,6 @@ class RangerUsersync(Script):
     env.set_params(params)
     upgrade.prestart(env, "ranger-usersync")
 
-  def get_component_name(self):
-    return "ranger-usersync"
-
   def get_log_folder(self):
     import params
     return params.usersync_log_dir

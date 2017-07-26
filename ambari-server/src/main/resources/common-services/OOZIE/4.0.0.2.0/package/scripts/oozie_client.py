@@ -30,9 +30,6 @@ from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class OozieClient(Script):
 
-  def get_component_name(self):
-    return "oozie-client"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -59,7 +56,7 @@ class OozieClient(Script):
 
     Logger.info("Executing Oozie Client Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "oozie", params.version)
-    stack_select.select("oozie-client", params.version)
+    stack_select.select_packages(params.version)
 
   # We substitute some configs (oozie.authentication.kerberos.principal) before generation (see oozie.py and params.py).
   # This function returns changed configs (it's used for config generation before config download)

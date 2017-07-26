@@ -36,9 +36,6 @@ from resource_management.libraries.functions.security_commons import build_expec
 
 class DrpcServer(Script):
 
-  def get_component_name(self):
-    return "storm-client"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -55,7 +52,7 @@ class DrpcServer(Script):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "storm", params.version)
-      stack_select.select("storm-client", params.version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params

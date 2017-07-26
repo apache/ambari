@@ -27,6 +27,8 @@ class TestFalconClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
   STACK_VERSION = "2.1"
 
+  CONFIG_OVERRIDES = {"serviceName":"FALCON", "role":"FALCON_CLIENT"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_client.py",
                        classname="FalconClient",
@@ -101,6 +103,7 @@ class TestFalconClient(RMFTestCase):
                        classname = "FalconClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -120,6 +123,7 @@ class TestFalconClient(RMFTestCase):
                        classname = "FalconClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

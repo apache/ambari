@@ -35,13 +35,6 @@ from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
 
 class ZkfcSlave(Script):
-  def get_component_name(self):
-    import params
-    if params.version_for_stack_feature_checks and check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version_for_stack_feature_checks):
-      # params.version is not defined when installing cluster from blueprint
-      return "hadoop-hdfs-zkfc"
-    pass
-
   def install(self, env):
     import params
     env.set_params(params)
@@ -137,7 +130,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
     env.set_params(params)
     if check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version_for_stack_feature_checks):
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-zkfc", params.version)
+      stack_select.select_packages(params.version)
 
 def initialize_ha_zookeeper(params):
   try:

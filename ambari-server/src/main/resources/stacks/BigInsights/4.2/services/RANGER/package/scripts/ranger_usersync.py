@@ -74,9 +74,5 @@ class RangerUsersync(Script):
       from setup_ranger_xml import ranger
       ranger('ranger_usersync', upgrade_type=upgrade_type)
 
-  def get_component_name(self):
-    return "ranger-usersync"
-
-
 if __name__ == "__main__":
   RangerUsersync().execute()

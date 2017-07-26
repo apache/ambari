@@ -35,22 +35,18 @@ class SliderClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SliderClientLinux(SliderClient):
-  def get_component_name(self):
-    return "slider-client"
-
   def pre_upgrade_restart(self, env,  upgrade_type=None):
     import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "slider", params.version)
-      stack_select.select("slider-client", params.version)
+      stack_select.select_packages(params.version)
 
       # also set all of the hadoop clients since slider client is upgraded as
       # part of the final "CLIENTS" group and we need to ensure that
       # hadoop-client is also set
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-client", params.version)
 
   def install(self, env):
     self.install_packages(env)

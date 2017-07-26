@@ -37,31 +37,8 @@ from accumulo_service import accumulo_service
 
 class AccumuloScript(Script):
 
-  # a mapping between the component named used by these scripts and the name
-  # which is used by <stack-selector-tool>
-  COMPONENT_TO_STACK_SELECT_MAPPING = {
-    "gc" : "accumulo-gc",
-    "master" : "accumulo-master",
-    "monitor" : "accumulo-monitor",
-    "tserver" : "accumulo-tablet",
-    "tracer" : "accumulo-tracer"
-  }
-
   def __init__(self, component):
     self.component = component
-
-
-  def get_component_name(self):
-    """
-    Gets the <stack-selector-tool> component name given the script component
-    :return:  the name of the component on the stack which is used by
-              <stack-selector-tool>
-    """
-    if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
-      return None
-
-    stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
-    return stack_component
 
 
   def install(self, env):
@@ -107,19 +84,12 @@ class AccumuloScript(Script):
     if not (params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted)):
       return
 
-    if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
-      Logger.info("Unable to execute an upgrade for unknown component {0}".format(self.component))
-      raise Fail("Unable to execute an upgrade for unknown component {0}".format(self.component))
-
-    stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
+    stack_component = stack_select.get_package_name()
 
     Logger.info("Executing Accumulo Upgrade pre-restart for {0}".format(stack_component))
     conf_select.select(params.stack_name, "accumulo", params.version)
-    stack_select.select(stack_component, params.version)
+    stack_select.select_packages(params.version)
 
-    # some accumulo components depend on the client, so update that too
-    stack_select.select("accumulo-client", params.version)
-      
   def get_log_folder(self):
     import params
     return params.log_dir

@@ -2953,14 +2953,15 @@ public class BlueprintConfigurationProcessor {
 
     Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
         ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY);
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_SELECT_PACKAGES_PROPERTY);
 
     try {
       Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
       Map<String,String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
 
       for( String property : properties ){
-        if (defaultStackProperties.containsKey(property)) {
+        if (clusterEnvDefaultProperties.containsKey(property)) {
           configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
               clusterEnvDefaultProperties.get(property));
 

@@ -35,9 +35,6 @@ from service import service
 
 class Nodemanager(Script):
 
-  def get_component_name(self):
-    return "hadoop-yarn-nodemanager"
-
   def install(self, env):
     self.install_packages(env)
 
@@ -53,7 +50,7 @@ class Nodemanager(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-yarn-nodemanager", params.version)
+      stack_select.select_packages(params.version)
       #Execute(format("iop-select set hadoop-yarn-nodemanager {version}"))
 
   def start(self, env, upgrade_type=None):

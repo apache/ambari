@@ -27,6 +27,8 @@ class TestZookeeperClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ZOOKEEPER/3.4.5/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"ZOOKEEPER", "role":"ZOOKEEPER_CLIENT"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zookeeper_client.py",
                        classname = "ZookeeperClient",
@@ -170,6 +172,7 @@ class TestZookeeperClient(RMFTestCase):
                        classname = "ZookeeperClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -191,6 +194,7 @@ class TestZookeeperClient(RMFTestCase):
                        classname = "ZookeeperClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

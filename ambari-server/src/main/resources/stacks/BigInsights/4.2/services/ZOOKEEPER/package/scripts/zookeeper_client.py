@@ -30,9 +30,6 @@ from zookeeper import zookeeper
 
 class ZookeeperClient(Script):
 
-  def get_component_name(self):
-    return "zookeeper-client"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -50,7 +47,7 @@ class ZookeeperClient(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "zookeeper", params.version)
-      stack_select.select("zookeeper-client", params.version)
+      stack_select.select_packages(params.version)
       #Execute(format("iop-select set zookeeper-client {version}"))
 
   def start(self, env, upgrade_type=None):

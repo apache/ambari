@@ -51,9 +51,6 @@ class SparkClient(Script):
   def status(self, env):
     raise ClientComponentHasNoStatus()
   
-  def get_component_name(self):
-    return "spark-client"
-
   def stack_upgrade_save_new_config(self, env):
     """
     Because this gets called during a Rolling Upgrade, the new configs have already been saved, so we must be
@@ -82,7 +79,7 @@ class SparkClient(Script):
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Spark Client Stack Upgrade pre-restart")
       conf_select.select(params.stack_name, "spark", params.version)
-      stack_select.select("spark-client", params.version)
+      stack_select.select_packages(params.version)
 
 if __name__ == "__main__":
   SparkClient().execute()

@@ -40,9 +40,6 @@ from resource_management.libraries.script.script import Script
 
 class Master(Script):
 
-  def get_component_name(self):
-    return "zeppelin-server"
-
   def install(self, env):
     import params
     env.set_params(params)
@@ -255,7 +252,7 @@ class Master(Script):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
       conf_select.select(params.stack_name, "zeppelin", params.version)
-      stack_select.select("zeppelin-server", params.version)
+      stack_select.select_packages(params.version)
 
   def set_interpreter_settings(self, config_data):
     import params

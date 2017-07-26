@@ -27,4 +27,4 @@ def prestart(env, stack_component):
 
   if params.version and params.stack_supports_config_versioning:
     conf_select.select(params.stack_name, stack_component, params.version)
-    stack_select.select(stack_component, params.version)
+    stack_select.select_packages(params.version)

@@ -67,9 +67,6 @@ class HiveMetastore(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveMetastoreDefault(HiveMetastore):
-  def get_component_name(self):
-    return "hive-metastore"
-
   def status(self, env):
     import status_params
     from resource_management.libraries.functions import check_process_status
@@ -89,7 +86,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hive", params.version)
-      stack_select.select("hive-metastore", params.version)
+      stack_select.select_packages(params.version)
 
   def security_status(self, env):
     import status_params

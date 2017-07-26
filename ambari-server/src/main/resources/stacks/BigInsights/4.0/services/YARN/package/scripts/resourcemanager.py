@@ -33,9 +33,6 @@ from service import service
 
 class Resourcemanager(Script):
 
-  def get_component_name(self):
-    return "hadoop-yarn-resourcemanager"
-
   def install(self, env):
     self.install_packages(env)
 
@@ -52,7 +49,7 @@ class Resourcemanager(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-yarn-resourcemanager", params.version)
+      stack_select.select_packages(params.version)
       #Execute(format("stack-select set hadoop-yarn-resourcemanager {version}"))
 
   def start(self, env, upgrade_type=None):

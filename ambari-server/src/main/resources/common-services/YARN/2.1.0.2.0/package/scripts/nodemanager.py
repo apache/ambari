@@ -65,9 +65,6 @@ class NodemanagerWindows(Nodemanager):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class NodemanagerDefault(Nodemanager):
-  def get_component_name(self):
-    return "hadoop-yarn-nodemanager"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing NodeManager Stack Upgrade pre-restart")
     import params
@@ -75,7 +72,7 @@ class NodemanagerDefault(Nodemanager):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-yarn-nodemanager", params.version)
+      stack_select.select_packages(params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing NodeManager Stack Upgrade post-restart")

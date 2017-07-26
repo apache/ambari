@@ -67,14 +67,11 @@ except ImportError:
 
 class NameNode(Script):
 
-  def get_component_name(self):
-    return "hadoop-hdfs-namenode"
-
   def get_hdfs_binary(self):
     """
     Get the name or path to the hdfs binary depending on the component name.
     """
-    component_name = self.get_component_name()
+    component_name = stack_select.get_package_name()
     return get_hdfs_binary(component_name)
 
   def install(self, env):
@@ -204,7 +201,7 @@ class NameNodeDefault(NameNode):
     if upgrade_type != constants.UPGRADE_TYPE_NON_ROLLING or params.upgrade_direction != Direction.DOWNGRADE:
       conf_select.select(params.stack_name, "hadoop", params.version)
 
-    stack_select.select("hadoop-hdfs-namenode", params.version)
+    stack_select.select_packages(params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")

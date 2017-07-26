@@ -39,7 +39,7 @@ class SolrServer(Script):
     import params
     env.set_params(params)
     if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
-      stack_select.select("solr-server", params.version)
+      stack_select.select_packages(params.version)
       conf_select.select(params.stack_name, "solr", params.version)
 
   def start(self, env, upgrade_type=None):

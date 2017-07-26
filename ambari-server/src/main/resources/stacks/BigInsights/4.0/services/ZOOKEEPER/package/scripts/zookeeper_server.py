@@ -40,9 +40,6 @@ from zookeeper_service import zookeeper_service
 
 class ZookeeperServer(Script):
 
-  def get_component_name(self):
-    return "zookeeper-server"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -59,7 +56,7 @@ class ZookeeperServer(Script):
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
       conf_select.select(params.stack_name, "zookeeper", params.version)
-      stack_select.select("zookeeper-server", params.version)
+      stack_select.select_packages(params.version)
       #Execute(format("stack-select set zookeeper-server {version}"))
 
   def start(self, env, upgrade_type=None):
