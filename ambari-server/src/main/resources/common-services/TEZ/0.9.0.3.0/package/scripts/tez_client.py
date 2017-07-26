@@ -58,9 +58,6 @@ class TezClient(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class TezClientLinux(TezClient):
 
-  def get_component_name(self):
-    return "hadoop-client"
-
   def stack_upgrade_save_new_config(self, env):
     """
     Because this gets called during a Rolling Upgrade, the new tez configs have already been saved, so we must be
@@ -90,7 +87,7 @@ class TezClientLinux(TezClient):
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "tez", params.version)
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-client", params.version)
+      stack_select.select_packages(params.version)
 
   def install(self, env):
     import params

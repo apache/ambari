@@ -29,6 +29,8 @@ class TestJournalnode(RMFTestCase):
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
 
+  CONFIG_OVERRIDES = {"serviceName":"HDFS", "role":"JOURNALNODE"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
                        classname = "JournalNode",
@@ -388,6 +390,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-journalnode', version), sudo=True,)
@@ -406,6 +409,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

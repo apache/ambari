@@ -29,6 +29,8 @@ class TestSparkClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.1/package"
   STACK_VERSION = "2.2"
 
+  CONFIG_OVERRIDES = {"serviceName":"SPARK", "role":"SPARK_CLIENT"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/spark_client.py",
                    classname = "SparkClient",
@@ -163,6 +165,7 @@ class TestSparkClient(RMFTestCase):
                        classname = "SparkClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
@@ -192,6 +195,7 @@ class TestSparkClient(RMFTestCase):
                        classname = "SparkClient",
                        command = "stack_upgrade_save_new_config",
                        config_dict = json_content,
+                       config_overrides =  self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

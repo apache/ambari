@@ -28,6 +28,8 @@ class TestKafkaBroker(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "KAFKA/0.8.1/package"
   STACK_VERSION = "2.2"
 
+  CONFIG_OVERRIDES = {"serviceName":"KAFKA", "role":"KAFKA_BROKER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kafka_broker.py",
                          classname = "KafkaBroker",
@@ -133,6 +135,7 @@ class TestKafkaBroker(RMFTestCase):
                        classname = "KafkaBroker",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -152,6 +155,7 @@ class TestKafkaBroker(RMFTestCase):
                        classname = "KafkaBroker",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

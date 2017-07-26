@@ -30,9 +30,6 @@ from accumulo_configuration import setup_conf_dir
 
 
 class AccumuloClient(Script):
-  def get_component_name(self):
-    return "accumulo-client"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -60,7 +57,7 @@ class AccumuloClient(Script):
 
     Logger.info("Executing Accumulo Client Upgrade pre-restart")
     conf_select.select(params.stack_name, "accumulo", params.version)
-    stack_select.select("accumulo-client", params.version)
+    stack_select.select_packages(params.version)
 
 if __name__ == "__main__":
   AccumuloClient().execute()

@@ -35,10 +35,6 @@ class DruidBase(Script):
   def __init__(self, nodeType=None):
     self.nodeType = nodeType
 
-  def get_component_name(self):
-    node_type_lower = self.nodeType.lower()
-    return format("druid-{node_type_lower}")
-
   def install(self, env):
     self.install_packages(env)
 
@@ -55,7 +51,7 @@ class DruidBase(Script):
     env.set_params(params)
 
     if params.stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version):
-      stack_select.select(self.get_component_name(), params.stack_version)
+      stack_select.select_packages(params.stack_version)
     if params.stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version):
       conf_select.select(params.stack_name, "druid", params.stack_version)
 

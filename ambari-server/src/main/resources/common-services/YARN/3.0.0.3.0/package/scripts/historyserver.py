@@ -68,9 +68,6 @@ class HistoryserverWindows(HistoryServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HistoryServerDefault(HistoryServer):
-  def get_component_name(self):
-    return "hadoop-mapreduce-historyserver"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
@@ -78,7 +75,7 @@ class HistoryServerDefault(HistoryServer):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-mapreduce-historyserver", params.version)
+      stack_select.select_packages(params.version)
       # MC Hammer said, "Can't touch this"
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
       copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)

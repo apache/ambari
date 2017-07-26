@@ -36,9 +36,6 @@ from resource_management.libraries.resources.properties_file import PropertiesFi
 
 class Superset(Script):
 
-  def get_component_name(self):
-    return format("druid-superset")
-
   def install(self, env):
     self.install_packages(env)
 
@@ -98,7 +95,7 @@ class Superset(Script):
     env.set_params(params)
 
     if params.stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version):
-      stack_select.select(self.get_component_name(), params.stack_version)
+      stack_select.select_packages(params.version)
     if params.stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version):
       conf_select.select(params.stack_name, "superset", params.stack_version)
 

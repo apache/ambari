@@ -37,6 +37,8 @@ class TestResourceManager(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"YARN", "role":"RESOURCEMANAGER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
@@ -547,6 +549,7 @@ class TestResourceManager(RMFTestCase):
                        classname = "Resourcemanager",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

@@ -105,9 +105,6 @@ class ResourcemanagerWindows(Resourcemanager):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ResourcemanagerDefault(Resourcemanager):
-  def get_component_name(self):
-    return "hadoop-yarn-resourcemanager"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")
     import params
@@ -115,7 +112,7 @@ class ResourcemanagerDefault(Resourcemanager):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-yarn-resourcemanager", params.version)
+      stack_select.select_packages(params.version)
 
   def disable_security(self, env):
     import params

@@ -26,13 +26,15 @@ from resource_management.libraries.functions import conf_select
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("os.path.isfile", new = MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):
+  CONFIG_OVERRIDES = {"serviceName":"HIVE", "role":"HIVE_SERVER"}
 
   def test_hook_default(self):
 
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
-                       config_file="default.json"
+                       config_file="default.json",
+                       config_overrides = self.CONFIG_OVERRIDES
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
@@ -49,7 +51,7 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1243"))
+  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
   @patch("os.symlink")
@@ -72,11 +74,12 @@ class TestHookAfterInstall(RMFTestCase):
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
-                       config_dict = json_content)
+                       config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES)
 
 
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^2.3 | tail -1`',
-      only_if = 'ls -d /usr/hdp/2.3*')
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
+      sudo = True)
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -116,7 +119,7 @@ class TestHookAfterInstall(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1243"))
+  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
   @patch("os.symlink")
@@ -145,11 +148,12 @@ class TestHookAfterInstall(RMFTestCase):
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
-                       config_dict = json_content)
+                       config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES)
 
 
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^2.3 | tail -1`',
-      only_if = 'ls -d /usr/hdp/2.3*')
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
+      sudo = True)
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -190,7 +194,7 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1243"))
+  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
   @patch("os.symlink")
@@ -224,12 +228,13 @@ class TestHookAfterInstall(RMFTestCase):
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
       classname="AfterInstallHook",
       command="hook",
-      config_dict = json_content)
+      config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES)
 
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^2.3.0.0-1234 | tail -1`',
-      only_if = 'ls -d /usr/hdp/2.3.0.0-1234*')
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
+      sudo = True)
 
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1243"))
+  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
   @patch("os.symlink")
@@ -253,7 +258,8 @@ class TestHookAfterInstall(RMFTestCase):
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
-                       config_dict = json_content)
+                       config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES)
 
     # same assertions as test_hook_default_conf_select, but skip hdp-select set all
 
@@ -297,7 +303,7 @@ class TestHookAfterInstall(RMFTestCase):
 
 
   @patch("resource_management.core.Logger.warning")
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1243"))
+  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
   @patch("os.symlink")
@@ -326,6 +332,7 @@ class TestHookAfterInstall(RMFTestCase):
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
-                       config_dict = json_content)
+                       config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES)
 
-    logger_warning_mock.assert_any_call('Skipping running stack-selector-tool for stack 2.3.0.0-1234 as its a sys_prepped host. This may cause symlink pointers not to be created for HDP componets installed later on top of an already sys_prepped host.')
+    logger_warning_mock.assert_any_call('Skipping running stack-selector-tool becase this is a sys_prepped host. This may cause symlink pointers not to be created for HDP componets installed later on top of an already sys_prepped host.')

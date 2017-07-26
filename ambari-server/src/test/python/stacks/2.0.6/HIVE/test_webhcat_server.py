@@ -29,6 +29,8 @@ class TestWebHCatServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"HIVE", "role":"WEBHCAT_SERVER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
@@ -286,6 +288,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -308,6 +311,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, '')],

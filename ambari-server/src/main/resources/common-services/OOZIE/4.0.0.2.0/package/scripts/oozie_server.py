@@ -46,9 +46,6 @@ from resource_management.core.resources.zkmigrator import ZkMigrator
 
 class OozieServer(Script):
 
-  def get_component_name(self):
-    return "oozie-server"
-
   def install(self, env):
     self.install_packages(env)
 
@@ -67,9 +64,8 @@ class OozieServer(Script):
         # This is required as both need to be pointing to new installed oozie version.
 
         # Sets the symlink : eg: <stack-root>/current/oozie-client -> <stack-root>/a.b.c.d-<version>/oozie
-        stack_select.select("oozie-client", params.version)
         # Sets the symlink : eg: <stack-root>/current/oozie-server -> <stack-root>/a.b.c.d-<version>/oozie
-        stack_select.select("oozie-server", params.version)
+        stack_select.select_packages(params.version)
 
       if params.version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
         conf_select.select(params.stack_name, "oozie", params.version)
@@ -127,7 +123,7 @@ class OozieServerDefault(OozieServer):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "oozie", params.version)
-      stack_select.select("oozie-server", params.version)
+      stack_select.select_packages(params.version)
 
     OozieUpgrade.prepare_libext_directory()
 

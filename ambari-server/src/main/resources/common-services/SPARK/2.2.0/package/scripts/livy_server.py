@@ -125,10 +125,6 @@ class LivyServer(Script):
       else:
         Logger.info("DFS directory '" + dir_path + "' exists.")
 
-  def get_component_name(self):
-    # TODO, change to "livy" after RPM switches the name
-    return "livy2-server"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
@@ -137,7 +133,7 @@ class LivyServer(Script):
       Logger.info("Executing Livy Server Stack Upgrade pre-restart")
       # TODO, change to "spark" and "livy" after RPM switches the name
       conf_select.select(params.stack_name, "spark2", params.version)
-      stack_select.select("livy2-server", params.version)
+      stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

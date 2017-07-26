@@ -38,9 +38,6 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.resources.service import Service
 
 class Nimbus(Script):
-  def get_component_name(self):
-    return "storm-nimbus"
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -59,8 +56,7 @@ class NimbusDefault(Nimbus):
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "storm", params.version)
-      stack_select.select("storm-client", params.version)
-      stack_select.select("storm-nimbus", params.version)
+      stack_select.select_packages(params.version)
 
 
   def start(self, env, upgrade_type=None):

@@ -29,6 +29,8 @@ class TestHBaseMaster(RMFTestCase):
   TMP_PATH = "/hadoop"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
+  CONFIG_OVERRIDES = {"serviceName":"HBASE", "role":"HBASE_MASTER"}
+
   def test_install_hbase_master_default_no_phx(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                        classname = "HbaseMaster",
@@ -747,6 +749,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        mocks_dict = mocks_dict)
@@ -770,6 +773,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],

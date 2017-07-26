@@ -68,9 +68,6 @@ class HiveServerInteractive(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveServerInteractiveDefault(HiveServerInteractive):
 
-    def get_component_name(self):
-      return "hive-server2-hive2"
-
     def install(self, env):
       import params
       self.install_packages(env)
@@ -86,7 +83,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       env.set_params(params)
 
       if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-        stack_select.select("hive-server2-hive2", params.version)
+        stack_select.select_packages(params.version)
         conf_select.select(params.stack_name, "hive2", params.version)
 
         # Copy hive.tar.gz and tez.tar.gz used by Hive Interactive to HDFS

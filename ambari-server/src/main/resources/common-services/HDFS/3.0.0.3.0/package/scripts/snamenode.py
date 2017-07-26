@@ -63,9 +63,6 @@ class SNameNode(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SNameNodeDefault(SNameNode):
 
-  def get_component_name(self):
-    return "hadoop-hdfs-secondarynamenode"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
@@ -73,7 +70,7 @@ class SNameNodeDefault(SNameNode):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-secondarynamenode", params.version)
+      stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

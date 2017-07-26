@@ -33,6 +33,8 @@ class TestFalconServer(RMFTestCase):
   UPGRADE_STACK_VERSION = "2.2"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
+  CONFIG_OVERRIDES = {"serviceName":"FALCON", "role":"FALCON_SERVER"}
+
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
       classname="FalconServer",
@@ -225,6 +227,7 @@ class TestFalconServer(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
      classname = "FalconServer", command = "restart", config_file = "falcon-upgrade.json",
+     config_overrides = self.CONFIG_OVERRIDES,
      stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES )
 
@@ -427,6 +430,7 @@ class TestFalconServer(RMFTestCase):
                        classname = "FalconServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -463,6 +467,7 @@ class TestFalconServer(RMFTestCase):
                        classname = "FalconServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

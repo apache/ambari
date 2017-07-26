@@ -27,6 +27,8 @@ from test_storm_base import TestStormBase
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, '123', '')))
 class TestStormUiServer(TestStormBase):
 
+  CONFIG_OVERRIDES = {"serviceName":"STORM", "role":"STORM_UI_SERVER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                        classname = "UiServer",
@@ -209,10 +211,10 @@ class TestStormUiServer(TestStormBase):
     )
     self.assertNoMoreResources()
 
-  def test_pre_upgrade_restart(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                        classname = "UiServer",
                        command = "pre_upgrade_restart",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        config_file="default.json",
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -231,6 +233,7 @@ class TestStormUiServer(TestStormBase):
                      classname = "UiServer",
                      command = "pre_upgrade_restart",
                      config_dict = json_content,
+                     config_overrides = self.CONFIG_OVERRIDES,
                      stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,
                      call_mocks = [(0, None, ''), (0, None)],

@@ -33,7 +33,6 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
-from resource_management.libraries.functions.stack_tools import get_stack_name
 from resource_management.libraries.functions.version import get_major_version
 
 from resource_management.core.utils import PasswordString

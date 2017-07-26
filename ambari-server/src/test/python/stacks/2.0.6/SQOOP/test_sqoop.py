@@ -25,6 +25,8 @@ class TestSqoop(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SQOOP/1.4.4.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"SQOOP", "role":"SQOOP"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/sqoop_client.py",
                        classname = "SqoopClient",
@@ -136,6 +138,7 @@ class TestSqoop(RMFTestCase):
                        classname = "SqoopClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],

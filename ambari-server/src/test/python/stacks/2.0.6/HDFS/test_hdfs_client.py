@@ -37,6 +37,8 @@ class Test(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"HDFS", "role":"HDFS_CLIENT"}
+
   def test_generate_configs_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
                        classname = "HdfsClient",
@@ -81,6 +83,7 @@ class Test(RMFTestCase):
                    classname = "HdfsClient",
                    command = "restart",
                    config_file="client-upgrade.json",
+                   config_overrides = self.CONFIG_OVERRIDES,
                    stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -101,6 +104,7 @@ class Test(RMFTestCase):
                        classname = "HdfsClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
@@ -128,6 +132,7 @@ class Test(RMFTestCase):
                        classname = "HdfsClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True,)
