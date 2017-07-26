@@ -2954,7 +2954,7 @@ public class BlueprintConfigurationProcessor {
       Map<String,String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
 
       for( String property : properties ){
-        if (defaultStackProperties.containsKey(property)) {
+        if (clusterEnvDefaultProperties.containsKey(property)) {
           configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
               clusterEnvDefaultProperties.get(property));
 
