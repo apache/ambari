@@ -87,6 +87,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(), Collections.<String, Map<String, Map<String, String>>>emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<>();
   private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
+  private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
 
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
@@ -212,6 +213,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+
+    stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
   }
 
   @After
