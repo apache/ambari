@@ -48,7 +48,7 @@ describe('App.UpgradeVersionBoxView', function () {
 
   describe("#isUpgrading", function () {
     afterEach(function () {
-      App.set('upgradeState', 'INIT');
+      App.set('upgradeState', 'NOT_REQUIRED');
     });
     it("wrong version", function () {
       App.set('upgradeState', 'IN_PROGRESS');
@@ -64,15 +64,15 @@ describe('App.UpgradeVersionBoxView', function () {
       view.propertyDidChange('isUpgrading');
       expect(view.get('isUpgrading')).to.be.true;
     });
-    it("upgradeState INIT", function () {
-      App.set('upgradeState', 'INIT');
+    it("upgradeState NOT_REQUIRED", function () {
+      App.set('upgradeState', 'NOT_REQUIRED');
       view.set('controller.upgradeVersion', 'HDP-2.2.2');
       view.set('content.displayName', 'HDP-2.2.2');
       view.propertyDidChange('isUpgrading');
       expect(view.get('isUpgrading')).to.be.false;
     });
-    it("upgradeState INIT and wrong version", function () {
-      App.set('upgradeState', 'INIT');
+    it("upgradeState NOT_REQUIRED and wrong version", function () {
+      App.set('upgradeState', 'NOT_REQUIRED');
       view.set('controller.upgradeVersion', 'HDP-2.2.2');
       view.set('content.displayName', 'HDP-2.2.1');
       view.propertyDidChange('isUpgrading');
@@ -367,11 +367,11 @@ describe('App.UpgradeVersionBoxView', function () {
       },
       {
         inputData: {
-          'content.status': 'INIT',
+          'content.status': 'NOT_REQUIRED',
           'controller.requestInProgress': false,
           'parentView.repoVersions': [
             Em.Object.create({
-              status: 'INIT'
+              status: 'NOT_REQUIRED'
             })
           ]
         },
@@ -380,20 +380,20 @@ describe('App.UpgradeVersionBoxView', function () {
           this.initMock.returns(false);
         },
         expected: {
-          status: 'INIT',
+          status: 'NOT_REQUIRED',
           isButton: true,
           buttons: [],
           isDisabled: false
         },
-        title: 'INIT state, no admin access, no requests in progress'
+        title: 'NOT_REQUIRED state, no admin access, no requests in progress'
       },
       {
         inputData: {
-          'content.status': 'INIT',
+          'content.status': 'NOT_REQUIRED',
           'controller.requestInProgress': true,
           'parentView.repoVersions': [
             Em.Object.create({
-              status: 'INIT'
+              status: 'NOT_REQUIRED'
             })
           ]
         },
@@ -402,12 +402,12 @@ describe('App.UpgradeVersionBoxView', function () {
           this.initMock.returns(true);
         },
         expected: {
-          status: 'INIT',
+          status: 'NOT_REQUIRED',
           isButton: true,
           buttons: [],
           isDisabled: true
         },
-        title: 'INIT state, no admin access, request in progress, not installation'
+        title: 'NOT_REQUIRED state, no admin access, request in progress, not installation'
       },
       {
         inputData: {
@@ -957,7 +957,7 @@ describe('App.UpgradeVersionBoxView', function () {
         title: 'upgrading just started'
       },
       {
-        status: 'INIT',
+        status: 'NOT_REQUIRED',
         isUpgrading: false,
         isRepoUrlsEditDisabled: false,
         title: 'neither upgrading nor installing packages'

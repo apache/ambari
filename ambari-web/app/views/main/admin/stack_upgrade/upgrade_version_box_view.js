@@ -55,7 +55,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * @type {boolean}
    */
   isUpgrading: function () {
-    return (this.get('controller.upgradeVersion') === this.get('content.displayName') && App.get('upgradeState') !== 'INIT');
+    return (this.get('controller.upgradeVersion') === this.get('content.displayName') && App.get('upgradeState') !== 'NOT_REQUIRED');
   }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
 
   isRepoUrlsEditDisabled: function () {
@@ -117,7 +117,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       text: Em.I18n.t('common.current'),
       class: 'label label-success'
     },
-    'INIT': {
+    'NOT_REQUIRED': {
       isButton: true,
       text: Em.I18n.t('common.install'),
       action: 'installRepoVersionConfirmation'
@@ -172,7 +172,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     if (['INSTALLING', 'CURRENT'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
     }
-    else if (status === 'INIT') {
+    else if (status === 'NOT_REQUIRED') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
       element.set('isDisabled', this.isDisabledOnInit());
       if (this.addRemoveIopSelectButton(element, this.isDisabledOnInit())) {
@@ -271,7 +271,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   },
 
   /**
-   * check if actions of INIT stack version disabled
+   * check if actions of NOT_REQUIRED stack version disabled
    * @returns {boolean}
    */
   isDisabledOnInit: function() {
@@ -339,7 +339,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * @param App.RepositoryVersion
    * */
   getStackVersionNumber: function(repository){
-    var stackVersion = null; 
+    var stackVersion = null;
     var systems = repository.get('operatingSystems');
 
     systems.forEach(function (os) {
@@ -350,7 +350,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       });
     });
 
-    return stackVersion; 
+    return stackVersion;
   },
 
   /**

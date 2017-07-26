@@ -52,7 +52,7 @@ module.exports = Em.Application.create({
   /**
    * state of stack upgrade process
    * states:
-   *  - INIT
+   *  - NOT_REQUIRED
    *  - PENDING
    *  - IN_PROGRESS
    *  - HOLDING
@@ -62,14 +62,14 @@ module.exports = Em.Application.create({
    *  - HOLDING_TIMEDOUT
    * @type {String}
    */
-  upgradeState: 'INIT',
+  upgradeState: 'NOT_REQUIRED',
 
   /**
    * Check if upgrade is in INIT state
    * 'INIT' is set on upgrade start and when it's finished
    * @type {boolean}
    */
-  upgradeInit: Em.computed.equal('upgradeState', 'INIT'),
+  upgradeInit: Em.computed.equal('upgradeState', 'NOT_REQUIRED'),
 
   /**
    * flag is true when upgrade process is running
@@ -142,7 +142,7 @@ module.exports = Em.Application.create({
     // When Upgrade running(not suspended) only operations related to upgrade should be allowed
     if ((!this.get('upgradeSuspended') && !authRoles.contains('CLUSTER.UPGRADE_DOWNGRADE_STACK')) &&
         !App.get('supports.opsDuringRollingUpgrade') &&
-        !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) ||
+        !['NOT_REQUIRED', 'COMPLETED'].contains(this.get('upgradeState')) ||
         !App.auth){
       return false;
     }

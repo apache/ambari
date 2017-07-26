@@ -322,7 +322,7 @@ describe('App.upgradeWizardView', function () {
           failedItem: null,
           runningItem: null,
           manualItem: null,
-          upgradeState: 'INIT'
+          upgradeState: 'NOT_REQUIRED'
         },
         result: false
       },

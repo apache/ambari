@@ -98,9 +98,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
     it("state not ABORTED", function() {
       this.mock.returns(false);
-      controller.set('upgradeData', { Upgrade: {request_status: 'INIT'}});
+      controller.set('upgradeData', { Upgrade: {request_status: 'NOT_REQUIRED'}});
       controller.propertyDidChange('requestStatus');
-      expect(controller.get('requestStatus')).to.equal('INIT');
+      expect(controller.get('requestStatus')).to.equal('NOT_REQUIRED');
     });
 
     it("upgradeData is null", function() {
@@ -235,7 +235,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.updateUpgradeData.restore();
       controller.setDBProperty.restore();
       controller.finish.restore();
-      App.set('upgradeState', 'INIT');
+      App.set('upgradeState', 'NOT_REQUIRED');
     });
 
     it("correct data", function() {
@@ -1224,7 +1224,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#installRepoVersionSuccess()", function() {
     var mock = Em.Object.create({
       id: 1,
-      defaultStatus: 'INIT',
+      defaultStatus: 'NOT_REQUIRED',
       stackVersion: {}
     });
     beforeEach(function () {
@@ -3164,7 +3164,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.finish();
       expect(controller.setDBProperties.calledWith({
         upgradeId: undefined,
-        upgradeState: 'INIT',
+        upgradeState: 'NOT_REQUIRED',
         upgradeVersion: undefined,
         currentVersion: undefined,
         upgradeTypeDisplayName: undefined,
@@ -3181,9 +3181,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
 
-    it("upgradeState should be INIT", function() {
+    it("upgradeState should be NOT_REQUIRED", function() {
       controller.finish();
-      expect(App.get('upgradeState')).to.be.equal('INIT');
+      expect(App.get('upgradeState')).to.be.equal('NOT_REQUIRED');
     });
 
     it("currentStackVersion should be set", function() {
@@ -3291,7 +3291,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
               ClusterStackVersions: {
                 version: '2.3',
                 stack: 'HDP',
-                state: 'INIT'
+                state: 'NOT_REQUIRED'
               },
               repository_versions: [
                 {
@@ -3307,7 +3307,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
               ClusterStackVersions: {
                 version: '2.2',
                 stack: 'HDP',
-                state: 'INIT'
+                state: 'NOT_REQUIRED'
               },
               repository_versions: [
                 {
