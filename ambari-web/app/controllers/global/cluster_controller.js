@@ -335,6 +335,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       }
 
       upgradeController.loadStackVersionsToModel(true).done(function () {
+        upgradeController.loadCompatibleVersions();
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });
     });
