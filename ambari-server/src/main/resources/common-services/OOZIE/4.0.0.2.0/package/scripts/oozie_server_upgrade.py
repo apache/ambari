@@ -41,7 +41,7 @@ BACKUP_CONF_ARCHIVE = "oozie-conf-backup.tar"
 class OozieUpgrade(Script):
 
   @staticmethod
-  def prepare_libext_directory():
+  def prepare_libext_directory(upgrade_type=None):
     """
     Performs the following actions on libext:
       - creates <stack-root>/current/oozie/libext and recursively
