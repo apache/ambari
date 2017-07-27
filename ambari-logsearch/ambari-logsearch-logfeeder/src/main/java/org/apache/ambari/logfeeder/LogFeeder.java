@@ -53,7 +53,7 @@ public class LogFeeder {
 
   private final LogFeederCommandLine cli;
   
-  private ConfigHandler configHandler = new ConfigHandler();
+  private ConfigHandler configHandler;
   private LogSearchConfig config;
   
   private MetricsManager metricsManager = new MetricsManager();
@@ -78,11 +78,12 @@ public class LogFeeder {
   private void init() throws Throwable {
     long startTime = System.currentTimeMillis();
 
-    configHandler.init();
     SSLUtil.ensureStorePasswords();
     
     config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER, Maps.fromProperties(LogFeederUtil.getProperties()),
         LogFeederUtil.getClusterName(), LogSearchConfigZK.class);
+    configHandler = new ConfigHandler(config);
+    configHandler.init();
     LogLevelFilterHandler.init(config);
     InputConfigUploader.load(config);
     config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler(), LogFeederUtil.getClusterName());

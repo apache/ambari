@@ -73,7 +73,7 @@ public class LogEntryParseTester {
 
   public Map<String, Object> parse() throws Exception {
     InputConfig inputConfig = getInputConfig();
-    ConfigHandler configHandler = new ConfigHandler();
+    ConfigHandler configHandler = new ConfigHandler(null);
     Input input = configHandler.getTestInput(inputConfig, logId);
     final Map<String, Object> result = new HashMap<>();
     input.getFirstFilter().init();

@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 
 /**
@@ -57,14 +58,23 @@ public interface LogSearchConfig extends Closeable {
   List<String> getServices(String clusterName);
 
   /**
-   * Checks if input configuration exists.
+   * Checks if input configuration exists. Will be used only in LOGFEEDER mode.
+   * 
+   * @param serviceName The name of the service looked for.
+   * @return If input configuration exists for the service.
+   * @throws Exception
+   */
+  boolean inputConfigExistsLogFeeder(String serviceName) throws Exception;
+
+  /**
+   * Checks if input configuration exists. Will be used only in SERVER mode.
    * 
    * @param clusterName The name of the cluster where the service is looked for.
    * @param serviceName The name of the service looked for.
    * @return If input configuration exists for the service.
    * @throws Exception
    */
-  boolean inputConfigExists(String clusterName, String serviceName) throws Exception;
+  boolean inputConfigExistsServer(String clusterName, String serviceName) throws Exception;
 
   /**
    * Returns the global configurations of a cluster. Will be used only in SERVER mode.
@@ -140,4 +150,31 @@ public interface LogSearchConfig extends Closeable {
    */
   void monitorInputConfigChanges(InputConfigMonitor inputConfigMonitor, LogLevelFilterMonitor logLevelFilterMonitor,
       String clusterName) throws Exception;
+
+  /**
+   * Saves the properties of an Output Solr. Will be used only in SERVER mode.
+   * 
+   * @param type The type of the Output Solr.
+   * @param outputSolrProperties The properties of the Output Solr.
+   * @throws Exception
+   */
+  void saveOutputSolrProperties(String type, OutputSolrProperties outputSolrProperties) throws Exception;
+
+  /**
+   * Get the properties of an Output Solr. Will be used only in LOGFEEDER mode.
+   * 
+   * @param type The type of the Output Solr.
+   * @return The properties of the Output Solr, or null if it doesn't exist.
+   * @throws Exception
+   */
+  OutputSolrProperties getOutputSolrProperties(String type) throws Exception;
+
+  /**
+   * Saves the properties of an Output Solr. Will be used only in LOGFEEDER mode.
+   * 
+   * @param type The type of the Output Solr.
+   * @param outputConfigMonitors The monitors which want to watch the output config changes.
+   * @throws Exception
+   */
+  void monitorOutputProperties(List<? extends OutputConfigMonitor> outputConfigMonitors) throws Exception;
 }

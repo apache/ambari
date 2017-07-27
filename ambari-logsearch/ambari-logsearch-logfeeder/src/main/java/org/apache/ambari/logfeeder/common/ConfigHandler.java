@@ -48,6 +48,7 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
+import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
@@ -85,6 +86,8 @@ public class ConfigHandler implements InputConfigMonitor {
   )
   private static final String SIMULATE_INPUT_NUMBER_PROPERTY = "logfeeder.simulate.input_number";
 
+  private final LogSearchConfig logSearchConfig;
+  
   private final OutputManager outputManager = new OutputManager();
   private final InputManager inputManager = new InputManager();
 
@@ -97,7 +100,9 @@ public class ConfigHandler implements InputConfigMonitor {
   
   private boolean simulateMode = false;
   
-  public ConfigHandler() {}
+  public ConfigHandler(LogSearchConfig logSearchConfig) {
+    this.logSearchConfig = logSearchConfig;
+  }
   
   public void init() throws Exception {
     loadConfigFiles();
@@ -106,6 +111,8 @@ public class ConfigHandler implements InputConfigMonitor {
     
     inputManager.init();
     outputManager.init();
+    
+    logSearchConfig.monitorOutputProperties(outputManager.getOutputsToMonitor());
   }
   
   private void loadConfigFiles() throws Exception {
@@ -271,6 +278,7 @@ public class ConfigHandler implements InputConfigMonitor {
       }
       output.setDestination(value);
       output.loadConfig(map);
+      output.setLogSearchConfig(logSearchConfig);
 
       // We will only check for is_enabled out here. Down below we will check whether this output is enabled for the input
       if (output.isEnabled()) {
@@ -387,6 +395,7 @@ public class ConfigHandler implements InputConfigMonitor {
     
     // In case of simulation copies of the output are added for each simulation instance, these must be added to the manager
     for (Output output : InputSimulate.getSimulateOutputs()) {
+      output.setLogSearchConfig(logSearchConfig);
       outputManager.add(output);
       usedOutputSet.add(output);
     }

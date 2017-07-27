@@ -163,6 +163,7 @@ public class InputSimulate extends Input {
       Class<? extends Output> clazz = output.getClass();
       Output outputCopy = clazz.newInstance();
       outputCopy.loadConfig(output.getConfigs());
+      outputCopy.setDestination(output.getDestination());
       simulateOutputs.add(outputCopy);
       super.addOutput(outputCopy);
     } catch (Exception e) {

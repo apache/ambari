@@ -26,6 +26,7 @@ import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 
 public class LogSearchConfigClass2 implements LogSearchConfig {
@@ -33,7 +34,12 @@ public class LogSearchConfigClass2 implements LogSearchConfig {
   public void init(Component component, Map<String, String> properties, String clusterName) {}
 
   @Override
-  public boolean inputConfigExists(String clusterName, String serviceName) throws Exception {
+  public boolean inputConfigExistsLogFeeder(String serviceName) throws Exception {
+    return false;
+  }
+
+  @Override
+  public boolean inputConfigExistsServer(String clusterName, String serviceName) throws Exception {
     return false;
   }
 
@@ -72,6 +78,17 @@ public class LogSearchConfigClass2 implements LogSearchConfig {
   public LogLevelFilterMap getLogLevelFilters(String clusterName) {
     return null;
   }
+
+  @Override
+  public void saveOutputSolrProperties(String type, OutputSolrProperties outputSolrProperties) throws Exception {}
+
+  @Override
+  public OutputSolrProperties getOutputSolrProperties(String type) {
+    return null;
+  }
+
+  @Override
+  public void monitorOutputProperties(List<? extends OutputConfigMonitor> outputConfigMonitors) throws Exception {}
 
   @Override
   public void close() {}

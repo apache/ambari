@@ -27,12 +27,15 @@ import java.util.TreeMap;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputAdapter;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.zookeeper.model.outputconfig.impl.OutputSolrPropertiesImpl;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.commons.collections.MapUtils;
@@ -98,8 +101,11 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   private Map<String, String> properties;
   private CuratorFramework client;
-  private TreeCache cache;
   private Gson gson;
+
+  private TreeCache serverCache;
+  private TreeCache logFeederClusterCache;
+  private TreeCache outputCache;
 
   @Override
   public void init(Component component, Map<String, String> properties, String clusterName) throws Exception {
@@ -115,28 +121,39 @@ public class LogSearchConfigZK implements LogSearchConfig {
         .build();
     client.start();
 
+    outputCache = new TreeCache(client, "/output");
+    outputCache.start();
 
     if (component == Component.SERVER) {
       if (client.checkExists().forPath("/") == null) {
         client.create().creatingParentContainersIfNeeded().forPath("/");
       }
-      cache = new TreeCache(client, "/");
-      cache.start();
+      if (client.checkExists().forPath("/output") == null) {
+        client.create().creatingParentContainersIfNeeded().forPath("/output");
+      }
+      serverCache = new TreeCache(client, "/");
+      serverCache.start();
     } else {
       while (client.checkExists().forPath("/") == null) {
         LOG.info("Root node is not present yet, going to sleep for " + WAIT_FOR_ROOT_SLEEP_SECONDS + " seconds");
         Thread.sleep(WAIT_FOR_ROOT_SLEEP_SECONDS * 1000);
       }
-      cache = new TreeCache(client, String.format("/%s", clusterName));
+      logFeederClusterCache = new TreeCache(client, String.format("/%s", clusterName));
     }
     
     gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
   }
 
   @Override
-  public boolean inputConfigExists(String clusterName, String serviceName) throws Exception {
+  public boolean inputConfigExistsLogFeeder(String serviceName) throws Exception {
+    String nodePath = String.format("/input/%s", serviceName);
+    return logFeederClusterCache.getCurrentData(nodePath) != null;
+  }
+
+  @Override
+  public boolean inputConfigExistsServer(String clusterName, String serviceName) throws Exception {
     String nodePath = String.format("/%s/input/%s", clusterName, serviceName);
-    return cache.getCurrentData(nodePath) != null;
+    return serverCache.getCurrentData(nodePath) != null;
   }
 
   @Override
@@ -261,8 +278,8 @@ public class LogSearchConfigZK implements LogSearchConfig {
         }
       }
     };
-    cache.getListenable().addListener(listener);
-    cache.start();
+    logFeederClusterCache.getListenable().addListener(listener);
+    logFeederClusterCache.start();
   }
 
   private void createGlobalConfigNode(JsonArray globalConfigNode, String clusterName) {
@@ -270,7 +287,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
     String data = InputConfigGson.gson.toJson(globalConfigNode);
     
     try {
-      if (cache.getCurrentData(globalConfigNodePath) != null) {
+      if (logFeederClusterCache.getCurrentData(globalConfigNodePath) != null) {
         client.setData().forPath(globalConfigNodePath, data.getBytes());
       } else {
         client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(globalConfigNodePath, data.getBytes());
@@ -283,14 +300,14 @@ public class LogSearchConfigZK implements LogSearchConfig {
   @Override
   public List<String> getServices(String clusterName) {
     String parentPath = String.format("/%s/input", clusterName);
-    Map<String, ChildData> serviceNodes = cache.getCurrentChildren(parentPath);
+    Map<String, ChildData> serviceNodes = serverCache.getCurrentChildren(parentPath);
     return new ArrayList<String>(serviceNodes.keySet());
   }
 
   @Override
   public String getGlobalConfigs(String clusterName) {
     String globalConfigNodePath = String.format("/%s/global", clusterName);
-    return new String(cache.getCurrentData(globalConfigNodePath).getData());
+    return new String(serverCache.getCurrentData(globalConfigNodePath).getData());
   }
 
   @Override
@@ -299,7 +316,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
     JsonArray globalConfigs = (JsonArray) new JsonParser().parse(globalConfigData);
     InputAdapter.setGlobalConfigs(globalConfigs);
     
-    ChildData childData = cache.getCurrentData(String.format("/%s/input/%s", clusterName, serviceName));
+    ChildData childData = serverCache.getCurrentData(String.format("/%s/input/%s", clusterName, serviceName));
     return childData == null ? null : InputConfigGson.gson.fromJson(new String(childData.getData()), InputConfigImpl.class);
   }
 
@@ -320,7 +337,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
     for (Map.Entry<String, LogLevelFilter> e : filters.getFilter().entrySet()) {
       String nodePath = String.format("/%s/loglevelfilter/%s", clusterName, e.getKey());
       String logLevelFilterJson = gson.toJson(e.getValue());
-      String currentLogLevelFilterJson = new String(cache.getCurrentData(nodePath).getData());
+      String currentLogLevelFilterJson = new String(serverCache.getCurrentData(nodePath).getData());
       if (!logLevelFilterJson.equals(currentLogLevelFilterJson)) {
         client.setData().forPath(nodePath, logLevelFilterJson.getBytes());
         LOG.info("Set log level filter for the log " + e.getKey() + " for cluster " + clusterName);
@@ -331,7 +348,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
   @Override
   public LogLevelFilterMap getLogLevelFilters(String clusterName) {
     String parentPath = String.format("/%s/loglevelfilter", clusterName);
-    Map<String, ChildData> logLevelFilterNodes = cache.getCurrentChildren(parentPath);
+    Map<String, ChildData> logLevelFilterNodes = serverCache.getCurrentChildren(parentPath);
     TreeMap<String, LogLevelFilter> filters = new TreeMap<>();
     for (Map.Entry<String, ChildData> e : logLevelFilterNodes.entrySet()) {
       LogLevelFilter logLevelFilter = gson.fromJson(new String(e.getValue().getData()), LogLevelFilter.class);
@@ -384,6 +401,48 @@ public class LogSearchConfigZK implements LogSearchConfig {
       }
     }
     return permissionCode;
+  }
+
+  @Override
+  public void saveOutputSolrProperties(String type, OutputSolrProperties outputSolrProperties) throws Exception {
+    String nodePath = String.format("/output/solr/%s", type);
+    String data = gson.toJson(outputSolrProperties);
+    if (outputCache.getCurrentData(nodePath) == null) {
+      client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, data.getBytes());
+    } else {
+      client.setData().forPath(nodePath, data.getBytes());
+    }
+  }
+
+  @Override
+  public OutputSolrProperties getOutputSolrProperties(String type) throws Exception {
+    String nodePath = String.format("/output/solr/%s", type);
+    ChildData currentData = outputCache.getCurrentData(nodePath);
+    return currentData == null ?
+        null :
+        gson.fromJson(new String(currentData.getData()), OutputSolrPropertiesImpl.class);
+  }
+
+  @Override
+  public void monitorOutputProperties(final List<? extends OutputConfigMonitor> outputConfigMonitors) throws Exception {
+    TreeCacheListener listener = new TreeCacheListener() {
+      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        if (event.getType() != Type.NODE_UPDATED) {
+          return;
+        }
+        
+        LOG.info("Output config updated: " + event.getData().getPath());
+        for (OutputConfigMonitor monitor : outputConfigMonitors) {
+          String monitorPath = String.format("/output/%s/%s", monitor.getDestination(), monitor.getOutputType());
+          if (monitorPath.equals(event.getData().getPath())) {
+            String nodeData = new String(event.getData().getData());
+            OutputSolrProperties outputSolrProperties = gson.fromJson(nodeData, OutputSolrPropertiesImpl.class);
+            monitor.outputConfigChanged(outputSolrProperties);
+          }
+        }
+      }
+    };
+    outputCache.getListenable().addListener(listener);
   }
 
   @Override

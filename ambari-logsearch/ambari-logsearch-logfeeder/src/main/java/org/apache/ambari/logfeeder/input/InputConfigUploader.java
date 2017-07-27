@@ -84,7 +84,7 @@ public class InputConfigUploader extends Thread {
             String serviceName = m.group(1);
             String inputConfig = Files.toString(inputConfigFile, Charset.defaultCharset());
             
-            if (!config.inputConfigExists(LogFeederUtil.getClusterName(), serviceName)) {
+            if (!config.inputConfigExistsLogFeeder(serviceName)) {
               config.createInputConfig(LogFeederUtil.getClusterName(), serviceName, inputConfig);
             }
             filesHandled.add(inputConfigFile.getAbsolutePath());

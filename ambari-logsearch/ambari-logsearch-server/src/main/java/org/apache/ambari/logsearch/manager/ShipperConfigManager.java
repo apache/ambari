@@ -33,7 +33,6 @@ import org.apache.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.ConstraintViolation;
@@ -49,11 +48,6 @@ public class ShipperConfigManager extends JsonManagerBase {
 
   @Inject
   private LogSearchConfigConfigurer logSearchConfigConfigurer;
-
-  @PostConstruct
-  private void postConstructor() {
-    logSearchConfigConfigurer.start();
-  }
   
   public List<String> getServices(String clusterName) {
     return LogSearchConfigConfigurer.getConfig().getServices(clusterName);
@@ -66,7 +60,7 @@ public class ShipperConfigManager extends JsonManagerBase {
 
   public Response createInputConfig(String clusterName, String serviceName, LSServerInputConfig inputConfig) {
     try {
-      if (LogSearchConfigConfigurer.getConfig().inputConfigExists(clusterName, serviceName)) {
+      if (LogSearchConfigConfigurer.getConfig().inputConfigExistsServer(clusterName, serviceName)) {
         return Response.serverError()
             .type(MediaType.APPLICATION_JSON)
             .entity(ImmutableMap.of("errorMessage", "Input config already exists for service " + serviceName))
@@ -83,7 +77,7 @@ public class ShipperConfigManager extends JsonManagerBase {
 
   public Response setInputConfig(String clusterName, String serviceName, LSServerInputConfig inputConfig) {
     try {
-      if (!LogSearchConfigConfigurer.getConfig().inputConfigExists(clusterName, serviceName)) {
+      if (!LogSearchConfigConfigurer.getConfig().inputConfigExistsServer(clusterName, serviceName)) {
         return Response.serverError()
             .type(MediaType.APPLICATION_JSON)
             .entity(ImmutableMap.of("errorMessage", "Input config doesn't exist for service " + serviceName))

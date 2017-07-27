@@ -24,6 +24,7 @@ import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
+import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
@@ -53,9 +54,19 @@ public abstract class SolrDaoBase {
 
   @Inject
   private SolrKerberosConfig solrKerberosConfig;
-  
+
+  @Inject
+  protected LogSearchConfigState logSearchConfigState;
+
   protected SolrDaoBase(LogType logType) {
     this.logType = logType;
+  }
+
+  protected void waitForLogSearchConfig() {
+    while (!logSearchConfigState.isLogSearchConfigAvailable()) {
+      LOG.info("Log Search config not available yet, waiting...");
+      try { Thread.sleep(1000); } catch (Exception e) { LOG.warn("Exception during waiting for Log Search Config", e); }
+    }
   }
 
   public QueryResponse process(SolrQuery solrQuery, String event) {

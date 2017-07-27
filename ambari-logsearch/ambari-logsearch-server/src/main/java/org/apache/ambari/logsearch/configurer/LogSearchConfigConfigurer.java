@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logsearch.configurer;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -45,6 +46,8 @@ public class LogSearchConfigConfigurer implements Configurer {
   @Inject
   private LogSearchConfigState logSearchConfigState;
   
+  @PostConstruct
+  @Override
   public void start() {
     Thread setupThread = new Thread("setup_logsearch_config") {
       @Override
