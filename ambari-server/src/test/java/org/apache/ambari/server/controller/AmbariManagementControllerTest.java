@@ -1797,7 +1797,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateHostSimple() throws AmbariException {
+  public void testCreateHostSimple() throws AmbariException, AuthorizationException {
     String cluster1 = getUniqueName();
     String host1 = getUniqueName();
     String host2 = getUniqueName();
@@ -1826,7 +1826,7 @@ public class AmbariManagementControllerTest {
     try {
       HostResourceProviderTest.createHosts(controller, requests);
       fail("Create host should fail for invalid clusters");
-    } catch (Exception e) {
+    } catch (AmbariException e) {
       // Expected
     }
 
@@ -1850,7 +1850,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateHostMultiple() throws AmbariException {
+  public void testCreateHostMultiple() throws AmbariException, AuthorizationException {
     String host1 = getUniqueName();
     String host2 = getUniqueName();
     String host3 = getUniqueName();

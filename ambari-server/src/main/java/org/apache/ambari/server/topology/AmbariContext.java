@@ -304,7 +304,7 @@ public class AmbariContext {
 
     try {
       getHostResourceProvider().createHosts(new RequestImpl(null, Collections.singleton(properties), null, null));
-    } catch (AmbariException e) {
+    } catch (AmbariException | AuthorizationException e) {
       LOG.error("Unable to create host component resource for host {}", hostName, e);
       throw new RuntimeException(String.format("Unable to create host resource for host '%s': %s",
           hostName, e.toString()), e);
