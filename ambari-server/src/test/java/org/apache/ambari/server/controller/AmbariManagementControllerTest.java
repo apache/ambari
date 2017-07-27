@@ -10165,6 +10165,75 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testRestartIndicatorsAndSlaveFilesUpdateAtComponentsDelete() throws Exception {
+    String cluster1 = getUniqueName();
+    createCluster(cluster1);
+    Cluster cluster = clusters.getCluster(cluster1);
+    StackId stackId = new StackId("HDP-2.0.7");
+    cluster.setDesiredStackVersion(stackId);
+    cluster.setCurrentStackVersion(stackId);
+
+    String hdfsService = "HDFS";
+    String zookeeperService = "ZOOKEEPER";
+    createService(cluster1, hdfsService, null);
+    createService(cluster1, zookeeperService, null);
+
+    String namenode = "NAMENODE";
+    String datanode = "DATANODE";
+    String zookeeperServer = "ZOOKEEPER_SERVER";
+    String zookeeperClient = "ZOOKEEPER_CLIENT";
+
+    createServiceComponent(cluster1, hdfsService, namenode,
+        State.INIT);
+    createServiceComponent(cluster1, hdfsService, datanode,
+        State.INIT);
+    createServiceComponent(cluster1, zookeeperService, zookeeperServer,
+        State.INIT);
+    createServiceComponent(cluster1, zookeeperService, zookeeperClient,
+        State.INIT);
+
+    String host1 = getUniqueName();
+    String host2 = getUniqueName();
+
+    addHostToCluster(host1, cluster1);
+    createServiceComponentHost(cluster1, hdfsService, namenode, host1, null);
+    createServiceComponentHost(cluster1, hdfsService, datanode, host1, null);
+    createServiceComponentHost(cluster1, zookeeperService, zookeeperServer, host1,
+        null);
+    createServiceComponentHost(cluster1, zookeeperService, zookeeperClient, host1,
+        null);
+
+    ServiceComponentHost nameNodeSch = null;
+    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(host1)) {
+      if (sch.getServiceComponentName().equals(namenode)) {
+        nameNodeSch = sch;
+      }
+    }
+
+    assertFalse(nameNodeSch.isRestartRequired());
+
+    addHostToCluster(host2, cluster1);
+
+    createServiceComponentHost(cluster1, hdfsService, datanode, host2, null);
+    assertFalse(nameNodeSch.isRestartRequired());  //No restart required if adding host
+
+    deleteServiceComponentHost(cluster1, hdfsService, datanode, host2, null);
+    deleteHost(host2);
+
+    assertFalse(nameNodeSch.isRestartRequired());   //NameNode doesn't need to be restarted!
+
+    List<Long> requestIDs = actionDB.getRequestsByStatus(null, 1, false);
+    Request request = actionDB.getRequest(requestIDs.get(0));
+    assertEquals("Update Include and Exclude Files for [HDFS]", request.getRequestContext());
+    assertEquals("{\"multi_services_decom_request\":\"true\",\"update_files_only\":\"false\"}", request.getInputs());
+    assertEquals(1, request.getResourceFilters().size());
+    RequestResourceFilter resourceFilter = request.getResourceFilters().get(0);
+    assertEquals(resourceFilter.getServiceName(), hdfsService);
+    assertEquals(resourceFilter.getComponentName(), namenode);
+    assertEquals(resourceFilter.getHostNames(), new ArrayList<String>());
+  }
+
+  @Test
   public void testMaintenanceState() throws Exception {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
