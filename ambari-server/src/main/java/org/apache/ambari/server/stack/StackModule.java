@@ -1224,6 +1224,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         RepositoryXml serviceRepoXml = ssd.getRepoFile();
         if (null != serviceRepoXml) {
           repos.addAll(serviceRepoXml.getRepositories());
+          if (null != serviceRepoXml.getLatestURI()) {
+            stackContext.registerRepoUpdateTask(serviceRepoXml.getLatestURI(), this);
+          }
         }
       }
     }
