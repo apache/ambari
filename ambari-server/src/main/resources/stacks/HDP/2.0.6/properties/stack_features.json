@@ -423,6 +423,11 @@
         "name": "nifi_jaas_conf_create",
         "description": "Create NIFI jaas configuration when kerberos is enabled",
         "min_version": "2.6.0.0"
+      },
+      {
+        "name": "atlas_core_site_support",
+        "description": "Need to create core-site under Atlas conf directory.",
+        "min_version": "2.6.0.0"
       }
     ]
   }

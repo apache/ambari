@@ -237,6 +237,7 @@ for host in zookeeper_hosts:
     zookeeper_quorum += ","
 
 stack_supports_atlas_hdfs_site_on_namenode_ha = check_stack_feature(StackFeature.ATLAS_HDFS_SITE_ON_NAMENODE_HA, version_for_stack_feature_checks)
+stack_supports_atlas_core_site = check_stack_feature(StackFeature.ATLAS_CORE_SITE_SUPPORT,version_for_stack_feature_checks)
 
 atlas_server_xmx = default("configurations/atlas-env/atlas_server_xmx", 2048)
 atlas_server_max_new_size = default("configurations/atlas-env/atlas_server_max_new_size", 614)

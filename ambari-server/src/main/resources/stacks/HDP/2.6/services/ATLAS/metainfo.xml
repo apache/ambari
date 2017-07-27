@@ -30,6 +30,7 @@
       </themes>
       <configuration-dependencies>
         <config-type>hdfs-site</config-type>
+        <config-type>core-site</config-type>
       </configuration-dependencies>
     </service>
   </services>
