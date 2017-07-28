@@ -8,17 +8,17 @@
       "checks":[
         {
           "property":"oozie.https.port",
-          "desired":"EXISTS",
+          "desired":"EXIST",
           "site":"oozie-site"
         },
         {
           "property":"oozie.https.keystore.file",
-          "desired":"EXISTS",
+          "desired":"EXIST",
           "site":"oozie-site"
         },
         {
           "property":"oozie.https.keystore.pass",
-          "desired":"EXISTS",
+          "desired":"EXIST",
           "site":"oozie-site"
         }
       ]
@@ -34,9 +34,10 @@
         "port":{
           "http_property": "oozie.base.url",
           "http_default_port": "11000",
-          "https_property": "oozie.base.url",
+          "https_property": "oozie.https.port",
           "https_default_port": "11443",
           "regex": "\\w*:(\\d+)",
+          "https_regex": "(\\d+)",
           "site": "oozie-site"
         }
       }
