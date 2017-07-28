@@ -84,3 +84,18 @@ def compare_versions(version1, version2, format=False):
 
   max_segments = max(len(v1.split(".")), len(v2.split(".")))
   return cmp(_normalize(v1, desired_segments=max_segments), _normalize(v2, desired_segments=max_segments))
+
+def get_major_version(full_version):
+  """
+  :param input: Input string, e.g. "2.1.3.0" or "2.2.0.1-885" and other similar
+  :return: Returns a well-formatted HDP major stack version of the form #.# as a string. If can't get major version
+  return None
+  """
+  pattern = re.compile(r'^[0-9]+\.[0-9]+')
+  major_version = None
+
+  m = pattern.search(full_version)
+  if m:
+    major_version = m.group()
+
+  return major_version
