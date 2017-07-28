@@ -937,7 +937,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.get('upgradeMethods').forEach(function (method) {
       if (method.get('allowed')) {
         this.runPreUpgradeCheckOnly({
-          value: version.get('repositoryVersion'),
+          value: version.get('id'),
           label: version.get('displayName'),
           type: method.get('type'),
           targetStack: version.get('displayName')
@@ -1058,7 +1058,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         },
         rerunCheck: function (event) {
           self.runPreUpgradeCheckOnly({
-            value: version.get('repositoryVersion'),
+            value: version.get('id'),
             label: version.get('displayName'),
             type: event.context.get('type'),
             targetStack: version.get('displayName')
@@ -1095,7 +1095,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             bypassedFailures: bypassedFailures,
             callback: function () {
               self.runPreUpgradeCheckOnly.call(self, {
-                value: version.get('repositoryVersion'),
+                value: version.get('id'),
                 label: version.get('displayName'),
                 type: event.context.get('type'),
                 targetStack: version.get('displayName')
@@ -1329,7 +1329,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   runPreUpgradeCheck: function(version) {
     var params = {
       id: version.get('id'),
-      value: version.get('repositoryVersion'),
+      value: version.get('id'),
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
