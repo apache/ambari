@@ -232,8 +232,11 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   @Override
   public boolean onStateChanged(Set<String> liveNodes, DocCollection collectionState) {
     synchronized (propertiesLock) {
-      shards = new ArrayList<>(collectionState.getSlicesMap().keySet());
-      Collections.sort(shards);
+      if (collectionState != null) {
+        List<String> shards = new ArrayList<>(collectionState.getSlicesMap().keySet());
+        Collections.sort(shards);
+        this.shards = shards;
+      }
     }
     return false;
   }
