@@ -405,7 +405,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
         id: '1',
-        value: '2.2',
+        value: '1',
         label: 'HDP-2.2',
         type: 'ROLLING',
         skipComponentFailures: 'false',
@@ -1727,11 +1727,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     it("Rolling method allowed", function () {
       controller.get('upgradeMethods').setEach('allowed', true);
       controller.runUpgradeMethodChecks(Em.Object.create({
-        repositoryVersion: 'v1',
+        id: '1',
         displayName: 'V1'
       }));
       expect(controller.runPreUpgradeCheckOnly.calledWith({
-        value: 'v1',
+        value: '1',
         label: 'V1',
         type: 'ROLLING'
       })).to.be.true;
