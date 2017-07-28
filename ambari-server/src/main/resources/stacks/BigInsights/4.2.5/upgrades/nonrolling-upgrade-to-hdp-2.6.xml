@@ -190,6 +190,12 @@
       </execute-stage>
     </group>
 
+    <group xsi:type="cluster" name="REMOVE_OBSOLETE_ALERTS" title="Remove obsolete alerts">
+      <execute-stage title="Remove obsolete alerts">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RemoveObsoleteAlerts" />
+      </execute-stage>
+    </group>
+
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
       <direction>UPGRADE</direction>    <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>       <!-- May fix configuration problems manually -->
