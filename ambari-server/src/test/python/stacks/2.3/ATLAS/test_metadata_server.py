@@ -334,7 +334,7 @@ class TestMetadataServer(RMFTestCase):
                               content=Template("atlas_hbase_setup.rb.j2"))
 
     self.assertResourceCalled('File', str(self.conf_dir+"/hdfs-site.xml"),action = ['delete'],)
-
+    self.assertResourceCalled('Directory',self.stack_root + '/current/atlas-server/', owner = 'atlas', group = 'hadoop', recursive_ownership = True, )
     self.assertNoMoreResources()
 
   def test_configure_secure(self):
@@ -355,7 +355,7 @@ class TestMetadataServer(RMFTestCase):
 
     self.assertResourceCalled('File', str(self.conf_dir+"/hdfs-site.xml"),action = ['delete'],)
 
-
+    self.assertResourceCalled('Directory',self.stack_root + '/current/atlas-server/', owner = 'atlas', group = 'hadoop', recursive_ownership = True, )
     self.assertNoMoreResources()
 
   def test_start_default(self):
@@ -374,7 +374,7 @@ class TestMetadataServer(RMFTestCase):
                               content=Template("atlas_hbase_setup.rb.j2"))
 
     self.assertResourceCalled('File', str(self.conf_dir+"/hdfs-site.xml"),action = ['delete'],)
-
+    self.assertResourceCalled('Directory',self.stack_root + '/current/atlas-server/', owner = 'atlas', group = 'hadoop', recursive_ownership = True, )
 
     self.assertResourceCalled('Execute', 'source {0}/atlas-env.sh ; {1}/current/atlas-server/bin/atlas_start.py'.format(self.conf_dir,self.stack_root),
                               not_if = 'ls /var/run/atlas/atlas.pid >/dev/null 2>&1 && ps -p `cat /var/run/atlas/atlas.pid` >/dev/null 2>&1',
