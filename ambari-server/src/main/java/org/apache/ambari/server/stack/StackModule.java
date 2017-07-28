@@ -356,6 +356,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       String parent = serviceInfo.getParent();
       if (parent != null) {
         mergeServiceWithExplicitParent(service, parent, allStacks, commonServices, extensions);
+      }else {
+        serviceInfo.setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.PYTHON);
       }
     }
   }

@@ -61,6 +61,8 @@ import com.google.inject.assistedinject.AssistedInject;
 public class MpackManager {
   private static final String MPACK_METADATA = "mpack.json";
   private static final String MPACK_TAR_LOCATION = "staging";
+  private static final String SERVICES_DIRECTORY = "services";
+  private static final String PACKLETS_DIRECTORY = "packlets";
   private final static Logger LOG = LoggerFactory.getLogger(MpackManager.class);
   protected Map<Long, Mpack> mpackMap = new ConcurrentHashMap<>();
   private File mpacksStaging;
@@ -97,13 +99,15 @@ public class MpackManager {
               if (file.isDirectory()) {
                 String mpackVersion = file.getName();
                 List resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
-                MpackEntity mpackEntity = (MpackEntity) resultSet.get(0);
+                if (resultSet.size() > 0) {
+                  MpackEntity mpackEntity = (MpackEntity) resultSet.get(0);
 
-                //Read the mpack.json file into Mpack Object for further use.
-                String mpackJsonContents = new String((Files.readAllBytes(Paths.get(file + "/" + MPACK_METADATA))), "UTF-8");
-                Gson gson = new Gson();
-                Mpack existingMpack = gson.fromJson(mpackJsonContents, Mpack.class);
-                mpackMap.put(mpackEntity.getMpackId(), existingMpack);
+                  //Read the mpack.json file into Mpack Object for further use.
+                  String mpackJsonContents = new String((Files.readAllBytes(Paths.get(file + "/" + MPACK_METADATA))), "UTF-8");
+                  Gson gson = new Gson();
+                  Mpack existingMpack = gson.fromJson(mpackJsonContents, Mpack.class);
+                  mpackMap.put(mpackEntity.getMpackId(), existingMpack);
+                }
               }
             }
           }
@@ -175,23 +179,19 @@ public class MpackManager {
     }
   }
 
-  /**
-   * Mpack is downloaded as a tar.gz file. It is extracted into mpack-v2-staging/{mpack-name}/{mpack-version}/ directory
-   *
-   * @param mpack          Mpack to process
-   * @param mpackTarPath   Path to mpack tarball
-   * @param mpackDirectory Mpack directory
+  /***
+   * A generic method to extract tar files.
+   * @param tarPath
    * @throws IOException
    */
-  private void extractMpackTar(Mpack mpack, Path mpackTarPath, String mpackDirectory) throws IOException {
-
-    TarArchiveInputStream mpackTarFile = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(new File(String.valueOf(mpackTarPath))))));
+  private void extractTar(Path tarPath, File tempOutputDirectory) throws IOException{
+    TarArchiveInputStream tarFile = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(new File(String.valueOf(tarPath))))));
     TarArchiveEntry entry = null;
     File outputFile = null;
 
     //Create a loop to read every single entry in TAR file
-    while ((entry = mpackTarFile.getNextTarEntry()) != null) {
-      outputFile = new File(mpacksStaging, entry.getName());
+    while ((entry = tarFile.getNextTarEntry()) != null) {
+      outputFile = new File(tempOutputDirectory, entry.getName());
       if (entry.isDirectory()) {
         LOG.debug("Attempting to write output directory" + outputFile.getAbsolutePath());
         if (!outputFile.exists()) {
@@ -203,20 +203,60 @@ public class MpackManager {
       } else {
         LOG.debug("Creating output file %s." + outputFile.getAbsolutePath());
         final OutputStream outputFileStream = new FileOutputStream(outputFile);
-        IOUtils.copy(mpackTarFile, outputFileStream);
+        IOUtils.copy(tarFile, outputFileStream);
         outputFileStream.close();
       }
     }
 
-    mpackTarFile.close();
+    tarFile.close();
+  }
+
+  /**
+   * Mpack is downloaded as a tar.gz file. It is extracted into mpack-v2-staging/{mpack-name}/{mpack-version}/ directory
+   *
+   * @param mpack          Mpack to process
+   * @param mpackTarPath   Path to mpack tarball
+   * @param mpackDirectory Mpack directory
+   * @throws IOException
+   */
+  private void extractMpackTar(Mpack mpack, Path mpackTarPath, String mpackDirectory) throws IOException {
+
+    extractTar(mpackTarPath, mpacksStaging);
 
     String mpackTarDirectory = mpackTarPath.toString();
     Path extractedMpackDirectory = Files.move
             (Paths.get(mpacksStaging + File.separator + mpackTarDirectory.substring(mpackTarDirectory.lastIndexOf('/') + 1, mpackTarDirectory.indexOf(".tar")) + File.separator),
                     Paths.get(mpackDirectory), StandardCopyOption.REPLACE_EXISTING);
 
+    createServicesDirectory(extractedMpackDirectory);
     createSymLinks(mpack);
   }
+
+  /***
+   * Create a services directory and extract all the services tar file inside it. This readies it for cluster deployment
+   * @param extractedMpackDirectory
+   * @throws IOException
+   */
+  private void createServicesDirectory(Path extractedMpackDirectory) throws IOException {
+    File servicesDir = new File(extractedMpackDirectory.toAbsolutePath() + File.separator + SERVICES_DIRECTORY);
+    if (!servicesDir.exists()) {
+      servicesDir.mkdir();
+    }
+    File packletDir = new File(extractedMpackDirectory.toAbsolutePath() + File.separator + PACKLETS_DIRECTORY);
+    for (final File serviceTar : packletDir.listFiles()) {
+      String serviceName = serviceTar.getName();
+      if (serviceName.contains("tar.gz")) {
+        extractTar(serviceTar.toPath(), packletDir);
+        String serviceTarDirectory = serviceTar.toString();
+        String serviceNameVersion = serviceTarDirectory.substring(serviceTarDirectory.lastIndexOf('/') + 1, serviceTarDirectory.indexOf(".tar"));
+        String serviceFolderName = serviceNameVersion.substring(0,serviceNameVersion.indexOf("-packlet")); //Can we assume the names of the tar files?
+        Path extractedServiceDirectory = Files.move
+                (Paths.get(packletDir + File.separator + serviceNameVersion),
+                        Paths.get(servicesDir.toPath() + File.separator + serviceFolderName ), StandardCopyOption.REPLACE_EXISTING);
+      }
+    }
+  }
+
 
   /**
    * Reads the mpack.json file within the {mpack-name}.tar.gz file and populates Mpack object.
