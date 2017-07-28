@@ -10225,7 +10225,11 @@ public class AmbariManagementControllerTest {
     List<Long> requestIDs = actionDB.getRequestsByStatus(null, 1, false);
     Request request = actionDB.getRequest(requestIDs.get(0));
     assertEquals("Update Include and Exclude Files for [HDFS]", request.getRequestContext());
-    assertEquals("{\"multi_services_decom_request\":\"true\",\"update_files_only\":\"false\"}", request.getInputs());
+    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    Map<String, String> requestParams = StageUtils.getGson().fromJson(request.getInputs(), type);
+    assertEquals(2, requestParams.size());
+    assertEquals("true", requestParams.get("multi_services_decom_request"));
+    assertEquals("false", requestParams.get("update_files_only"));
     assertEquals(1, request.getResourceFilters().size());
     RequestResourceFilter resourceFilter = request.getResourceFilters().get(0);
     assertEquals(resourceFilter.getServiceName(), hdfsService);
