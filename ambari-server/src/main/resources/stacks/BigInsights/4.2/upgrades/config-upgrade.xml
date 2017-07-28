@@ -280,6 +280,23 @@
         </changes>
       </component>
     </service>
+
+    <service name="SPARK">
+      <component name="SPARK_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_spark_hive_site_override" summary="Update spark-hive-site-override">
+            <type>spark-hive-site-override</type>
+            <transfer operation="copy" to-key="hive.server2.thrift.port" from-type="spark-env" from-key="spark_thriftserver_port" if-type="spark-env" if-key="spark_thriftserver_port" if-key-state="present" />
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_spark_env" summary="Update spark-env">
+            <type>spark-env</type>
+            <replace key="content" find="export HIVE_SERVER2_THRIFT_BIND_HOST={{spark_thrift_server_host}}" replace-with="" />
+            <replace key="content" find="export HIVE_SERVER2_THRIFT_PORT={{spark_thriftserver_port}}" replace-with="" />
+            <transfer operation="delete" delete-key="spark_thriftserver_port" />
+          </definition>
+        </changes>
+      </component>
+    </service>
   </services>
 
 

@@ -269,6 +269,14 @@
         <task xsi:type="configure" id="biginsights_4_2_webhcat_server_update_configurations" />
       </execute-stage>
       
+      <!-- SPARK -->
+      <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark Thrift server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_hive_site_override" />
+      </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark Thrift server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_env" />
+      </execute-stage>
+
       <!-- OOZIE -->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie server">
         <task xsi:type="configure" id="biginsights_4_2_oozie_server_update_configurations" />
