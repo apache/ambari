@@ -61,6 +61,9 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.ServiceGroupFactory;
+import org.apache.ambari.server.state.ServiceGroupImpl;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
@@ -339,6 +342,8 @@ public class AgentResourceTest extends RandomPortJerseyTest {
           Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
       install(new FactoryModuleBuilder().implement(
           Host.class, HostImpl.class).build(HostFactory.class));
+      install(new FactoryModuleBuilder().implement(
+        ServiceGroup.class, ServiceGroupImpl.class).build(ServiceGroupFactory.class));
       install(new FactoryModuleBuilder().implement(
           Service.class, ServiceImpl.class).build(ServiceFactory.class));
       install(new FactoryModuleBuilder().implement(

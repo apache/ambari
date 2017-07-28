@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
@@ -62,12 +63,32 @@ public interface Cluster {
 
   /**
    * Add a service to a cluster
+   *
    * @param service
    */
   void addService(Service service);
 
   /**
+   * Add service group to the cluster
+   *
+   * @param serviceGroup
+   * @return
+   * @throws AmbariException
+   */
+  void addServiceGroup(ServiceGroup serviceGroup);
+
+  /**
+   * Add service group to the cluster
+   *
+   * @param serviceGroupName Service group name
+   * @return
+   * @throws AmbariException
+   */
+  ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException;
+
+  /**
    * Get a service
+   *
    * @param serviceName
    * @return
    */
@@ -75,6 +96,7 @@ public interface Cluster {
 
   /**
    * Gets a service from the given component name.
+   *
    * @param componentName
    * @return
    * @throws AmbariException
@@ -83,12 +105,29 @@ public interface Cluster {
 
   /**
    * Get all services
+   *
    * @return
    */
   Map<String, Service> getServices();
 
   /**
+   * Get a service group
+   *
+   * @param serviceGroupName
+   * @return
+   */
+  ServiceGroup getServiceGroup(String serviceGroupName) throws ServiceGroupNotFoundException;
+
+  /**
+   * Get all service groups
+   *
+   * @return
+   */
+  Map<String, ServiceGroup> getServiceGroups() throws AmbariException;
+
+  /**
    * Get all ServiceComponentHosts on a given host
+   *
    * @param hostname
    * @return
    */
@@ -96,7 +135,7 @@ public interface Cluster {
 
   /**
    * Gets a map of components to hosts they are installed on.
-   * <p>
+   * <p/>
    * This may may be filtered by host and/or service by optionally providing a set of hostname
    * and/or service names to use as a filter.  <code>null</code> for either filter indicates no
    * filter (or all), an empty set indicates a complete filter (or none).
@@ -109,10 +148,10 @@ public interface Cluster {
 
   /**
    * Get all ServiceComponentHosts for a given service and optional component
-   *
+   * <p/>
    * If the component name is <code>null</code>, all components for the requested service will be returned.
    *
-   * @param serviceName the name a the desired service
+   * @param serviceName   the name a the desired service
    * @param componentName the name a the desired component - null indicates all components for the service
    * @return a list of found ServiceComponentHost instances
    */
@@ -127,6 +166,7 @@ public interface Cluster {
 
   /**
    * Get all of the hosts running the provided service and component.
+   *
    * @param serviceName
    * @param componentName
    * @return
@@ -145,6 +185,7 @@ public interface Cluster {
   /**
    * Adds schs to cluster AND persists them
    * TODO consider making persisting optional
+   *
    * @param serviceComponentHosts
    * @throws AmbariException
    */
@@ -152,31 +193,36 @@ public interface Cluster {
 
   /**
    * Remove ServiceComponentHost from cluster
+   *
    * @param svcCompHost
    */
   void removeServiceComponentHost(ServiceComponentHost svcCompHost)
-      throws AmbariException;
+    throws AmbariException;
 
   /**
    * Get desired stack version
+   *
    * @return
    */
   StackId getDesiredStackVersion();
 
   /**
    * Set desired stack version
+   *
    * @param stackVersion
    */
   void setDesiredStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
    * Get current stack version
+   *
    * @return
    */
   StackId getCurrentStackVersion();
 
   /**
    * Set current stack version
+   *
    * @param stackVersion
    */
   void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
@@ -192,38 +238,34 @@ public interface Cluster {
    * the version distributed to them will move into the
    * {@link RepositoryVersionState#NOT_REQUIRED} state.
    *
-   * @param repoVersionEntity
-   *          the repository that the hosts are being transitioned for (not
-   *          {@code null}).
-   * @param versionDefinitionXml
-   *          the VDF, or {@code null} if none.
-   * @param forceInstalled
-   *          if {@code true}, then this will transition everything directly to
-   *          {@link RepositoryVersionState#INSTALLED} instead of
-   *          {@link RepositoryVersionState#INSTALLING}. Hosts which should
-   *          received other states (like
-   *          {@link RepositoryVersionState#NOT_REQUIRED} will continue to
-   *          receive those states.
+   * @param repoVersionEntity    the repository that the hosts are being transitioned for (not
+   *                             {@code null}).
+   * @param versionDefinitionXml the VDF, or {@code null} if none.
+   * @param forceInstalled       if {@code true}, then this will transition everything directly to
+   *                             {@link RepositoryVersionState#INSTALLED} instead of
+   *                             {@link RepositoryVersionState#INSTALLING}. Hosts which should
+   *                             received other states (like
+   *                             {@link RepositoryVersionState#NOT_REQUIRED} will continue to
+   *                             receive those states.
    * @return a list of hosts which need the repository installed.
    * @throws AmbariException
    */
   List<Host> transitionHostsToInstalling(RepositoryVersionEntity repoVersionEntity,
-      VersionDefinitionXml versionDefinitionXml, boolean forceInstalled) throws AmbariException;
+                                         VersionDefinitionXml versionDefinitionXml, boolean forceInstalled) throws AmbariException;
 
   /**
    * Gets whether the cluster is still initializing or has finished with its
    * deployment requests.
    *
    * @return either {@link State#INIT} or {@link State#INSTALLED}, never
-   *         {@code null}.
+   * {@code null}.
    */
   State getProvisioningState();
 
   /**
    * Sets the provisioning state of the cluster.
    *
-   * @param provisioningState
-   *          the provisioning state, not {@code null}.
+   * @param provisioningState the provisioning state, not {@code null}.
    */
   void setProvisioningState(State provisioningState);
 
@@ -244,13 +286,15 @@ public interface Cluster {
   /**
    * Gets all configs that match the specified type.  Result is not the
    * DESIRED configuration for a cluster.
-   * @param configType  the config type to return
-   * @return  a map of configuration objects that have been set for the given type
+   *
+   * @param configType the config type to return
+   * @return a map of configuration objects that have been set for the given type
    */
   Map<String, Config> getConfigsByType(String configType);
 
   /**
    * Gets all properties types that mach the specified type.
+   *
    * @param configType the config type to return
    * @return properties types for given config type
    */
@@ -259,16 +303,18 @@ public interface Cluster {
   /**
    * Gets the specific config that matches the specified type and tag.  This not
    * necessarily a DESIRED configuration that applies to a cluster.
-   * @param configType  the config type to find
-   * @param versionTag  the config version tag to find
-   * @return  a {@link Config} object, or <code>null</code> if the specific type
-   *          and version have not been set.
+   *
+   * @param configType the config type to find
+   * @param versionTag the config version tag to find
+   * @return a {@link Config} object, or <code>null</code> if the specific type
+   * and version have not been set.
    */
   Config getConfig(String configType, String versionTag);
 
   /**
    * Get latest (including inactive ones) configurations with any of the given types.
    * This method does not take into account the configuration being enabled.
+   *
    * @return the list of configurations with the given types
    */
   List<Config> getLatestConfigsWithTypes(Collection<String> types);
@@ -276,31 +322,35 @@ public interface Cluster {
   /**
    * Gets the specific config that matches the specified type and version.  This not
    * necessarily a DESIRED configuration that applies to a cluster.
-   * @param configType  the config type to find
-   * @param configVersion  the config version to find
-   * @return  a {@link Config} object, or <code>null</code> if the specific type
-   *          and version have not been set.
+   *
+   * @param configType    the config type to find
+   * @param configVersion the config version to find
+   * @return a {@link Config} object, or <code>null</code> if the specific type
+   * and version have not been set.
    */
   Config getConfigByVersion(String configType, Long configVersion);
 
   /**
    * Sets a specific config.  NOTE:  This is not a DESIRED configuration that
    * applies to a cluster.
-   * @param config  the config instance to add
+   *
+   * @param config the config instance to add
    */
   void addConfig(Config config);
 
   /**
    * Gets all configurations defined for a cluster.
-   * @return  the collection of all configs that have been defined.
+   *
+   * @return the collection of all configs that have been defined.
    */
   Collection<Config> getAllConfigs();
 
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
    * can be only one selected config per type.
-   * @param user the user making the change for audit purposes
-   * @param configs  the set of {@link org.apache.ambari.server.state.Config} objects to set as desired
+   *
+   * @param user    the user making the change for audit purposes
+   * @param configs the set of {@link org.apache.ambari.server.state.Config} objects to set as desired
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
@@ -309,8 +359,9 @@ public interface Cluster {
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
    * can be only one selected config per type.
-   * @param user the user making the change for audit purposes
-   * @param configs  the set of {@link org.apache.ambari.server.state.Config} objects to set as desired
+   *
+   * @param user                     the user making the change for audit purposes
+   * @param configs                  the set of {@link org.apache.ambari.server.state.Config} objects to set as desired
    * @param serviceConfigVersionNote note to attach to service config version if created
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
@@ -324,9 +375,10 @@ public interface Cluster {
 
   /**
    * Apply specified service config version (rollback)
+   *
    * @param serviceName service name
-   * @param version service config version
-   * @param user the user making the change for audit purposes
+   * @param version     service config version
+   * @param user        the user making the change for audit purposes
    * @param note
    * @return service config version created
    * @throws AmbariException
@@ -335,12 +387,14 @@ public interface Cluster {
 
   /**
    * Get currently active service config versions for stack services
+   *
    * @return
    */
   Map<String, Collection<ServiceConfigVersionResponse>> getActiveServiceConfigVersions();
 
   /**
    * Get active service config version responses for all config groups of a service
+   *
    * @param serviceName service name
    * @return
    */
@@ -348,32 +402,38 @@ public interface Cluster {
 
   /**
    * Get service config version history
+   *
    * @return
    */
   List<ServiceConfigVersionResponse> getServiceConfigVersions();
 
   /**
    * Gets the desired (and selected) config by type.
-   * @param configType  the type of configuration
-   * @return  the {@link Config} instance, or <code>null</code> if the type has
+   *
+   * @param configType the type of configuration
+   * @return the {@link Config} instance, or <code>null</code> if the type has
    * not been set.
    */
   Config getDesiredConfigByType(String configType);
 
   /**
    * Check if config type exists in cluster.
+   *
    * @param configType the type of configuration
    * @return <code>true</code> if config type exists, else - <code>false</code>
    */
   boolean isConfigTypeExists(String configType);
+
   /**
    * Gets the active desired configurations for the cluster.
+   *
    * @return a map of type-to-configuration information.
    */
   Map<String, DesiredConfig> getDesiredConfigs();
 
   /**
    * Gets all versions of the desired configurations for the cluster.
+   *
    * @return a map of type-to-configuration information.
    */
   Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions();
@@ -381,6 +441,7 @@ public interface Cluster {
 
   /**
    * Creates a cluster response based on the current cluster definition
+   *
    * @return
    * @throws AmbariException
    */
@@ -393,31 +454,51 @@ public interface Cluster {
 
   /**
    * Creates a debug dump based on the current cluster state
+   *
    * @param sb
    */
   void debugDump(StringBuilder sb);
 
   /**
    * Delete all the services associated with this cluster
+   *
    * @throws AmbariException
    */
   void deleteAllServices() throws AmbariException;
 
   /**
    * Delete the named service associated with this cluster
+   *
    * @param serviceName
    * @throws AmbariException
    */
   void deleteService(String serviceName) throws AmbariException;
 
   /**
+   * Delete all the service groups associated with this cluster
+   *
+   * @throws AmbariException
+   */
+  void deleteAllServiceGroups() throws AmbariException;
+
+  /**
+   * Delete the named service associated with this cluster
+   *
+   * @param serviceGroupName
+   * @throws AmbariException
+   */
+  void deleteServiceGroup(String serviceGroupName) throws AmbariException;
+
+  /**
    * Gets if the cluster can be deleted
+   *
    * @return
    */
   boolean canBeRemoved();
 
   /**
    * Delete the cluster
+   *
    * @throws AmbariException
    */
   void delete() throws AmbariException;
@@ -425,19 +506,18 @@ public interface Cluster {
   /**
    * Add service to the cluster
    *
-   * @param serviceName
-   *          the name of the service to add (not {@code null}).
-   * @param repositoryVersion
-   *          the repository from which the service should be installed (not
-   *          {@code null}).
+   * @param serviceName       the name of the service to add (not {@code null}).
+   * @param repositoryVersion the repository from which the service should be installed (not
+   *                          {@code null}).
    * @return
    * @throws AmbariException
    */
   Service addService(String serviceName, RepositoryVersionEntity repositoryVersion)
-      throws AmbariException;
+    throws AmbariException;
 
   /**
    * Fetch desired configs for list of hosts in cluster
+   *
    * @param hostIds
    * @return
    */
@@ -445,6 +525,7 @@ public interface Cluster {
 
   /**
    * Fetch desired configs for all hosts in cluster
+   *
    * @return
    */
   Map<Long, Map<String, DesiredConfig>> getAllHostsDesiredConfigs();
@@ -452,6 +533,7 @@ public interface Cluster {
   /**
    * Add a new config group to the set of Config groups associated with this
    * cluster
+   *
    * @param configGroup
    * @throws AmbariException
    */
@@ -459,12 +541,14 @@ public interface Cluster {
 
   /**
    * Get config groups associated with this cluster
+   *
    * @return unmodifiable map of config group id to config group.  Will not return null.
    */
   Map<Long, ConfigGroup> getConfigGroups();
 
   /**
    * Delete this config group identified by the config group id
+   *
    * @param id
    * @throws AmbariException
    */
@@ -472,28 +556,32 @@ public interface Cluster {
 
   /**
    * Find all config groups associated with the give hostname
+   *
    * @param hostname
    * @return Map of config group id to config group
    */
   Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname)
-      throws AmbariException;
+    throws AmbariException;
 
   /**
    * Add a @RequestExecution to the cluster
+   *
    * @param requestExecution
    * @throws AmbariException
    */
   void addRequestExecution(RequestExecution requestExecution)
-      throws AmbariException;
+    throws AmbariException;
 
   /**
    * Get all @RequestExecution objects associated with the cluster
+   *
    * @return
    */
   Map<Long, RequestExecution> getAllRequestExecutions();
 
   /**
    * Delete a @RequestExecution associated with the cluster
+   *
    * @param id
    * @throws AmbariException
    */
@@ -501,6 +589,7 @@ public interface Cluster {
 
   /**
    * Get next version of specified config type
+   *
    * @param type config type
    * @return next version of config
    */
@@ -518,9 +607,8 @@ public interface Cluster {
    * Determine whether or not access to this cluster resource should be allowed based
    * on the given privilege.
    *
-   * @param privilegeEntity  the privilege
-   * @param readOnly         indicate whether or not this check is for a read only operation
-   *
+   * @param privilegeEntity the privilege
+   * @param readOnly        indicate whether or not this check is for a read only operation
    * @return true if the access to this cluster is allowed
    */
   boolean checkPermission(PrivilegeEntity privilegeEntity, boolean readOnly);
@@ -528,7 +616,7 @@ public interface Cluster {
   /**
    * Add the given map of attributes to the session for this cluster.
    *
-   * @param attributes  the session attributes
+   * @param attributes the session attributes
    */
   void addSessionAttributes(Map<String, Object> attributes);
 
@@ -561,27 +649,24 @@ public interface Cluster {
    * When completed, all other configurations for any other stack will remain,
    * but will not be marked as selected.
    *
-   * @param stackId
-   *          the stack to use when finding the latest configurations (not
-   *          {@code null}).
-   * @param serviceName
-   *          the service to modify configurations for (not {@code null}).
+   * @param stackId     the stack to use when finding the latest configurations (not
+   *                    {@code null}).
+   * @param serviceName the service to modify configurations for (not {@code null}).
    */
   void applyLatestConfigurations(StackId stackId, String serviceName);
 
   /**
    * Removes all configurations for the specified service and stack.
    *
-   * @param stackId
-   *          the stack to use when finding the configurations to remove (not
-   *          {@code null}).
-   * @param serviceName
-   *          the service to rmeove configurations for (not {@code null}).
+   * @param stackId     the stack to use when finding the configurations to remove (not
+   *                    {@code null}).
+   * @param serviceName the service to rmeove configurations for (not {@code null}).
    */
   void removeConfigurations(StackId stackId, String serviceName);
 
   /**
    * Returns whether this cluster was provisioned by a Blueprint or not.
+   *
    * @return true if the cluster was deployed with a Blueprint otherwise false.
    */
   boolean isBluePrintDeployed();
@@ -592,16 +677,14 @@ public interface Cluster {
    * {@link UpgradeEntity} if it exists.
    *
    * @return an upgrade which will either be in progress or suspended, or
-   *         {@code null} if none.
-   *
+   * {@code null} if none.
    */
   UpgradeEntity getUpgradeInProgress();
 
   /**
    * Sets or clears the associated upgrade with the cluster.
    *
-   * @param upgradeEntity
-   *          the upgrade entity to set for cluster, or {@code null} for none.
+   * @param upgradeEntity the upgrade entity to set for cluster, or {@code null} for none.
    * @throws AmbariException
    */
   void setUpgradeEntity(UpgradeEntity upgradeEntity) throws AmbariException;
@@ -617,10 +700,9 @@ public interface Cluster {
   /**
    * Returns the name of the service that the passed config type belongs to.
    *
-   * @param configType
-   *          the config type to look up the service by
+   * @param configType the config type to look up the service by
    * @return returns the name of the service that the config type belongs to if
-   *         there is any otherwise returns null.
+   * there is any otherwise returns null.
    */
   String getServiceByConfigType(String configType);
 
@@ -633,20 +715,19 @@ public interface Cluster {
    * will not inclur a lookup penalty. This class also responds to
    * {@link ClusterConfigChangedEvent} in order to clear the cache.
    *
-   * @param propertyName
-   *          the property to lookup in {@code cluster-env} (not {@code null}).
-   * @param defaultValue
-   *          a default value to cache return if none exists (may be
-   *          {@code null}).
+   * @param propertyName the property to lookup in {@code cluster-env} (not {@code null}).
+   * @param defaultValue a default value to cache return if none exists (may be
+   *                     {@code null}).
    * @return
    */
   String getClusterProperty(String propertyName, String defaultValue);
 
   /**
    * Returns the number of hosts that form the cluster.
+   *
    * @return number of hosts that form the cluster
    */
-  int  getClusterSize();
+  int getClusterSize();
 
   /**
    * Gets a new instance of a {@link RoleCommandOrder} for this cluster.
@@ -661,11 +742,9 @@ public interface Cluster {
    * maps are not modified.
    * <p/>
    *
-   * @param commandParams
-   *          the command parameter map to supplement (not {@code null}).
-   * @param roleParams
-   *          the role parameter map to supplement (not {@code null}).
+   * @param commandParams the command parameter map to supplement (not {@code null}).
+   * @param roleParams    the role parameter map to supplement (not {@code null}).
    */
   void addSuspendedUpgradeParameters(Map<String, String> commandParams,
-      Map<String, String> roleParams);
+                                     Map<String, String> roleParams);
 }

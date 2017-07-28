@@ -154,6 +154,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new ClusterResourceProvider(managementController);
       case Service:
         return resourceProviderFactory.getServiceResourceProvider(managementController);
+      case ServiceGroup:
+        return resourceProviderFactory.getServiceGroupResourceProvider(managementController);
       case Component:
         return resourceProviderFactory.getComponentResourceProvider(managementController);
       case Host:

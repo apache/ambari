@@ -510,6 +510,18 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Get the servicegroups sub-resource
+   *
+   * @param request     the request
+   * @param clusterName cluster Name
+   * @return the service groups service
+   */
+  @Path("{clusterName}/servicegroups")
+  public ServiceGroupService getServiceGroupHandler(@Context javax.ws.rs.core.Request request, @ApiParam @PathParam("clusterName") String clusterName) {
+    return new ServiceGroupService(clusterName);
+  }
+
+  /**
    * Gets the configurations sub-resource.
    *
    * @param request      the request

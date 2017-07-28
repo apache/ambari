@@ -43,6 +43,9 @@ public interface ResourceProviderFactory {
   @Named("service")
   ResourceProvider getServiceResourceProvider(AmbariManagementController managementController);
 
+  @Named("servicegroup")
+  ResourceProvider getServiceGroupResourceProvider(AmbariManagementController managementController);
+
   @Named("component")
   ResourceProvider getComponentResourceProvider(AmbariManagementController managementController);
 

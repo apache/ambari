@@ -182,6 +182,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
@@ -266,7 +267,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private RoleCommandOrderProvider roleCommandOrderProvider;
-
+  @Inject
+  private ServiceGroupFactory serviceGroupFactory;
   @Inject
   private ServiceComponentFactory serviceComponentFactory;
   @Inject
@@ -5136,6 +5138,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public AmbariMetaInfo getAmbariMetaInfo() {
     return ambariMetaInfo;
+  }
+
+  @Override
+  public ServiceGroupFactory getServiceGroupFactory() {
+    return serviceGroupFactory;
   }
 
   @Override

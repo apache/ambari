@@ -153,6 +153,13 @@ CREATE TABLE serviceconfigmapping (
   CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id),
   CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
 
+CREATE TABLE servicegroups (
+  id NUMBER(19) NOT NULL,
+  service_group_name VARCHAR2(255) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
+  CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
 CREATE TABLE clusterservices (
   service_name VARCHAR2(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
@@ -1057,6 +1064,7 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 ---------inserting some data-----------
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('member_id_seq', 0);

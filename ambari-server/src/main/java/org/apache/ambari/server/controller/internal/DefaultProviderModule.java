@@ -90,6 +90,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new GroupPrivilegeResourceProvider();
       case Alert:
         return new AlertResourceProvider(managementController);
+      case ServiceGroup:
+        return new ServiceGroupResourceProvider(managementController);
       case Registry:
         return new RegistryResourceProvider(managementController);
       case RegistryRecommendation:

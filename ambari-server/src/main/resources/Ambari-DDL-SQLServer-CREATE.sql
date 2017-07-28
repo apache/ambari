@@ -165,6 +165,13 @@ CREATE TABLE serviceconfigmapping (
   CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id),
   CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
 
+CREATE TABLE servicegroups (
+  id BIGINT NOT NULL,
+  service_group_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
+  CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
 CREATE TABLE clusterservices (
   service_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
@@ -1082,6 +1089,7 @@ BEGIN TRANSACTION
   INSERT INTO ambari_sequences (sequence_name, [sequence_value])
   VALUES
     ('cluster_id_seq', 1),
+    ('service_group_id_seq', 1)
     ('host_id_seq', 0),
     ('user_id_seq', 2),
     ('group_id_seq', 1),

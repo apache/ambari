@@ -38,6 +38,16 @@ public abstract class AmbariEvent {
     SERVICE_REMOVED_SUCCESS,
 
     /**
+     * A service group was successfully installed.
+     */
+    SERVICE_GROUP_INSTALL_SUCCESS,
+
+    /**
+     * A service group was successfully removed.
+     */
+    SERVICE_GROUP_REMOVED_SUCCESS,
+
+    /**
      * A service component was successfully installed.
      */
     SERVICE_COMPONENT_INSTALL_SUCCESS,

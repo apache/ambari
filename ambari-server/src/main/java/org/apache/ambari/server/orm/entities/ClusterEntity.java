@@ -47,23 +47,23 @@ import org.apache.ambari.server.state.State;
 
 @Table(name = "clusters")
 @NamedQueries({
-    @NamedQuery(name = "clusterByName", query =
-        "SELECT cluster " +
-            "FROM ClusterEntity cluster " +
-            "WHERE cluster.clusterName=:clusterName"),
-    @NamedQuery(name = "allClusters", query =
-        "SELECT clusters " +
-            "FROM ClusterEntity clusters"),
-    @NamedQuery(name = "clusterByResourceId", query =
-        "SELECT cluster " +
-            "FROM ClusterEntity cluster " +
-            "WHERE cluster.resource.id=:resourceId")
+  @NamedQuery(name = "clusterByName", query =
+    "SELECT cluster " +
+      "FROM ClusterEntity cluster " +
+      "WHERE cluster.clusterName=:clusterName"),
+  @NamedQuery(name = "allClusters", query =
+    "SELECT clusters " +
+      "FROM ClusterEntity clusters"),
+  @NamedQuery(name = "clusterByResourceId", query =
+    "SELECT cluster " +
+      "FROM ClusterEntity cluster " +
+      "WHERE cluster.resource.id=:resourceId")
 })
 @Entity
 @TableGenerator(name = "cluster_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
-    , pkColumnValue = "cluster_id_seq"
-    , initialValue = 1
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
+  , pkColumnValue = "cluster_id_seq"
+  , initialValue = 1
 )
 public class ClusterEntity {
 
@@ -74,7 +74,7 @@ public class ClusterEntity {
 
   @Basic
   @Column(name = "cluster_name", nullable = false, insertable = true,
-      updatable = true, unique = true, length = 100)
+    updatable = true, unique = true, length = 100)
   private String clusterName;
 
   @Basic
@@ -105,6 +105,9 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity")
   private Collection<ClusterServiceEntity> clusterServiceEntities;
 
+  @OneToMany(mappedBy = "clusterEntity")
+  private Collection<ServiceGroupEntity> serviceGroupEntities;
+
   @OneToOne(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
   private ClusterStateEntity clusterStateEntity;
 
@@ -134,7 +137,7 @@ public class ClusterEntity {
 
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumns({
-      @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false)
+    @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false)
   })
   private ResourceEntity resource;
 
@@ -147,11 +150,11 @@ public class ClusterEntity {
    */
   @OneToOne(cascade = CascadeType.REMOVE)
   @JoinColumn(
-      name = "upgrade_id",
-      referencedColumnName = "upgrade_id",
-      nullable = true,
-      insertable = false,
-      updatable = true)
+    name = "upgrade_id",
+    referencedColumnName = "upgrade_id",
+    nullable = true,
+    insertable = false,
+    updatable = true)
   private UpgradeEntity upgradeEntity = null;
 
   public Long getClusterId() {
@@ -201,7 +204,7 @@ public class ClusterEntity {
    * @return either {@link State#INIT} or {@link State#INSTALLED},
    * never {@code null}.
    */
-  public State getProvisioningState(){
+  public State getProvisioningState() {
     return provisioningState;
   }
 
@@ -210,9 +213,9 @@ public class ClusterEntity {
    * deployment requests.
    *
    * @param provisioningState either {@link State#INIT} or
-   * {@link State#INSTALLED}, never {@code null}.
+   *                          {@link State#INSTALLED}, never {@code null}.
    */
-  public void setProvisioningState(State provisioningState){
+  public void setProvisioningState(State provisioningState) {
     this.provisioningState = provisioningState;
   }
 
@@ -268,6 +271,14 @@ public class ClusterEntity {
 
   public void setClusterServiceEntities(Collection<ClusterServiceEntity> clusterServiceEntities) {
     this.clusterServiceEntities = clusterServiceEntities;
+  }
+
+  public Collection<ServiceGroupEntity> getServiceGroupEntities() {
+    return serviceGroupEntities;
+  }
+
+  public void setServiceGroupEntities(Collection<ServiceGroupEntity> serviceGroupEntities) {
+    this.serviceGroupEntities = serviceGroupEntities;
   }
 
   public ClusterStateEntity getClusterStateEntity() {
@@ -334,7 +345,7 @@ public class ClusterEntity {
   /**
    * Set the admin resource entity.
    *
-   * @param resource  the resource entity
+   * @param resource the resource entity
    */
   public void setResource(ResourceEntity resource) {
     this.resource = resource;
