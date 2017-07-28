@@ -214,6 +214,12 @@ def metadata(type='server'):
         mode=0644
       )
 
+    Directory(format('{metadata_home}/'),
+      owner = params.metadata_user,
+      group = params.user_group,
+      recursive_ownership = True,
+    )
+
 def upload_conf_set(config_set, jaasFile):
   import params
 
