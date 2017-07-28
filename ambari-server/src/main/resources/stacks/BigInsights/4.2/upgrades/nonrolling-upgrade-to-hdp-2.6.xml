@@ -217,6 +217,14 @@
         </task>
       </execute-stage>
 
+      <!-- core-site -->
+      <execute-stage title="Fix auth_to_local mapping">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixAuthToLocalMappingAction">
+          <summary>Fix auth to local mapping rules</summary>
+        </task>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Update Yarn configurations">
         <task xsi:type="configure" id="biginsights_4_2_yarn_config_update" />
