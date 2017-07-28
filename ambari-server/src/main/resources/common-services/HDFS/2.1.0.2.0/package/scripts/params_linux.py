@@ -31,7 +31,7 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions import get_klist_path
@@ -56,6 +56,7 @@ stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 

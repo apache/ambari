@@ -29,7 +29,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
 
@@ -200,6 +200,7 @@ stack_version_unformatted = config['hostLevelParams']['stack_version']
 
 # e.g. 2.3.0.0
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 # e.g. 2.3.0.0-2130
 full_stack_version = default("/commandParams/version", None)

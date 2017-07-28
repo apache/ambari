@@ -45,6 +45,7 @@ from resource_management.libraries.functions.setup_atlas_hook import has_atlas_i
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.version import get_major_version
 
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import checked_call
@@ -81,6 +82,7 @@ stack_version_formatted_major = status_params.stack_version_formatted_major
 
 # this is not available on INSTALL action because <stack-selector-tool> is not available
 stack_version_formatted = functions.get_stack_version('hive-server2')
+major_stack_version = get_major_version(stack_version_formatted_major)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.

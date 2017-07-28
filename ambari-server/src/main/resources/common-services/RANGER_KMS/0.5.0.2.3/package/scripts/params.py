@@ -20,7 +20,7 @@ limitations under the License.
 import os
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -43,6 +43,7 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)

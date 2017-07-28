@@ -26,7 +26,7 @@ from resource_management.libraries.functions import default
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -40,6 +40,7 @@ sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 # current host stack version
 current_version = default("/hostLevelParams/current_version", None)

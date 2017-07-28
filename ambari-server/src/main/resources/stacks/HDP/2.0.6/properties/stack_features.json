@@ -428,6 +428,11 @@
         "name": "atlas_core_site_support",
         "description": "Need to create core-site under Atlas conf directory.",
         "min_version": "2.6.0.0"
+      },
+      {
+        "name": "hadoop_custom_extensions",
+        "description": "Support hadoop custom extensions",
+        "min_version": "2.6.0.0"
       }
     ]
   }
