@@ -222,6 +222,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="NAMENODE" title="Enable custom extensions in core-site">
+        <task xsi:type="configure" id="biginsights_4_2_core_site_custom_extensions">
+          <summary>Enable custom extensions in core-site</summary>
+        </task>
+      </execute-stage>
+
       <!-- core-site -->
       <execute-stage title="Fix auth_to_local mapping">
         <condition xsi:type="security" type="kerberos"/>
@@ -255,6 +261,14 @@
       <!-- HBASE -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase">
         <task xsi:type="configure" id="biginsights_4_2_hbase_env_config" />
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Enable custom extensions for HBASE">
+        <task xsi:type="configure" id="biginsights_4_2_hbase_site_custom_extensions"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Enable custom extensions for HBASE">
+        <task xsi:type="configure" id="biginsights_4_2_hbase_env_custom_extensions"/>
       </execute-stage>
 
       <!--RANGER-->
@@ -304,7 +318,13 @@
       </execute-stage>
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication"/>
-      </execute-stage>      
+      </execute-stage>
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
+        <task xsi:type="configure" id="biginsights_4_2_hive_site_custom_extensions"/>
+      </execute-stage>
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
+        <task xsi:type="configure" id="biginsights_4_2_hive_env_custom_extensions"/>
+      </execute-stage>
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for Hive WebHCat server">
         <task xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" />
       </execute-stage>

@@ -39,6 +39,7 @@
             <type>hadoop-env</type>
             <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/hdp/current/hadoop-client/lib/native" />
             <replace key="content" find="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}" replace-with="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}&#10;if [ -d &quot;/usr/lib/hadoop-lzo&quot; ]; then&#10;  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/hadoop-lzo/lib/*&#10;  export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop-lzo/lib/native&#10;fi"/>
+            <insert key="content" value="{% if hadoop_custom_extensions_enabled %} export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:{{stack_root}}/current/ext/hadoop/* {% endif %}" insert-type="append" newline-after="true" newline-before="true"/>
           </definition>
           <definition xsi:type="configure" id="biginsights_4_2_namenode_adjustments">
             <type>hdfs-site</type>
@@ -50,6 +51,10 @@
           <definition xsi:type="configure" id="hadoop_env_zkfc_security_opts" summary="Adding HDFS ZKFC Security ACLs">
             <type>hadoop-env</type>
             <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_core_site_custom_extensions">
+            <type>core-site</type>
+            <set key="hadoop.custom-extensions.root" value="/hdp/ext/{{major_stack_version}}/hadoop" if-type="core-site" if-key="hadoop.custom-extensions.root" if-key-state="absent"/>
           </definition>
         </changes>
       </component>
@@ -98,6 +103,14 @@
           <definition xsi:type="configure" id="biginsights_4_2_hbase_env_config" summary="Update HBase configurations">
             <type>hbase-env</type>
             <set key="backup_wal_dir" value="true"/>
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_hbase_site_custom_extensions" summary="Enable custom extension">
+            <type>hbase-site</type>
+            <set key="hbase.custom-extensions.root" value="/hdp/ext/{{major_stack_version}}/hbase" if-type="hbase-site" if-key-state="absent" if-key="hbase.custom-extensions.root"/>
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_hbase_env_custom_extensions" summary="Enable custom extensions">
+            <type>hbase-env</type>
+            <insert key="content" insert-type="append" value="# Extra Java CLASSPATH elements. Optional.&#10;export HBASE_CLASSPATH=${HBASE_CLASSPATH}:{{stack_root}}/current/ext/hbase/*" newline-after="true" newline-before="true"/>
           </definition>
         </changes>
       </component>
@@ -215,6 +228,17 @@
           <definition xsi:type="configure" id="biginsights_4_2_hive_permissions" summary="Configuring hive-site permissions">
             <type>hive-site</type>
             <set key="custom.hive.warehouse.mode" value="0770" if-type="hive-site" if-key="custom.hive.warehouse.mode" if-key-state="absent"/>
+          </definition>
+
+          <definition xsi:type="configure" id="biginsights_4_2_hive_site_custom_extensions" summary="Enable custom extensions in hive-site">
+            <type>hive-site</type>
+            <set key="hive.custom-extensions.root" value="/hdp/ext/{{major_stack_version}}/hive" if-key-state="absent" if-type="hive-site" if-key="hive.custom-extensions.root"/>
+          </definition>
+
+          <definition xsi:type="configure" id="biginsights_4_2_hive_env_custom_extensions" summary="Enable custom extensions in hive-env">
+            <type>hive-env</type>
+            <replace key="content" find="if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then" replace-with="export HIVE_AUX_JARS_PATH={{stack_root}}/current/ext/hive&#10;if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then"/>
+            <replace key="content" find="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ]; then" replace-with="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ] || [ -d &quot;${HIVE_AUX_JARS_PATH}&quot; ] ; then"/>
           </definition>
         </changes>
       </component>
