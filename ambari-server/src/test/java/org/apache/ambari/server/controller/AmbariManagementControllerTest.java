@@ -2253,7 +2253,7 @@ public class AmbariManagementControllerTest {
     resp = controller.getClusters(Collections.singleton(r));
     Assert.assertTrue(resp.size() >= 3);
 
-    r = new ClusterRequest(null, null, "", null);
+    r = new ClusterRequest(null, null, null, null);
     resp = controller.getClusters(Collections.singleton(r));
     Assert.assertTrue("Stack ID request is invalid and expect them all", resp.size() > 3);
   }
@@ -6978,7 +6978,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     StackVersionResponse resp = responsesWithParams.iterator().next();
     assertNotNull(resp.getUpgradePacks());
-    assertEquals(14, resp.getUpgradePacks().size());
+    assertEquals(15, resp.getUpgradePacks().size());
     assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 

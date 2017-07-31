@@ -1118,7 +1118,6 @@ public class ConfigHelper {
             serviceMapped.put(service, new HashSet<Config>());
           }
           serviceMapped.get(service).add(baseConfig);
-
         } catch (Exception e) {
           // !!! ignore
         }

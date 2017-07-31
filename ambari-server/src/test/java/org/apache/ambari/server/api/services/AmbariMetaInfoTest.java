@@ -92,6 +92,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -226,6 +227,7 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  @Ignore
   public void testGetRepositoryDefault() throws Exception {
     // Scenario: user has internet and does nothing to repos via api
     // use the latest

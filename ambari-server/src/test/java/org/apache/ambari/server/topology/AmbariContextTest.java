@@ -120,7 +120,6 @@ public class AmbariContextTest {
   private static final ConfigFactory configFactory = createNiceMock(ConfigFactory.class);
   private static final Service mockService1 = createStrictMock(Service.class);
 
-
   private static final Collection<String> blueprintServices = new HashSet<>();
   private static final Map<String, Service> clusterServices = new HashMap<>();
   private static final Map<Long, ConfigGroup> configGroups = new HashMap<>();
@@ -304,7 +303,6 @@ public class AmbariContextTest {
         capture(installPredicateCapture))).andReturn(null).once();
     expect(serviceResourceProvider.updateResources(capture(serviceStartRequestCapture),
         capture(startPredicateCapture))).andReturn(null).once();
-
 
 
     replayAll();
