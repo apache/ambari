@@ -92,7 +92,7 @@ class PigServiceCheckLinux(PigServiceCheck):
       bin_dir = params.hadoop_bin_dir
     )
 
-    if params.stack_version_formatted and check_stack_feature(StackFeature.PIG_ON_TEZ, params.stack_version_formatted):
+    if params.has_tez and params.stack_version_formatted and check_stack_feature(StackFeature.PIG_ON_TEZ, params.stack_version_formatted):
       # cleanup results from previous test
       params.HdfsResource(output_dir,
                           type="directory",

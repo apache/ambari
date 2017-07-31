@@ -35,6 +35,7 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.stack_tools import get_stack_name
+from resource_management.libraries.functions.version import get_major_version
 
 from resource_management.core.utils import PasswordString
 from ambari_commons.credential_store_helper import get_password_from_credential_store
@@ -74,6 +75,7 @@ source_stack_name = get_stack_name(source_stack)
 
 stack_version_unformatted =  status_params.stack_version_unformatted
 stack_version_formatted =  status_params.stack_version_formatted
+major_stack_version = get_major_version(stack_version_formatted)
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

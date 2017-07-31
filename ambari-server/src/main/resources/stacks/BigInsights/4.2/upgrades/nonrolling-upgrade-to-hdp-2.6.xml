@@ -190,6 +190,16 @@
       <skippable>true</skippable>       <!-- May fix configuration problems manually -->
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
+      <!-- KAFKA -->
+      <!-- BigInsights used to have security.inter.broker.protocol=SASL_PLAINTEXT but the preferred value in HDP 2.6
+      is PLAINTEXTSASL and set also set listeners to use the same value, only when the cluster is kerberized. -->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply Kerberos config changes for Kafka">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="configure" id="hdp_2_6_fix_kafka_protocol">
+          <summary>Apply Kerberos config changes for Kafka</summary>
+        </task>
+      </execute-stage>
+
       <!-- HDFS -->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hadoop NameNode">
         <task xsi:type="configure" id="biginsights_4_2_namenode_update_hadoop_env" />
@@ -204,6 +214,20 @@
       <execute-stage service="HDFS" component="NAMENODE" title="Adding HDFS ZKFC Security ACLs">
         <task xsi:type="configure" id="hadoop_env_zkfc_security_opts">
           <summary>Adding HDFS ZKFC Security ACLs</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Enable custom extensions in core-site">
+        <task xsi:type="configure" id="biginsights_4_2_core_site_custom_extensions">
+          <summary>Enable custom extensions in core-site</summary>
+        </task>
+      </execute-stage>
+
+      <!-- core-site -->
+      <execute-stage title="Fix auth_to_local mapping">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixAuthToLocalMappingAction">
+          <summary>Fix auth to local mapping rules</summary>
         </task>
       </execute-stage>
 
@@ -224,9 +248,22 @@
         <task xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" />
       </execute-stage>
 
+      <!-- PIG -->
+      <execute-stage service="PIG" component="PIG" title="Apply config changes for Pig">
+        <task xsi:type="configure" id="biginsights_4_2_pig_exectype_change" />
+      </execute-stage>
+
       <!-- HBASE -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase">
         <task xsi:type="configure" id="biginsights_4_2_hbase_env_config" />
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Enable custom extensions for HBASE">
+        <task xsi:type="configure" id="biginsights_4_2_hbase_site_custom_extensions"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Enable custom extensions for HBASE">
+        <task xsi:type="configure" id="biginsights_4_2_hbase_env_custom_extensions"/>
       </execute-stage>
 
       <!-- HIVE -->
@@ -238,7 +275,13 @@
       </execute-stage>
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication"/>
-      </execute-stage>      
+      </execute-stage>
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
+        <task xsi:type="configure" id="biginsights_4_2_hive_site_custom_extensions"/>
+      </execute-stage>
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
+        <task xsi:type="configure" id="biginsights_4_2_hive_env_custom_extensions"/>
+      </execute-stage>
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for Hive WebHCat server">
         <task xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" />
       </execute-stage>
@@ -246,6 +289,14 @@
         <task xsi:type="configure" id="biginsights_4_2_webhcat_server_update_configurations" />
       </execute-stage>
       
+      <!-- SPARK -->
+      <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark Thrift server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_hive_site_override" />
+      </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark Thrift server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_env" />
+      </execute-stage>
+
       <!-- OOZIE -->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie server">
         <task xsi:type="configure" id="biginsights_4_2_oozie_server_update_configurations" />

@@ -298,6 +298,17 @@ class TestHDP23StackAdvisor(TestCase):
               }
 
             }]
+          },
+          {
+            "StackServices": {
+              "service_name": "ZOOKEEPER"
+            },
+            "components": [{
+              "StackServiceComponents": {
+                "component_name": "ZOOKEEPER_SERVER",
+                "hostnames": ["host1"]
+              }
+            }]
           }
         ],
       "Versions": {
@@ -305,7 +316,7 @@ class TestHDP23StackAdvisor(TestCase):
       },
       "configurations": {
         "core-site": {
-          "properties": { },
+          "properties": {}
         },
         "cluster-env": {
           "properties": {
@@ -321,12 +332,18 @@ class TestHDP23StackAdvisor(TestCase):
         },
         "ranger-kafka-plugin-properties": {
           "properties": {
-            "ranger-kafka-plugin-enabled": "No"
+            "ranger-kafka-plugin-enabled": "No",
+            "zookeeper.connect": ""
           }
         },
         "kafka-log4j": {
           "properties": {
             "content": "kafka.logs.dir=logs"
+          }
+        },
+        "zoo.cfg" : {
+          "properties": {
+            "clientPort": "2181"
           }
         }
       }
@@ -364,6 +381,7 @@ class TestHDP23StackAdvisor(TestCase):
     services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
+    self.assertEquals(configurations['ranger-kafka-plugin-properties']['properties']['zookeeper.connect'], 'host1:2181')
 
     # Test kafka-log4j content when Ranger plugin for Kafka is enabled
 

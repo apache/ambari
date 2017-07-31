@@ -161,7 +161,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -3608,8 +3607,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
         try {
-          deleteHostComponent(entry.getKey(), componentHost);
-          deleteStatusMetaData.addDeletedKey(componentHost.getHostName() + "/" + componentHost.getServiceComponentName());
+          //actually delete the component
+          entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
+
           //create cluster-master-service map to update all include/exclude files in one action
           String componentName = componentHost.getServiceComponentName();
           if (masterToSlaveMappingForDecom.containsValue(componentName)) {
@@ -3636,6 +3636,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               clusterMasterSlaveHostsMap.put(componentHost.getClusterName(), masterSlaveHostsMap);
             }
           }
+          deleteStatusMetaData.addDeletedKey(componentHost.getHostName() + "/" + componentHost.getServiceComponentName());
         } catch (Exception ex) {
           deleteStatusMetaData.addException(componentHost.getHostName() + "/" + componentHost.getServiceComponentName(), ex);
         }
@@ -3665,37 +3666,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       setMonitoringServicesRestartRequired(requests);
     }
     return deleteStatusMetaData;
-  }
-
-  private void deleteHostComponent(ServiceComponent serviceComponent, ServiceComponentHost componentHost) throws AmbariException {
-    String serviceName = serviceComponent.getServiceName();
-    String master_component_name = null;
-    String slave_component_name = componentHost.getServiceComponentName();
-    HostComponentAdminState desiredAdminState = componentHost.getComponentAdminState();
-    State slaveState = componentHost.getState();
-    //Delete hostcomponents
-    serviceComponent.deleteServiceComponentHosts(componentHost.getHostName());
-    // If deleted hostcomponents support decomission and were decommited and stopped or in unknown state
-    if (masterToSlaveMappingForDecom.containsValue(slave_component_name)
-            && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)
-            && (slaveState.equals(State.INSTALLED) || slaveState.equals(State.UNKNOWN))) {
-      for (Entry<String, String> entrySet : masterToSlaveMappingForDecom.entrySet()) {
-        if (entrySet.getValue().equals(slave_component_name)) {
-          master_component_name = entrySet.getKey();
-        }
-      }
-
-      //Mark master component as needed to restart for remove host info from components UI
-      Cluster cluster = clusters.getCluster(serviceComponent.getClusterName());
-      Service service = cluster.getService(serviceName);
-      ServiceComponent sc = service.getServiceComponent(master_component_name);
-
-      if (sc != null && sc.isMasterComponent()) {
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          sch.setRestartRequired(true);
-        }
-      }
-    }
   }
 
   /**

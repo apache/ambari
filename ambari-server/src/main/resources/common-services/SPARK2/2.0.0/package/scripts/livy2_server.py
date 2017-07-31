@@ -117,7 +117,7 @@ class LivyServer(Script):
         dir_exists = ('FileStatus' in list_status)
       else:
         # have to do time expensive hdfs dfs -d check.
-        dfs_ret_code = shell.call(format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path), user=params.livy_user)[0]
+        dfs_ret_code = shell.call(format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path), user=params.livy2_user)[0]
         dir_exists = not dfs_ret_code #dfs -test -d returns 0 in case the dir exists
 
       if not dir_exists:

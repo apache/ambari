@@ -182,5 +182,5 @@ class TestAtlasServer(RMFTestCase):
                               content=Template("atlas_hbase_setup.rb.j2"))
 
     self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/hdfs-site.xml',action = ['delete'],)
-
+    self.assertResourceCalled('Directory','/usr/hdp/current/atlas-server/', owner = 'atlas', group = 'hadoop', recursive_ownership = True, )
     self.assertNoMoreResources()

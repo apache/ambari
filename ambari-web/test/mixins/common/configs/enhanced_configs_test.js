@@ -263,5 +263,49 @@ describe('App.EnhancedConfigsMixin', function() {
       )).to.be.true;
     });
   });
+
+  describe('#filterRequiredChanges', function() {
+
+    it('all recommendations editable', function() {
+      var recommendations = [
+        {
+          isEditable: true
+        }
+      ];
+      expect(instanceObject.filterRequiredChanges(recommendations)).to.be.empty;
+    });
+
+    it('recommendations not editable when editing default config group', function() {
+      instanceObject.set('selectedConfigGroup', Em.Object.create({isDefault: true}));
+      var recommendations = [
+        {
+          isEditable: false
+        }
+      ];
+      expect(instanceObject.filterRequiredChanges(recommendations)).to.be.eql(recommendations);
+    });
+
+    it('recommendations not editable when editing non-default config group for default group', function() {
+      instanceObject.set('selectedConfigGroup', Em.Object.create({isDefault: false}));
+      var recommendations = [
+        {
+          isEditable: false,
+          configGroup: App.ServiceConfigGroup.defaultGroupName
+        }
+      ];
+      expect(instanceObject.filterRequiredChanges(recommendations)).to.be.empty;
+    });
+
+    it('recommendations not editable when editing non-default config group for non-default group', function() {
+      instanceObject.set('selectedConfigGroup', Em.Object.create({isDefault: false}));
+      var recommendations = [
+        {
+          isEditable: false,
+          configGroup: 'g1'
+        }
+      ];
+      expect(instanceObject.filterRequiredChanges(recommendations)).to.be.eql(recommendations);
+    });
+  });
 });
 

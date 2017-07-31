@@ -197,6 +197,28 @@ def metadata(type='server'):
     else:
       File(format('{conf_dir}/hdfs-site.xml'), action="delete")
 
+    '''
+    Atlas requires hadoop core-site.xml to resolve users/groups synced in HadoopUGI for
+    authentication and authorization process. Earlier the core-site.xml was available in
+    Hbase conf directory which is a part of Atlas class-path, from stack 2.6 onwards,
+    core-site.xml is no more available in Hbase conf directory. Hence need to create
+    core-site.xml in Atlas conf directory.
+    '''
+    if params.stack_supports_atlas_core_site and params.has_namenode:
+      XmlConfig("core-site.xml",
+        conf_dir=params.conf_dir,
+        configurations=params.config['configurations']['core-site'],
+        configuration_attributes=params.config['configuration_attributes']['core-site'],
+        owner=params.metadata_user,
+        group=params.user_group,
+        mode=0644
+      )
+
+    Directory(format('{metadata_home}/'),
+      owner = params.metadata_user,
+      group = params.user_group,
+      recursive_ownership = True,
+    )
 
 def upload_conf_set(config_set, jaasFile):
   import params

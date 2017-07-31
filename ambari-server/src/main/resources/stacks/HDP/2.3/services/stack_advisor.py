@@ -446,6 +446,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
             kafkaLog4jContent+= '\n' + kafkaLog4jRangerLines[item]["name"] + '=' + kafkaLog4jRangerLines[item]["value"]
         putKafkaLog4jProperty("content",kafkaLog4jContent)
 
+      zookeeper_host_port = self.getZKHostPortString(services)
+      if zookeeper_host_port:
+        putRangerKafkaPluginProperty = self.putProperty(configurations, 'ranger-kafka-plugin-properties', services)
+        putRangerKafkaPluginProperty('zookeeper.connect', zookeeper_host_port)
+
   def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerKmsDbksProperty = self.putProperty(configurations, "dbks-site", services)
