@@ -71,6 +71,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         self.connection_error = False
         self.__receipts = {}
         self.current_host_and_port = None
+        self.receiver_thread = None
 
         # flag used when we receive the disconnect receipt
         self.__disconnect_receipt = None
@@ -106,8 +107,8 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         """
         self.running = True
         self.attempt_connection()
-        receiver_thread = self.create_thread_fc(self.__receiver_loop)
-        receiver_thread.name = "StompReceiver%s" % getattr(receiver_thread, "name", "Thread")
+        self.receiver_thread = self.create_thread_fc(self.__receiver_loop)
+        self.receiver_thread.name = "StompReceiver%s" % getattr(self.receiver_thread, "name", "Thread")
         self.notify('connecting')
 
     def stop(self):
@@ -115,6 +116,9 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         Stop the connection. Performs a clean shutdown by waiting for the
         receiver thread to exit.
         """
+        if not self.receiver_thread or not self.receiver_thread.is_alive():
+          return
+
         with self.__receiver_thread_exit_condition:
             while not self.__receiver_thread_exited:
                 self.__receiver_thread_exit_condition.wait()

@@ -100,8 +100,15 @@ class InitializerModule:
     try:
       conn.start()
       conn.connect(wait=True)
-    except socket_error:
-      logger.warn("Could not connect to {0}".format(connection_url))
+    except Exception as ex:
+      try:
+        conn.disconnect()
+      except:
+        logger.exception("Exception during conn.disconnect()")
+
+      if isinstance(ex, socket_error):
+        logger.warn("Could not connect to {0}".format(connection_url))
+
       raise
 
     return conn

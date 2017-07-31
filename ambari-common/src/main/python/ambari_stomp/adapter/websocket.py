@@ -104,9 +104,20 @@ class WsTransport(Transport):
 
   def stop(self):
     self.running = False
-    self.ws.close_connection()
-    self.disconnect_socket()
-    Transport.stop(self)
+    try:
+      self.ws.close_connection()
+    except:
+      logger.exception("Exception during self.ws.close_connection()")
+
+    try:
+      self.disconnect_socket()
+    except:
+      logger.exception("Exception during self.disconnect_socket()")
+
+    try:
+      Transport.stop(self)
+    except:
+      logger.exception("Exception during Transport.stop(self)")
 
 class WsConnection(BaseConnection, Protocol12):
   def __init__(self, url):
@@ -116,8 +127,14 @@ class WsConnection(BaseConnection, Protocol12):
     Protocol12.__init__(self, self.transport, (0, 0))
 
   def disconnect(self, receipt=None, headers=None, **keyword_headers):
-    Protocol12.disconnect(self, receipt, headers, **keyword_headers)
-    self.transport.stop()
+    try:
+      Protocol12.disconnect(self, receipt, headers, **keyword_headers)
+    except:
+      logger.exception("Exception during Protocol12.disconnect()")
+    try:
+      self.transport.stop()
+    except:
+      logger.exception("Exception during self.transport.stop()")
 
 class ConnectionResponseTimeout(StompException):
   """

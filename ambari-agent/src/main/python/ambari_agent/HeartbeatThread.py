@@ -91,12 +91,13 @@ class HeartbeatThread(threading.Thread):
           logger.exception("Exception in HeartbeatThread. Re-running the registration")
 
         self.initializer_module.is_registered = False
-        try:
-          self.initializer_module.connection.disconnect()
-        except:
-          # if exception happened due to connection problem, disconnect might not work
-          pass
+
         if hasattr(self.initializer_module, '_connection'):
+          try:
+            self.initializer_module.connection.disconnect()
+          except:
+            logger.exception("Exception during self.initializer_module.connection.disconnect()")
+
           delattr(self.initializer_module, '_connection')
 
       self.stop_event.wait(self.heartbeat_interval)
