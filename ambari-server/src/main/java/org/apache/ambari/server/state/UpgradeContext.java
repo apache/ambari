@@ -669,7 +669,7 @@ public class UpgradeContext {
    * <p/>
    * If the direction is {@link Direction#UPGRADE} then this will return the
    * target repository which every service will be on if the upgrade is
-   * finalized. <br/>
+   * finalized. <p/>
    * If the direction is {@link Direction#DOWNGRADE} then this will return the
    * repository from which the downgrade is coming from.
    *

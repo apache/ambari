@@ -1601,6 +1601,12 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   public void testCreatePatchRevertUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
+    // add a single ZK server and client on 2.1.1.0
+    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.1.1.0");
+
     File f = new File("src/test/resources/hbase_version_test.xml");
     repoVersionEntity2112.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersionEntity2112.setVersionXsd("version_definition.xsd");

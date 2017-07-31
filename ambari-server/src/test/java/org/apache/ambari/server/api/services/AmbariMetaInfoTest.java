@@ -92,6 +92,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -226,6 +227,7 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  @Ignore
   public void testGetRepositoryDefault() throws Exception {
     // Scenario: user has internet and does nothing to repos via api
     // use the latest
@@ -1714,7 +1716,7 @@ public class AmbariMetaInfoTest {
       }
     }
 
-    assertEquals(3, hostAlertCount);
+    assertEquals(2, hostAlertCount);
     assertEquals(10, definitions.size() - hostAlertCount);
 
     for (AlertDefinitionEntity definition : definitions) {
@@ -1725,7 +1727,7 @@ public class AmbariMetaInfoTest {
     metaInfo.reconcileAlertDefinitions(clusters, false);
 
     definitions = dao.findAll();
-    assertEquals(13, definitions.size());
+    assertEquals(12, definitions.size());
 
     for (AlertDefinitionEntity definition : definitions) {
       assertEquals(28, definition.getScheduleInterval().intValue());
@@ -1734,7 +1736,7 @@ public class AmbariMetaInfoTest {
     // find all enabled for the cluster should find 6 (the ones from HDFS;
     // it will not find the agent alert since it's not bound to the cluster)
     definitions = dao.findAllEnabled(cluster.getClusterId());
-    assertEquals(12, definitions.size());
+    assertEquals(11, definitions.size());
 
     // create new definition
     AlertDefinitionEntity entity = new AlertDefinitionEntity();
@@ -1753,19 +1755,19 @@ public class AmbariMetaInfoTest {
 
     // verify the new definition is found (6 HDFS + 1 new one)
     definitions = dao.findAllEnabled(cluster.getClusterId());
-    assertEquals(13, definitions.size());
+    assertEquals(12, definitions.size());
 
     // reconcile, which should disable our bad definition
     metaInfo.reconcileAlertDefinitions(clusters, false);
 
     // find all enabled for the cluster should find 6
     definitions = dao.findAllEnabled(cluster.getClusterId());
-    assertEquals(12, definitions.size());
+    assertEquals(11, definitions.size());
 
     // find all should find 6 HDFS + 1 disabled + 1 agent alert + 2 server
     // alerts
     definitions = dao.findAll();
-    assertEquals(14, definitions.size());
+    assertEquals(13, definitions.size());
 
     entity = dao.findById(entity.getDefinitionId());
     assertFalse(entity.getEnabled());

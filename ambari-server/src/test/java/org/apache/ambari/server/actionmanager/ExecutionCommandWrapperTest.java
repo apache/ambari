@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -294,7 +295,8 @@ public class ExecutionCommandWrapperTest {
 
     StackId stackId = cluster.getDesiredStackVersion();
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
-    cluster.addService("HDFS", repositoryVersion);
+    Service service = cluster.getService("HDFS");
+    service.setDesiredRepositoryVersion(repositoryVersion);
 
     // first try with an INSTALL command - this should not populate version info
     ExecutionCommand executionCommand = new ExecutionCommand();

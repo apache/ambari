@@ -113,7 +113,7 @@ public class UpgradeCatalogTest {
     Set<UpgradeCatalog> upgradeCatalogSet = schemaUpgradeHelper.getAllUpgradeCatalogs();
 
     Assert.assertNotNull(upgradeCatalogSet);
-    Assert.assertEquals(4, upgradeCatalogSet.size());
+    Assert.assertEquals(3, upgradeCatalogSet.size());
 
     List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "2.5.1");
 

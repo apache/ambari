@@ -99,6 +99,7 @@ import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -946,6 +947,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> params = getNewParameterMap(request, context);
     params.put(UpgradeContext.COMMAND_PARAM_TASKS, entity.getTasks());
+
+    // !!! when not scoped to a component (generic execution task)
+    if (context.isScoped(UpgradeScope.COMPLETE) && null == componentName) {
+      if (context.getDirection().isUpgrade()) {
+        params.put(KeyNames.VERSION, context.getRepositoryVersion().getVersion());
+      } else {
+        // !!! in a full downgrade, the target version should be any of the history versions
+        UpgradeEntity lastUpgrade = s_upgradeDAO.findLastUpgradeForCluster(
+            cluster.getClusterId(), Direction.UPGRADE);
+
+        @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
+            comment = "Shouldn't be getting the overall downgrade-to version.")
+        UpgradeHistoryEntity lastHistory = lastUpgrade.getHistory().iterator().next();
+        params.put(KeyNames.VERSION, lastHistory.getFromReposistoryVersion().getVersion());
+      }
+    }
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, params);

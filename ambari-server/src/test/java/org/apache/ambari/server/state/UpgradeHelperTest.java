@@ -49,6 +49,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -92,6 +93,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
@@ -333,7 +335,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals("Save Cluster State", postGroup.items.get(1).getText());
     assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(1).getType());
 
-    assertEquals(2, groups.get(0).items.size());
+    assertEquals(3, groups.get(0).items.size());
     assertEquals(7, groups.get(1).items.size());
     assertEquals(2, groups.get(2).items.size());
 
@@ -719,7 +721,6 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     List<ConfigUpgradeChangeDefinition.Transfer> transfers = m_gson.fromJson(configurationJson,
             new TypeToken<List<ConfigUpgradeChangeDefinition.Transfer>>() { }.getType());
-    System.out.println(">> transfers"+transfers);
 
     assertEquals(6, transfers.size());
     assertEquals("copy-key", transfers.get(0).fromKey);
@@ -796,8 +797,6 @@ public class UpgradeHelperTest extends EasyMockSupport {
     List<ConfigUpgradeChangeDefinition.Transfer> transfers = m_gson.fromJson(transferJson,
         new TypeToken<List<ConfigUpgradeChangeDefinition.Transfer>>() {
         }.getType());
-
-    System.out.println(" testConfigTaskConditionMet >> transfer"+transfers);
 
     assertEquals("copy-key-one", transfers.get(0).fromKey);
     assertEquals("copy-to-key-one", transfers.get(0).toKey);
@@ -2423,6 +2422,82 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals("one-A", expectedFooType.get("1A"));
     assertEquals("two", expectedBarType.get("2"));
     assertEquals("three-changed", expectedBazType.get("3"));
+  }
+
+  @Test
+  public void testMergeConfigurationsWithClusterEnv() throws Exception {
+    Cluster cluster = makeCluster(true);
+
+    StackId oldStack = cluster.getDesiredStackVersion();
+    StackId newStack = new StackId("HDP-2.5.0");
+
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+
+    Config clusterEnv = cf.createNew(cluster, "cluster-env", "version1",
+        ImmutableMap.<String, String>builder().put("a", "b").build(),
+        Collections.<String, Map<String, String>>emptyMap());
+
+    Config zooCfg = cf.createNew(cluster, "zoo.cfg", "version1",
+        ImmutableMap.<String, String>builder().put("c", "d").build(),
+        Collections.<String, Map<String, String>>emptyMap());
+
+    cluster.addDesiredConfig("admin", Sets.newHashSet(clusterEnv, zooCfg));
+
+    Map<String, Map<String, String>> stackMap = new HashMap<>();
+    stackMap.put("cluster-env", new HashMap<String, String>());
+    stackMap.put("hive-site", new HashMap<String, String>());
+
+    final Map<String, String> clusterEnvMap = new HashMap<>();
+
+    Capture<Cluster> captureCluster = Capture.newInstance();
+    Capture<StackId> captureStackId = Capture.newInstance();
+    Capture<AmbariManagementController> captureAmc = Capture.newInstance();
+
+    Capture<Map<String, Map<String, String>>> cap = new Capture<Map<String, Map<String, String>>>() {
+      @Override
+      public void setValue(Map<String, Map<String, String>> value) {
+        if (value.containsKey("cluster-env")) {
+          clusterEnvMap.putAll(value.get("cluster-env"));
+        }
+      }
+    };
+
+    Capture<String> captureUsername = Capture.newInstance();
+    Capture<String> captureNote = Capture.newInstance();
+
+    EasyMock.reset(m_configHelper);
+    expect(m_configHelper.getDefaultProperties(oldStack, "HIVE")).andReturn(stackMap).atLeastOnce();
+    expect(m_configHelper.getDefaultProperties(newStack, "HIVE")).andReturn(stackMap).atLeastOnce();
+    expect(m_configHelper.getDefaultProperties(oldStack, "ZOOKEEPER")).andReturn(stackMap).atLeastOnce();
+    expect(m_configHelper.getDefaultProperties(newStack, "ZOOKEEPER")).andReturn(stackMap).atLeastOnce();
+    m_configHelper.createConfigTypes(
+        EasyMock.capture(captureCluster),
+        EasyMock.capture(captureStackId),
+        EasyMock.capture(captureAmc),
+        EasyMock.capture(cap),
+
+        EasyMock.capture(captureUsername),
+        EasyMock.capture(captureNote));
+    expectLastCall().atLeastOnce();
+
+    replay(m_configHelper);
+
+    RepositoryVersionEntity repoVersionEntity = helper.getOrCreateRepositoryVersion(new StackId("HDP-2.5.0"), "2.5.0-1234");
+
+    Map<String, Object> upgradeRequestMap = new HashMap<>();
+    upgradeRequestMap.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+    upgradeRequestMap.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, repoVersionEntity.getId().toString());
+    upgradeRequestMap.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_HDP-250");
+    upgradeRequestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+
+    UpgradeContextFactory contextFactory = injector.getInstance(UpgradeContextFactory.class);
+    UpgradeContext context = contextFactory.create(cluster, upgradeRequestMap);
+
+    UpgradeHelper upgradeHelper = injector.getInstance(UpgradeHelper.class);
+    upgradeHelper.updateDesiredRepositoriesAndConfigs(context);
+
+    assertNotNull(clusterEnvMap);
+    assertTrue(clusterEnvMap.containsKey("a"));
   }
 
   /**

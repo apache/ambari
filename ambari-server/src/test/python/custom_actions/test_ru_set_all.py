@@ -243,19 +243,7 @@ class TestRUSetAll(RMFTestCase):
       ru_execute.unlink_all_configs(None)
 
       # verify that os.path.islink was called for each conf
-      self.assertTrue(islink_mock.called)
-      for key, value in conf_select.get_package_dirs().iteritems():
-        for directory_mapping in value:
-          original_config_directory = directory_mapping['conf_dir']
-          is_link_called = False
-
-          for call in islink_mock.call_args_list:
-            call_tuple = call[0]
-            if original_config_directory in call_tuple:
-              is_link_called = True
-
-          if not is_link_called:
-            self.fail("os.path.islink({0}) was never called".format(original_config_directory))
+      self.assertFalse(islink_mock.called)
 
       # alter JSON for a downgrade from 2.3 to 2.3
       with open(json_file_path, "r") as json_file:
@@ -312,37 +300,6 @@ class TestRUSetAll(RMFTestCase):
 
       # ensure it wasn't called this time
       self.assertFalse(islink_mock.called)
-
-  @patch("os.path.isdir")
-  @patch("os.path.islink")
-  def test_unlink_configs_missing_backup(self, islink_mock, isdir_mock):
-
-    # required for the test to run since the Execute calls need this
-    from resource_management.core.environment import Environment
-    env = Environment(test_mode=True)
-    with env:
-      # Case: missing backup directory
-      isdir_mock.return_value = False
-      ru_execute = UpgradeSetAll()
-      self.assertEqual(len(env.resource_list), 0)
-      # Case: missing symlink
-      isdir_mock.reset_mock()
-      isdir_mock.return_value = True
-      islink_mock.return_value = False
-      ru_execute._unlink_config("/fake/config")
-      self.assertEqual(len(env.resource_list), 2)
-      # Case: missing symlink
-      isdir_mock.reset_mock()
-      isdir_mock.return_value = True
-      islink_mock.reset_mock()
-      islink_mock.return_value = True
-
-      ru_execute._unlink_config("/fake/config")
-      self.assertEqual(pprint.pformat(env.resource_list),
-                       "[Directory['/fake/config'],\n "
-                       "Execute[('mv', '/fake/conf.backup', '/fake/config')],\n "
-                       "Execute[('rm', '/fake/config')],\n "
-                       "Execute[('mv', '/fake/conf.backup', '/fake/config')]]")
 
   @patch("os.path.exists")
   @patch("os.path.islink")
