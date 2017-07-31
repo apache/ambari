@@ -144,7 +144,8 @@
 }
 
 #stack-upgrade-page,
-.version-box-popup {
+.version-box-popup,
+.install-repo-confirmation {
   .versions-slides {
     overflow-x: auto;
     padding-bottom: 25px;
@@ -317,16 +318,6 @@
       width: 100%;
       text-align: center;
       padding-bottom: 4px;
-      .service-version-info {
-        margin-bottom: 14px;
-        text-align: center;
-        span.label {
-          padding: 5px 15px;
-          background-color: #a3a3a3;
-          z-index: 100;
-          position: relative;
-        }
-      }
       .line-separator, .line-separator-bottom{
         height: 2px;
         background: #e4e4e4;
@@ -341,24 +332,6 @@
       }
     }
   }
-  div.current-version-box.version-column {
-    .services-section{
-      .service-version-info {
-        span.label {
-          background-color: #468847;
-        }
-      }
-    }
-  }
-  div.version-column {
-    .services-section {
-      .service-version-info {
-        span.label.available {
-          background-color: #468847;
-        }
-      }
-    }
-  }
   .patch-upgrade-column {
     margin-left: -7px;
     border-color: @health-status-red;
@@ -369,6 +342,32 @@
       }
       .line-separator-bottom {
         margin-left: 0;
+      }
+    }
+  }
+  .service-version-info {
+    margin-bottom: 14px;
+    text-align: center;
+    span.label {
+      padding: 5px 15px;
+      background-color: #a3a3a3;
+      z-index: 100;
+      position: relative;
+    }
+    span.label.available {
+      background-color: #468847;
+    }
+  }
+}
+
+.install-repo-confirmation {
+  .available-services-list {
+    margin: 10px 0 30px;
+    .service-version-info {
+      text-align: left;
+      margin-bottom: 20px;
+      .span1 {
+        width: 90px;
       }
     }
   }

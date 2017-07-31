@@ -16,6 +16,20 @@
 * limitations under the License.
 }}
 <p>{{{popupBody}}}</p>
+{{#if view.isPatch}}
+  <div class="available-services-list">
+      {{#each service in view.content}}
+          <p class="service-version-info">
+            <span class="span1">
+              {{service.displayName}}
+            </span>
+            <span class="label available">
+              {{service.latestVersion}}
+            </span>
+          </p>
+      {{/each}}
+  </div>
+{{/if}}
 <div class="row-fluid">
   <div class="tinyspan">
     {{view Ember.Checkbox classNames="align-checkbox" checkedBinding="skipDependencyCheck"}}
