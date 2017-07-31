@@ -24,10 +24,13 @@ from Queue import Queue
 from ambari_stomp.connect import BaseConnection
 from ambari_stomp.protocol import Protocol12
 from ambari_stomp.transport import Transport, DEFAULT_SSL_VERSION
+from ambari_stomp.exception import StompException
 
 from ambari_ws4py.client.threadedclient import WebSocketClient
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_CONNECTION_TIMEOUT = 10
 
 class QueuedWebSocketClient(WebSocketClient):
   def __init__(self, *args, **kwargs):
@@ -68,6 +71,17 @@ class WsTransport(Transport):
     self.ws = QueuedWebSocketClient(url, protocols=['http-only', 'chat'])
     self.ws.daemon = False
 
+  def wait_for_connection(self, timeout=DEFAULT_CONNECTION_TIMEOUT):
+    """
+    Wait until we've established a connection with the server.
+
+    :param float timeout: how long to wait, in seconds
+    """
+    with self.get_connect_wait_condition():
+      self.get_connect_wait_condition().wait(timeout)
+      if not self.is_connected() and not self.connection_error:
+        raise ConnectionResponseTimeout("Waiting for connection confirmation timed out")
+
   def is_connected(self):
     return self.connected
 
@@ -104,3 +118,8 @@ class WsConnection(BaseConnection, Protocol12):
   def disconnect(self, receipt=None, headers=None, **keyword_headers):
     Protocol12.disconnect(self, receipt, headers, **keyword_headers)
     self.transport.stop()
+
+class ConnectionResponseTimeout(StompException):
+  """
+  Raised when sent 'STOMP' frame and have not received 'CONNECTED' a certain timeout.
+  """

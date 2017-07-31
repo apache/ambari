@@ -301,6 +301,9 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         Disconnect the socket.
         """
 
+    def get_connect_wait_condition(self):
+      return self.__connect_wait_condition
+
     def wait_for_connection(self, timeout=None):
         """
         Wait until we've established a connection with the server.
