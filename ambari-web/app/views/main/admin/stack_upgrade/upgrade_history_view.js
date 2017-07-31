@@ -124,9 +124,10 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   }.property('filteredContent', 'startIndex', 'endIndex'),
 
   processForDisplay: function (content) {
+    var upgradeMethods = this.get('upgradeMethods');
     return arrayUtils.flatten(content.map(function(item) {
       var versions = item.get('versions');
-      var method = this.get('upgradeMethods').findProperty('type', item.get('upgradeType'));
+      var method = upgradeMethods.findProperty('type', item.get('upgradeType'));
       return Object.keys(versions).map(function(serviceName) {
         return {
           version: versions[serviceName].to_repository_version,

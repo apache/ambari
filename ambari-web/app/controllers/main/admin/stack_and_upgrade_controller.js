@@ -1333,7 +1333,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
-      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
+      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false',
+      targetStack: version.get('displayName')
     };
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);

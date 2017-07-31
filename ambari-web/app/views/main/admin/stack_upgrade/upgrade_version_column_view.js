@@ -23,6 +23,11 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_version_column'),
   isVersionColumnView: true,
   classNames: ['version-column', 'span4'],
+  classNameBindings: ['patchUpgradeClass'],
+
+  patchUpgradeClass: function() {
+    return this.get('content.isPatch') ? 'patch-upgrade-column' : '';
+  }.property('content'),
 
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
@@ -45,22 +50,18 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   },
 
   services: function() {
-    var repoRecord = App.RepositoryVersion.find(this.get('content.id'));
-    var originalServices = repoRecord.get('stackServices');
+    var originalServices = this.get('content.stackServices');
     // sort the services in the order the same as service menu
-    var sorted = App.Service.find().map(function (service) {
-      var latestVersion = '';
-      if (originalServices.someProperty('name', service.get('serviceName'))){
-        latestVersion = originalServices.filterProperty('name', service.get('serviceName'))[0].get('latestVersion');
-      }
+    return App.Service.find().map(function (service) {
+      var stackService = originalServices.findProperty('name', service.get('serviceName'));
       return Em.Object.create({
         displayName: service.get('displayName'),
         name: service.get('serviceName'),
-        latestVersion: latestVersion,
-        isVersionInvisible: latestVersion == false
+        latestVersion: stackService ? stackService.get('latestVersion') : '',
+        isVersionInvisible: !stackService,
+        isAvailable: stackService ? stackService.get('isAvailable') : false
       });
     });
-    return sorted;
   }.property(),
 
   /**

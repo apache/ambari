@@ -292,6 +292,9 @@
         cursor: pointer;
       }
     }
+    .patch-icon {
+      margin: 0 0 -5px 0;
+    }
     .state {
       margin: 5px 0px 15px 0px;
       line-height: 20px;
@@ -346,8 +349,28 @@
         }
       }
     }
-
-
+  }
+  div.version-column {
+    .services-section {
+      .service-version-info {
+        span.label.available {
+          background-color: #468847;
+        }
+      }
+    }
+  }
+  .patch-upgrade-column {
+    margin-left: -7px;
+    border-color: @health-status-red;
+    background-color: rgba(255, 0, 0, 0.1);
+    .services-section {
+      .line-separator {
+        margin-left: 0;
+      }
+      .line-separator-bottom {
+        margin-left: 0;
+      }
+    }
   }
 }
 

@@ -266,7 +266,7 @@ describe('utils/helper', function() {
           expect(App.format.commandDetail(command)).to.be.equal(' Ganglia Monitor Stop');
         });
         it('should use display name for operations if specified', function() {
-          expect(App.format.commandDetail(customCommandDetail, null, opsDisplayName)).to.be.equal(' Remove Logical Mycomponent');
+          expect(App.format.commandDetail(customCommandDetail, null, opsDisplayName)).to.be.equal(' Remove Logical Mycomponent Mycomponent');
         });
         it('should ignore decommission command', function(){
           expect(App.format.commandDetail(ignored)).to.be.equal('  NameNode');

@@ -2315,18 +2315,4 @@ describe('App.WizardStep8Controller', function () {
     });
 
   });
-  //TODO
-  describe('#generateBlueprint', function () {
-     beforeEach(function () {
-         installerStep8Controller = getController();
-         installerStep8Controller.set('configs', configs);
-         installerStep8Controller.set('content.services', services.filterProperty('isSelected'))
-         installerStep8Controller.set('selectedServices', []);
-         sinon.spy(installerStep8Controller, 'getConfigurationDetailsForConfigType');
-     });
-     it('should call generateBlueprint', function() {
-       installerStep8Controller.generateBlueprint();
-       expect(installerStep8Controller.getConfigurationDetailsForConfigType.calledThrice).to.be.true;
-     });
- });
 });

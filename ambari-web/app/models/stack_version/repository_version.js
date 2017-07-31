@@ -34,6 +34,8 @@ App.RepositoryVersion = DS.Model.extend({
     return this.get('stackVersionType') + '-' + this.get('repositoryVersion').split('-')[0];
   }.property('stackVersionType', 'repositoryVersion'),
 
+  isPatch: Em.computed.equal('type', 'PATCH'),
+
   /**
    * status used until corresponding stack version get created
    * @type {string}
