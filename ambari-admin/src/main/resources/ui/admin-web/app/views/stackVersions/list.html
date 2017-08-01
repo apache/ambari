@@ -67,7 +67,10 @@
         <span>{{repo.stack_name}}-{{repo.stack_version}}</span>
       </td>
       <td class="col-medium">
-        <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">{{repo.display_name}}</a>
+        <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">
+          {{repo.display_name}}
+          <span ng-if="repo.isPatch" class="badge btn-warning">{{'versions.patch' | translate}}</span>
+        </a>
       </td>
       <td class="col-medium">
         <span>{{repo.repository_version}}</span>

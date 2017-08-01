@@ -19,8 +19,11 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/stackVersions">{{'common.versions' | translate}}</a></li>
-    <li class="active" ng-if="editController">{{displayName}}&nbsp;<span
-            class="sub-text">({{repoVersionFullName}})</span></li>
+    <li class="active" ng-if="editController">
+      {{displayName}}&nbsp;
+      <span class="sub-text">({{repoVersionFullName}})</span>
+      <span ng-if="isPatch" class="badge btn-warning">{{'versions.patch' | translate}}</span>
+    </li>
     <li class="active" ng-if="createController">{{'versions.register.title' | translate}}</li>
   </ol>
 

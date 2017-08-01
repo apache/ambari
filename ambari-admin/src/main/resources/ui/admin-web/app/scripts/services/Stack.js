@@ -174,6 +174,7 @@ angular.module('ambariAdminConsole')
           });
         });
         repos = repos.map(function (stack) {
+          stack.RepositoryVersions.isPatch = stack.RepositoryVersions.type === 'PATCH';
           return stack.RepositoryVersions;
         });
         // prepare response data with client side pagination
@@ -402,6 +403,18 @@ angular.module('ambariAdminConsole')
         return 0
       }
       return lId1 > lId2 ? 1 : -1;
+    },
+
+    filterAvailableServices: function (response) {
+      var stackVersion = response.updateObj.RepositoryVersions || response.updateObj.VersionDefinition;
+      var patchOrService = stackVersion.type === 'PATCH' || stackVersion.type === 'SERVICE';
+      var availableServices = (patchOrService ? stackVersion.services : response.services).map(function (s) {
+        return s.name;
+      });
+      return response.services.filter(function (service) {
+        var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
+        return skipServices.indexOf(service.name) === -1 && availableServices.indexOf(service.name) !== -1;
+      }) || [];
     }
 
   };
