@@ -86,7 +86,7 @@ class KmsServer(Script):
     import params
     env.set_params(params)
 
-    upgrade.prestart(env, "ranger-kms")
+    upgrade.prestart(env)
     kms(upgrade_type=upgrade_type)
     setup_java_patch()
 

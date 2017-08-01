@@ -19,14 +19,25 @@ limitations under the License.
 '''
 
 import json
-from mock.mock import MagicMock, call, patch
+from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.script import Script
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("os.path.isfile", new = MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):
   CONFIG_OVERRIDES = {"serviceName":"HIVE", "role":"HIVE_SERVER"}
+
+  def setUp(self):
+    Logger.initialize_logger()
+
+    Script.config = dict()
+    Script.config.update( { "configurations" : { "cluster-env" : {} }, "hostLevelParams": {} } )
+    Script.config["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
+    Script.config["hostLevelParams"] = { "stack_name" : "HDP" }
+
 
   def test_hook_default(self):
 

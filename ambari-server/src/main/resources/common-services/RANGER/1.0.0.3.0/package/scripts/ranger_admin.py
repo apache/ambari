@@ -20,7 +20,6 @@ limitations under the License.
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
@@ -68,7 +67,7 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
 
-    upgrade.prestart(env, "ranger-admin")
+    upgrade.prestart(env)
 
     self.set_ru_rangeradmin_in_progress(params.upgrade_marker_file)
 
@@ -193,7 +192,6 @@ class RangerAdmin(Script):
     stack_version = upgrade_stack[1]
 
     stack_select.select_packages(params.version)
-    conf_select.select(stack_name, "ranger-admin", stack_version)
 
   def get_log_folder(self):
     import params

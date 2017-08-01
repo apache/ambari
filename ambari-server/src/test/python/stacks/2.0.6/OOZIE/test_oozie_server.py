@@ -1259,7 +1259,7 @@ class TestOozieServer(RMFTestCase):
      config_overrides = self.CONFIG_OVERRIDES,
      stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
-     call_mocks = [(0, None, ''), (0, prepare_war_stdout)],
+     call_mocks = [(0, prepare_war_stdout)],
      mocks_dict = mocks_dict)
 
     self.assertTrue(isfile_mock.called)
@@ -1270,10 +1270,6 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Link', '/etc/oozie/conf',
-                              to = '/usr/hdp/current/oozie-client/conf',
-    )
-
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-client', '2.3.0.0-1234'), sudo = True)
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
@@ -1283,17 +1279,6 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])
 
 
   @patch("os.path.isdir")
@@ -1505,7 +1490,7 @@ class TestOozieServer(RMFTestCase):
      classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
      stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
-     call_mocks = [(0, None, ''), (0, prepare_war_stdout)],
+     call_mocks = [(0, prepare_war_stdout)],
      mocks_dict = mocks_dict)
 
     self.assertTrue(isfile_mock.called)
@@ -1516,7 +1501,6 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Link', '/etc/oozie/conf', to = '/usr/hdp/current/oozie-client/conf')
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-client', '2.3.0.0-1234'), sudo = True)
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
@@ -1532,14 +1516,3 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/hdp/current/oozie-server/libext/falcon-oozie-el-extension-*.jar')
 
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])

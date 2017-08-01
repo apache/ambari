@@ -20,7 +20,6 @@ limitations under the License.
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ClientComponentHasNoStatus
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -56,7 +55,6 @@ class AccumuloClient(Script):
       return
 
     Logger.info("Executing Accumulo Client Upgrade pre-restart")
-    conf_select.select(params.stack_name, "accumulo", params.version)
     stack_select.select_packages(params.version)
 
 if __name__ == "__main__":

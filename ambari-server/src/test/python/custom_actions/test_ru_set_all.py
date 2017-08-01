@@ -115,10 +115,12 @@ class TestRUSetAll(RMFTestCase):
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
 
+    json_payload['hostLevelParams']['stack_name'] = "HDP"
     json_payload['hostLevelParams']['stack_version'] = "2.3"
     json_payload['commandParams']['version'] = "2.3.0.0-1234"
     json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
     json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
+    json_payload["configurations"]["cluster-env"]["stack_packages"] = self.get_stack_packages()
 
     config_dict = ConfigDictionary(json_payload)
 

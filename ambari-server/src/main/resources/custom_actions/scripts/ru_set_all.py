@@ -79,7 +79,6 @@ class UpgradeSetAll(Script):
           link_config(dir_def['conf_dir'], dir_def['current_dir'])
 
 
-
 def is_host_skippable(stack_selector_path, formatted_version):
   """
   Gets whether this host should not have the stack select tool called.

@@ -21,7 +21,6 @@ limitations under the License.
 import sys
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import Execute
@@ -50,7 +49,6 @@ class PaceMaker(Script):
       env.set_params(params)
 
       if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-        conf_select.select(params.stack_name, "storm", params.version)
         stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):

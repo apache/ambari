@@ -21,7 +21,6 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import check_process_status
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -87,7 +86,6 @@ class AccumuloScript(Script):
     stack_component = stack_select.get_package_name()
 
     Logger.info("Executing Accumulo Upgrade pre-restart for {0}".format(stack_component))
-    conf_select.select(params.stack_name, "accumulo", params.version)
     stack_select.select_packages(params.version)
 
   def get_log_folder(self):

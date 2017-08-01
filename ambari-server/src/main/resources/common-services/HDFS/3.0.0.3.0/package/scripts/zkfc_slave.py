@@ -27,7 +27,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.service import Service
 from resource_management.core import shell
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.security_commons import build_expectations
@@ -140,7 +140,6 @@ class ZkfcSlaveDefault(ZkfcSlave):
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version) \
         and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select_packages(params.version)
 
 def initialize_ha_zookeeper(params):

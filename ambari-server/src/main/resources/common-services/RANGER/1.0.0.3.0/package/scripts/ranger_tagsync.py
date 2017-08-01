@@ -18,7 +18,6 @@ limitations under the License.
 
 """
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -85,7 +84,6 @@ class RangerTagsync(Script):
 
     if params.stack_supports_ranger_tagsync:
       Logger.info("Executing Ranger Tagsync Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "ranger-tagsync", params.version)
       stack_select.select_packages(params.version)
 
 
@@ -110,11 +108,8 @@ class RangerTagsync(Script):
     if upgrade_stack is None:
       raise Fail('Unable to determine the stack and stack version')
 
-    stack_name = upgrade_stack[0]
-    stack_version = upgrade_stack[1]
-
     stack_select.select_packages(params.version)
-    conf_select.select(stack_name, "ranger-tagsync", stack_version)
+
     if params.stack_supports_ranger_tagsync_ssl_xml_support:
       Logger.info("Upgrading Tagsync, stack support Atlas user for Tagsync, creating keystore for same.")
       self.create_atlas_user_keystore(env)

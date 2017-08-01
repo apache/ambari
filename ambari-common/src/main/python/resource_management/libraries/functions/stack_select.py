@@ -121,8 +121,6 @@ def get_packages(scope, service_name = None, component_name = None):
   """
   from resource_management.libraries.functions.default import default
 
-  import time
-
   if scope not in _PACKAGE_SCOPES:
     raise Fail("The specified scope of {0} is not valid".format(scope))
 
@@ -140,11 +138,11 @@ def get_packages(scope, service_name = None, component_name = None):
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
 
-  stack_select_packages_config = default("/configurations/cluster-env/stack_select_packages", None)
-  if stack_select_packages_config is None:
+  stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
+  if stack_packages_config is None:
     raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
 
-  data = json.loads(stack_select_packages_config)
+  data = json.loads(stack_packages_config)
 
   if stack_name not in data:
     raise Fail(

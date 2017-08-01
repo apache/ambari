@@ -77,7 +77,7 @@ public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
    * <ul>
    * <li>Adds/Updates {@link ConfigHelper#CLUSTER_ENV_STACK_FEATURES_PROPERTY} from stack</li>
    * <li>Adds/Updates {@link ConfigHelper#CLUSTER_ENV_STACK_TOOLS_PROPERTY} from stack</li>
-   * <li>Adds/Updates {@link ConfigHelper#CLUSTER_ENV_STACK_SELECT_PACKAGES_PROPERTY} from stack</li>
+   * <li>Adds/Updates {@link ConfigHelper#CLUSTER_ENV_STACK_PACKAGES_PROPERTY} from stack</li>
    * </ul>
    *
    * Note: Config properties stack_features and stack_tools should always be updated to latest values as defined
@@ -108,7 +108,7 @@ public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
         for(PropertyInfo property : properties) {
           if(property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY) ||
               property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY) ||
-              property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_SELECT_PACKAGES_PROPERTY)) {
+              property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY)) {
             propertyMap.put(property.getName(), property.getValue());
           }
         }

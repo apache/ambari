@@ -20,7 +20,6 @@ limitations under the License.
 
 from resource_management.core import Logger
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -66,9 +65,6 @@ class OozieServer(Script):
         # Sets the symlink : eg: <stack-root>/current/oozie-client -> <stack-root>/a.b.c.d-<version>/oozie
         # Sets the symlink : eg: <stack-root>/current/oozie-server -> <stack-root>/a.b.c.d-<version>/oozie
         stack_select.select_packages(params.version)
-
-      if params.version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
-        conf_select.select(params.stack_name, "oozie", params.version)
 
     env.set_params(params)
     oozie(is_server=True)
@@ -122,7 +118,6 @@ class OozieServerDefault(OozieServer):
     Logger.info("Executing Oozie Server Stack Upgrade pre-restart")
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "oozie", params.version)
       stack_select.select_packages(params.version)
 
     OozieUpgrade.prepare_libext_directory()

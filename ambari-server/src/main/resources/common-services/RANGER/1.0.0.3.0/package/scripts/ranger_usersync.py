@@ -103,7 +103,7 @@ class RangerUsersync(Script):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env, "ranger-usersync")
+    upgrade.prestart(env)
 
   def get_log_folder(self):
     import params

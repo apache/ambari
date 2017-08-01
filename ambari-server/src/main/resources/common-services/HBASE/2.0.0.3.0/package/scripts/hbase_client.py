@@ -20,7 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from hbase import hbase
@@ -56,8 +56,6 @@ class HbaseClientDefault(HbaseClient):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
-      conf_select.select(params.stack_name, "hbase", params.version)
-
       # phoenix may not always be deployed
       try:
         stack_select.select_packages(params.version)
@@ -65,11 +63,6 @@ class HbaseClientDefault(HbaseClient):
         print "Ignoring error due to missing phoenix-client"
         print str(e)
 
-
-      # set all of the hadoop clients since hbase client is upgraded as part
-      # of the final "CLIENTS" group and we need to ensure that hadoop-client
-      # is also set
-      conf_select.select(params.stack_name, "hadoop", params.version)
 
 
 if __name__ == "__main__":

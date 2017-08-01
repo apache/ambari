@@ -439,10 +439,5 @@ class TestPhoenixQueryServer(RMFTestCase):
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/etc/hbase/2.3.0.0-1234/0',
-        create_parents = True,
-        mode = 0755,
-        cd_access = 'a',
-    )
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
     self.assertNoMoreResources()
