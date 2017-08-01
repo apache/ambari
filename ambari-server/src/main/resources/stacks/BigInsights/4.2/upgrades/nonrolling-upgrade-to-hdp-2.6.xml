@@ -236,6 +236,10 @@
         <task xsi:type="configure" id="biginsights_4_2_yarn_config_update" />
       </execute-stage>
 
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for YARN related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_yarn_audit_db"/>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Adding YARN Security ACLs">
         <task xsi:type="configure" id="yarn_env_security_opts">
@@ -266,6 +270,10 @@
         <task xsi:type="configure" id="biginsights_4_2_hbase_env_custom_extensions"/>
       </execute-stage>
 
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBASE related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hbase_audit_db"/>
+      </execute-stage>
+
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_CLIENT" title="Update Hive Execution Engine">
         <task xsi:type="configure" id="biginsights_4_2_hive_exectype_change"/>
@@ -285,6 +293,11 @@
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_env_custom_extensions"/>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for HIVE related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hive_audit_db"/>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for Hive WebHCat server">
         <task xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" />
       </execute-stage>
@@ -355,7 +368,7 @@
 
       <!-- RANGER KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
-        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_audit_db"/>
       </execute-stage>
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Parameterizing Ranger Kms Log4J Properties">
@@ -373,6 +386,11 @@
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS">
         <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl"/>
+      </execute-stage>
+
+      <!-- KNOX -->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for KNOX related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_knox_audit_db"/>
       </execute-stage>
     </group>
 
