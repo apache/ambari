@@ -18,7 +18,6 @@ limitations under the License.
 """
 
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from falcon import falcon
 from ambari_commons import OSConst
@@ -53,7 +52,6 @@ class FalconClientLinux(FalconClient):
       return
 
     Logger.info("Executing Falcon Client Stack Upgrade pre-restart")
-    conf_select.select(params.stack_name, "falcon", params.version)
     stack_select.select_packages(params.version)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

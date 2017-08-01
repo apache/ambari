@@ -30,7 +30,6 @@ from resource_management.core.source import StaticFile
 from resource_management.libraries import XmlConfig
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.decorator import retry
@@ -251,7 +250,6 @@ class Master(Script):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
-      conf_select.select(params.stack_name, "zeppelin", params.version)
       stack_select.select_packages(params.version)
 
   def set_interpreter_settings(self, config_data):

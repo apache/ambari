@@ -20,7 +20,6 @@ limitations under the License.
 
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -114,7 +113,6 @@ class HiveServerDefault(HiveServer):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hive", params.version)
       stack_select.select_packages(params.version)
 
       # Copy mapreduce.tar.gz and tez.tar.gz to HDFS

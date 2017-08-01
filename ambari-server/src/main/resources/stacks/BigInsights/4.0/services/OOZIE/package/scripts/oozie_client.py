@@ -20,7 +20,6 @@ limitations under the License.
 
 import sys
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 
 from oozie import oozie
@@ -54,7 +53,6 @@ class OozieClient(Script):
       return
 
     Logger.info("Executing Oozie Client Rolling Upgrade pre-restart")
-    conf_select.select(params.stack_name, "oozie", params.version)
     stack_select.select_packages(params.version)
     #Execute(format("stack-select set oozie-client {version}"))
 

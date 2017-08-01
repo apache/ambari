@@ -25,5 +25,4 @@ from resource_management.libraries.functions.format import format
 def prestart(env, iop_component):
   import params
 
-  conf_select.select(params.stack_name, iop_component, params.version)
   stack_select.select_packages(params.version)

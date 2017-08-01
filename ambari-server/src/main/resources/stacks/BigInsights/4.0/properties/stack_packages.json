@@ -770,6 +770,200 @@
           ]
         }
       }
+    },
+    "conf-select": {
+      "accumulo": [
+        {
+          "conf_dir": "/etc/accumulo/conf",
+          "current_dir": "{0}/current/accumulo-client/conf"
+        }
+      ],
+      "atlas": [
+        {
+          "conf_dir": "/etc/atlas/conf",
+          "current_dir": "{0}/current/atlas-client/conf"
+        }
+      ],
+      "druid": [
+        {
+          "conf_dir": "/etc/druid/conf",
+          "current_dir": "{0}/current/druid-overlord/conf"
+        }
+      ],
+      "falcon": [
+        {
+          "conf_dir": "/etc/falcon/conf",
+          "current_dir": "{0}/current/falcon-client/conf"
+        }
+      ],
+      "flume": [
+        {
+          "conf_dir": "/etc/flume/conf",
+          "current_dir": "{0}/current/flume-server/conf"
+        }
+      ],
+      "hadoop": [
+        {
+          "conf_dir": "/etc/hadoop/conf",
+          "current_dir": "{0}/current/hadoop-client/conf"
+        }
+      ],
+      "hbase": [
+        {
+          "conf_dir": "/etc/hbase/conf",
+          "current_dir": "{0}/current/hbase-client/conf"
+        }
+      ],
+      "hive": [
+        {
+          "conf_dir": "/etc/hive/conf",
+          "current_dir": "{0}/current/hive-client/conf"
+        }
+      ],
+      "hive2": [
+        {
+          "conf_dir": "/etc/hive2/conf",
+          "current_dir": "{0}/current/hive-server2-hive2/conf"
+        }
+      ],
+      "hive-hcatalog": [
+        {
+          "conf_dir": "/etc/hive-webhcat/conf",
+          "prefix": "/etc/hive-webhcat",
+          "current_dir": "{0}/current/hive-webhcat/etc/webhcat"
+        },
+        {
+          "conf_dir": "/etc/hive-hcatalog/conf",
+          "prefix": "/etc/hive-hcatalog",
+          "current_dir": "{0}/current/hive-webhcat/etc/hcatalog"
+        }
+      ],
+      "kafka": [
+        {
+          "conf_dir": "/etc/kafka/conf",
+          "current_dir": "{0}/current/kafka-broker/conf"
+        }
+      ],
+      "knox": [
+        {
+          "conf_dir": "/etc/knox/conf",
+          "current_dir": "{0}/current/knox-server/conf"
+        }
+      ],
+      "mahout": [
+        {
+          "conf_dir": "/etc/mahout/conf",
+          "current_dir": "{0}/current/mahout-client/conf"
+        }
+      ],
+      "nifi": [
+        {
+          "conf_dir": "/etc/nifi/conf",
+          "current_dir": "{0}/current/nifi/conf"
+        }
+      ],
+      "oozie": [
+        {
+          "conf_dir": "/etc/oozie/conf",
+          "current_dir": "{0}/current/oozie-client/conf"
+        }
+      ],
+      "phoenix": [
+        {
+          "conf_dir": "/etc/phoenix/conf",
+          "current_dir": "{0}/current/phoenix-client/conf"
+        }
+      ],
+      "pig": [
+        {
+          "conf_dir": "/etc/pig/conf",
+          "current_dir": "{0}/current/pig-client/conf"
+        }
+      ],
+      "ranger-admin": [
+        {
+          "conf_dir": "/etc/ranger/admin/conf",
+          "current_dir": "{0}/current/ranger-admin/conf"
+        }
+      ],
+      "ranger-kms": [
+        {
+          "conf_dir": "/etc/ranger/kms/conf",
+          "current_dir": "{0}/current/ranger-kms/conf"
+        }
+      ],
+      "ranger-tagsync": [
+        {
+          "conf_dir": "/etc/ranger/tagsync/conf",
+          "current_dir": "{0}/current/ranger-tagsync/conf"
+        }
+      ],
+      "ranger-usersync": [
+        {
+          "conf_dir": "/etc/ranger/usersync/conf",
+          "current_dir": "{0}/current/ranger-usersync/conf"
+        }
+      ],
+      "slider": [
+        {
+          "conf_dir": "/etc/slider/conf",
+          "current_dir": "{0}/current/slider-client/conf"
+        }
+      ],
+      "spark": [
+        {
+          "conf_dir": "/etc/spark/conf",
+          "current_dir": "{0}/current/spark-client/conf"
+        }
+      ],
+      "spark2": [
+        {
+          "conf_dir": "/etc/spark2/conf",
+          "current_dir": "{0}/current/spark2-client/conf"
+        }
+      ],
+      "sqoop": [
+        {
+          "conf_dir": "/etc/sqoop/conf",
+          "current_dir": "{0}/current/sqoop-client/conf"
+        }
+      ],
+      "storm": [
+        {
+          "conf_dir": "/etc/storm/conf",
+          "current_dir": "{0}/current/storm-client/conf"
+        }
+      ],
+      "storm-slider-client": [
+        {
+          "conf_dir": "/etc/storm-slider-client/conf",
+          "current_dir": "{0}/current/storm-slider-client/conf"
+        }
+      ],
+      "superset": [
+        {
+          "conf_dir": "/etc/druid-superset/conf",
+          "current_dir": "{0}/current/druid-superset/conf"
+        }
+      ],
+      "tez": [
+        {
+          "conf_dir": "/etc/tez/conf",
+          "current_dir": "{0}/current/tez-client/conf"
+        }
+      ],
+      "zeppelin": [
+        {
+          "conf_dir": "/etc/zeppelin/conf",
+          "current_dir": "{0}/current/zeppelin-server/conf"
+        }
+      ],
+      "zookeeper": [
+        {
+          "conf_dir": "/etc/zookeeper/conf",
+          "current_dir": "{0}/current/zookeeper-client/conf"
+        }
+      ]
     }
   }
 }

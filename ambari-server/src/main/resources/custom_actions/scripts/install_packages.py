@@ -206,10 +206,6 @@ class InstallPackages(Script):
       Link("/usr/bin/conf-select", to = "/usr/bin/hdfconf-select")
 
     for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
-      Logger.info("The current cluster stack of {0} does not require backing up configurations; "
-                  "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
-      # only link configs for all known packages
       conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
 
 

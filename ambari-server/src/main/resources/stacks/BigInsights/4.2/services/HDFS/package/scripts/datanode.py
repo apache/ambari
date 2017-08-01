@@ -18,7 +18,6 @@ limitations under the License.
 """
 import datanode_upgrade
 from hdfs_datanode import datanode
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management import *
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
@@ -34,7 +33,7 @@ class DataNode(Script):
     Get the name or path to the hdfs binary depending on the stack and version.
     """
     import params
-    stack_to_comp = stack_select.get_package_name()
+    stack_to_comp = "hadoop-hdfs-datanode"
     if params.stack_name in stack_to_comp:
       return get_hdfs_binary(stack_to_comp[params.stack_name])
     return "hdfs"
@@ -79,7 +78,6 @@ class DataNode(Script):
     import params
     env.set_params(params)
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select_packages(params.version)
       #Execute(format("iop-select set hadoop-hdfs-datanode {version}"))
 

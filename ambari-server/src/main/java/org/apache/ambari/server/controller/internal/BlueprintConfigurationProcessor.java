@@ -2954,7 +2954,7 @@ public class BlueprintConfigurationProcessor {
     Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
         ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
         ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_SELECT_PACKAGES_PROPERTY);
+        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
 
     try {
       Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);

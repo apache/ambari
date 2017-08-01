@@ -21,7 +21,6 @@ import falcon_server_upgrade
 
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions import Direction
@@ -81,7 +80,6 @@ class FalconServerLinux(FalconServer):
       return
 
     Logger.info("Executing Falcon Server Stack Upgrade pre-restart")
-    conf_select.select(params.stack_name, "falcon", params.version)
     stack_select.select_packages(params.version)
 
     falcon_server_upgrade.pre_start_restore()

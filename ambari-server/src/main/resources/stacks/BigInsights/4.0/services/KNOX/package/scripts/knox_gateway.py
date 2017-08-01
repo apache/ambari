@@ -18,7 +18,6 @@ limitations under the License.
 """
 
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 import os
 import tarfile
 
@@ -110,7 +109,6 @@ class KnoxGateway(Script):
         absolute_backup_dir = upgrade.backup_data()
 
       # conf-select will change the symlink to the conf folder.
-      conf_select.select(params.stack_name, "knox", params.version)
       stack_select.select_packages(params.version)
 
       # Extract the tar of the old conf folder into the new conf directory

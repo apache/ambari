@@ -31,7 +31,7 @@ from resource_management import shell
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 
 from livy2_service import livy2_service
 from setup_livy2 import setup_livy
@@ -131,7 +131,6 @@ class LivyServer(Script):
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Livy2 Server Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "spark2", params.version)
       stack_select.select_packages(params.version)
 
   def get_log_folder(self):

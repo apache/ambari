@@ -19,7 +19,6 @@ limitations under the License.
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -48,7 +47,6 @@ class JournalNodeDefault(JournalNode):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):

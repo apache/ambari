@@ -20,7 +20,6 @@ limitations under the License.
 
 import sys
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import stack_select
 from solr_service import solr_service
@@ -44,14 +43,6 @@ class SolrServer(Script):
     env.set_params(params)
     if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
       stack_select.select_packages(params.version)
-
-      call_conf_select = True
-      conf_dir = '/usr/iop/4.1.0.0/solr/conf'
-      if params.upgrade_direction is not None and params.upgrade_direction == Direction.DOWNGRADE and not os.path.islink(conf_dir):
-        call_conf_select = False
-
-      if call_conf_select:
-        conf_select.select(params.stack_name, "solr", params.version)
 
   def start(self, env, upgrade_type=None):
     import params

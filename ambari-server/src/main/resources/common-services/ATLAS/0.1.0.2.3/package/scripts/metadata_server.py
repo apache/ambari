@@ -22,7 +22,6 @@ import os
 # Local Imports
 from metadata import metadata
 from resource_management import Fail
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management import Execute, File, check_process_status, Script, format_stack_version
 from resource_management.libraries.functions import format
@@ -58,7 +57,6 @@ class MetadataServer(Script):
     env.set_params(params)
 
     if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, params.version):
-      conf_select.select(params.stack_name, "atlas", params.version)
       stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):

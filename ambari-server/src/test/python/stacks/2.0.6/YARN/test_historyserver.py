@@ -794,6 +794,3 @@ class TestHistoryServer(RMFTestCase):
     )
 
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)

@@ -20,7 +20,6 @@ Ambari Agent
 """
 
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
@@ -48,7 +47,6 @@ class ApplicationTimelineServer(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select_packages(params.version)
       #Execute(format("iop-select set hadoop-yarn-timelineserver {version}"))
 

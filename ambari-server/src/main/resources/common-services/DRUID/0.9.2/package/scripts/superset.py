@@ -26,7 +26,6 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
@@ -96,8 +95,6 @@ class Superset(Script):
 
     if params.stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version):
       stack_select.select_packages(params.version)
-    if params.stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version):
-      conf_select.select(params.stack_name, "superset", params.stack_version)
 
   def start(self, env, upgrade_type=None):
     import params

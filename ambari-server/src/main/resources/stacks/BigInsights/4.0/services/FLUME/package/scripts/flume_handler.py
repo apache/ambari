@@ -23,7 +23,6 @@ from flume import flume
 from flume import get_desired_state
 
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import get_flume_status
@@ -133,7 +132,6 @@ class FlumeHandler(Script):
       return
 
     Logger.info("Executing Flume Stack Upgrade pre-restart")
-    conf_select.select(params.stack_name, "flume", params.version)
     stack_select.select_packages(params.version)
     if params.upgrade_direction == Direction.UPGRADE:
       flume_upgrade.pre_start_restore()

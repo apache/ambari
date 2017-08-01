@@ -17,7 +17,6 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -57,9 +56,7 @@ class PhoenixQueryServer(Script):
     import params
     env.set_params(params)
 
-    if params.stack_version_formatted and check_stack_feature(StackFeature.PHOENIX, params.stack_version_formatted):     
-      # phoenix uses hbase configs
-      conf_select.select(params.stack_name, "hbase", params.version)
+    if params.stack_version_formatted and check_stack_feature(StackFeature.PHOENIX, params.stack_version_formatted):
       stack_select.select_packages(params.version)
 
 

@@ -22,7 +22,6 @@ Ambari Agent
 import sys
 import os
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from titan import titan
 
@@ -44,7 +43,6 @@ class TitanClientLinux(TitanClient):
         env.set_params(params)
 
         if params.version and compare_versions(format_stack_version(params.version), '4.2.0.0') >= 0:
-            conf_select.select(params.stack_name, "titan", params.version)
             stack_select.select_packages(params.version)
 
     def install(self, env):

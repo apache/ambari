@@ -18,7 +18,6 @@ limitations under the License.
 
 """
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
@@ -176,7 +175,6 @@ class RangerAdmin(Script):
     stack_version = upgrade_stack[1]
 
     stack_select.select_packages(params.version)
-    conf_select.select(stack_name, "ranger-admin", stack_version)
 
   def get_log_folder(self):
     import params

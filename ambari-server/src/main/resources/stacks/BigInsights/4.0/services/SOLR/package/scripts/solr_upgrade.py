@@ -65,8 +65,6 @@ class SolrServerUpgrade(Script):
            to=solr41_etc_dir
       )
 
-    conf_select.select(params.stack_name, "solr", "4.1.0.0")
-
   def pre_stop_backup_cores(self, env):
     """
     Backs up the Solr cores under Solr's home directory.

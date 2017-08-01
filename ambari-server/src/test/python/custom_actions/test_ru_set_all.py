@@ -118,10 +118,12 @@ class TestRUSetAll(RMFTestCase):
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
 
+    json_payload['hostLevelParams']['stack_name'] = "HDP"
     json_payload['hostLevelParams']['stack_version'] = "2.3"
     json_payload['commandParams']['version'] = "2.3.0.0-1234"
     json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
     json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
+    json_payload["configurations"]["cluster-env"]["stack_packages"] = self.get_stack_packages()
 
     config_dict = ConfigDictionary(json_payload)
 
@@ -197,109 +199,6 @@ class TestRUSetAll(RMFTestCase):
     call_mock.assert_called_with(('ambari-python-wrap', u'/usr/bin/hdp-select', 'versions'), sudo = True)
     self.assertEqual(call_mock.call_count, 1)
 
-
-  @patch("os.path.islink")
-  @patch("os.path.isdir")
-  @patch("resource_management.core.shell.call")
-  @patch.object(Script, 'get_config')
-  @patch.object(OSCheck, 'is_redhat_family')
-  def test_downgrade_unlink_configs(self, family_mock, get_config_mock, call_mock,
-                                    isdir_mock, islink_mock):
-    """
-    Tests downgrading from 2.3 to 2.2 to ensure that conf symlinks are removed and the backup
-    directories restored.
-    """
-
-    isdir_mock.return_value = True
-
-    # required for the test to run since the Execute calls need this
-    from resource_management.core.environment import Environment
-    env = Environment(test_mode=True)
-    with env:
-      # Mock the config objects
-      json_file_path = os.path.join(self.get_custom_actions_dir(), "ru_execute_tasks_namenode_prepare.json")
-      self.assertTrue(os.path.isfile(json_file_path))
-      with open(json_file_path, "r") as json_file:
-        json_payload = json.load(json_file)
-
-      # alter JSON for a downgrade from 2.3 to 2.2
-      json_payload['commandParams']['version'] = "2.2.0.0-1234"
-      json_payload['commandParams']['downgrade_from_version'] = "2.3.0.0-1234"
-      json_payload['commandParams']['source_stack'] = "HDP-2.2"
-      json_payload['commandParams']['target_stack'] = "HDP-2.3"
-      json_payload['commandParams']['upgrade_direction'] = "downgrade"
-      json_payload['hostLevelParams']['stack_version'] = "2.2"
-      json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
-      json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
-
-      config_dict = ConfigDictionary(json_payload)
-
-      family_mock.return_value = True
-      get_config_mock.return_value = config_dict
-      call_mock.side_effect = fake_call   # echo the command
-
-      # test the function
-      ru_execute = UpgradeSetAll()
-      ru_execute.unlink_all_configs(None)
-
-      # verify that os.path.islink was called for each conf
-      self.assertFalse(islink_mock.called)
-
-      # alter JSON for a downgrade from 2.3 to 2.3
-      with open(json_file_path, "r") as json_file:
-        json_payload = json.load(json_file)
-
-      json_payload['commandParams']['version'] = "2.3.0.0-1234"
-      json_payload['commandParams']['downgrade_from_version'] = "2.3.0.0-5678"
-      json_payload['commandParams']['source_stack'] = "HDP-2.3"
-      json_payload['commandParams']['target_stack'] = "HDP-2.3"
-      json_payload['commandParams']['upgrade_direction'] = "downgrade"
-      json_payload['hostLevelParams']['stack_version'] = "2.3"
-      json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
-      json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
-
-      # reset config
-      config_dict = ConfigDictionary(json_payload)
-      family_mock.return_value = True
-      get_config_mock.return_value = config_dict
-
-      # reset mock
-      islink_mock.reset_mock()
-
-      # test the function
-      ru_execute = UpgradeSetAll()
-      ru_execute.unlink_all_configs(None)
-
-      # ensure it wasn't called this time
-      self.assertFalse(islink_mock.called)
-
-      with open(json_file_path, "r") as json_file:
-        json_payload = json.load(json_file)
-
-      # alter JSON for a downgrade from 2.2 to 2.2
-      json_payload['commandParams']['version'] = "2.2.0.0-1234"
-      json_payload['commandParams']['downgrade_from_version'] = "2.2.0.0-5678"
-      json_payload['commandParams']['source_stack'] = "HDP-2.2"
-      json_payload['commandParams']['target_stack'] = "HDP-2.2"
-      json_payload['commandParams']['upgrade_direction'] = "downgrade"
-      json_payload['hostLevelParams']['stack_version'] = "2.2"
-      json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
-      json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
-
-      # reset config
-      config_dict = ConfigDictionary(json_payload)
-      family_mock.return_value = True
-      get_config_mock.return_value = config_dict
-
-      # reset mock
-      islink_mock.reset_mock()
-
-      # test the function
-      ru_execute = UpgradeSetAll()
-      ru_execute.unlink_all_configs(None)
-
-      # ensure it wasn't called this time
-      self.assertFalse(islink_mock.called)
 
   @patch("os.path.exists")
   @patch("os.path.islink")

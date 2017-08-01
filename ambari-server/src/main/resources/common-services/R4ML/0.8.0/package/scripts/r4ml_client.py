@@ -21,7 +21,6 @@ limitations under the License.
 import os
 import subprocess
 from resource_management import *
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -40,7 +39,6 @@ class R4MLClient(Script):
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing R4ML Client Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "r4ml", params.version)
       stack_select.select_packages(params.version)
 
   def stack_upgrade_save_new_config(self, env):
@@ -57,7 +55,6 @@ class R4MLClient(Script):
       # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
       # must change it now so this function can find the Jinja Templates for the service.
       env.config.basedir = base_dir
-      conf_select.select(params.stack_name, conf_select_name, params.version)
       self.configure(env, config_dir=config_dir)
 
   def checkPackage(self, packages):

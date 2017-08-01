@@ -22,7 +22,6 @@ import os
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.security_commons import build_expectations
@@ -117,8 +116,6 @@ class KnoxGatewayDefault(KnoxGateway):
       absolute_backup_dir = upgrade.backup_data()
       Logger.info("Knox data was successfully backed up to {0}".format(absolute_backup_dir))
 
-    # <conf-selector-tool> will change the symlink to the conf folder.
-    conf_select.select(params.stack_name, "knox", params.version)
     stack_select.select_packages(params.version)
 
     # seed the new Knox data directory with the keystores of yesteryear

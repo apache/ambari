@@ -22,7 +22,6 @@ import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
@@ -96,7 +95,6 @@ class HiveMetastoreDefault(HiveMetastore):
       self.upgrade_schema(env)
       
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      conf_select.select(params.stack_name, "hive", params.version)
       stack_select.select_packages(params.version)
 
 

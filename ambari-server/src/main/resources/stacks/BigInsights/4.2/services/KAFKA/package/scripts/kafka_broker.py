@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
@@ -48,10 +47,7 @@ class KafkaBroker(Script):
     if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
       stack_select.select_packages(params.version)
 
-    if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
-      conf_select.select(params.stack_name, "kafka", params.version)
-
-    # This is extremely important since it should only be called if crossing the IOP 4.2 boundary. 
+    # This is extremely important since it should only be called if crossing the IOP 4.2 boundary.
     if params.current_version and params.version and params.upgrade_direction:
       src_version = dst_version = None
       if params.upgrade_direction == Direction.UPGRADE:

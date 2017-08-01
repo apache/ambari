@@ -22,7 +22,6 @@ import sys
 import os
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -74,7 +73,6 @@ class JobHistoryServer(Script):
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Spark Job History Server Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "spark", params.version)
       stack_select.select_packages(params.version)
 
       # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not

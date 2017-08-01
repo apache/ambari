@@ -45,7 +45,6 @@ class YarnClient(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select_packages(params.version)
       #Execute(format("stack-select set hadoop-client {version}"))
 

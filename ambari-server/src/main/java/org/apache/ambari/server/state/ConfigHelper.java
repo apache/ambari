@@ -92,7 +92,7 @@ public class ConfigHelper {
   public static final String CLUSTER_ENV_STACK_FEATURES_PROPERTY = "stack_features";
   public static final String CLUSTER_ENV_STACK_TOOLS_PROPERTY = "stack_tools";
   public static final String CLUSTER_ENV_STACK_ROOT_PROPERTY = "stack_root";
-  public static final String CLUSTER_ENV_STACK_SELECT_PACKAGES_PROPERTY = "stack_select_packages";
+  public static final String CLUSTER_ENV_STACK_PACKAGES_PROPERTY = "stack_packages";
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
