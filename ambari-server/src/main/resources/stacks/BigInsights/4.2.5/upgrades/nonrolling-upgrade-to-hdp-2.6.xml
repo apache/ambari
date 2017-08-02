@@ -316,6 +316,9 @@
       </execute-stage>
 
       <!-- HIVE -->
+      <execute-stage service="HIVE" component="HIVE_CLIENT" title="Update Hive Execution Engine">
+        <task xsi:type="configure" id="biginsights_4_2_hive_exectype_change"/>
+      </execute-stage>
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_env_configure"/>
       </execute-stage>

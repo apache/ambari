@@ -211,6 +211,15 @@
     </service>
 
     <service name="HIVE">
+      <component name="HIVE_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_hive_exectype_change" summary="Update Hive Execution Engine">
+            <type>hive-site</type>
+            <set key="hive.execution.engine" value="mr" if-type="hive-site" if-key="hive.execution.engine" if-value="tez"/>
+          </definition>
+        </changes>
+      </component>
+
       <component name="HIVE_SERVER">
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication" summary="Configuring hive authentication">
