@@ -2333,6 +2333,76 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   @Transactional
+  public void applyLatestConfigurations(StackId stackId) {
+    clusterGlobalLock.writeLock().lock();
+
+    try {
+      // grab all of the configurations and hash them so we can easily update
+      // them when picking and choosing only those from the service
+      ClusterEntity clusterEntity = getClusterEntity();
+      Collection<ClusterConfigEntity> configEntities = clusterEntity.getClusterConfigEntities();
+      ImmutableMap<Object, ClusterConfigEntity> clusterConfigEntityMap = Maps.uniqueIndex(
+          configEntities, Functions.identity());
+
+      // disable any configurations which are currently selected
+      for (ClusterConfigEntity clusterConfig : configEntities) {
+        if (clusterConfig.isSelected()) {
+          // un-select the latest configuration for the service
+          clusterConfig.setSelected(false);
+
+          LOG.debug("Disabling configuration {} with tag {}", clusterConfig.getType(),
+              clusterConfig.getTag());
+        }
+      }
+
+      // get the latest configurations for the stack so they can be selected
+      Collection<ClusterConfigEntity> latestConfigMappingByStack = clusterDAO.getLatestConfigurations(
+          clusterEntity.getClusterId(), stackId);
+
+      Set<String> configTypesUpdated = new HashSet<>();
+
+      for (ClusterConfigEntity clusterConfig : latestConfigMappingByStack) {
+        // grab the hash'd entity from the map so we're working with the right
+        // one
+        clusterConfig = clusterConfigEntityMap.get(clusterConfig);
+
+        clusterConfig.setSelected(true);
+
+        configTypesUpdated.add(clusterConfig.getType());
+
+        LOG.info("Setting {} with version tag {} created on {} to selected for stack {}",
+            clusterConfig.getType(), clusterConfig.getTag(), new Date(clusterConfig.getTimestamp()),
+            stackId);
+      }
+
+      // since the entities which were modified came from the cluster entity's
+      // list to begin with, we can just save them right back - no need for a
+      // new collection since the entity instances were modified directly
+      clusterEntity = clusterDAO.merge(clusterEntity);
+
+      cacheConfigurations();
+
+      LOG.info(
+          "Applied latest configurations for stack {}. The the following types were modified: {}",
+          stackId, StringUtils.join(configTypesUpdated, ','));
+
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+
+    // publish an event to instruct entity managers to clear cached instances of
+    // ClusterEntity immediately - it takes EclipseLink about 1000ms to update
+    // the L1 caches of other threads and the action scheduler could act upon
+    // stale data
+    EntityManagerCacheInvalidationEvent event = new EntityManagerCacheInvalidationEvent();
+    jpaEventPublisher.publish(event);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
   public void applyLatestConfigurations(StackId stackId, String serviceName) {
     clusterGlobalLock.writeLock().lock();
 

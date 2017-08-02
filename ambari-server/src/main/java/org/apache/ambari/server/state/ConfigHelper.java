@@ -1237,6 +1237,9 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
+
+      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+          stackDefaultProperty.getValue());
     }
 
     // for every installed service, populate the default service properties
@@ -1250,6 +1253,9 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
+
+      defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+          serviceDefaultProperty.getValue());
     }
 
     return defaultPropertiesByType;

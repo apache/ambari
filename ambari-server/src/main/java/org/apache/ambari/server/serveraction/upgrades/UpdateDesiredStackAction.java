@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
@@ -142,6 +143,10 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
         }
 
         out.append(message).append(System.lineSeparator());
+
+        // move the cluster's desired stack as well
+        StackId targetStackId = targetRepositoryVersion.getStackId();
+        cluster.setDesiredStackVersion(targetStackId);
       }
 
       if( upgradeContext.getDirection() == Direction.DOWNGRADE ){
@@ -154,7 +159,7 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
 
           message = String.format("  %s to %s", serviceName, repositoryVersion.getVersion());
           out.append(message).append(System.lineSeparator());
-        }
+        }        
       }
 
       // move repositories to the right version and create/revert configs
@@ -175,6 +180,10 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
             hostVersion.setState(RepositoryVersionState.INSTALLED);
           }
         }
+        
+        // move the cluster's desired stack back to it's current stack on downgrade
+        StackId targetStackId = cluster.getCurrentStackVersion();
+        cluster.setDesiredStackVersion(targetStackId);        
       }
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", out.toString(), err.toString());

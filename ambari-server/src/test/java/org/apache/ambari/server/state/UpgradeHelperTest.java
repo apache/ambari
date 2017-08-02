@@ -335,7 +335,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals("Save Cluster State", postGroup.items.get(1).getText());
     assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(1).getType());
 
-    assertEquals(3, groups.get(0).items.size());
+    assertEquals(2, groups.get(0).items.size());
     assertEquals(7, groups.get(1).items.size());
     assertEquals(2, groups.get(2).items.size());
 

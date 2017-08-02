@@ -548,6 +548,18 @@ public interface Cluster {
   Map<String, Object> getSessionAttributes();
 
   /**
+   * Makes the most recent configurations for the specified stack current.
+   * <p/>
+   * When completed, all other configurations for any other stack will remain,
+   * but will not be marked as selected.
+   *
+   * @param stackId
+   *          the stack to use when finding the latest configurations (not
+   *          {@code null}).
+   */
+  void applyLatestConfigurations(StackId stackId);
+
+  /**
    * Makes the most recent configurations for the specified stack current. This
    * will only modify configurations for the given service.
    * <p/>

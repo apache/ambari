@@ -2178,6 +2178,9 @@ public class ClusterTest {
     createDefaultCluster(Sets.newHashSet("host-1"), stackId);
 
     Cluster cluster = clusters.getCluster("c1");
+    cluster.setCurrentStackVersion(stackId);
+    cluster.setDesiredStackVersion(stackId);
+
     RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
@@ -2201,8 +2204,9 @@ public class ClusterTest {
     // make v1 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
 
-    // bump the repo version
+    // bump the repo version and the desired stack
     service.setDesiredRepositoryVersion(repoVersion220);
+    cluster.setDesiredStackVersion(newStackId);
 
     // save v2
     // config for v2 on new stack

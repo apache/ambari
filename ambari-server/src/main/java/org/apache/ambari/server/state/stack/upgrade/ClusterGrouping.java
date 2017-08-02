@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -47,9 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 /**
  * Used to represent cluster-based operations.
@@ -175,6 +171,13 @@ public class ClusterGrouping extends Grouping {
             continue;
           }
 
+          // only schedule this stage if its service is part of the upgrade
+          if (StringUtils.isNotBlank(execution.service)) {
+            if (!upgradeContext.isServiceSupported(execution.service)) {
+              continue;
+            }
+          }
+
           Task task = execution.task;
 
           StageWrapper wrapper = null;
@@ -264,6 +267,7 @@ public class ClusterGrouping extends Grouping {
         return null;
       }
 
+      // !!! FUTURE: check for component
 
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 
@@ -314,32 +318,6 @@ public class ClusterGrouping extends Grouping {
           new TaskWrapper(service, component, hostNames, et));
     }
     return null;
-  }
-
-  /**
-   * Populates the manual task, mt, with information about the list of hosts.
-   * @param mt Manual Task
-   * @param hostToComponents Map from host name to list of components
-   */
-  private void fillHostDetails(ManualTask mt, Map<String, List<String>> hostToComponents) {
-    JsonArray arr = new JsonArray();
-    for (Entry<String, List<String>> entry : hostToComponents.entrySet()) {
-      JsonObject hostObj = new JsonObject();
-      hostObj.addProperty("host", entry.getKey());
-
-      JsonArray componentArr = new JsonArray();
-      for (String comp : entry.getValue()) {
-        componentArr.add(new JsonPrimitive(comp));
-      }
-      hostObj.add("components", componentArr);
-
-      arr.add(hostObj);
-    }
-
-    JsonObject obj = new JsonObject();
-    obj.add("unhealthy", arr);
-
-    mt.structuredOut = obj.toString();
   }
 
   /**
