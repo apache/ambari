@@ -51,12 +51,6 @@
             <transfer operation="delete" delete-key="ranger.sso.query.param.originalurl" />
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag">
-            <type>ranger-env</type>
-            <set key="is_external_solrCloud_enabled" value="true"
-              if-type="ranger-env" if-key="is_solrCloud_enabled" if-value="true"/>
-          </definition>
-
           <definition xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous">
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="bind_anonymous" />
