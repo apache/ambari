@@ -892,7 +892,7 @@ public class UpgradeHelper {
       // downgrade is easy - just remove the new and make the old current
       if (direction == Direction.DOWNGRADE) {
         cluster.applyLatestConfigurations(targetStackId, serviceName);
-        return;
+        continue;
       }
 
       // upgrade is a bit harder - we have to merge new stack configurations in

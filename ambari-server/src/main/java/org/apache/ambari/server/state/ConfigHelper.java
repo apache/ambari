@@ -1242,10 +1242,9 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
-      if (stackDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
-        defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
-            stackDefaultProperty.getValue());
-      }
+
+      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+          stackDefaultProperty.getValue());
     }
 
     // for every installed service, populate the default service properties
@@ -1259,10 +1258,9 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
-      if (serviceDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
-        defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
-            serviceDefaultProperty.getValue());
-      }
+
+      defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+          serviceDefaultProperty.getValue());
     }
 
     return defaultPropertiesByType;
