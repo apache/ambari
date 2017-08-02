@@ -123,7 +123,7 @@ public class SolrCollectionConfigurer implements Configurer {
 
   private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {
     if (StringUtils.isNotEmpty(zookeeperConnectString)) {
-      CloudSolrClient cloudSolrClient = new CloudSolrClient(zookeeperConnectString);
+      CloudSolrClient cloudSolrClient = new CloudSolrClient.Builder().withZkHost(zookeeperConnectString).build();
       cloudSolrClient.setDefaultCollection(defaultCollection);
       return cloudSolrClient;
     } else if (StringUtils.isNotEmpty(solrUrl)) {
@@ -138,7 +138,7 @@ public class SolrCollectionConfigurer implements Configurer {
     boolean securityEnabled = solrDaoBase.getSolrKerberosConfig().isEnabled();
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
-      HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
       LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
     }
   }

@@ -133,7 +133,7 @@ public class SolrSchemaFieldDao {
   @SuppressWarnings("unchecked")
   private List<LukeResponse> getLukeResponsesForCores(CloudSolrClient solrClient) {
     ZkStateReader zkStateReader = solrClient.getZkStateReader();
-    Collection<Slice> activeSlices = zkStateReader.getClusterState().getActiveSlices(solrClient.getDefaultCollection());
+    Collection<Slice> activeSlices = zkStateReader.getClusterState().getCollection(solrClient.getDefaultCollection()).getActiveSlices();
     
     List<LukeResponse> lukeResponses = new ArrayList<>();
     for (Slice slice : activeSlices) {
@@ -141,6 +141,7 @@ public class SolrSchemaFieldDao {
         try (CloseableHttpClient httpClient = HttpClientUtil.createClient(null)) {
           HttpGet request = new HttpGet(replica.getCoreUrl() + LUKE_REQUEST_URL_SUFFIX);
           HttpResponse response = httpClient.execute(request);
+          @SuppressWarnings("resource") // JavaBinCodec implements Closeable, yet it can't be closed if it is used for unmarshalling only
           NamedList<Object> lukeData = (NamedList<Object>) new JavaBinCodec().unmarshal(response.getEntity().getContent());
           LukeResponse lukeResponse = new LukeResponse();
           lukeResponse.setResponse(lukeData);
