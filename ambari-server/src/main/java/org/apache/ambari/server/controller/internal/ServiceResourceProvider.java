@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -1071,6 +1072,32 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       Long desiredRepositoryVersion = request.getDesiredRepositoryVersionId();
+
+      if (null == desiredRepositoryVersion) {
+        Set<Long> repoIds = new HashSet<>();
+
+        for (Service service : cluster.getServices().values()) {
+          RepositoryVersionEntity serviceRepo = service.getDesiredRepositoryVersion();
+          if (null != serviceRepo.getParentId()) {
+            repoIds.add(serviceRepo.getParentId());
+          } else {
+            repoIds.add(serviceRepo.getId());
+          }
+        }
+
+        LOG.info("{} was not specified; the following repository ids were found: {}",
+            SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, StringUtils.join(repoIds, ','));
+
+        if (CollectionUtils.isEmpty(repoIds)) {
+          throw new IllegalArgumentException("No repositories were found for service installation");
+        } else if (repoIds.size() > 1) {
+          throw new IllegalArgumentException(String.format("%s was not specified, and the cluster " +
+              "contains more than one standard-type repository", SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID));
+        } else {
+          desiredRepositoryVersion = repoIds.iterator().next();
+        }
+      }
+
       if (null == desiredRepositoryVersion) {
         throw new IllegalArgumentException(String.format("%s is required when adding a service.",
             SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID));
