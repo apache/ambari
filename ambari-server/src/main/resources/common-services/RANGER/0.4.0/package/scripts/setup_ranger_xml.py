@@ -551,6 +551,12 @@ def setup_usersync(upgrade_type=None):
     mode = 0755,
   )
 
+  if upgrade_type is not None and params.stack_supports_config_versioning:
+    if os.path.islink('/usr/bin/ranger-usersync'):
+      Link('/usr/bin/ranger-usersync', action="delete")
+
+    Link('/usr/bin/ranger-usersync', to=params.usersync_services_file)
+
   Execute(('ln','-sf', format('{usersync_services_file}'),'/usr/bin/ranger-usersync'),
     not_if=format("ls /usr/bin/ranger-usersync"),
     only_if=format("ls {usersync_services_file}"),
