@@ -284,5 +284,24 @@ describe('App.ConfigsSaverMixin', function() {
       expect(instanceObject.getModifiedConfigs(configs).mapProperty('filename').uniq()).to.eql(['f1','f2','f3']);
     });
   });
+
+  describe('#isOverriddenConfigsModified', function() {
+    it('no configs modified', function() {
+      expect(instanceObject.isOverriddenConfigsModified([
+        Em.Object.create({
+          savedValue: '1',
+          value: '1'
+        })
+      ])).to.be.false;
+    });
+    it('one config modified', function() {
+      expect(instanceObject.isOverriddenConfigsModified([
+        Em.Object.create({
+          savedValue: '1',
+          value: '2'
+        })
+      ])).to.be.true;
+    });
+  });
 });
 
