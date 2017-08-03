@@ -33,6 +33,8 @@ import com.google.inject.assistedinject.AssistedInject;
 public interface StackManagerFactory {
 
   /**
+   * @param resourcesRoot
+   *          the root of resources (not {@code null}).
    * @param stackRoot
    *          the root of the stack (not {@code null}).
    * @param commonServicesRoot
@@ -42,10 +44,14 @@ public interface StackManagerFactory {
    *          the root of the extensions (not {@code null}).
    * @param osFamily
    *          the list of all parsed OS families (not {@code null}).
+   * @param validate
+   *          validate all stack and service definitions
+   * @param refreshArchives
+   *          refresh archive.zip and .hash
    * @return a stack manager instance which contains all parsed stacks.
    */
-  StackManager create(@Assisted("stackRoot") File stackRoot,
+  StackManager create(@Assisted("resourcesRoot") File resourcesRoot, @Assisted("stackRoot") File stackRoot,
       @Nullable @Assisted("commonServicesRoot") File commonServicesRoot,
       @Assisted("extensionRoot") @Nullable File extensionRoot,
-      OsFamily osFamily, boolean validate);
+      OsFamily osFamily, @Assisted("validate") boolean validate, @Assisted("refreshArchives") boolean refreshArchives);
 }

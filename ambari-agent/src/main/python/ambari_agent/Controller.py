@@ -94,6 +94,7 @@ class Controller(threading.Thread):
     self.heartbeat_stop_callback = heartbeat_stop_callback
     # List of callbacks that are called at agent registration
     self.registration_listeners = []
+    self.refresh_cache_listeners = []
 
     # pull config directory out of config
     cache_dir = config.get('agent', 'cache_dir')
@@ -381,6 +382,14 @@ class Controller(threading.Thread):
         logger.log(logging_level, "Updating configurations from heartbeat")
         self.cluster_configuration.update_configurations_from_heartbeat(response)
 
+        refreshCache = False
+        if 'refreshCache' in response.keys():
+          refreshCache = bool(response['refreshCache'])
+
+        if refreshCache:
+          logger.info("Received refreshCache command")
+          self.refreshCache()
+
         response_keys = response.keys()
 
         # there's case when canceled task can be processed in Action Queue.execute before adding rescheduled task to queue
@@ -530,6 +539,11 @@ class Controller(threading.Thread):
         self.heartbeatWithServer()
       else:
         logger.info("Registration response from %s didn't contain 'response' as a key".format(self.serverHostname))
+
+  def refreshCache(self):
+    # Refresh stack
+    for callback in self.refresh_cache_listeners:
+      callback()
 
   def restartAgent(self):
     ExitHelper().exit(AGENT_AUTO_RESTART_EXIT_CODE)

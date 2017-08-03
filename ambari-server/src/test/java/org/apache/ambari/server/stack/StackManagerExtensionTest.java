@@ -95,6 +95,8 @@ public class StackManagerExtensionTest  {
     replay(actionMetadata, stackDao, metaInfoDao, osFamily, extensionDao, linkDao); //linkEntity
 
     String stacks = ClassLoader.getSystemClassLoader().getResource("stacks_with_extensions").getPath();
+    File stacksRoot = new File(stacks);
+    File resourcesRoot = stacksRoot.getParentFile();
     String common = ClassLoader.getSystemClassLoader().getResource("common-services").getPath();
     String extensions = ClassLoader.getSystemClassLoader().getResource("extensions").getPath();
 
@@ -102,8 +104,8 @@ public class StackManagerExtensionTest  {
 
     StackManager stackManager = null;
     try {
-      stackManager = new StackManager(new File(stacks),
-        new File(common), new File(extensions), osFamily, false,
+      stackManager = new StackManager(resourcesRoot, stacksRoot,
+        new File(common), new File(extensions), osFamily, false, false,
         metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
     }
     catch (Exception e) {

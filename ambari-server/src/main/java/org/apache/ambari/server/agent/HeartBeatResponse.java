@@ -63,6 +63,9 @@ public class HeartBeatResponse {
   @SerializedName("restartAgent")
   private boolean restartAgent = false;
 
+  @SerializedName("refreshCache")
+  private boolean refreshCache = false;
+
   @SerializedName("hasMappedComponents")
   private boolean hasMappedComponents = false;
 
@@ -160,6 +163,10 @@ public class HeartBeatResponse {
 
   public void setRestartAgent(boolean restartAgent) {
     this.restartAgent = restartAgent;
+  }
+
+  public void setRefreshCache(boolean refreshCache) {
+    this.refreshCache = refreshCache;
   }
 
   public boolean hasMappedComponents() {

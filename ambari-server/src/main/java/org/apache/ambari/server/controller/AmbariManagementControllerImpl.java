@@ -89,6 +89,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.configuration.Configuration;
@@ -4427,14 +4428,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public synchronized RequestStatusResponse updateStacks() throws AmbariException {
 
     try {
+      // Refresh stacks API endpoint and refresh archives
       ambariMetaInfo.init();
+      // Add "refreshCache" command in the next agent hearbeat for all hosts
+      AgentResource.addRefreshCacheForHosts(clusters.getHosts());
     } catch (AmbariException e) {
       throw e;
     } catch (Exception e) {
       throw new AmbariException(
           "Ambari Meta Information can't be read from the stack root directory");
     }
-
     return null;
   }
 

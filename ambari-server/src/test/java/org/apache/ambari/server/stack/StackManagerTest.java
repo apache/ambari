@@ -91,11 +91,13 @@ public class StackManagerTest {
   }
 
   public static StackManager createTestStackManager() throws Exception {
-    String stack = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
-    return createTestStackManager(stack);
+    String stacksDir = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
+    File stacksRoot = new File(stacksDir);
+    File resourcesRoot = stacksRoot.getParentFile();
+    return createTestStackManager(resourcesRoot, stacksRoot);
   }
 
-  public static StackManager createTestStackManager(String stackRoot) throws Exception {
+  public static StackManager createTestStackManager(File resourcesRoot, File stacksRoot) throws Exception {
     // todo: dao , actionMetaData expectations
     metaInfoDao = createNiceMock(MetainfoDAO.class);
     stackDao = createNiceMock(StackDAO.class);
@@ -122,7 +124,7 @@ public class StackManagerTest {
     osFamily = new OsFamily(config);
     AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
-    StackManager stackManager = new StackManager(new File(stackRoot), null, null, osFamily, false,
+    StackManager stackManager = new StackManager(resourcesRoot, stacksRoot, null, null, osFamily, false, false,
         metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     verify(config, metaInfoDao, stackDao, actionMetadata);
@@ -798,8 +800,8 @@ public class StackManagerTest {
     OsFamily osFamily = new OsFamily(config);
     AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
-    StackManager stackManager = new StackManager(stackRoot, commonServices, extensions,
-            osFamily, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+    StackManager stackManager = new StackManager(resourcesDirectory, stackRoot, commonServices, extensions,
+            osFamily, false, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     for (StackInfo stackInfo : stackManager.getStacks()) {
       for (ServiceInfo serviceInfo : stackInfo.getServices()) {
@@ -864,8 +866,8 @@ public class StackManagerTest {
     OsFamily osFamily = new OsFamily(config);
     AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
-    StackManager stackManager = new StackManager(stackRoot, commonServices, extensions, osFamily,
-        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+    StackManager stackManager = new StackManager(resourcesDirectory, stackRoot, commonServices, extensions, osFamily,
+        false, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
     String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
@@ -994,8 +996,8 @@ public class StackManagerTest {
     OsFamily osFamily = new OsFamily(config);
     AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
-    StackManager stackManager = new StackManager(stackRoot, commonServices, extensions, osFamily,
-        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+    StackManager stackManager = new StackManager(resourcesDirectory, stackRoot, commonServices, extensions, osFamily,
+        false, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
     String logsearchServerRoleCommand = Role.LOGSEARCH_SERVER + "-" + RoleCommand.START;

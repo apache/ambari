@@ -71,6 +71,8 @@ import org.apache.ambari.server.ServiceNotFoundException;
 
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
@@ -2429,14 +2431,16 @@ public class AmbariManagementControllerImplTest {
     mpack.setName("testMpack");
     MpackResponse mpackResponse = new MpackResponse(mpack);
     Injector injector = createNiceMock(Injector.class);
+    AgentResource.init(createNiceMock(HeartBeatHandler.class));
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(clusters.getHosts()).andReturn(Collections.emptyList()).anyTimes();
     expect(ambariMetaInfo.registerMpack(mpackRequest)).andReturn(mpackResponse);
     ambariMetaInfo.init();
     expectLastCall();
-    replay(ambariMetaInfo,injector);
+    replay(ambariMetaInfo, injector);
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);
-    Assert.assertEquals(mpackResponse,controller.registerMpack(mpackRequest));
+    Assert.assertEquals(mpackResponse, controller.registerMpack(mpackRequest));
   }
 
   @Test

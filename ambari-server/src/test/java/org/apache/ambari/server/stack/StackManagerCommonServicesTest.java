@@ -126,8 +126,10 @@ public class StackManagerCommonServicesTest {
     replay(metaInfoDao, actionMetadata);
     AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
-    StackManager stackManager = new StackManager(new File(stackRoot), new File(
-        commonServicesRoot), new File(extensionRoot), osFamily, true, metaInfoDao,
+    File stacksRoot = new File(stackRoot);
+    File resourcesRoot = stacksRoot.getParentFile();
+    StackManager stackManager = new StackManager(resourcesRoot, stacksRoot, new File(
+        commonServicesRoot), new File(extensionRoot), osFamily, true, false, metaInfoDao,
         actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     EasyMock.verify( config, stackDao );

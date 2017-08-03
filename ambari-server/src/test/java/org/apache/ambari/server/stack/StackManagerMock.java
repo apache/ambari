@@ -36,8 +36,8 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 
-import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * Directory tree rescans and stack modules parsing take much time on every module init.
@@ -50,6 +50,44 @@ public class StackManagerMock extends StackManager {
 
   // Some tests use different stack locations.
   private static final Map<ModulesPathsKey, CachedModules> pathsToCachedModulesMap = new HashMap<>();
+
+  /**
+   * Constructor. Initialize stack manager.
+   *
+   * @param resourcesRoot      resources root directory
+   * @param stackRoot          stack root directory
+   * @param commonServicesRoot common services root directory
+   * @param extensionRoot      extensions root directory
+   * @param osFamily           the OS family read from resources
+   * @param validate           validate all stack and service definitions
+   * @param refreshArchives    refresh archive.zip and .hash
+   * @param metaInfoDAO        metainfo DAO automatically injected
+   * @param actionMetadata     action meta data automatically injected
+   * @param stackDao           stack DAO automatically injected
+   * @param extensionDao       extension DAO automatically injected
+   * @param linkDao            extension link DAO automatically injected
+   * @param helper             Ambari management helper automatically injected
+   * @throws AmbariException if an exception occurs while processing the stacks
+   */
+  @AssistedInject
+  public StackManagerMock(
+    @Assisted("resourcesRoot") final File resourcesRoot,
+    @Assisted("stackRoot") final File stackRoot,
+    @Assisted("commonServicesRoot") @Nullable final File commonServicesRoot,
+    @Assisted("extensionRoot") @Nullable final File extensionRoot,
+    @Assisted final OsFamily osFamily,
+    @Assisted("validate") final boolean validate,
+    @Assisted("refreshArchives") final boolean refreshArchives,
+    final MetainfoDAO metaInfoDAO,
+    final ActionMetadata actionMetadata,
+    final StackDAO stackDao,
+    final ExtensionDAO extensionDao,
+    final ExtensionLinkDAO linkDao, final AmbariManagementHelper helper) throws AmbariException {
+    super(resourcesRoot, stackRoot, commonServicesRoot, extensionRoot, osFamily, validate, refreshArchives, metaInfoDAO, actionMetadata, stackDao, extensionDao, linkDao, helper);
+    currentStackRoot = stackRoot;
+    currentCommonServicesRoot = commonServicesRoot;
+    currentExtensionRoot = extensionRoot;
+  }
 
   public static void invalidateKey(File stackRoot, File commonServicesRoot, File extensionRoot) {
     ModulesPathsKey pathsKey = new ModulesPathsKey(stackRoot, commonServicesRoot, extensionRoot);
@@ -130,16 +168,13 @@ public class StackManagerMock extends StackManager {
     }
   }
 
-  @Inject
-  public StackManagerMock(@Assisted("stackRoot") File stackRoot, @Nullable @Assisted("commonServicesRoot")
-      File commonServicesRoot, @Assisted("extensionRoot") @Nullable File extensionRoot,
-                          @Assisted OsFamily osFamily, @Assisted boolean validate, MetainfoDAO metaInfoDAO,
-                          ActionMetadata actionMetadata, StackDAO stackDao, ExtensionDAO extensionDao,
-                          ExtensionLinkDAO linkDao, AmbariManagementHelper helper) throws AmbariException {
-    super(stackRoot, commonServicesRoot, extensionRoot, osFamily, validate, metaInfoDAO, actionMetadata, stackDao, extensionDao, linkDao, helper);
-    currentStackRoot = stackRoot;
-    currentCommonServicesRoot = commonServicesRoot;
-    currentExtensionRoot = extensionRoot;
+  @Override
+  protected void updateArchives(
+    File resourcesRoot, File stackRoot, Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules,
+    Map<String, ExtensionModule> extensionModules ) throws AmbariException {
+    /*
+     * Note: Skip refreshing archives
+     */
   }
 
   @Override

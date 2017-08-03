@@ -73,6 +73,8 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
@@ -7914,6 +7916,7 @@ public class AmbariManagementControllerTest {
       assertTrue(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));
     }
 
+    AgentResource.init(createNiceMock(HeartBeatHandler.class));
     stackManagerMock.invalidateCurrentPaths();
     controller.updateStacks();
 

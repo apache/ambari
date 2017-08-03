@@ -51,6 +51,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
+import org.apache.ambari.server.utils.ResourceFilesKeeperHelper;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,7 @@ import org.xml.sax.SAXException;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
+
 /**
  * Manages all stack related behavior including parsing of stacks and providing access to
  * stack information.
@@ -66,6 +68,10 @@ import com.google.inject.assistedinject.AssistedInject;
 public class StackManager {
 
   public static final String PROPERTY_SCHEMA_PATH = "configuration-schema.xsd";
+  private static final String CUSTOM_ACTIONS_DIR="custom_actions";
+  private static final String HOST_SCRIPTS_DIR="host_scripts";
+  private static final String DASHBOARDS_DIR="dashboards";
+
   /**
    * Delimiter used for parent path string
    * Example:
@@ -91,7 +97,6 @@ public class StackManager {
    */
   private StackContext stackContext;
 
-  private File stackRoot;
 
   /**
    * Logger
@@ -116,7 +121,9 @@ public class StackManager {
   /**
    * Constructor. Initialize stack manager.
    *
-   * @param stackRootDir
+   * @param resourcesRoot
+   *          resources root directory
+   * @param stackRoot
    *          stack root directory
    * @param commonServicesRoot
    *          common services root directory
@@ -124,6 +131,10 @@ public class StackManager {
    *          extensions root directory
    * @param osFamily
    *          the OS family read from resources
+   * @param validate
+   *          validate all stack and service definitions
+   * @param refreshArchives
+   *          refresh archive.zip and .hash
    * @param metaInfoDAO
    *          metainfo DAO automatically injected
    * @param actionMetadata
@@ -141,17 +152,18 @@ public class StackManager {
    *           if an exception occurs while processing the stacks
    */
   @AssistedInject
-  public StackManager(@Assisted("stackRoot") File stackRootDir,
+  public StackManager(@Assisted("resourcesRoot") File resourcesRoot,
+      @Assisted("stackRoot") File stackRoot,
       @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
       @Assisted("extensionRoot") @Nullable File extensionRoot,
-      @Assisted OsFamily osFamily, @Assisted boolean validate,
+      @Assisted OsFamily osFamily, @Assisted("validate") boolean validate,
+      @Assisted("refreshArchives") boolean refreshArchives,
       MetainfoDAO metaInfoDAO, ActionMetadata actionMetadata, StackDAO stackDao,
       ExtensionDAO extensionDao, ExtensionLinkDAO linkDao, AmbariManagementHelper helper)
       throws AmbariException {
 
     LOG.info("Initializing the stack manager...");
 
-    stackRoot = stackRootDir;
     if (validate) {
       validateStackDirectory(stackRoot);
       validateCommonServicesDirectory(commonServicesRoot);
@@ -187,7 +199,74 @@ public class StackManager {
     fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
     fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
 
+    if(refreshArchives) {
+      updateArchives(resourcesRoot, stackRoot, stackModules, commonServiceModules, extensionModules);
+    }
+
     populateDB(stackDao, extensionDao);
+  }
+
+  protected void updateArchives(
+    File resourcesRoot, File stackRoot, Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules,
+    Map<String, ExtensionModule> extensionModules ) throws AmbariException {
+
+    LOG.info("Refreshing archives ...");
+
+    LOG.debug("Refreshing archives for stacks");
+    for (StackModule stackModule : stackModules.values()) {
+      LOG.debug("Refreshing archives for stack : " + stackModule.getId());
+      String hooksDir = stackModule.getStackDirectory().getHooksDir();
+      if(hooksDir != null) {
+        LOG.debug("Refreshing archive for stack hooks directory : " + hooksDir);
+        String hooksAbsolutePath = stackRoot.getAbsolutePath() + File.separator + hooksDir;
+        ResourceFilesKeeperHelper.updateDirectoryArchive(hooksAbsolutePath, false);
+      }
+      for(ServiceModule serviceModule : stackModule.getServiceModules().values()) {
+        String packageDir = serviceModule.getServiceDirectory().getPackageDir();
+        if(packageDir != null) {
+          LOG.debug("Refreshing archive for stack service package directory : " + packageDir);
+          String packageAbsoluteDir = resourcesRoot.getAbsolutePath() + File.separator + packageDir;
+          ResourceFilesKeeperHelper.updateDirectoryArchive(packageAbsoluteDir, false);
+        }
+      }
+    }
+
+    LOG.debug("Refreshing archives for common services");
+    for(ServiceModule serviceModule : commonServiceModules.values()) {
+      String packageDir = serviceModule.getServiceDirectory().getPackageDir();
+      if(packageDir != null) {
+        LOG.debug("Refreshing archive for common service package directory : " + packageDir);
+        String packageAbsoluteDir = resourcesRoot.getAbsolutePath() + File.separator + packageDir;
+        ResourceFilesKeeperHelper.updateDirectoryArchive(packageAbsoluteDir, false);
+      }
+    }
+
+    LOG.debug("Refreshing archives for extensions");
+    for(ExtensionModule extensionModule : extensionModules.values()) {
+      LOG.debug("Refreshing archives for extension module" + extensionModule.getId());
+      for(ServiceModule serviceModule : extensionModule.getServiceModules().values()) {
+        String packageDir = serviceModule.getServiceDirectory().getPackageDir();
+        if(packageDir != null) {
+          LOG.debug("Refreshing archive for extension service package directory : " + packageDir);
+          String packageAbsoluteDir = resourcesRoot.getAbsolutePath() + File.separator + packageDir;
+          ResourceFilesKeeperHelper.updateDirectoryArchive(packageAbsoluteDir, false);
+        }
+      }
+    }
+
+    List<String> miscDirs = new ArrayList<String>() {{
+      add(CUSTOM_ACTIONS_DIR);
+      add(HOST_SCRIPTS_DIR);
+      add(DASHBOARDS_DIR);
+    }};
+
+    LOG.debug("Refreshing archives for misc directories");
+    for(String miscDir : miscDirs) {
+      LOG.debug("Refreshing archive for misc directory : " + miscDir);
+      String miscAbsolutePath = resourcesRoot.getAbsolutePath() + File.separator + miscDir;
+      ResourceFilesKeeperHelper.updateDirectoryArchive(miscAbsolutePath, false);
+    }
+    LOG.info("Refreshing archives finished!");
   }
 
   protected void parseDirectories(File stackRoot, File commonServicesRoot, File extensionRoot) throws AmbariException {

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -82,6 +83,16 @@ public class StacksService extends BaseService {
   public Response getStacks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
         createStackResource(null));
+  }
+
+  @PUT
+  @Produces("text/plain")
+  @ApiOperation(value = "Reload all stacks",
+    nickname = "StacksService#reloadStacks")
+  public Response reloadStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, null, ui, Request.Type.PUT,
+      createStackResource(null));
   }
 
   @GET

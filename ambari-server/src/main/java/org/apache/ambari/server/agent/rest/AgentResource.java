@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.agent.rest;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -38,6 +40,7 @@ import org.apache.ambari.server.agent.HeartBeatResponse;
 import org.apache.ambari.server.agent.Register;
 import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.agent.RegistrationStatus;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +69,13 @@ public class AgentResource {
    */
   public static void statHeartBeatHandler() {
     hh.start();
+  }
+
+  /**
+   * Explicitly refresh cache for a host
+   */
+  public static void addRefreshCacheForHosts(List<Host> hosts) {
+    hh.addRefreshCacheForHosts(hosts);
   }
 
   /**

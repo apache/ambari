@@ -162,6 +162,7 @@ public class AmbariMetaInfo {
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
 
+  private File resourcesRoot;
   private File stackRoot;
   private File commonServicesRoot;
   private File extensionsRoot;
@@ -251,6 +252,12 @@ public class AmbariMetaInfo {
   @Inject
   public AmbariMetaInfo(Configuration conf) throws Exception {
     this.conf = conf;
+
+    String resourcesPath = conf.getResourceDirPath();
+    if(resourcesPath != null && !resourcesPath.isEmpty()) {
+      resourcesRoot = new File(resourcesPath);
+    }
+
     String stackPath = conf.getMetadataPath();
     stackRoot = new File(stackPath);
 
@@ -286,8 +293,8 @@ public class AmbariMetaInfo {
 
     readServerVersion();
 
-    stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
-        osFamily, false);
+    stackManager = stackManagerFactory.create(resourcesRoot, stackRoot, commonServicesRoot, extensionsRoot,
+        osFamily, false /* validate = false */, true /* refreshArchives = true */);
 
     mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
 

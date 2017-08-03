@@ -36,7 +36,9 @@ import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.StackManagerMock;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
@@ -71,7 +73,8 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         properties.put("mpacks-v2.staging.path","src/test/resources/mpacks-v2");
         Configuration configuration = new Configuration(properties);
 
-        install(new FactoryModuleBuilder().build(StackManagerFactory.class));
+        install(new FactoryModuleBuilder().implement(
+          StackManager.class, StackManagerMock.class).build(StackManagerFactory.class));
 
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));

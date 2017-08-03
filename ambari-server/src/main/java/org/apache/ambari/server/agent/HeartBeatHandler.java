@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +60,7 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +109,7 @@ public class HeartBeatHandler {
   private KerberosIdentityDataFileReaderFactory kerberosIdentityDataFileReaderFactory;
 
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<>();
+  private Set<String> refreshCacheForHosts = new ConcurrentHashSet<>();
 
   private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<>();
 
@@ -124,6 +127,16 @@ public class HeartBeatHandler {
   public void start() {
     heartbeatProcessor.startAsync();
     heartbeatMonitor.start();
+  }
+
+  public void addRefreshCacheForHosts(List<Host> hosts) {
+    if(hosts != null && !hosts.isEmpty()) {
+      List<String> hostNames = new LinkedList<>();
+      for(Host host : hosts) {
+        hostNames.add(host.getHostName());
+      }
+      refreshCacheForHosts.addAll(hostNames);
+    }
   }
 
   void setHeartbeatMonitor(HeartbeatMonitor heartbeatMonitor) {
@@ -152,7 +165,7 @@ public class HeartBeatHandler {
     if (currentResponseId == null) {
       //Server restarted, or unknown host.
       LOG.error("CurrentResponseId unknown for " + hostname + " - send register command");
-      return createRegisterCommand();
+      return createRegisterCommand(hostname);
     }
 
     LOG.debug("Received heartbeat from host, hostname={}, currentResponseId={}, receivedResponseId={}", hostname, currentResponseId, heartbeat.getResponseId());
@@ -172,7 +185,7 @@ public class HeartBeatHandler {
         hostname,
         currentResponseId);
 
-      return createRestartCommand(currentResponseId);
+      return createRestartCommand(currentResponseId, hostname);
     }
 
     response = new HeartBeatResponse();
@@ -194,7 +207,7 @@ public class HeartBeatHandler {
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
       // After loosing heartbeat agent should reregister
       LOG.warn("Host {} is in HEARTBEAT_LOST state - sending register command", hostname);
-      return createRegisterCommand();
+      return createRegisterCommand(hostname);
     }
 
     hostResponseIds.put(hostname, currentResponseId);
@@ -227,7 +240,7 @@ public class HeartBeatHandler {
     } catch (InvalidStateTransitionException ex) {
       LOG.warn("Asking agent to re-register due to " + ex.getMessage(), ex);
       hostObject.setState(HostState.INIT);
-      return createRegisterCommand();
+      return createRegisterCommand(hostname);
     }
 
     /*
@@ -249,6 +262,11 @@ public class HeartBeatHandler {
           LOG.info("Recovery configuration set to {}", response.getRecoveryConfig());
         }
       }
+    }
+
+    if(refreshCacheForHosts.contains(hostname)) {
+      response.setRefreshCache(true);
+      refreshCacheForHosts.remove(hostname);
     }
 
     heartbeatProcessor.addHeartbeat(heartbeat);
@@ -344,7 +362,8 @@ public class HeartBeatHandler {
     return osType.toLowerCase();
   }
 
-  protected HeartBeatResponse createRegisterCommand() {
+  protected HeartBeatResponse createRegisterCommand(String hostname) {
+    refreshCacheForHosts.remove(hostname);
     HeartBeatResponse response = new HeartBeatResponse();
     RegistrationCommand regCmd = new RegistrationCommand();
     response.setResponseId(0);
@@ -352,7 +371,8 @@ public class HeartBeatHandler {
     return response;
   }
 
-  protected HeartBeatResponse createRestartCommand(Long currentResponseId) {
+  protected HeartBeatResponse createRestartCommand(Long currentResponseId, String hostname) {
+    refreshCacheForHosts.remove(hostname);
     HeartBeatResponse response = new HeartBeatResponse();
     response.setRestartAgent(true);
     response.setResponseId(currentResponseId);
