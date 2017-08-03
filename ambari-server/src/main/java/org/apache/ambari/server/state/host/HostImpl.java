@@ -951,9 +951,11 @@ public class HostImpl implements Host {
     r.setLastRegistrationTime(getLastRegistrationTime());
     r.setOsArch(getOsArch());
     r.setOsType(getOsType());
+    r.setOsFamily(getOsFamily());
     r.setRackInfo(getRackInfo());
     r.setTotalMemBytes(getTotalMemBytes());
     r.setPublicHostName(getPublicHostName());
+    r.setHostState(getState());
     r.setStatus(getStatus());
     r.setRecoveryReport(getRecoveryReport());
     r.setRecoverySummary(getRecoveryReport().getSummary());

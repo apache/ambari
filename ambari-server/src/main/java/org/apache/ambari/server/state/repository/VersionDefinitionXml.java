@@ -126,10 +126,10 @@ public class VersionDefinitionXml {
       m_availableMap = new HashMap<>();
 
       if (availableServices.isEmpty()) {
+        // !!! populate available services from the manifest
         for (ManifestService ms : manifests.values()) {
           addToAvailable(ms, stack, Collections.<String>emptySet());
         }
-
       } else {
         for (AvailableServiceReference ref : availableServices) {
           ManifestService ms = manifests.get(ref.serviceIdReference);
@@ -229,21 +229,24 @@ public class VersionDefinitionXml {
 
   /**
    * Helper method to use a {@link ManifestService} to generate the available services structure
-   * @param ms          the ManifestService instance
+   * @param manifestService          the ManifestService instance
    * @param stack       the stack object
    * @param components  the set of components for the service
    */
-  private void addToAvailable(ManifestService ms, StackInfo stack, Set<String> components) {
-    ServiceInfo service = stack.getService(ms.serviceName);
+  private void addToAvailable(ManifestService manifestService, StackInfo stack, Set<String> components) {
+    ServiceInfo service = stack.getService(manifestService.serviceName);
 
-    if (!m_availableMap.containsKey(ms.serviceName)) {
-      String display = (null == service) ? ms.serviceName: service.getDisplayName();
+    if (!m_availableMap.containsKey(manifestService.serviceName)) {
+      String display = (null == service) ? manifestService.serviceName: service.getDisplayName();
 
-      m_availableMap.put(ms.serviceName, new AvailableService(ms.serviceName, display));
+      AvailableService available = new AvailableService(manifestService.serviceName, display);
+      m_availableMap.put(manifestService.serviceName, available);
     }
 
-    AvailableService as = m_availableMap.get(ms.serviceName);
-    as.getVersions().add(new AvailableVersion(ms.version, ms.versionId,
+    AvailableService as = m_availableMap.get(manifestService.serviceName);
+    as.getVersions().add(new AvailableVersion(manifestService.version,
+        manifestService.versionId,
+        manifestService.releaseVersion,
         buildComponents(service, components)));
   }
 

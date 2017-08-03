@@ -24,21 +24,25 @@ public enum RepositoryType {
 
   /**
    * Repository should be considered to have all components for a cluster
-   * deployment
+   * deployment.
    */
   STANDARD,
 
   /**
    * Repository may have only minimum components and is used for patching
-   * purposes
+   * purposes.
    */
   PATCH,
 
   /**
-   * Repository is used to update services
+   * Repository is used as Maintenance release, which could be several patches rolled up in one.
+   * Orchestration should treat Maintenance just as it does for Patch..
+   */
+  MAINT,
+
+  /**
+   * Repository is used to update services.
    */
   SERVICE
-
-
 
 }

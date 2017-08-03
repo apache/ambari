@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
@@ -308,7 +309,74 @@ public class VersionDefinitionTest {
     assertNotNull(xml.getPackageVersion("redhat6"));
     assertEquals("2_3_4_0_3396", xml.getPackageVersion("redhat6"));
     assertNull(xml.getPackageVersion("suse11"));
+  }
 
+  @Test
+  public void testMaintVersion() throws Exception {
+    File f = new File("src/test/resources/version_definition_test_maint.xml");
+
+    VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
+
+    String xmlString = xml.toXml();
+
+    xml = VersionDefinitionXml.load(xmlString);
+
+    assertEquals(RepositoryType.MAINT, xml.release.repositoryType);
+    assertEquals("2.3.4.1", xml.release.version);
+    assertEquals("1234", xml.release.build);
+    assertEquals("redhat6", xml.repositoryInfo.getOses().get(0).getFamily());
+
+
+
+    List<AvailableServiceReference> availableServices = xml.availableServices;
+    assertEquals(3, availableServices.size());
+
+    List<ManifestService> manifestServices = xml.manifestServices;
+    assertEquals(4, manifestServices.size());
+
+    ManifestService hdfs = null;
+    ManifestService hive = null;
+    for (ManifestService as : manifestServices) {
+      if (as.serviceId.equals("HDFS-271")) {
+        hdfs = as;
+      } else if (as.serviceId.equals("HIVE-200")) {
+        hive = as;
+      }
+    }
+
+    assertNotNull(hdfs);
+    assertNotNull(hive);
+
+    assertEquals("2.3.3", hdfs.releaseVersion);
+    assertNull(hive.releaseVersion);
+
+    StackInfo stack = new StackInfo() {
+      @Override
+      public ServiceInfo getService(String name) {
+        return makeService("HIVE", "HIVE_METASTORE");
+      }
+    };
+
+    Collection<AvailableService> availables = xml.getAvailableServices(stack);
+
+    assertEquals(2, availables.size());
+
+    boolean found = false;
+    for (AvailableService available : availables) {
+      if (available.getName().equals("HIVE")) {
+        found = true;
+        assertEquals(2, available.getVersions().size());
+        for (AvailableVersion version : available.getVersions()) {
+          if (version.getVersion().equals("1.1.0")) {
+            assertEquals("1.0.9", version.getReleaseVersion());
+          } else {
+            assertNull(version.getReleaseVersion());
+          }
+        }
+      }
+    }
+
+    assertTrue("Found available version for HIVE", found);
   }
 
 
@@ -329,6 +397,33 @@ public class VersionDefinitionTest {
       @Override
       public String getComment() {
         return name + " Comment";
+      }
+
+    };
+  }
+
+  private static ServiceInfo makeService(final String name, final String component) {
+    return new ServiceInfo() {
+      @Override
+      public String getName() {
+        return name;
+      }
+      @Override
+      public String getDisplayName() {
+        return name + " Display";
+      }
+      @Override
+      public String getVersion() {
+        return "1.1.1";
+      }
+      @Override
+      public String getComment() {
+        return name + " Comment";
+      }
+
+      @Override
+      public ComponentInfo getComponentByName(String name) {
+        return null;
       }
 
     };
