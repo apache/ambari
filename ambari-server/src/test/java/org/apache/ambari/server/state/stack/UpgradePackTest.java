@@ -272,7 +272,7 @@ public class UpgradePackTest {
       "Stop High-Level Daemons",
       "Backups",
       "Stop Low-Level Daemons",
-      "UPDATE_DESIRED_STACK_ID",
+      "UPDATE_DESIRED_REPOSITORY_ID",
       "ALL_HOST_OPS",
       "ZOOKEEPER",
       "HDFS",
@@ -281,7 +281,7 @@ public class UpgradePackTest {
 
     List<String> expected_down = Arrays.asList(
       "Restore Backups",
-      "UPDATE_DESIRED_STACK_ID",
+      "UPDATE_DESIRED_REPOSITORY_ID",
       "ALL_HOST_OPS",
       "ZOOKEEPER",
       "HDFS",

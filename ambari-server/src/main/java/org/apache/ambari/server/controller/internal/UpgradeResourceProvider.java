@@ -643,7 +643,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, upgradeContext);
 
-    // Non Rolling Upgrades require a group with name "UPDATE_DESIRED_STACK_ID".
+    // Non Rolling Upgrades require a group with name "UPDATE_DESIRED_REPOSITORY_ID".
     // This is needed as a marker to indicate which version to use when an upgrade is paused.
     if (pack.getType() == UpgradeType.NON_ROLLING) {
       boolean foundUpdateDesiredRepositoryIdGrouping = false;
@@ -686,7 +686,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     During a {@link UpgradeType.NON_ROLLING} upgrade, the stack is applied during the middle of the upgrade (after
     stopping all services), and the configs are applied immediately before starting the services.
-    The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction}
+    The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction}
     at the appropriate moment during the orchestration.
     */
     if (pack.getType() == UpgradeType.ROLLING) {
