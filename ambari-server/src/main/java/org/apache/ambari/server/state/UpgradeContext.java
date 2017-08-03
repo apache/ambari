@@ -290,8 +290,9 @@ public class UpgradeContext {
           throw new AmbariException(String.format("Could not find Upgrade with id %s to revert.", revertUpgradeId));
       }
 
-      if (revertUpgrade.getOrchestration() != RepositoryType.PATCH) {
-        throw new AmbariException("Can only revert upgrades that have been done as a patch.");
+      if (!revertUpgrade.getOrchestration().isRevertable()) {
+        throw new AmbariException(String.format("The %s repository type is not revertable",
+            revertUpgrade.getOrchestration()));
       }
 
       if (revertUpgrade.getDirection() != Direction.UPGRADE) {
@@ -324,7 +325,7 @@ public class UpgradeContext {
 
       // !!! direction can ONLY be an downgrade on revert
       m_direction = Direction.DOWNGRADE;
-      m_orchestration = RepositoryType.PATCH;
+      m_orchestration = revertUpgrade.getOrchestration();
     } else {
 
       // determine direction
@@ -398,6 +399,7 @@ public class UpgradeContext {
               cluster.getClusterId(), Direction.UPGRADE);
 
           m_repositoryVersion = upgrade.getRepositoryVersion();
+          m_orchestration = upgrade.getOrchestration();
 
           // populate the repository maps for all services in the upgrade
           for (UpgradeHistoryEntity history : upgrade.getHistory()) {
@@ -505,8 +507,8 @@ public class UpgradeContext {
     m_resolver = new MasterHostResolver(m_cluster, configHelper, this);
     m_orchestration = upgradeEntity.getOrchestration();
 
-    m_isRevert = upgradeEntity.getOrchestration() == RepositoryType.PATCH &&
-        upgradeEntity.getDirection() == Direction.DOWNGRADE;
+    m_isRevert = upgradeEntity.getOrchestration().isRevertable()
+        && upgradeEntity.getDirection() == Direction.DOWNGRADE;
   }
 
   /**
@@ -781,9 +783,12 @@ public class UpgradeContext {
     switch (m_orchestration) {
       case PATCH:
       case SERVICE:
+      case MAINT:
         return scope == UpgradeScope.PARTIAL;
       case STANDARD:
         return scope == UpgradeScope.COMPLETE;
+      default:
+        break;
     }
 
     return false;

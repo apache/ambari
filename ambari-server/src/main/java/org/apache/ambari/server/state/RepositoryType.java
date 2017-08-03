@@ -43,6 +43,26 @@ public enum RepositoryType {
   /**
    * Repository is used to update services.
    */
-  SERVICE
+  SERVICE;
 
+
+  /**
+   * Gets whether applications of this repository are revertable after they have
+   * been finalized.
+   *
+   * @return {@code true} if the repository can be revert, {@code false}
+   *         otherwise.
+   */
+  public boolean isRevertable() {
+    switch (this) {
+      case MAINT:
+      case PATCH:
+        return true;
+      case SERVICE:
+      case STANDARD:
+        return false;
+      default:
+        return false;
+    }
+  }
 }

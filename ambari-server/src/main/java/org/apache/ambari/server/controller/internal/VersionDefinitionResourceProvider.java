@@ -71,10 +71,10 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.common.collect.ListMultimap;
 
 /**
  * The {@link VersionDefinitionResourceProvider} class deals with managing Version Definition
@@ -347,7 +347,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new HashSet<Resource>();
+    Set<Resource> results = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
@@ -424,7 +424,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    */
   private void checkForParent(XmlHolder holder) throws AmbariException {
     RepositoryVersionEntity entity = holder.entity;
-    if (entity.getType() != RepositoryType.PATCH) {
+
+    // only STANDARD types don't have a parent
+    if (entity.getType() == RepositoryType.STANDARD) {
       return;
     }
 
