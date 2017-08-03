@@ -448,12 +448,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var configForGroup = recommendations['config-groups'][0];
     this.get('stepConfigs').forEach(function(stepConfig) {
       var configGroup = this.getGroupForService(stepConfig.get('serviceName'));
-      if (configGroup) {
+      if (configGroup && this.isConfigGroupAffected(configForGroup.hosts, configGroup.get('hosts'))) {
         this.updateOverridesByRecommendations(configForGroup.configurations, stepConfig.get('configs'), changedConfigs, configGroup);
         this.updateOverridesByRecommendations(configForGroup.dependent_configurations, stepConfig.get('configs'), changedConfigs, configGroup);
         this.toggleProperty('forceUpdateBoundaries');
       }
     }, this);
+  },
+
+
+  /**
+   * determine whether hosts of group affected by config modifications
+   * @param {Array} affectedHosts
+   * @param {Array} groupHosts
+   * @returns {boolean}
+   */
+  isConfigGroupAffected: function(affectedHosts, groupHosts) {
+    return _.intersection(affectedHosts, groupHosts).length > 0;
   },
 
   /**

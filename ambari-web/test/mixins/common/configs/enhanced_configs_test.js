@@ -1061,11 +1061,13 @@ describe('App.EnhancedConfigsMixin', function () {
       this.mock = sinon.stub(mixin, 'getGroupForService');
       sinon.stub(mixin, 'updateOverridesByRecommendations');
       sinon.stub(mixin, 'toggleProperty');
+      sinon.stub(mixin, 'isConfigGroupAffected').returns(true);
       mixin.set('stepConfigs', [Em.Object.create()]);
     });
 
     afterEach(function() {
       this.mock.restore();
+      mixin.isConfigGroupAffected.restore();
       mixin.updateOverridesByRecommendations.restore();
       mixin.toggleProperty.restore();
     });
@@ -1077,7 +1079,7 @@ describe('App.EnhancedConfigsMixin', function () {
     });
 
     it("updateOverridesByRecommendations should be called", function() {
-      this.mock.returns({});
+      this.mock.returns(Em.Object.create());
       mixin.saveConfigGroupsRecommendations({'config-groups': [{}]});
       expect(mixin.updateOverridesByRecommendations.calledTwice).to.be.true;
       expect(mixin.toggleProperty.calledWith('forceUpdateBoundaries')).to.be.true;
@@ -1454,6 +1456,15 @@ describe('App.EnhancedConfigsMixin', function () {
         }
       ];
       expect(mixin.filterRequiredChanges(recommendations)).to.be.eql(recommendations);
+    });
+  });
+
+  describe('#isConfigGroupAffected', function() {
+    it('groups have no shared hosts', function() {
+      expect(mixin.isConfigGroupAffected(['host1'], ['host2'])).to.be.false;
+    });
+    it('groups have shared hosts', function() {
+      expect(mixin.isConfigGroupAffected(['host1'], ['host2', 'host1'])).to.be.true;
     });
   });
 });

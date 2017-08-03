@@ -135,12 +135,22 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       if (configGroup && !configGroup.get('isDefault')) {
         var overriddenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
 
-        if (Em.isArray(overriddenConfigs)) {
+        if (Em.isArray(overriddenConfigs) && this.isOverriddenConfigsModified(overriddenConfigs)) {
           var successCallback = this.get('content.serviceName') === serviceName ? 'putConfigGroupChangesSuccess' : null;
           this.saveGroup(overriddenConfigs, configGroup, this.get('serviceConfigVersionNote'), successCallback);
         }
       }
     }, this);
+  },
+
+  /**
+   * @param {Array} overriddenConfigs
+   * @returns {boolean}
+   */
+  isOverriddenConfigsModified: function(overriddenConfigs) {
+    return overriddenConfigs.some(function(config) {
+      return config.get('savedValue') !== config.get('value');
+    });
   },
 
   saveConfigsForDefaultGroup: function() {
