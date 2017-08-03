@@ -2824,23 +2824,23 @@ public class KerberosHelperTest extends EasyMockSupport {
             add(schKerberosClientC);
           }
         })
-        .once();
+        .anyTimes();
 
     final Clusters clusters = injector.getInstance(Clusters.class);
     if ((filteredHosts == null) || filteredHosts.contains("hostA")) {
       expect(clusters.getHost("hostA"))
           .andReturn(hostA)
-          .once();
+          .anyTimes();
     }
     if ((filteredHosts == null) || filteredHosts.contains("hostB")) {
       expect(clusters.getHost("hostB"))
           .andReturn(hostB)
-          .once();
+          .anyTimes();
     }
     if ((filteredHosts == null) || filteredHosts.contains("hostC")) {
       expect(clusters.getHost("hostC"))
           .andReturn(hostC)
-          .once();
+          .anyTimes();
     }
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
@@ -2911,6 +2911,13 @@ public class KerberosHelperTest extends EasyMockSupport {
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
     // Preparation Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
+    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    expectLastCall().once();
+    // Getting missing keytabs
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
@@ -3268,7 +3275,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       final Clusters clusters = injector.getInstance(Clusters.class);
       expect(clusters.getHost("host1"))
           .andReturn(host)
-          .once();
+          .anyTimes();
 
       final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
       expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
@@ -3296,6 +3303,13 @@ public class KerberosHelperTest extends EasyMockSupport {
       setupStageFactory();
 
       // Preparation Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
+      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      expectLastCall().once();
+      // Getting missing keytabs
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());

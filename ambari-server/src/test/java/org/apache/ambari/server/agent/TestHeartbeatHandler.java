@@ -30,6 +30,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -1476,7 +1477,7 @@ public class TestHeartbeatHandler {
     ExecutionCommand executionCommand = new ExecutionCommand();
 
     Map<String, String> hlp = new HashMap<>();
-    hlp.put("custom_command", "SET_KEYTAB");
+    hlp.put("custom_command", SET_KEYTAB);
     executionCommand.setHostLevelParams(hlp);
 
     Map<String, String> commandparams = new HashMap<>();
@@ -1496,7 +1497,7 @@ public class TestHeartbeatHandler {
         }});
     replay(am);
 
-    heartbeatTestHelper.getHeartBeatHandler(am, aq).injectKeytab(executionCommand, "SET_KEYTAB", targetHost);
+    heartbeatTestHelper.getHeartBeatHandler(am, aq).injectKeytab(executionCommand, SET_KEYTAB, targetHost);
 
     return executionCommand.getKerberosCommandParams();
   }

@@ -30,6 +30,9 @@ from resource_management import *
 from utils import get_property_value
 from ambari_commons.os_utils import remove_file
 from ambari_agent import Constants
+from collections import namedtuple
+from resource_management.core import sudo
+from resource_management.core.resources.klist import Klist
 
 class KerberosScript(Script):
   KRB5_REALM_PROPERTIES = [
@@ -430,3 +433,48 @@ class KerberosScript(Script):
             curr_content['keytabs'][principal.replace("_HOST", params.hostname)] = '_REMOVED_'
 
             self.put_structured_out(curr_content)
+
+  def find_missing_keytabs(self):
+    import params
+    missing_keytabs = MissingKeytabs.fromKerberosRecords(params.kerberos_command_params, params.hostname)
+    Logger.info(str(missing_keytabs))
+    curr_content = Script.structuredOut
+    curr_content['missing_keytabs'] = missing_keytabs.as_dict()
+    self.put_structured_out(curr_content)
+
+class MissingKeytabs:
+  class Identity(namedtuple('Identity', ['principal', 'keytab_file_path'])):
+    @staticmethod
+    def fromKerberosRecord(item, hostname):
+      return MissingKeytabs.Identity(
+        get_property_value(item, 'principal').replace("_HOST", hostname),
+        get_property_value(item, 'keytab_file_path'))
+
+    def __str__(self):
+      return "Keytab: %s Principal: %s" % (self.keytab_file_path, self.principal)
+
+  @classmethod
+  def fromKerberosRecords(self, kerberos_record, hostname):
+    with_missing_keytab = (each for each in kerberos_record \
+                           if not self.keytab_exists(each) or not self.keytab_has_principal(each, hostname))
+    return MissingKeytabs(set(MissingKeytabs.Identity.fromKerberosRecord(each, hostname) for each in with_missing_keytab))
+
+  @staticmethod
+  def keytab_exists(kerberos_record):
+    return sudo.path_exists(get_property_value(kerberos_record, 'keytab_file_path'))
+
+  @staticmethod
+  def keytab_has_principal(kerberos_record, hostname):
+    principal = get_property_value(kerberos_record, 'principal').replace("_HOST", hostname)
+    keytab = get_property_value(kerberos_record, 'keytab_file_path')
+    klist = Klist.find_in_search_path()
+    return principal in klist.list_principals(keytab)
+
+  def __init__(self, items):
+    self.items = items
+
+  def as_dict(self):
+    return [each._asdict() for each in self.items]
+
+  def __str__(self):
+    return "Missing keytabs:\n%s" % ("\n".join(map(str, self.items))) if self.items else 'No missing keytabs'

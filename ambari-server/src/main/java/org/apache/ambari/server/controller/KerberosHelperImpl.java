@@ -142,6 +142,9 @@ public class KerberosHelperImpl implements KerberosHelper {
    * These values are important when trying to determine the state of the cluster when adding new components
    */
   private static final Set<State> PREVIOUSLY_INSTALLED_STATES = EnumSet.of(State.INSTALLED, State.STARTED, State.DISABLED);
+  public static final String CHECK_KEYTABS = "CHECK_KEYTABS";
+  public static final String SET_KEYTAB = "SET_KEYTAB";
+  public static final String REMOVE_KEYTAB = "REMOVE_KEYTAB";
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
@@ -3027,13 +3030,46 @@ public class KerberosHelperImpl implements KerberosHelper {
 
         ActionExecutionContext actionExecContext = new ActionExecutionContext(
             cluster.getClusterName(),
-            "SET_KEYTAB",
+          SET_KEYTAB,
             requestResourceFilters,
             requestParams);
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
             requestParams, null);
       }
 
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
+      roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
+      requestStageContainer.addStages(roleGraph.getStages());
+    }
+
+    /**
+     * Send a custom command to the KERBEROS_CLIENT to check if there are missing keytabs on each hosts.
+     */
+    public void addCheckMissingKeytabsStage(Cluster cluster, String clusterHostInfoJson, String hostParamsJson, ServiceComponentHostServerActionEvent event, Map<String, String> commandParameters, RoleCommandOrder roleCommandOrder, RequestStageContainer requestStageContainer, List<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
+      Stage stage = createNewStage(requestStageContainer.getLastStageId(),
+        cluster,
+        requestStageContainer.getId(),
+        "Checking keytabs",
+        StageUtils.getGson().toJson(commandParameters),
+        hostParamsJson);
+
+      Collection<ServiceComponentHost> filteredComponents = filterServiceComponentHostsForHosts(
+        new ArrayList<>(serviceComponentHosts), getHostsWithValidKerberosClient(cluster));
+
+      List<String> hostsToUpdate = createUniqueHostList(filteredComponents, Collections.singleton(HostState.HEALTHY));
+      Map<String, String> requestParams = new HashMap<>();
+      List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
+      RequestResourceFilter reqResFilter = new RequestResourceFilter(Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToUpdate);
+      requestResourceFilters.add(reqResFilter);
+
+      ActionExecutionContext actionExecContext = new ActionExecutionContext(
+        cluster.getClusterName(),
+        CHECK_KEYTABS,
+        requestResourceFilters,
+        requestParams);
+      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 
@@ -3170,7 +3206,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
           ActionExecutionContext actionExecContext = new ActionExecutionContext(
               cluster.getClusterName(),
-              "REMOVE_KEYTAB",
+            REMOVE_KEYTAB,
               requestResourceFilters,
               requestParams);
           customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
@@ -3634,6 +3670,11 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (kerberosDetails.manageIdentities()) {
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
+
+        if (!regenerateAllKeytabs) {
+          addCheckMissingKeytabsStage(cluster, clusterHostInfoJson, hostParamsJson, event,
+            commandParameters, roleCommandOrder, requestStageContainer, serviceComponentHosts);
+        }
 
         // *****************************************************************
         // Create stage to create principals

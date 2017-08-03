@@ -23,6 +23,8 @@ import os
 import sys
 import use_cases
 from stacks.utils.RMFTestCase import *
+from resource_management import Script
+from collections import OrderedDict
 
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
@@ -353,3 +355,24 @@ class TestKerberosClient(RMFTestCase):
     # The kdc_host is expected to generated using kdc_hosts, but only the first host is used since
     # previous versions only knew how to handle a single KDC host
     self.assertEquals('c6401.ambari.apache.org', sys.modules['params'].kdc_host)
+
+  @patch("resource_management.core.sudo.path_exists")
+  def test_find_missing_keytabs(self, path_exists):
+    path_exists.side_effect = [False]
+    json_data = use_cases.get_managed_kdc_use_case()
+    json_data['kerberosCommandParams'] = [
+      {
+        "keytab_file_path": '/deleted_keytab',
+        "principal": "HTTP/_HOST@EXAMPLE.COM"
+      }
+    ]
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
+                       classname="KerberosClient",
+                       command="check_keytabs",
+                       config_dict=json_data,
+                       stack_version=self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_COMMON_SERVICES)
+    self.assertEquals(Script.structuredOut['missing_keytabs'], [OrderedDict({
+      'keytab_file_path' : '/deleted_keytab',
+      'principal' : 'HTTP/c6401.ambari.apache.org@EXAMPLE.COM'
+    })])
