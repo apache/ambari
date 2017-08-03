@@ -56,10 +56,20 @@ class CommandStatusDict():
       self.current_state[key] = (command, new_report)
       self.reported_reports.discard(key)
 
-    self.force_update_to_server(command['clusterId'], new_report)
+    self.force_update_to_server({command['clusterId']: [new_report]})
 
-  def force_update_to_server(self, cluster_id, report):
-    self.initializer_module.connection.send(message={'clusters':{cluster_id: [report]}}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+  def force_update_to_server(self, reports_dict):
+    if self.initializer_module.is_registered:
+      self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+      return True
+
+    return False
+
+  def report(self):
+    report = self.generate_report()
+
+    if report and self.force_update_to_server(report):
+      self.clear_reported_reports()
 
   def get_command_status(self, taskId):
     with self.lock:

@@ -21,8 +21,6 @@ limitations under the License.
 import logging
 import threading
 
-from ambari_agent import Constants
-
 logger = logging.getLogger(__name__)
 
 class CommandStatusReporter(threading.Thread):
@@ -43,12 +41,7 @@ class CommandStatusReporter(threading.Thread):
     while not self.stop_event.is_set():
       try:
         if self.initializer_module.is_registered:
-          report = self.commandStatuses.generate_report()
-
-          if report:
-            self.initializer_module.connection.send(message={'clusters': report}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
-
-          self.commandStatuses.clear_reported_reports()
+          self.commandStatuses.report()
       except:
         logger.exception("Exception in CommandStatusReporter. Re-running it")
 
