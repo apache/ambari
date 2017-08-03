@@ -965,7 +965,7 @@
         "includeAll": false,
         "multi": false,
         "multiFormat": "glob",
-        "name": "component",
+        "name": "components",
         "options": [
           {
             "selected": true,
@@ -976,6 +976,21 @@
         "query": "nifi",
         "refresh": false,
         "type": "custom"
+      },
+      {
+        "allFormat": "glob",
+        "current": null,
+        "datasource": null,
+        "includeAll": false,
+        "label": "Cluster",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "cluster",
+        "options": [],
+        "query": "cluster",
+        "refresh": true,
+        "regex": "",
+        "type": "query"
       },
       {
         "allFormat": "glob",
