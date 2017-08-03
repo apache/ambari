@@ -29,14 +29,14 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class RegistryValidationResponse extends  RegistryAdvisorResponse {
 
   @JsonProperty
-  private List<RegistryValidationItem> items;
+  private List<RegistryValidationResult> validationResults;
 
-  public List<RegistryValidationItem> getItems() {
-    return items;
+  public List<RegistryValidationResult> getValidationResults() {
+    return validationResults;
   }
 
-  public void setItems(List<RegistryValidationItem> items) {
-    this.items = items;
+  public void setItems(List<RegistryValidationResult> validationResults) {
+    this.validationResults = validationResults;
   }
   
   /**
@@ -67,7 +67,7 @@ public class RegistryValidationResponse extends  RegistryAdvisorResponse {
       return this;
     }
 
-    public RegistryValidationResponseBuilder forScenarios(List<String> selectedScenarios) {
+    public RegistryValidationResponseBuilder forScenarios(List<ScenarioEntry> selectedScenarios) {
       this.instance.setSelectedScenarios(selectedScenarios);
       return this;
     }
@@ -82,8 +82,8 @@ public class RegistryValidationResponse extends  RegistryAdvisorResponse {
       return this;
     }
 
-    public RegistryValidationResponseBuilder withValidations(List<RegistryValidationItem> items) {
-      this.instance.items = items;
+    public RegistryValidationResponseBuilder withValidations(List<RegistryValidationResult> validationResults) {
+      this.instance.validationResults = validationResults;
       return this;
     }
 
@@ -95,7 +95,7 @@ public class RegistryValidationResponse extends  RegistryAdvisorResponse {
   /**
    * Registry validation item
    */
-  public static class RegistryValidationItem {
+  public static class RegistryValidationResult {
     @JsonProperty
     private String type;
 
@@ -105,7 +105,7 @@ public class RegistryValidationResponse extends  RegistryAdvisorResponse {
     @JsonProperty
     private String message;
 
-    public RegistryValidationItem(String type, String level, String message) {
+    public RegistryValidationResult(String type, String level, String message) {
       this.type = type;
       this.level = level;
       this.message = message;

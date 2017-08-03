@@ -28,7 +28,8 @@ import org.apache.ambari.server.exceptions.RegistryAdvisorException;
 public class RegistryAdvisorRequest {
   private Long registryId;
   private RegistryAdvisorRequestType requestType;
-  private List<String> selectedScenarios;
+  private String clusterName;
+  private List<ScenarioEntry> selectedScenarios;
   private List<MpackEntry> selectedMpacks;
 
   /**
@@ -43,11 +44,15 @@ public class RegistryAdvisorRequest {
     return registryId;
   }
 
+  public String getClusterName() {
+    return clusterName;
+  }
+
   public RegistryAdvisorRequestType getRequestType() {
     return requestType;
   }
 
-  public List<String> getSelectedScenarios() {
+  public List<ScenarioEntry> getSelectedScenarios() {
     return selectedScenarios;
   }
 
@@ -74,7 +79,12 @@ public class RegistryAdvisorRequest {
       return this;
     }
 
-    public RegistryAdvisorRequestBuilder forScenarios(List<String> selectedScenarios) {
+    public RegistryAdvisorRequestBuilder forCluster(String clusterName) {
+      this.instance.clusterName = clusterName;
+      return this;
+    }
+
+    public RegistryAdvisorRequestBuilder forScenarios(List<ScenarioEntry> selectedScenarios) {
       this.instance.selectedScenarios = selectedScenarios;
       return this;
     }
@@ -93,7 +103,8 @@ public class RegistryAdvisorRequest {
    *
    */
   public enum RegistryAdvisorRequestType {
-    SCENARIO_MPACKS("scenario-mpacks");
+    SCENARIO_MPACKS("scenario-mpacks"),
+    UPGRADE_MPACKS("upgrade-mpacks");
 
     private String type;
 

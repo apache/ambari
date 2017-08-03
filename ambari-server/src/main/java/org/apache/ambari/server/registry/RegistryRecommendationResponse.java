@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.registry;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.ambari.server.registry.RegistryAdvisorRequest.RegistryAdvisorRequestType;
@@ -73,7 +72,7 @@ public class RegistryRecommendationResponse extends RegistryAdvisorResponse {
       return this;
     }
 
-    public RegistryRecommendationResponseBuilder forScenarios(List<String> selectedScenarios) {
+    public RegistryRecommendationResponseBuilder forScenarios(List<ScenarioEntry> selectedScenarios) {
       this.instance.setSelectedScenarios(selectedScenarios);
       return this;
     }
@@ -102,13 +101,13 @@ public class RegistryRecommendationResponse extends RegistryAdvisorResponse {
    * Registry recommendations
    */
   public static class RegistryRecommendations {
-    public List<Collection<MpackEntry>> mpackBundles;
+    public List<MpackBundle> mpackBundles;
 
-    public void setMpackBundles(List<Collection<MpackEntry>> mpackBundles) {
+    public void setMpackBundles(List<MpackBundle> mpackBundles) {
       this.mpackBundles = mpackBundles;
     }
 
-    public List<Collection<MpackEntry>> getMpackBundles() {
+    public List<MpackBundle> getMpackBundles() {
       return mpackBundles;
     }
   }

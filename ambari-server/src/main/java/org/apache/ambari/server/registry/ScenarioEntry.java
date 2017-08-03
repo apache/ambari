@@ -21,51 +21,40 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- *  Mpack recommendation entry
+ *  Scenario recommenation entry
  */
-public class MpackEntry {
-  private String mpackName;
-  private String mpackVersion;
-  private RegistryMpackVersion registryMpackVersion;
+public class ScenarioEntry {
+  private String scenarioName;
+  private RegistryScenario registryScenario;
 
-  public MpackEntry(String mpackName, String mpackVersion) {
-    this.mpackName = mpackName;
-    this.mpackVersion = mpackVersion;
-    this.registryMpackVersion = registryMpackVersion;
+  public ScenarioEntry(String scenarioName) {
+    this.scenarioName = scenarioName;
   }
 
   /**
-   * Get mpack name
+   * Get scenario name
    * @return
    */
-  @JsonProperty("mpack_name")
-  public String getMpackName() {
-    return mpackName;
+  @JsonProperty("scenario_name")
+  public String getScenarioName() {
+    return scenarioName;
   }
 
+
   /**
-   * Get mpack version
-   * @return
+   * Set registry scenario
+   * @param registryScenario
    */
-  @JsonProperty("mpack_version")
-  public String getMpackVersion() {
-    return mpackVersion;
+  public void setRegistryScenario(RegistryScenario registryScenario) {
+    this.registryScenario = registryScenario;
   }
 
   /**
-   * Set registry mpack version
-   * @param registryMpackVersion
-   */
-  public void setRegistryMpackVersion(RegistryMpackVersion registryMpackVersion) {
-    this.registryMpackVersion = registryMpackVersion;
-  }
-
-  /**
-   * Get registry mpack version
+   * Get registry scenario
    * @return
    */
   @JsonIgnore
-  public RegistryMpackVersion getRegistryMpackVersion() {
-    return registryMpackVersion;
+  public RegistryScenario getRegistryScenario() {
+    return registryScenario;
   }
 }

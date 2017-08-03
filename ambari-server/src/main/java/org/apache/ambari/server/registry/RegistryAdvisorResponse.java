@@ -28,7 +28,7 @@ public abstract class RegistryAdvisorResponse {
   private Long id;
   private Long registryId;
   private RegistryAdvisorRequest.RegistryAdvisorRequestType requestType;
-  private List<String> selectedScenarios;
+  private List<ScenarioEntry> selectedScenarios;
   private List<MpackEntry> selectedMpacks;
 
   /**
@@ -83,7 +83,7 @@ public abstract class RegistryAdvisorResponse {
    * Set selected scenarios
    * @param selectedScenarios
    */
-  public void setSelectedScenarios(List<String> selectedScenarios) {
+  public void setSelectedScenarios(List<ScenarioEntry> selectedScenarios) {
     this.selectedScenarios = selectedScenarios;
   }
 
@@ -91,7 +91,7 @@ public abstract class RegistryAdvisorResponse {
    * Get selected scenarios
    * @return
    */
-  public List<String> getSelectedScenarios() {
+  public List<ScenarioEntry> getSelectedScenarios() {
     return selectedScenarios;
   }
 

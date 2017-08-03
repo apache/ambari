@@ -48,7 +48,7 @@ public class RegistryRecommendationResourceProvider extends RegistryAdvisorResou
     .getPropertyId("recommendations", "mpack_bundles");
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(REGISTRY_ID, RECOMMENDATION_ID_PROPERTY_ID));
+    Arrays.asList(REGISTRY_ID_PROPERTY_ID, RECOMMENDATION_ID_PROPERTY_ID));
 
   /**
    * The property ids for a software registry resource.
@@ -62,14 +62,16 @@ public class RegistryRecommendationResourceProvider extends RegistryAdvisorResou
 
   static {
     // properties
-    PROPERTY_IDS.add(REGISTRY_ID);
+    PROPERTY_IDS.add(REGISTRY_ID_PROPERTY_ID);
     PROPERTY_IDS.add(RECOMMENDATION_ID_PROPERTY_ID);
     PROPERTY_IDS.add(RECOMMEND_PROPERTY_ID);
+    PROPERTY_IDS.add(CLUSTER_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(SELECTED_SCENARIOS_PROPERTY_ID);
+    PROPERTY_IDS.add(SELECTED_MPACKS_PROPERTY_ID);
     PROPERTY_IDS.add(RECOMMEND_MPACK_BUNDLES_PROPERTY_ID);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Registry, REGISTRY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Registry, REGISTRY_ID_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.RegistryRecommendation, RECOMMENDATION_ID_PROPERTY_ID);
 
   }
@@ -105,10 +107,11 @@ public class RegistryRecommendationResourceProvider extends RegistryAdvisorResou
       }
     });
     Resource resource = new ResourceImpl(Resource.Type.RegistryRecommendation);
-    resource.setProperty(REGISTRY_ID, response.getRegistryId());
+    resource.setProperty(REGISTRY_ID_PROPERTY_ID, response.getRegistryId());
     resource.setProperty(RECOMMENDATION_ID_PROPERTY_ID, response.getId());
     resource.setProperty(RECOMMEND_PROPERTY_ID, response.getRequestType().toString());
     resource.setProperty(SELECTED_SCENARIOS_PROPERTY_ID, response.getSelectedScenarios());
+    resource.setProperty(SELECTED_MPACKS_PROPERTY_ID, response.getSelectedMpacks());
     resource.setProperty(RECOMMEND_MPACK_BUNDLES_PROPERTY_ID, response.getRecommendations().getMpackBundles());
 
     Set<Resource> associatedResources = new HashSet<>(Arrays.asList(resource));

@@ -34,6 +34,7 @@ import org.apache.ambari.server.registry.RegistryAdvisor;
 import org.apache.ambari.server.registry.RegistryAdvisorRequest;
 import org.apache.ambari.server.registry.RegistryAdvisorRequest.RegistryAdvisorRequestBuilder;
 import org.apache.ambari.server.registry.RegistryAdvisorRequest.RegistryAdvisorRequestType;
+import org.apache.ambari.server.registry.ScenarioEntry;
 
 import com.google.inject.Inject;
 
@@ -42,7 +43,8 @@ import com.google.inject.Inject;
  */
 public abstract class RegistryAdvisorResourceProvider extends AbstractControllerResourceProvider {
 
-  public static final String REGISTRY_ID =  PropertyHelper.getPropertyId("RegistryInfo", "registry_id");
+  public static final String REGISTRY_ID_PROPERTY_ID =  PropertyHelper.getPropertyId("RegistryInfo", "registry_id");
+  protected static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
   protected static final String SELECTED_SCENARIOS_PROPERTY_ID = "selected_scenarios";
   protected static final String SELECTED_MPACKS_PROPERTY_ID = "selected_mpacks";
 
@@ -77,13 +79,15 @@ public abstract class RegistryAdvisorResourceProvider extends AbstractController
    */
   protected RegistryAdvisorRequest createRegistryAdvisorRequest(Request request) {
     try {
-      Long registryId = Long.valueOf((String) getRequestProperty(request, REGISTRY_ID));
+      Long registryId = Long.valueOf((String) getRequestProperty(request, REGISTRY_ID_PROPERTY_ID));
       RegistryAdvisorRequestType requestType = RegistryAdvisorRequestType.fromString(
         (String) getRequestProperty(request, getRequestTypePropertyId()));
-      List<String> selectedScenarios = (List<String>) getRequestProperty(request, SELECTED_SCENARIOS_PROPERTY_ID);
+      List<ScenarioEntry> selectedScenarios = parseSelectedScenariosProperty(request);
       List<MpackEntry> selectedMpacks = parseSelectedMpacksProperty(request);
+      String clusterName = (String) getRequestProperty(request, CLUSTER_NAME_PROPERTY_ID);
       return RegistryAdvisorRequestBuilder.forRegistry(registryId)
         .ofType(requestType)
+        .forCluster(clusterName)
         .forScenarios(selectedScenarios)
         .forMpacks(selectedMpacks)
         .build();
@@ -102,7 +106,7 @@ public abstract class RegistryAdvisorResourceProvider extends AbstractController
    * @return        List of selected mpacks
    */
   private List<MpackEntry> parseSelectedMpacksProperty(Request request) {
-    List<MpackEntry> selectedMpacks = new LinkedList<>();request.getProperties();
+    List<MpackEntry> selectedMpacks = new LinkedList<>();
     Set<Map<String, String>> selectedMpacksProperties =
       (Set<Map<String, String>>) getRequestProperty(request, SELECTED_MPACKS_PROPERTY_ID);
     if(selectedMpacksProperties != null) {
@@ -114,6 +118,25 @@ public abstract class RegistryAdvisorResourceProvider extends AbstractController
       }
     }
     return selectedMpacks;
+  }
+
+  /**
+   * Parse selected scenarios property from the reuqest
+   * @param request {@link Request} input
+   * @return        List of selected scenarios
+   */
+  private List<ScenarioEntry> parseSelectedScenariosProperty(Request request) {
+    List<ScenarioEntry> selectedScenarios = new LinkedList<>();
+    Set<Map<String, String>> selectedScenariosProperties =
+      (Set<Map<String, String>>) getRequestProperty(request, SELECTED_SCENARIOS_PROPERTY_ID);
+    if(selectedScenariosProperties != null) {
+      for (Map<String, String> properties : selectedScenariosProperties) {
+        String scenarioName = properties.get("scenario_name");
+        ScenarioEntry scenarioEntry = new ScenarioEntry(scenarioName);
+        selectedScenarios.add(scenarioEntry);
+      }
+    }
+    return selectedScenarios;
   }
 
   /**
