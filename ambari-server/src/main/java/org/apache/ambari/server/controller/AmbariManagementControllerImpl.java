@@ -3742,7 +3742,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     requestProperties.put("context", "Update Include and Exclude Files for " + serviceMasterMap.keySet().toString());
     requestProperties.put("exclusive", "true");
     HashMap<String, String> params = new HashMap<>();
-    params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, "false");
+    params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, String.valueOf(isDecommission));
 
     for (String masterName : masterSlaveHostsMap.keySet()) {
       if (!isDecommission) {
