@@ -1755,8 +1755,8 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed.msg':'All checks passed',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip':'Option not available',
   'admin.stackVersions.version.upgrade.upgradeOptions.notAllowed':'Not allowed by the current version',
-  'admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg': 'You are about to perform an <b>Express Upgrade</b> to <b>{1}</b>. This will incur cluster downtime. Are you sure you want to proceed?',
-  'admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg': 'You are about to perform a <b>Rolling Upgrade</b> to <b>{1}</b>. Are you sure you want to proceed?',
+  'admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg': 'You are about to perform an <b>Express Upgrade</b> to <b>{0}</b>. This will incur cluster downtime. Are you sure you want to proceed?',
+  'admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg': 'You are about to perform a <b>Rolling Upgrade</b> to <b>{0}</b>. Are you sure you want to proceed?',
   'admin.stackVersions.version.upgrade.upgradeOptions.error': 'Could not proceed with upgrade:',
   'admin.stackVersions.version.upgrade.upgradeOptions.loading': 'Checking for supported upgrade types...',
 

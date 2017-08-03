@@ -255,4 +255,34 @@ describe('stringUtils', function () {
       });
     });
   });
+
+  describe('#upperUnderscoreToText', function() {
+    var testCases = [
+      {
+        input: null,
+        expected: ''
+      },
+      {
+        input: '',
+        expected: ''
+      },
+      {
+        input: 'foo',
+        expected: 'Foo'
+      },
+      {
+        input: 'FOO',
+        expected: 'Foo'
+      },
+      {
+        input: 'FOO_BAR',
+        expected: 'Foo Bar'
+      }
+    ];
+    testCases.forEach(function(test) {
+      it('should return ' + test.expected + ' when string is ' + test.input, function() {
+        expect(stringUtils.upperUnderscoreToText(test.input)).to.be.equal(test.expected);
+      });
+    });
+  });
 });

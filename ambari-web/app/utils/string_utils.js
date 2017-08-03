@@ -244,5 +244,19 @@ module.exports = {
       text += allowed.charAt(Math.floor(Math.random() * allowed.length));
     }
     return text;
+  },
+
+  /**
+   * @param {string} string
+   * @returns {string}
+   * @method upperUnderscoreToText
+   */
+  upperUnderscoreToText: function(string) {
+    if (typeof(string) !== 'string') {
+      return '';
+    }
+    return string.split('_').map(function(word) {
+      return word.toLowerCase().capitalize();
+    }).join(' ');
   }
 };

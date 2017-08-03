@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.StackUpgradeHistory = DS.Model.extend({
   requestId: DS.attr('number'),
