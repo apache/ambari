@@ -940,8 +940,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         this.runPreUpgradeCheckOnly({
           value: version.get('id'),
           label: version.get('displayName'),
-          type: method.get('type'),
-          targetStack: version.get('displayName')
+          type: method.get('type')
         });
       } else {
         //if method not supported in current stack version, mark as check completed
@@ -1061,8 +1060,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           self.runPreUpgradeCheckOnly({
             value: version.get('id'),
             label: version.get('displayName'),
-            type: event.context.get('type'),
-            targetStack: version.get('displayName')
+            type: event.context.get('type')
           });
         },
         openMessage: function (event) {
@@ -1098,8 +1096,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
               self.runPreUpgradeCheckOnly.call(self, {
                 value: version.get('id'),
                 label: version.get('displayName'),
-                type: event.context.get('type'),
-                targetStack: version.get('displayName')
+                type: event.context.get('type')
               });
             }
           }, configs);
@@ -1334,8 +1331,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
-      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false',
-      targetStack: version.get('displayName')
+      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
     };
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);
