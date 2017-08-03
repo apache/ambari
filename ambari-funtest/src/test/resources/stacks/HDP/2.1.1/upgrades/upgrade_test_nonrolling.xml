@@ -105,9 +105,9 @@
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
-    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Desired Stack Id">
+    <group xsi:type="update-stack" name="UPDATE_DESIRED_REPOSITORY_ID" title="Update Desired Stack Id">
       <execute-stage title="Update Desired Stack Id" service="" component="">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction">
         </task>
       </execute-stage>
     </group>
