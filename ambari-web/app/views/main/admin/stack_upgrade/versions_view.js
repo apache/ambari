@@ -127,10 +127,23 @@ App.MainAdminStackVersionsView = Em.View.extend({
    */
   repoVersions: App.RepositoryVersion.find(),
 
-  repoVersionsDisplay: function () {
-    return this.get('repoVersions').toArray().sort(function (a, b) {
-      return (a.get('repositoryVersion') > b.get('repositoryVersion')) ? 1 : ((b.get('repositoryVersion') > a.get('repositoryVersion')) ? -1 : 0);
+  /**
+   * PATCH version should be displayed right after parent STANDARD version
+   */
+  sortedRepoVersions: function () {
+    var allVersions = this.get('repoVersions').filterProperty('isPatch', false).toArray().sort(function (a, b) {
+      return stringUtils.compareVersions(a.get('repositoryVersion'), b.get('repositoryVersion'));
     });
+    this.get('repoVersions').filterProperty('isPatch').toArray().sort(function (a, b) {
+      return stringUtils.compareVersions(b.get('repositoryVersion'), a.get('repositoryVersion'));
+    }).forEach(function(patchVersion) {
+      var displayNames = allVersions.mapProperty('displayNameSimple');
+      var index = displayNames.indexOf(patchVersion.get('displayNameSimple'));
+      if (index !== -1) {
+        allVersions.splice(index + 1, 0, patchVersion);
+      }
+    });
+    return allVersions;
   }.property('repoVersions'),
 
   /**
@@ -171,7 +184,8 @@ App.MainAdminStackVersionsView = Em.View.extend({
     } else {
       return versions.filter(function(v) {
         if (v.get('stackVersionType') === Em.get(currentVersion, 'stack_name')) {
-          return stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
+          // PATCH version should be visible even if patch number lower than current
+          return v.get('isPatch') || stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
         }
         return v.get('isCompatible');
       }).toArray();

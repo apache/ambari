@@ -130,7 +130,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         repositoryVersion: {
           id: '1',
           repositoryVersion: '2.2',
-          displayName: 'HDP-2.2'
+          displayName: 'HDP-2.2',
+          stackVersionType: 'HDP'
         }
       })]);
       controller.load();
@@ -158,7 +159,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.get('currentVersion')).to.eql({
         "id": "1",
         "repository_version": "2.2",
-        "repository_name": "HDP-2.2"
+        "repository_name": "HDP-2.2",
+        "stack_name": "HDP"
       });
     });
   });
