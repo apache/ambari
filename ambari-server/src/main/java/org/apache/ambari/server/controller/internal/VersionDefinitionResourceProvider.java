@@ -426,7 +426,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    */
   private void checkForParent(XmlHolder holder) throws AmbariException {
     RepositoryVersionEntity entity = holder.entity;
-    if (entity.getType() != RepositoryType.PATCH) {
+
+    // only STANDARD types don't have a parent
+    if (entity.getType() == RepositoryType.STANDARD) {
       return;
     }
 
