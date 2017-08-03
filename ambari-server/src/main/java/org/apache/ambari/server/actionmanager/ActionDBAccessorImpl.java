@@ -550,8 +550,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         if (!existingTaskStatus.isCompletedState()) {
           commandEntity.setStatus(reportedTaskStatus);
         }
-        commandEntity.setStdOut(report.getStdOut().getBytes());
-        commandEntity.setStdError(report.getStdErr().getBytes());
+        commandEntity.setStdOut(report.getStdOut() == null ? null : report.getStdOut().getBytes());
+        commandEntity.setStdError(report.getStdErr() == null ? null : report.getStdErr().getBytes());
         commandEntity.setStructuredOut(report.getStructuredOut() == null ? null :
             report.getStructuredOut().getBytes());
         commandEntity.setExitcode(report.getExitCode());

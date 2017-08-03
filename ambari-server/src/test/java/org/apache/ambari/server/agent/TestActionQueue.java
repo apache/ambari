@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
-import org.easymock.EasyMock;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +128,7 @@ public class TestActionQueue {
       while (shouldRun) {
         int index = 0;
         for (String host: hosts) {
-          actionQueue.enqueue(host, new StatusCommand());
+          //actionQueue.enqueue(host, new StatusCommand());
           opCounts[index]++;
           index++;
         }
@@ -339,7 +338,7 @@ public class TestActionQueue {
     String c6401 = "c6401.ambari.apache.org";
     String c6402 = "c6402.ambari.apache.org";
 
-    queue.enqueue(c6401,
+    /*queue.enqueue(c6401,
         EasyMock.createMockBuilder(ExecutionCommand.class).createNiceMock());
 
     queue.enqueue(c6401,
@@ -367,7 +366,7 @@ public class TestActionQueue {
         EasyMock.createMockBuilder(StatusCommand.class).createNiceMock());
 
     queue.enqueue(c6402,
-        EasyMock.createMockBuilder(AlertDefinitionCommand.class).createNiceMock());
+        EasyMock.createMockBuilder(AlertDefinitionCommand.class).createNiceMock());*/
 
     assertEquals(7, queue.size(c6401));
 

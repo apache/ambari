@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.ambari.server.state.AlertState;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -260,5 +262,27 @@ public abstract class ParameterizedSource extends Source {
    */
   public enum AlertParameterVisibility {
     VISIBLE, HIDDEN, READ_ONLY
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+
+    if (!(o instanceof ParameterizedSource)) return false;
+
+    ParameterizedSource that = (ParameterizedSource) o;
+
+    return new EqualsBuilder()
+        .appendSuper(super.equals(o))
+        .append(m_parameters, that.m_parameters)
+        .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+        .appendSuper(super.hashCode())
+        .append(m_parameters)
+        .toHashCode();
   }
 }

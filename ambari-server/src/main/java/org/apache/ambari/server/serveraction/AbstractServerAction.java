@@ -114,8 +114,8 @@ public abstract class AbstractServerAction implements ServerAction {
         report = new CommandReport();
 
         report.setActionId(StageUtils.getActionId(hostRoleCommand.getRequestId(), hostRoleCommand.getStageId()));
-        report.setClusterName(executionCommand.getClusterName());
-        report.setConfigurationTags(executionCommand.getConfigurationTags());
+        report.setClusterId(executionCommand.getClusterId());
+        //report.setConfigurationTags(executionCommand.getConfigurationTags());
         report.setRole(executionCommand.getRole());
         report.setRoleCommand((roleCommand == null) ? null : roleCommand.toString());
         report.setServiceName(executionCommand.getServiceName());

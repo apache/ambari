@@ -190,18 +190,6 @@ public class HeartbeatMonitor implements Runnable {
           hostObj.setState(HostState.INIT);
         }
       }
-
-      // Get status of service components
-      List<StatusCommand> cmds = generateStatusCommands(hostname);
-      LOG.trace("Generated " + cmds.size() + " status commands for host: " +
-        hostname);
-      if (cmds.isEmpty()) {
-        // Nothing to do
-      } else {
-        for (StatusCommand command : cmds) {
-          actionQueue.enqueue(hostname, command);
-        }
-      }
     }
   }
 

@@ -53,9 +53,14 @@ import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -64,9 +69,11 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ExtensionInfo;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -154,6 +161,12 @@ public class AmbariMetaInfo {
   // all the supported OS'es
   @Inject
   private OsFamily osFamily;
+
+  @Inject
+  private Gson gson;
+
+  @Inject
+  private ClusterVersionDAO clusterVersionDAO;
 
   /**
    * ALL_SUPPORTED_OS is dynamically generated list from loaded families from os_family.json
@@ -1484,5 +1497,133 @@ public class AmbariMetaInfo {
     ensureVersionDefinitions();
 
     return versionDefinitions;
+  }
+  /**
+   * Get repository info given a cluster and host.
+   *
+   * @param cluster  the cluster
+   * @param host     the host
+   *
+   * @return the repo info
+   *
+   * @throws AmbariException if the repository information can not be obtained
+   */
+  public String getRepoInfoString(Cluster cluster, Host host) throws AmbariException {
+
+    return getRepoInfoString(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
+  }
+
+  public String getRepoInfoString(Cluster cluster, String hostOSType, String hostOSFamily, String hostName) throws AmbariException {
+    return gson.toJson(getRepoInfo(cluster, hostOSType, hostOSFamily, hostName));
+  }
+
+  /**
+   * Get repository info given a cluster and host.
+   *
+   * @param cluster  the cluster
+   * @param host     the host
+   *
+   * @return the repo info
+   *
+   * @throws AmbariException if the repository information can not be obtained
+   */
+  public List<RepositoryInfo> getRepoInfo(Cluster cluster, Host host) throws AmbariException {
+
+    return getRepoInfo(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
+  }
+
+  public List<RepositoryInfo> getRepoInfo(Cluster cluster, String hostOSType, String hostOSFamily, String hostName) throws AmbariException {
+
+    StackId stackId = cluster.getDesiredStackVersion();
+
+    Map<String, List<RepositoryInfo>> repos = getRepository(
+        stackId.getStackName(), stackId.getStackVersion());
+
+    String family = osFamily.find(hostOSType);
+    if (null == family) {
+      family = hostOSFamily;
+    }
+
+    List<RepositoryInfo> repoInfos = new ArrayList<>();
+
+    // !!! check for the most specific first
+    if (repos.containsKey(hostOSType)) {
+      repoInfos = repos.get(hostOSType);
+    } else if (null != family && repos.containsKey(family)) {
+      repoInfos = repos.get(family);
+    } else {
+      LOG.warn("Could not retrieve repo information for host"
+          + ", hostname=" + hostName
+          + ", clusterName=" + cluster.getClusterName()
+          + ", stackInfo=" + stackId.getStackId());
+    }
+
+    if (null != repoInfos) {
+      updateBaseUrls(cluster, repoInfos);
+      return repoInfos;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * Checks repo URLs against the current version for the cluster and makes
+   * adjustments to the Base URL when the current is different.
+   * @param cluster   the cluster to load the current version
+   * @param repoInfos the array containing stack repo data
+   */
+  private void updateBaseUrls(Cluster cluster, List<RepositoryInfo> repoInfos) throws AmbariException {
+    ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
+
+    if (null == cve) {
+      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
+          RepositoryVersionState.INIT);
+
+      if (!list.isEmpty()) {
+        if (list.size() > 1) {
+          throw new AmbariException(String.format("The cluster can only be initialized by one version: %s found",
+              list.size()));
+        } else {
+          cve = list.get(0);
+        }
+      }
+    }
+
+    if (null == cve || null == cve.getRepositoryVersion()) {
+      LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
+      return;
+    }
+
+    RepositoryVersionEntity rve = cve.getRepositoryVersion();
+
+    for (Iterator<RepositoryInfo> iter = repoInfos.iterator(); iter.hasNext(); ) {
+
+      RepositoryInfo repositoryInfo = iter.next();
+
+      String repoId = repositoryInfo.getRepoId();
+      String repoName = repositoryInfo.getRepoName();
+      String baseUrl = repositoryInfo.getBaseUrl();
+      String osType = repositoryInfo.getOsType();
+
+      if (null == repoId || null == baseUrl || null == osType || null == repoName) {
+        continue;
+      }
+
+      boolean toResult = false;
+      for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
+        if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
+          for (RepositoryEntity re : ose.getRepositories()) {
+            if (re.getName().equals(repoName) &&
+                re.getRepositoryId().equals(repoId) &&
+                !re.getBaseUrl().equals(baseUrl)) {
+              repositoryInfo.setBaseUrl(re.getBaseUrl());
+            }
+          }
+          toResult = true;
+        }
+      }
+      if (!toResult) {
+        iter.remove();
+      }
+    }
   }
 }

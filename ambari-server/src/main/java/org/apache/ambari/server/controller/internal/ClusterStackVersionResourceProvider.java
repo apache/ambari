@@ -43,11 +43,13 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -192,6 +194,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static HostComponentStateDAO hostComponentStateDAO;
+
+  @Inject
+  private static Provider<MetadataHolder> m_metadataHolder;
+
+  @Inject
+  private static Provider<AmbariManagementControllerImpl> m_ambariManagementController;
 
   /**
    * We have to include such a hack here, because if we
@@ -815,6 +823,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       StackId stackId = rve.getStackId();
       Cluster cluster = getManagementController().getClusters().getCluster(clName);
       cluster.setDesiredStackVersion(stackId);
+      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadata(cluster));
 
       String forceCurrent = (String) propertyMap.get(CLUSTER_STACK_VERSION_FORCE);
       boolean force = false;

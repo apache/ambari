@@ -27,7 +27,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_CO
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
@@ -40,7 +39,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JD
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
@@ -76,9 +74,6 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -91,7 +86,6 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -109,9 +103,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -326,10 +317,6 @@ public class AmbariCustomCommandExecutionHelper {
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(
         stackId.getStackName(), stackId.getStackVersion(), serviceName);
-    StackInfo stackInfo = ambariMetaInfo.getStack
-       (stackId.getStackName(), stackId.getStackVersion());
-
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -404,10 +391,8 @@ public class AmbariCustomCommandExecutionHelper {
 
       Map<String, String> hostLevelParams = new TreeMap<>();
 
-      hostLevelParams.put(CUSTOM_COMMAND, commandName);
-
       // Set parameters required for re-installing clients on restart
-      hostLevelParams.put(REPO_INFO, getRepoInfo(cluster, host));
+      hostLevelParams.put(REPO_INFO, ambariMetaInfo.getRepoInfoString(cluster, host));
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
@@ -439,9 +424,10 @@ public class AmbariCustomCommandExecutionHelper {
           commandParams.put(key, additionalCommandParams.get(key));
         }
       }
+      commandParams.put(CUSTOM_COMMAND, commandName);
 
       boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
-      int commandTimeout = Short.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand)).intValue();
+      String commandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(),
@@ -455,7 +441,7 @@ public class AmbariCustomCommandExecutionHelper {
           commandParams.put(SCRIPT, script.getScript());
           commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
           if (script.getTimeout() > 0) {
-            commandTimeout = script.getTimeout();
+            commandTimeout = String.valueOf(script.getTimeout());
           }
         } else {
           String message = String.format("Component %s has not command script " +
@@ -466,19 +452,7 @@ public class AmbariCustomCommandExecutionHelper {
         // We don't need package/repo information to perform service check
       }
 
-      // !!! the action execution context timeout is the final say, but make sure it's at least 60 seconds
-      if (null != actionExecutionContext.getTimeout()) {
-        commandTimeout = actionExecutionContext.getTimeout().intValue();
-        commandTimeout = Math.max(60, commandTimeout);
-      }
-
-      commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
-      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-
-      if (effectiveClusterVersion != null) {
-       commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
-      }
+      commandParams.put(COMMAND_TIMEOUT, commandTimeout);
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -779,8 +753,6 @@ public class AmbariCustomCommandExecutionHelper {
       actualTimeout = actualTimeout < MIN_STRICT_SERVICE_CHECK_TIMEOUT ? MIN_STRICT_SERVICE_CHECK_TIMEOUT : actualTimeout;
       commandParams.put(COMMAND_TIMEOUT, Integer.toString(actualTimeout));
     }
-    commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
     execCmd.setCommandParams(commandParams);
 
@@ -1149,115 +1121,8 @@ public class AmbariCustomCommandExecutionHelper {
     }
   }
 
-  /**
-   * Get repository info given a cluster and host.
-   *
-   * @param cluster  the cluster
-   * @param host     the host
-   *
-   * @return the repo info
-   *
-   * @throws AmbariException if the repository information can not be obtained
-   */
-  public String getRepoInfo(Cluster cluster, Host host) throws AmbariException {
 
-    return getRepoInfo(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
-  }
 
-  public String getRepoInfo(Cluster cluster, String hostOSType, String hostOSFamily, String hostName) throws AmbariException {
-
-    StackId stackId = cluster.getDesiredStackVersion();
-
-    Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
-            stackId.getStackName(), stackId.getStackVersion());
-
-    String family = os_family.find(hostOSType);
-    if (null == family) {
-      family = hostOSFamily;
-    }
-
-    JsonElement gsonList = null;
-
-    // !!! check for the most specific first
-    if (repos.containsKey(hostOSType)) {
-      gsonList = gson.toJsonTree(repos.get(hostOSType));
-    } else if (null != family && repos.containsKey(family)) {
-      gsonList = gson.toJsonTree(repos.get(family));
-    } else {
-      LOG.warn("Could not retrieve repo information for host"
-              + ", hostname=" + hostName
-              + ", clusterName=" + cluster.getClusterName()
-              + ", stackInfo=" + stackId.getStackId());
-    }
-
-    if (null != gsonList) {
-      gsonList = updateBaseUrls(cluster, JsonArray.class.cast(gsonList));
-      return gsonList.toString();
-    } else {
-      return "";
-    }
-  }
-
-  /**
-   * Checks repo URLs against the current version for the cluster and makes
-   * adjustments to the Base URL when the current is different.
-   * @param cluster   the cluster to load the current version
-   * @param jsonArray the array containing stack repo data
-   */
-  private JsonArray updateBaseUrls(Cluster cluster, JsonArray jsonArray) throws AmbariException {
-    ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
-
-    if (null == cve) {
-      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
-          RepositoryVersionState.INIT);
-
-      if (!list.isEmpty()) {
-        if (list.size() > 1) {
-          throw new AmbariException(String.format("The cluster can only be initialized by one version: %s found",
-              list.size()));
-        } else {
-          cve = list.get(0);
-        }
-      }
-    }
-
-    if (null == cve || null == cve.getRepositoryVersion()) {
-      LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
-      return jsonArray;
-    }
-
-    RepositoryVersionEntity rve = cve.getRepositoryVersion();
-
-    JsonArray result = new JsonArray();
-
-    for (JsonElement e : jsonArray) {
-      JsonObject obj = e.getAsJsonObject();
-
-      String repoId = obj.has("repoId") ? obj.get("repoId").getAsString() : null;
-      String repoName = obj.has("repoName") ? obj.get("repoName").getAsString() : null;
-      String baseUrl = obj.has("baseUrl") ? obj.get("baseUrl").getAsString() : null;
-      String osType = obj.has("osType") ? obj.get("osType").getAsString() : null;
-
-      if (null == repoId || null == baseUrl || null == osType || null == repoName) {
-        continue;
-      }
-
-      for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
-        if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
-          for (RepositoryEntity re : ose.getRepositories()) {
-            if (re.getName().equals(repoName) &&
-                re.getRepositoryId().equals(repoId) &&
-                !re.getBaseUrl().equals(baseUrl)) {
-              obj.addProperty("baseUrl", re.getBaseUrl());
-            }
-          }
-        result.add(e);
-        }
-      }
-    }
-
-    return result;
-  }
 
 
   /**

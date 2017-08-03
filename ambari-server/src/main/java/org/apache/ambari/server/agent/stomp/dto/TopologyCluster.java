@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,14 +22,13 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.commons.collections.SetUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TopologyCluster {
-  private String clusterName;
-
   @JsonProperty("components")
   private Set<TopologyComponent> topologyComponents = new HashSet<>();
 
@@ -51,9 +50,12 @@ public class TopologyCluster {
       for (Iterator<TopologyComponent> iter = getTopologyComponents().iterator(); iter.hasNext() && !updated; ) {
         TopologyComponent existsComponent = iter.next();
         if (existsComponent.equals(componentToUpdate)) {
-          //TODO add case removing not all hostcomponents
           if (eventType.equals(TopologyUpdateEvent.EventType.DELETE)) {
-            iter.remove();
+            if (SetUtils.isEqualSet(existsComponent.getHostIds(), componentToUpdate.getHostIds())) {
+              iter.remove();
+            } else {
+              existsComponent.removeComponent(componentToUpdate);
+            }
           } else {
             existsComponent.updateComponent(componentToUpdate);
           }
@@ -95,6 +97,22 @@ public class TopologyCluster {
     return topologyHosts;
   }
 
+  public Set<TopologyHost> deepCopyTopologyHosts() {
+    return topologyHosts;
+  }
+
+  public TopologyCluster deepCopyCluster() {
+    Set<TopologyComponent> copiedComponents = new HashSet<>();
+    for (TopologyComponent topologyComponent : topologyComponents) {
+      copiedComponents.add(topologyComponent.deepCopy());
+    }
+    Set<TopologyHost> copiedHosts = new HashSet<>();
+    for (TopologyHost topologyHost : topologyHosts) {
+      copiedHosts.add(topologyHost.deepCopy());
+    }
+    return new TopologyCluster(copiedComponents, copiedHosts);
+  }
+
   public void setTopologyHosts(Set<TopologyHost> topologyHosts) {
     this.topologyHosts = topologyHosts;
   }
@@ -107,11 +125,22 @@ public class TopologyCluster {
     topologyComponents.add(topologyComponent);
   }
 
-  public String getClusterName() {
-    return clusterName;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    TopologyCluster that = (TopologyCluster) o;
+
+    if (topologyComponents != null ? !topologyComponents.equals(that.topologyComponents) : that.topologyComponents != null)
+      return false;
+    return topologyHosts != null ? topologyHosts.equals(that.topologyHosts) : that.topologyHosts == null;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  @Override
+  public int hashCode() {
+    int result = topologyComponents != null ? topologyComponents.hashCode() : 0;
+    result = 31 * result + (topologyHosts != null ? topologyHosts.hashCode() : 0);
+    return result;
   }
 }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -67,5 +67,29 @@ public class MetadataServiceInfo {
 
   public void setServicePackageFolder(String servicePackageFolder) {
     this.servicePackageFolder = servicePackageFolder;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    MetadataServiceInfo that = (MetadataServiceInfo) o;
+
+    if (version != null ? !version.equals(that.version) : that.version != null) return false;
+    if (credentialStoreEnabled != null ? !credentialStoreEnabled.equals(that.credentialStoreEnabled) : that.credentialStoreEnabled != null)
+      return false;
+    if (statusCommandsTimeout != null ? !statusCommandsTimeout.equals(that.statusCommandsTimeout) : that.statusCommandsTimeout != null)
+      return false;
+    return servicePackageFolder != null ? servicePackageFolder.equals(that.servicePackageFolder) : that.servicePackageFolder == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = version != null ? version.hashCode() : 0;
+    result = 31 * result + (credentialStoreEnabled != null ? credentialStoreEnabled.hashCode() : 0);
+    result = 31 * result + (statusCommandsTimeout != null ? statusCommandsTimeout.hashCode() : 0);
+    result = 31 * result + (servicePackageFolder != null ? servicePackageFolder.hashCode() : 0);
+    return result;
   }
 }

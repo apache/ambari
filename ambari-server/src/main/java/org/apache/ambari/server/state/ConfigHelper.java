@@ -32,10 +32,13 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.dto.ClusterConfigs;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
@@ -52,6 +55,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
@@ -103,6 +107,15 @@ public class ConfigHelper {
    * The tag given to newly created versions.
    */
   public static final String FIRST_VERSION_TAG = "version1";
+
+  @Inject
+  private Provider<MetadataHolder> m_metadataHolder;
+
+  @Inject
+  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
+
+  @Inject
+  private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
 
   @Inject
   public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo, Configuration configuration, ClusterDAO clusterDAO) {
@@ -748,7 +761,11 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        Config actualConfig = actualConfigs.get(stackPropertyConfigType);
+        if (actualConfig == null) {
+          continue;
+        }
+        result.put(stackProperty, actualConfig.getProperties().get(stackProperty.getName()));
       }
     }
 
@@ -825,7 +842,11 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        Config actualConfig = actualConfigs.get(stackPropertyConfigType);
+        if (actualConfig == null) {
+          continue;
+        }
+        result.add(actualConfig.getProperties().get(stackProperty.getName()));
       }
     }
 
@@ -1081,6 +1102,8 @@ public class ConfigHelper {
     if (baseConfig != null) {
       cluster.addDesiredConfig(authenticatedUserName,
           Collections.singleton(baseConfig), serviceVersionNote);
+      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
     }
   }
 
@@ -1150,12 +1173,17 @@ public class ConfigHelper {
     }
 
     // create the configuration history entries
+    boolean added = false;
     for (Set<Config> configs : serviceMapped.values()) {
       if (!configs.isEmpty()) {
         cluster.addDesiredConfig(authenticatedUserName, configs, serviceVersionNote);
+        added = true;
       }
     }
-
+    if (added) {
+      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+    }
   }
 
   /**

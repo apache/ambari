@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,6 +32,7 @@ import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.events.TopologyAgentUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.state.Cluster;
@@ -44,7 +45,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.collections.CollectionUtils;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -62,9 +62,19 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
   @Inject
   private Clusters clusters;
 
+  protected StateUpdateEventPublisher stateUpdateEventPublisher;
+
   @Inject
   public TopologyHolder(StateUpdateEventPublisher stateUpdateEventPublisher) {
+    this.stateUpdateEventPublisher = stateUpdateEventPublisher;
     stateUpdateEventPublisher.register(this);
+  }
+
+  @Override
+  public TopologyUpdateEvent getUpdateIfChanged(String agentHash) throws AmbariException {
+    TopologyUpdateEvent topologyUpdateEvent = super.getUpdateIfChanged(agentHash);
+    prepareAgentTopology(topologyUpdateEvent);
+    return topologyUpdateEvent;
   }
 
   /**
@@ -82,9 +92,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
       Set<TopologyHost> topologyHosts = new HashSet<>();
       for (Host host : clusterHosts) {
         topologyHosts.add(new TopologyHost(host.getHostId(), host.getHostName(),
-            host.getRackInfo(), host.getIPv4(), recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
-            host.getHostName()),
-            ambariManagementController.getTopologyHostLevelParams(cl, host)));
+            host.getRackInfo(), host.getIPv4()));
       }
       for (Service service : cl.getServices().values()) {
         for (ServiceComponent component : service.getServiceComponents().values()) {
@@ -109,6 +117,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
                 .setHostIds(hostOrderIds)
                 .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(stackId, serviceName,
                     componentName, cl.getSecurityType()))
+                .setCommandParams(ambariManagementController.getTopologyCommandParams(stackId, serviceName, componentName))
                 .build();
             topologyComponents.add(topologyComponent);
           }
@@ -122,7 +131,6 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
     return topologyUpdateEvent;
   }
 
-  @Subscribe
   public void updateData(TopologyUpdateEvent update) throws AmbariException {
     if (getData() == null) {
       setData(getCurrentData());
@@ -144,12 +152,34 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         if (eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
           getData().getClusters().put(clusterId, cluster);
         } else {
-          throw new ClusterNotFoundException(Long.getLong(clusterId));
+          throw new ClusterNotFoundException(Long.parseLong(clusterId));
         }
       }
     }
 
     regenerateHash();
+    update.setHash(getData().getHash());
+    stateUpdateEventPublisher.publish(update);
+
+    // it is not allowed to change existent update event before arriving to listener and converting to json
+    // so it is better to create copy
+    TopologyUpdateEvent copiedUpdate = update.deepCopy();
+    TopologyAgentUpdateEvent topologyAgentUpdateEvent = new TopologyAgentUpdateEvent(copiedUpdate.getClusters(),
+        copiedUpdate.getHash(),
+        copiedUpdate.getEventType());
+    prepareAgentTopology(topologyAgentUpdateEvent);
+    stateUpdateEventPublisher.publish(topologyAgentUpdateEvent);
+  }
+
+  private void prepareAgentTopology(TopologyUpdateEvent topologyUpdateEvent) {
+    if (topologyUpdateEvent.getClusters() != null) {
+      for (TopologyCluster topologyCluster : topologyUpdateEvent.getClusters().values()) {
+        for (TopologyComponent topologyComponent : topologyCluster.getTopologyComponents()) {
+          topologyComponent.setHostNames(new HashSet<>());
+          topologyComponent.setPublicHostNames(new HashSet<>());
+        }
+      }
+    }
   }
 
   @Override

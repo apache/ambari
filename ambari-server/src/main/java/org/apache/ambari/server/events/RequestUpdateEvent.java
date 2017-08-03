@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.events;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
@@ -31,6 +32,9 @@ import org.apache.ambari.server.topology.TopologyManager;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Contains info about request update. This update will be sent to all subscribed recipients.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RequestUpdateEvent extends AmbariUpdateEvent {
 
@@ -43,7 +47,7 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
   private Long startTime;
 
   @JsonProperty("Tasks")
-  private List<HostRoleCommand> hostRoleCommands = new ArrayList<>();
+  private Set<HostRoleCommand> hostRoleCommands = new HashSet<>();
 
   public RequestUpdateEvent(RequestEntity requestEntity,
                             HostRoleCommandDAO hostRoleCommandDAO,
@@ -65,6 +69,14 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
           hostRoleCommandEntity.getStatus(),
           hostRoleCommandEntity.getHostName()));
     }
+  }
+
+  public RequestUpdateEvent(Long requestId, HostRoleStatus requestStatus,
+                            Set<HostRoleCommand> hostRoleCommands) {
+    super(Type.REQUEST);
+    this.requestId = requestId;
+    this.requestStatus = requestStatus;
+    this.hostRoleCommands = hostRoleCommands;
   }
 
   public Long getRequestId() {
@@ -123,7 +135,15 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
     this.startTime = startTime;
   }
 
-  public class HostRoleCommand {
+  public Set<HostRoleCommand> getHostRoleCommands() {
+    return hostRoleCommands;
+  }
+
+  public void setHostRoleCommands(Set<HostRoleCommand> hostRoleCommands) {
+    this.hostRoleCommands = hostRoleCommands;
+  }
+
+  public static class HostRoleCommand {
     private Long id;
     private Long requestId;
     private HostRoleStatus status;
@@ -167,5 +187,57 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
     public void setHostName(String hostName) {
       this.hostName = hostName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      HostRoleCommand that = (HostRoleCommand) o;
+
+      if (!id.equals(that.id)) return false;
+      if (!requestId.equals(that.requestId)) return false;
+      return hostName.equals(that.hostName);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = id.hashCode();
+      result = 31 * result + requestId.hashCode();
+      result = 31 * result + hostName.hashCode();
+      return result;
+    }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RequestUpdateEvent that = (RequestUpdateEvent) o;
+
+    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (endTime != null ? !endTime.equals(that.endTime) : that.endTime != null) return false;
+    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
+    if (progressPercent != null ? !progressPercent.equals(that.progressPercent) : that.progressPercent != null)
+      return false;
+    if (requestContext != null ? !requestContext.equals(that.requestContext) : that.requestContext != null)
+      return false;
+    if (requestStatus != that.requestStatus) return false;
+    if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) return false;
+    return hostRoleCommands != null ? hostRoleCommands.equals(that.hostRoleCommands) : that.hostRoleCommands == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = clusterName != null ? clusterName.hashCode() : 0;
+    result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
+    result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
+    result = 31 * result + (progressPercent != null ? progressPercent.hashCode() : 0);
+    result = 31 * result + (requestContext != null ? requestContext.hashCode() : 0);
+    result = 31 * result + (requestStatus != null ? requestStatus.hashCode() : 0);
+    result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
+    result = 31 * result + (hostRoleCommands != null ? hostRoleCommands.hashCode() : 0);
+    return result;
   }
 }

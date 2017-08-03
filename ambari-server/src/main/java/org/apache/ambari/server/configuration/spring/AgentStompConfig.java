@@ -22,20 +22,38 @@ import org.apache.ambari.server.api.stomp.TestController;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+
+import com.google.inject.Injector;
 
 @Configuration
 @EnableWebSocketMessageBroker
 @ComponentScan(basePackageClasses = {TestController.class, HeartbeatController.class})
 @Import(RootStompConfig.class)
 public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
+  private org.apache.ambari.server.configuration.Configuration configuration;
+
+  public AgentStompConfig(Injector injector) {
+    configuration = injector.getInstance(org.apache.ambari.server.configuration.Configuration.class);
+  }
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1")
         .setAllowedOrigins("*");
 
+  }
+
+  @Override
+  public void configureClientInboundChannel(ChannelRegistration registration) {
+    registration.taskExecutor().corePoolSize(configuration.getSpringMessagingThreadPoolSize());
+  }
+
+  @Override
+  public void configureClientOutboundChannel(ChannelRegistration registration) {
+    registration.taskExecutor().corePoolSize(configuration.getSpringMessagingThreadPoolSize());
   }
 }

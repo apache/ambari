@@ -548,7 +548,8 @@ public class AlertDefinitionHash {
         m_actionQueue.dequeue(hostName,
             AgentCommandType.ALERT_EXECUTION_COMMAND);
 
-        m_actionQueue.enqueue(hostName, command);
+        // TODO implement alert execution commands logic
+        //m_actionQueue.enqueue(hostName, command);
       }
     } finally {
       m_actionQueueLock.unlock();

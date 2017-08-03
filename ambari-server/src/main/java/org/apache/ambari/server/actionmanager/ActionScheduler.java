@@ -50,6 +50,7 @@ import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.listeners.tasks.TaskStatusListener;
+import org.apache.ambari.server.events.publishers.AgentCommandsPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -143,6 +144,9 @@ class ActionScheduler implements Runnable {
    */
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private AgentCommandsPublisher agentCommandsPublisher;
 
   /**
    * The current thread's reference to the {@link EntityManager}.
@@ -527,7 +531,7 @@ class ActionScheduler implements Runnable {
             commandsToEnqueue.put(cmd.getHostname(), cmd);
           }
         }
-        actionQueue.enqueueAll(commandsToEnqueue.asMap());
+        agentCommandsPublisher.sendAgentCommand(commandsToEnqueue);
         LOG.debug("==> Finished.");
 
         if (!configuration.getParallelStageExecution()) { // If disabled
@@ -1177,7 +1181,7 @@ class ActionScheduler implements Runnable {
   /**
    * Aborts all stages that belong to requests that are being cancelled
    */
-  private void processCancelledRequestsList() {
+  private void processCancelledRequestsList() throws AmbariException {
     synchronized (requestsToBeCancelled) {
       // Now, cancel stages completely
       for (Long requestId : requestsToBeCancelled) {
@@ -1221,7 +1225,7 @@ class ActionScheduler implements Runnable {
    * @param hostRoleCommands a list of hostRoleCommands
    * @param reason why the request is being cancelled
    */
-  void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) {
+  void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) throws AmbariException {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
       // There are no server actions in actionQueue
       if (!Role.AMBARI_SERVER_ACTION.equals(hostRoleCommand.getRole())) {
@@ -1236,7 +1240,7 @@ class ActionScheduler implements Runnable {
           CancelCommand cancelCommand = new CancelCommand();
           cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
           cancelCommand.setReason(reason);
-          actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+          agentCommandsPublisher.sendAgentCommand(hostRoleCommand.getHostName(), cancelCommand);
         }
       }
 

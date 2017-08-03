@@ -36,6 +36,8 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.events.HostStateUpdateEvent;
+import org.apache.ambari.server.events.HostStatusUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
@@ -134,6 +136,9 @@ public class HostImpl implements Host {
 
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
 
   /**
    * The ID of the host which is to retrieve it from JPA.
@@ -556,6 +561,7 @@ public class HostImpl implements Host {
   public void setState(HostState state) {
     stateMachine.setCurrentState(state);
     HostStateEntity hostStateEntity = getHostStateEntity();
+    ambariEventPublisher.publish(new HostStateUpdateEvent(getHostName(), state));
 
     if (hostStateEntity != null) {
       hostStateEntity.setCurrentState(state);
@@ -589,6 +595,7 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
     if (oldState != getState()) {
+      ambariEventPublisher.publish(new HostStateUpdateEvent(getHostName(), getState()));
       if (LOG.isDebugEnabled()) {
         LOG.debug("Host transitioned to a new state"
             + ", host=" + getHostName()
@@ -912,6 +919,9 @@ public class HostImpl implements Host {
 
   @Override
   public void setStatus(String status) {
+    if (this.status != status) {
+      ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), status));
+    }
     this.status = status;
   }
 

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -69,6 +70,8 @@ public interface ServiceComponent {
   void updateComponentInfo() throws AmbariException;
 
   Map<String, ServiceComponentHost> getServiceComponentHosts();
+
+  Set<String> getServiceComponentsHosts();
 
   ServiceComponentHost getServiceComponentHost(String hostname)
       throws AmbariException;

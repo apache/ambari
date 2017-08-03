@@ -17,10 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.Map;
-
 import org.codehaus.jackson.annotate.JsonProperty;
-
 
 public class CommandReport {
 
@@ -31,12 +28,11 @@ public class CommandReport {
   private String structuredOut;
   private String status;
   int exitCode;
-  private String clusterName;
   private String serviceName;
   private long taskId;
+  private String clusterId;
   private String roleCommand;
   private String customCommand;
-  private Map<String, Map<String, String>> configurationTags;
 
   @JsonProperty("customCommand")
   @com.fasterxml.jackson.annotation.JsonProperty("customCommand")
@@ -60,18 +56,6 @@ public class CommandReport {
   @com.fasterxml.jackson.annotation.JsonProperty("taskId")
   public void setTaskId(long taskId) {
     this.taskId = taskId;
-  }
-  
-  @JsonProperty("clusterName")
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-  
-  @JsonProperty("clusterName")
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
-  public String getClusterName() {
-    return this.clusterName;
   }
 
   @JsonProperty("actionId")
@@ -183,23 +167,14 @@ public class CommandReport {
     this.serviceName = serviceName;
   }
 
-  /**
-   * @param tags the config tags that match this command
-   */
-  @JsonProperty("configurationTags")
-  @com.fasterxml.jackson.annotation.JsonProperty("configurationTags")
-  public void setConfigurationTags(Map<String, Map<String,String>> tags) {
-    configurationTags = tags;
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterId")
+  public String getClusterId() {
+    return clusterId;
   }
-  
-  /**
-   * @return the config tags that match this command, or <code>null</code>
-   * if none are present
-   */
-  @JsonProperty("configurationTags")
-  @com.fasterxml.jackson.annotation.JsonProperty("configurationTags")
-  public Map<String, Map<String,String>> getConfigurationTags() {
-    return configurationTags;
+
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterId")
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
   }
 
   @Override
@@ -209,11 +184,10 @@ public class CommandReport {
             ", actionId='" + actionId + '\'' +
             ", status='" + status + '\'' +
             ", exitCode=" + exitCode +
-            ", clusterName='" + clusterName + '\'' +
+            ", clusterId='" + clusterId + '\'' +
             ", serviceName='" + serviceName + '\'' +
             ", taskId=" + taskId +
             ", roleCommand=" + roleCommand +
-            ", configurationTags=" + configurationTags +
             ", customCommand=" + customCommand +
             '}';
   }

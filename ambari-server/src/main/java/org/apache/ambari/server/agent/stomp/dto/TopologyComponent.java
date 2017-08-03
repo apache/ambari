@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +28,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TopologyComponent {
   private String componentName;
   private String serviceName;
@@ -38,6 +38,7 @@ public class TopologyComponent {
   private Set<String> hostNames;
   private Set<String> publicHostNames;
   private TreeMap<String, String> componentLevelParams;
+  private TreeMap<String, String> commandParams;
 
   private TopologyComponent() {
   }
@@ -91,6 +92,11 @@ public class TopologyComponent {
       return this;
     }
 
+    public Builder setCommandParams(TreeMap<String, String> commandParams) {
+      TopologyComponent.this.setCommandParams(commandParams);
+      return this;
+    }
+
     public TopologyComponent build() {
       return TopologyComponent.this;
     }
@@ -123,7 +129,43 @@ public class TopologyComponent {
       if (MapUtils.isNotEmpty(componentToUpdate.getComponentLevelParams())) {
         componentLevelParams.putAll(componentToUpdate.getComponentLevelParams());
       }
+      if (MapUtils.isNotEmpty(componentToUpdate.getCommandParams())) {
+        commandParams.putAll(componentToUpdate.getCommandParams());
+      }
     }
+  }
+
+  public void removeComponent(TopologyComponent componentToRemove) {
+    if (componentToRemove.getComponentName().equals(getComponentName())) {
+      if (CollectionUtils.isNotEmpty(componentToRemove.getHostIds())) {
+        if (hostIds != null) {
+          hostIds.removeAll(componentToRemove.getHostIds());
+        }
+      }
+      if (CollectionUtils.isNotEmpty(componentToRemove.getHostNames())) {
+        if (hostNames != null) {
+          hostNames.removeAll(componentToRemove.getHostNames());
+        }
+      }
+      if (CollectionUtils.isNotEmpty(componentToRemove.getPublicHostNames())) {
+        if (publicHostNames != null) {
+          publicHostNames.removeAll(componentToRemove.getPublicHostNames());
+        }
+      }
+    }
+  }
+
+  public  TopologyComponent deepCopy() {
+    return TopologyComponent.newBuilder().setComponentName(getComponentName())
+        .setDisplayName(getDisplayName())
+        .setServiceName(getServiceName())
+        .setVersion(getVersion())
+        .setComponentLevelParams(getComponentLevelParams() == null ? null : new TreeMap<>(getComponentLevelParams()))
+        .setHostIds(getHostIds() == null ? null : new HashSet<>(getHostIds()))
+        .setHostNames(getHostNames() == null ? null : new HashSet<>(getHostNames()))
+        .setPublicHostNames(getPublicHostNames() == null ? null : new HashSet<>(getPublicHostNames()))
+        .setCommandParams(getCommandParams() == null ? null : new TreeMap<>(getCommandParams()))
+        .build();
   }
 
   public String getComponentName() {
@@ -198,6 +240,13 @@ public class TopologyComponent {
     this.publicHostNames = publicHostNames;
   }
 
+  public TreeMap<String, String> getCommandParams() {
+    return commandParams;
+  }
+
+  public void setCommandParams(TreeMap<String, String> commandParams) {
+    this.commandParams = commandParams;
+  }
 
   @Override
   public boolean equals(Object o) {

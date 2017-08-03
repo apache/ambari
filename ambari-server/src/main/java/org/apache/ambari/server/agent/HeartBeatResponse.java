@@ -21,11 +21,14 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Controller to Agent response data model.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class HeartBeatResponse {
 
   @SerializedName("responseId")
@@ -33,15 +36,15 @@ public class HeartBeatResponse {
   private long responseId;
 
   @SerializedName("executionCommands")
-  @com.fasterxml.jackson.annotation.JsonProperty("executionCommands")
+  @JsonIgnore
   private List<ExecutionCommand> executionCommands = new ArrayList<>();
 
   @SerializedName("statusCommands")
-  @com.fasterxml.jackson.annotation.JsonProperty("statusCommands")
+  @JsonIgnore
   private List<StatusCommand> statusCommands = new ArrayList<>();
 
   @SerializedName("cancelCommands")
-  @com.fasterxml.jackson.annotation.JsonProperty("cancelCommands")
+  @JsonIgnore
   private List<CancelCommand> cancelCommands = new ArrayList<>();
 
   /**
@@ -52,7 +55,7 @@ public class HeartBeatResponse {
    * the agent to abandon all alert definitions that are scheduled.
    */
   @SerializedName("alertDefinitionCommands")
-  @com.fasterxml.jackson.annotation.JsonProperty("alertDefinitionCommands")
+  @JsonIgnore
   private List<AlertDefinitionCommand> alertDefinitionCommands = null;
 
   /**
@@ -60,31 +63,31 @@ public class HeartBeatResponse {
    * immediately.
    */
   @SerializedName("alertExecutionCommands")
-  @com.fasterxml.jackson.annotation.JsonProperty("alertExecutionCommands")
+  @JsonIgnore
   private List<AlertExecutionCommand> alertExecutionCommands = null;
 
   @SerializedName("registrationCommand")
-  @com.fasterxml.jackson.annotation.JsonProperty("registrationCommand")
+  @JsonIgnore
   private RegistrationCommand registrationCommand;
 
   @SerializedName("restartAgent")
   @com.fasterxml.jackson.annotation.JsonProperty("restartAgent")
-  private boolean restartAgent = false;
+  private Boolean restartAgent = null;
 
   @SerializedName("hasMappedComponents")
-  @com.fasterxml.jackson.annotation.JsonProperty("hasMappedComponents")
+  @JsonIgnore
   private boolean hasMappedComponents = false;
 
   @SerializedName("hasPendingTasks")
-  @com.fasterxml.jackson.annotation.JsonProperty("hasPendingTasks")
+  @JsonIgnore
   private boolean hasPendingTasks = false;
 
   @SerializedName("recoveryConfig")
-  @com.fasterxml.jackson.annotation.JsonProperty("recoveryConfig")
+  @JsonIgnore
   private RecoveryConfig recoveryConfig;
 
   @SerializedName("clusterSize")
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterSize")
+  @JsonIgnore
   private int clusterSize = -1;
 
   public long getResponseId() {
@@ -150,6 +153,9 @@ public class HeartBeatResponse {
   /**
    * Gets the alert definition commands that contain the alert definitions for
    * each cluster that the host is a member of.
+   *
+   * @param commands
+   *          the commands, or {@code null} for none.
    */
   public List<AlertDefinitionCommand> getAlertDefinitionCommands() {
     return alertDefinitionCommands;
@@ -166,11 +172,11 @@ public class HeartBeatResponse {
     alertDefinitionCommands = commands;
   }
 
-  public boolean isRestartAgent() {
+  public Boolean isRestartAgent() {
     return restartAgent;
   }
 
-  public void setRestartAgent(boolean restartAgent) {
+  public void setRestartAgent(Boolean restartAgent) {
     this.restartAgent = restartAgent;
   }
 

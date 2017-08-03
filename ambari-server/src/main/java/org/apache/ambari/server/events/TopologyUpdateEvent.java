@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events;
 
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
@@ -25,23 +26,53 @@ import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Contains info about clusters topology update. This update will be sent to all subscribed recipients.
+ * Is used to messaging to UI.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TopologyUpdateEvent extends AmbariUpdateEvent implements Hashable {
+
+  /**
+   * Map of clusters topologies by cluster ids.
+   */
   @JsonProperty("clusters")
   private TreeMap<String, TopologyCluster> clusters;
 
+  /**
+   * Actual version hash.
+   */
   private String hash;
 
+  /**
+   * Type of update, is used to differ full current topology (CREATE), adding new or update existing topology
+   * elements (UPDATE) and removing existing topology elements (DELETE).
+   */
   private EventType eventType;
 
   public TopologyUpdateEvent(TreeMap<String, TopologyCluster> clusters, EventType eventType) {
-    super(Type.TOPOLOGY);
+    this(Type.UI_TOPOLOGY, clusters, null, eventType);
+  }
+
+  public TopologyUpdateEvent(Type type, TreeMap<String, TopologyCluster> clusters, String hash, EventType eventType) {
+    super(type);
     this.clusters = clusters;
+    this.hash = hash;
     this.eventType = eventType;
   }
 
   public TreeMap<String, TopologyCluster> getClusters() {
     return clusters;
+  }
+
+  public TopologyUpdateEvent deepCopy() {
+    TreeMap<String, TopologyCluster> copiedClusters = new TreeMap<>();
+    for (Map.Entry<String, TopologyCluster> topologyClusterEntry : getClusters().entrySet()) {
+      copiedClusters.put(topologyClusterEntry.getKey(), topologyClusterEntry.getValue().deepCopyCluster());
+    }
+    TopologyUpdateEvent copiedEvent = new TopologyUpdateEvent(copiedClusters, getEventType());
+    copiedEvent.setHash(getHash());
+    return copiedEvent;
   }
 
   public void setClusters(TreeMap<String, TopologyCluster> clusters) {
@@ -72,5 +103,23 @@ public class TopologyUpdateEvent extends AmbariUpdateEvent implements Hashable {
     CREATE,
     DELETE,
     UPDATE
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    TopologyUpdateEvent that = (TopologyUpdateEvent) o;
+
+    if (clusters != null ? !clusters.equals(that.clusters) : that.clusters != null) return false;
+    return eventType == that.eventType;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = clusters != null ? clusters.hashCode() : 0;
+    result = 31 * result + (eventType != null ? eventType.hashCode() : 0);
+    return result;
   }
 }

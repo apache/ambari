@@ -30,7 +30,10 @@ import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvi
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
+import org.apache.ambari.server.events.AlertDefinitionUpdateHolder;
+import org.apache.ambari.server.events.AlertDefinitionsUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
@@ -98,6 +101,12 @@ public class AlertDefinitionDAO {
    */
   @Inject
   private AlertDefinitionFactory alertDefinitionFactory;
+
+  @Inject
+  private AlertDefinitionUpdateHolder alertDefinitionUpdateHolder;
+
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
 
   /**
    * Gets an alert definition with the specified ID.
@@ -341,6 +350,9 @@ public class AlertDefinitionDAO {
       AlertDefinitionRegistrationEvent event = new AlertDefinitionRegistrationEvent(
           alertDefinition.getClusterId(), coerced);
 
+      stateUpdateEventPublisher.publish(new AlertDefinitionsUpdateEvent(coerced,
+          alertDefinition.getRepeatTolerance(), Boolean.valueOf(alertDefinition.isRepeatToleranceEnabled())));
+
       eventPublisher.publish(event);
     } else {
       LOG.warn("Unable to broadcast alert registration event for {}",
@@ -379,6 +391,9 @@ public class AlertDefinitionDAO {
         alertDefinition.getClusterId(), definition);
 
     eventPublisher.publish(event);
+
+    alertDefinitionUpdateHolder.updateIfNeeded(new AlertDefinitionsUpdateEvent(definition,
+        alertDefinition.getRepeatTolerance(), Boolean.valueOf(alertDefinition.isRepeatToleranceEnabled())));
 
     return entity;
   }
@@ -426,6 +441,8 @@ public class AlertDefinitionDAO {
                 alertDefinition.getClusterId(), coerced);
 
         eventPublisher.publish(event);
+
+        stateUpdateEventPublisher.publish(new AlertDefinitionsUpdateEvent(alertDefinition.getDefinitionId()));
       } else {
         LOG.warn("Unable to broadcast alert removal event for {}",
                 alertDefinition.getDefinitionName());

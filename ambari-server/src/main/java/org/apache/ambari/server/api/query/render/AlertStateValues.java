@@ -57,4 +57,26 @@ public final class AlertStateValues {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public String AlertText = null;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    AlertStateValues that = (AlertStateValues) o;
+
+    if (Count != that.Count) return false;
+    if (Timestamp != that.Timestamp) return false;
+    if (MaintenanceCount != that.MaintenanceCount) return false;
+    return AlertText != null ? AlertText.equals(that.AlertText) : that.AlertText == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Count;
+    result = 31 * result + (int) (Timestamp ^ (Timestamp >>> 32));
+    result = 31 * result + MaintenanceCount;
+    result = 31 * result + (AlertText != null ? AlertText.hashCode() : 0);
+    return result;
+  }
 }

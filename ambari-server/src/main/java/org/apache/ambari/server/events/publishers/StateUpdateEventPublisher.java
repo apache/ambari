@@ -20,9 +20,12 @@ package org.apache.ambari.server.events.publishers;
 import java.util.concurrent.Executors;
 
 import org.apache.ambari.server.events.AmbariUpdateEvent;
+import org.apache.ambari.server.events.HostComponentsUpdateEvent;
+import org.apache.ambari.server.events.RequestUpdateEvent;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -30,13 +33,25 @@ public final class StateUpdateEventPublisher {
 
   private final EventBus m_eventBus;
 
+  @Inject
+  private RequestUpdateEventPublisher requestUpdateEventPublisher;
+
+  @Inject
+  private HostComponentUpdateEventPublisher hostComponentUpdateEventPublisher;
+
   public StateUpdateEventPublisher() {
     m_eventBus = new AsyncEventBus("ambari-update-bus",
       Executors.newSingleThreadExecutor());
   }
 
   public void publish(AmbariUpdateEvent event) {
-    m_eventBus.post(event);
+    if (event.getType().equals(AmbariUpdateEvent.Type.REQUEST)) {
+      requestUpdateEventPublisher.publish((RequestUpdateEvent) event, m_eventBus);
+    } else if (event.getType().equals(AmbariUpdateEvent.Type.HOSTCOMPONENT)) {
+      hostComponentUpdateEventPublisher.publish((HostComponentsUpdateEvent) event, m_eventBus);
+    } else {
+      m_eventBus.post(event);
+    }
   }
 
   public void register(Object object) {

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,19 +23,40 @@ import java.util.Map;
 
 import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 
+/**
+ * Contains info about alerts update. This update will be sent to all subscribed recipients.
+ */
 public class AlertUpdateEvent extends AmbariUpdateEvent {
-  private Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = new HashMap<>();
+  /**
+   * Alert summaries grouped by cluster id.
+   */
+  private Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> summaries = new HashMap<>();
 
-  public AlertUpdateEvent(Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries) {
+  public AlertUpdateEvent(Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> summaries) {
     super(Type.ALERT);
     this.summaries = summaries;
   }
 
-  public Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> getSummaries() {
+  public Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> getSummaries() {
     return summaries;
   }
 
-  public void setSummaries(Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries) {
+  public void setSummaries(Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> summaries) {
     this.summaries = summaries;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    AlertUpdateEvent that = (AlertUpdateEvent) o;
+
+    return summaries != null ? summaries.equals(that.summaries) : that.summaries == null;
+  }
+
+  @Override
+  public int hashCode() {
+    return summaries != null ? summaries.hashCode() : 0;
   }
 }

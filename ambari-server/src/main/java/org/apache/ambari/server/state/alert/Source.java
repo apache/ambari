@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -25,6 +26,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public abstract class Source {
 
   private SourceType type;

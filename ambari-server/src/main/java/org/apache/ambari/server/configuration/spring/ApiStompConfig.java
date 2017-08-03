@@ -47,6 +47,7 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1")
         .setAllowedOrigins("*");
+    registry.addEndpoint("/v1")
+        .setAllowedOrigins("*").withSockJS();
   }
-
 }

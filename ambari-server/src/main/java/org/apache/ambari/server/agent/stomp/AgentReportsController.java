@@ -25,10 +25,13 @@ import javax.ws.rs.WebApplicationException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
+import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ComponentStatus;
 import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.stomp.dto.CommandStatusReports;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReport;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReports;
+import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.logging.Log;
@@ -63,16 +66,37 @@ public class AgentReportsController {
     for (Map.Entry<String, List<ComponentStatusReport>> clusterReport : message.getComponentStatusReports().entrySet()) {
       for (ComponentStatusReport report : clusterReport.getValue()) {
         ComponentStatus componentStatus = new ComponentStatus();
-        componentStatus.setClusterName(clusters.getCluster(report.getClusterId()).getClusterName());
+        componentStatus.setClusterId(report.getClusterId());
         componentStatus.setComponentName(report.getComponentName());
         componentStatus.setServiceName(report.getServiceName());
-        componentStatus.setStatus(report.getStatus().toString());
+        if (report.getCommand().equals(ComponentStatusReport.CommandStatusCommand.STATUS)) {
+          componentStatus.setStatus(report.getStatus().toString());
+        } else {
+          componentStatus.setSecurityState(report.getStatus().toString());
+        }
         statuses.add(componentStatus);
       }
     }
 
     hh.handleComponentReportStatus(statuses,
         agentSessionManager.getHost(simpSessionId).getHostName());
+  }
+
+  @SubscribeMapping("/commands_status")
+  public void handleCommandReportStatus(@Header String simpSessionId, CommandStatusReports message)
+      throws WebApplicationException, InvalidStateTransitionException, AmbariException {
+    List<CommandReport> statuses = new ArrayList<>();
+    for (Map.Entry<String, List<CommandReport>> clusterReport : message.getClustersComponentReports().entrySet()) {
+      statuses.addAll(clusterReport.getValue());
+    }
+
+    hh.handleCommandReportStatus(statuses,
+        agentSessionManager.getHost(simpSessionId).getHostName());
+  }
+
+  @SubscribeMapping("/host_status")
+  public void handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
+    hh.handleHostReportStatus(message, agentSessionManager.getHost(simpSessionId).getHostName());
   }
 
 }

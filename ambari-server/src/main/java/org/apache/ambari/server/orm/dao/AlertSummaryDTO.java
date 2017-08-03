@@ -18,6 +18,10 @@
 package org.apache.ambari.server.orm.dao;
 
 import org.apache.ambari.server.state.AlertState;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Used to return alert summary data out of the database. Alerts that are in
@@ -25,10 +29,19 @@ import org.apache.ambari.server.state.AlertState;
  */
 public class AlertSummaryDTO {
 
+  @JsonProperty("OK")
   private int okCount;
+
+  @JsonProperty("WARNING")
   private int warningCount;
+
+  @JsonProperty("CRITICAL")
   private int criticalCount;
+
+  @JsonProperty("UNKNOWN")
   private int unknownCount;
+
+  @JsonProperty("MAINTENANCE")
   private int maintenanceCount;
 
   /**
@@ -127,5 +140,33 @@ public class AlertSummaryDTO {
    */
   public void setMaintenanceCount(int maintenanceCount) {
     this.maintenanceCount = maintenanceCount;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+
+    if (!(o instanceof AlertSummaryDTO)) return false;
+
+    AlertSummaryDTO that = (AlertSummaryDTO) o;
+
+    return new EqualsBuilder()
+        .append(okCount, that.okCount)
+        .append(warningCount, that.warningCount)
+        .append(criticalCount, that.criticalCount)
+        .append(unknownCount, that.unknownCount)
+        .append(maintenanceCount, that.maintenanceCount)
+        .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+        .append(okCount)
+        .append(warningCount)
+        .append(criticalCount)
+        .append(unknownCount)
+        .append(maintenanceCount)
+        .toHashCode();
   }
 }

@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ComponentStatusReports {
 
-  @JsonProperty("clustersReports")
+  @JsonProperty("clusters")
   private TreeMap<String, List<ComponentStatusReport>> componentStatusReports;
 
   public ComponentStatusReports() {

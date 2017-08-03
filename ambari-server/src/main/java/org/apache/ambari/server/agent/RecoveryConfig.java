@@ -56,10 +56,6 @@ public class RecoveryConfig {
   @com.fasterxml.jackson.annotation.JsonProperty("components")
   private String enabledComponents;
 
-  @SerializedName("recoveryTimestamp")
-  @com.fasterxml.jackson.annotation.JsonProperty("recoveryTimestamp")
-  private long recoveryTimestamp;
-
   public String getEnabledComponents() {
     return enabledComponents;
   }
@@ -108,24 +104,6 @@ public class RecoveryConfig {
     this.maxLifetimeCount = maxLifetimeCount;
   }
 
-  /**
-   * Timestamp when the recovery values were last updated.
-   *
-   * @return - Timestamp.
-   */
-  public long getRecoveryTimestamp() {
-    return recoveryTimestamp;
-  }
-
-  /**
-   * Set the timestamp when the recovery values were last updated.
-   *
-   * @param recoveryTimestamp
-   */
-  public void setRecoveryTimestamp(long recoveryTimestamp) {
-    this.recoveryTimestamp = recoveryTimestamp;
-  }
-
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("RecoveryConfig{");
@@ -135,7 +113,6 @@ public class RecoveryConfig {
     buffer.append(", retryGap=").append(retryGap);
     buffer.append(", maxLifetimeCount=").append(maxLifetimeCount);
     buffer.append(", components=").append(enabledComponents);
-    buffer.append(", recoveryTimestamp=").append(recoveryTimestamp);
     buffer.append('}');
     return buffer.toString();
   }

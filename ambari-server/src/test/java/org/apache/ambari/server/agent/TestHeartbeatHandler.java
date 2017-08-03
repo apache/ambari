@@ -207,7 +207,7 @@ public class TestHeartbeatHandler {
     execCmd.setHostname(hostname);
     execCmd.setClusterName(cluster.getClusterName());
     execCmd.setServiceName(HDFS);
-    aq.enqueue(hostname, execCmd);
+    //aq.enqueue(hostname, execCmd);
     HeartBeat hb = new HeartBeat();
     hb.setResponseId(0);
     HostStatus hs = new HostStatus(Status.HEALTHY, DummyHostStatus);
@@ -312,7 +312,7 @@ public class TestHeartbeatHandler {
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();
-    componentStatus1.setClusterName(DummyCluster);
+    //componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
@@ -320,7 +320,7 @@ public class TestHeartbeatHandler {
     componentStatuses.add(componentStatus1);
 
     ComponentStatus componentStatus2 = new ComponentStatus();
-    componentStatus2.setClusterName(DummyCluster);
+    //componentStatus2.setClusterName(DummyCluster);
     componentStatus2.setServiceName(HDFS);
     componentStatus2.setMessage(DummyHostStatus);
     componentStatus2.setStatus(State.INSTALLED.name());
@@ -438,7 +438,6 @@ public class TestHeartbeatHandler {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
-    hb.setRecoveryTimestamp(rc.getRecoveryTimestamp());
 
     HeartBeatResponse hbr = handler.handleHeartBeat(hb);
     assertNull(hbr.getRecoveryConfig());
@@ -816,7 +815,7 @@ public class TestHeartbeatHandler {
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
-    cr.setClusterName(DummyCluster);
+    //cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
     cr.setRoleCommand("INSTALL");
@@ -886,7 +885,7 @@ public class TestHeartbeatHandler {
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(1, 1));
     cr.setTaskId(1);
-    cr.setClusterName(DummyCluster);
+    //cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
     cr.setRoleCommand("INSTALL");
@@ -1030,7 +1029,7 @@ public class TestHeartbeatHandler {
 
     hostObject.setState(HostState.UNHEALTHY);
 
-    aq.enqueue(DummyHostname1, new StatusCommand());
+    //aq.enqueue(DummyHostname1, new StatusCommand());
 
     //All components are up
     HeartBeat hb1 = new HeartBeat();
@@ -1113,7 +1112,7 @@ public class TestHeartbeatHandler {
 
     hostObject.setState(HostState.UNHEALTHY);
 
-    aq.enqueue(DummyHostname1, new StatusCommand());
+    //aq.enqueue(DummyHostname1, new StatusCommand());
 
     //All components are up
     HeartBeat hb1 = new HeartBeat();
@@ -1122,13 +1121,13 @@ public class TestHeartbeatHandler {
     hb1.setHostname(DummyHostname1);
     List<ComponentStatus> componentStatus = new ArrayList<>();
     ComponentStatus dataNodeStatus = new ComponentStatus();
-    dataNodeStatus.setClusterName(cluster.getClusterName());
+    //dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("STARTED");
     componentStatus.add(dataNodeStatus);
     ComponentStatus nameNodeStatus = new ComponentStatus();
-    nameNodeStatus.setClusterName(cluster.getClusterName());
+    //nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("STARTED");
@@ -1145,13 +1144,13 @@ public class TestHeartbeatHandler {
     hb2.setHostname(DummyHostname1);
     componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
-    dataNodeStatus.setClusterName(cluster.getClusterName());
+    //dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("INSTALLED");
     componentStatus.add(dataNodeStatus);
     nameNodeStatus = new ComponentStatus();
-    nameNodeStatus.setClusterName(cluster.getClusterName());
+    //nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("STARTED");
@@ -1170,13 +1169,13 @@ public class TestHeartbeatHandler {
     hb2a.setHostname(DummyHostname1);
     componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
-    dataNodeStatus.setClusterName(cluster.getClusterName());
+    //dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("INSTALLED");
     componentStatus.add(dataNodeStatus);
     nameNodeStatus = new ComponentStatus();
-    nameNodeStatus.setClusterName(cluster.getClusterName());
+    //nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("STARTED");
@@ -1196,13 +1195,13 @@ public class TestHeartbeatHandler {
     hb3.setHostname(DummyHostname1);
     componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
-    dataNodeStatus.setClusterName(cluster.getClusterName());
+    //dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("INSTALLED");
     componentStatus.add(dataNodeStatus);
     nameNodeStatus = new ComponentStatus();
-    nameNodeStatus.setClusterName(cluster.getClusterName());
+    //nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("INSTALLED");
@@ -1233,7 +1232,7 @@ public class TestHeartbeatHandler {
     hb4.setHostname(DummyHostname1);
     componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
-    dataNodeStatus.setClusterName(cluster.getClusterName());
+    //dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("STARTED");
@@ -1263,7 +1262,7 @@ public class TestHeartbeatHandler {
     cr1.setStdOut("");
     cr1.setExitCode(215);
     cr1.setRoleCommand("STOP");
-    cr1.setClusterName(DummyCluster);
+    //cr1.setClusterName(DummyCluster);
     ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     hb5.setReports(reports);
@@ -1278,7 +1277,7 @@ public class TestHeartbeatHandler {
     CommandReport cr1 = new CommandReport();
     cr1.setActionId(StageUtils.getActionId(requestId, stageId));
     cr1.setTaskId(1);
-    cr1.setClusterName(DummyCluster);
+    //cr1.setClusterName(DummyCluster);
     cr1.setServiceName(HDFS);
     cr1.setRole(NAMENODE);
     cr1.setStatus(HostRoleStatus.FAILED.toString());
@@ -1289,7 +1288,7 @@ public class TestHeartbeatHandler {
     CommandReport cr2 = new CommandReport();
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
     cr2.setTaskId(2);
-    cr2.setClusterName(DummyCluster);
+    //cr2.setClusterName(DummyCluster);
     cr2.setServiceName(HDFS);
     cr2.setRole(NAMENODE);
     cr2.setStatus(HostRoleStatus.FAILED.toString());
@@ -1390,7 +1389,7 @@ public class TestHeartbeatHandler {
                                                 State state, SecurityState securityState,
                                                 String componentName, String stackVersion) {
     ComponentStatus componentStatus1 = new ComponentStatus();
-    componentStatus1.setClusterName(clusterName);
+    //componentStatus1.setClusterName(clusterName);
     componentStatus1.setServiceName(serviceName);
     componentStatus1.setMessage(message);
     componentStatus1.setStatus(state.name());
@@ -1418,7 +1417,7 @@ public class TestHeartbeatHandler {
 
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
-    componentStatus1.setClusterName(DummyCluster);
+    //componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
@@ -1524,7 +1523,7 @@ public class TestHeartbeatHandler {
         }});
     replay(am);
 
-    heartbeatTestHelper.getHeartBeatHandler(am, aq).injectKeytab(executionCommand, "SET_KEYTAB", targetHost);
+    //heartbeatTestHelper.getHeartBeatHandler(am, aq).injectKeytab(executionCommand, "SET_KEYTAB", targetHost);
 
     return executionCommand.getKerberosCommandParams();
   }
@@ -1555,7 +1554,7 @@ public class TestHeartbeatHandler {
         }});
     replay(am);
 
-    heartbeatTestHelper.getHeartBeatHandler(am, aq).injectKeytab(executionCommand, "REMOVE_KEYTAB", targetHost);
+    //heartbeatTestHelper.getHeartBeatHandler(am, aq).injectKeytab(executionCommand, "REMOVE_KEYTAB", targetHost);
 
     return executionCommand.getKerberosCommandParams();
   }

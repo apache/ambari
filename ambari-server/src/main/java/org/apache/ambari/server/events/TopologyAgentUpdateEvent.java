@@ -17,8 +17,19 @@
  */
 package org.apache.ambari.server.events;
 
-public class CommandEvent extends AmbariUpdateEvent {
-  public CommandEvent() {
-    super(Type.COMMAND);
+import java.util.TreeMap;
+
+import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+/**
+ * Contains info about clusters topology update. This update will be sent to all subscribed recipients.
+ * Is used to messaging to agents.
+ */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class TopologyAgentUpdateEvent extends TopologyUpdateEvent {
+  public TopologyAgentUpdateEvent(TreeMap<String, TopologyCluster> clusters, String hash, EventType eventType) {
+    super(Type.AGENT_TOPOLOGY, clusters, hash, eventType);
   }
 }

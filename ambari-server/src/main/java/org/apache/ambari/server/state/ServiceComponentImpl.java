@@ -19,8 +19,10 @@
 package org.apache.ambari.server.state;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -263,6 +265,15 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public Map<String, ServiceComponentHost> getServiceComponentHosts() {
     return new HashMap<>(hostComponents);
+  }
+
+  @Override
+  public Set<String> getServiceComponentsHosts() {
+    Set<String> serviceComponentsHosts = new HashSet<>();
+    for (ServiceComponentHost serviceComponentHost : getServiceComponentHosts().values()) {
+      serviceComponentsHosts.add(serviceComponentHost.getHostName());
+    }
+    return serviceComponentsHosts;
   }
 
   @Override

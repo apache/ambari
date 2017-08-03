@@ -37,10 +37,13 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
+import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
@@ -57,8 +60,8 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -175,13 +178,16 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private static TopologyManager topologyManager;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private TopologyHolder topologyHolder;
+
+  @Inject
+  private HostLevelParamsHolder hostLevelParamsHolder;
 
   @Inject
   private RecoveryConfigHelper recoveryConfigHelper;
 
   @Inject
-  private AmbariManagementControllerImpl ambariManagementController;
+  private AmbariMetaInfo ambariMetaInfo;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -525,6 +531,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> allClusterSet = new HashSet<>();
 
     TreeMap<String, TopologyCluster> addedTopologies = new TreeMap<>();
+    List<HostLevelParamsUpdateEvent> hostLevelParamsUpdateEvents = new ArrayList<>();
     for (HostRequest hostRequest : hostRequests) {
       if (hostRequest.getHostname() != null &&
           !hostRequest.getHostname().isEmpty() &&
@@ -547,10 +554,14 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         addedTopologies.get(clusterId).addTopologyHost(new TopologyHost(addedHost.getHostId(),
             addedHost.getHostName(),
             addedHost.getRackInfo(),
-            addedHost.getIPv4(),
+            addedHost.getIPv4()));
+        HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(clusterId, new HostLevelParamsCluster(
+            ambariMetaInfo.getRepoInfo(cl, addedHost),
             recoveryConfigHelper.getRecoveryConfig(clusters.getCluster(hostRequest.getClusterName()).getClusterName(),
-                addedHost.getHostName()),
-            ambariManagementController.getTopologyHostLevelParams(cl, addedHost)));
+                addedHost.getHostName())
+        ));
+        hostLevelParamsUpdateEvent.setHostName(addedHost.getHostName());
+        hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
       }
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
@@ -560,7 +571,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
     TopologyUpdateEvent topologyUpdateEvent =
         new TopologyUpdateEvent(addedTopologies, TopologyUpdateEvent.EventType.UPDATE);
-    stateUpdateEventPublisher.publish(topologyUpdateEvent);
+    topologyHolder.updateData(topologyUpdateEvent);
+    for (HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent : hostLevelParamsUpdateEvents) {
+      hostLevelParamsHolder.updateData(hostLevelParamsUpdateEvent);
+    }
   }
 
   private void createHostResource(Clusters clusters, Set<String> duplicates,
@@ -855,7 +869,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       topologyUpdates.get(clusterId.toString()).addTopologyHost(topologyHost);
       TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
           TopologyUpdateEvent.EventType.UPDATE);
-      stateUpdateEventPublisher.publish(topologyUpdateEvent);
+      topologyHolder.updateData(topologyUpdateEvent);
       //todo: if attempt was made to update a property other than those
       //todo: that are allowed above, should throw exception
     }
@@ -991,7 +1005,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
         TopologyUpdateEvent.EventType.DELETE);
-    stateUpdateEventPublisher.publish(topologyUpdateEvent);
+    topologyHolder.updateData(topologyUpdateEvent);
   }
 
   private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters, boolean forceDelete) throws AmbariException {

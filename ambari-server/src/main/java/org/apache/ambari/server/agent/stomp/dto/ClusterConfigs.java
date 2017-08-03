@@ -47,4 +47,23 @@ public class ClusterConfigs {
   public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
     this.configurationAttributes = configurationAttributes;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ClusterConfigs that = (ClusterConfigs) o;
+
+    if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null)
+      return false;
+    return configurationAttributes != null ? configurationAttributes.equals(that.configurationAttributes) : that.configurationAttributes == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = configurations != null ? configurations.hashCode() : 0;
+    result = 31 * result + (configurationAttributes != null ? configurationAttributes.hashCode() : 0);
+    return result;
+  }
 }

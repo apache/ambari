@@ -140,7 +140,22 @@ public abstract class AmbariEvent {
     /**
      * Local user has been created.
      */
-    USER_CREATED;
+    USER_CREATED,
+
+    /**
+     * Host status has been changed.
+     */
+    HOST_STATUS_CHANGE,
+
+    /**
+     * Host state has been changed.
+     */
+    HOST_STATE_CHANGE,
+
+    /**
+     * Received new heartbeat with host info.
+     */
+    HOST_HEARTBEAT_UPDATED;
   }
 
   /**

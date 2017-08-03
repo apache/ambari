@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.agent;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Command to report the status of a list of services in roles.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CancelCommand extends AgentCommand {
 
   public CancelCommand() {
@@ -50,5 +52,23 @@ public class CancelCommand extends AgentCommand {
 
   public void setReason(String reason) {
     this.reason = reason;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    CancelCommand that = (CancelCommand) o;
+
+    if (targetTaskId != that.targetTaskId) return false;
+    return reason != null ? reason.equals(that.reason) : that.reason == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int) (targetTaskId ^ (targetTaskId >>> 32));
+    result = 31 * result + (reason != null ? reason.hashCode() : 0);
+    return result;
   }
 }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,20 +23,21 @@ import java.util.HashSet;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
 public class TopologyDeleteFormer {
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private Provider<TopologyHolder> m_topologyHolder;
 
   public void processDeleteMetaDataException(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
     if (metaData.getAmbariException() != null) {
@@ -45,27 +46,27 @@ public class TopologyDeleteFormer {
           createUpdateFromDeleteMetaData(metaData),
           TopologyUpdateEvent.EventType.DELETE
       );
-      stateUpdateEventPublisher.publish(topologyUpdateEvent);
+      m_topologyHolder.get().updateData(topologyUpdateEvent);
 
       throw metaData.getAmbariException();
     }
   }
-  public void processDeleteMetaData(DeleteHostComponentStatusMetaData metaData) {
+  public void processDeleteMetaData(DeleteHostComponentStatusMetaData metaData) throws AmbariException {
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(
         createUpdateFromDeleteMetaData(metaData),
         TopologyUpdateEvent.EventType.DELETE
     );
-    stateUpdateEventPublisher.publish(topologyUpdateEvent);
+    m_topologyHolder.get().updateData(topologyUpdateEvent);
   }
 
-  public void processDeleteCluster(String clusterId) {
+  public void processDeleteCluster(String clusterId) throws AmbariException {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     topologyUpdates.put(clusterId, new TopologyCluster());
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(
         topologyUpdates,
         TopologyUpdateEvent.EventType.DELETE
     );
-    stateUpdateEventPublisher.publish(topologyUpdateEvent);
+    m_topologyHolder.get().updateData(topologyUpdateEvent);
   }
 
   public TreeMap<String, TopologyCluster> createUpdateFromDeleteMetaData(DeleteHostComponentStatusMetaData metaData) {

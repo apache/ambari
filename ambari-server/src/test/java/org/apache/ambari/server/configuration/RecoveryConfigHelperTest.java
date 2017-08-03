@@ -148,12 +148,6 @@ public class RecoveryConfigHelperTest {
     hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
-    // Verify that the config is stale now
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
-
     // Verify the new config
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
     assertEquals(recoveryConfig.getEnabledComponents(), "DATANODE,NAMENODE");
@@ -182,12 +176,6 @@ public class RecoveryConfigHelperTest {
 
     // Uninstall HDFS::DATANODE from host1
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).delete(new DeleteHostComponentStatusMetaData());
-
-    // Verify that the config is stale
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
 
     // Verify the new config
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
@@ -221,12 +209,6 @@ public class RecoveryConfigHelperTest {
     }});
     config.save();
 
-    // Recovery config should be stale because of the above change.
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
-
     // Get the recovery configuration again and verify that there are no components to be auto started
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
     assertNull(recoveryConfig.getEnabledComponents());
@@ -256,12 +238,6 @@ public class RecoveryConfigHelperTest {
 
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setMaintenanceState(MaintenanceState.ON);
 
-    // We need a new config
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
-
     // Only NAMENODE is left
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
     assertEquals(recoveryConfig.getEnabledComponents(), "NAMENODE");
@@ -287,12 +263,6 @@ public class RecoveryConfigHelperTest {
 
     // Turn off auto start for HDFS::DATANODE
     hdfs.getServiceComponent(DATANODE).setRecoveryEnabled(false);
-
-    // Config should be stale now
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
 
     // Get the latest config. DATANODE should not be present.
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);

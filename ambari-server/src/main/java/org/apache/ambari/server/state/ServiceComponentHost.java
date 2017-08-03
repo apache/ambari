@@ -130,7 +130,7 @@ public interface ServiceComponentHost {
    *
    * @param version component version (e.g. 2.2.0.0-2041)
    */
-  void setVersion(String version);
+  void setVersion(String version) throws AmbariException;
 
   /**
    * Gets the desired security state for this ServiceComponent

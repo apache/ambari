@@ -28,19 +28,22 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
-import org.apache.ambari.server.events.HostComponentUpdateEvent;
+import org.apache.ambari.server.events.HostComponentUpdate;
+import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
@@ -91,6 +94,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -132,6 +136,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Inject
   StateUpdateEventPublisher stateUpdateEventPublisher;
 
+  @Inject
+  private Provider<TopologyHolder> m_topologyHolder;
+
   /**
    * Used for creating commands to send to the agents when alert definitions are
    * added as the result of a service install.
@@ -153,7 +160,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * The desired component state entity id.
    */
   private final Long desiredStateEntityId;
-
   /**
    * Cache the generated id for host component state for fast lookups.
    */
@@ -162,6 +168,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private long lastOpStartTime;
   private long lastOpEndTime;
   private long lastOpLastUpdateTime;
+  private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
   private ConcurrentMap<String, HostConfig> actualConfigs = new ConcurrentHashMap<>();
   private ImmutableList<Map<String, String>> processes = ImmutableList.of();
@@ -874,11 +881,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void setState(State state) {
+    State oldState = getState();
     stateMachine.setCurrentState(state);
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setCurrentState(state);
       stateEntity = hostComponentStateDAO.merge(stateEntity);
+      if (!oldState.equals(state)) {
+        stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+            new HostComponentUpdate(stateEntity, oldState))));
+      }
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
@@ -901,7 +913,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public void setVersion(String version) {
+  public void setVersion(String version) throws AmbariException {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setVersion(version);
@@ -918,7 +930,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           .build());
       TopologyUpdateEvent hostComponentVersionUpdate = new TopologyUpdateEvent(topologyUpdates,
           TopologyUpdateEvent.EventType.UPDATE);
-      stateUpdateEventPublisher.publish(hostComponentVersionUpdate);
+      m_topologyHolder.get().updateData(hostComponentVersionUpdate);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
@@ -1035,7 +1047,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         stateEntity.setCurrentState(stateMachine.getCurrentState());
         stateEntity = hostComponentStateDAO.merge(stateEntity);
         if (statusUpdated) {
-          stateUpdateEventPublisher.publish(new HostComponentUpdateEvent(stateEntity));
+          stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+              new HostComponentUpdate(stateEntity, oldState))));
         }
         // TODO Audit logs
       } catch (InvalidStateTransitionException e) {
@@ -1510,7 +1523,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
     if (desiredStateEntity != null) {
       desiredStateEntity.setMaintenanceState(state);
-      hostComponentDesiredStateDAO.merge(desiredStateEntity);
+      maintenanceState.set(hostComponentDesiredStateDAO.merge(desiredStateEntity).getMaintenanceState());
 
       // broadcast the maintenance mode change
       MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
@@ -1524,7 +1537,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public MaintenanceState getMaintenanceState() {
-    return getDesiredStateEntity().getMaintenanceState();
+    if (maintenanceState.get() == null) {
+      maintenanceState.set(getDesiredStateEntity().getMaintenanceState());
+    }
+    return maintenanceState.get();
   }
 
   @Override

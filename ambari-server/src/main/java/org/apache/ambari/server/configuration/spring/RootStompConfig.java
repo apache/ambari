@@ -23,6 +23,7 @@ import java.util.List;
 import javax.servlet.ServletContext;
 
 import org.apache.ambari.server.api.AmbariSendToMethodReturnValueHandler;
+import org.apache.ambari.server.events.listeners.requests.StateUpdateListener;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
+import com.google.inject.Injector;
+
 @Configuration
 public class RootStompConfig {
 
@@ -51,6 +54,11 @@ public class RootStompConfig {
 
   public RootStompConfig(ServletContext servletContext) {
     this.servletContext = servletContext;
+  }
+
+  @Bean
+  public StateUpdateListener requestStatusListener(Injector injector) {
+    return new StateUpdateListener(injector);
   }
 
   @Bean

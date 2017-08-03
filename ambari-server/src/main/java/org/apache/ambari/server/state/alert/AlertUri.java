@@ -335,7 +335,11 @@ public class AlertUri {
       return false;
     }
 
-    if (m_port != other.m_port) {
+    if (m_connectionTimeout != other.m_connectionTimeout) {
+      return false;
+    }
+
+    if (m_port.intValue() != other.m_port.intValue()) {
       return false;
     }
     return true;

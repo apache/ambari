@@ -192,13 +192,7 @@ public class HeartbeatProcessorTest {
     cr.setStdOut("");
     cr.setExitCode(215);
     cr.setRoleCommand("START");
-    cr.setClusterName(DummyCluster);
-
-    cr.setConfigurationTags(new HashMap<String, Map<String, String>>() {{
-      put("global", new HashMap<String, String>() {{
-        put("tag", "version1");
-      }});
-    }});
+    //cr.setClusterName(DummyCluster);
 
     reports.add(cr);
     hb.setReports(reports);
@@ -258,12 +252,7 @@ public class HeartbeatProcessorTest {
     cr.setStdErr("");
     cr.setStdOut("");
     cr.setExitCode(215);
-    cr.setClusterName(DummyCluster);
-    cr.setConfigurationTags(new HashMap<String, Map<String, String>>() {{
-      put("global", new HashMap<String, String>() {{
-        put("tag", "version1");
-      }});
-    }});
+    //cr.setClusterName(DummyCluster);
     reports.add(cr);
     hb.setReports(reports);
 
@@ -327,10 +316,7 @@ public class HeartbeatProcessorTest {
     cr.setStdErr("");
     cr.setStdOut("");
     cr.setExitCode(215);
-    cr.setClusterName(DummyCluster);
-    cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
-      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
-    }});
+    //cr.setClusterName(DummyCluster);
     CommandReport crn = new CommandReport();
     crn.setActionId(StageUtils.getActionId(requestId, stageId));
     crn.setServiceName(HDFS);
@@ -342,10 +328,7 @@ public class HeartbeatProcessorTest {
     crn.setStdErr("");
     crn.setStdOut("");
     crn.setExitCode(215);
-    crn.setClusterName(DummyCluster);
-    crn.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
-      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
-    }});
+    //crn.setClusterName(DummyCluster);
 
     reports.add(cr);
     reports.add(crn);
@@ -413,7 +396,7 @@ public class HeartbeatProcessorTest {
     cr.setStdErr("");
     cr.setStdOut("");
     cr.setExitCode(215);
-    cr.setClusterName(DummyCluster);
+    //cr.setClusterName(DummyCluster);
     CommandReport crn = new CommandReport();
     crn.setActionId(StageUtils.getActionId(requestId, stageId));
     crn.setServiceName(HDFS);
@@ -425,7 +408,7 @@ public class HeartbeatProcessorTest {
     crn.setStdErr("");
     crn.setStdOut("");
     crn.setExitCode(215);
-    crn.setClusterName(DummyCluster);
+    //crn.setClusterName(DummyCluster);
 
     reports.add(cr);
     reports.add(crn);
@@ -491,14 +474,14 @@ public class HeartbeatProcessorTest {
     hb.setReports(new ArrayList<CommandReport>());
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
-    componentStatus1.setClusterName(DummyCluster);
+    //componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
     componentStatus1.setComponentName(DATANODE);
     componentStatuses.add(componentStatus1);
     ComponentStatus componentStatus2 = new ComponentStatus();
-    componentStatus2.setClusterName(DummyCluster);
+    //componentStatus2.setClusterName(DummyCluster);
     componentStatus2.setServiceName(HDFS);
     componentStatus2.setMessage(DummyHostStatus);
     componentStatus2.setStatus(State.STARTED.name());
@@ -557,11 +540,6 @@ public class HeartbeatProcessorTest {
     cr.setStdOut("");
     cr.setExitCode(215);
 
-    cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
-      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
-    }});
-
-
     reports.add(cr);
     am.processTaskResponse(DummyHostname1, reports, CommandUtils.convertToTaskIdCommandMap(stage.getOrderedHostRoleCommands()));
     assertEquals(215,
@@ -607,7 +585,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
-    cr.setClusterName(DummyCluster);
+    //cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
     cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
@@ -726,7 +704,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
-    cr.setClusterName(DummyCluster);
+    //cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
     cr.setRoleCommand("INSTALL");
@@ -830,7 +808,7 @@ public class HeartbeatProcessorTest {
 
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
-    componentStatus1.setClusterName(DummyCluster);
+    //componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
@@ -865,7 +843,7 @@ public class HeartbeatProcessorTest {
     hb.setReports(new ArrayList<CommandReport>());
 
     componentStatus1 = new ComponentStatus();
-    componentStatus1.setClusterName(DummyCluster);
+    //componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
@@ -910,7 +888,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr1 = new CommandReport();
     cr1.setActionId(StageUtils.getActionId(requestId, stageId));
     cr1.setTaskId(1);
-    cr1.setClusterName(DummyCluster);
+    //cr1.setClusterName(DummyCluster);
     cr1.setServiceName(HDFS);
     cr1.setRole(DATANODE);
     cr1.setStatus(HostRoleStatus.COMPLETED.toString());
@@ -922,7 +900,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr2 = new CommandReport();
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
     cr2.setTaskId(2);
-    cr2.setClusterName(DummyCluster);
+    //cr2.setClusterName(DummyCluster);
     cr2.setServiceName(HDFS);
     cr2.setRole(NAMENODE);
     cr2.setStatus(HostRoleStatus.COMPLETED.toString());
@@ -1004,7 +982,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
-    cr.setClusterName(DummyCluster);
+    //cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
     cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
@@ -1025,7 +1003,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr1 = new CommandReport();
     cr1.setActionId(StageUtils.getActionId(requestId, stageId));
     cr1.setTaskId(1);
-    cr1.setClusterName(DummyCluster);
+    //cr1.setClusterName(DummyCluster);
     cr1.setServiceName(HDFS);
     cr1.setRole(DATANODE);
     cr1.setRoleCommand("INSTALL");
@@ -1037,7 +1015,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr2 = new CommandReport();
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
     cr2.setTaskId(2);
-    cr2.setClusterName(DummyCluster);
+    //cr2.setClusterName(DummyCluster);
     cr2.setServiceName(HDFS);
     cr2.setRole(NAMENODE);
     cr2.setRoleCommand("INSTALL");
@@ -1114,7 +1092,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr1 = new CommandReport();
     cr1.setActionId(StageUtils.getActionId(requestId, stageId));
     cr1.setTaskId(1);
-    cr1.setClusterName(DummyCluster);
+    //cr1.setClusterName(DummyCluster);
     cr1.setServiceName(HDFS);
     cr1.setRole(DATANODE);
     cr1.setRoleCommand("INSTALL");
@@ -1126,7 +1104,7 @@ public class HeartbeatProcessorTest {
     CommandReport cr2 = new CommandReport();
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
     cr2.setTaskId(2);
-    cr2.setClusterName(DummyCluster);
+    //cr2.setClusterName(DummyCluster);
     cr2.setServiceName(HDFS);
     cr2.setRole(NAMENODE);
     cr2.setRoleCommand("INSTALL");
@@ -1203,7 +1181,7 @@ public class HeartbeatProcessorTest {
     ExecutionCommand execCmd = new ExecutionCommand();
     execCmd.setRequestAndStage(2, 34);
     execCmd.setHostname(DummyHostname1);
-    aq.enqueue(DummyHostname1, new ExecutionCommand());
+    //aq.enqueue(DummyHostname1, new ExecutionCommand());
 
     HeartBeat hb = new HeartBeat();
     HostStatus hs = new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus);
@@ -1259,7 +1237,7 @@ public class HeartbeatProcessorTest {
     cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
     cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
     cmdReport.setRole("install_packages");
-    cmdReport.setClusterName(DummyCluster);
+    //cmdReport.setClusterName(DummyCluster);
 
     List<CommandReport> reports = new ArrayList<>();
     reports.add(cmdReport);
@@ -1319,7 +1297,7 @@ public class HeartbeatProcessorTest {
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();
-    componentStatus1.setClusterName(DummyCluster);
+    //componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.INSTALLED.name());
@@ -1327,7 +1305,7 @@ public class HeartbeatProcessorTest {
     componentStatuses.add(componentStatus1);
 
     ComponentStatus componentStatus2 = new ComponentStatus();
-    componentStatus2.setClusterName(DummyCluster);
+    //componentStatus2.setClusterName(DummyCluster);
     componentStatus2.setServiceName(HDFS);
     componentStatus2.setMessage(DummyHostStatus);
     componentStatus2.setStatus(State.INSTALLED.name());

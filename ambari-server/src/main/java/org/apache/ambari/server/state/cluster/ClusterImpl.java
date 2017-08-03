@@ -2666,6 +2666,7 @@ public class ClusterImpl implements Cluster {
   @Transactional
   ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
 
+    List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
     String serviceName = null;
     for (Config config : configs) {
       for (Entry<String, String> entry : serviceConfigTypes.entries()) {
@@ -2698,19 +2699,20 @@ public class ClusterImpl implements Cluster {
 
           // unless both the tag and type match, then enable it
           if (StringUtils.equals(clusterConfigEntity.getTag(), config.getTag())) {
+            appliedConfigs.add(clusterConfigEntity);
             clusterConfigEntity.setSelected(true);
           }
         }
       }
     }
 
-    clusterEntity = clusterDAO.merge(clusterEntity);
-
     if (serviceName == null) {
       ArrayList<String> configTypes = new ArrayList<>();
       for (Config config: configs) {
         configTypes.add(config.getType());
       }
+
+      stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(this, appliedConfigs));
       LOG.error("No service found for config types '{}', service config version not created", configTypes);
       return null;
     } else {

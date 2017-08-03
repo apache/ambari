@@ -42,7 +42,6 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
@@ -606,13 +605,13 @@ public class UpgradeActionTest {
     createUpgradeClusterTargetRepo(targetStack, targetRepo, hostName);
 
     // Verify the repo before calling Finalize
-    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    AmbariMetaInfo ambariMetaInfo = m_injector.getInstance(AmbariMetaInfo.class);
     Host host = clusters.getHost("h1");
     Cluster cluster = clusters.getCluster(clusterName);
 
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-    verifyBaseRepoURL(helper, cluster, host, HDP_211_CENTOS6_REPO_URL);
+    verifyBaseRepoURL(ambariMetaInfo, cluster, host, HDP_211_CENTOS6_REPO_URL);
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
@@ -634,7 +633,7 @@ public class UpgradeActionTest {
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
 
     // Verify the metainfo url
-    verifyBaseRepoURL(helper, cluster, host, "http://foo1");
+    verifyBaseRepoURL(ambariMetaInfo, cluster, host, "http://foo1");
   }
 
   /**
@@ -669,14 +668,14 @@ public class UpgradeActionTest {
     }
 
     // Verify the repo before calling Finalize
-    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    AmbariMetaInfo ambariMetaInfo = m_injector.getInstance(AmbariMetaInfo.class);
     Host host = clusters.getHost("h1");
     Cluster cluster = clusters.getCluster(clusterName);
 
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(),
             sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-    verifyBaseRepoURL(helper, cluster, host, HDP_211_CENTOS6_REPO_URL);
+    verifyBaseRepoURL(ambariMetaInfo, cluster, host, HDP_211_CENTOS6_REPO_URL);
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
@@ -698,8 +697,8 @@ public class UpgradeActionTest {
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
   }
 
-  private void verifyBaseRepoURL(AmbariCustomCommandExecutionHelper helper, Cluster cluster, Host host, String expectedRepoBaseURL) throws AmbariException {
-    String repoInfo = helper.getRepoInfo(cluster, host);
+  private void verifyBaseRepoURL(AmbariMetaInfo ambariMetaInfo, Cluster cluster, Host host, String expectedRepoBaseURL) throws AmbariException {
+    String repoInfo = ambariMetaInfo.getRepoInfoString(cluster, host);
     Gson gson = new Gson();
     JsonElement element = gson.fromJson(repoInfo, JsonElement.class);
     assertTrue(element.isJsonArray());
@@ -949,7 +948,7 @@ public class UpgradeActionTest {
     createUpgradeClusterAndSourceRepo(sourceStack, sourceRepo, hostName);
 
     // Verify the repo before calling Finalize
-    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    AmbariMetaInfo ambariMetaInfo = m_injector.getInstance(AmbariMetaInfo.class);
     Host host = clusters.getHost("h1");
     Cluster cluster = clusters.getCluster(clusterName);
 
@@ -996,7 +995,7 @@ public class UpgradeActionTest {
 
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-    verifyBaseRepoURL(helper, cluster, host, HDP_211_CENTOS6_REPO_URL);
+    verifyBaseRepoURL(ambariMetaInfo, cluster, host, HDP_211_CENTOS6_REPO_URL);
 
     // Finalize the upgrade, passing in the request ID so that history is
     // created
@@ -1020,7 +1019,7 @@ public class UpgradeActionTest {
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
 
     // Verify the metainfo url
-    verifyBaseRepoURL(helper, cluster, host, "http://foo1");
+    verifyBaseRepoURL(ambariMetaInfo, cluster, host, "http://foo1");
 
     // ensure that history now exists
     historyEntites = serviceComponentDesiredStateDAO.findHistory(cluster.getClusterId(),

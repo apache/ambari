@@ -789,7 +789,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       AlertExecutionCommand command = new AlertExecutionCommand(
           cluster.getClusterName(), hostName, definition);
 
-      actionQueue.enqueue(hostName, command);
+      //TODO implement alert execution commands logic
+      //actionQueue.enqueue(hostName, command);
     }
   }
 }

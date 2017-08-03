@@ -387,9 +387,9 @@ public class AlertDefinitionHashTest extends TestCase {
     AlertExecutionCommand executionCommand = new AlertExecutionCommand(
         CLUSTERNAME, HOSTNAME, null);
 
-    actionQueue.enqueue(HOSTNAME, definitionCommand1);
+    /*actionQueue.enqueue(HOSTNAME, definitionCommand1);
     actionQueue.enqueue(HOSTNAME, executionCommand);
-    actionQueue.enqueue("anotherHost", definitionCommand2);
+    actionQueue.enqueue("anotherHost", definitionCommand2);*/
 
     assertEquals(2, actionQueue.size(HOSTNAME));
     assertEquals(1, actionQueue.size("anotherHost"));

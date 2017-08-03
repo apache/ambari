@@ -2045,6 +2045,13 @@ public class Configuration {
       "agent.threadpool.size.max", 25);
 
   /**
+   * The thread pool size for spring messaging.
+   */
+  @Markdown(description = "Thread pool size for spring messaging")
+  public static final ConfigurationProperty<Integer> MESSAGING_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "messaging.threadpool.size", 1);
+
+  /**
    * The maximum number of threads used to extract Ambari Views when Ambari
    * Server is starting up.
    */
@@ -4670,6 +4677,13 @@ public class Configuration {
    */
   public int getClientThreadPoolSize() {
     return Integer.parseInt(getProperty(CLIENT_THREADPOOL_SIZE));
+  }
+
+  /**
+   * @return max thread pool size for clients, default 25
+   */
+  public int getSpringMessagingThreadPoolSize() {
+    return Integer.parseInt(getProperty(MESSAGING_THREAD_POOL_SIZE));
   }
 
   /**

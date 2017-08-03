@@ -21,9 +21,9 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.stomp.dto.Hash;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
+import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,16 +43,15 @@ public class AgentCurrentDataController {
   private final AgentSessionManager agentSessionManager;
   private final TopologyHolder topologyHolder;
   private final MetadataHolder metadataHolder;
-  private final ConfigHelper configHelper;
-
-  //TODO remove after hash generation implementing
-  private final String CONFIGS_HASH_STUB = "stubhash";
+  private final HostLevelParamsHolder hostLevelParamsHolder;
+  private final AgentConfigsHolder agentConfigsHolder;
 
   public AgentCurrentDataController(Injector injector) {
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
     topologyHolder = injector.getInstance(TopologyHolder.class);
     metadataHolder = injector.getInstance(MetadataHolder.class);
-    configHelper = injector.getInstance(ConfigHelper.class);
+    hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
+    agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
   }
 
   @SubscribeMapping("/topologies")
@@ -68,10 +67,11 @@ public class AgentCurrentDataController {
   //TODO method should returns empty response in case hash is relevant
   @SubscribeMapping("/configs")
   public AgentConfigsUpdateEvent getCurrentConfigs(@Header String simpSessionId, Hash hash) throws AmbariException {
-    String currentHash = CONFIGS_HASH_STUB;
-    AgentConfigsUpdateEvent agentConfigsUpdateEvent = configHelper.getHostActualConfigs(
-          agentSessionManager.getHost(simpSessionId).getHostName());
-    agentConfigsUpdateEvent.setHash(currentHash);
-    return agentConfigsUpdateEvent;
+    return agentConfigsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostName());
+  }
+
+  @SubscribeMapping("/host_level_params")
+  public HostLevelParamsUpdateEvent getCurrentHostLevelParams(@Header String simpSessionId, Hash hash) throws AmbariException {
+    return hostLevelParamsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostName());
   }
 }

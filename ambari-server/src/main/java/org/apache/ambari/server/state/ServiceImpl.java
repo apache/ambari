@@ -19,10 +19,13 @@
 package org.apache.ambari.server.state;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -73,6 +76,7 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
   private AmbariMetaInfo ambariMetaInfo;
+  private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -222,6 +226,15 @@ public class ServiceImpl implements Service {
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
     return new HashMap<>(components);
+  }
+
+  @Override
+  public Set<String> getServiceHosts() {
+    Set<String> hostNames = new HashSet<>();
+    for (ServiceComponent serviceComponent  : getServiceComponents().values()) {
+      hostNames.addAll(serviceComponent.getServiceComponentsHosts());
+    }
+    return hostNames;
   }
 
   @Override
@@ -613,7 +626,7 @@ public class ServiceImpl implements Service {
   public void setMaintenanceState(MaintenanceState state) {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     serviceDesiredStateEntity.setMaintenanceState(state);
-    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+    maintenanceState.set(serviceDesiredStateDAO.merge(serviceDesiredStateEntity).getMaintenanceState());
 
     // broadcast the maintenance mode change
     MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
@@ -622,7 +635,10 @@ public class ServiceImpl implements Service {
 
   @Override
   public MaintenanceState getMaintenanceState() {
-    return getServiceDesiredStateEntity().getMaintenanceState();
+    if (maintenanceState.get() == null) {
+      maintenanceState.set(getServiceDesiredStateEntity().getMaintenanceState());
+    }
+    return maintenanceState.get();
   }
 
   private ClusterServiceEntity getServiceEntity() {

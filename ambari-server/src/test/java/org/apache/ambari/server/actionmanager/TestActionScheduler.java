@@ -940,7 +940,7 @@ public class TestActionScheduler {
     s.getExecutionCommands(null).get(0).getExecutionCommand().setServiceName("Service name");
     s.getExecutionCommands(null).get(0).getExecutionCommand().setRoleCommand(roleCommand);
 
-    aq.enqueue(Stage.INTERNAL_HOSTNAME, s.getExecutionCommands(null).get(0).getExecutionCommand());
+    //aq.enqueue(Stage.INTERNAL_HOSTNAME, s.getExecutionCommands(null).get(0).getExecutionCommand());
     List<ExecutionCommand> commandsToSchedule = new ArrayList<>();
     Multimap<String, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
 
@@ -2635,7 +2635,7 @@ public class TestActionScheduler {
   }
 
   @Test
-  public void testAbortHolding() {
+  public void testAbortHolding() throws AmbariException {
     UnitOfWork unitOfWork = EasyMock.createMock(UnitOfWork.class);
     ActionDBAccessor db = EasyMock.createMock(ActionDBAccessor.class);
     ActionQueue aq = new ActionQueue();
@@ -2671,7 +2671,7 @@ public class TestActionScheduler {
   }
 
   @Test
-  public void testAbortAmbariServerAction() {
+  public void testAbortAmbariServerAction() throws AmbariException {
     UnitOfWork unitOfWork = EasyMock.createMock(UnitOfWork.class);
     ActionDBAccessor db = EasyMock.createMock(ActionDBAccessor.class);
     ActionQueue aq = new ActionQueue();

@@ -24,14 +24,18 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  *
  * Controller to Agent response data model.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class RegistrationResponse {
   @JsonProperty("response")
-  @com.fasterxml.jackson.annotation.JsonProperty("response")
+  @JsonIgnore
   private RegistrationStatus response;
 
   /**
@@ -39,7 +43,7 @@ public class RegistrationResponse {
    * alert definitions it needs to schedule.
    */
   @JsonProperty("alertDefinitionCommands")
-  @com.fasterxml.jackson.annotation.JsonProperty("alertDefinitionCommands")
+  @JsonIgnore
   private List<AlertDefinitionCommand> alertDefinitionCommands = new ArrayList<>();
 
   /**
@@ -65,17 +69,18 @@ public class RegistrationResponse {
   private long responseId;
 
   @JsonProperty("recoveryConfig")
-  @com.fasterxml.jackson.annotation.JsonProperty("recoveryConfig")
+  @JsonIgnore
   private RecoveryConfig recoveryConfig;
 
   @JsonProperty("agentConfig")
-  @com.fasterxml.jackson.annotation.JsonProperty("agentConfig")
+  @JsonIgnore
   private Map<String, String> agentConfig;
 
   @JsonProperty("statusCommands")
-  @com.fasterxml.jackson.annotation.JsonProperty("statusCommands")
+  @JsonIgnore
   private List<StatusCommand> statusCommands = null;
 
+  @JsonIgnore
   public RegistrationStatus getResponseStatus() {
     return response;
   }

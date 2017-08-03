@@ -27,7 +27,8 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class AgentSessionManager {
-  private static ConcurrentHashMap<String, Host> registeredHosts = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<String, Host> registeredHosts = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<String, String> registeredSessionIds = new ConcurrentHashMap<>();
 
   public void register(String sessionId, Host registeredHost) {
     String existKey = registeredHosts.entrySet().stream()
@@ -37,6 +38,7 @@ public class AgentSessionManager {
       registeredHosts.remove(existKey);
     }
     registeredHosts.put(sessionId, registeredHost);
+    registeredSessionIds.put(registeredHost.getHostName(), sessionId);
   }
 
   public boolean isRegistered(String sessionId) {
@@ -50,5 +52,20 @@ public class AgentSessionManager {
     throw new HostNotRegisteredException(sessionId);
   }
 
+  public String getSessionId(String hostName) throws HostNotRegisteredException {
+    if (registeredSessionIds.containsKey(hostName)) {
+      return registeredSessionIds.get(hostName);
+    }
+    throw new HostNotRegisteredException(hostName);
+  }
 
+  public void unregisterByHost(String hostName) {
+    String existKey = registeredHosts.entrySet().stream()
+        .filter(e -> e.getValue().getHostName().equals(hostName)).map(Map.Entry::getKey)
+        .findAny().orElse(null);
+    if (existKey != null) {
+      registeredHosts.remove(existKey);
+      registeredSessionIds.remove(hostName);
+    }
+  }
 }

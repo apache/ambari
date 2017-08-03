@@ -21,7 +21,7 @@ package org.apache.ambari.server.events;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.state.State;
 
-public class HostComponentUpdateEvent extends AmbariUpdateEvent {
+public class HostComponentUpdate {
 
   private Long id;
   private Long clusterId;
@@ -29,15 +29,16 @@ public class HostComponentUpdateEvent extends AmbariUpdateEvent {
   private String hostName;
   private String componentName;
   private State currentState;
+  private State previousState;
 
-  public HostComponentUpdateEvent(HostComponentStateEntity stateEntity) {
-    super(Type.HOSTCOMPONENT);
+  public HostComponentUpdate(HostComponentStateEntity stateEntity, State previousState) {
     this.id = stateEntity.getId();
     this.clusterId = stateEntity.getClusterId();
     this.serviceName = stateEntity.getServiceName();
     this.hostName = stateEntity.getHostEntity().getHostName();
     this.currentState = stateEntity.getCurrentState();
     this.componentName = stateEntity.getComponentName();
+    this.previousState = previousState;
   }
 
   public Long getId() {
@@ -86,5 +87,41 @@ public class HostComponentUpdateEvent extends AmbariUpdateEvent {
 
   public void setCurrentState(State currentState) {
     this.currentState = currentState;
+  }
+
+  public State getPreviousState() {
+    return previousState;
+  }
+
+  public void setPreviousState(State previousState) {
+    this.previousState = previousState;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HostComponentUpdate that = (HostComponentUpdate) o;
+
+    if (id != null ? !id.equals(that.id) : that.id != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
+    if (currentState != that.currentState) return false;
+    return previousState == that.previousState;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
+    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
+    result = 31 * result + (previousState != null ? previousState.hashCode() : 0);
+    return result;
   }
 }

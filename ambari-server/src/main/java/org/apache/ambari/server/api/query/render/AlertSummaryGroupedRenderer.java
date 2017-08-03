@@ -261,5 +261,25 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
     @JsonProperty(value = "summary")
     @com.fasterxml.jackson.annotation.JsonProperty(value = "summary")
     public final AlertStateSummary State = new AlertStateSummary();
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      AlertDefinitionSummary that = (AlertDefinitionSummary) o;
+
+      if (Id != that.Id) return false;
+      if (Name != null ? !Name.equals(that.Name) : that.Name != null) return false;
+      return State != null ? State.equals(that.State) : that.State == null;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = (int) (Id ^ (Id >>> 32));
+      result = 31 * result + (Name != null ? Name.hashCode() : 0);
+      result = 31 * result + (State != null ? State.hashCode() : 0);
+      return result;
+    }
   }
 }

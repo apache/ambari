@@ -30,6 +30,8 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 
 
@@ -37,6 +39,7 @@ import com.google.gson.annotations.SerializedName;
  * Execution commands are scheduled by action manager, and these are
  * persisted in the database for recovery.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ExecutionCommand extends AgentCommand {
 
   private static Log LOG = LogFactory.getLog(ExecutionCommand.class);
@@ -44,6 +47,9 @@ public class ExecutionCommand extends AgentCommand {
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
+
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterId")
+  private String clusterId;
 
   @SerializedName("clusterName")
   @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
@@ -54,7 +60,7 @@ public class ExecutionCommand extends AgentCommand {
   private long requestId;
 
   @SerializedName("stageId")
-  @com.fasterxml.jackson.annotation.JsonProperty("stageId")
+  @JsonIgnore
   private long stageId;
 
   @SerializedName("taskId")
@@ -66,7 +72,7 @@ public class ExecutionCommand extends AgentCommand {
   private String commandId;
 
   @SerializedName("hostname")
-  @com.fasterxml.jackson.annotation.JsonProperty("hostname")
+  @JsonIgnore
   private String hostname;
 
   @SerializedName("role")
@@ -74,7 +80,7 @@ public class ExecutionCommand extends AgentCommand {
   private String role;
 
   @SerializedName("hostLevelParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("hostLevelParams")
+  @JsonIgnore
   private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("roleParams")
@@ -86,24 +92,24 @@ public class ExecutionCommand extends AgentCommand {
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
-  @com.fasterxml.jackson.annotation.JsonProperty("clusterHostInfo")
+  @JsonIgnore
   private Map<String, Set<String>> clusterHostInfo =
     new HashMap<>();
 
   @SerializedName("configurations")
-  @com.fasterxml.jackson.annotation.JsonProperty("configurations")
+  @JsonIgnore
   private Map<String, Map<String, String>> configurations;
 
   @SerializedName("configuration_attributes")
-  @com.fasterxml.jackson.annotation.JsonProperty("configuration_attributes")
+  @JsonIgnore
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
   @SerializedName("configurationTags")
-  @com.fasterxml.jackson.annotation.JsonProperty("configurationTags")
+  @JsonIgnore
   private Map<String, Map<String, String>> configurationTags;
 
   @SerializedName("forceRefreshConfigTagsBeforeExecution")
-  @com.fasterxml.jackson.annotation.JsonProperty("forceRefreshConfigTagsBeforeExecution")
+  @JsonIgnore
   private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
@@ -115,23 +121,23 @@ public class ExecutionCommand extends AgentCommand {
   private String serviceName;
 
   @SerializedName("serviceType")
-  @com.fasterxml.jackson.annotation.JsonProperty("serviceType")
+  @JsonIgnore
   private String serviceType;
 
   @SerializedName("componentName")
-  @com.fasterxml.jackson.annotation.JsonProperty("componentName")
+  @JsonIgnore
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
-  @com.fasterxml.jackson.annotation.JsonProperty("kerberosCommandParams")
+  @JsonIgnore
   private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")
-  @com.fasterxml.jackson.annotation.JsonProperty("localComponents")
+  @JsonIgnore
   private Set<String> localComponents = new HashSet<>();
 
   @SerializedName("availableServices")
-  @com.fasterxml.jackson.annotation.JsonProperty("availableServices")
+  @JsonIgnore
   private Map<String, String> availableServices = new HashMap<>();
 
   /**
@@ -139,7 +145,7 @@ public class ExecutionCommand extends AgentCommand {
    * service is enabled for credential store use.
    */
   @SerializedName("credentialStoreEnabled")
-  @com.fasterxml.jackson.annotation.JsonProperty("credentialStoreEnabled")
+  @JsonIgnore
   private String credentialStoreEnabled;
 
   /**
@@ -165,7 +171,7 @@ public class ExecutionCommand extends AgentCommand {
    *   </pre>
    */
   @SerializedName("configuration_credentials")
-  @com.fasterxml.jackson.annotation.JsonProperty("configuration_credentials")
+  @JsonIgnore
   private Map<String, Map<String, String>> configurationCredentials;
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
@@ -418,11 +424,19 @@ public class ExecutionCommand extends AgentCommand {
     kerberosCommandParams =  params;
   }
 
+  public String getClusterId() {
+    return clusterId;
+  }
+
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
+  }
+
   /**
    * Contains key name strings. These strings are used inside maps
    * incapsulated inside command.
    */
-  public interface KeyNames {
+  public static interface KeyNames {
     String COMMAND_TIMEOUT = "command_timeout";
     String SCRIPT = "script";
     String SCRIPT_TYPE = "script_type";
@@ -492,5 +506,6 @@ public class ExecutionCommand extends AgentCommand {
      * can be looked up and possibly have its version updated.
      */
     String REPO_VERSION_ID = "repository_version_id";
+    String CLUSTER_NAME = "cluster_name";
   }
 }

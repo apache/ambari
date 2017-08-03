@@ -147,6 +147,8 @@ public class TaskStatusListener {
     List<HostRoleCommand>  hostRoleCommandWithReceivedStatus =  new ArrayList<>();
     Set<StageEntityPK> stagesWithReceivedTaskStatus = new HashSet<>();
     Set<Long> requestIdsWithReceivedTaskStatus =  new HashSet<>();
+    Set<RequestUpdateEvent> requestsToPublish = new HashSet<>();
+
     for (HostRoleCommand hostRoleCommand : hostRoleCommandListAll) {
       Long reportedTaskId = hostRoleCommand.getTaskId();
       HostRoleCommand activeTask =  activeTasksMap.get(reportedTaskId);
@@ -159,6 +161,16 @@ public class TaskStatusListener {
         stageEntityPK.setStageId(hostRoleCommand.getStageId());
         stagesWithReceivedTaskStatus.add(stageEntityPK);
         requestIdsWithReceivedTaskStatus.add(hostRoleCommand.getRequestId());
+
+        if (!activeTasksMap.get(reportedTaskId).getStatus().equals(hostRoleCommand.getStatus())) {
+          Set<RequestUpdateEvent.HostRoleCommand> hostRoleCommands = new HashSet<>();
+          hostRoleCommands.add(new RequestUpdateEvent.HostRoleCommand(hostRoleCommand.getTaskId(),
+              hostRoleCommand.getRequestId(),
+              hostRoleCommand.getStatus(),
+              hostRoleCommand.getHostName()));
+          requestsToPublish.add(new RequestUpdateEvent(hostRoleCommand.getRequestId(),
+              activeRequestMap.get(hostRoleCommand.getRequestId()).getStatus(), hostRoleCommands));
+        }
       }
     }
 
@@ -182,7 +194,9 @@ public class TaskStatusListener {
     if (didAnyStageStatusUpdated) {
       updateActiveRequestsStatus(requestIdsWithReceivedTaskStatus, stagesWithReceivedTaskStatus);
     }
-
+    for (RequestUpdateEvent requestToPublish : requestsToPublish) {
+      stateUpdateEventPublisher.publish(requestToPublish);
+    }
   }
 
   /**

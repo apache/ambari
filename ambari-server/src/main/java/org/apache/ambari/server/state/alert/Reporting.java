@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -206,6 +207,7 @@ public class Reporting {
    * Equality checking for instances of this class should be executed on every
    * member to ensure that reconciling stack differences is correct.
    */
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   public static final class ReportTemplate {
     @SerializedName("text")
     private String m_text;

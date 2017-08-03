@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,17 +26,37 @@ import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Contains update info about metadata for all clusters. This update will be sent to all subscribed recipients.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
 
+  /**
+   * Id used to send parameters common to all clusters.
+   */
+  private final String AMBARI_LEVEL_CLUSTER_ID = "-1";
+
+  /**
+   * Actual version hash.
+   */
   private String hash;
 
+  /**
+   * Map of metadatas for each cluster by cluster ids.
+   */
   @JsonProperty("clusters")
   private TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
 
-  public MetadataUpdateEvent(TreeMap<String, MetadataCluster> metadataClusters) {
+  public MetadataUpdateEvent(TreeMap<String, MetadataCluster> metadataClusters, TreeMap<String, String> ambariLevelParams) {
     super(Type.METADATA);
     this.metadataClusters = metadataClusters;
+    if (ambariLevelParams != null) {
+      if (this.metadataClusters == null) {
+        this.metadataClusters = new TreeMap<>();
+      }
+      this.metadataClusters.put(AMBARI_LEVEL_CLUSTER_ID, new MetadataCluster(null, new TreeMap<>(), ambariLevelParams));
+    }
   }
 
   public Map<String, MetadataCluster> getMetadataClusters() {
@@ -57,6 +77,21 @@ public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
   }
 
   public static MetadataUpdateEvent emptyUpdate() {
-    return new MetadataUpdateEvent(null);
+    return new MetadataUpdateEvent(null, null);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    MetadataUpdateEvent that = (MetadataUpdateEvent) o;
+
+    return metadataClusters != null ? metadataClusters.equals(that.metadataClusters) : that.metadataClusters == null;
+  }
+
+  @Override
+  public int hashCode() {
+    return metadataClusters != null ? metadataClusters.hashCode() : 0;
   }
 }

@@ -151,8 +151,7 @@ public class AlertReceivedListener {
     List<AlertCurrentEntity> toCreateHistoryAndMerge = new ArrayList<>();
 
     List<AlertEvent> alertEvents = new ArrayList<>(20);
-    List<Alert> updatedAlerts = new ArrayList<>();
-    Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = new HashMap<>();
+    Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> alertUpdates = new HashMap<>();
 
     for (Alert alert : alerts) {
       // jobs that were running when a service/component/host was changed
@@ -343,10 +342,15 @@ public class AlertReceivedListener {
 
         // create the event to fire later
         alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, oldState, oldFirmness));
-        updatedAlerts.add(alert);
 
         // create alert update to fire event to UI
         MaintenanceState maintenanceState = getMaintenanceState(alert, clusterId);
+
+        if (!alertUpdates.containsKey(clusterId)) {
+          alertUpdates.put(clusterId, new HashMap<>());
+        }
+        Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = alertUpdates.get(clusterId);
+
         AlertSummaryGroupedRenderer.updateSummary(summaries, definition.getDefinitionId(),
             definition.getDefinitionName(), alertState, alert.getTimestamp(), maintenanceState, alert.getText());
       }
@@ -360,8 +364,8 @@ public class AlertReceivedListener {
     for (AlertEvent eventToFire : alertEvents) {
       m_alertEventPublisher.publish(eventToFire);
     }
-    if (!summaries.isEmpty()) {
-      stateUpdateEventPublisher.publish(new AlertUpdateEvent(summaries));
+    if (!alertUpdates.isEmpty()) {
+      stateUpdateEventPublisher.publish(new AlertUpdateEvent(alertUpdates));
     }
   }
 
@@ -612,7 +616,7 @@ public class AlertReceivedListener {
    *          the definition to read any repeat tolerance overrides from.
    * @param state
    *          the state of the {@link AlertCurrentEntity}.
-   * @param occurrences
+   * @param the
    *          occurrences of the alert in the current state (used for
    *          calculation firmness when moving between non-OK states)
    * @return

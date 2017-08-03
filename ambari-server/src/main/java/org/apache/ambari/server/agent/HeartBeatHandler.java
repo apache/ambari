@@ -17,10 +17,6 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,11 +28,10 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader;
-import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReaderFactory;
-import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -54,11 +49,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,11 +94,11 @@ public class HeartBeatHandler {
   @Inject
   private RecoveryConfigHelper recoveryConfigHelper;
 
-  /**
-   * KerberosIdentityDataFileReaderFactory used to create KerberosIdentityDataFileReader instances
-   */
   @Inject
-  private KerberosIdentityDataFileReaderFactory kerberosIdentityDataFileReaderFactory;
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
+
+  @Inject
+  private AgentSessionManager agentSessionManager;
 
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<>();
 
@@ -196,17 +187,6 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, currentResponseId);
     hostResponses.put(hostname, response);
 
-    // If the host is waiting for component status updates, notify it
-    if (heartbeat.componentStatus.size() > 0
-        && hostObject.getState().equals(HostState.WAITING_FOR_HOST_STATUS_UPDATES)) {
-      try {
-        LOG.debug("Got component status updates");
-        hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname, now));
-      } catch (InvalidStateTransitionException e) {
-        LOG.warn("Failed to notify the host about component status updates", e);
-      }
-    }
-
     if (heartbeat.getRecoveryReport() != null) {
       RecoveryReport rr = heartbeat.getRecoveryReport();
       processRecoveryReport(rr, hostname);
@@ -238,7 +218,7 @@ public class HeartBeatHandler {
         response.setRecoveryConfig(rc);
 
         if (response.getRecoveryConfig() != null) {
-          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig().toString());
+          LOG.debug("Recovery configuration set to {}", response.getRecoveryConfig().toString());
         }
       }
     }
@@ -247,7 +227,6 @@ public class HeartBeatHandler {
 
     // Send commands if node is active
     if (hostObject.getState().equals(HostState.HEALTHY)) {
-      sendCommands(hostname, response);
       annotateResponse(hostname, response);
     }
 
@@ -256,72 +235,30 @@ public class HeartBeatHandler {
 
   public void handleComponentReportStatus(List<ComponentStatus> componentStatuses, String hostname) throws AmbariException {
     heartbeatProcessor.processStatusReports(componentStatuses, hostname);
+    heartbeatProcessor.processHostStatus(componentStatuses, null, hostname);
+  }
+
+  public void handleCommandReportStatus(List<CommandReport> reports, String hostname) throws AmbariException {
+    heartbeatProcessor.processCommandReports(reports, hostname, System.currentTimeMillis());
+    heartbeatProcessor.processHostStatus(null, reports, hostname);
+  }
+
+  public void handleHostReportStatus(HostStatusReport hostStatusReport, String hostname) throws AmbariException {
+    Host host = clusterFsm.getHost(hostname);
+    try {
+      host.handleEvent(new HostHealthyHeartbeatEvent(hostname, System.currentTimeMillis(),
+          hostStatusReport.getAgentEnv(), hostStatusReport.getMounts()));
+    } catch (InvalidStateTransitionException ex) {
+      LOG.warn("Asking agent to re-register due to " + ex.getMessage(), ex);
+      host.setState(HostState.INIT);
+      agentSessionManager.unregisterByHost(hostname);
+    }
   }
 
   protected void processRecoveryReport(RecoveryReport recoveryReport, String hostname) throws AmbariException {
     LOG.debug("Received recovery report: " + recoveryReport.toString());
     Host host = clusterFsm.getHost(hostname);
     host.setRecoveryReport(recoveryReport);
-  }
-
-  /**
-   * Adds commands from action queue to a heartbeat response.
-   */
-  protected void sendCommands(String hostname, HeartBeatResponse response)
-      throws AmbariException {
-    List<AgentCommand> cmds = actionQueue.dequeueAll(hostname);
-    if (cmds != null && !cmds.isEmpty()) {
-      for (AgentCommand ac : cmds) {
-        try {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Sending command string = " + StageUtils.jaxbToString(ac));
-          }
-        } catch (Exception e) {
-          throw new AmbariException("Could not get jaxb string for command", e);
-        }
-        switch (ac.getCommandType()) {
-          case BACKGROUND_EXECUTION_COMMAND:
-          case EXECUTION_COMMAND: {
-            ExecutionCommand ec = (ExecutionCommand)ac;
-            LOG.info("HeartBeatHandler.sendCommands: sending ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, task ID {}",
-                     ec.getHostname(), ec.getRole(), ec.getRoleCommand(), ec.getCommandId(), ec.getTaskId());
-            Map<String, String> hlp = ec.getHostLevelParams();
-            if (hlp != null) {
-              String customCommand = hlp.get("custom_command");
-              if ("SET_KEYTAB".equalsIgnoreCase(customCommand) || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
-                LOG.info(String.format("%s called", customCommand));
-                try {
-                  injectKeytab(ec, customCommand, hostname);
-                } catch (IOException e) {
-                  throw new AmbariException("Could not inject keytab into command", e);
-                }
-              }
-            }
-            response.addExecutionCommand((ExecutionCommand) ac);
-            break;
-          }
-          case STATUS_COMMAND: {
-            response.addStatusCommand((StatusCommand) ac);
-            break;
-          }
-          case CANCEL_COMMAND: {
-            response.addCancelCommand((CancelCommand) ac);
-            break;
-          }
-          case ALERT_DEFINITION_COMMAND: {
-            response.addAlertDefinitionCommand((AlertDefinitionCommand) ac);
-            break;
-          }
-          case ALERT_EXECUTION_COMMAND: {
-            response.addAlertExecutionCommand((AlertExecutionCommand) ac);
-            break;
-          }
-          default:
-            LOG.error("There is no action for agent command ="
-                + ac.getCommandType().name());
-        }
-      }
-    }
   }
 
   public String getOsType(String os, String osRelease) {
@@ -569,95 +506,6 @@ public class HeartBeatHandler {
     }
 
     return commands;
-  }
-
-  /**
-   * Insert Kerberos keytab details into the ExecutionCommand for the SET_KEYTAB custom command if
-   * any keytab details and associated data exists for the target host.
-   *
-   * @param ec the ExecutionCommand to update
-   * @param command a name of the relevant keytab command
-   * @param targetHost a name of the host the relevant command is destined for
-   * @throws AmbariException
-   */
-  void injectKeytab(ExecutionCommand ec, String command, String targetHost) throws AmbariException {
-    String dataDir = ec.getCommandParams().get(KerberosServerAction.DATA_DIRECTORY);
-
-    if(dataDir != null) {
-      KerberosIdentityDataFileReader reader = null;
-      List<Map<String, String>> kcp = ec.getKerberosCommandParams();
-
-      try {
-        reader = kerberosIdentityDataFileReaderFactory.createKerberosIdentityDataFileReader(new File(dataDir, KerberosIdentityDataFileReader.DATA_FILE_NAME));
-
-        for (Map<String, String> record : reader) {
-          String hostName = record.get(KerberosIdentityDataFileReader.HOSTNAME);
-
-          if (targetHost.equalsIgnoreCase(hostName)) {
-
-            if ("SET_KEYTAB".equalsIgnoreCase(command)) {
-              String keytabFilePath = record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
-
-              if (keytabFilePath != null) {
-
-                String sha1Keytab = DigestUtils.sha1Hex(keytabFilePath);
-                File keytabFile = new File(dataDir + File.separator + hostName + File.separator + sha1Keytab);
-
-                if (keytabFile.canRead()) {
-                  Map<String, String> keytabMap = new HashMap<>();
-                  String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
-                  String isService = record.get(KerberosIdentityDataFileReader.SERVICE);
-
-                  keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
-                  keytabMap.put(KerberosIdentityDataFileReader.SERVICE, isService);
-                  keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
-                  keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, principal);
-                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, keytabFilePath);
-                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME));
-                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS));
-                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME));
-                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS));
-
-                  BufferedInputStream bufferedIn = new BufferedInputStream(new FileInputStream(keytabFile));
-                  byte[] keytabContent = null;
-                  try {
-                    keytabContent = IOUtils.toByteArray(bufferedIn);
-                  } finally {
-                    bufferedIn.close();
-                  }
-                  String keytabContentBase64 = Base64.encodeBase64String(keytabContent);
-                  keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
-
-                  kcp.add(keytabMap);
-                }
-              }
-            } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
-              Map<String, String> keytabMap = new HashMap<>();
-
-              keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
-              keytabMap.put(KerberosIdentityDataFileReader.SERVICE, record.get(KerberosIdentityDataFileReader.SERVICE));
-              keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
-              keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, record.get(KerberosIdentityDataFileReader.PRINCIPAL));
-              keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH));
-
-              kcp.add(keytabMap);
-            }
-          }
-        }
-      } catch (IOException e) {
-        throw new AmbariException("Could not inject keytabs to enable kerberos");
-      } finally {
-        if (reader != null) {
-          try {
-            reader.close();
-          } catch (Throwable t) {
-            // ignored
-          }
-        }
-      }
-
-      ec.setKerberosCommandParams(kcp);
-    }
   }
 
   public void stop() {

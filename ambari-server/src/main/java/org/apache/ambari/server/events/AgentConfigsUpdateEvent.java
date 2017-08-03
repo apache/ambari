@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,11 +26,26 @@ import org.apache.ambari.server.agent.stomp.dto.Hashable;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Contains info about configs update for one host. This update will be sent to single host only.
+ * Host can be identified by AgentConfigsUpdateEvent#hostName.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AgentConfigsUpdateEvent extends AmbariUpdateEvent implements Hashable {
+public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Hashable {
 
+  /**
+   * Actual version hash.
+   */
   private String hash;
 
+  /**
+   * Host identifier.
+   */
+  private String hostName;
+
+  /**
+   * Configs grouped by cluster id as keys.
+   */
   @JsonProperty("clusters")
   private TreeMap<String, ClusterConfigs> clustersConfigs = new TreeMap<>();
 
@@ -58,5 +73,32 @@ public class AgentConfigsUpdateEvent extends AmbariUpdateEvent implements Hashab
 
   public static AgentConfigsUpdateEvent emptyUpdate() {
     return new AgentConfigsUpdateEvent(null);
+  }
+
+  public void setHostName(String hostName) {
+    this.hostName = hostName;
+  }
+
+  @Override
+  public String getHostName() {
+    return hostName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    AgentConfigsUpdateEvent that = (AgentConfigsUpdateEvent) o;
+
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    return clustersConfigs != null ? clustersConfigs.equals(that.clustersConfigs) : that.clustersConfigs == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = hostName != null ? hostName.hashCode() : 0;
+    result = 31 * result + (clustersConfigs != null ? clustersConfigs.hashCode() : 0);
+    return result;
   }
 }

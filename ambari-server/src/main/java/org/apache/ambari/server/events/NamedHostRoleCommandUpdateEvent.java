@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,9 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+/**
+ * Single host role command update info. This update will be sent to all subscribed recipients.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NamedHostRoleCommandUpdateEvent extends AmbariUpdateEvent {
 
@@ -123,5 +126,37 @@ public class NamedHostRoleCommandUpdateEvent extends AmbariUpdateEvent {
   @Override
   public String getDestination() {
     return super.getDestination() + getId();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    NamedHostRoleCommandUpdateEvent that = (NamedHostRoleCommandUpdateEvent) o;
+
+    if (id != null ? !id.equals(that.id) : that.id != null) return false;
+    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (endTime != null ? !endTime.equals(that.endTime) : that.endTime != null) return false;
+    if (status != that.status) return false;
+    if (errorLog != null ? !errorLog.equals(that.errorLog) : that.errorLog != null) return false;
+    if (outLog != null ? !outLog.equals(that.outLog) : that.outLog != null) return false;
+    if (stderr != null ? !stderr.equals(that.stderr) : that.stderr != null) return false;
+    return stdout != null ? stdout.equals(that.stdout) : that.stdout == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
+    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
+    result = 31 * result + (status != null ? status.hashCode() : 0);
+    result = 31 * result + (errorLog != null ? errorLog.hashCode() : 0);
+    result = 31 * result + (outLog != null ? outLog.hashCode() : 0);
+    result = 31 * result + (stderr != null ? stderr.hashCode() : 0);
+    result = 31 * result + (stdout != null ? stdout.hashCode() : 0);
+    return result;
   }
 }

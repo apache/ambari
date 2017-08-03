@@ -209,7 +209,7 @@ public class StackVersionListener {
    */
   private void processComponentVersionChange(Cluster cluster, ServiceComponent sc,
                                              ServiceComponentHost sch,
-                                             String newVersion) {
+                                             String newVersion) throws AmbariException {
     String desiredVersion = sc.getDesiredVersion();
     UpgradeState upgradeState = sch.getUpgradeState();
     if (upgradeState == UpgradeState.IN_PROGRESS) {
