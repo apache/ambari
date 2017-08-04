@@ -38,7 +38,7 @@ for statement in input_statements:
   statement = re.sub(
     create_table_re,
     dedent('''\
-      IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.\g<1>') AND type = 'U')
+      IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('\g<1>') AND type = 'U')
       BEGIN
       \g<0>
       END
