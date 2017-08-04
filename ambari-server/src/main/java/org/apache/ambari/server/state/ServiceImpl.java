@@ -276,27 +276,6 @@ public class ServiceImpl implements Service {
     serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
   }
 
-  @Override
-  public SecurityState getSecurityState() {
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    return serviceDesiredStateEntity.getSecurityState();
-  }
-
-  @Override
-  public void setSecurityState(SecurityState securityState) throws AmbariException {
-    if(!securityState.isEndpoint()) {
-      throw new AmbariException("The security state must be an endpoint state");
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredSecurityState of Service, clusterName={}, clusterId={}, serviceName={}, oldDesiredSecurityState={}, newDesiredSecurityState={}",
-        cluster.getClusterName(), cluster.getClusterId(), getName(), getSecurityState(), securityState);
-    }
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setSecurityState(securityState);
-    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
-  }
-
   /**
    * {@inheritDoc}
    */

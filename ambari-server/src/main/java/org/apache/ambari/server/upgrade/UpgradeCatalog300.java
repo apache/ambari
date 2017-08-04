@@ -77,6 +77,10 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
   protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
+  protected static final String COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
+  protected static final String COMPONENT_STATE_TABLE = "hostcomponentstate";
+  protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
+  protected static final String SECURITY_STATE_COLUMN = "security_state";
 
   @Inject
   DaoUtils daoUtils;
@@ -125,6 +129,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateStageTable();
     updateClusterConfigurationTable();
     addOpsDisplayNameColumnToHostRoleCommand();
+    removeSecurityState();
   }
 
   protected void updateStageTable() throws SQLException {
@@ -309,6 +314,12 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   private void addOpsDisplayNameColumnToHostRoleCommand() throws SQLException {
     dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
         new DBAccessor.DBColumnInfo(HRC_OPS_DISPLAY_NAME_COLUMN, String.class, 255, null, true));
+  }
+
+  private void removeSecurityState() throws SQLException {
+    dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
+    dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN);
+    dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
   }
 
   /**

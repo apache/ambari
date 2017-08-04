@@ -96,7 +96,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -1700,7 +1699,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       throws AmbariException, KerberosOperationException {
 
     final KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
-    final SecurityState desiredSecurityState = handler.getNewServiceSecurityState();
 
     List<ServiceComponentHost> schToProcess = getServiceComponentHostsToProcess(
         cluster,
@@ -1708,12 +1706,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         serviceComponentFilter,
         hostFilter,
         identityFilter,
-        new Command<Boolean, ServiceComponentHost>() {
-          @Override
-          public Boolean invoke(ServiceComponentHost arg) throws AmbariException {
-            return handler.shouldProcess(desiredSecurityState, arg);
-          }
-        });
+      arg -> true);
 
 
     // While iterating over all the ServiceComponentHosts find hosts that have KERBEROS_CLIENT
@@ -1781,34 +1774,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     // Add the finalize stage...
     handler.addFinalizeOperationStage(cluster, clusterHostInfoJson, hostParamsJson, event,
         dataDirectory, roleCommandOrder, requestStageContainer, kerberosDetails);
-
-    // If all goes well, set the appropriate states on the relevant ServiceComponentHosts
-    for (ServiceComponentHost sch : schToProcess) {
-      // Update the desired and current states for the ServiceComponentHost
-      // using new state information from the the handler implementation
-      SecurityState newSecurityState;
-
-      newSecurityState = handler.getNewDesiredSCHSecurityState();
-      if (newSecurityState != null) {
-        sch.setDesiredSecurityState(newSecurityState);
-      }
-
-      newSecurityState = handler.getNewSCHSecurityState();
-      if (newSecurityState != null) {
-        sch.setSecurityState(newSecurityState);
-      }
-    }
-
-    // If all goes well, set all services to _desire_ to be secured or unsecured, depending on handler
-    if (desiredSecurityState != null) {
-      Map<String, Service> services = cluster.getServices();
-
-      for (Service service : services.values()) {
-        if ((serviceComponentFilter == null) || serviceComponentFilter.containsKey(service.getName())) {
-          service.setSecurityState(desiredSecurityState);
-        }
-      }
-    }
 
     return requestStageContainer;
   }
@@ -2755,42 +2720,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * "right" thing for the task at hand.
    */
   private abstract class Handler {
-    /**
-     * Tests the Service and ServiceComponentHost to see if they are in the appropriate security
-     * state to be processed for the relevant task.
-     *
-     * @param desiredSecurityState the SecurityState to be transitioned to
-     * @param sch                  the ServiceComponentHost to test
-     * @return true if both the Service and ServiceComponentHost are in the appropriate security
-     * state to be processed; otherwise false
-     * @throws AmbariException of an error occurs while testing
-     */
-    abstract boolean shouldProcess(SecurityState desiredSecurityState, ServiceComponentHost sch) throws AmbariException;
 
-    /**
-     * Returns the new SecurityState to be set as the ServiceComponentHost's _desired_ SecurityState.
-     *
-     * @return a SecurityState to be set as the ServiceComponentHost's _desired_ SecurityState;
-     * or null if no state change is desired
-     */
-    abstract SecurityState getNewDesiredSCHSecurityState();
-
-    /**
-     * Returns the new SecurityState to be set as the ServiceComponentHost's _current_ SecurityState.
-     *
-     * @return a SecurityState to be set as the ServiceComponentHost's _current_ SecurityState;
-     * or null if no state change is desired
-     */
-    abstract SecurityState getNewSCHSecurityState();
-
-
-    /**
-     * Returns the new SecurityState to be set as the Service's SecurityState.
-     *
-     * @return a SecurityState to be set as the Service's SecurityState;
-     * or null if no state change is desired
-     */
-    abstract SecurityState getNewServiceSecurityState();
 
     /**
      * Creates the necessary stages to complete the relevant task and stores them in the supplied
@@ -3308,10 +3238,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * EnableKerberosHandler is an implementation of the Handler interface used to enable Kerberos
    * on the relevant cluster
    * <p/>
-   * This implementation attempts to set the Service and ServiceComponentHost _desired_ security
-   * states to {@link org.apache.ambari.server.state.SecurityState#SECURED_KERBEROS} and the
-   * ServiceComponentHost _current_ security state to {@link org.apache.ambari.server.state.SecurityState#SECURING}.
-   * <p/>
    * To complete the process, this implementation creates the following stages:
    * <ol>
    * <li>create principals</li>
@@ -3321,25 +3247,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * </ol>
    */
   private class EnableKerberosHandler extends Handler {
-    @Override
-    public boolean shouldProcess(SecurityState desiredSecurityState, ServiceComponentHost sch) throws AmbariException {
-      return (desiredSecurityState == SecurityState.SECURED_KERBEROS);
-    }
-
-    @Override
-    public SecurityState getNewDesiredSCHSecurityState() {
-      return SecurityState.SECURED_KERBEROS;
-    }
-
-    @Override
-    public SecurityState getNewSCHSecurityState() {
-      return SecurityState.SECURING;
-    }
-
-    @Override
-    public SecurityState getNewServiceSecurityState() {
-      return SecurityState.SECURED_KERBEROS;
-    }
 
     @Override
     public long createStages(Cluster cluster,
@@ -3431,10 +3338,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * DisableKerberosHandler is an implementation of the Handler interface used to disable Kerberos
    * on the relevant cluster
    * <p/>
-   * This implementation attempts to set the Service and ServiceComponentHost _desired_ security
-   * states to {@link org.apache.ambari.server.state.SecurityState#UNSECURED} and the ServiceComponentHost
-   * _current_ security state to {@link org.apache.ambari.server.state.SecurityState#UNSECURING}.
-   * <p/>
    * To complete the process, this implementation creates the following stages:
    * <ol>
    * <li>update relevant configurations</li>
@@ -3444,27 +3347,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * </ol>
    */
   private class DisableKerberosHandler extends Handler {
-    @Override
-    public boolean shouldProcess(SecurityState desiredSecurityState, ServiceComponentHost sch) throws AmbariException {
-      return (desiredSecurityState == SecurityState.UNSECURED) &&
-          ((sch.getDesiredSecurityState() != SecurityState.UNSECURED) || (sch.getSecurityState() != SecurityState.UNSECURED)) &&
-          (sch.getSecurityState() != SecurityState.UNSECURING);
-    }
-
-    @Override
-    public SecurityState getNewDesiredSCHSecurityState() {
-      return SecurityState.UNSECURED;
-    }
-
-    @Override
-    public SecurityState getNewSCHSecurityState() {
-      return SecurityState.UNSECURING;
-    }
-
-    @Override
-    public SecurityState getNewServiceSecurityState() {
-      return SecurityState.UNSECURED;
-    }
 
     @Override
     public long createStages(Cluster cluster,
@@ -3593,26 +3475,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     @Override
-    public boolean shouldProcess(SecurityState desiredSecurityState, ServiceComponentHost sch) throws AmbariException {
-      return true;
-    }
-
-    @Override
-    public SecurityState getNewDesiredSCHSecurityState() {
-      return null;
-    }
-
-    @Override
-    public SecurityState getNewSCHSecurityState() {
-      return null;
-    }
-
-    @Override
-    public SecurityState getNewServiceSecurityState() {
-      return null;
-    }
-
-    @Override
     public long createStages(Cluster cluster,
                              String clusterHostInfoJson, String hostParamsJson,
                              ServiceComponentHostServerActionEvent event,
@@ -3721,26 +3583,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * </ol>
    */
   private class DeletePrincipalsAndKeytabsHandler extends Handler {
-
-    @Override
-    public boolean shouldProcess(SecurityState desiredSecurityState, ServiceComponentHost sch) throws AmbariException {
-      return true;
-    }
-
-    @Override
-    public SecurityState getNewDesiredSCHSecurityState() {
-      return null;
-    }
-
-    @Override
-    public SecurityState getNewSCHSecurityState() {
-      return null;
-    }
-
-    @Override
-    public SecurityState getNewServiceSecurityState() {
-      return null;
-    }
 
     @Override
     public long createStages(Cluster cluster,
