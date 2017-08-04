@@ -30,6 +30,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
 import org.apache.ambari.server.logging.LockFactory;
@@ -172,10 +173,13 @@ public class ConfigGroupImpl implements ConfigGroup {
         if (host != null && hostEntity != null) {
           m_hosts.put(hostEntity.getHostId(), host);
         }
-      } catch (Exception e) {
+      } catch (HostNotFoundException e) {
         LOG.warn("Host {} seems to be deleted but Config group {} mapping " +
           "still exists !", hostMappingEntity.getHostname(), configGroupName);
         LOG.debug("Host seems to be deleted but Config group mapping still exists !", e);
+      } catch (Exception ae) {
+        LOG.error("Exception retrieving host mapping for config group {} " +
+          "with id = {}", configGroupEntity.getGroupName(), configGroupEntity.getGroupId());
       }
     }
   }
