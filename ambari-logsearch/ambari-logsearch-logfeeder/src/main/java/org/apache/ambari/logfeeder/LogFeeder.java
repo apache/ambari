@@ -36,7 +36,7 @@ import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.metrics.MetricsManager;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.SSLUtil;
 import com.google.common.collect.Maps;
 import com.google.gson.GsonBuilder;
@@ -80,13 +80,13 @@ public class LogFeeder {
 
     SSLUtil.ensureStorePasswords();
     
-    config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER, Maps.fromProperties(LogFeederUtil.getProperties()),
-        LogFeederUtil.getClusterName(), LogSearchConfigZK.class);
+    config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER,Maps.fromProperties(LogFeederPropertiesUtil.getProperties()),
+        LogFeederPropertiesUtil.getClusterName(), LogSearchConfigZK.class);
     configHandler = new ConfigHandler(config);
     configHandler.init();
     LogLevelFilterHandler.init(config);
     InputConfigUploader.load(config);
-    config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler(), LogFeederUtil.getClusterName());
+    config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler(), LogFeederPropertiesUtil.getClusterName());
     
     metricsManager.init();
     
@@ -182,7 +182,7 @@ public class LogFeeder {
     
     if (cli.isMonitor()) {
       try {
-        LogFeederUtil.loadProperties();
+        LogFeederPropertiesUtil.loadProperties();
       } catch (Throwable t) {
         LOG.warn("Could not load logfeeder properites");
         System.exit(1);

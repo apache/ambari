@@ -37,8 +37,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.commons.lang3.StringUtils;
@@ -56,34 +56,12 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.cloud.CollectionStateWatcher;
 import org.apache.solr.common.cloud.DocCollection;
 
-import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
-
 public class OutputSolr extends Output implements CollectionStateWatcher {
 
   private static final Logger LOG = Logger.getLogger(OutputSolr.class);
 
   private static final int OUTPUT_PROPERTIES_WAIT_MS = 10000;
   private static final int SHARDS_WAIT_MS = 10000;
-  
-  private static final String DEFAULT_SOLR_JAAS_FILE = "/etc/security/keytabs/logsearch_solr.service.keytab";
-  @LogSearchPropertyDescription(
-    name = "logfeeder.solr.jaas.file",
-    description = "The jaas file used for solr.",
-    examples = {"/etc/ambari-logsearch-logfeeder/conf/logfeeder_jaas.conf"},
-    defaultValue = DEFAULT_SOLR_JAAS_FILE,
-    sources = {LOGFEEDER_PROPERTIES_FILE}
-  )
-  private static final String SOLR_JAAS_FILE_PROPERTY = "logfeeder.solr.jaas.file";
-
-  private static final boolean DEFAULT_SOLR_KERBEROS_ENABLE = false;
-  @LogSearchPropertyDescription(
-    name = "logfeeder.solr.kerberos.enable",
-    description = "Enables using kerberos for accessing solr.",
-    examples = {"true"},
-    defaultValue = DEFAULT_SOLR_KERBEROS_ENABLE + "",
-    sources = {LOGFEEDER_PROPERTIES_FILE}
-  )
-  private static final String SOLR_KERBEROS_ENABLE_PROPERTY = "logfeeder.solr.kerberos.enable";
 
   private static final int DEFAULT_MAX_BUFFER_SIZE = 5000;
   private static final int DEFAULT_MAX_INTERVAL_MS = 3000;
@@ -197,8 +175,8 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   }
 
   private void setupSecurity() {
-    String jaasFile = LogFeederUtil.getStringProperty(SOLR_JAAS_FILE_PROPERTY, DEFAULT_SOLR_JAAS_FILE);
-    boolean securityEnabled = LogFeederUtil.getBooleanProperty(SOLR_KERBEROS_ENABLE_PROPERTY, DEFAULT_SOLR_KERBEROS_ENABLE);
+    String jaasFile = LogFeederPropertiesUtil.getSolrJaasFile();
+    boolean securityEnabled = LogFeederPropertiesUtil.isSolrKerberosEnabled();
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
       HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
@@ -397,21 +375,22 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
           if (outputData != null) {
             createSolrDocument(outputData);
           } else {
-            if (isDrain() && outgoingBuffer.size() == 0) {
+            if (isDrain() && outgoingBuffer.isEmpty()) {
               break;
             }
           }
 
-          if (localBuffer.size() > 0 && ((outputData == null && isDrain()) ||
-              (nextDispatchDuration <= 0 || localBuffer.size() >= maxBufferSize))) {
+          if (!localBuffer.isEmpty() &&
+              (outputData == null && isDrain() || nextDispatchDuration <= 0 || localBuffer.size() >= maxBufferSize)
+             ) {
             boolean response = sendToSolr(outputData);
-            if( isDrain() && !response) {
+            if (isDrain() && !response) {
               //Since sending to Solr response failed and it is in draining mode, let's break;
               LOG.warn("In drain mode and sending to Solr failed. So exiting. output=" + getShortDescription());
               break;
             }
           }
-          if (localBuffer.size() == 0) {
+          if (localBuffer.isEmpty()) {
             //If localBuffer is empty, then reset the timer
             lastDispatchTime = currTimeMS;
           }

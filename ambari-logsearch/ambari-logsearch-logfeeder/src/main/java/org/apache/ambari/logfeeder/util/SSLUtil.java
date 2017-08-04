@@ -19,7 +19,6 @@
 
 package org.apache.ambari.logfeeder.util;
 
-import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -28,8 +27,6 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.nio.charset.Charset;
-
-import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
 
 public class SSLUtil {
   private static final Logger LOG = Logger.getLogger(SSLUtil.class);
@@ -45,13 +42,6 @@ public class SSLUtil {
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
 
-  @LogSearchPropertyDescription(
-    name = "hadoop.security.credential.provider.path",
-    description = "The jceks file that provides passwords.",
-    examples = {"jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder.jceks"},
-    sources = {LOGFEEDER_PROPERTIES_FILE}
-  )
-  private static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
   private static final String LOGFEEDER_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
   private static final String LOGFEEDER_STORE_DEFAULT_PASSWORD = "bigdata";
   
@@ -111,13 +101,13 @@ public class SSLUtil {
   
   private static String getPasswordFromCredentialStore(String propertyName) {
     try {
-      String providerPath = LogFeederUtil.getStringProperty(CREDENTIAL_STORE_PROVIDER_PATH);
+      String providerPath = LogFeederPropertiesUtil.getCredentialStoreProviderPath();
       if (providerPath == null) {
         return null;
       }
       
       Configuration config = new Configuration();
-      config.set(CREDENTIAL_STORE_PROVIDER_PATH, providerPath);
+      config.set(LogFeederPropertiesUtil.CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY, providerPath);
       char[] passwordChars = config.getPassword(propertyName);
       return (ArrayUtils.isNotEmpty(passwordChars)) ? new String(passwordChars) : null;
     } catch (Exception e) {
