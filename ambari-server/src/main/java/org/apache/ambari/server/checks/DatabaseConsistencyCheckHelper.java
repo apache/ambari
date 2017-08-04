@@ -51,16 +51,23 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,6 +177,7 @@ public class DatabaseConsistencyCheckHelper {
       if (fixIssues) {
         fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
         fixClusterConfigsNotMappedToAnyService();
+        fixConfigGroupHostMappings();
       }
       checkSchemaName();
       checkMySQLEngine();
@@ -181,6 +189,7 @@ public class DatabaseConsistencyCheckHelper {
       checkServiceConfigs();
       checkTopologyTables();
       checkForLargeTables();
+      checkConfigGroupHostMapping(true);
       LOG.info("******************************* Check database completed *******************************");
       return checkResult;
     }
@@ -1128,6 +1137,112 @@ public class DatabaseConsistencyCheckHelper {
       }
     }
 
+  }
+
+  /**
+   * This method checks if there are any ConfigGroup host mappings with hosts
+   * that are not longer a part of the cluster.
+   */
+  static Map<Long, Set<Long>> checkConfigGroupHostMapping(boolean warnIfFound) {
+    LOG.info("Checking config group host mappings");
+    Map<Long, Set<Long>> nonMappedHostIds = new HashMap<>();
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+    StringBuilder output = new StringBuilder("[( ConfigGroup, Service, HostCount) => ");
+
+    if (!MapUtils.isEmpty(clusterMap)) {
+      for (Cluster cluster : clusterMap.values()) {
+        Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
+        Map<String, Host> clusterHosts;
+        try {
+          clusterHosts = clusters.getHostsForCluster(cluster.getClusterName());
+        } catch (AmbariException e) {
+          // Why would this ever happen?
+          continue;
+        }
+
+        if (!MapUtils.isEmpty(configGroups) && !MapUtils.isEmpty(clusterHosts)) {
+          for (ConfigGroup configGroup : configGroups.values()) {
+            // Based on current implementation of ConfigGroupImpl the
+            // host mapping would be loaded only if the host actually exists
+            // in the host table
+            Map<Long, Host> hosts = configGroup.getHosts();
+            boolean addToOutput = false;
+            Set<String> hostnames = new HashSet<>();
+            if (!MapUtils.isEmpty(hosts)) {
+              for (Host host : hosts.values()) {
+                // Lookup by hostname - It does have a unique constraint
+                if (!clusterHosts.containsKey(host.getHostName())) {
+                  Set<Long> hostIds = nonMappedHostIds.get(configGroup.getId());
+                  if (CollectionUtils.isEmpty(hostIds)) {
+                    hostIds = new HashSet<>();
+                    nonMappedHostIds.put(configGroup.getId(), hostIds);
+                  }
+                  hostIds.add(host.getHostId());
+                  hostnames.add(host.getHostName());
+                  addToOutput = true;
+                }
+              }
+            }
+            if (addToOutput) {
+              output.append("( ");
+              output.append(configGroup.getName());
+              output.append(", ");
+              output.append(configGroup.getTag());
+              output.append(", ");
+              output.append(hostnames);
+              output.append(" ), ");
+            }
+          }
+        }
+      }
+    }
+    if (!MapUtils.isEmpty(nonMappedHostIds) && warnIfFound) {
+      output.replace(output.lastIndexOf(","), output.length(), "]");
+      warning("You have config group host mappings with hosts that are no " +
+        "longer associated with the cluster, {}. Run --auto-fix-database to " +
+        "fix this automatically. Alternatively, you can remove this mapping " +
+        "from the UI.", output.toString());
+    }
+
+    return nonMappedHostIds;
+  }
+
+  /**
+   * Fix inconsistencies found by @checkConfigGroupHostMapping
+   */
+  @Transactional
+  static void fixConfigGroupHostMappings() {
+    Map<Long, Set<Long>> nonMappedHostIds = checkConfigGroupHostMapping(false);
+    Clusters clusters = injector.getInstance(Clusters.class);
+
+    if (!MapUtils.isEmpty(nonMappedHostIds)) {
+      LOG.info("Fixing {} config groups with inconsistent host mappings", nonMappedHostIds.size());
+
+      for (Map.Entry<Long, Set<Long>> nonMappedHostEntry : nonMappedHostIds.entrySet()) {
+        if (!MapUtils.isEmpty(clusters.getClusters())) {
+          for (Cluster cluster : clusters.getClusters().values()) {
+            Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
+            if (!MapUtils.isEmpty(configGroups)) {
+              ConfigGroup configGroup = configGroups.get(nonMappedHostEntry.getKey());
+              if (configGroup != null) {
+                for (Long hostId : nonMappedHostEntry.getValue()) {
+                  try {
+                    configGroup.removeHost(hostId);
+                  } catch (AmbariException e) {
+                    LOG.warn("Unable to fix inconsistency by removing host " +
+                      "mapping for config group: {}, service: {}, hostId = {}",
+                      configGroup.getName(), configGroup.getTag(), hostId);
+                  }
+                }
+              } else {
+                LOG.warn("Unable to find config group with id = {}", nonMappedHostEntry.getKey());
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   private static void ensureConnection() {
