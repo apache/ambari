@@ -49,7 +49,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
@@ -65,7 +65,7 @@ import com.google.gson.reflect.TypeToken;
 public class ConfigHandler implements InputConfigMonitor {
   private static final Logger LOG = Logger.getLogger(ConfigHandler.class);
 
-  private final LogSearchConfig logSearchConfig;
+  private final LogSearchConfigLogFeeder logSearchConfig;
   
   private final OutputManager outputManager = new OutputManager();
   private final InputManager inputManager = new InputManager();
@@ -79,7 +79,7 @@ public class ConfigHandler implements InputConfigMonitor {
   
   private boolean simulateMode = false;
   
-  public ConfigHandler(LogSearchConfig logSearchConfig) {
+  public ConfigHandler(LogSearchConfigLogFeeder logSearchConfig) {
     this.logSearchConfig = logSearchConfig;
   }
   

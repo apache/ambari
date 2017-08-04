@@ -27,10 +27,9 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.ConfigHandler;
 import org.apache.ambari.logfeeder.common.LogEntryParseTester;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
-import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZK;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
+import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigLogFeederZK;
 import org.apache.commons.io.FileUtils;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
@@ -54,7 +53,7 @@ public class LogFeeder {
   private final LogFeederCommandLine cli;
   
   private ConfigHandler configHandler;
-  private LogSearchConfig config;
+  private LogSearchConfigLogFeeder config;
   
   private MetricsManager metricsManager = new MetricsManager();
 
@@ -80,8 +79,8 @@ public class LogFeeder {
 
     SSLUtil.ensureStorePasswords();
     
-    config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER,Maps.fromProperties(LogFeederPropertiesUtil.getProperties()),
-        LogFeederPropertiesUtil.getClusterName(), LogSearchConfigZK.class);
+    config = LogSearchConfigFactory.createLogSearchConfigLogFeeder(Maps.fromProperties(LogFeederPropertiesUtil.getProperties()),
+        LogFeederPropertiesUtil.getClusterName(), LogSearchConfigLogFeederZK.class);
     configHandler = new ConfigHandler(config);
     configHandler.init();
     LogLevelFilterHandler.init(config);

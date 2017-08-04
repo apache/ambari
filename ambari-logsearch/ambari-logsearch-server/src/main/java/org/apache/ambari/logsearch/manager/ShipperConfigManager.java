@@ -50,24 +50,24 @@ public class ShipperConfigManager extends JsonManagerBase {
   private LogSearchConfigConfigurer logSearchConfigConfigurer;
   
   public List<String> getServices(String clusterName) {
-    return LogSearchConfigConfigurer.getConfig().getServices(clusterName);
+    return logSearchConfigConfigurer.getConfig().getServices(clusterName);
   }
 
   public LSServerInputConfig getInputConfig(String clusterName, String serviceName) {
-    InputConfig inputConfig = LogSearchConfigConfigurer.getConfig().getInputConfig(clusterName, serviceName);
+    InputConfig inputConfig = logSearchConfigConfigurer.getConfig().getInputConfig(clusterName, serviceName);
     return new LSServerInputConfig(inputConfig);
   }
 
   public Response createInputConfig(String clusterName, String serviceName, LSServerInputConfig inputConfig) {
     try {
-      if (LogSearchConfigConfigurer.getConfig().inputConfigExistsServer(clusterName, serviceName)) {
+      if (logSearchConfigConfigurer.getConfig().inputConfigExists(clusterName, serviceName)) {
         return Response.serverError()
             .type(MediaType.APPLICATION_JSON)
             .entity(ImmutableMap.of("errorMessage", "Input config already exists for service " + serviceName))
             .build();
       }
       
-      LogSearchConfigConfigurer.getConfig().createInputConfig(clusterName, serviceName, new ObjectMapper().writeValueAsString(inputConfig));
+      logSearchConfigConfigurer.getConfig().createInputConfig(clusterName, serviceName, new ObjectMapper().writeValueAsString(inputConfig));
       return Response.ok().build();
     } catch (Exception e) {
       logger.warn("Could not create input config", e);
@@ -77,14 +77,14 @@ public class ShipperConfigManager extends JsonManagerBase {
 
   public Response setInputConfig(String clusterName, String serviceName, LSServerInputConfig inputConfig) {
     try {
-      if (!LogSearchConfigConfigurer.getConfig().inputConfigExistsServer(clusterName, serviceName)) {
+      if (!logSearchConfigConfigurer.getConfig().inputConfigExists(clusterName, serviceName)) {
         return Response.serverError()
             .type(MediaType.APPLICATION_JSON)
             .entity(ImmutableMap.of("errorMessage", "Input config doesn't exist for service " + serviceName))
             .build();
       }
       
-      LogSearchConfigConfigurer.getConfig().setInputConfig(clusterName, serviceName, new ObjectMapper().writeValueAsString(inputConfig));
+      logSearchConfigConfigurer.getConfig().setInputConfig(clusterName, serviceName, new ObjectMapper().writeValueAsString(inputConfig));
       return Response.ok().build();
     } catch (Exception e) {
       logger.warn("Could not update input config", e);
@@ -101,7 +101,7 @@ public class ShipperConfigManager extends JsonManagerBase {
         throw new IllegalArgumentException("Error validating shipper config:\n" + violations);
       }
       
-      String globalConfigs = LogSearchConfigConfigurer.getConfig().getGlobalConfigs(clusterName);
+      String globalConfigs = logSearchConfigConfigurer.getConfig().getGlobalConfigs(clusterName);
       LogEntryParseTester tester = new LogEntryParseTester(testEntry, shipperConfig, globalConfigs, logId);
       return tester.parse();
     } catch (Exception e) {
@@ -111,12 +111,12 @@ public class ShipperConfigManager extends JsonManagerBase {
   }
 
   public LSServerLogLevelFilterMap getLogLevelFilters(String clusterName) {
-    return new LSServerLogLevelFilterMap(LogSearchConfigConfigurer.getConfig().getLogLevelFilters(clusterName));
+    return new LSServerLogLevelFilterMap(logSearchConfigConfigurer.getConfig().getLogLevelFilters(clusterName));
   }
 
   public Response setLogLevelFilters(String clusterName, LSServerLogLevelFilterMap request) {
     try {
-      LogSearchConfigConfigurer.getConfig().setLogLevelFilters(clusterName, request.convertToApi());
+      logSearchConfigConfigurer.getConfig().setLogLevelFilters(clusterName, request.convertToApi());
       return Response.ok().build();
     } catch (Exception e) {
       logger.warn("Could not update log level filters", e);

@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.zookeeper.model.outputconfig.impl.OutputSolrPropertiesImpl;
 import org.apache.log4j.Logger;
@@ -50,7 +50,7 @@ public class OutputSolrTest {
   private static final Logger LOG = Logger.getLogger(OutputSolrTest.class);
 
   private OutputSolr outputSolr;
-  private LogSearchConfig logSearchConfigMock;
+  private LogSearchConfigLogFeeder logSearchConfigMock;
   private Map<Integer, SolrInputDocument> receivedDocs = new ConcurrentHashMap<>();
 
   @Rule
@@ -80,7 +80,7 @@ public class OutputSolrTest {
     };
     
     OutputSolrProperties outputSolrProperties = new OutputSolrPropertiesImpl("hadoop_logs", "none");
-    logSearchConfigMock = EasyMock.createNiceMock(LogSearchConfig.class);
+    logSearchConfigMock = EasyMock.createNiceMock(LogSearchConfigLogFeeder.class);
     EasyMock.expect(logSearchConfigMock.getOutputSolrProperties("service")).andReturn(outputSolrProperties);
     EasyMock.replay(logSearchConfigMock);
     

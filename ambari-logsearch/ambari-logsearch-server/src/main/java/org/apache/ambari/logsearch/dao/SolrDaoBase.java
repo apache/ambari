@@ -26,6 +26,8 @@ import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
+import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.log4j.Logger;
@@ -56,7 +58,10 @@ public abstract class SolrDaoBase {
   private SolrKerberosConfig solrKerberosConfig;
 
   @Inject
-  protected LogSearchConfigState logSearchConfigState;
+  private LogSearchConfigState logSearchConfigState;
+
+  @Inject
+  private LogSearchConfigConfigurer logSearchConfigConfigurer;
 
   protected SolrDaoBase(LogType logType) {
     this.logType = logType;
@@ -150,6 +155,10 @@ public abstract class SolrDaoBase {
 
   public CloudSolrClient getSolrClient() {
     return (CloudSolrClient) getSolrTemplate().getSolrClient();
+  }
+
+  public LogSearchConfigServer getLogSearchConfig() {
+    return logSearchConfigConfigurer.getConfig();
   }
 
   public abstract SolrTemplate getSolrTemplate();

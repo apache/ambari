@@ -28,7 +28,7 @@ import org.apache.ambari.logfeeder.common.ConfigBlock;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 
@@ -104,9 +104,9 @@ public abstract class Output extends ConfigBlock implements OutputConfigMonitor 
     this.destination = destination;
   }
 
-  protected LogSearchConfig logSearchConfig;
+  protected LogSearchConfigLogFeeder logSearchConfig;
 
-  public void setLogSearchConfig(LogSearchConfig logSearchConfig) {
+  public void setLogSearchConfig(LogSearchConfigLogFeeder logSearchConfig) {
     this.logSearchConfig = logSearchConfig;
   }
 
