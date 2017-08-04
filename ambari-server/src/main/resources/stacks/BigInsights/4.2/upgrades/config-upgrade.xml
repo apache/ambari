@@ -145,6 +145,16 @@
             <set key="hadoop.custom-extensions.root" value="/hdp/ext/{{major_stack_version}}/hadoop" if-type="core-site" if-key="hadoop.custom-extensions.root" if-key-state="absent"/>
           </definition>
 
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hdfs_audit_db">
+            <type>ranger-knox-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
         </changes>
       </component>
     </service>
