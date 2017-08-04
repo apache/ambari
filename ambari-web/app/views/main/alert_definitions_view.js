@@ -28,10 +28,11 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
   contentObs: function () {
     Em.run.once(this, this.contentObsOnce);
-  }.observes('controller.content.[]'),
+  }.observes('controller.content.[]', 'App.router.clusterController.isAlertsLoaded'),
 
   contentObsOnce: function() {
-    var content = this.get('controller.content') ? this.get('controller.content').toArray().sort(App.AlertDefinition.getSortDefinitionsByStatus(true)) : [];
+    var content = this.get('controller.content') && App.get('router.clusterController.isAlertsLoaded') ?
+      this.get('controller.content').toArray().sort(App.AlertDefinition.getSortDefinitionsByStatus(true)) : [];
     this.set('content', content);
   },
 

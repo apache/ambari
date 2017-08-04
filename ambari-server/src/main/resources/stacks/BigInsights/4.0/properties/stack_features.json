@@ -95,7 +95,7 @@
       {
         "name": "ranger_usersync_non_root",
         "description": "Ranger Usersync as non-root user (AMBARI-10416)",
-        "min_version": "4.1.0.0"
+        "min_version": "4.2.0.0"
       },
       {
         "name": "ranger_audit_db_support",
@@ -185,8 +185,8 @@
         "min_version": "4.2.5.0"
       },
       {
-        "name": "ranger_install_logsearch_client",
-        "description": "LogSearch Service support",
+        "name": "ranger_install_infra_client",
+        "description": "Ambari Infra Service support",
         "min_version": "4.2.5.0"
       },
       {
@@ -208,6 +208,31 @@
         "name": "ranger_kms_pid_support",
         "description": "Ranger KMS Service support pid generation",
         "min_version": "4.2.5.0"
+      },
+      {
+        "name": "ranger_admin_password_change",
+        "description": "Allow ranger admin credentials to be specified during cluster creation (AMBARI-17000)",
+        "min_version": "4.2.5.0"
+      },
+      {
+        "name": "ranger_hive_plugin_jdbc_url",
+        "description": "Handle Ranger hive repo config jdbc url change for stack 2.5 (AMBARI-18386)",
+        "min_version": "4.2.5.0"
+      },
+      {
+        "name": "ranger_xml_configuration",
+        "description": "Ranger code base support xml configurations",
+        "min_version": "4.2.0.0"
+      },
+      {
+        "name": "kafka_ranger_plugin_support",
+        "description": "Ambari stack changes for Ranger Kafka Plugin (AMBARI-11299)",
+        "min_version": "4.2.0.0"
+      },
+      {
+        "name": "yarn_ranger_plugin_support",
+        "description": "Implement Stack changes for Ranger Yarn Plugin integration (AMBARI-10866)",
+        "min_version": "4.2.0.0"
       }
     ]
   }

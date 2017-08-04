@@ -36,6 +36,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -43,8 +44,11 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
@@ -645,5 +649,78 @@ public class DatabaseConsistencyCheckHelperTest {
     DatabaseConsistencyCheckHelper.checkForLargeTables();
 
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testConfigGroupHostMappings() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+    Map<String, Cluster> clusters = new HashMap<>();
+    Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    clusters.put("c1", cluster);
+    expect(mockClusters.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+    ConfigGroup cg1 = easyMockSupport.createNiceMock(ConfigGroup.class);
+    ConfigGroup cg2 = easyMockSupport.createNiceMock(ConfigGroup.class);
+    configGroupMap.put(1L, cg1);
+    configGroupMap.put(2L, cg2);
+
+    expect(cluster.getConfigGroups()).andReturn(configGroupMap).anyTimes();
+
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+
+    Map<String, Host> hosts = new HashMap<>();
+    Host h1 = easyMockSupport.createNiceMock(Host.class);
+    Host h2 = easyMockSupport.createNiceMock(Host.class);
+    hosts.put("h1", h1);
+    expect(mockClusters.getHostsForCluster("c1")).andReturn(hosts);
+
+    Map<Long, Host> cgHosts = new HashMap<>();
+    cgHosts.put(1L, h1);
+    cgHosts.put(2L, h2);
+
+    expect(cg1.getHosts()).andReturn(cgHosts);
+
+    expect(h1.getHostName()).andReturn("h1").anyTimes();
+    expect(h2.getHostName()).andReturn("h2").anyTimes() ;
+    expect(h1.getHostId()).andReturn(1L).anyTimes();
+    expect(h2.getHostId()).andReturn(2L).anyTimes();
+
+    expect(cg1.getId()).andReturn(1L).anyTimes();
+    expect(cg2.getId()).andReturn(2L).anyTimes();
+    expect(cg1.getName()).andReturn("cg1").anyTimes();
+    expect(cg2.getName()).andReturn("cg2").anyTimes();
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    Map<Long, Set<Long>> hostIds = DatabaseConsistencyCheckHelper.checkConfigGroupHostMapping(true);
+
+    easyMockSupport.verifyAll();
+
+    Assert.assertNotNull(hostIds);
+    Assert.assertEquals(1, hostIds.size());
+    Assert.assertEquals(1L, hostIds.keySet().iterator().next().longValue());
+    Assert.assertEquals(2L, hostIds.get(1L).iterator().next().longValue());
   }
 }

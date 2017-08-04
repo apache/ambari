@@ -307,5 +307,15 @@ describe('App.EnhancedConfigsMixin', function() {
       expect(instanceObject.filterRequiredChanges(recommendations)).to.be.eql(recommendations);
     });
   });
+
+  describe('#isConfigGroupAffected', function() {
+    it('groups have no shared hosts', function() {
+      expect(instanceObject.isConfigGroupAffected(['host1'], ['host2'])).to.be.false;
+    });
+    it('groups have shared hosts', function() {
+      expect(instanceObject.isConfigGroupAffected(['host1'], ['host2', 'host1'])).to.be.true;
+    });
+  });
+
 });
 

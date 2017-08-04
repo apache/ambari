@@ -9392,7 +9392,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> requestParams = StageUtils.getGson().fromJson(request.getInputs(), type);
     assertEquals(2, requestParams.size());
     assertEquals("true", requestParams.get("multi_services_decom_request"));
-    assertEquals("false", requestParams.get("update_files_only"));
+    assertEquals("true", requestParams.get("update_files_only"));
     assertEquals(1, request.getResourceFilters().size());
     RequestResourceFilter resourceFilter = request.getResourceFilters().get(0);
     assertEquals(resourceFilter.getServiceName(), hdfsService);

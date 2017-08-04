@@ -226,7 +226,7 @@ public class ClusterStackVersionResourceProviderTest {
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
           Collections.<HostVersionEntity>emptyList()).anyTimes();
-
+      expect(host.getHostAttributes()).andReturn(new HashMap<String, String>()).anyTimes();
       replay(host);
       hostsForCluster.put(hostname, host);
 
@@ -418,7 +418,7 @@ public class ClusterStackVersionResourceProviderTest {
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
           Collections.<HostVersionEntity>emptyList()).anyTimes();
-
+      expect(host.getHostAttributes()).andReturn(new HashMap<String, String>()).anyTimes();
       replay(host);
       hostsForCluster.put(hostname, host);
     }
@@ -641,7 +641,7 @@ public class ClusterStackVersionResourceProviderTest {
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
           Collections.<HostVersionEntity>emptyList()).anyTimes();
-
+      expect(host.getHostAttributes()).andReturn(new HashMap<String, String>()).anyTimes();
       replay(host);
       hostsForCluster.put(hostname, host);
 
@@ -882,7 +882,7 @@ public class ClusterStackVersionResourceProviderTest {
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
           Collections.<HostVersionEntity>emptyList()).anyTimes();
-
+      expect(host.getHostAttributes()).andReturn(new HashMap<String, String>()).anyTimes();
       replay(host);
       hostsForCluster.put(hostname, host);
 
@@ -1131,7 +1131,7 @@ public class ClusterStackVersionResourceProviderTest {
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(hostVersions).anyTimes();
-
+      expect(host.getHostAttributes()).andReturn(new HashMap<String, String>()).anyTimes();
       replay(host, hostVersion);
       hostsForCluster.put(hostname, host);
     }
@@ -1363,6 +1363,7 @@ public class ClusterStackVersionResourceProviderTest {
 
         hostVersionEntitiesMergedWithNotRequired.add(hostVersionEntity);
         expect(host.getAllHostVersions()).andReturn(hostVersionEntitiesMergedWithNotRequired).anyTimes();
+        expect(host.getHostAttributes()).andReturn(new HashMap<String, String>()).anyTimes();
       }
 
       replay(host);

@@ -33,6 +33,12 @@ def _normalize(v, desired_segments=0):
     v_list = v_list + ((desired_segments - len(v_list)) * ["0", ])
   return [int(x) for x in v_list]
 
+"""
+Ensure backword compatibility for older IOP services.
+These services do not get updated service definitions so their Python API references are old.
+"""
+def format_hdp_stack_version(input):
+  return format_stack_version(input)
 
 def format_stack_version(input):
   """

@@ -51,12 +51,6 @@
             <transfer operation="delete" delete-key="ranger.sso.query.param.originalurl" />
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag">
-            <type>ranger-env</type>
-            <set key="is_external_solrCloud_enabled" value="true"
-              if-type="ranger-env" if-key="is_solrCloud_enabled" if-value="true"/>
-          </definition>
-
           <definition xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous">
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="bind_anonymous" />
@@ -78,7 +72,7 @@
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db">
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_audit_db">
             <type>ranger-kms-audit</type>
             <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
@@ -88,6 +82,7 @@
             <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
+
           <definition xsi:type="configure" id="kms_log4j_parameterize" summary="Parameterizing Ranger KMS Log4J Properties">
             <type>kms-log4j</type>
             <set key="ranger_kms_log_maxfilesize" value="256"/>
@@ -120,6 +115,7 @@
             <set key="security.inter.broker.protocol" value="PLAINTEXTSASL"/>
             <replace key="listeners" find="SASL_PLAINTEXT" replace-with="PLAINTEXTSASL"/>
           </definition>
+
         </changes>
       </component>
     </service>
@@ -148,6 +144,7 @@
             <type>core-site</type>
             <set key="hadoop.custom-extensions.root" value="/hdp/ext/{{major_stack_version}}/hadoop" if-type="core-site" if-key="hadoop.custom-extensions.root" if-key-state="absent"/>
           </definition>
+
         </changes>
       </component>
     </service>
@@ -163,6 +160,17 @@
           <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
             <type>yarn-env</type>
             <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_yarn_audit_db">
+            <type>ranger-yarn-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
         </changes>
       </component>
@@ -206,11 +214,31 @@
             <type>hbase-env</type>
             <insert key="content" insert-type="append" value="# Extra Java CLASSPATH elements. Optional.&#10;export HBASE_CLASSPATH=${HBASE_CLASSPATH}:{{stack_root}}/current/ext/hbase/*" newline-after="true" newline-before="true"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hbase_audit_db">
+            <type>ranger-hbase-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
         </changes>
       </component>
     </service>
 
     <service name="HIVE">
+      <component name="HIVE_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_hive_exectype_change" summary="Update Hive Execution Engine">
+            <type>hive-site</type>
+            <set key="hive.execution.engine" value="mr" if-type="hive-site" if-key="hive.execution.engine" if-value="tez"/>
+          </definition>
+        </changes>
+      </component>
+
       <component name="HIVE_SERVER">
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication" summary="Configuring hive authentication">
@@ -265,6 +293,17 @@
             <type>hive-env</type>
             <replace key="content" find="if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then" replace-with="export HIVE_AUX_JARS_PATH={{stack_root}}/current/ext/hive&#10;if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then"/>
             <replace key="content" find="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ]; then" replace-with="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ] || [ -d &quot;${HIVE_AUX_JARS_PATH}&quot; ] ; then"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hive_audit_db">
+            <type>ranger-hive-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
         </changes>
       </component>
@@ -323,7 +362,23 @@
         </changes>
       </component>
     </service>
-  </services>
 
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_knox_audit_db">
+            <type>ranger-knox-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+  </services>
 
 </upgrade-config-changes>
