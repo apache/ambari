@@ -76,6 +76,8 @@ describe('App.WizardStep1Controller', function () {
 
   App.TestAliases.testAsComputedEveryBy(getController(), 'networkIssuesExist', 'content.stacks', 'stackDefault', true);
 
+  App.TestAliases.testAsComputedEqual(getController(), 'isLoadingComplete', 'wizardController.loadStacksRequestsCounter', 0);
+
   describe('#usePublicRepo', function () {
 
     beforeEach(function () {

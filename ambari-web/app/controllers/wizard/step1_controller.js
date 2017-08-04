@@ -129,6 +129,8 @@ App.WizardStep1Controller = Em.Controller.extend({
    */
   selectedStackType: Em.computed.findBy('availableStackTypes', 'isSelected', true),
 
+  isLoadingComplete: Em.computed.equal('wizardController.loadStacksRequestsCounter', 0),
+
   /**
    * Load selected file to current page content
    */
