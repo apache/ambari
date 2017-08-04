@@ -1168,6 +1168,7 @@ public class DatabaseConsistencyCheckHelper {
             // in the host table
             Map<Long, Host> hosts = configGroup.getHosts();
             boolean addToOutput = false;
+            Set<String> hostnames = new HashSet<>();
             if (!MapUtils.isEmpty(hosts)) {
               for (Host host : hosts.values()) {
                 // Lookup by hostname - It does have a unique constraint
@@ -1178,6 +1179,7 @@ public class DatabaseConsistencyCheckHelper {
                     nonMappedHostIds.put(configGroup.getId(), hostIds);
                   }
                   hostIds.add(host.getHostId());
+                  hostnames.add(host.getHostName());
                   addToOutput = true;
                 }
               }
@@ -1188,7 +1190,7 @@ public class DatabaseConsistencyCheckHelper {
               output.append(", ");
               output.append(configGroup.getTag());
               output.append(", ");
-              output.append(nonMappedHostIds.get(configGroup.getId()).size());
+              output.append(hostnames);
               output.append(" ), ");
             }
           }
