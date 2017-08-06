@@ -303,6 +303,7 @@
             <type>hive-env</type>
             <replace key="content" find="if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then" replace-with="export HIVE_AUX_JARS_PATH={{stack_root}}/current/ext/hive&#10;if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then"/>
             <replace key="content" find="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ]; then" replace-with="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ] || [ -d &quot;${HIVE_AUX_JARS_PATH}&quot; ] ; then"/>
+            <replace key="content" find="# Set HIVE_AUX_JARS_PATH&#10;export HIVE_AUX_JARS_PATH={{hbase_lib}}/hbase-client.jar,\&#10;{{hbase_lib}}/hbase-common.jar,\&#10;{{hbase_lib}}/hbase-hadoop2-compat.jar,\&#10;{{hbase_lib}}/hbase-prefix-tree.jar,\&#10;{{hbase_lib}}/hbase-protocol.jar,\&#10;{{hbase_lib}}/hbase-server.jar,\&#10;{{hbase_lib}}/htrace-core-3.1.0-incubating.jar,\&#10;${HIVE_AUX_JARS_PATH}" replace-with=""/>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hive_audit_db">
