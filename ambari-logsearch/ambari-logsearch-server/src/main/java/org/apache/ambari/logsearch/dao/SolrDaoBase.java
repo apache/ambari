@@ -67,7 +67,7 @@ public abstract class SolrDaoBase {
     this.logType = logType;
   }
 
-  protected void waitForLogSearchConfig() {
+  public void waitForLogSearchConfig() {
     while (!logSearchConfigState.isLogSearchConfigAvailable()) {
       LOG.info("Log Search config not available yet, waiting...");
       try { Thread.sleep(1000); } catch (Exception e) { LOG.warn("Exception during waiting for Log Search Config", e); }

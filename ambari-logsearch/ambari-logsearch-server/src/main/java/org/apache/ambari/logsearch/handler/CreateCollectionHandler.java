@@ -22,7 +22,6 @@ import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
 import org.apache.ambari.logsearch.config.zookeeper.model.outputconfig.impl.OutputSolrPropertiesImpl;
-import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;

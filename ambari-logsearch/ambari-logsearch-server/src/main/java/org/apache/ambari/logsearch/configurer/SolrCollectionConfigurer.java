@@ -219,6 +219,7 @@ public class SolrCollectionConfigurer implements Configurer {
       boolean reloadCollectionNeeded) {
     try {
       List<String> allCollectionList = new ListCollectionHandler().handle(solrClient, null);
+      solrDaoBase.waitForLogSearchConfig();
       CreateCollectionHandler handler = new CreateCollectionHandler(solrDaoBase.getLogSearchConfig(), allCollectionList);
       boolean collectionCreated = handler.handle(solrClient, solrPropsConfig);
       boolean collectionReloaded = true;

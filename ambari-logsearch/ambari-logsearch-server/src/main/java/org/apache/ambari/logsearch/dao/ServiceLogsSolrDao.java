@@ -65,7 +65,6 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   public void postConstructor() {
     LOG.info("postConstructor() called.");
     try {
-      waitForLogSearchConfig();
       new SolrCollectionConfigurer(this, true).start();
     } catch (Exception e) {
       LOG.error("error while connecting to Solr for service logs : solrUrl=" + solrServiceLogPropsConfig.getSolrUrl()
