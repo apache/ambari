@@ -96,7 +96,7 @@
                 "local_username": "${livy2-env/livy2_user}"
               },
               "keytab": {
-                "file": "${keytab_dir}/livy2.service.keytab",
+                "file": "${keytab_dir}/livy.service.keytab",
                 "owner": {
                   "name": "${livy2-env/livy2_user}",
                   "access": "r"
