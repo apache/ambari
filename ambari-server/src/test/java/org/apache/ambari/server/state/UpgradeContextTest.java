@@ -33,6 +33,8 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -43,38 +45,92 @@ import org.easymock.Mock;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Sets;
+
 /**
  * Tests {@link UpgradeContext}.
  */
 public class UpgradeContextTest extends EasyMockSupport {
 
+  private final static String HDFS_SERVICE_NAME = "HDFS";
+  private final static String ZOOKEEPER_SERVICE_NAME = "ZOOKEEPER";
+
+  /**
+   * An existing upgrade which can be reverted.
+   */
   @Mock
   private UpgradeEntity m_completedRevertableUpgrade;
 
+  /**
+   * The target repository of a completed upgrade.
+   */
   @Mock
-  private RepositoryVersionEntity m_completedUpgradeTargetRepositoryVersion;
+  private RepositoryVersionEntity m_targetRepositoryVersion;
 
+  /**
+   * The source repository of a completed upgrade.
+   */
   @Mock
-  private RepositoryVersionEntity m_completedUpgradeSourceRepositoryVersion;
+  private RepositoryVersionEntity m_sourceRepositoryVersion;
 
+  /**
+   * The cluster performing the upgrade.
+   */
+  @Mock
+  private Cluster m_cluster;
+
+  /**
+   * HDFS
+   */
+  @Mock
+  private Service m_hdfsService;
+
+  /**
+   * ZooKeeper
+   */
+  @Mock
+  private Service m_zookeeperService;
 
   @Mock
   private UpgradeDAO m_upgradeDAO;
 
+  @Mock
+  private RepositoryVersionDAO m_repositoryVersionDAO;
+
+  /**
+   * Used to mock out what services will be provided to us by the VDF/cluster.
+   */
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  /**
+   *
+   */
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  /**
+   * The cluster services.
+   */
+  private Map<String, Service> m_services = new HashMap<>();
+
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     injectMocks(this);
 
-    expect(m_completedUpgradeSourceRepositoryVersion.getId()).andReturn(1L).anyTimes();
-    expect(m_completedUpgradeSourceRepositoryVersion.getStackId()).andReturn(new StackId("HDP", "2.6")).anyTimes();
-    expect(m_completedUpgradeTargetRepositoryVersion.getId()).andReturn(1L).anyTimes();
-    expect(m_completedUpgradeTargetRepositoryVersion.getStackId()).andReturn(new StackId("HDP", "2.6")).anyTimes();
+    expect(m_sourceRepositoryVersion.getId()).andReturn(1L).anyTimes();
+    expect(m_sourceRepositoryVersion.getStackId()).andReturn(new StackId("HDP", "2.6")).anyTimes();
+    expect(m_targetRepositoryVersion.getId()).andReturn(99L).anyTimes();
+    expect(m_targetRepositoryVersion.getStackId()).andReturn(new StackId("HDP", "2.6")).anyTimes();
 
     UpgradeHistoryEntity upgradeHistoryEntity = createNiceMock(UpgradeHistoryEntity.class);
-    expect(upgradeHistoryEntity.getServiceName()).andReturn("HDFS").atLeastOnce();
-    expect(upgradeHistoryEntity.getFromReposistoryVersion()).andReturn(m_completedUpgradeSourceRepositoryVersion).anyTimes();
-    expect(upgradeHistoryEntity.getTargetRepositoryVersion()).andReturn(m_completedUpgradeTargetRepositoryVersion).anyTimes();
+    expect(upgradeHistoryEntity.getServiceName()).andReturn(HDFS_SERVICE_NAME).anyTimes();
+    expect(upgradeHistoryEntity.getFromReposistoryVersion()).andReturn(m_sourceRepositoryVersion).anyTimes();
+    expect(upgradeHistoryEntity.getTargetRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
     List<UpgradeHistoryEntity> upgradeHistory = Lists.newArrayList(upgradeHistoryEntity);
+
+    expect(m_repositoryVersionDAO.findByPK(1L)).andReturn(m_sourceRepositoryVersion).anyTimes();
+    expect(m_repositoryVersionDAO.findByPK(99L)).andReturn(m_targetRepositoryVersion).anyTimes();
 
     expect(m_upgradeDAO.findUpgrade(1L)).andReturn(m_completedRevertableUpgrade).anyTimes();
 
@@ -83,10 +139,156 @@ public class UpgradeContextTest extends EasyMockSupport {
             eq(Direction.UPGRADE))).andReturn(m_completedRevertableUpgrade).anyTimes();
 
     expect(m_completedRevertableUpgrade.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
-    expect(m_completedRevertableUpgrade.getRepositoryVersion()).andReturn(m_completedUpgradeTargetRepositoryVersion).anyTimes();
+    expect(m_completedRevertableUpgrade.getRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
     expect(m_completedRevertableUpgrade.getOrchestration()).andReturn(RepositoryType.PATCH).anyTimes();
     expect(m_completedRevertableUpgrade.getHistory()).andReturn(upgradeHistory).anyTimes();
     expect(m_completedRevertableUpgrade.getUpgradePackage()).andReturn(null).anyTimes();
+
+    RepositoryVersionEntity hdfsRepositoryVersion = createNiceMock(RepositoryVersionEntity.class);
+
+    expect(m_hdfsService.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).anyTimes();
+    expect(m_cluster.getService(HDFS_SERVICE_NAME)).andReturn(m_hdfsService).anyTimes();
+    m_services.put(HDFS_SERVICE_NAME, m_hdfsService);
+
+    expect(m_cluster.getServices()).andReturn(m_services).anyTimes();
+    expect(m_cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(m_cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(m_cluster.getUpgradeInProgress()).andReturn(null).atLeastOnce();
+
+    // VDF stuff
+    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
+        m_clusterVersionSummary).anyTimes();
+  }
+
+  /**
+   * Tests that the {@link UpgradeContext} for a normal upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testFullUpgrade() throws Exception {
+    UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+
+    expect(m_targetRepositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
+
+    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
+        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+
+    replayAll();
+
+    Map<String, Object> requestMap = new HashMap<>();
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID,
+        m_targetRepositoryVersion.getId().toString());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+
+    assertEquals(Direction.UPGRADE, context.getDirection());
+    assertEquals(RepositoryType.STANDARD, context.getOrchestrationType());
+    assertEquals(1, context.getSupportedServices().size());
+    assertFalse(context.isPatchRevert());
+
+    verifyAll();
+  }
+
+  /**
+   * Tests that the {@link UpgradeContext} for a patch upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testPatchUpgrade() throws Exception {
+    UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+
+    expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
+        Sets.newHashSet(HDFS_SERVICE_NAME)).once();
+
+    expect(m_targetRepositoryVersion.getType()).andReturn(RepositoryType.PATCH).atLeastOnce();
+    expect(m_targetRepositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).once();
+
+    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
+        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+
+    // make the cluster have 2 services just for fun (the VDF only has 1
+    // service)
+    expect(m_cluster.getService(ZOOKEEPER_SERVICE_NAME)).andReturn(m_zookeeperService).anyTimes();
+    m_services.put(ZOOKEEPER_SERVICE_NAME, m_zookeeperService);
+    assertEquals(2, m_services.size());
+
+    replayAll();
+
+    Map<String, Object> requestMap = new HashMap<>();
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.NON_ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, m_targetRepositoryVersion.getId().toString());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+
+    assertEquals(Direction.UPGRADE, context.getDirection());
+    assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
+    assertEquals(1, context.getSupportedServices().size());
+    assertFalse(context.isPatchRevert());
+
+    verifyAll();
+  }
+
+  /**
+   * Tests that the {@link UpgradeContext} for a maintenance upgrade.
+   * Maintenance upgrades will only upgrade services which require it by
+   * examining the versions included in the VDF.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testMaintUpgrade() throws Exception {
+    UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+
+    expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
+        Sets.newHashSet(HDFS_SERVICE_NAME)).once();
+
+    expect(m_targetRepositoryVersion.getType()).andReturn(RepositoryType.MAINT).atLeastOnce();
+    expect(m_targetRepositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).once();
+
+    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
+        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+
+    // make the cluster have 2 services - one is already upgraded to a new
+    // enough version
+    expect(m_cluster.getService(ZOOKEEPER_SERVICE_NAME)).andReturn(m_zookeeperService).anyTimes();
+    m_services.put(ZOOKEEPER_SERVICE_NAME, m_zookeeperService);
+    assertEquals(2, m_services.size());
+
+    replayAll();
+
+    Map<String, Object> requestMap = new HashMap<>();
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.NON_ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, m_targetRepositoryVersion.getId().toString());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+
+    assertEquals(Direction.UPGRADE, context.getDirection());
+    assertEquals(RepositoryType.MAINT, context.getOrchestrationType());
+    assertEquals(1, context.getSupportedServices().size());
+    assertFalse(context.isPatchRevert());
+
+    verifyAll();
   }
 
   /**
@@ -97,21 +299,15 @@ public class UpgradeContextTest extends EasyMockSupport {
    */
   @Test
   public void testRevert() throws Exception {
-    Cluster cluster = createNiceMock(Cluster.class);
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    RepositoryVersionEntity hdfsRepositoryVersion = createNiceMock(RepositoryVersionEntity.class);
 
-    Service service = createNiceMock(Service.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
 
     expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
         EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
 
-    expect(service.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).once();
-    expect(cluster.getService("HDFS")).andReturn(service).atLeastOnce();
 
     Map<String, Object> requestMap = new HashMap<>();
     requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.name());
@@ -119,8 +315,8 @@ public class UpgradeContextTest extends EasyMockSupport {
 
     replayAll();
 
-    UpgradeContext context = new UpgradeContext(cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, repositoryVersionDAO, configHelper);
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
@@ -137,21 +333,15 @@ public class UpgradeContextTest extends EasyMockSupport {
    * @throws Exception
    */
   @Test
-  public void testDowngradeScope() throws Exception {
-    Cluster cluster = createNiceMock(Cluster.class);
+  public void testDowngradeForPatch() throws Exception {
     UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    RepositoryVersionEntity hdfsRepositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-    Service service = createNiceMock(Service.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
 
     expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
         EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
 
-    expect(service.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).once();
-    expect(cluster.getService("HDFS")).andReturn(service).atLeastOnce();
 
     Map<String, Object> requestMap = new HashMap<>();
     requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.NON_ROLLING.name());
@@ -159,8 +349,8 @@ public class UpgradeContextTest extends EasyMockSupport {
 
     replayAll();
 
-    UpgradeContext context = new UpgradeContext(cluster, requestMap, null, upgradeHelper,
-        m_upgradeDAO, repositoryVersionDAO, configHelper);
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
