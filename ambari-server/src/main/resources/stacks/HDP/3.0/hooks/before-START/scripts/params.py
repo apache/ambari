@@ -273,7 +273,6 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
@@ -312,8 +311,17 @@ if dfs_ha_enabled:
      namenode_rpc = nn_host
    pass
  pass
+elif 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
+  namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
 else:
- namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
+  namenode_rpc = default_fs
+
+if namenode_rpc:
+  port_str = namenode_rpc.split(':')[-1].strip()
+  try:
+    nn_rpc_client_port = int(port_str)
+  except ValueError:
+    nn_rpc_client_port = None
 
 if namenode_rpc:
  nn_rpc_client_port = namenode_rpc.split(':')[1].strip()
