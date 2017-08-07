@@ -141,6 +141,8 @@ App.MainAdminStackVersionsView = Em.View.extend({
       var index = displayNames.indexOf(patchVersion.get('displayNameSimple'));
       if (index !== -1) {
         allVersions.splice(index + 1, 0, patchVersion);
+      } else {
+        allVersions.push(patchVersion);
       }
     });
     return allVersions;

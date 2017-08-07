@@ -489,6 +489,11 @@ describe('App.mainAdminStackVersionsView', function () {
   describe('#sortedRepoVersions', function() {
     var repoVersions = [
       Em.Object.create({
+        isPatch: true,
+        repositoryVersion: '2.5.6.0-9',
+        displayNameSimple: '2.5.6.0'
+      }),
+      Em.Object.create({
         isPatch: false,
         repositoryVersion: '2.5.3.0-10',
         displayNameSimple: '2.5.3.0'
@@ -518,7 +523,7 @@ describe('App.mainAdminStackVersionsView', function () {
     it('should sort repository versions', function() {
       view.set('repoVersions', repoVersions);
       expect(view.get('sortedRepoVersions').mapProperty('repositoryVersion')).to.be.eql([
-        '2.5.3.0-10', '2.5.3.0-9', '2.5.3.0-11', '2.5.4.0-10', '2.5.4.0-12'
+        '2.5.3.0-10', '2.5.3.0-9', '2.5.3.0-11', '2.5.4.0-10', '2.5.4.0-12', '2.5.6.0-9'
       ]);
     });
   });
