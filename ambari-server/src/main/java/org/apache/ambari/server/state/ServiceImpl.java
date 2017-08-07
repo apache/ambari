@@ -52,6 +52,7 @@ import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.kerberos.Component;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +94,7 @@ public class ServiceImpl implements Service {
    * The name of the service.
    */
   private final String serviceName;
+  private final String displayName;
 
   @AssistedInject
   ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
@@ -127,8 +129,8 @@ public class ServiceImpl implements Service {
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
 
+    displayName = sInfo.getDisplayName();
     isClientOnlyService = sInfo.isClientOnlyService();
-
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
 
@@ -177,6 +179,7 @@ public class ServiceImpl implements Service {
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
+    displayName = sInfo.getDisplayName();
   }
 
 
@@ -205,6 +208,11 @@ public class ServiceImpl implements Service {
   @Override
   public String getName() {
     return serviceName;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return StringUtils.isBlank(displayName) ? serviceName : displayName;
   }
 
   @Override

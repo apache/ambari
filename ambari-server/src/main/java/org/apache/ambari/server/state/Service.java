@@ -28,6 +28,8 @@ public interface Service {
 
   String getName();
 
+  String getDisplayName();
+
   long getClusterId();
 
   Cluster getCluster();

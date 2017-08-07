@@ -47,14 +47,18 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.AvailableVersion.Component;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -66,7 +70,6 @@ import org.apache.commons.lang.StringUtils;
 public class VersionDefinitionXml {
 
   public static String SCHEMA_LOCATION = "version_definition.xsd";
-
 
   /**
    * Release details.
@@ -112,6 +115,7 @@ public class VersionDefinitionXml {
 
   @XmlTransient
   private Map<String, String> m_packageVersions = null;
+
 
 
   /**
@@ -162,6 +166,7 @@ public class VersionDefinitionXml {
       return serviceNames;
     }
   }
+
 
   /**
    * Gets if the version definition was built as the default for a stack
@@ -225,7 +230,97 @@ public class VersionDefinitionXml {
     return m_packageVersions.get(osFamily);
   }
 
+  /**
+   * Returns the XML representation of this instance.
+   */
+  public String toXml() throws Exception {
 
+    JAXBContext ctx = JAXBContext.newInstance(VersionDefinitionXml.class);
+    Marshaller marshaller = ctx.createMarshaller();
+    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+    InputStream xsdStream = VersionDefinitionXml.class.getClassLoader().getResourceAsStream(xsdLocation);
+
+    if (null == xsdStream) {
+      throw new Exception(String.format("Could not load XSD identified by '%s'", xsdLocation));
+    }
+
+    try {
+      Schema schema = factory.newSchema(new StreamSource(xsdStream));
+      marshaller.setSchema(schema);
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      marshaller.setProperty("jaxb.noNamespaceSchemaLocation", xsdLocation);
+
+      StringWriter w = new StringWriter();
+      marshaller.marshal(this, w);
+
+      return w.toString();
+    } finally {
+      IOUtils.closeQuietly(xsdStream);
+    }
+  }
+
+  /**
+   * Gets a summary for cluster given the version information in this version.
+   * @param cluster the cluster by which to iterate services
+   * @return a summary instance
+   * @throws AmbariException
+   */
+  public ClusterVersionSummary getClusterSummary(Cluster cluster) throws AmbariException {
+
+    Map<String, ManifestService> manifests = buildManifestByService();
+    Set<String> available = getAvailableServiceNames();
+
+    available = available.isEmpty() ? manifests.keySet() : available;
+
+    Map<String, ServiceVersionSummary> summaries = new HashMap<>();
+    for (String serviceName : available) {
+      Service service = cluster.getServices().get(serviceName);
+      if (null == service) {
+        // !!! service is not installed
+        continue;
+      }
+
+      ServiceVersionSummary summary = new ServiceVersionSummary(service.getDisplayName());
+      summaries.put(service.getName(), summary);
+
+      String serviceVersion = service.getDesiredRepositoryVersion().getVersion();
+
+      // !!! currently only one version is supported (unique service names)
+      ManifestService manifest = manifests.get(serviceName);
+
+      summary.setVersions(manifest.version, StringUtils.isEmpty(manifest.releaseVersion) ?
+          release.version : manifest.releaseVersion);
+
+      // !!! installed service already meets the release version, then nothing to upgrade
+      // !!! TODO should this be using the release compatible-with field?
+      if (VersionUtils.compareVersions(summary.getReleaseVersion(), serviceVersion, 4) > 0) {
+        summary.setUpgrade(true);
+      }
+    }
+
+    return new ClusterVersionSummary(summaries);
+  }
+
+  /**
+   * Structures the manifest by service name.
+   * <p/>
+   * !!! WARNING. This is currently based on the assumption that there is one and only
+   * one version for a service in the VDF.  This may have to change in the future.
+   * </p>
+   * @return
+   */
+  private Map<String, ManifestService> buildManifestByService() {
+    Map<String, ManifestService> manifests = new HashMap<>();
+
+    for (ManifestService manifest : manifestServices) {
+      if (!manifests.containsKey(manifest.serviceName)) {
+        manifests.put(manifest.serviceName, manifest);
+      }
+    }
+
+    return manifests;
+  }
 
   /**
    * Helper method to use a {@link ManifestService} to generate the available services structure
@@ -278,36 +373,6 @@ public class VersionDefinitionXml {
     }
 
     return set;
-  }
-
-  /**
-   * Returns the XML representation of this instance.
-   */
-  public String toXml() throws Exception {
-
-    JAXBContext ctx = JAXBContext.newInstance(VersionDefinitionXml.class);
-    Marshaller marshaller = ctx.createMarshaller();
-    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-
-    InputStream xsdStream = VersionDefinitionXml.class.getClassLoader().getResourceAsStream(xsdLocation);
-
-    if (null == xsdStream) {
-      throw new Exception(String.format("Could not load XSD identified by '%s'", xsdLocation));
-    }
-
-    try {
-      Schema schema = factory.newSchema(new StreamSource(xsdStream));
-      marshaller.setSchema(schema);
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      marshaller.setProperty("jaxb.noNamespaceSchemaLocation", xsdLocation);
-
-      StringWriter w = new StringWriter();
-      marshaller.marshal(this, w);
-
-      return w.toString();
-    } finally {
-      IOUtils.closeQuietly(xsdStream);
-    }
   }
 
   /**

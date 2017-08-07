@@ -75,6 +75,7 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
@@ -104,6 +105,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
   protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
+  protected static final String CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_summary");
+
   protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID  = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
   protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
 
@@ -143,7 +146,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
       CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
-      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR, CLUSTER_STACK_VERSION_FORCE);
+      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR,
+      CLUSTER_STACK_VERSION_FORCE, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID);
 
   private static Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
       .put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)
@@ -264,8 +268,21 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         allStates.add(hostVersionEntity.getState());
       }
 
+      ClusterVersionSummary versionSummary = null;
+      try {
+        VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
+
+        versionSummary = vdf.getClusterSummary(cluster);
+      } catch (Exception e) {
+        throw new IllegalArgumentException(
+            String.format("Version %s is backed by a version definition, but it could not be parsed", repositoryVersion.getVersion()), e);
+      }
+
       setResourceProperty(resource, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID, hostStates, requestedIds);
+      setResourceProperty(resource, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID, versionSummary, requestedIds);
+
+
       setResourceProperty(resource, CLUSTER_STACK_VERSION_ID_PROPERTY_ID, repositoryVersion.getId(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, repoVersionStackId.getStackName(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, repoVersionStackId.getStackVersion(), requestedIds);
@@ -536,7 +553,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // !!! limit the serviceNames to those that are detailed for the repository.
       // TODO packages don't have component granularity
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
-        serviceNames.addAll(desiredVersionDefinition.getAvailableServiceNames());
+        ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(cluster);
+        serviceNames.addAll(clusterSummary.getAvailableServiceNames());
       }
 
       // Populate with commands for host
