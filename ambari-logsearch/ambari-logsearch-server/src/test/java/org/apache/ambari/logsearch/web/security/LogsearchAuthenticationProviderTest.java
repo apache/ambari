@@ -43,8 +43,7 @@ public class LogsearchAuthenticationProviderTest {
   }
   
   private LogsearchAuthenticationProvider provider;
-  
-  private LogsearchLdapAuthenticationProvider mockLdapProvider;
+
   private LogsearchFileAuthenticationProvider mockFileProvider;
   private LogsearchExternalServerAuthenticationProvider mockExternalServerProvider;
   private LogsearchSimpleAuthenticationProvider mockSimpleProvider;
@@ -52,15 +51,10 @@ public class LogsearchAuthenticationProviderTest {
   @Before
   public void resetContext() throws Exception {
     provider = new LogsearchAuthenticationProvider();
-    
-    mockLdapProvider = strictMock(LogsearchLdapAuthenticationProvider.class);
+
     mockFileProvider = strictMock(LogsearchFileAuthenticationProvider.class);
     mockExternalServerProvider = strictMock(LogsearchExternalServerAuthenticationProvider.class);
     mockSimpleProvider = strictMock(LogsearchSimpleAuthenticationProvider.class);
-    
-    Field ldapProviderField = LogsearchAuthenticationProvider.class.getDeclaredField("ldapAuthenticationProvider");
-    ldapProviderField.setAccessible(true);
-    ldapProviderField.set(provider, mockLdapProvider);
     
     Field fileProviderField = LogsearchAuthenticationProvider.class.getDeclaredField("fileAuthenticationProvider");
     fileProviderField.setAccessible(true);
@@ -76,102 +70,83 @@ public class LogsearchAuthenticationProviderTest {
   }
   
   @Test
-  public void testLdapAuthenticates() {
-    Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andReturn(SUCCESSFUL_AUTHENTICATION);
-    
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
-    
-    Authentication authenticationResult = provider.authenticate(authentication);
-    assertSame(authenticationResult, SUCCESSFUL_AUTHENTICATION);
-    
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
-  }
-  
-  @Test
   public void testFileAuthenticates() {
     Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockFileProvider.authenticate(authentication)).andReturn(SUCCESSFUL_AUTHENTICATION);
     
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
-    
+    replay(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+
     Authentication authenticationResult = provider.authenticate(authentication);
     assertSame(authenticationResult, SUCCESSFUL_AUTHENTICATION);
     
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    verify(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
   }
   
   @Test
   public void testExternalAuthenticates() {
     Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockFileProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockExternalServerProvider.authenticate(authentication)).andReturn(SUCCESSFUL_AUTHENTICATION);
     
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    replay(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
     
     Authentication authenticationResult = provider.authenticate(authentication);
     assertSame(authenticationResult, SUCCESSFUL_AUTHENTICATION);
     
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    verify(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
   }
   
   @Test
   public void testSimpleAuthenticates() {
     Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockFileProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockExternalServerProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockSimpleProvider.authenticate(authentication)).andReturn(SUCCESSFUL_AUTHENTICATION);
     
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    replay(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
     
     Authentication authenticationResult = provider.authenticate(authentication);
     assertSame(authenticationResult, SUCCESSFUL_AUTHENTICATION);
     
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    verify(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
   }
   
   @Test
   public void testNoOneAuthenticates() {
     Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockFileProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockExternalServerProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     expect(mockSimpleProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    replay(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
     
     Authentication authenticationResult = provider.authenticate(authentication);
     assertSame(authenticationResult, FAILED_AUTHENTICATION);
     
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    verify(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
   }
   
   @Test
   public void testOneExceptionAndAuthenticates() {
     Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andThrow(new AuthenticationException("") {});
     expect(mockFileProvider.authenticate(authentication)).andReturn(SUCCESSFUL_AUTHENTICATION);
     
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    replay(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
     
     Authentication authenticationResult = provider.authenticate(authentication);
     assertSame(authenticationResult, SUCCESSFUL_AUTHENTICATION);
     
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    verify(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
   }
   
   @Test
   public void testOneExceptionNoOneAuthenticates() {
     Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andThrow(new AuthenticationException("msg1") {});
     expect(mockFileProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
-    expect(mockExternalServerProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
+    expect(mockExternalServerProvider.authenticate(authentication)).andThrow(new AuthenticationException("msg1") {});
     expect(mockSimpleProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
     
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    replay(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
     
     try {
       provider.authenticate(authentication);
@@ -180,18 +155,17 @@ public class LogsearchAuthenticationProviderTest {
       assertEquals(e.getMessage(), "msg1");
     }
     
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    verify(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
   }
   
   @Test
   public void testTwoExceptionNoOneAuthenticates() {
     Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
-    expect(mockLdapProvider.authenticate(authentication)).andThrow(new AuthenticationException("msg1") {});
-    expect(mockFileProvider.authenticate(authentication)).andThrow(new AuthenticationException("msg2") {});
-    expect(mockExternalServerProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
+    expect(mockFileProvider.authenticate(authentication)).andThrow(new AuthenticationException("msg1") {});
+    expect(mockExternalServerProvider.authenticate(authentication)).andThrow(new AuthenticationException("msg2") {});
     expect(mockSimpleProvider.authenticate(authentication)).andReturn(FAILED_AUTHENTICATION);
-    
-    replay(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+
+    replay(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
     
     try {
       provider.authenticate(authentication);
@@ -200,6 +174,6 @@ public class LogsearchAuthenticationProviderTest {
       assertEquals(e.getMessage(), "msg1");
     }
     
-    verify(mockLdapProvider, mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
+    verify(mockFileProvider, mockSimpleProvider, mockExternalServerProvider);
   }
 }

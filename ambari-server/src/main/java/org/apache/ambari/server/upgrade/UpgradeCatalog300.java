@@ -350,6 +350,15 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
           }
 
+          Config logSearchEnv = cluster.getDesiredConfigByType("logsearch-env");
+
+          String oldProtocolProperty = null;
+          String oldPortProperty = null;
+          if (logSearchEnv != null) {
+            oldProtocolProperty = logSearchEnv.getProperties().get("logsearch_ui_port");
+            oldPortProperty = logSearchEnv.getProperties().get("logsearch_ui_protocol");
+          }
+
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
           Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
           if (logSearchProperties != null && logFeederProperties != null) {
@@ -358,9 +367,22 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
             removeConfigurationPropertiesFromCluster(cluster, "logsearch-properties", removeProperties);
 
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("logfeeder.include.default.level", defaultLogLevels);
-            updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newProperties, true, true);
+            Map<String, String> newLogSearchProperties = new HashMap<>();
+            if (oldProtocolProperty != null) {
+              newLogSearchProperties.put("logsearch.protocol", oldProtocolProperty);
+            }
+
+            if (oldPortProperty != null) {
+              newLogSearchProperties.put("logsearch.http.port", oldPortProperty);
+              newLogSearchProperties.put("logsearch.https.port", oldPortProperty);
+            }
+            if (!newLogSearchProperties.isEmpty()) {
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-properties", newLogSearchProperties, true, true);
+            }
+
+            Map<String, String> newLogfeederProperties = new HashMap<>();
+            newLogfeederProperties.put("logfeeder.include.default.level", defaultLogLevels);
+            updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newLogfeederProperties, true, true);
           }
 
           Config logFeederLog4jProperties = cluster.getDesiredConfigByType("logfeeder-log4j");

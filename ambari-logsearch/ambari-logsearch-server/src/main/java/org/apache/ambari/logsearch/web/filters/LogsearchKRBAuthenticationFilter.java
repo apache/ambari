@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
@@ -40,7 +42,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.ambari.logsearch.conf.LogSearchSpnegoConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -54,7 +56,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,83 +64,12 @@ import org.apache.hadoop.security.authentication.server.PseudoAuthenticationHand
 import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
-import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   private static final Logger logger = LoggerFactory.getLogger(LogsearchKRBAuthenticationFilter.class);
 
-  @LogSearchPropertyDescription(
-    name = "logsearch.hadoop.security.auth_to_local",
-    description = "Rules that will be applied on authentication names and map them into local usernames.",
-    examples = {"RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//", "DEFAULT"},
-    defaultValue = "DEFAULT",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String NAME_RULES = "logsearch.hadoop.security.auth_to_local";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.admin.kerberos.token.valid.seconds",
-    description = "Kerberos token validity in seconds.",
-    examples = {"30"},
-    defaultValue = "30",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String TOKEN_VALID = "logsearch.admin.kerberos.token.valid.seconds";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.admin.kerberos.cookie.domain",
-    description = "Domain for Kerberos cookie.",
-    examples = {"c6401.ambari.apache.org", "localhost"},
-    defaultValue = "localhost",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String COOKIE_DOMAIN = "logsearch.admin.kerberos.cookie.domain";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.admin.kerberos.cookie.path",
-    description = "Cookie path of the kerberos cookie",
-    examples = {"/"},
-    defaultValue = "/",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String COOKIE_PATH = "logsearch.admin.kerberos.cookie.path";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.spnego.kerberos.principal",
-    description = "Principal for SPNEGO authentication for Http requests",
-    examples = {"myuser@EXAMPLE.COM"},
-    defaultValue = "",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String PRINCIPAL = "logsearch.spnego.kerberos.principal";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.spnego.kerberos.keytab",
-    description = "Keytab for SPNEGO authentication for Http requests.",
-    examples = {"/etc/security/keytabs/mykeytab.keytab"},
-    defaultValue = "",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String KEYTAB = "logsearch.spnego.kerberos.keytab";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.spnego.kerberos.host",
-    description = "",
-    examples = {"c6401.ambari.apache.org", "localhost"},
-    defaultValue = "localhost",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String HOST_NAME = "logsearch.spnego.kerberos.host";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.spnego.kerberos.enabled",
-    description = "Enable SPNEGO based authentication for Log Search Server.",
-    examples = {"true", "false"},
-    defaultValue = "false",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String KERBEROS_ENABLED = "logsearch.spnego.kerberos.enabled";
-
+  @Inject
+  private LogSearchSpnegoConfig logSearchSpnegoConfig;
 
   private static final String NAME_RULES_PARAM = "kerberos.name.rules";
   private static final String TOKEN_VALID_PARAM = "token.validity";
@@ -157,7 +87,8 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   private String authType = PseudoAuthenticationHandler.TYPE;
   private static boolean spnegoEnable = false;
 
-  public LogsearchKRBAuthenticationFilter() {
+  @PostConstruct
+  public void postConstruct() {
     try {
       isSpnegoEnable();
       init(null);
@@ -169,18 +100,18 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   @Override
   public void init(FilterConfig conf) throws ServletException {
     final FilterConfig globalConf = conf;
-    String hostName = PropertiesHelper.getProperty(HOST_NAME, "localhost");
+    String hostName = logSearchSpnegoConfig.getHostName();
     final Map<String, String> params = new HashMap<String, String>();
     if (spnegoEnable) {
       authType = KerberosAuthenticationHandler.TYPE;
     }
     params.put(AUTH_TYPE,authType);
-    params.put(NAME_RULES_PARAM,PropertiesHelper.getProperty(NAME_RULES, "DEFAULT"));
-    params.put(TOKEN_VALID_PARAM, PropertiesHelper.getProperty(TOKEN_VALID, "30"));
-    params.put(COOKIE_DOMAIN_PARAM, PropertiesHelper.getProperty(COOKIE_DOMAIN, hostName));
-    params.put(COOKIE_PATH_PARAM, PropertiesHelper.getProperty(COOKIE_PATH, "/"));
-    params.put(PRINCIPAL_PARAM,PropertiesHelper.getProperty(PRINCIPAL,""));
-    params.put(KEYTAB_PARAM,PropertiesHelper.getProperty(KEYTAB,""));
+    params.put(NAME_RULES_PARAM, logSearchSpnegoConfig.getNameRules());
+    params.put(TOKEN_VALID_PARAM, logSearchSpnegoConfig.getTokenValid());
+    params.put(COOKIE_DOMAIN_PARAM, logSearchSpnegoConfig.getCookieDomain());
+    params.put(COOKIE_PATH_PARAM, logSearchSpnegoConfig.getCookiePath());
+    params.put(PRINCIPAL_PARAM, logSearchSpnegoConfig.getPrincipal());
+    params.put(KEYTAB_PARAM, logSearchSpnegoConfig.getKeyTab());
     FilterConfig myConf = new FilterConfig() {
       @Override
       public ServletContext getServletContext() {
@@ -263,7 +194,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
     }
     if (!isLoginRequest(httpRequest) && spnegoEnable
         && (existingAuth == null || !existingAuth.isAuthenticated())) {
-      KerberosName.setRules(PropertiesHelper.getProperty(NAME_RULES, "DEFAULT"));
+      KerberosName.setRules(logSearchSpnegoConfig.getNameRules());
       String userName = getUsernameFromRequest(httpRequest);
       if ((existingAuth == null || !existingAuth.isAuthenticated())
           && (StringUtils.isNotEmpty(userName))) {
@@ -297,12 +228,12 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   }
 
   private void isSpnegoEnable() {
-    spnegoEnable = PropertiesHelper.getBooleanProperty(KERBEROS_ENABLED, false);
+    spnegoEnable = logSearchSpnegoConfig.isKerberosEnabled();
     if (spnegoEnable) {
       spnegoEnable = false;
-      String keytab = PropertiesHelper.getProperty(KEYTAB);
-      String principal = PropertiesHelper.getProperty(PRINCIPAL);
-      String hostname = PropertiesHelper.getProperty(HOST_NAME);
+      String keytab = logSearchSpnegoConfig.getKeyTab();
+      String principal = logSearchSpnegoConfig.getPrincipal();
+      String hostname = logSearchSpnegoConfig.getHostName();
       if (StringUtils.isNotEmpty(keytab) && StringUtils.isNotEmpty(principal)
           && StringUtils.isNotEmpty(hostname)) {
         spnegoEnable = true;

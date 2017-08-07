@@ -23,7 +23,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.ambari.logsearch.common.PropertiesHelper;
+import org.apache.ambari.logsearch.conf.LogSearchConfigMapHolder;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
@@ -44,7 +44,10 @@ public class LogSearchConfigConfigurer implements Configurer {
   
   @Inject
   private LogSearchConfigState logSearchConfigState;
-  
+
+  @Inject
+  private LogSearchConfigMapHolder logSearchConfigMapHolder;
+
   @PostConstruct
   @Override
   public void start() {
@@ -54,7 +57,7 @@ public class LogSearchConfigConfigurer implements Configurer {
         logger.info("Started thread to set up log search config");
         while (true) {
           try {
-            logSearchConfig = LogSearchConfigFactory.createLogSearchConfigServer(PropertiesHelper.getProperties(),
+            logSearchConfig = LogSearchConfigFactory.createLogSearchConfigServer(logSearchConfigMapHolder.getLogsearchProperties(),
                 LogSearchConfigServerZK.class);
             logSearchConfigState.setLogSearchConfigAvailable(true);
             break;
@@ -68,4 +71,5 @@ public class LogSearchConfigConfigurer implements Configurer {
     setupThread.setDaemon(true);
     setupThread.start();
   }
+
 }

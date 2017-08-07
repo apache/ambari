@@ -35,7 +35,7 @@ public class LogSearchSessionListener implements HttpSessionListener {
     synchronized (this) {
       numberOfSessions++;
     }
-    LOG.debug(String.format("New session is created (Id: %s). Number of sessions: %d", event.getSession().getId(), numberOfSessions));
+    LOG.info(String.format("New session is created (Id: %s). Number of sessions: %d", event.getSession().getId(), numberOfSessions));
   }
 
   @Override
@@ -43,6 +43,6 @@ public class LogSearchSessionListener implements HttpSessionListener {
     synchronized (this) {
       numberOfSessions--;
     }
-    LOG.debug(String.format("Session destroyed (Id: %s). Number of sessions: %d", event.getSession().getId(), numberOfSessions));
+    LOG.info(String.format("Session destroyed (Id: %s). Number of sessions: %d", event.getSession().getId(), numberOfSessions));
   }
 }

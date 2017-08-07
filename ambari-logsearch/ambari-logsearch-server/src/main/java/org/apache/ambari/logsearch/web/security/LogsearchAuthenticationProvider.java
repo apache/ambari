@@ -37,9 +37,6 @@ public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthentica
   private static final Logger auditLogger = Logger.getLogger("org.apache.ambari.logsearch.audit");
 
   @Inject
-  private LogsearchLdapAuthenticationProvider ldapAuthenticationProvider;
-
-  @Inject
   private LogsearchFileAuthenticationProvider fileAuthenticationProvider;
 
   @Inject
@@ -106,7 +103,6 @@ public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthentica
 
   private Authentication doAuth(Authentication authentication, AuthMethod authMethod) {
     switch (authMethod) {
-      case LDAP: return ldapAuthenticationProvider.authenticate(authentication);
       case FILE: return fileAuthenticationProvider.authenticate(authentication);
       case EXTERNAL_AUTH: return externalServerAuthenticationProvider.authenticate(authentication);
       case SIMPLE: return simpleAuthenticationProvider.authenticate(authentication);

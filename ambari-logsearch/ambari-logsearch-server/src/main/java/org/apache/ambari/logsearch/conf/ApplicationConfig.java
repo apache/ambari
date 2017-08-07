@@ -20,7 +20,6 @@ package org.apache.ambari.logsearch.conf;
 
 import freemarker.template.TemplateException;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ConversionServiceFactoryBean;
@@ -32,7 +31,6 @@ import java.io.IOException;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 @Configuration
-@ComponentScan("org.apache.ambari.logsearch")
 @PropertySource(value = {"classpath:default.properties", "classpath:"+ LOGSEARCH_PROPERTIES_FILE})
 public class ApplicationConfig {
 
