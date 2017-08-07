@@ -30,18 +30,10 @@
   
   <manifest>
     <service id="HDFS-271" name="HDFS" version="2.7.1" version-id="10" release-version="2.3.4.0" />
-    <service id="HIVE-200" name="HIVE" version="2.0.0" />
-    <service id="HIVE-110" name="HIVE" version="1.1.0" release-version="1.0.9" />
     <service id="HBASE-899" name="HBASE" version="8.9.9" />
   </manifest>
   
-  <available-services>
-    <service idref="HDFS-271" />
-    <service idref="HIVE-200" />
-    <service idref="HIVE-110">
-      <component>HIVE_METASTORE</component>
-    </service>
-  </available-services>
+  <available-services />
   
   <repository-info>
     <os family="redhat6">
