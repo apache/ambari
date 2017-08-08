@@ -63,6 +63,8 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping.ServiceCheckStageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.StartTask;
@@ -77,6 +79,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -299,6 +302,7 @@ public class UpgradeHelper {
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<>();
 
+    UpgradeGroupHolder previousGroupHolder = null;
     for (Grouping group : upgradePack.getGroups(context.getDirection())) {
 
       // !!! grouping is not scoped to context
@@ -320,6 +324,7 @@ public class UpgradeHelper {
       groupHolder.skippable = group.skippable;
       groupHolder.supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       groupHolder.allowRetry = group.allowRetry;
+      groupHolder.processingGroup = group.isProcessingGroup();
 
       // !!! all downgrades are skippable
       if (context.getDirection().isDowngrade()) {
@@ -496,9 +501,22 @@ public class UpgradeHelper {
       List<StageWrapper> proxies = builder.build(context);
 
       if (CollectionUtils.isNotEmpty(proxies)) {
+
         groupHolder.items = proxies;
         postProcess(context, groupHolder);
-        groups.add(groupHolder);
+
+        // !!! prevent service checks from running twice.  merge the stage wrappers
+        if (ServiceCheckGrouping.class.isInstance(group)) {
+          if (null != previousGroupHolder && ServiceCheckGrouping.class.equals(previousGroupHolder.groupClass)) {
+            mergeServiceChecks(groupHolder, previousGroupHolder);
+          } else {
+            groups.add(groupHolder);
+          }
+        } else {
+          groups.add(groupHolder);
+        }
+
+        previousGroupHolder = groupHolder;
       }
     }
 
@@ -518,7 +536,50 @@ public class UpgradeHelper {
       }
     }
 
+    // !!! strip off the first service check if nothing has been processed
+    Iterator<UpgradeGroupHolder> iterator = groups.iterator();
+    boolean canServiceCheck = false;
+    while (iterator.hasNext()) {
+      UpgradeGroupHolder holder = iterator.next();
+
+      if (ServiceCheckGrouping.class.equals(holder.groupClass) && !canServiceCheck) {
+        iterator.remove();
+      }
+
+      canServiceCheck |= holder.processingGroup;
+    }
+
     return groups;
+  }
+
+  /**
+   * Merges two service check groups when they have been orchestrated back-to-back.
+   * @param newHolder   the "new" group holder, which was orchestrated after the "old" one
+   * @param oldHolder   the "old" group holder, which is one that was already orchestrated
+   */
+  @SuppressWarnings("unchecked")
+  private void mergeServiceChecks(UpgradeGroupHolder newHolder, UpgradeGroupHolder oldHolder) {
+
+    LinkedHashSet<StageWrapper> priority = new LinkedHashSet<>();
+    LinkedHashSet<StageWrapper> others = new LinkedHashSet<>();
+
+    for (List<StageWrapper> holderItems : new List[] { oldHolder.items, newHolder.items }) {
+      for (StageWrapper stageWrapper : holderItems) {
+        ServiceCheckStageWrapper wrapper = (ServiceCheckStageWrapper) stageWrapper;
+
+        if (wrapper.priority) {
+          priority.add(stageWrapper);
+        } else {
+          others.add(stageWrapper);
+        }
+      }
+    }
+
+    // !!! remove duplicate wrappers that are now in the priority list
+    others = new LinkedHashSet<>(CollectionUtils.subtract(others, priority));
+
+    oldHolder.items = Lists.newLinkedList(priority);
+    oldHolder.items.addAll(others);
   }
 
   /**
@@ -642,6 +703,11 @@ public class UpgradeHelper {
    * Short-lived objects that hold information about upgrade groups
    */
   public static class UpgradeGroupHolder {
+    /**
+     *
+     */
+    private boolean processingGroup;
+
     /**
      * The name
      */

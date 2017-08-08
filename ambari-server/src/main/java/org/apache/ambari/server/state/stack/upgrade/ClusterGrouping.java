@@ -70,6 +70,10 @@ public class ClusterGrouping extends Grouping {
     return new ClusterBuilder(this);
   }
 
+  @Override
+  protected boolean serviceCheckAfterProcessing() {
+    return false;
+  }
 
   /**
    * Represents a single-stage execution that happens as part of a cluster-wide

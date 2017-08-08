@@ -93,6 +93,21 @@ public class Grouping {
   public Condition condition;
 
   /**
+   * @return {@code true} when the grouping is used to upgrade services and that it is
+   * appropriate to run service checks after orchestration.
+   */
+  public final boolean isProcessingGroup() {
+    return serviceCheckAfterProcessing();
+  }
+
+  /**
+   * Overridable function to indicate if full service checks can be run
+   */
+  protected boolean serviceCheckAfterProcessing() {
+    return true;
+  }
+
+  /**
    * Gets the default builder.
    */
   public StageWrapperBuilder getBuilder() {
