@@ -241,7 +241,7 @@ class AmbariConfig:
     :return: Alerts log file path.
     """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
-      return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
+      return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-alerts.log")
     else:
       return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-alerts.log")
 

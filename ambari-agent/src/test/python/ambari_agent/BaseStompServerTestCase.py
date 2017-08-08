@@ -150,6 +150,12 @@ class BaseStompServerTestCase(unittest.TestCase):
 
     logging.getLogger('stomp.py').setLevel(logging.WARN)
     logging.getLogger('coilmq').setLevel(logging.INFO)
+    logging.getLogger('ambari_agent.apscheduler').setLevel(logging.WARN)
+    logging.getLogger('apscheduler').setLevel(logging.WARN)
+    logging.getLogger('ambari_agent.alerts').setLevel(logging.WARN)
+    logging.getLogger('alerts').setLevel(logging.WARN)
+    logging.getLogger('ambari_agent.AlertSchedulerHandler').setLevel(logging.WARN)
+
 
   def remove_files(self, filepathes):
     for filepath in filepathes:

@@ -26,17 +26,17 @@ from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
-class HostLevelParamsEventListener(EventListener):
+class AlertDefinitionsEventListener(EventListener):
   """
-  Listener of Constants.HOST_LEVEL_PARAMS_TOPIC events from server.
+  Listener of Constants.ALERTS_DEFENITIONS_TOPIC events from server.
   """
-  def __init__(self, host_level_params_cache, recovery_manager):
-    self.host_level_params_cache = host_level_params_cache
-    self.recovery_manager = recovery_manager
+  def __init__(self, alert_definitions_cache, alert_scheduler_handler):
+    self.alert_definitions_cache = alert_definitions_cache
+    self.alert_scheduler_handler = alert_scheduler_handler
 
   def on_event(self, headers, message):
     """
-    Is triggered when an event to Constants.HOST_LEVEL_PARAMS_TOPIC topic is received from server.
+    Is triggered when an event to Constants.ALERTS_DEFENITIONS_TOPIC topic is received from server.
 
     @param headers: headers dictionary
     @param message: message payload dictionary
@@ -45,17 +45,11 @@ class HostLevelParamsEventListener(EventListener):
     if message == {}:
       return
 
-    self.host_level_params_cache.rewrite_cache(message['clusters'])
-    self.host_level_params_cache.hash = message['hash']
+    self.alert_definitions_cache.rewrite_cache(message['clusters'])
+    print message
+    self.alert_definitions_cache.hash = message['hash']
 
-    if message['clusters']:
-      # FIXME: Recovery manager does not support multiple cluster as of now.
-      cluster_id = message['clusters'].keys()[0]
-
-      if 'recoveryConfig' in message['clusters'][cluster_id]:
-        logging.info("Updating recoveryConfig from metadata")
-        self.recovery_manager.update_recovery_config(self.host_level_params_cache[cluster_id])
-        self.recovery_manager.cluster_id = cluster_id
+    self.alert_scheduler_handler.update_definitions()
 
   def get_handled_path(self):
-    return Constants.HOST_LEVEL_PARAMS_TOPIC
+    return Constants.ALERTS_DEFENITIONS_TOPIC

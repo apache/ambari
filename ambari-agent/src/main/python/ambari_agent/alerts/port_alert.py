@@ -25,7 +25,7 @@ from alerts.base_alert import BaseAlert
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # default timeouts
 DEFAULT_WARNING_TIMEOUT = 1.5

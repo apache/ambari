@@ -32,7 +32,7 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from ambari_agent import Constants
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 

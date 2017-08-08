@@ -118,7 +118,7 @@ class ThreadPool(object):
         if self._shutdown:
             return
 
-        logging.info('Shutting down thread pool')
+        logger.info('Shutting down thread pool')
         self._shutdown = True
         _threadpools.remove(ref(self))
 

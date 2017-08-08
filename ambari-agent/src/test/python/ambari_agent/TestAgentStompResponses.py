@@ -40,7 +40,7 @@ from mock.mock import MagicMock, patch
 @patch("ambari_agent.hostname.hostname", new=MagicMock(return_value="c6401.ambari.apache.org"))
 class TestAgentStompResponses(BaseStompServerTestCase):
   def setUp(self):
-    self.remove_files(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json', '/tmp/host_level_params.json'])
+    self.remove_files(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json', '/tmp/host_level_params.json', '/tmp/cluster_cache/alert_definitions.json'])
 
     if not os.path.exists("/tmp/ambari-agent"):
       os.mkdir("/tmp/ambari-agent")
@@ -60,6 +60,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     action_queue = initializer_module.action_queue
     action_queue.start()
+    initializer_module.alert_scheduler_handler.start()
 
     component_status_executor = ComponentStatusExecutor(initializer_module)
     component_status_executor.start()
@@ -86,10 +87,14 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=self.get_json("host_level_params.json"))
     self.server.topic_manager.send(f)
 
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '5'}, body=self.get_json("alert_definitions.json"))
+    self.server.topic_manager.send(f)
+
     initial_topology_request = self.server.frames_queue.get()
     initial_metadata_request = self.server.frames_queue.get()
     initial_configs_request = self.server.frames_queue.get()
     initial_host_level_params_request = self.server.frames_queue.get()
+    initial_alert_definitions_request = self.server.frames_queue.get()
 
     while not initializer_module.is_registered:
       time.sleep(0.1)
@@ -108,6 +113,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     metadata_subscribe_frame = self.server.frames_queue.get()
     topologies_subscribe_frame = self.server.frames_queue.get()
     host_level_params_subscribe_frame = self.server.frames_queue.get()
+    alert_definitions_subscribe_frame = self.server.frames_queue.get()
     heartbeat_frame = self.server.frames_queue.get()
     dn_install_in_progress_frame = json.loads(self.server.frames_queue.get().body)
     dn_install_failed_frame = json.loads(self.server.frames_queue.get().body)
@@ -121,7 +127,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '5'}, body=json.dumps({'id':'1'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '6'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
 
     command_status_reporter.join()
@@ -129,7 +135,6 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     component_status_executor.join()
     host_status_reporter.join()
     action_queue.join()
-
 
     self.assertTrue('mounts' in host_status_report)
     self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
@@ -156,6 +161,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     action_queue = initializer_module.action_queue
     action_queue.start()
+    initializer_module.alert_scheduler_handler.start()
 
     component_status_executor = ComponentStatusExecutor(initializer_module)
     component_status_executor.start()
@@ -186,6 +192,9 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body='{}')
     self.server.topic_manager.send(f)
 
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '5'}, body='{}')
+    self.server.topic_manager.send(f)
+
     commands_subscribe_frame = self.server.frames_queue.get()
     configurations_subscribe_frame = self.server.frames_queue.get()
     metadata_subscribe_frame = self.server.frames_queue.get()
@@ -195,7 +204,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '5'}, body=json.dumps({'id':'1'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '6'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
@@ -232,10 +241,14 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body='{}')
     self.server.topic_manager.send(f)
 
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '5'}, body='{}')
+    self.server.topic_manager.send(f)
+
     initial_topology_request = self.server.frames_queue.get()
     initial_metadata_request = self.server.frames_queue.get()
     initial_configs_request = self.server.frames_queue.get()
     initial_host_level_params_request = self.server.frames_queue.get()
+    initial_alert_definitions_request = self.server.frames_queue.get()
 
     while not initializer_module.is_registered:
       time.sleep(0.1)
@@ -273,7 +286,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '5'}, body=json.dumps({'id':'1'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '6'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()

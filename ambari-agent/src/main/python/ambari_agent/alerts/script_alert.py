@@ -27,7 +27,7 @@ from resource_management.core.environment import Environment
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from ambari_agent import Constants
 
-logger = logging.getLogger("ambari_alerts")
+logger = logging.getLogger(__name__)
 
 class ScriptAlert(BaseAlert):
 

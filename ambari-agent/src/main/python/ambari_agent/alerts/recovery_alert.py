@@ -21,7 +21,7 @@ limitations under the License.
 import logging
 import datetime
 from alerts.base_alert import BaseAlert
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # default recoveries counts
 DEFAULT_WARNING_RECOVERIES_COUNT = 2

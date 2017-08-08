@@ -23,7 +23,7 @@ import re
 import time
 from collections import namedtuple
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # create a named tuple to return both the concrete URI and SSL flag
 AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')

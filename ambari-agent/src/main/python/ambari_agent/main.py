@@ -109,8 +109,13 @@ from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 from ambari_agent.CommandStatusReporter import CommandStatusReporter
 from ambari_agent.HostStatusReporter import HostStatusReporter
 
+#logging.getLogger('ambari_agent').propagate = False
+
 logger = logging.getLogger()
-alerts_logger = logging.getLogger('ambari_alerts')
+alerts_logger = logging.getLogger('alerts')
+alerts_logger_global = logging.getLogger('ambari_agent.alerts')
+apscheduler_logger = logging.getLogger('apscheduler')
+apscheduler_logger_global = logging.getLogger('ambari_agent.apscheduler')
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
@@ -131,6 +136,7 @@ SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 _file_logging_handlers ={}
 
 def setup_logging(logger, filename, logging_level):
+  logger.propagate = False
   formatter = logging.Formatter(formatstr)
 
   if filename in _file_logging_handlers:
@@ -139,6 +145,7 @@ def setup_logging(logger, filename, logging_level):
     rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
     rotateLog.setFormatter(formatter)
     _file_logging_handlers[filename] = rotateLog
+  logger.handlers = []
   logger.addHandler(rotateLog)
 
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
@@ -345,6 +352,8 @@ def reset_agent(options):
 MAX_RETRIES = 10
 
 def run_threads(initializer_module):
+  initializer_module.alert_scheduler_handler.start()
+
   heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
   heartbeat_thread.start()
 
@@ -387,6 +396,9 @@ def main(initializer_module, heartbeat_stop_callback=None):
   global is_logger_setup
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(alerts_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
 
   if home_dir != "":
