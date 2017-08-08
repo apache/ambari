@@ -21,26 +21,44 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.inject.Provider;
 
+@RunWith(MockitoJUnitRunner.class)
 public class KafkaKerberosCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
 
   private final KafkaKerberosCheck kafkaKerberosCheck = new KafkaKerberosCheck();
 
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
+
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     kafkaKerberosCheck.clustersProvider = new Provider<Clusters>() {
 
       @Override
@@ -48,24 +66,31 @@ public class KafkaKerberosCheckTest {
         return clusters;
       }
     };
+
+    m_services.clear();
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
-    final Map<String, Service> services = new HashMap<>();
     final Service service = Mockito.mock(Service.class);
 
-    services.put("KAFKA", service);
+    m_services.put("KAFKA", service);
 
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServices()).thenReturn(m_services);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
-    Assert.assertTrue(kafkaKerberosCheck.isApplicable(new PrereqCheckRequest("cluster")));
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
-    services.remove("KAFKA");
-    Assert.assertFalse(kafkaKerberosCheck.isApplicable(new PrereqCheckRequest("cluster")));
+    Assert.assertTrue(kafkaKerberosCheck.isApplicable(request));
+
+    m_services.remove("KAFKA");
+    Assert.assertFalse(kafkaKerberosCheck.isApplicable(request));
   }
 
   @Test

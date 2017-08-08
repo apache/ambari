@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,13 +32,19 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.inject.Provider;
 
@@ -47,23 +52,38 @@ import com.google.inject.Provider;
  * Unit tests for HostsRepositoryVersionCheck
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class HostsRepositoryVersionCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
   private final HostVersionDAO hostVersionDAO = Mockito.mock(HostVersionDAO.class);
   private final RepositoryVersionDAO repositoryVersionDAO = Mockito.mock(RepositoryVersionDAO.class);
 
-  final RepositoryVersionEntity repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
 
   @Before
-  public void setup() {
-    Mockito.when(repositoryVersion.getVersion()).thenReturn("1.0.0.0-1234");
-    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.0"));
+  public void setup() throws Exception {
+    m_services.clear();
+
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("1.0.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.0"));
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
   @Test
   public void testIsApplicable() throws Exception {
     final PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(repositoryVersion);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
     HostsRepositoryVersionCheck hrvc = new HostsRepositoryVersionCheck();
     Configuration config = Mockito.mock(Configuration.class);
     hrvc.config = config;
@@ -72,13 +92,6 @@ public class HostsRepositoryVersionCheckTest {
     HostsRepositoryVersionCheck hrvc2 = new HostsRepositoryVersionCheck();
     hrvc2.config = config;
     Assert.assertTrue(hrvc2.isApplicable(request));
-
-    Mockito.reset(repositoryVersion);
-    request.setTargetRepositoryVersion(repositoryVersion);
-
-    HostsMasterMaintenanceCheck hmmc2 = new HostsMasterMaintenanceCheck();
-    hmmc2.config = config;
-    Assert.assertFalse(hmmc2.isApplicable(request));
   }
 
   @Test
@@ -131,7 +144,7 @@ public class HostsRepositoryVersionCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest checkRequest = new PrereqCheckRequest("cluster");
-    checkRequest.setTargetRepositoryVersion(repositoryVersion);
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
 
     hostsRepositoryVersionCheck.perform(check, checkRequest);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
@@ -201,22 +214,29 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(host1.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
+
+    Mockito.when(host1.getHostName()).thenReturn("host1");
+    Mockito.when(host2.getHostName()).thenReturn("host2");
+    Mockito.when(host3.getHostName()).thenReturn("host3");
+
     hosts.put("host1", host1);
     hosts.put("host2", host2);
     hosts.put("host3", host3);
     Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
 
     HostVersionEntity hve = new HostVersionEntity();
-    hve.setRepositoryVersion(repositoryVersion);
+    hve.setRepositoryVersion(m_repositoryVersion);
     hve.setState(RepositoryVersionState.INSTALLED);
 
-    Mockito.when(
-        hostVersionDAO.findByHost(Mockito.anyString())).thenReturn(
-            Collections.singletonList(hve));
+    for (String hostName : hosts.keySet()) {
+      Mockito.when(hostVersionDAO.findByClusterStackVersionAndHost("cluster",
+          m_repositoryVersion.getStackId(), m_repositoryVersion.getVersion(), hostName)).thenReturn(
+              hve);
+    }
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(repositoryVersion);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     hostsRepositoryVersionCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
@@ -256,22 +276,30 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(host1.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
+
+    Mockito.when(host1.getHostName()).thenReturn("host1");
+    Mockito.when(host2.getHostName()).thenReturn("host2");
+    Mockito.when(host3.getHostName()).thenReturn("host3");
+
     hosts.put("host1", host1);
     hosts.put("host2", host2);
     hosts.put("host3", host3);
     Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
 
     HostVersionEntity hve = new HostVersionEntity();
-    hve.setRepositoryVersion(repositoryVersion);
+    hve.setRepositoryVersion(m_repositoryVersion);
     hve.setState(RepositoryVersionState.NOT_REQUIRED);
 
-    Mockito.when(
-        hostVersionDAO.findByHost(Mockito.anyString())).thenReturn(
-            Collections.singletonList(hve));
+    for (String hostName : hosts.keySet()) {
+      Mockito.when(hostVersionDAO.findByClusterStackVersionAndHost("cluster",
+          m_repositoryVersion.getStackId(), m_repositoryVersion.getVersion(), hostName)).thenReturn(
+              hve);
+    }
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(repositoryVersion);
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+
     hostsRepositoryVersionCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

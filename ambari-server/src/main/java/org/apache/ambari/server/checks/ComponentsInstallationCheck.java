@@ -66,8 +66,9 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     // Preq-req check should fail if any service component is in INSTALL_FAILED state
     Set<String> installFailedHostComponents = new HashSet<>();
 
-    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
-      final Service service = serviceEntry.getValue();
+    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
+    for (String serviceName : servicesInUpgrade) {
+      final Service service = cluster.getService(serviceName);
       // Skip service if it is in maintenance mode
       if (service.getMaintenanceState() != MaintenanceState.ON) {
         Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();

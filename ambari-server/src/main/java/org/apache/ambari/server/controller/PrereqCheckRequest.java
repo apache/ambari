@@ -64,14 +64,6 @@ public class PrereqCheckRequest {
     return m_upgradeType;
   }
 
-  public String getTargetVersion() {
-    if (null == m_targetRepositoryVersion) {
-      return null;
-    }
-
-    return m_targetRepositoryVersion.getVersion();
-  }
-
   /**
    * Sets the result of a check.
    * @param description the description
@@ -107,19 +99,6 @@ public class PrereqCheckRequest {
    */
   public void setSourceStackId(StackId sourceStackId) {
     m_sourceStackId = sourceStackId;
-  }
-
-  /**
-   * Gets the target stack of the upgrade.
-   *
-   * @return the targetStackId
-   */
-  public StackId getTargetStackId() {
-    if (null == m_targetRepositoryVersion) {
-      return null;
-    }
-
-    return m_targetRepositoryVersion.getStackId();
   }
 
   /**

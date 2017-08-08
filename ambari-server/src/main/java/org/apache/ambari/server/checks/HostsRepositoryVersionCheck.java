@@ -25,7 +25,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -49,8 +48,6 @@ import com.google.inject.Singleton;
     required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
-  static final String KEY_NO_REPO_VERSION = "no_repo_version";
-
   /**
    * Constructor.
    */
@@ -59,17 +56,11 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
   }
 
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    return super.isApplicable(request) && request.getTargetVersion() != null;
-  }
-
-  @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final Map<String, Host> clusterHosts = clustersProvider.get().getHostsForCluster(clusterName);
-    final StackId stackId = request.getSourceStackId();
 
     for (Host host : clusterHosts.values()) {
       // hosts in MM will produce a warning if they do not have the repo version
@@ -78,48 +69,19 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
         continue;
       }
 
-      if (null != request.getTargetVersion()) {
-        boolean found = false;
+      RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+      StackId repositoryStackId = repositoryVersion.getStackId();
 
-        Set<RepositoryVersionState> allowed = EnumSet.of(RepositoryVersionState.INSTALLED,
-            RepositoryVersionState.NOT_REQUIRED);
-        if (request.isRevert()) {
-          allowed.add(RepositoryVersionState.CURRENT);
-        }
+      // get the host version entity for this host and repository
+      final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(
+          clusterName, repositoryStackId, repositoryVersion.getVersion(), host.getHostName());
 
-        for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
+      // the repo needs to either be installed or not required
+      Set<RepositoryVersionState> okStates = EnumSet.of(RepositoryVersionState.INSTALLED,
+          RepositoryVersionState.NOT_REQUIRED);
 
-          if (hve.getRepositoryVersion().getVersion().equals(request.getTargetVersion())
-              && allowed.contains(hve.getState())) {
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          prerequisiteCheck.getFailedOn().add(host.getHostName());
-        }
-      } else {
-        final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(
-            stackId, request.getTargetVersion());
-        if (repositoryVersion == null) {
-          prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-          prerequisiteCheck.setFailReason(
-              getFailReason(KEY_NO_REPO_VERSION, prerequisiteCheck, request));
-          prerequisiteCheck.getFailedOn().addAll(clusterHosts.keySet());
-          return;
-        }
-
-        StackEntity repositoryStackEntity = repositoryVersion.getStack();
-        StackId repositoryStackId = new StackId(repositoryStackEntity.getStackName(),
-            repositoryStackEntity.getStackVersion());
-
-        final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(
-            clusterName, repositoryStackId, repositoryVersion.getVersion(), host.getHostName());
-
-        if (hostVersion == null || hostVersion.getState() != RepositoryVersionState.INSTALLED) {
-          prerequisiteCheck.getFailedOn().add(host.getHostName());
-        }
+      if (hostVersion == null || !okStates.contains(hostVersion.getState())) {
+        prerequisiteCheck.getFailedOn().add(host.getHostName());
       }
     }
 

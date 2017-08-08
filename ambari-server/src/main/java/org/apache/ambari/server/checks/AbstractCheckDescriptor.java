@@ -17,13 +17,12 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -36,19 +35,20 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -62,7 +62,7 @@ public abstract class AbstractCheckDescriptor {
   protected static final String DEFAULT = "default";
 
   @Inject
-  Provider<Clusters> clustersProvider;
+  protected Provider<Clusters> clustersProvider;
 
   @Inject
   Provider<HostVersionDAO> hostVersionDaoProvider;
@@ -94,74 +94,53 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Tests if the prerequisite check is applicable to given cluster. This
-   * method's default logic is to ensure that the cluster stack source and
-   * target are compatible with the prerequisite check. When overridding this
-   * method, call {@code super#isApplicable(PrereqCheckRequest)}.
+   * Gets the set of services that this check is associated with. If the check
+   * is not associated with a particular service, then this should be an empty
+   * set.
    *
-   * @param request
-   *          prerequisite check request
-   * @return true if check should be performed
-   *
-   * @throws org.apache.ambari.server.AmbariException
-   *           if server error happens
+   * @return a set of services which will determine whether this check is
+   *         applicable.
    */
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    // this is default behaviour
-   return true;
+  public Set<String> getApplicableServices() {
+    return Collections.emptySet();
   }
 
   /**
-   * Same like {@code isApplicable(PrereqCheckRequest request)}, but with service presence check
+   * Gets any additional qualifications which an upgrade check should run in
+   * order to determine if it's applicable to the upgrade.
+   *
+   * @return a list of qualifications, or an empty list.
+   */
+  public List<CheckQualification> getQualifications() {
+    return Collections.emptyList();
+  }
+
+  /**
+   * Tests if the prerequisite check is applicable to given upgrade request. If
+   * a check requires some extra processing
+   *
    * @param request
    *          prerequisite check request
-   * @param requiredServices
-   *          set of services, which need to be present to allow check execution
-   * @param requiredAll
-   *          require all services in the list or at least one need to present
    * @return true if check should be performed
+   *
    * @throws org.apache.ambari.server.AmbariException
    *           if server error happens
    */
-  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-  public boolean isApplicable(PrereqCheckRequest request, List<String> requiredServices, boolean requiredAll) throws AmbariException {
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Set<String> services = cluster.getServices().keySet();
+  public final boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    List<CheckQualification> qualifications = Lists.<CheckQualification> newArrayList(
+        new ServiceQualification());
 
-    // default return value depends on assign inside check block
-    boolean serviceFound = requiredAll && !requiredServices.isEmpty();
-
-    for (String service : requiredServices) {
-      if ( services.contains(service) && !requiredAll) {
-        serviceFound = true;
-        break;
-      } else if (!services.contains(service) && requiredAll) {
-        serviceFound = false;
-        break;
+    // add any others from the concrete check
+    qualifications.addAll(getQualifications());
+    for (CheckQualification qualification : qualifications) {
+      if (!qualification.isApplicable(request)) {
+        return false;
       }
     }
 
-    // !!! service is found and deployed - now check if it is part of the VDF
-    if (serviceFound && null != request.getTargetStackId()) {
-      String stackName = request.getTargetStackId().getStackName();
-      RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().
-          findByStackNameAndVersion(stackName, request.getTargetVersion());
-
-      if (RepositoryType.STANDARD != rve.getType()) {
-        try {
-          Set<String> availableServices = rve.getRepositoryXml().getAvailableServiceNames();
-
-          if (!CollectionUtils.containsAny(availableServices, requiredServices)) {
-            serviceFound = false;
-          }
-        } catch (Exception e) {
-          LOG.warn("Could not parse xml for %s", request.getTargetVersion(), e);
-        }
-      }
-    }
-
-    return serviceFound;
+    return true;
   }
+
 
   /**
    * Executes check against given cluster.
@@ -198,7 +177,8 @@ public abstract class AbstractCheckDescriptor {
    * @param request           the request
    * @return the failure string
    */
-  protected String getFailReason(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
+  protected String getFailReason(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+      throws AmbariException {
     return getFailReason(DEFAULT, prerequisiteCheck, request);
   }
 
@@ -233,15 +213,6 @@ public abstract class AbstractCheckDescriptor {
     return properties.get(propertyName);
   }
 
-  protected Cluster getCluster(PrereqCheckRequest request) throws AmbariException {
-    String clusterName = request.getClusterName();
-    if (null != clusterName) {
-      return clustersProvider.get().getCluster(clusterName);
-    }
-
-    return null;
-  }
-
   /**
    * Gets the fail reason
    * @param key               the failure text key
@@ -249,12 +220,13 @@ public abstract class AbstractCheckDescriptor {
    * @param request           the request
    * @return the failure string
    */
-  protected String getFailReason(String key,
-      PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
+  protected String getFailReason(String key, PrerequisiteCheck prerequisiteCheck,
+      PrereqCheckRequest request) throws AmbariException {
     String fail = m_description.getFail(key);
 
-    if (fail.contains("{{version}}") && null != request.getTargetVersion()) {
-      fail = fail.replace("{{version}}", request.getTargetVersion());
+    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+    if (fail.contains("{{version}}") && null != repositoryVersion) {
+      fail = fail.replace("{{version}}", repositoryVersion.getVersion());
     }
 
     if (fail.contains("{{fails}}")) {
@@ -265,26 +237,21 @@ public abstract class AbstractCheckDescriptor {
         Clusters clusters = clustersProvider.get();
         AmbariMetaInfo metaInfo = ambariMetaInfo.get();
 
-        try {
-          Cluster c = clusters.getCluster(request.getClusterName());
+        Cluster c = clusters.getCluster(request.getClusterName());
+        Map<String, ServiceInfo> services = metaInfo.getServices(
+            c.getDesiredStackVersion().getStackName(),
+            c.getDesiredStackVersion().getStackVersion());
 
-          LinkedHashSet<String> displays = new LinkedHashSet<>();
-
-          for (Service service : c.getServices().values()) {
-            if (names.contains(service.getName())) {
-              try {
-                ServiceInfo serviceInfo = metaInfo.getService(service);
-                displays.add(serviceInfo.getDisplayName());
-              } catch (Exception e) {
-                displays.add(service.getName());
-              }
-            }
+        LinkedHashSet<String> displays = new LinkedHashSet<>();
+        for (String name : names) {
+          if (services.containsKey(name)) {
+            displays.add(services.get(name).getDisplayName());
+          } else {
+            displays.add(name);
           }
-          names = displays;
-
-        } catch (Exception e) {
-          LOG.warn("Could not load service info map");
         }
+        names = displays;
+
       }
 
       fail = fail.replace("{{fails}}", formatEntityList(names));
@@ -292,7 +259,6 @@ public abstract class AbstractCheckDescriptor {
 
     return fail;
   }
-
 
   /**
    * Formats lists of given entities to human readable form:
@@ -335,4 +301,106 @@ public abstract class AbstractCheckDescriptor {
     return false;
   }
 
+  /**
+   * Gets the services participating in the upgrade from the VDF.
+   *
+   * @param request
+   *          the upgrade check request.
+   * @return the services participating in the upgrade, which can either be all
+   *         of the cluster's services or a subset based on repository type.
+   */
+  final Set<String> getServicesInUpgrade(PrereqCheckRequest request) throws AmbariException {
+    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+
+    // the check is scoped to some services, so determine if any of those
+    // services are included in this upgrade
+    try {
+      VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
+      ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster);
+      return clusterVersionSummary.getAvailableServiceNames();
+    } catch (Exception exception) {
+      throw new AmbariException("Unable to run upgrade checks because of an invalid VDF",
+          exception);
+    }
+  }
+
+  /**
+   * The {@link CheckQualification} interface is used to provide multiple
+   * different qualifications against which an upgrade check is determined to be
+   * applicable to the upgrade.
+   */
+  interface CheckQualification {
+
+    /**
+     * Gets whether the upgrade check meets this qualification and should
+     * therefore be run before the upgrade.
+     *
+     * @param request
+     * @return
+     * @throws AmbariException
+     */
+    boolean isApplicable(PrereqCheckRequest request) throws AmbariException;
+  }
+
+  /**
+   * The {@link ServiceQualification} class is used to determine if the
+   * service(s) associated with an upgraade check are both installed in the
+   * cluster and included in thr upgrade.
+   * <p/>
+   * If a service is installed but not included in the upgrade (for example of
+   * the upgrade is a patch upgrade), then the check should not qualify to run.
+   */
+  final class ServiceQualification implements CheckQualification {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+
+      Set<String> applicableServices = getApplicableServices();
+
+      // if the check is not scoped to any particular service, then it passes
+      // this qualification
+      if (applicableServices.isEmpty()) {
+        return true;
+      }
+
+      Set<String> servicesForUpgrade = getServicesInUpgrade(request);
+
+      for (String serviceInUpgrade : servicesForUpgrade) {
+        if (applicableServices.contains(serviceInUpgrade)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }
+
+  /**
+   * The {@link PriorCheckQualification} class is used to determine if a prior check has run.
+   */
+  final class PriorCheckQualification implements CheckQualification {
+
+    private final CheckDescription m_checkDescription;
+
+    public PriorCheckQualification(CheckDescription checkDescription) {
+      m_checkDescription = checkDescription;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+      PrereqCheckStatus checkStatus = request.getResult(m_checkDescription);
+      if (null != checkStatus && checkStatus == PrereqCheckStatus.FAIL) {
+        return false;
+      }
+
+      return true;
+    }
+  }
 }

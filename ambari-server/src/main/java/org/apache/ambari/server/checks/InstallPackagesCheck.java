@@ -59,16 +59,15 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final StackId targetStackId = request.getTargetStackId();
-    final String stackName = targetStackId.getStackName();
-    final String repoVersion = request.getTargetVersion();
+    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
 
-    final RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, request.getTargetVersion());
-    if (StringUtils.isBlank(rve.getVersion()) || !rve.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
+    final StackId targetStackId = repositoryVersion.getStackId();
+
+    if (!repositoryVersion.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
       String message = MessageFormat.format("The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. " +
               "Make sure that another registered repository does not have the same repo URL or " +
-              "shares the same build number. Next, try reinstalling the Repository Version.", rve.getVersion(), rve.getStackVersion());
-      prerequisiteCheck.getFailedOn().add("Repository Version " + rve.getVersion());
+              "shares the same build number. Next, try reinstalling the Repository Version.", repositoryVersion.getVersion(), repositoryVersion.getStackVersion());
+      prerequisiteCheck.getFailedOn().add("Repository Version " + repositoryVersion.getVersion());
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(message);
       return;
@@ -79,7 +78,7 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
     for (Host host : cluster.getHosts()) {
       if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
         for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
-          if (hve.getRepositoryVersion().getVersion().equals(request.getTargetVersion())
+          if (StringUtils.equals(hve.getRepositoryVersion().getVersion(), repositoryVersion.getVersion())
               && hve.getState() == RepositoryVersionState.INSTALL_FAILED) {
             failedHosts.add(host.getHostName());
           }
@@ -91,7 +90,8 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
       String message = MessageFormat.format("Hosts in cluster [{0},{1},{2},{3}] are in INSTALL_FAILED state because " +
               "Install Packages had failed. Please re-run Install Packages, if necessary place following hosts " +
               "in Maintenance mode: {4}", cluster.getClusterName(), targetStackId.getStackName(),
-          targetStackId.getStackVersion(), repoVersion, StringUtils.join(failedHosts, ", "));
+          targetStackId.getStackVersion(), repositoryVersion.getVersion(),
+          StringUtils.join(failedHosts, ", "));
       prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedHosts));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(message);
