@@ -23,11 +23,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
@@ -64,17 +63,16 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
       throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
+    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+
     StackId sourceStack = request.getSourceStackId();
-    StackId targetStack = request.getTargetStackId();
+    StackId targetStack = repositoryVersion.getStackId();
 
     Set<String> failedServices = new TreeSet<>();
     Set<String> failedComponents = new TreeSet<>();
 
-    @Experimental(
-        feature = ExperimentalFeature.PATCH_UPGRADES,
-        comment = "Assumes all service participate in the upgrade")
-    Map<String, Service> servicesInUpgrade = cluster.getServices();
-    for (String serviceName : servicesInUpgrade.keySet()) {
+    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
+    for (String serviceName : servicesInUpgrade) {
       try {
         ServiceInfo serviceInfo = ambariMetaInfo.get().getService(targetStack.getStackName(),
             targetStack.getStackVersion(), serviceName);
@@ -84,7 +82,7 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
           continue;
         }
 
-        Service service = servicesInUpgrade.get(serviceName);
+        Service service = cluster.getService(serviceName);
         Map<String, ServiceComponent> componentsInUpgrade = service.getServiceComponents();
         for (String componentName : componentsInUpgrade.keySet()) {
           try {

@@ -34,6 +34,8 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.StringUtils;
@@ -94,6 +96,12 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   private ServiceComponent m_zookeeperServer;
 
   @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
   private RepositoryVersionEntity m_repositoryVersion;
 
   @Before
@@ -116,6 +124,9 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     };
 
     expect(m_cluster.getServices()).andReturn(CLUSTER_SERVICES).atLeastOnce();
+    expect(m_cluster.getService("ZOOKEEPER")).andReturn(m_zookeeperService).anyTimes();
+    expect(m_cluster.getService("FOO_SERVICE")).andReturn(m_fooService).anyTimes();
+
     expect(m_clusters.getCluster((String) anyObject())).andReturn(m_cluster).anyTimes();
 
     ZK_SERVICE_COMPONENTS.put("ZOOKEEPER_SERVER", m_zookeeperServer);
@@ -138,6 +149,11 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
 
     expect(m_repositoryVersion.getStackId()).andReturn(TARGET_STACK).anyTimes();
     expect(m_repositoryVersion.getVersion()).andReturn("2.2.0").anyTimes();
+
+    expect(m_repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).anyTimes();
+    expect(m_vdfXml.getClusterSummary(anyObject(Cluster.class))).andReturn(m_clusterVersionSummary).anyTimes();
+    expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(CLUSTER_SERVICES.keySet()).anyTimes();
+
   }
 
   /**

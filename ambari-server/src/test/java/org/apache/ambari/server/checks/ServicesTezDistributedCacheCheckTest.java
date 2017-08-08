@@ -22,18 +22,24 @@ import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.inject.Provider;
 
@@ -41,13 +47,25 @@ import com.google.inject.Provider;
  * Unit tests for ServicesTezDistributedCacheCheck
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ServicesTezDistributedCacheCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
 
   private final ServicesTezDistributedCacheCheck servicesTezDistributedCacheCheck = new ServicesTezDistributedCacheCheck();
 
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
+
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     servicesTezDistributedCacheCheck.clustersProvider = new Provider<Clusters>() {
 
       @Override
@@ -58,24 +76,31 @@ public class ServicesTezDistributedCacheCheckTest {
     Configuration config = Mockito.mock(Configuration.class);
     servicesTezDistributedCacheCheck.config = config;
 
+    m_services.clear();
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
-    final Map<String, Service> services = new HashMap<>();
     final Service service = Mockito.mock(Service.class);
 
-    services.put("TEZ", service);
+    m_services.put("TEZ", service);
 
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServices()).thenReturn(m_services);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
-    Assert.assertTrue(servicesTezDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
+    Assert.assertTrue(servicesTezDistributedCacheCheck.isApplicable(request));
 
     PrereqCheckRequest req = new PrereqCheckRequest("cluster");
+    req.setTargetRepositoryVersion(m_repositoryVersion);
+
     req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.FAIL);
     Assert.assertFalse(servicesTezDistributedCacheCheck.isApplicable(req));
 
@@ -83,8 +108,8 @@ public class ServicesTezDistributedCacheCheckTest {
     Assert.assertTrue(servicesTezDistributedCacheCheck.isApplicable(req));
 
 
-    services.remove("TEZ");
-    Assert.assertFalse(servicesTezDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
+    m_services.remove("TEZ");
+    Assert.assertFalse(servicesTezDistributedCacheCheck.isApplicable(request));
   }
 
   @Test
@@ -95,13 +120,13 @@ public class ServicesTezDistributedCacheCheckTest {
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
-    Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> configMap = new HashMap<>();
     configMap.put("tez-site", desiredConfig);
     configMap.put("core-site", desiredConfig);
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(configMap);
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
@@ -169,16 +194,16 @@ public class ServicesTezDistributedCacheCheckTest {
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
-    Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> configMap = new HashMap<>();
     configMap.put("tez-site", desiredConfig);
     configMap.put("core-site", desiredConfig);
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(configMap);
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
-    Map<String, String> checkProperties = new HashMap<String, String>();
+    Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put("dfs-protocols-regex","^([^:]*dfs|wasb|ecs):.*");
     PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(

@@ -73,7 +73,9 @@ public class CheckHelper {
           applicablePreChecks.add(new DescriptorPreCheck(checkDescriptor, prerequisiteCheck));
         }
       } catch (Exception ex) {
-        LOG.error("Check " + checkDescriptor.getDescription().name() + " failed", ex);
+        LOG.error(
+            "Unable to determine whether the pre-upgrade check {} is applicable to this upgrade",
+            checkDescriptor.getDescription().name(), ex);
       }
     }
     return applicablePreChecks;

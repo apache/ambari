@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -34,6 +33,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -54,18 +54,21 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     super(CheckDescription.SECONDARY_NAMENODE_MUST_BE_DELETED);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request, Arrays.asList(HDFS_SERVICE_NAME), true)) {
-      return false;
-    }
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet(HDFS_SERVICE_NAME);
+  }
 
-    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
-    if (null != ha && ha == PrereqCheckStatus.FAIL) {
-      return false;
-    }
-
-    return true;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<CheckQualification> getQualifications() {
+    return Arrays.<CheckQualification> asList(
+        new PriorCheckQualification(CheckDescription.SERVICES_NAMENODE_HA));
   }
 
   // TODO AMBARI-12698, there are 2 ways to filter the prechecks.
@@ -75,7 +78,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
   //   given the type of upgrade. The PrereqCheckRequest object has a field for the type of upgrade.
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    Set<String> hosts = new HashSet<String>();
+    Set<String> hosts = new HashSet<>();
     final String SECONDARY_NAMENODE = "SECONDARY_NAMENODE";
 
     final String clusterName = request.getClusterName();

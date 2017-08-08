@@ -30,29 +30,44 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.inject.Provider;
 
 /**
  * Tests {@link HiveMultipleMetastoreCheck}
  */
+@RunWith(MockitoJUnitRunner.class)
 public class HiveMultipleMetastoreCheckTest {
   private final Clusters m_clusters = Mockito.mock(Clusters.class);
   private final HiveMultipleMetastoreCheck m_check = new HiveMultipleMetastoreCheck();
 
-  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
 
   /**
    *
    */
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     m_check.clustersProvider = new Provider<Clusters>() {
 
       @Override
@@ -65,6 +80,11 @@ public class HiveMultipleMetastoreCheckTest {
 
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn("1.0.0.0-1234");
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.0"));
+
+    m_services.clear();
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
   /**
@@ -78,10 +98,9 @@ public class HiveMultipleMetastoreCheckTest {
 
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(m_clusters.getCluster("cluster")).thenReturn(cluster);
-    Map<String, Service> services = new HashMap<>();
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServices()).thenReturn(m_services);
 
-    services.put("HDFS", Mockito.mock(Service.class));
+    m_services.put("HDFS", Mockito.mock(Service.class));
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setTargetRepositoryVersion(m_repositoryVersion);
@@ -90,7 +109,7 @@ public class HiveMultipleMetastoreCheckTest {
     Assert.assertFalse(m_check.isApplicable(request));
 
     // install HIVE
-    services.put("HIVE", Mockito.mock(Service.class));
+    m_services.put("HIVE", Mockito.mock(Service.class));
 
     // HIVE installed
     Assert.assertTrue(m_check.isApplicable(request));

@@ -76,7 +76,7 @@ public class HealthCheck extends AbstractCheckDescriptor {
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     List<AlertCurrentEntity> alerts = alertsDAO.findCurrentByCluster(cluster.getClusterId());
 
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
 
     for (AlertCurrentEntity alert : alerts) {
       AlertHistoryEntity alertHistory = alert.getAlertHistory();
@@ -99,7 +99,8 @@ public class HealthCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.getFailedOn().add(clusterName);
       prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
       String failReason = getFailReason(prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(errorMessages, "\n")));
+      prerequisiteCheck.setFailReason(
+          String.format(failReason, StringUtils.join(errorMessages, System.lineSeparator())));
     }
   }
 

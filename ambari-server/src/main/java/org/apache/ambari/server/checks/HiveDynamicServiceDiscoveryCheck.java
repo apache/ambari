@@ -18,14 +18,14 @@
 package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -62,8 +63,8 @@ public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    return super.isApplicable(request, Arrays.asList("HIVE"), true);
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet("HIVE");
   }
 
   /**
@@ -71,7 +72,7 @@ public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
    */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
 
     String dynamicServiceDiscoveryEnabled = getProperty(request, "hive-site", "hive.server2.support.dynamic.service.discovery");
     String zookeeperQuorum = getProperty(request, "hive-site", "hive.zookeeper.quorum");
@@ -111,9 +112,11 @@ public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
           String minStackName = minStack[0];
           String minStackVersion = minStack[1];
           if (minStackName.equals(request.getSourceStackId().getStackName())) {
+            RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+            StackId targetStackId = repositoryVersion.getStackId();
             if (VersionUtils.compareVersions(request.getSourceStackId().getStackVersion(), minStackVersion) < 0
-                && VersionUtils.compareVersions(request.getTargetStackId().getStackVersion(), minStackVersion) < 0
-                && VersionUtils.compareVersions(request.getSourceStackId().getStackVersion(), request.getTargetStackId().getStackVersion()) < 0) {
+                && VersionUtils.compareVersions(targetStackId.getStackVersion(), minStackVersion) < 0
+                && VersionUtils.compareVersions(request.getSourceStackId().getStackVersion(), targetStackId.getStackVersion()) < 0) {
               checkStatus = PrereqCheckStatus.WARNING;
             }
           }

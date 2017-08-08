@@ -17,21 +17,18 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Sets;
+import com.google.inject.Singleton;
 
 /**
  * The {@link MapReduce2JobHistoryStatePreservingCheck}
@@ -61,8 +58,8 @@ public class MapReduce2JobHistoryStatePreservingCheck extends AbstractCheckDescr
    * {@inheritDoc}
    */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    return super.isApplicable(request, Arrays.asList("MAPREDUCE2"), true);
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet("MAPREDUCE2");
   }
 
   /**
@@ -70,7 +67,7 @@ public class MapReduce2JobHistoryStatePreservingCheck extends AbstractCheckDescr
    */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     PrereqCheckStatus checkStatus = PrereqCheckStatus.FAIL;
 
     String enabled =

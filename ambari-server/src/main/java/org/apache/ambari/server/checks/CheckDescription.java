@@ -86,9 +86,7 @@ public class CheckDescription {
     "All hosts should have target version installed",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "The following hosts must have version {{version}} installed: {{fails}}.")
-      .put(HostsRepositoryVersionCheck.KEY_NO_REPO_VERSION,
-          "Repository version {{version}} does not exist.").build());
+          "The following hosts must have version {{version}} installed: {{fails}}.").build());
 
   public static CheckDescription SECONDARY_NAMENODE_MUST_BE_DELETED = new CheckDescription("SECONDARY_NAMENODE_MUST_BE_DELETED",
     PrereqCheckType.HOST,

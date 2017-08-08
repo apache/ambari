@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Arrays;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -42,9 +43,12 @@ public class RangerAuditDbCheck extends AbstractCheckDescriptor{
     super(CheckDescription.RANGER_SERVICE_AUDIT_DB_CHECK);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    return super.isApplicable(request, Arrays.asList(serviceName), true);
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet(serviceName);
   }
 
   @Override
