@@ -85,16 +85,19 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   versionStateMap: {
     'current': {
+      'type': 'CURRENT',
       'value': ['CURRENT'],
       'property': 'currentHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.current')
     },
     'installed': {
+      'type': 'INSTALLED',
       'value': ['INSTALLED'],
       'property': 'installedHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.installed')
     },
     'not_installed': {
+      'type': 'NOT_INSTALLED',
       'value': ['INSTALLING', 'INSTALL_FAILED', 'OUT_OF_SYNC'],
       'property': 'notInstalledHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
@@ -453,11 +456,14 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var displayName = this.get('content.displayName');
     var hosts = this.get(status['property']);
     var self = this;
+    var title = status.type === 'CURRENT'
+      ? Em.I18n.t('admin.stackVersions.hosts.popup.current.title').format(displayName, hosts.length)
+      : Em.I18n.t('admin.stackVersions.hosts.popup.title').format(displayName, status.label, hosts.length);
     hosts.sort();
     if (hosts.length) {
       return App.ModalPopup.show({
         bodyClass: Ember.View.extend({
-          title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(displayName, status.label, hosts.length),
+          title: title,
           hosts: hosts,
           template: Em.Handlebars.compile('<h4>{{view.title}}</h4><div class="limited-height-2">{{#each view.hosts}}<div>{{this}}</div>{{/each}}</div>')
         }),

@@ -1771,6 +1771,7 @@ Em.I18n.translations = {
   'admin.stackVersions.hosts.popup.header.not_installed': "Not installed",
   'admin.stackVersions.hosts.popup.header': "Version Status: {0}",
   'admin.stackVersions.hosts.popup.title': "{0} Version is {1} on {2} hosts:",
+  'admin.stackVersions.hosts.popup.current.title': "{0} is applied on {1} hosts:",
   'admin.stackVersions.hosts.popup.primary': "Go to Hosts",
 
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
