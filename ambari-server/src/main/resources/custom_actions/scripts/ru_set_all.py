@@ -84,7 +84,7 @@ class UpgradeSetAll(Script):
     Reverses the work performed in link_config. This should only be used when downgrading from
     HDP 2.3 to 2.2 in order to under the symlink work required for 2.3.
     """
-    stack_name = default('/hostLevelParams/stack_name', "").upper()
+    stack_name = default('/clusterLevelParams/stack_name', "").upper()
     downgrade_to_version = default('/commandParams/version', None)
     downgrade_from_version = default('/commandParams/downgrade_from_version', None)
     upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)

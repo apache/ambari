@@ -37,7 +37,7 @@ class UpdateRepo(Script):
 
 
     try:
-      repo_info_json = config['hostLevelParams']['repo_info']
+      repo_info_json = config['hostLevelParams']['repoInfo']
       repo_info_dict = json.loads(repo_info_json)
 
       for item in repo_info_dict["repositories"]:
