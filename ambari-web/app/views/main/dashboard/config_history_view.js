@@ -146,7 +146,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
           label: item
         }
       }));
-    }.property('parentView.isInitialRendering'),
+    }.property('parentView.isInitialRendering', 'parentView.pageContent'),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
     }
