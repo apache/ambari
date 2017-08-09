@@ -34,7 +34,6 @@ import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
-import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
@@ -314,12 +313,6 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       outSB.append("Upgrade was successful!\n");
 
-      // Clear any cached RCO data after version upgrade
-      if (roleCommandOrderProvider instanceof CachedRoleCommandOrderProvider) {
-        CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider;
-        cachedRcoProvider.clearRoleCommandOrderCache();
-      }
-
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } catch (Exception e) {
       errSB.append(e.getMessage());
@@ -452,12 +445,6 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
-
-      // Clear any cached RCO data after version downgrade
-      if (roleCommandOrderProvider instanceof CachedRoleCommandOrderProvider) {
-        CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider;
-        cachedRcoProvider.clearRoleCommandOrderCache();
-      }
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
           out.toString(), err.toString());
