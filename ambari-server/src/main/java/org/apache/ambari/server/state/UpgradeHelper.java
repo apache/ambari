@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -244,6 +245,8 @@ public class UpgradeHelper {
 
     if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
       pack = packs.get(preferredUpgradePackName);
+
+      LOG.warn("Upgrade pack '{}' not found for stack {}", preferredUpgradePackName, currentStack);
     }
 
     // Best-attempt at picking an upgrade pack assuming within the same stack whose target stack version matches.
@@ -863,8 +866,11 @@ public class UpgradeHelper {
     String userName = controller.getAuthName();
     Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
 
+    Set<String> clusterConfigTypes = new HashSet<>();
+    Set<String> processedClusterConfigTypes = new HashSet<>();
+
     // merge or revert configurations for any service that needs it
-    for( String serviceName : servicesInUpgrade ){
+    for (String serviceName : servicesInUpgrade) {
       RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
       RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
       StackId sourceStackId = sourceRepositoryVersion.getStackId();
@@ -886,7 +892,7 @@ public class UpgradeHelper {
       // downgrade is easy - just remove the new and make the old current
       if (direction == Direction.DOWNGRADE) {
         cluster.applyLatestConfigurations(targetStackId, serviceName);
-        return;
+        continue;
       }
 
       // upgrade is a bit harder - we have to merge new stack configurations in
@@ -901,6 +907,12 @@ public class UpgradeHelper {
       Map<String, Map<String, String>> newServiceDefaultConfigsByType = configHelper.getDefaultProperties(
           targetStackId, serviceName);
 
+      if (null == oldServiceDefaultConfigsByType || null == newServiceDefaultConfigsByType) {
+        continue;
+      }
+
+      Set<String> foundConfigTypes = new HashSet<>();
+
       // find the current, existing configurations for the service
       List<Config> existingServiceConfigs = new ArrayList<>();
       List<ServiceConfigEntity> latestServiceConfigs = m_serviceConfigDAO.getLastServiceConfigsForService(
@@ -910,8 +922,23 @@ public class UpgradeHelper {
         List<ClusterConfigEntity> existingConfigurations = serviceConfig.getClusterConfigEntities();
         for (ClusterConfigEntity currentServiceConfig : existingConfigurations) {
           String configurationType = currentServiceConfig.getType();
+
           Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
           existingServiceConfigs.add(currentClusterConfigForService);
+          foundConfigTypes.add(configurationType);
+        }
+      }
+
+      // !!! these are the types that come back from the config helper, but are not part of the service.
+      @SuppressWarnings("unchecked")
+      Set<String> missingConfigTypes = new HashSet<>(CollectionUtils.subtract(oldServiceDefaultConfigsByType.keySet(),
+          foundConfigTypes));
+
+      for (String missingConfigType : missingConfigTypes) {
+        Config config = cluster.getDesiredConfigByType(missingConfigType);
+        if (null != config) {
+          existingServiceConfigs.add(config);
+          clusterConfigTypes.add(missingConfigType);
         }
       }
 
@@ -1013,8 +1040,18 @@ public class UpgradeHelper {
       }
 
       if (null != newServiceDefaultConfigsByType) {
+
+        for (String clusterConfigType : clusterConfigTypes) {
+          if (processedClusterConfigTypes.contains(clusterConfigType)) {
+            newServiceDefaultConfigsByType.remove(clusterConfigType);
+          } else {
+            processedClusterConfigTypes.add(clusterConfigType);
+          }
+
+        }
+
         Set<String> configTypes = newServiceDefaultConfigsByType.keySet();
-        LOG.info("The upgrade will create the following configurations for stack {}: {}",
+        LOG.warn("The upgrade will create the following configurations for stack {}: {}",
             targetStackId, StringUtils.join(configTypes, ','));
 
         String serviceVersionNote = String.format("%s %s %s", direction.getText(true),

@@ -31,7 +31,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.builder.EqualsBuilder;
 
@@ -59,10 +58,6 @@ public class ServiceDesiredStateEntity {
   @Column(name = "maintenance_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
   private MaintenanceState maintenanceState = MaintenanceState.OFF;
-
-  @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
-  @Enumerated(value = EnumType.STRING)
-  private SecurityState securityState = SecurityState.UNSECURED;
 
   @Column(name = "credential_store_enabled", nullable = false, insertable = true, updatable = true)
   private short credentialStoreEnabled = 0;
@@ -124,14 +119,6 @@ public class ServiceDesiredStateEntity {
 
   public void setMaintenanceState(MaintenanceState state) {
     maintenanceState = state;
-  }
-
-  public SecurityState getSecurityState() {
-    return securityState;
-  }
-
-  public void setSecurityState(SecurityState securityState) {
-    this.securityState = securityState;
   }
 
   /**

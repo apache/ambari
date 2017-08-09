@@ -183,12 +183,6 @@ class Script(object):
     except IOError, err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 
-  def get_component_name(self):
-    """
-    To be overridden by subclasses.
-     Returns a string with the component name used in selecting the version.
-    """
-    pass
 
   def get_config_dir_during_stack_upgrade(self, env, base_dir, conf_select_name):
     """
@@ -218,11 +212,13 @@ class Script(object):
     :param stack_name: One of HDP, HDPWIN, PHD, BIGTOP.
     :return: Append the version number to the structured out.
     """
-    stack_name = Script.get_stack_name()
-    component_name = self.get_component_name()
+    from resource_management.libraries.functions import stack_select
 
-    if component_name and stack_name:
-      component_version = get_component_version(stack_name, component_name)
+    stack_name = Script.get_stack_name()
+    stack_select_package_name = stack_select.get_package_name()
+
+    if stack_select_package_name and stack_name:
+      component_version = get_component_version(stack_name, stack_select_package_name)
 
       if component_version:
         self.put_structured_out({"version": component_version})
@@ -411,7 +407,7 @@ class Script(object):
     status_method = getattr(self, 'status')
     component_is_stopped = False
     counter = 0
-    while not component_is_stopped :
+    while not component_is_stopped:
       try:
         if counter % 100 == 0:
           Logger.logger.info("Waiting for actual component stop")
@@ -446,11 +442,12 @@ class Script(object):
 
     :return: stack version including the build number. e.g.: 2.3.4.0-1234.
     """
+    from resource_management.libraries.functions import stack_select
+
     # preferred way is to get the actual selected version of current component
-    component_name = self.get_component_name()
-    if not Script.stack_version_from_distro_select and component_name:
-      from resource_management.libraries.functions import stack_select
-      Script.stack_version_from_distro_select = stack_select.get_stack_version_before_install(component_name)
+    stack_select_package_name = stack_select.get_package_name()
+    if not Script.stack_version_from_distro_select and stack_select_package_name:
+      Script.stack_version_from_distro_select = stack_select.get_stack_version_before_install(stack_select_package_name)
 
     # If <stack-selector-tool> has not yet been done (situations like first install),
     # we can use <stack-selector-tool> version itself.

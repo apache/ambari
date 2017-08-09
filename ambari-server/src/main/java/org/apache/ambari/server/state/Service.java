@@ -28,6 +28,8 @@ public interface Service {
 
   String getName();
 
+  String getDisplayName();
+
   long getClusterId();
 
   Cluster getCluster();
@@ -46,24 +48,6 @@ public interface Service {
   State getDesiredState();
 
   void setDesiredState(State state);
-
-  /**
-   * Gets this Service's security state.
-   *
-   * @return this services desired SecurityState
-   */
-  SecurityState getSecurityState();
-
-  /**
-   * Sets this Service's desired security state
-   * <p/>
-   * It is expected that the new SecurityState is a valid endpoint state such that
-   * SecurityState.isEndpoint() == true.
-   *
-   * @param securityState the desired SecurityState for this Service
-   * @throws AmbariException if the new state is not an endpoint state
-   */
-  void setSecurityState(SecurityState securityState) throws AmbariException;
 
   StackId getDesiredStackId();
 

@@ -43,7 +43,7 @@ public class Release {
   public String stackId;
 
   /**
-   * The stack version.
+   * The stack-based release version.
    */
   @XmlElement(name="version")
   public String version;

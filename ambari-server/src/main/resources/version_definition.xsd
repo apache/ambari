@@ -44,6 +44,7 @@
       <xs:enumeration value="STANDARD" />
       <xs:enumeration value="SERVICE" />
       <xs:enumeration value="PATCH" />
+      <xs:enumeration value="MAINT" />
     </xs:restriction>
   </xs:simpleType>
 
@@ -82,6 +83,7 @@
           <xs:attribute name="version" type="xs:string" use="required" />
           <xs:attribute name="id" type="xs:string" use="required" />
           <xs:attribute name="version-id" type="xs:string" />
+          <xs:attribute name="release-version" type="xs:string" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>

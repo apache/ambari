@@ -6,9 +6,9 @@
       "type":"https",
       "checks":[
         {
-          "property":"logsearch_ui_protocol",
+          "property":"logsearch.protocol",
           "desired":"https",
-          "site":"logsearch-env"
+          "site":"logsearch-properties"
         }
       ]
     },
@@ -21,12 +21,12 @@
         "requires_user_name": "false",
         "attributes": ["authenticated", "sso"],
         "port": {
-          "http_property": "logsearch_ui_port",
+          "http_property": "logsearch.http.port",
           "http_default_port": "8888",
-          "https_property": "logsearch_ui_port",
+          "https_property": "logsearch.https.port",
           "https_default_port": "8888",
           "regex": "^(\\d+)$",
-          "site": "logsearch-env"
+          "site": "logsearch-properties"
         }
       }
     ]

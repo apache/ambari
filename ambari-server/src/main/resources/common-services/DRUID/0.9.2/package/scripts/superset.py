@@ -26,7 +26,6 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
@@ -35,9 +34,6 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.resources.properties_file import PropertiesFile
 
 class Superset(Script):
-
-  def get_component_name(self):
-    return format("druid-superset")
 
   def install(self, env):
     self.install_packages(env)
@@ -98,9 +94,7 @@ class Superset(Script):
     env.set_params(params)
 
     if params.stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version):
-      stack_select.select(self.get_component_name(), params.stack_version)
-    if params.stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version):
-      conf_select.select(params.stack_name, "superset", params.stack_version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params

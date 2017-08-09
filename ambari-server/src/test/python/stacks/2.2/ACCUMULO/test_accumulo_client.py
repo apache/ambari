@@ -29,6 +29,8 @@ class TestAccumuloClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ACCUMULO/1.6.1.2.2.0/package"
   STACK_VERSION = "2.1"
 
+  CONFIG_OVERRIDES = {"serviceName":"ACCUMULO", "role":"ACCUMULO_CLIENT"}
+
   def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/default.json"
     with open(config_file, "r") as f:
@@ -41,6 +43,7 @@ class TestAccumuloClient(RMFTestCase):
       classname = "AccumuloClient",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -62,20 +65,10 @@ class TestAccumuloClient(RMFTestCase):
       classname = "AccumuloClient",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
-      call_mocks = [(0, None, ''), (0, None)],
       mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'accumulo-client', version), sudo=True,)
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'accumulo', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'accumulo', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])

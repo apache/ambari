@@ -58,6 +58,7 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -111,6 +112,12 @@ public class ClusterConfigurationRequestTest {
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
   private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
+  private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
+
+  @Before
+  public void setup() {
+    stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
+  }
 
   /**
    * testConfigType config type should be in updatedConfigTypes, as no custom property in Blueprint

@@ -17,12 +17,14 @@
  * under the License.
  */
 
-package org.apache.ambari.logsearch.util;
+package org.apache.ambari.logsearch.configurer;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.net.ssl.SSLContext;
 
-import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
+import org.apache.ambari.logsearch.conf.LogSearchSslConfig;
+import org.apache.ambari.logsearch.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -69,10 +71,12 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 
-import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
+import static org.apache.ambari.logsearch.conf.LogSearchSslConfig.CREDENTIAL_STORE_PROVIDER_PATH;
+import static org.apache.ambari.logsearch.conf.LogSearchSslConfig.LOGSEARCH_CERT_DEFAULT_FOLDER;
 
-public class SSLUtil {
-  private static final Logger LOG = LoggerFactory.getLogger(SSLUtil.class);
+@Named
+public class SslConfigurer {
+  private static final Logger LOG = LoggerFactory.getLogger(SslConfigurer.class);
   
   private static final String KEYSTORE_LOCATION_ARG = "javax.net.ssl.keyStore";
   private static final String KEYSTORE_PASSWORD_ARG = "javax.net.ssl.keyStorePassword";
@@ -86,79 +90,50 @@ public class SSLUtil {
   private static final String TRUSTSTORE_PASSWORD_PROPERTY_NAME = "logsearch_truststore_password";
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
-
-  @LogSearchPropertyDescription(
-    name = "hadoop.security.credential.provider.path",
-    description = "Path to interrogate for protected credentials. (see: https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/CredentialProviderAPI.html)",
-    examples = {"localjceks://file/home/mypath/my.jceks"},
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.cert.folder.location",
-    description = "Folder where the generated certificates (SSL) will be located. Make sure the user of Log Search Server can access it.",
-    examples = {"/etc/mypath/keys"},
-    defaultValue = "/etc/ambari-logsearch-portal/conf/keys",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String LOGSEARCH_CERT_FOLDER_LOCATION = "logsearch.cert.folder.location";
-
-  @LogSearchPropertyDescription(
-    name = "logsearch.cert.algorithm",
-    description = "Algorithm to generate certificates for SSL (if needed).",
-    examples = {"sha256WithRSA"},
-    defaultValue = "sha256WithRSA",
-    sources = {LOGSEARCH_PROPERTIES_FILE}
-  )
-  private static final String LOGSEARCH_CERT_ALGORITHM = "logsearch.cert.algorithm";
   
   private static final String LOGSEARCH_CERT_FILENAME = "logsearch.crt";
   private static final String LOGSEARCH_KEYSTORE_FILENAME = "logsearch.jks";
   private static final String LOGSEARCH_KEYSTORE_PRIVATE_KEY = "logsearch.private.key";
   private static final String LOGSEARCH_KEYSTORE_PUBLIC_KEY = "logsearch.public.key";
-  private static final String LOGSEARCH_CERT_DEFAULT_ALGORITHM = "sha256WithRSA";
 
-  private static final String LOGSEARCH_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
   private static final String LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD = "bigdata";
+
+  @Inject
+  private LogSearchSslConfig logSearchSslConfig;
   
-  private SSLUtil() {
-    throw new UnsupportedOperationException();
-  }
-  
-  public static String getKeyStoreLocation() {
+  private String getKeyStoreLocation() {
     return System.getProperty(KEYSTORE_LOCATION_ARG);
   }
 
-  public static String getKeyStorePassword() {
+  private String getKeyStorePassword() {
     return System.getProperty(KEYSTORE_PASSWORD_ARG);
   }
 
-  public static String getKeyStoreType() {
+  private String getKeyStoreType() {
     return System.getProperty(KEYSTORE_TYPE_ARG, DEFAULT_KEYSTORE_TYPE);
   }
   
-  public static String getTrustStoreLocation() {
+  private String getTrustStoreLocation() {
     return System.getProperty(TRUSTSTORE_LOCATION_ARG);
   }
 
-  public static String getTrustStorePassword() {
+  private String getTrustStorePassword() {
     return System.getProperty(TRUSTSTORE_PASSWORD_ARG);
   }
 
-  public static String getTrustStoreType() {
+  private String getTrustStoreType() {
     return System.getProperty(TRUSTSTORE_TYPE_ARG, DEFAULT_TRUSTSTORE_TYPE);
   }
 
-  public static boolean isKeyStoreSpecified() {
+  public boolean isKeyStoreSpecified() {
     return StringUtils.isNotEmpty(getKeyStoreLocation());
   }
 
-  private static boolean isTrustStoreSpecified() {
+  private boolean isTrustStoreSpecified() {
     return StringUtils.isNotEmpty(getTrustStoreLocation());
   }
   
-  public static SslContextFactory getSslContextFactory() {
+  public SslContextFactory getSslContextFactory() {
     SslContextFactory sslContextFactory = new SslContextFactory();
     sslContextFactory.setKeyStorePath(getKeyStoreLocation());
     sslContextFactory.setKeyStorePassword(getKeyStorePassword());
@@ -172,7 +147,7 @@ public class SSLUtil {
     return sslContextFactory;
   }
 
-  public static SSLContext getSSLContext() {
+  public SSLContext getSSLContext() {
     SslContextFactory sslContextFactory = getSslContextFactory();
     
     try {
@@ -190,7 +165,7 @@ public class SSLUtil {
     }
   }
 
-  private static String getPasswordFromFile(String fileName) {
+  private String getPasswordFromFile(String fileName) {
     try {
       File pwdFile = new File(LOGSEARCH_CERT_DEFAULT_FOLDER, fileName);
       if (!pwdFile.exists()) {
@@ -205,10 +180,10 @@ public class SSLUtil {
     }
   }
 
-  private static String getPasswordFromCredentialStore(String propertyName) {
+  private String getPasswordFromCredentialStore(String propertyName) {
     try {
-      String providerPath = PropertiesHelper.getProperty(CREDENTIAL_STORE_PROVIDER_PATH);
-      if (providerPath == null) {
+      String providerPath = logSearchSslConfig.getCredentialStoreProviderPath();
+      if (StringUtils.isEmpty(providerPath)) {
         return null;
       }
       
@@ -222,7 +197,7 @@ public class SSLUtil {
     }
   }
 
-  private static String getPassword(String propertyName, String fileName) {
+  private String getPassword(String propertyName, String fileName) {
     String credentialStorePassword = getPasswordFromCredentialStore(propertyName);
     if (credentialStorePassword != null) {
       return credentialStorePassword;
@@ -239,7 +214,7 @@ public class SSLUtil {
   /**
    * Put private key into in-memory keystore and write it to a file (JKS file)
    */
-  private static void setKeyAndCertInKeystore(X509Certificate cert, KeyPair keyPair, KeyStore keyStore, String keyStoreLocation, char[] password)
+  private void setKeyAndCertInKeystore(X509Certificate cert, KeyPair keyPair, KeyStore keyStore, String keyStoreLocation, char[] password)
     throws Exception {
     Certificate[] certChain = new Certificate[1];
     certChain[0] = cert;
@@ -255,7 +230,7 @@ public class SSLUtil {
   /**
    * Create in-memory keypair with bouncy castle
    */
-  private static KeyPair createKeyPair(String encryptionType, int byteCount)
+  private KeyPair createKeyPair(String encryptionType, int byteCount)
     throws NoSuchProviderException, NoSuchAlgorithmException {
     Security.addProvider(new BouncyCastleProvider());
     KeyPairGenerator keyPairGenerator = createKeyPairGenerator(encryptionType, byteCount);
@@ -265,7 +240,7 @@ public class SSLUtil {
   /**
    * Generate X509 certificate if it does not exist
    */
-  private static X509Certificate generateCertificate(String certificateLocation, KeyPair keyPair, String algorithm) throws Exception {
+  private X509Certificate generateCertificate(String certificateLocation, KeyPair keyPair, String algorithm) throws Exception {
     try {
       File certFile = new File(certificateLocation);
       if (certFile.exists()) {
@@ -283,19 +258,19 @@ public class SSLUtil {
     }
   }
 
-  private static void ensureStorePassword(String locationArg, String pwdArg, String propertyName, String fileName) {
+  private void ensureStorePassword(String locationArg, String pwdArg, String propertyName, String fileName) {
     if (StringUtils.isNotEmpty(System.getProperty(locationArg)) && StringUtils.isEmpty(System.getProperty(pwdArg))) {
       String password = getPassword(propertyName, fileName);
       System.setProperty(pwdArg, password);
     }
   }
   
-  public static void ensureStorePasswords() {
+  public void ensureStorePasswords() {
     ensureStorePassword(KEYSTORE_LOCATION_ARG, KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_PROPERTY_NAME, KEYSTORE_PASSWORD_FILE);
     ensureStorePassword(TRUSTSTORE_LOCATION_ARG, TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_PROPERTY_NAME, TRUSTSTORE_PASSWORD_FILE);
   }
 
-  private static X509Certificate getCertFile(String location) throws Exception {
+  private X509Certificate getCertFile(String location) throws Exception {
     try (FileInputStream fos = new FileInputStream(location)) {
       CertificateFactory factory = CertificateFactory.getInstance("X.509");
       return (X509Certificate) factory.generateCertificate(fos);
@@ -305,7 +280,7 @@ public class SSLUtil {
     }
   }
 
-  private static X509Certificate createCert(KeyPair keyPair, String signatureAlgoritm, String domainName)
+  private X509Certificate createCert(KeyPair keyPair, String signatureAlgoritm, String domainName)
     throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, OperatorCreationException, CertificateException, IOException {
     
     RSAPublicKey rsaPublicKey = (RSAPublicKey) keyPair.getPublic();
@@ -336,7 +311,7 @@ public class SSLUtil {
     return certConverter.getCertificate(certificateHolder);
   }
 
-  private static KeyPairGenerator createKeyPairGenerator(String algorithmIdentifier, int bitCount)
+  private KeyPairGenerator createKeyPairGenerator(String algorithmIdentifier, int bitCount)
     throws NoSuchProviderException, NoSuchAlgorithmException {
     KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithmIdentifier, BouncyCastleProvider.PROVIDER_NAME);
     kpg.initialize(bitCount);
@@ -346,10 +321,10 @@ public class SSLUtil {
   /**
    * Create keystore with keys and certificate (only if the keystore does not exist or if you have no permissions on the keystore file)
    */
-  public static void loadKeystore() {
+  public void loadKeystore() {
     try {
-      String certFolder = PropertiesHelper.getProperty(LOGSEARCH_CERT_FOLDER_LOCATION, LOGSEARCH_CERT_DEFAULT_FOLDER);
-      String certAlgorithm = PropertiesHelper.getProperty(LOGSEARCH_CERT_ALGORITHM, LOGSEARCH_CERT_DEFAULT_ALGORITHM);
+      String certFolder = logSearchSslConfig.getCertFolder();
+      String certAlgorithm = logSearchSslConfig.getCertAlgorithm();
       String certLocation = String.format("%s/%s", LOGSEARCH_CERT_DEFAULT_FOLDER, LOGSEARCH_CERT_FILENAME);
       String keyStoreLocation = StringUtils.isNotEmpty(getKeyStoreLocation()) ? getKeyStoreLocation()
         : String.format("%s/%s", LOGSEARCH_CERT_DEFAULT_FOLDER, LOGSEARCH_KEYSTORE_FILENAME);

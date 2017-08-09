@@ -19,13 +19,11 @@ limitations under the License.
 
 """
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
 
-def prestart(env, stack_component):
+def prestart(env):
   import params
 
   if params.version and params.stack_supports_rolling_upgrade:
-    conf_select.select(params.stack_name, stack_component, params.version)
-    stack_select.select(stack_component, params.version)
+    stack_select.select_packages(params.version)

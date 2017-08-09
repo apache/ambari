@@ -276,8 +276,6 @@
         "logsearch_log_dir": "/var/log/ambari-logsearch-portal",
         "logsearch_debug_enabled": "false",
         "logsearch_debug_port": "5005",
-        "logsearch_ui_protocol": "http",
-        "logsearch_ui_port" : "61888",
         "logsearch_keystore_password" : "bigdata",
         "logsearch_truststore_password" : "bigdata",
         "logsearch_solr_audit_logs_use_ranger": "false",
@@ -296,6 +294,9 @@
         "common-property": "common-value"
       },
       "logsearch-properties": {
+        "logsearch.protocol": "http",
+        "logsearch.http.port" : "61888",
+        "logsearch.https.port" : "61888",
         "logsearch.spnego.kerberos.host" : "localhost",
         "logsearch.solr.collection.service.logs" : "hadoop_logs",
         "logsearch.solr.collection.audit.logs" : "audit_logs",

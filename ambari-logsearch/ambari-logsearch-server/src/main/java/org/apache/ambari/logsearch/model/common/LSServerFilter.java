@@ -70,10 +70,12 @@ public abstract class LSServerFilter {
     this.sourceField = filterDescriptor.getSourceField();
     this.removeSourceField = filterDescriptor.isRemoveSourceField();
     
-    this.postMapValues = new HashMap<String, LSServerPostMapValuesList>();
-    for (Map.Entry<String, ? extends List<? extends PostMapValues>> e : filterDescriptor.getPostMapValues().entrySet()) {
-      LSServerPostMapValuesList lsServerPostMapValuesList = new LSServerPostMapValuesList(e.getValue());
-      postMapValues.put(e.getKey(), lsServerPostMapValuesList);
+    if (filterDescriptor.getPostMapValues() != null) {
+      this.postMapValues = new HashMap<String, LSServerPostMapValuesList>();
+      for (Map.Entry<String, ? extends List<? extends PostMapValues>> e : filterDescriptor.getPostMapValues().entrySet()) {
+        LSServerPostMapValuesList lsServerPostMapValuesList = new LSServerPostMapValuesList(e.getValue());
+        postMapValues.put(e.getKey(), lsServerPostMapValuesList);
+      }
     }
     
     this.isEnabled = filterDescriptor.isEnabled();

@@ -77,6 +77,10 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
   protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
+  protected static final String COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
+  protected static final String COMPONENT_STATE_TABLE = "hostcomponentstate";
+  protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
+  protected static final String SECURITY_STATE_COLUMN = "security_state";
 
   @Inject
   DaoUtils daoUtils;
@@ -125,6 +129,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateStageTable();
     updateClusterConfigurationTable();
     addOpsDisplayNameColumnToHostRoleCommand();
+    removeSecurityState();
   }
 
   protected void updateStageTable() throws SQLException {
@@ -311,6 +316,12 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         new DBAccessor.DBColumnInfo(HRC_OPS_DISPLAY_NAME_COLUMN, String.class, 255, null, true));
   }
 
+  private void removeSecurityState() throws SQLException {
+    dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
+    dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN);
+    dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
+  }
+
   /**
    * Updates Log Search configs.
    *
@@ -339,6 +350,15 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
           }
 
+          Config logSearchEnv = cluster.getDesiredConfigByType("logsearch-env");
+
+          String oldProtocolProperty = null;
+          String oldPortProperty = null;
+          if (logSearchEnv != null) {
+            oldProtocolProperty = logSearchEnv.getProperties().get("logsearch_ui_port");
+            oldPortProperty = logSearchEnv.getProperties().get("logsearch_ui_protocol");
+          }
+
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
           Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
           if (logSearchProperties != null && logFeederProperties != null) {
@@ -347,45 +367,76 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
             removeConfigurationPropertiesFromCluster(cluster, "logsearch-properties", removeProperties);
 
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("logfeeder.include.default.level", defaultLogLevels);
-            updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newProperties, true, true);
+            Map<String, String> newLogSearchProperties = new HashMap<>();
+            if (oldProtocolProperty != null) {
+              newLogSearchProperties.put("logsearch.protocol", oldProtocolProperty);
+            }
+
+            if (oldPortProperty != null) {
+              newLogSearchProperties.put("logsearch.http.port", oldPortProperty);
+              newLogSearchProperties.put("logsearch.https.port", oldPortProperty);
+            }
+            if (!newLogSearchProperties.isEmpty()) {
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-properties", newLogSearchProperties, true, true);
+            }
+
+            Map<String, String> newLogfeederProperties = new HashMap<>();
+            newLogfeederProperties.put("logfeeder.include.default.level", defaultLogLevels);
+            updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newLogfeederProperties, true, true);
           }
 
-          Config logfeederLog4jProperties = cluster.getDesiredConfigByType("logfeeder-log4j");
-          if (logfeederLog4jProperties != null) {
-            String content = logfeederLog4jProperties.getProperties().get("content");
+          Config logFeederLog4jProperties = cluster.getDesiredConfigByType("logfeeder-log4j");
+          if (logFeederLog4jProperties != null) {
+            String content = logFeederLog4jProperties.getProperties().get("content");
             if (content.contains("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">")) {
               content = content.replace("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
               updateConfigurationPropertiesForCluster(cluster, "logfeeder-log4j", Collections.singletonMap("content", content), true, true);
             }
           }
 
-          Config logsearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
-          if (logsearchLog4jProperties != null) {
-            String content = logsearchLog4jProperties.getProperties().get("content");
+          Config logSearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
+          if (logSearchLog4jProperties != null) {
+            String content = logSearchLog4jProperties.getProperties().get("content");
             if (content.contains("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">")) {
               content = content.replace("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
               updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", Collections.singletonMap("content", content), true, true);
             }
           }
 
-          Config logsearchServiceLogsConfig = cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig");
-          if (logsearchServiceLogsConfig != null) {
-            String content = logsearchServiceLogsConfig.getProperties().get("content");
+          Config logSearchServiceLogsConfig = cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig");
+          if (logSearchServiceLogsConfig != null) {
+            String content = logSearchServiceLogsConfig.getProperties().get("content");
             if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
               content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
               updateConfigurationPropertiesForCluster(cluster, "logsearch-service_logs-solrconfig", Collections.singletonMap("content", content), true, true);
             }
           }
 
-          Config logsearchAuditLogsConfig = cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig");
-          if (logsearchAuditLogsConfig != null) {
-            String content = logsearchAuditLogsConfig.getProperties().get("content");
+          Config logSearchAuditLogsConfig = cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig");
+          if (logSearchAuditLogsConfig != null) {
+            String content = logSearchAuditLogsConfig.getProperties().get("content");
             if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
               content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
               updateConfigurationPropertiesForCluster(cluster, "logsearch-audit_logs-solrconfig", Collections.singletonMap("content", content), true, true);
             }
+          }
+          
+          Config logFeederOutputConfig = cluster.getDesiredConfigByType("logfeeder-output-config");
+          if (logFeederOutputConfig != null) {
+            String content = logFeederOutputConfig.getProperties().get("content");
+            content = content.replace(
+                "      \"collection\":\"{{logsearch_solr_collection_service_logs}}\",\n" +
+                "      \"number_of_shards\": \"{{logsearch_collection_service_logs_numshards}}\",\n" +
+                "      \"splits_interval_mins\": \"{{logsearch_service_logs_split_interval_mins}}\",\n",
+                "      \"type\": \"service\",\n");
+
+            content = content.replace(
+                "      \"collection\":\"{{logsearch_solr_collection_audit_logs}}\",\n" +
+                "      \"number_of_shards\": \"{{logsearch_collection_audit_logs_numshards}}\",\n" +
+                "      \"splits_interval_mins\": \"{{logsearch_audit_logs_split_interval_mins}}\",\n",
+                "      \"type\": \"audit\",\n");
+
+            updateConfigurationPropertiesForCluster(cluster, "logsearch-output-config", Collections.singletonMap("content", content), true, true);
           }
         }
       }

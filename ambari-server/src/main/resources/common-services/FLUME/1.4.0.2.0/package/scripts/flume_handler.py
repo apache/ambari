@@ -21,7 +21,7 @@ from flume import flume
 from flume import get_desired_state
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names, get_flume_status, get_flume_pid_files
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
@@ -40,9 +40,6 @@ class FlumeHandler(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FlumeHandlerLinux(FlumeHandler):
-  def get_component_name(self):
-    return "flume-server"
-
   def install(self, env):
     import params
     self.install_packages(env)
@@ -89,8 +86,7 @@ class FlumeHandlerLinux(FlumeHandler):
       return
 
     Logger.info("Executing Flume Stack Upgrade pre-restart")
-    conf_select.select(params.stack_name, "flume", params.version)
-    stack_select.select("flume-server", params.version)
+    stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

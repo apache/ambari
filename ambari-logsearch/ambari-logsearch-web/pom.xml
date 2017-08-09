@@ -90,7 +90,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/classes/webapps/app</outputDirectory>
+              <outputDirectory>${basedir}/target/classes/static</outputDirectory>
               <resources>
                 <resource>
                   <directory>src/main/webapp</directory>
@@ -127,7 +127,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/classes/webapps/app/libs/bower</outputDirectory>
+              <outputDirectory>${basedir}/target/classes/static/libs/bower</outputDirectory>
               <resources>
                 <resource>
                   <directory>${basedir}/target/libs</directory>

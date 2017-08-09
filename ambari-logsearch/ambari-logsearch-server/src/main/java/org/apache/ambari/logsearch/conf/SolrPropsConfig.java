@@ -58,4 +58,6 @@ public interface SolrPropsConfig {
   String getConfigSetFolder();
 
   void setConfigSetFolder(String configSetFolder);
+  
+  String getLogType();
 }

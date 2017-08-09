@@ -92,6 +92,7 @@ public class ConfigHelper {
   public static final String CLUSTER_ENV_STACK_FEATURES_PROPERTY = "stack_features";
   public static final String CLUSTER_ENV_STACK_TOOLS_PROPERTY = "stack_tools";
   public static final String CLUSTER_ENV_STACK_ROOT_PROPERTY = "stack_root";
+  public static final String CLUSTER_ENV_STACK_PACKAGES_PROPERTY = "stack_packages";
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
@@ -1117,7 +1118,6 @@ public class ConfigHelper {
             serviceMapped.put(service, new HashSet<Config>());
           }
           serviceMapped.get(service).add(baseConfig);
-
         } catch (Exception e) {
           // !!! ignore
         }
@@ -1242,10 +1242,9 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
-      if (stackDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
-        defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
-            stackDefaultProperty.getValue());
-      }
+
+      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+          stackDefaultProperty.getValue());
     }
 
     // for every installed service, populate the default service properties
@@ -1259,10 +1258,9 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
-      if (serviceDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
-        defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
-            serviceDefaultProperty.getValue());
-      }
+
+      defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+          serviceDefaultProperty.getValue());
     }
 
     return defaultPropertiesByType;

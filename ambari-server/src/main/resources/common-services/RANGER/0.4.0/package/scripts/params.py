@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.is_empty import is_empty
@@ -49,6 +49,7 @@ version = default("/commandParams/version", None)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
 

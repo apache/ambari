@@ -23,7 +23,6 @@ from storm import storm
 from service import service
 from supervisord_service import supervisord_service, supervisord_check_status
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import Execute
@@ -32,9 +31,6 @@ from resource_management.libraries.functions import StackFeature
 
 
 class Supervisor(Script):
-
-  def get_component_name(self):
-    return "storm-supervisor"
 
   def install(self, env):
     self.install_packages(env)
@@ -50,9 +46,7 @@ class Supervisor(Script):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "storm", params.version)
-      stack_select.select("storm-client", params.version)
-      stack_select.select("storm-supervisor", params.version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params

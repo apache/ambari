@@ -110,6 +110,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       configTagsCallbackName: 'loadStormConfigs',
       configsCallbackName: 'onLoadStormConfigs'
     },
+    'ATLAS_SERVER': {
+      deletePropertyName: 'deleteAtlasServer',
+      hostPropertyName: 'atlasServer',
+      configsCallbackName: 'onLoadAtlasConfigs'
+    },
     'RANGER_KMS_SERVER': {
       deletePropertyName: 'deleteRangerKMSServer',
       hostPropertyName: 'rangerKMSServerHost',
@@ -1117,6 +1122,52 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
+  onLoadAtlasConfigs: function(data) {
+    var atlasServer = this.get('atlasServer'),
+      atlasServerHosts = this.getAtlasServerHosts(),
+      configs = {},
+      attributes = {},
+      propertiesToChange = this.get('allPropertiesToChange');
+
+    this.saveLoadedConfigs(data);
+    data.items.forEach(function (item) {
+      configs[item.type] = item.properties;
+      attributes[item.type] = item.properties_attributes || {};
+    }, this);
+
+    var atlasAddresses = configs['application-properties']['atlas.rest.address'];
+    var hostMask = atlasAddresses.split(',')[0].replace(/([https|http]*\:\/\/)(.*?)(:[0-9]+)/, '$1{hostname}$3');
+    var atlasAddressesRecommended = atlasServerHosts.map(function(hostName) {
+      return hostMask.replace('{hostname}', hostName);
+    }).join(',');
+    configs['application-properties']['atlas.rest.address'] = atlasAddressesRecommended;
+    if (this.get('isReconfigureRequired') && atlasAddresses !== atlasAddressesRecommended) {
+      var service = App.config.get('serviceByConfigTypeMap')['application-properties'];
+      propertiesToChange.pushObject({
+        propertyFileName: 'application-properties',
+        propertyName: 'atlas.rest.address',
+        serviceDisplayName: service && service.get('displayName'),
+        initialValue: atlasAddresses,
+        recommendedValue: atlasAddressesRecommended
+      });
+    }
+    var groups = [
+      {
+        properties: {
+          'application-properties': configs['application-properties']
+        },
+        properties_attributes: {
+          'application-properties': attributes['application-properties']
+        }
+      }
+    ];
+    if (this.get('isReconfigureRequired')) {
+      this.setConfigsChanges(groups);
+    } else {
+      this.saveConfigsBatch(groups, 'ATLAS_SERVER', atlasServer);
+    }
+  },
+
   /**
    * Success callback for load configs request
    * @param {object} data
@@ -1590,6 +1641,24 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       return stormNimbusHosts.without(this.get('content.hostName'));
     }
     return stormNimbusHosts.sort();
+  },
+
+  getAtlasServerHosts: function () {
+    var
+      atlasServerHosts = App.HostComponent.find().filterProperty('componentName', 'ATLAS_SERVER').mapProperty('hostName'),
+      atlasServer = this.get('atlasServer');
+
+    if (!!atlasServer) {
+      atlasServerHosts.push(atlasServer);
+      this.set('atlasServer', '');
+    }
+
+    if (this.get('fromDeleteHost') || this.get('deleteAtlasServer')) {
+      this.set('deleteAtlasServer', false);
+      this.set('fromDeleteHost', false);
+      return atlasServerHosts.without(this.get('content.hostName'));
+    }
+    return atlasServerHosts.sort();
   },
 
   /**

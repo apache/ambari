@@ -20,7 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
@@ -30,16 +30,12 @@ from metadata import metadata
 
 class AtlasClient(Script):
 
-  def get_component_name(self):
-    return "atlas-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
     if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, params.version_for_stack_feature_checks):
-      conf_select.select(params.stack_name, "atlas", params.version)
-      stack_select.select("atlas-client", params.version)
+      stack_select.select_packages(params.version)
 
   def install(self, env):
     self.install_packages(env)

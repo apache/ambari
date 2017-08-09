@@ -40,6 +40,10 @@ public class Port{
   @JsonProperty("regex")
   private String regex;
 
+  @JsonProperty("https_regex")
+  private String httpsRegex;
+
+
   @JsonProperty("site")
   private String site;
 
@@ -83,6 +87,14 @@ public class Port{
     this.regex = regex;
   }
 
+  public String getHttpsRegex() {
+    return httpsRegex;
+  }
+
+  public void setHttpsRegex(String httpsRegex) {
+    this.httpsRegex = httpsRegex;
+  }
+
   public String getSite() {
     return site;
   }
@@ -109,6 +121,9 @@ public class Port{
 
     if(null == regex && null != parentPort.getRegex())
       regex = parentPort.getRegex();
+
+    if(null == httpsRegex && null != parentPort.getHttpsRegex())
+      regex = parentPort.getHttpsRegex();
 
     if(null == site && null != parentPort.getSite())
       site = parentPort.getSite();

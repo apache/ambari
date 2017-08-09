@@ -164,7 +164,6 @@ public class ServiceTest {
     Assert.assertEquals(cluster.getClusterName(),
             service.getCluster().getClusterName());
     Assert.assertEquals(State.INIT, service.getDesiredState());
-    Assert.assertEquals(SecurityState.UNSECURED, service.getSecurityState());
     Assert.assertFalse(
             service.getDesiredStackId().getStackId().isEmpty());
 
@@ -289,46 +288,6 @@ public class ServiceTest {
     entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
     Assert.assertNotNull(entity);
     Assert.assertEquals(MaintenanceState.ON, entity.getServiceDesiredStateEntity().getMaintenanceState());
-  }
-
-  @Test
-  public void testSecurityState() throws Exception {
-    String serviceName = "HDFS";
-    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-    cluster.addService(s);
-
-    Service service = cluster.getService(serviceName);
-    Assert.assertNotNull(service);
-
-    ClusterServiceDAO dao = injector.getInstance(ClusterServiceDAO.class);
-    ClusterServiceEntity entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
-    Assert.assertNotNull(entity);
-    Assert.assertEquals(SecurityState.UNSECURED, entity.getServiceDesiredStateEntity().getSecurityState());
-    Assert.assertEquals(SecurityState.UNSECURED, service.getSecurityState());
-
-    service.setSecurityState(SecurityState.SECURED_KERBEROS);
-    Assert.assertEquals(SecurityState.SECURED_KERBEROS, service.getSecurityState());
-
-    entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
-    Assert.assertNotNull(entity);
-    Assert.assertEquals(SecurityState.SECURED_KERBEROS, entity.getServiceDesiredStateEntity().getSecurityState());
-
-    // Make sure there are no issues setting all endpoint values...
-    for(SecurityState state: SecurityState.ENDPOINT_STATES) {
-      service.setSecurityState(state);
-      Assert.assertEquals(state, service.getSecurityState());
-    }
-
-    // Make sure there transitional states are not allowed
-    for(SecurityState state: SecurityState.TRANSITIONAL_STATES) {
-      try {
-        service.setSecurityState(state);
-        Assert.fail(String.format("SecurityState %s is not a valid desired service state", state.toString()));
-      }
-      catch (AmbariException e) {
-        // this is acceptable
-      }
-    }
   }
 
   private void addHostToCluster(String hostname,

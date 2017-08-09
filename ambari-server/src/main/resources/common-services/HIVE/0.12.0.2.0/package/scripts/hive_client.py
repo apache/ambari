@@ -19,7 +19,7 @@ limitations under the License.
 """
 import sys
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.logger import Logger
@@ -50,18 +50,13 @@ class HiveClientWindows(HiveClient):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveClientDefault(HiveClient):
-  def get_component_name(self):
-    return "hadoop-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Hive client Stack Upgrade pre-restart")
 
     import params
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hive", params.version)
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-client", params.version)
+      stack_select.select_packages(params.version)
 
 
 if __name__ == "__main__":

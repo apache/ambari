@@ -22,7 +22,6 @@ from resource_management import Script
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -34,10 +33,6 @@ from druid import druid, get_daemon_cmd, getPid
 class DruidBase(Script):
   def __init__(self, nodeType=None):
     self.nodeType = nodeType
-
-  def get_component_name(self):
-    node_type_lower = self.nodeType.lower()
-    return format("druid-{node_type_lower}")
 
   def install(self, env):
     self.install_packages(env)
@@ -55,9 +50,7 @@ class DruidBase(Script):
     env.set_params(params)
 
     if params.stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version):
-      stack_select.select(self.get_component_name(), params.stack_version)
-    if params.stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version):
-      conf_select.select(params.stack_name, "druid", params.stack_version)
+      stack_select.select_packages(params.stack_version)
 
   def start(self, env, upgrade_type=None):
     import params

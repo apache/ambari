@@ -145,4 +145,9 @@ public class SolrEventHistoryPropsConfig extends SolrConnectionPropsConfig {
   void setPopulateIntervalMins(Integer populateIntervalMins) {
     this.populateIntervalMins = populateIntervalMins;
   }
+
+  @Override
+  public String getLogType() {
+    return null;
+  }
 }

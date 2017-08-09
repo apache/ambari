@@ -52,12 +52,12 @@ import com.google.inject.persist.Transactional;
  * actually changed half-way through calculating the Actions, and this serves to update the database to make it
  * evident to the user at which point it changed.
  */
-public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
+public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
 
   /**
    * Logger.
    */
-  private static final Logger LOG = LoggerFactory.getLogger(UpdateDesiredStackAction.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpdateDesiredRepositoryAction.class);
 
 
   /**
@@ -130,7 +130,7 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
         final String message;
         RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getRepositoryVersion();
 
-        if (upgradeContext.getRepositoryType() == RepositoryType.STANDARD) {
+        if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
           message = MessageFormat.format(
               "Updating the desired repository version to {0} for all cluster services.",
               targetRepositoryVersion.getVersion());

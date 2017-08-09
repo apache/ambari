@@ -99,6 +99,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(), Collections.<String, Map<String, Map<String, String>>>emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<>();
   private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
+  private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
 
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
@@ -239,6 +240,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+  
+   stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
+
 
     expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
     expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
@@ -3402,6 +3406,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
     yarnSiteProperties.put("yarn.resourcemanager.hostname.rm1", expectedHostName);
     yarnSiteProperties.put("yarn.resourcemanager.hostname.rm2", expectedHostNameTwo);
+    yarnSiteProperties.put("yarn.resourcemanager.address.rm1", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.address.rm2", expectedHostNameTwo + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.admin.address.rm1", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.admin.address.rm2", expectedHostNameTwo + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.resource-tracker.address.rm1", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.resource-tracker.address.rm2", expectedHostNameTwo + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.scheduler.address.rm1", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.scheduler.address.rm2", expectedHostNameTwo + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.webapp.address.rm1", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.webapp.address.rm2", expectedHostNameTwo + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.resourcemanager.webapp.https.address.rm1", expectedHostName + ":" + expectedPortNum);
@@ -3454,18 +3466,20 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
 
     // verify that dynamically-named RM HA properties are exported as expected
-    assertEquals("Yarn ResourceManager rm1 hostname not exported properly",
-      createExportedHostName(expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.hostname.rm1"));
-    assertEquals("Yarn ResourceManager rm2 hostname not exported properly",
-      createExportedHostName(expectedHostGroupNameTwo), yarnSiteProperties.get("yarn.resourcemanager.hostname.rm2"));
-    assertEquals("Yarn ResourceManager rm1 web address not exported properly",
-      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.webapp.address.rm1"));
-    assertEquals("Yarn ResourceManager rm2 web address not exported properly",
-      createExportedHostName(expectedHostGroupNameTwo, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.webapp.address.rm2"));
-    assertEquals("Yarn ResourceManager rm1 HTTPS address not exported properly",
-      createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.webapp.https.address.rm1"));
-    assertEquals("Yarn ResourceManager rm2 HTTPS address not exported properly",
-      createExportedHostName(expectedHostGroupNameTwo, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.webapp.https.address.rm2"));
+    List<String> properties = Arrays.asList(
+      "yarn.resourcemanager.address",
+      "yarn.resourcemanager.admin.address",
+      "yarn.resourcemanager.resource-tracker.address",
+      "yarn.resourcemanager.scheduler.address",
+      "yarn.resourcemanager.webapp.address",
+      "yarn.resourcemanager.webapp.https.address"
+    );
+    for (String property : properties) {
+      String propertyWithID = property + ".rm1";
+      assertEquals(propertyWithID, createExportedHostName(expectedHostGroupName, expectedPortNum), yarnSiteProperties.get(propertyWithID));
+      propertyWithID = property + ".rm2";
+      assertEquals(propertyWithID, createExportedHostName(expectedHostGroupNameTwo, expectedPortNum), yarnSiteProperties.get(propertyWithID));
+    }
 
     assertEquals("Yarn Zookeeper address property not exported properly",
       createExportedHostName(expectedHostGroupName, "2181") + "," + createExportedHostName(expectedHostGroupNameTwo, "2181"),

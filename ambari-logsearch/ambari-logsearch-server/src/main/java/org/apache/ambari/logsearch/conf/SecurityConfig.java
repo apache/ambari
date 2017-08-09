@@ -190,6 +190,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   public RequestMatcher requestMatcher() {
     List<RequestMatcher> matchers = Lists.newArrayList();
+    matchers.add(new AntPathRequestMatcher("/docs/**"));
+    matchers.add(new AntPathRequestMatcher("/swagger-ui/**"));
+    matchers.add(new AntPathRequestMatcher("/swagger.html"));
     matchers.add(new AntPathRequestMatcher("/login.html"));
     matchers.add(new AntPathRequestMatcher("/logout.html"));
     matchers.add(new AntPathRequestMatcher("/styles/**"));

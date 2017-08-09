@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.junit.Before;
@@ -44,7 +44,7 @@ public class MetricsManagerTest {
   
   @BeforeClass
   public static void loadProperties() throws Exception {
-    LogFeederUtil.loadProperties("logfeeder.properties");
+    LogFeederPropertiesUtil.loadProperties("logfeeder.properties");
   }
   
   @Before

@@ -22,7 +22,6 @@ from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import StackFeature
@@ -46,16 +45,12 @@ class SqoopClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SqoopClientDefault(SqoopClient):
-  def get_component_name(self):
-    return "sqoop-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
-      conf_select.select(params.stack_name, "sqoop", params.version)
-      stack_select.select("sqoop-client", params.version)
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+      stack_select.select_packages(params.version)
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

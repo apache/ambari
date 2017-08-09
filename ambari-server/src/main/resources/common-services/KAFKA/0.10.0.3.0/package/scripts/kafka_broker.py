@@ -19,7 +19,6 @@ limitations under the License.
 from resource_management import Script
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File, Directory
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.version import format_stack_version
@@ -36,9 +35,6 @@ from setup_ranger_kafka import setup_ranger_kafka
 
 class KafkaBroker(Script):
 
-  def get_component_name(self):
-    return "kafka-broker"
-
   def install(self, env):
     self.install_packages(env)
 
@@ -52,10 +48,7 @@ class KafkaBroker(Script):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      stack_select.select("kafka-broker", params.version)
-
-    if params.version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
-      conf_select.select(params.stack_name, "kafka", params.version)
+      stack_select.select_packages(params.version)
 
     # This is extremely important since it should only be called if crossing the HDP 2.3.4.0 boundary. 
     if params.current_version and params.version and params.upgrade_direction:

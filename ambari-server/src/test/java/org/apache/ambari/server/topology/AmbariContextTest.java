@@ -59,6 +59,8 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -130,7 +132,7 @@ public class AmbariContextTest {
   @Before
   public void setUp() throws Exception {
     // "inject" context state
-    Class clazz = AmbariContext.class;
+    Class<AmbariContext> clazz = AmbariContext.class;
     Field f = clazz.getDeclaredField("controller");
     f.setAccessible(true);
     f.set(null, controller);
@@ -202,7 +204,15 @@ public class AmbariContextTest {
             type1Service1).anyTimes();
     replay(type1Service1);
 
+    RepositoryVersionDAO repositoryVersionDAO = createStrictMock(RepositoryVersionDAO.class);
+    RepositoryVersionEntity repositoryVersion = createStrictMock(RepositoryVersionEntity.class);
+    expect(repositoryVersion.getId()).andReturn(1L).anyTimes();
+    expect(repositoryVersionDAO.findByStackAndVersion(EasyMock.anyObject(StackId.class),
+        EasyMock.anyString())).andReturn(repositoryVersion).anyTimes();
+    replay(repositoryVersionDAO, repositoryVersion);
+
     context.configFactory = configFactory;
+    context.repositoryVersionDAO = repositoryVersionDAO;
 
     blueprintServices.add("service1");
     blueprintServices.add("service2");
@@ -248,6 +258,7 @@ public class AmbariContextTest {
 
     expect(configGroup1.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_1)).anyTimes();
     expect(configGroup2.getName()).andReturn(String.format("%s:%s", BP_NAME, HOST_GROUP_2)).anyTimes();
+
   }
 
   @After
@@ -293,10 +304,11 @@ public class AmbariContextTest {
     expect(serviceResourceProvider.updateResources(capture(serviceStartRequestCapture),
         capture(startPredicateCapture))).andReturn(null).once();
 
+
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null, "1.2.3");
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();

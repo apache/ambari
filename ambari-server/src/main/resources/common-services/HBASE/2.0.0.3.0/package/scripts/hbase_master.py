@@ -72,13 +72,10 @@ class HbaseMasterWindows(HbaseMaster):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseMasterDefault(HbaseMaster):
-  def get_component_name(self):
-    return "hbase-master"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env, "hbase-master")
+    upgrade.prestart(env)
 
   def start(self, env, upgrade_type=None):
     import params

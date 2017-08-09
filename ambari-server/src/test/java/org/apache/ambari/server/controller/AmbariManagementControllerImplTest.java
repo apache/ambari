@@ -574,7 +574,7 @@ public class AmbariManagementControllerImplTest {
     ConfigurationRequest configurationRequest = createNiceMock(ConfigurationRequest.class);
 
     // requests
-    Set<ClusterRequest> setRequests = new HashSet<ClusterRequest>();
+    Set<ClusterRequest> setRequests = new HashSet<>();
     setRequests.add(clusterRequest);
 
     List<ConfigurationRequest> configRequests = new ArrayList<>();
@@ -2044,7 +2044,7 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-    
+
     OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
     EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
@@ -2409,7 +2409,6 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, configuration);
 
     ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
-    cr.setRepositoryVersion("2.1.1.0-1234");
     controller.createCluster(cr);
 
     // verification

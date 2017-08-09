@@ -70,6 +70,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticatio
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -84,6 +85,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * ServiceResourceProvider tests.
@@ -140,7 +143,7 @@ public class ServiceResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    ResourceProvider provider = getServiceProvider(managementController, true);
+    ResourceProvider provider = getServiceProvider(managementController, true, null);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
@@ -153,6 +156,7 @@ public class ServiceResourceProviderTest {
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service100");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
     properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
+    properties.put(ServiceResourceProvider.SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, "1");
 
     propertySet.add(properties);
 
@@ -1148,7 +1152,224 @@ public class ServiceResourceProviderTest {
     }
   }
 
-  private static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController, boolean mockFindByStack) throws  AmbariException {
+  @Test
+  public void testCreateWithNoRepositoryId() throws Exception {
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service1 = createNiceMock(Service.class);
+    Service service2 = createNiceMock(Service.class);
+
+    RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
+    expect(repoVersion.getId()).andReturn(500L).anyTimes();
+    expect(service1.getDesiredRepositoryVersion()).andReturn(repoVersion).atLeastOnce();
+
+    StackId stackId = new StackId("HDP-2.5");
+    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(cluster.addService(eq("Service200"), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(cluster.getServices()).andReturn(
+        ImmutableMap.<String, Service>builder()
+          .put("Service100", service1).build()).atLeastOnce();
+
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
+    expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, service1, service2,
+        ambariMetaInfo, serviceFactory, serviceInfo, repoVersion);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Capture<Long> pkCapture = Capture.newInstance();
+    ResourceProvider provider = getServiceProvider(managementController, true, pkCapture);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+
+    // Service 1: create a map of properties for the request
+    Map<String, Object> properties = new LinkedHashMap<>();
+
+    // add properties to the request map
+    properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service200");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
+    properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    // verify
+    verify(managementController, clusters, cluster, service1, service2,
+        ambariMetaInfo, serviceFactory, serviceInfo);
+
+    Assert.assertTrue(pkCapture.hasCaptured());
+    Assert.assertEquals(Long.valueOf(500L), pkCapture.getValue());
+  }
+
+  @Test
+  public void testCreateWithNoRepositoryIdAndPatch() throws Exception {
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service1 = createNiceMock(Service.class);
+    Service service2 = createNiceMock(Service.class);
+
+    RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
+    expect(repoVersion.getId()).andReturn(500L).anyTimes();
+    expect(repoVersion.getParentId()).andReturn(600L).anyTimes();
+    expect(repoVersion.getType()).andReturn(RepositoryType.PATCH).anyTimes();
+    expect(service1.getDesiredRepositoryVersion()).andReturn(repoVersion).atLeastOnce();
+
+    StackId stackId = new StackId("HDP-2.5");
+    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(cluster.addService(eq("Service200"), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(cluster.getServices()).andReturn(
+        ImmutableMap.<String, Service>builder()
+          .put("Service100", service1).build()).atLeastOnce();
+
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
+    expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, service1, service2,
+        ambariMetaInfo, serviceFactory, serviceInfo, repoVersion);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Capture<Long> pkCapture = Capture.newInstance();
+    ResourceProvider provider = getServiceProvider(managementController, true, pkCapture);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+
+    // Service 1: create a map of properties for the request
+    Map<String, Object> properties = new LinkedHashMap<>();
+
+    // add properties to the request map
+    properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service200");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
+    properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    // verify
+    verify(managementController, clusters, cluster, service1, service2,
+        ambariMetaInfo, serviceFactory, serviceInfo);
+
+    Assert.assertTrue(pkCapture.hasCaptured());
+    Assert.assertEquals(Long.valueOf(600L), pkCapture.getValue());
+  }
+
+  @Test
+  public void testCreateWithNoRepositoryIdAndMultiBase() throws Exception {
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service1 = createNiceMock(Service.class);
+    Service service2 = createNiceMock(Service.class);
+    Service service3 = createNiceMock(Service.class);
+
+    RepositoryVersionEntity repoVersion1 = createNiceMock(RepositoryVersionEntity.class);
+    expect(repoVersion1.getId()).andReturn(500L).anyTimes();
+    expect(service1.getDesiredRepositoryVersion()).andReturn(repoVersion1).atLeastOnce();
+
+    RepositoryVersionEntity repoVersion2 = createNiceMock(RepositoryVersionEntity.class);
+    expect(repoVersion2.getId()).andReturn(600L).anyTimes();
+    expect(service2.getDesiredRepositoryVersion()).andReturn(repoVersion2).atLeastOnce();
+
+    StackId stackId = new StackId("HDP-2.5");
+    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(cluster.getServices()).andReturn(
+        ImmutableMap.<String, Service>builder()
+          .put("Service100", service1)
+          .put("Service200", service2).build()).atLeastOnce();
+
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, service1, service2, service3,
+        ambariMetaInfo, serviceFactory, serviceInfo, repoVersion1, repoVersion2);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Capture<Long> pkCapture = Capture.newInstance();
+    ResourceProvider provider = getServiceProvider(managementController, true, pkCapture);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+
+    // Service 1: create a map of properties for the request
+    Map<String, Object> properties = new LinkedHashMap<>();
+
+    // add properties to the request map
+    properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service200");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
+    properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    try {
+      provider.createResources(request);
+      Assert.fail("Expected an exception when more than one base version was found");
+    } catch (IllegalArgumentException expected) {
+      // !!! expected
+    }
+
+    // verify
+    verify(managementController, clusters, cluster, service1, service2, service3,
+        ambariMetaInfo, serviceFactory, serviceInfo);
+
+  }
+
+  private static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController,
+      boolean mockFindByStack, Capture<Long> pkCapture) throws  AmbariException {
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
     RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
@@ -1156,8 +1377,13 @@ public class ServiceResourceProviderTest {
 
     if (mockFindByStack) {
       RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-      expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
-          Collections.singletonList(repositoryVersion)).atLeastOnce();
+
+      if (null != pkCapture) {
+        expect(repositoryVersionDAO.findByPK(capture(pkCapture))).andReturn(repositoryVersion).atLeastOnce();
+      } else {
+        expect(repositoryVersionDAO.findByPK(EasyMock.anyLong())).andReturn(repositoryVersion).atLeastOnce();
+      }
+
       expect(repositoryVersion.getStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
       replay(repositoryVersion);
     }
@@ -1171,7 +1397,7 @@ public class ServiceResourceProviderTest {
    * It's useful in most cases (when we don't care about Maintenance State)
    */
   public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) throws  AmbariException {
-    return getServiceProvider(managementController, false);
+    return getServiceProvider(managementController, false, null);
   }
 
   /**

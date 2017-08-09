@@ -21,8 +21,8 @@ package org.apache.ambari.logsearch.common;
 
 public class LogSearchConstants {
 
+  public static final String LOGSEARCH_APPLICATION_NAME = "logsearch";
   public static final String LOGSEARCH_PROPERTIES_FILE = "logsearch.properties";
-
   public static final String LOGSEARCH_SESSION_ID = "LOGSEARCHSESSIONID";
 
   // Log Levels

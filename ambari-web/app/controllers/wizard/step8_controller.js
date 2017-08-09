@@ -913,6 +913,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         installerController.postVersionDefinitionFileStep8(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
           if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
             var selectedStack = App.Stack.find().findProperty('isSelected', true);
+            if (selectedStack) {
+              selectedStack.set('versionInfoId', versionInfo.id);
+            }
             installerController.updateRepoOSInfo(versionInfo, selectedStack).done(function() {
               self._startDeploy();
             });
@@ -974,11 +977,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   createCluster: function () {
     if (!this.get('isInstaller')) return;
     var stackVersion = this.get('content.installOptions.localRepo') ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion, "repository_version": selectedStack.get('repositoryVersion')}})
+        data: JSON.stringify({ "Clusters": {"version": stackVersion}})
       },
       success: 'createClusterSuccess'
     });
@@ -1011,20 +1013,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createSelectedServicesData
    */
   createSelectedServicesData: function () {
-
-    var isInstaller = this.get('isInstaller')
     var selectedStack;
     if (this.get('isInstaller')) {
       selectedStack = App.Stack.find().findProperty('isSelected', true);
     }
-
-    return this.get('selectedServices').map(function (_service) {
-      if (selectedStack) {
-        return {"ServiceInfo": { "service_name": _service.get('serviceName'), "desired_repository_version": selectedStack.get('repositoryVersion') }};
-      } else {
-        return {"ServiceInfo": { "service_name": _service.get('serviceName') }};
-      }
-    });
+    return this.get('selectedServices').map(service => selectedStack ?
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
+      {"ServiceInfo": { "service_name": service.get('serviceName') }});
   },
 
   /**

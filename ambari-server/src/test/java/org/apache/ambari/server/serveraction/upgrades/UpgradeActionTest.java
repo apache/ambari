@@ -289,12 +289,12 @@ public class UpgradeActionTest {
   }
 
   /***
-   * During an Express Upgrade that crosses a stack version, Ambari calls UpdateDesiredStackAction
+   * During an Express Upgrade that crosses a stack version, Ambari calls UpdateDesiredRepositoryAction
    * in order to change the stack and apply configs.
    * The configs that are applied must be saved with the username that is passed in the role params.
    */
   @Test
-  public void testExpressUpgradeUpdateDesiredStackAction() throws Exception {
+  public void testExpressUpgradeUpdateDesiredRepositoryAction() throws Exception {
     StackId sourceStack = HDP_21_STACK;
     StackId targetStack = HDP_22_STACK;
     String sourceRepo = HDP_2_1_1_0;
@@ -349,7 +349,7 @@ public class UpgradeActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
     // Call the action to change the desired stack and apply the configs from the Config Pack called by the Upgrade Pack.
-    UpdateDesiredStackAction action = m_injector.getInstance(UpdateDesiredStackAction.class);
+    UpdateDesiredRepositoryAction action = m_injector.getInstance(UpdateDesiredRepositoryAction.class);
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 

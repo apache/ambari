@@ -19,7 +19,6 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -27,11 +26,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.audit.event.kerberos.ChangeSecurityStateKerberosAuditEvent;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.SecurityState;
-import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
@@ -164,39 +158,6 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
     String dataDirectoryPath = getCommandParameterValue(DATA_DIRECTORY);
-
-    // Set the ServiceComponentHost from a transitional state to the desired endpoint state
-    Map<String, Host> hosts = getClusters().getHostsForCluster(getClusterName());
-    if ((hosts != null) && !hosts.isEmpty()) {
-      Cluster cluster = getCluster();
-      for (String hostname : hosts.keySet()) {
-        List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostname);
-
-        for (ServiceComponentHost sch : serviceComponentHosts) {
-          SecurityState securityState = sch.getSecurityState();
-          if (securityState.isTransitional()) {
-            String message = String.format("Setting securityState for %s/%s on host %s to state %s",
-                sch.getServiceName(), sch.getServiceComponentName(), sch.getHostName(),
-                sch.getDesiredSecurityState().toString());
-            LOG.info(message);
-            actionLog.writeStdOut(message);
-
-            sch.setSecurityState(sch.getDesiredSecurityState());
-            ChangeSecurityStateKerberosAuditEvent auditEvent = ChangeSecurityStateKerberosAuditEvent.builder()
-                .withTimestamp(System.currentTimeMillis())
-                .withService(sch.getServiceName())
-                .withComponent(sch.getServiceComponentName())
-                .withHostName(sch.getHostName())
-                .withState(sch.getDesiredSecurityState().toString())
-                .withRequestId(getHostRoleCommand().getRequestId())
-                .withTaskId(getHostRoleCommand().getTaskId())
-                .build();
-            auditLog(auditEvent);
-          }
-        }
-      }
-    }
-
     if(getKDCType(getCommandParameters()) != KDCType.NONE) {
       // Ensure the keytab files for the Ambari identities have the correct permissions
       // This is important in the event a secure cluster was created via Blueprints since some

@@ -167,7 +167,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -467,18 +466,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (stackInfo == null) {
       throw new StackAccessException("stackName=" + stackId.getStackName() + ", stackVersion=" + stackId.getStackVersion());
-    }
-
-    RepositoryVersionEntity versionEntity = null;
-
-    if (null != request.getRepositoryVersion()) {
-      versionEntity = repositoryVersionDAO.findByStackAndVersion(stackId,
-          request.getRepositoryVersion());
-
-      if (null == versionEntity) {
-        throw new AmbariException(String.format("Tried to create a cluster on version %s, but that version doesn't exist",
-            request.getRepositoryVersion()));
-      }
     }
 
     // FIXME add support for desired configs at cluster level
@@ -3418,7 +3405,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    //keep 2 maps for simpler maintenance
     Map<String, String> serviceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
     for (Map<State, List<ServiceComponentHost>> stateScHostMap :
         changedScHosts.values()) {
       for (Entry<State, List<ServiceComponentHost>> entry :
@@ -3440,6 +3429,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               //Filter services whose masters are not started
               if (isServiceComponentStartedOnAnyHost(cluster, serviceName, masterComponentName)) {
                 serviceMasterForDecommissionMap.put(serviceName, masterComponentName);
+                masterSlaveHostsMap.putIfAbsent(masterComponentName, new HashSet<String>());
+                masterSlaveHostsMap.get(masterComponentName).add(sch.getHostName());
               } else {
                 LOG.info(String.format("Not adding %s service from include/exclude files refresh map because it's master is not started", serviceName));
               }
@@ -3455,7 +3446,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     try {
-      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(serviceMasterForDecommissionMap, cluster.getClusterName());
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(serviceMasterForDecommissionMap, masterSlaveHostsMap, cluster.getClusterName(), false);
     } catch (AmbariException e) {
       LOG.error("Exception during refresh include exclude files action : ", e);
     }
@@ -3709,12 +3700,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    //keep 2 maps for simpler maintenance
     Map<String, Map<String, String>> clusterServiceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Map<String, Set<String>>> clusterMasterSlaveHostsMap = new HashMap<>();
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
         try {
-          deleteHostComponent(entry.getKey(), componentHost);
-          deleteStatusMetaData.addDeletedKey(componentHost.getHostName() + "/" + componentHost.getServiceComponentName());
+          //actually delete the component
+          entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
+
           //create cluster-master-service map to update all include/exclude files in one action
           String componentName = componentHost.getServiceComponentName();
           if (masterToSlaveMappingForDecom.containsValue(componentName)) {
@@ -3726,12 +3720,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
             if (clusterServiceMasterForDecommissionMap.containsKey(componentHost.getClusterName())) {
               clusterServiceMasterForDecommissionMap.get(componentHost.getClusterName()).put(componentHost.getServiceName(), masterComponentName);
+              Map<String, Set<String>> masterSlaveMap  = clusterMasterSlaveHostsMap.get(componentHost.getClusterName());
+              masterSlaveMap.putIfAbsent(masterComponentName, new HashSet<String>());
+              masterSlaveMap.get(masterComponentName).add(componentHost.getHostName());
             } else {
-              Map<String, String> tempMap = new HashMap<>();
-              tempMap.put(componentHost.getServiceName(), masterComponentName);
-              clusterServiceMasterForDecommissionMap.put(componentHost.getClusterName(), tempMap);
+              Map<String, String> serviceMasterMap = new HashMap<>();
+              serviceMasterMap.put(componentHost.getServiceName(), masterComponentName);
+              clusterServiceMasterForDecommissionMap.put(componentHost.getClusterName(), serviceMasterMap);
+
+              Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
+              masterSlaveHostsMap.put(masterComponentName, new HashSet<String>(Collections.singletonList(componentHost.getHostName())));
+              clusterMasterSlaveHostsMap.put(componentHost.getClusterName(), masterSlaveHostsMap);
             }
           }
+          deleteStatusMetaData.addDeletedKey(componentHost.getHostName() + "/" + componentHost.getServiceComponentName());
         } catch (Exception ex) {
           deleteStatusMetaData.addException(componentHost.getHostName() + "/" + componentHost.getServiceComponentName(), ex);
         }
@@ -3739,7 +3741,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     for (String cluster : clusterServiceMasterForDecommissionMap.keySet()) {
-      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(clusterServiceMasterForDecommissionMap.get(cluster), cluster);
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(clusterServiceMasterForDecommissionMap.get(cluster), clusterMasterSlaveHostsMap.get(cluster), cluster, true);
     }
 
     //Do not break behavior for existing clients where delete request contains only 1 host component.
@@ -3761,37 +3763,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       setMonitoringServicesRestartRequired(requests);
     }
     return deleteStatusMetaData;
-  }
-
-  private void deleteHostComponent(ServiceComponent serviceComponent, ServiceComponentHost componentHost) throws AmbariException {
-    String serviceName = serviceComponent.getServiceName();
-    String master_component_name = null;
-    String slave_component_name = componentHost.getServiceComponentName();
-    HostComponentAdminState desiredAdminState = componentHost.getComponentAdminState();
-    State slaveState = componentHost.getState();
-    //Delete hostcomponents
-    serviceComponent.deleteServiceComponentHosts(componentHost.getHostName());
-    // If deleted hostcomponents support decomission and were decommited and stopped or in unknown state
-    if (masterToSlaveMappingForDecom.containsValue(slave_component_name)
-            && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)
-            && (slaveState.equals(State.INSTALLED) || slaveState.equals(State.UNKNOWN))) {
-      for (Entry<String, String> entrySet : masterToSlaveMappingForDecom.entrySet()) {
-        if (entrySet.getValue().equals(slave_component_name)) {
-          master_component_name = entrySet.getKey();
-        }
-      }
-
-      //Mark master component as needed to restart for remove host info from components UI
-      Cluster cluster = clusters.getCluster(serviceComponent.getClusterName());
-      Service service = cluster.getService(serviceName);
-      ServiceComponent sc = service.getServiceComponent(master_component_name);
-
-      if (sc != null && sc.isMasterComponent()) {
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          sch.setRestartRequired(true);
-        }
-      }
-    }
   }
 
   @Override
@@ -3823,10 +3794,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   /**
    * Creates and triggers an action to update include and exclude files for the master components depending on current cluster topology and components state
    * @param serviceMasterMap
-   * @param clusterName
-   * @throws AmbariException
+   * @param masterSlaveHostsMap
+   *@param clusterName  @throws AmbariException
    */
-  private void createAndExecuteRefreshIncludeExcludeFilesActionForMasters(Map<String, String> serviceMasterMap, String clusterName) throws AmbariException {
+  private void createAndExecuteRefreshIncludeExcludeFilesActionForMasters(Map<String, String> serviceMasterMap, Map<String, Set<String>> masterSlaveHostsMap, String clusterName, boolean isDecommission) throws AmbariException {
     //Clear include/exclude files or draining list except HBASE
     serviceMasterMap.remove(Service.Type.HBASE.toString());
     //exit if empty
@@ -3835,10 +3806,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     LOG.debug("Refresh include/exclude files action will be executed for " + serviceMasterMap);
     HashMap<String, String> requestProperties = new HashMap<>();
-    requestProperties.put("context", "Update Include and Exclude Files for " + serviceMasterMap.keySet().toString());
+    requestProperties.put("context", "Update Include/Exclude Files for " + serviceMasterMap.keySet().toString());
     requestProperties.put("exclusive", "true");
     HashMap<String, String> params = new HashMap<>();
-    params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, "false");
+    params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, String.valueOf(isDecommission));
+
+    for (String masterName : masterSlaveHostsMap.keySet()) {
+      if (!isDecommission) {
+        params.put(masterName + "_" + AmbariCustomCommandExecutionHelper.DECOM_INCLUDED_HOSTS, StringUtils.join(masterSlaveHostsMap.get(masterName).toArray(), ","));
+      }
+    }
+
+    params.put(AmbariCustomCommandExecutionHelper.IS_ADD_OR_DELETE_SLAVE_REQUEST, "true");
 
     //Create filter for command
     List<RequestResourceFilter> resourceFilters = new ArrayList<>(serviceMasterMap.size());

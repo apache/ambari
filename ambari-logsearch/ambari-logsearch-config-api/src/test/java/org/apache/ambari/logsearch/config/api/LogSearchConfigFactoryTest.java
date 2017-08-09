@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
 import org.junit.Test;
 
 import junit.framework.Assert;
@@ -31,28 +30,52 @@ import junit.framework.Assert;
 public class LogSearchConfigFactoryTest {
 
   @Test
-  public void testDefaultConfig() throws Exception {
-    LogSearchConfig config = LogSearchConfigFactory.createLogSearchConfig(Component.SERVER,
-        Collections.<String, String> emptyMap(), null, LogSearchConfigClass1.class);
+  public void testDefaultConfigServer() throws Exception {
+    LogSearchConfigServer config = LogSearchConfigFactory.createLogSearchConfigServer( Collections.<String, String> emptyMap(),
+        LogSearchConfigServerClass1.class);
     
-    Assert.assertSame(config.getClass(), LogSearchConfigClass1.class);
+    Assert.assertSame(config.getClass(), LogSearchConfigServerClass1.class);
   }
 
   @Test
-  public void testCustomConfig() throws Exception {
+  public void testCustomConfigServer() throws Exception {
     Map<String, String> logsearchConfClassMap = new HashMap<>();
-    logsearchConfClassMap.put("logsearch.config.class", "org.apache.ambari.logsearch.config.api.LogSearchConfigClass2");
-    LogSearchConfig config = LogSearchConfigFactory.createLogSearchConfig(Component.SERVER,
-      logsearchConfClassMap, null, LogSearchConfigClass1.class);
+    logsearchConfClassMap.put("logsearch.config.server.class", "org.apache.ambari.logsearch.config.api.LogSearchConfigServerClass2");
+    LogSearchConfig config = LogSearchConfigFactory.createLogSearchConfigServer(logsearchConfClassMap,
+        LogSearchConfigServerClass1.class);
     
-    Assert.assertSame(config.getClass(), LogSearchConfigClass2.class);
+    Assert.assertSame(config.getClass(), LogSearchConfigServerClass2.class);
   }
   
   @Test(expected = IllegalArgumentException.class)
-  public void testNonConfigClass() throws Exception {
+  public void testNonConfigClassServer() throws Exception {
     Map<String, String> logsearchConfClassMap = new HashMap<>();
-    logsearchConfClassMap.put("logsearch.config.class", "org.apache.ambari.logsearch.config.api.NonLogSearchConfigClass");
-    LogSearchConfigFactory.createLogSearchConfig(Component.SERVER,
-      logsearchConfClassMap, null, LogSearchConfigClass1.class);
+    logsearchConfClassMap.put("logsearch.config.server.class", "org.apache.ambari.logsearch.config.api.NonLogSearchConfigClass");
+    LogSearchConfigFactory.createLogSearchConfigServer(logsearchConfClassMap, LogSearchConfigServerClass1.class);
+  }
+
+  @Test
+  public void testDefaultConfigLogFeeder() throws Exception {
+    LogSearchConfigLogFeeder config = LogSearchConfigFactory.createLogSearchConfigLogFeeder( Collections.<String, String> emptyMap(),
+        null, LogSearchConfigLogFeederClass1.class);
+    
+    Assert.assertSame(config.getClass(), LogSearchConfigLogFeederClass1.class);
+  }
+
+  @Test
+  public void testCustomConfigLogFeeder() throws Exception {
+    Map<String, String> logsearchConfClassMap = new HashMap<>();
+    logsearchConfClassMap.put("logsearch.config.logfeeder.class", "org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeederClass2");
+    LogSearchConfigLogFeeder config = LogSearchConfigFactory.createLogSearchConfigLogFeeder(logsearchConfClassMap, null,
+        LogSearchConfigLogFeederClass1.class);
+    
+    Assert.assertSame(config.getClass(), LogSearchConfigLogFeederClass2.class);
+  }
+  
+  @Test(expected = IllegalArgumentException.class)
+  public void testNonConfigClassLogFeeder() throws Exception {
+    Map<String, String> logsearchConfClassMap = new HashMap<>();
+    logsearchConfClassMap.put("logsearch.config.logfeeder.class", "org.apache.ambari.logsearch.config.api.NonLogSearchConfigClass");
+    LogSearchConfigFactory.createLogSearchConfigLogFeeder(logsearchConfClassMap, null, LogSearchConfigLogFeederClass1.class);
   }
 }

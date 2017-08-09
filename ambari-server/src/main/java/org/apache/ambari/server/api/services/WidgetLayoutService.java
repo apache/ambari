@@ -69,7 +69,6 @@ public class WidgetLayoutService extends BaseService {
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    System.out.println("###########");
     return handleRequest(headers, body, ui, Request.Type.GET,
             createResource(null));
   }

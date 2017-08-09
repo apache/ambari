@@ -52,7 +52,7 @@ from ambari_commons.inet_utils import download_file
 from resource_management.core import Logger
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def oozie(is_server=False):
+def oozie(is_server=False, upgrade_type=None):
   import params
 
   from status_params import oozie_server_win_service_name
@@ -99,7 +99,7 @@ def oozie(is_server=False):
 
 # TODO: see if see can remove this
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def oozie(is_server=False):
+def oozie(is_server=False, upgrade_type=None):
   import params
 
   if is_server:
@@ -189,8 +189,8 @@ def oozie(is_server=False):
 
   oozie_ownership()
   
-  if is_server:      
-    oozie_server_specific()
+  if is_server:
+    oozie_server_specific(upgrade_type)
   
 def oozie_ownership():
   import params

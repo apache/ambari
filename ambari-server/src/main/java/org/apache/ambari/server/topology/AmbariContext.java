@@ -65,6 +65,8 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -103,6 +105,9 @@ public class AmbariContext {
    */
   @Inject
   ConfigFactory configFactory;
+
+  @Inject
+  RepositoryVersionDAO repositoryVersionDAO;
 
   /**
    * Used for getting configuration property values from stack and services.
@@ -186,18 +191,24 @@ public class AmbariContext {
     return getController().getActionManager().getTasks(ids);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersion) {
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersionString) {
     Stack stack = topology.getBlueprint().getStack();
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
-    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType, repoVersion);
-    createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion);
+    RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+
+    if (null == repoVersion) {
+      throw new IllegalArgumentException(String.format("Could not identify repository version with stack %s and version %s for installing services",
+          stackId, repoVersionString));
+    }
+
+    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
+    createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion.getId());
   }
 
-  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType, String repoVersion) {
+  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
     String stackInfo = String.format("%s-%s", stackName, stackVersion);
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
-    clusterRequest.setRepositoryVersion(repoVersion);
 
     try {
       RetryHelper.executeWithRetry(new Callable<Object>() {
@@ -219,7 +230,7 @@ public class AmbariContext {
   }
 
   public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName,
-      StackId stackId, String repositoryVersion) {
+      StackId stackId, Long repositoryVersionId) {
     Collection<String> services = topology.getBlueprint().getServices();
 
     try {
@@ -232,8 +243,7 @@ public class AmbariContext {
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
-      serviceRequests.add(new ServiceRequest(clusterName, service, stackId.getStackId(),
-          repositoryVersion, null, credentialStoreEnabled));
+      serviceRequests.add(new ServiceRequest(clusterName, service, repositoryVersionId, null, credentialStoreEnabled));
 
       for (String component : topology.getBlueprint().getComponents(service)) {
         String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
@@ -294,7 +304,7 @@ public class AmbariContext {
 
     try {
       getHostResourceProvider().createHosts(new RequestImpl(null, Collections.singleton(properties), null, null));
-    } catch (AmbariException e) {
+    } catch (AmbariException | AuthorizationException e) {
       LOG.error("Unable to create host component resource for host {}", hostName, e);
       throw new RuntimeException(String.format("Unable to create host resource for host '%s': %s",
           hostName, e.toString()), e);

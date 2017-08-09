@@ -30,6 +30,7 @@ public class ServiceResponse {
   private String serviceName;
   private StackId desiredStackId;
   private String desiredRepositoryVersion;
+  private Long desiredRepositoryVersionId;
   private RepositoryVersionState repositoryVersionState;
   private String desiredState;
   private String maintenanceState;
@@ -119,7 +120,7 @@ public class ServiceResponse {
   @ApiModelProperty(hidden = true)
   public String getDesiredStackId() {
     return desiredStackId.getStackId();
- 
+
   }
 
   /**
@@ -234,4 +235,19 @@ public class ServiceResponse {
     @ApiModelProperty(name = "ServiceInfo")
     ServiceResponse getServiceResponse();
   }
+
+  /**
+   * @param id
+   */
+  public void setDesiredRepositoryVersionId(Long id) {
+    desiredRepositoryVersionId = id;
+  }
+
+  /**
+   * @param id
+   */
+  public Long getDesiredRepositoryVersionId() {
+    return desiredRepositoryVersionId;
+  }
+
 }

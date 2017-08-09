@@ -41,7 +41,6 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -51,7 +50,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -196,8 +194,6 @@ public class ServiceComponentHostTest {
 
     Assert.assertEquals(State.INIT, impl.getState());
     Assert.assertEquals(State.INIT, impl.getDesiredState());
-    Assert.assertEquals(SecurityState.UNSECURED, impl.getSecurityState());
-    Assert.assertEquals(SecurityState.UNSECURED, impl.getDesiredSecurityState());
     Assert.assertEquals(c.getClusterName(), impl.getClusterName());
     Assert.assertEquals(c.getClusterId(), impl.getClusterId());
     Assert.assertEquals(s.getName(), impl.getServiceName());
@@ -1053,53 +1049,5 @@ public class ServiceComponentHostTest {
       hostEntity.getHostId()
     );
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
-  }
-
-
-  @Test
-  public void testSecurityState() throws Exception {
-    String stackVersion = "HDP-2.0.6";
-    StackId stackId = new StackId(stackVersion);
-    String clusterName = "c2";
-    createCluster(stackId, clusterName);
-
-    final String hostName = "h3";
-    Set<String> hostNames = new HashSet<>();
-    hostNames.add(hostName);
-    addHostsToCluster(clusterName, hostAttributes, hostNames);
-
-    Cluster cluster = clusters.getCluster(clusterName);
-
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-
-    HostEntity hostEntity = hostDAO.findByName(hostName);
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-
-    HostComponentDesiredStateEntity entityHostComponentDesiredState;
-    HostComponentStateEntity entityHostComponentState;
-
-    for(SecurityState state: SecurityState.values()) {
-      sch1.setSecurityState(state);
-      entityHostComponentState = hostComponentStateDAO.findByIndex(cluster.getClusterId(),
-          sch1.getServiceName(), sch1.getServiceComponentName(), hostEntity.getHostId());
-
-      Assert.assertNotNull(entityHostComponentState);
-      Assert.assertEquals(state, entityHostComponentState.getSecurityState());
-
-      try {
-        sch1.setDesiredSecurityState(state);
-        Assert.assertTrue(state.isEndpoint());
-        entityHostComponentDesiredState = hostComponentDesiredStateDAO.findByIndex(
-          cluster.getClusterId(),
-          sch1.getServiceName(),
-          sch1.getServiceComponentName(),
-          hostEntity.getHostId()
-        );
-        Assert.assertNotNull(entityHostComponentDesiredState);
-        Assert.assertEquals(state, entityHostComponentDesiredState.getSecurityState());
-      } catch (AmbariException e) {
-        Assert.assertFalse(state.isEndpoint());
-      }
-    }
   }
 }
