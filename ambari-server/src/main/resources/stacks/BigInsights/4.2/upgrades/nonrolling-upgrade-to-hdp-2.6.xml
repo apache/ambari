@@ -223,6 +223,10 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="YARN" component="NAMENODE" title="Apply config changes for HDFS related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hdfs_audit_db"/>
+      </execute-stage>
+
       <!-- core-site -->
       <execute-stage title="Fix auth_to_local mapping">
         <condition xsi:type="security" type="kerberos"/>

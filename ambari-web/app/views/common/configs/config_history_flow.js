@@ -82,7 +82,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
 
   isSaveDisabled: Em.computed.or('controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged'),
 
-  serviceName: Em.computed.alias('controller.selectedService.serviceName'),
+  serviceName: Em.computed.alias('controller.content.serviceName'),
 
   displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
   /**
@@ -240,7 +240,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
         }
       });
       // if there is no current version in selected group show current version from default group
-      if (!currentIndex) {
+      if (!currentIndex && serviceVersions.length) {
         serviceVersions[isCurrentInDefaultGroupIndex].set('isDisplayed', true);
         currentIndex = isCurrentInDefaultGroupIndex + 1;
       }

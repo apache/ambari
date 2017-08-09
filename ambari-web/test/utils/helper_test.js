@@ -280,6 +280,11 @@ describe('utils/helper', function() {
         it('should return install repo message', function() {
           expect(App.format.commandDetail(installRepo)).to.be.equal(Em.I18n.t('common.installRepo.task'));
         });
+        it('should return raw text when is_add_or_delete_slave_request=true', function() {
+          var inputs = '{"is_add_or_delete_slave_request":"true"}';
+          expect(App.format.commandDetail('DECOMMISSION, Update Include/Exclude Files', inputs))
+            .to.be.equal('  Update Include/Exclude Files');
+        });
       });
       describe('#taskStatus()', function(){
         var testable = [

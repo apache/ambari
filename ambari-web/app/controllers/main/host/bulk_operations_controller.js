@@ -915,7 +915,7 @@ App.BulkOperationsController = Em.Controller.extend({
     // @todo remove using external controller
     switch(selection) {
       case 's':
-        hostsNames = App.router.get('mainHostController.content').filterProperty('selected').mapProperty('hostName');
+        hostsNames = App.db.getSelectedHosts('mainHostController');
         if(hostsNames.length > 0){
           queryParams.push({
             key: 'Hosts/host_name',
