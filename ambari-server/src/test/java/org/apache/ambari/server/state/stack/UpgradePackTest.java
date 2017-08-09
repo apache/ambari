@@ -210,10 +210,12 @@ public class UpgradePackTest {
         "SERVICE_CHECK_1",
         "CORE_SLAVES",
         "SERVICE_CHECK_2",
+        "OOZIE",
         "POST_CLUSTER");
 
     List<String> expected_down = Arrays.asList(
         "PRE_CLUSTER",
+        "OOZIE",
         "CORE_SLAVES",
         "SERVICE_CHECK_2",
         "CORE_MASTER",
