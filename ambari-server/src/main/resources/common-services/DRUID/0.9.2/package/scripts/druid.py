@@ -113,12 +113,6 @@ def druid(upgrade_type=None, nodeType=None):
            node_jvm_opts=druid_env_config[format('druid.{node_type_lowercase}.jvm.opts')])
          )
     Logger.info(format("Created druid-{node_type_lowercase} jvm.config"))
-    # Handling hadoop Lzo jars if enable and node type is hadoop related eg Overlords and MMs
-    if params.lzo_enabled and len(params.lzo_packages) > 0 and (
-            node_type == 'middleManager' or node_type == 'overlord'):
-        Logger.info(
-            format("Copying hadoop lzo jars from {hadoop_lib_home} to {hadoop_dependencies_dir}/hadoop-client/*/"))
-        Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {hadoop_dependencies_dir}/hadoop-client/*/'))
 
   # All druid nodes have dependency on hdfs_client
   ensure_hadoop_directories()
