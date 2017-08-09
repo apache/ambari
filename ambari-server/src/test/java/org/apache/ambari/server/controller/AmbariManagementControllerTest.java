@@ -10224,11 +10224,11 @@ public class AmbariManagementControllerTest {
 
     List<Long> requestIDs = actionDB.getRequestsByStatus(null, 1, false);
     Request request = actionDB.getRequest(requestIDs.get(0));
-    assertEquals("Update Include and Exclude Files for [HDFS]", request.getRequestContext());
+    assertEquals("Update Include/Exclude Files for [HDFS]", request.getRequestContext());
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     Map<String, String> requestParams = StageUtils.getGson().fromJson(request.getInputs(), type);
     assertEquals(2, requestParams.size());
-    assertEquals("true", requestParams.get("multi_services_decom_request"));
+    assertEquals("true", requestParams.get("is_add_or_delete_slave_request"));
     assertEquals("true", requestParams.get("update_files_only"));
     assertEquals(1, request.getResourceFilters().size());
     RequestResourceFilter resourceFilter = request.getResourceFilters().get(0);

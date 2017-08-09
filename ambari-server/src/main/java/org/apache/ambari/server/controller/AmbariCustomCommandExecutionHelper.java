@@ -140,7 +140,7 @@ public class AmbariCustomCommandExecutionHelper {
   public final static String DECOM_SLAVE_COMPONENT = "slave_type";
   public final static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
   public final static String UPDATE_FILES_ONLY = "update_files_only";
-  public final static String MULTI_SERVICES_DECOM_REQUEST = "multi_services_decom_request";
+  public final static String IS_ADD_OR_DELETE_SLAVE_REQUEST = "is_add_or_delete_slave_request";
 
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
@@ -816,8 +816,8 @@ public class AmbariCustomCommandExecutionHelper {
     Set<String> includedHosts = getHostList(actionExecutionContext.getParameters(),
                                             DECOM_INCLUDED_HOSTS);
 
-    if (actionExecutionContext.getParameters().get(MULTI_SERVICES_DECOM_REQUEST) != null &&
-            actionExecutionContext.getParameters().get(MULTI_SERVICES_DECOM_REQUEST).equalsIgnoreCase("true")) {
+    if (actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST) != null &&
+            actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST).equalsIgnoreCase("true")) {
       includedHosts = getHostList(actionExecutionContext.getParameters(), masterCompType + "_" + DECOM_INCLUDED_HOSTS);
     }
 
@@ -1025,6 +1025,11 @@ public class AmbariCustomCommandExecutionHelper {
       List<String> listOfExcludedHosts) {
     StringBuilder commandDetail = new StringBuilder();
     commandDetail.append(actionExecutionContext.getActionName());
+    if (actionExecutionContext.getParameters().containsKey(IS_ADD_OR_DELETE_SLAVE_REQUEST) &&
+      actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST).equalsIgnoreCase("true")) {
+      commandDetail.append(", Update Include/Exclude Files");
+      return commandDetail;
+    }
     if (listOfExcludedHosts.size() > 0) {
       commandDetail.append(", Excluded: ").append(StringUtils.join(listOfExcludedHosts, ','));
     }

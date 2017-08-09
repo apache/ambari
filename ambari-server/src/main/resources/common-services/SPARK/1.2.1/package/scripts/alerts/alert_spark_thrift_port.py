@@ -128,7 +128,10 @@ def execute(configurations={}, parameters={}, host_name=None):
         if host_name is None:
             host_name = socket.getfqdn()
 
-        beeline_url = ['jdbc:hive2://{host_name}:{port}/', "transportMode={transport_mode}"]
+        if security_enabled:
+            beeline_url = ["'jdbc:hive2://{host_name}:{port}/default;principal={hive_principal}'","transportMode={transport_mode}"]
+        else:
+            beeline_url = ["'jdbc:hive2://{host_name}:{port}/default'","transportMode={transport_mode}"]
         # append url according to used transport
 
         beeline_cmd = os.path.join(spark_home, "bin", "beeline")
