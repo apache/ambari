@@ -227,4 +227,19 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
         "repositoryVersionsFromDefinition", RepositoryVersionEntity.class);
     return daoUtils.selectList(query);
   }
+
+  /**
+   * Retrieves the repo versions matching the provided ones that are currently being used
+   * for a service.
+   *
+   * @param matching  the list of repo versions
+   */
+  @RequiresSession
+  public List<RepositoryVersionEntity> findByServiceDesiredVersion(List<RepositoryVersionEntity> matching) {
+    TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().
+          createNamedQuery("findByServiceDesiredVersion", RepositoryVersionEntity.class);
+
+    return daoUtils.selectList(query, matching);
+  }
+
 }
