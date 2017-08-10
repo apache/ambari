@@ -73,13 +73,24 @@ import com.google.inject.Provider;
     initialValue = 0
     )
 @NamedQueries({
-    @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
-    @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
-    @NamedQuery(name = "repositoryVersionByVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.version=:version"),
-    @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
-    @NamedQuery(name = "repositoryVersionsFromDefinition", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL")
-
-})
+    @NamedQuery(
+        name = "repositoryVersionByDisplayName",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
+    @NamedQuery(
+        name = "repositoryVersionByStack",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
+    @NamedQuery(
+        name = "repositoryVersionByStackNameAndVersion",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
+    @NamedQuery(
+        name = "repositoryVersionsFromDefinition",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL"),
+    @NamedQuery(
+        name = "findRepositoryByVersion",
+        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC"),
+    @NamedQuery(
+        name = "findByServiceDesiredVersion",
+        query = "SELECT DISTINCT sd.desiredRepositoryVersion from ServiceDesiredStateEntity sd WHERE sd.desiredRepositoryVersion IN ?1") })
 @StaticallyInject
 public class RepositoryVersionEntity {
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
