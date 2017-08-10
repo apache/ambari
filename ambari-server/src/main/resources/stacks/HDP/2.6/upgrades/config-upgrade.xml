@@ -175,6 +175,11 @@
             <type>application-properties</type>
             <transfer operation="delete" delete-key="atlas.kafka.auto.commit.enable"/>
           </definition>
+          <definition xsi:type="configure" id="atlas_log4j_update_logger_settings" summary="Updating logger configurations for Atlas.">
+            <type>atlas-log4j</type>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.RollingFileAppender&quot;&gt;"/>
+            <replace key="content" find="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;info&quot;/&gt;" replace-with="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;"/>
+          </definition>
         </changes>
       </component>
     </service>
