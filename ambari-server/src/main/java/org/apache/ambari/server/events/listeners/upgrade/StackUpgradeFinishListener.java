@@ -23,6 +23,8 @@ import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -46,8 +48,12 @@ public class StackUpgradeFinishListener {
    * Logger.
    */
   private final static Logger LOG = LoggerFactory.getLogger(StackUpgradeFinishListener.class);
+
   @Inject
   Provider<AmbariMetaInfo> ambariMetaInfo;
+
+  @Inject
+  Provider<RoleCommandOrderProvider> roleCommandOrderProvider;
 
   /**
    * Constructor.
@@ -79,6 +85,13 @@ public class StackUpgradeFinishListener {
             LOG.error("Caught AmbariException when update component info", e);
           }
         }
+      }
+
+      // Clear the RoleCommandOrder cache on upgrade
+      if (roleCommandOrderProvider.get() instanceof CachedRoleCommandOrderProvider) {
+        LOG.info("Clearing RCO cache");
+        CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider.get();
+        cachedRcoProvider.clearRoleCommandOrderCache();
       }
     }
 

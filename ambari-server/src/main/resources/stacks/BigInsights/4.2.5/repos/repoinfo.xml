@@ -19,12 +19,24 @@
   <mainrepoid>IOP-4.2.5</mainrepoid>
   <os family="redhat6">
     <repo>
-<baseurl>http://ibm-open-platform.ibm.com/repos/IOP/rhel/6/x86_64/4.2.x/Updates/4.2.5.0</baseurl>
+      <baseurl>http://ibm-open-platform.ibm.com/repos/IOP/rhel/6/x86_64/4.2.x/Updates/4.2.5.0</baseurl>
       <repoid>IOP-4.2.5</repoid>
       <reponame>IOP</reponame>
     </repo>
     <repo>
-<baseurl>http://ibm-open-platform.ibm.com/repos/IOP-UTILS/rhel/6/x86_64/1.3</baseurl>
+      <baseurl>http://ibm-open-platform.ibm.com/repos/IOP-UTILS/rhel/6/x86_64/1.3</baseurl>
+      <repoid>IOP-UTILS-1.3</repoid>
+      <reponame>IOP-UTILS</reponame>
+    </repo>
+  </os>
+  <os family="redhat7">
+    <repo>
+      <baseurl>http://ibm-open-platform.ibm.com/repos/IOP/rhel/7/x86_64/4.2.x/Updates/4.2.5.0</baseurl>
+      <repoid>IOP-4.2.5</repoid>
+      <reponame>IOP</reponame>
+    </repo>
+    <repo>
+      <baseurl>http://ibm-open-platform.ibm.com/repos/IOP-UTILS/rhel/7/x86_64/1.3</baseurl>
       <repoid>IOP-UTILS-1.3</repoid>
       <reponame>IOP-UTILS</reponame>
     </repo>
