@@ -35,14 +35,7 @@ module.exports = App.WizardRoute.extend({
 
           return App.ModalPopup.show({
             classNames: ['full-width-modal'],
-            header: function () {
-              var controller = App.router.get('mainAdminStackAndUpgradeController');
-              if (controller.get('isDowngrade')) {
-                return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(controller.get('upgradeVersion'));
-              } else {
-                return Em.I18n.t('admin.stackUpgrade.dialog.header').format(controller.get('upgradeTypeDisplayName'), controller.get('upgradeVersion'));
-              }
-            }.property('App.router.mainAdminStackAndUpgradeController.upgradeVersion', 'App.router.mainAdminStackAndUpgradeController.isDowngrade'),
+            header: Em.computed.alias('App.router.mainAdminStackAndUpgradeController.wizardModalTitle'),
             bodyClass: App.upgradeWizardView,
             primary: Em.I18n.t('common.dismiss'),
             secondary: null,

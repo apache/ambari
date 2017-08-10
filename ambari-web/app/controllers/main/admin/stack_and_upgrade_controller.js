@@ -133,11 +133,32 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {string}
    */
   wizardModalTitle: function () {
-    if (this.get('isDowngrade')) {
-      return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(this.get('upgradeVersion'));
-    }
-    return Em.I18n.t('admin.stackUpgrade.dialog.header').format(this.get('upgradeVersion'));
+    var repoVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', this.get('toVersion'));
+    return this.getUpgradeDowngradeHeader(
+      this.get('upgradeTypeDisplayName'),
+      this.get('upgradeVersion'),
+      this.get('isDowngrade'),
+      repoVersion && repoVersion.get('isPatch')
+    );
   }.property('upgradeTypeDisplayName', 'upgradeVersion', 'isDowngrade'),
+
+
+  /**
+   * @param {string} upgradeType
+   * @param {string} upgradeVersion
+   * @param {boolean} isDowngrade
+   * @param {boolean} isPatch
+   * @returns {string}
+   */
+  getUpgradeDowngradeHeader: function(upgradeType, upgradeVersion, isDowngrade, isPatch) {
+    if (isDowngrade) {
+      return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(upgradeVersion);
+    }
+    if (isPatch) {
+      return Em.I18n.t('admin.stackUpgrade.dialog.upgrade.patch.header').format(upgradeType, upgradeVersion);
+    }
+    return Em.I18n.t('admin.stackUpgrade.dialog.upgrade.header').format(upgradeType, upgradeVersion);
+  },
 
   /**
    * methods through which cluster could be upgraded, "allowed" indicated if the method is allowed
@@ -239,6 +260,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   wizardStorageProperties: [
     'upgradeId',
     'upgradeVersion',
+    'toVersion',
     'currentVersion',
     'upgradeTypeDisplayName',
     'upgradeType',
@@ -665,7 +687,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       Em.I18n.t('admin.stackUpgrade.downgrade.body').format(currentVersion.repository_name),
       null,
-      Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(currentVersion.repository_name),
+      Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(this.get('upgradeVersion')),
       Em.I18n.t('admin.stackUpgrade.downgrade.proceed')
     );
   },
@@ -714,7 +736,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       sender: this,
       data: {
         value: currentVersion.repository_version,
-        label: currentVersion.repository_name,
+        label: this.get('upgradeVersion'),
         id: currentVersion.id,
         isDowngrade: true,
         upgradeType: this.get('upgradeType')
@@ -875,7 +897,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeSuccessCallback: function (data, opt, params) {
     this.set('upgradeData', null);
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
-    this.set('fromVersion', params.isDowngrade ? data.resources[0].Upgrade.associated_version : null);
+    this.set('toVersion', params.value);
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
     var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type),
@@ -899,7 +921,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.setDBProperties({
       upgradeVersion: params.label,
       upgradeId: data.resources[0].Upgrade.request_id,
-      fromVersion: params.isDowngrade ? data.resources[0].Upgrade.associated_version : null,
+      toVersion: params.value,
       upgradeState: 'PENDING',
       isDowngrade: !!params.isDowngrade,
       upgradeType: upgradeType,
@@ -938,7 +960,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.get('upgradeMethods').forEach(function (method) {
       if (method.get('allowed')) {
         this.runPreUpgradeCheckOnly({
-          value: version.get('id'),
+          id: version.get('id'),
+          value: version.get('repositoryVersion'),
           label: version.get('displayName'),
           type: method.get('type')
         });
@@ -1327,7 +1350,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   runPreUpgradeCheck: function(version) {
     var params = {
       id: version.get('id'),
-      value: version.get('id'),
+      value: version.get('repositoryVersion'),
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
@@ -1400,7 +1423,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       Em.I18n.t('admin.stackUpgrade.upgrade.retry.confirm.body').format(version.get('displayName')),
       null,
-      Em.I18n.t('admin.stackUpgrade.dialog.header').format(version.get('upgradeTypeDislayName'), version.get('displayName'))
+      this.getUpgradeDowngradeHeader(version.get('upgradeTypeDislayName'), version.get('displayName'), false)
     );
   },
 
@@ -2016,11 +2039,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       data: {
         upgradeId: upgrade && upgrade.get('upgradeId'),
         id: version.get('id'),
-        value: version.get('id'),
+        value: version.get('repositoryVersion'),
         label: version.get('displayName'),
-        type: version.get('upgradeType'),
-        skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
-        skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
+        isDowngrade: true
       }
     });
   },
@@ -2034,7 +2055,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
     var isDowngrade = lastUpgradeData.Upgrade.direction === 'DOWNGRADE';
     this.setDBProperties({
-      fromVersion: isDowngrade ? lastUpgradeData.Upgrade.associated_version : null,
+      toVersion: lastUpgradeData.Upgrade.associated_version,
       upgradeId: lastUpgradeData.Upgrade.request_id,
       isDowngrade: isDowngrade,
       upgradeState: lastUpgradeData.Upgrade.request_status,
@@ -2048,8 +2069,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       })
     });
     this.loadRepoVersionsToModel().done(function () {
-      var toVersion = isDowngrade ? null : App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
-      self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
+      var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
+      if (!isDowngrade) {
+        self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
+      }
       self.initDBProperties();
       self.loadUpgradeData(true);
     });

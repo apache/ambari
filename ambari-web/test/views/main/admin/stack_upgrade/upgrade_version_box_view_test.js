@@ -368,7 +368,8 @@ describe('App.UpgradeVersionBoxView', function () {
       {
         inputData: {
           'content.status': 'CURRENT',
-          'content.isPatch': true
+          'content.isPatch': true,
+          'isUpgrading': false
         },
         expected: {
           status: 'CURRENT',
@@ -937,6 +938,9 @@ describe('App.UpgradeVersionBoxView', function () {
         if (item.setup) {
           item.setup.call(this);
         }
+        view.reopen({
+          isUpgrading: item.inputData.isUpgrading
+        });
         view.setProperties(item.inputData);
         var result = view.get('stateElement').getProperties(Em.keys(item.expected));
         if (result.buttons) {
