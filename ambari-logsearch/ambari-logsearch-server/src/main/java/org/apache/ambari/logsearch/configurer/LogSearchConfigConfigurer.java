@@ -19,15 +19,15 @@
 
 package org.apache.ambari.logsearch.configurer;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.ambari.logsearch.common.PropertiesHelper;
+import org.apache.ambari.logsearch.conf.LogSearchConfigMapHolder;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
-import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZK;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigServer;
+import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigServerZK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,14 +37,19 @@ public class LogSearchConfigConfigurer implements Configurer {
   
   private static final int RETRY_INTERVAL_SECONDS = 10;
   
-  private static LogSearchConfig logSearchConfig;
-  public static LogSearchConfig getConfig() {
+  private LogSearchConfigServer logSearchConfig;
+  public LogSearchConfigServer getConfig() {
     return logSearchConfig;
   }
   
   @Inject
   private LogSearchConfigState logSearchConfigState;
-  
+
+  @Inject
+  private LogSearchConfigMapHolder logSearchConfigMapHolder;
+
+  @PostConstruct
+  @Override
   public void start() {
     Thread setupThread = new Thread("setup_logsearch_config") {
       @Override
@@ -52,8 +57,8 @@ public class LogSearchConfigConfigurer implements Configurer {
         logger.info("Started thread to set up log search config");
         while (true) {
           try {
-            logSearchConfig = LogSearchConfigFactory.createLogSearchConfig(Component.SERVER, PropertiesHelper.getProperties(),
-                null, LogSearchConfigZK.class);
+            logSearchConfig = LogSearchConfigFactory.createLogSearchConfigServer(logSearchConfigMapHolder.getLogsearchProperties(),
+                LogSearchConfigServerZK.class);
             logSearchConfigState.setLogSearchConfigAvailable(true);
             break;
           } catch (Exception e) {
@@ -66,4 +71,5 @@ public class LogSearchConfigConfigurer implements Configurer {
     setupThread.setDaemon(true);
     setupThread.start();
   }
+
 }

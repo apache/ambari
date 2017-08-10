@@ -863,6 +863,56 @@ describe('App.QuickViewLinks', function () {
             }
           ],
         'result': '8090'
+      }),
+
+      Em.Object.create({
+        'protocol': 'https',
+        'port':{
+          'http_property':'oozie.base.url',
+          'http_default_port':'11000',
+          'https_property':'oozie.https.port',
+          'https_default_port':'11443',
+          'regex': '\\w*:(\\d+)',
+          'https_regex': '(\\d+)',
+          'site':'oozie-site'
+        },
+        'configProperties':
+          [
+            {
+              'type': 'oozie-site',
+              'properties':
+                {
+                  'oozie.base.url': 'c6401.ambari.apache.org:11000/oozie',
+                  'oozie.https.port' : '11444'
+                }
+            }
+          ],
+        'result': '11444'
+      }),
+
+      Em.Object.create({
+        'protocol': 'http',
+        'port':{
+          'http_property':'oozie.base.url',
+          'http_default_port':'11000',
+          'https_property':'oozie.https.port',
+          'https_default_port':'11443',
+          'regex': '\\w*:(\\d+)',
+          'https_regex': '(\\d+)',
+          'site':'oozie-site'
+        },
+        'configProperties':
+          [
+            {
+              'type': 'oozie-site',
+              'properties':
+                {
+                  'oozie.base.url': 'c6401.ambari.apache.org:11002/oozie',
+                  'oozie.https.port' : '11444'
+                }
+            }
+          ],
+        'result': '11002'
       })
     ];
 

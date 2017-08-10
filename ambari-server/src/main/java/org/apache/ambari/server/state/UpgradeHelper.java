@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,7 +51,6 @@ import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -63,6 +63,8 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping.ServiceCheckStageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.StartTask;
@@ -77,6 +79,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -190,9 +193,6 @@ public class UpgradeHelper {
   @Inject
   private Provider<Clusters> m_clusters;
 
-  @Inject
-  private Provider<RepositoryVersionDAO> m_repoVersionProvider;
-
   /**
    * Used to update the configuration properties.
    */
@@ -211,66 +211,71 @@ public class UpgradeHelper {
    *
    * @param clusterName
    *          The name of the cluster
-   * @param upgradeFromVersion
-   *          Current stack version
-   * @param upgradeToVersion
-   *          Target stack version
+   * @param sourceStackId
+   *          the "from" stack for this upgrade/downgrade
+   * @param targetStackId
+   *          the "to" stack for this upgrade/downgrade
    * @param direction
    *          {@code Direction} of the upgrade
    * @param upgradeType
    *          The {@code UpgradeType}
+   * @param targetStackName
+   *          The destination target stack name.
    * @param preferredUpgradePackName
    *          For unit test, need to prefer an upgrade pack since multiple
    *          matches can be found.
    * @return {@code UpgradeType} object
    * @throws AmbariException
    */
-  public UpgradePack suggestUpgradePack(String clusterName, String upgradeFromVersion, String upgradeToVersion,
-    Direction direction, UpgradeType upgradeType, String preferredUpgradePackName) throws AmbariException {
+  public UpgradePack suggestUpgradePack(String clusterName,
+      StackId sourceStackId, StackId targetStackId, Direction direction, UpgradeType upgradeType,
+      String preferredUpgradePackName) throws AmbariException {
 
     // Find upgrade packs based on current stack. This is where to upgrade from
     Cluster cluster = m_clusters.get().getCluster(clusterName);
-    StackId stack =  cluster.getCurrentStackVersion();
+    StackId currentStack = cluster.getCurrentStackVersion();
 
-    String repoVersion = upgradeToVersion;
+    StackId stackForUpgradePack = targetStackId;
 
-    // TODO AMBARI-12706. Here we need to check, how this would work with SWU Downgrade
-    if (direction.isDowngrade() && null != upgradeFromVersion) {
-      repoVersion = upgradeFromVersion;
+    if (direction.isDowngrade()) {
+      stackForUpgradePack = sourceStackId;
     }
 
-    RepositoryVersionEntity versionEntity = m_repoVersionProvider.get().findByStackNameAndVersion(
-        stack.getStackName(), repoVersion);
+    Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(
+        currentStack.getStackName(), currentStack.getStackVersion());
 
-    if (versionEntity == null) {
-      throw new AmbariException(String.format("Repository version %s was not found", repoVersion));
-    }
-
-    Map<String, UpgradePack> packs = m_ambariMetaInfoProvider.get().getUpgradePacks(stack.getStackName(), stack.getStackVersion());
     UpgradePack pack = null;
 
     if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
       pack = packs.get(preferredUpgradePackName);
-    } else {
-      String repoStackId = versionEntity.getStackId().getStackId();
+
+      LOG.warn("Upgrade pack '{}' not found for stack {}", preferredUpgradePackName, currentStack);
+    }
+
+    // Best-attempt at picking an upgrade pack assuming within the same stack whose target stack version matches.
+    // If multiple candidates are found, raise an exception.
+    if (null == pack) {
       for (UpgradePack upgradePack : packs.values()) {
-        if (null != upgradePack.getTargetStack() && upgradePack.getTargetStack().equals(repoStackId) &&
-          upgradeType == upgradePack.getType()) {
+        if (null != upgradePack.getTargetStack()
+            && StringUtils.equals(upgradePack.getTargetStack(), stackForUpgradePack.getStackId())
+            && upgradeType == upgradePack.getType()) {
           if (null == pack) {
             // Pick the pack.
             pack = upgradePack;
           } else {
             throw new AmbariException(
-                String.format("Unable to perform %s. Found multiple upgrade packs for type %s and target version %s",
-                    direction.getText(false), upgradeType.toString(), repoVersion));
+                String.format(
+                    "Unable to perform %s. Found multiple upgrade packs for type %s and stack %s",
+                    direction.getText(false), upgradeType.toString(), stackForUpgradePack));
           }
         }
       }
     }
 
     if (null == pack) {
-      throw new AmbariException(String.format("Unable to perform %s. Could not locate %s upgrade pack for version %s",
-          direction.getText(false), upgradeType.toString(), repoVersion));
+      throw new AmbariException(
+          String.format("Unable to perform %s. Could not locate %s upgrade pack for stack %s",
+              direction.getText(false), upgradeType.toString(), stackForUpgradePack));
     }
 
    return pack;
@@ -297,6 +302,7 @@ public class UpgradeHelper {
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<>();
 
+    UpgradeGroupHolder previousGroupHolder = null;
     for (Grouping group : upgradePack.getGroups(context.getDirection())) {
 
       // !!! grouping is not scoped to context
@@ -318,6 +324,7 @@ public class UpgradeHelper {
       groupHolder.skippable = group.skippable;
       groupHolder.supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       groupHolder.allowRetry = group.allowRetry;
+      groupHolder.processingGroup = group.isProcessingGroup();
 
       // !!! all downgrades are skippable
       if (context.getDirection().isDowngrade()) {
@@ -494,9 +501,22 @@ public class UpgradeHelper {
       List<StageWrapper> proxies = builder.build(context);
 
       if (CollectionUtils.isNotEmpty(proxies)) {
+
         groupHolder.items = proxies;
         postProcess(context, groupHolder);
-        groups.add(groupHolder);
+
+        // !!! prevent service checks from running twice.  merge the stage wrappers
+        if (ServiceCheckGrouping.class.isInstance(group)) {
+          if (null != previousGroupHolder && ServiceCheckGrouping.class.equals(previousGroupHolder.groupClass)) {
+            mergeServiceChecks(groupHolder, previousGroupHolder);
+          } else {
+            groups.add(groupHolder);
+          }
+        } else {
+          groups.add(groupHolder);
+        }
+
+        previousGroupHolder = groupHolder;
       }
     }
 
@@ -516,7 +536,50 @@ public class UpgradeHelper {
       }
     }
 
+    // !!! strip off the first service check if nothing has been processed
+    Iterator<UpgradeGroupHolder> iterator = groups.iterator();
+    boolean canServiceCheck = false;
+    while (iterator.hasNext()) {
+      UpgradeGroupHolder holder = iterator.next();
+
+      if (ServiceCheckGrouping.class.equals(holder.groupClass) && !canServiceCheck) {
+        iterator.remove();
+      }
+
+      canServiceCheck |= holder.processingGroup;
+    }
+
     return groups;
+  }
+
+  /**
+   * Merges two service check groups when they have been orchestrated back-to-back.
+   * @param newHolder   the "new" group holder, which was orchestrated after the "old" one
+   * @param oldHolder   the "old" group holder, which is one that was already orchestrated
+   */
+  @SuppressWarnings("unchecked")
+  private void mergeServiceChecks(UpgradeGroupHolder newHolder, UpgradeGroupHolder oldHolder) {
+
+    LinkedHashSet<StageWrapper> priority = new LinkedHashSet<>();
+    LinkedHashSet<StageWrapper> others = new LinkedHashSet<>();
+
+    for (List<StageWrapper> holderItems : new List[] { oldHolder.items, newHolder.items }) {
+      for (StageWrapper stageWrapper : holderItems) {
+        ServiceCheckStageWrapper wrapper = (ServiceCheckStageWrapper) stageWrapper;
+
+        if (wrapper.priority) {
+          priority.add(stageWrapper);
+        } else {
+          others.add(stageWrapper);
+        }
+      }
+    }
+
+    // !!! remove duplicate wrappers that are now in the priority list
+    others = new LinkedHashSet<>(CollectionUtils.subtract(others, priority));
+
+    oldHolder.items = Lists.newLinkedList(priority);
+    oldHolder.items.addAll(others);
   }
 
   /**
@@ -640,6 +703,11 @@ public class UpgradeHelper {
    * Short-lived objects that hold information about upgrade groups
    */
   public static class UpgradeGroupHolder {
+    /**
+     *
+     */
+    private boolean processingGroup;
+
     /**
      * The name
      */
@@ -864,8 +932,11 @@ public class UpgradeHelper {
     String userName = controller.getAuthName();
     Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
 
+    Set<String> clusterConfigTypes = new HashSet<>();
+    Set<String> processedClusterConfigTypes = new HashSet<>();
+
     // merge or revert configurations for any service that needs it
-    for( String serviceName : servicesInUpgrade ){
+    for (String serviceName : servicesInUpgrade) {
       RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
       RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
       StackId sourceStackId = sourceRepositoryVersion.getStackId();
@@ -887,7 +958,7 @@ public class UpgradeHelper {
       // downgrade is easy - just remove the new and make the old current
       if (direction == Direction.DOWNGRADE) {
         cluster.applyLatestConfigurations(targetStackId, serviceName);
-        return;
+        continue;
       }
 
       // upgrade is a bit harder - we have to merge new stack configurations in
@@ -902,6 +973,12 @@ public class UpgradeHelper {
       Map<String, Map<String, String>> newServiceDefaultConfigsByType = configHelper.getDefaultProperties(
           targetStackId, serviceName);
 
+      if (null == oldServiceDefaultConfigsByType || null == newServiceDefaultConfigsByType) {
+        continue;
+      }
+
+      Set<String> foundConfigTypes = new HashSet<>();
+
       // find the current, existing configurations for the service
       List<Config> existingServiceConfigs = new ArrayList<>();
       List<ServiceConfigEntity> latestServiceConfigs = m_serviceConfigDAO.getLastServiceConfigsForService(
@@ -911,8 +988,23 @@ public class UpgradeHelper {
         List<ClusterConfigEntity> existingConfigurations = serviceConfig.getClusterConfigEntities();
         for (ClusterConfigEntity currentServiceConfig : existingConfigurations) {
           String configurationType = currentServiceConfig.getType();
+
           Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
           existingServiceConfigs.add(currentClusterConfigForService);
+          foundConfigTypes.add(configurationType);
+        }
+      }
+
+      // !!! these are the types that come back from the config helper, but are not part of the service.
+      @SuppressWarnings("unchecked")
+      Set<String> missingConfigTypes = new HashSet<>(CollectionUtils.subtract(oldServiceDefaultConfigsByType.keySet(),
+          foundConfigTypes));
+
+      for (String missingConfigType : missingConfigTypes) {
+        Config config = cluster.getDesiredConfigByType(missingConfigType);
+        if (null != config) {
+          existingServiceConfigs.add(config);
+          clusterConfigTypes.add(missingConfigType);
         }
       }
 
@@ -1014,8 +1106,18 @@ public class UpgradeHelper {
       }
 
       if (null != newServiceDefaultConfigsByType) {
+
+        for (String clusterConfigType : clusterConfigTypes) {
+          if (processedClusterConfigTypes.contains(clusterConfigType)) {
+            newServiceDefaultConfigsByType.remove(clusterConfigType);
+          } else {
+            processedClusterConfigTypes.add(clusterConfigType);
+          }
+
+        }
+
         Set<String> configTypes = newServiceDefaultConfigsByType.keySet();
-        LOG.info("The upgrade will create the following configurations for stack {}: {}",
+        LOG.warn("The upgrade will create the following configurations for stack {}: {}",
             targetStackId, StringUtils.join(configTypes, ','));
 
         String serviceVersionNote = String.format("%s %s %s", direction.getText(true),

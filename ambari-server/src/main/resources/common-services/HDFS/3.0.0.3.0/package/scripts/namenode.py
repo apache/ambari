@@ -29,7 +29,6 @@ from ambari_commons import constants
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
@@ -67,15 +66,11 @@ except ImportError:
 
 class NameNode(Script):
 
-  def get_component_name(self):
-    return "hadoop-hdfs-namenode"
-
   def get_hdfs_binary(self):
     """
     Get the name or path to the hdfs binary depending on the component name.
     """
-    component_name = self.get_component_name()
-    return get_hdfs_binary(component_name)
+    return get_hdfs_binary("hadoop-hdfs-namenode")
 
   def install(self, env):
     import params
@@ -198,9 +193,7 @@ class NameNodeDefault(NameNode):
     # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
     # Therefore, we cannot call this code in that scenario.
     if upgrade_type != constants.UPGRADE_TYPE_NON_ROLLING or params.upgrade_direction != Direction.DOWNGRADE:
-      conf_select.select(params.stack_name, "hadoop", params.version)
-
-    stack_select.select("hadoop-hdfs-namenode", params.version)
+      stack_select.select_packages(params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")

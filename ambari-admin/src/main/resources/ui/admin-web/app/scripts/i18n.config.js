@@ -434,16 +434,9 @@ angular.module('ambariAdminConsole')
 
     'authentication.connectivity.trustStore.label': 'Trust Store',
 
-    'authentication.connectivity.trustStore.options.default': 'JDK Default',
-    'authentication.connectivity.trustStore.options.custom': 'Custom',
-
     'authentication.connectivity.trustStorePath': 'Trust Store Path',
 
     'authentication.connectivity.trustStoreType.label': 'Trust Store Type',
-
-    'authentication.connectivity.trustStoreType.options.jks': 'JKS',
-    'authentication.connectivity.trustStoreType.options.jceks': 'JCEKS',
-    'authentication.connectivity.trustStoreType.options.pkcs12': 'PKCS12',
 
     'authentication.connectivity.trustStorePassword': 'Trust Store Password',
     'authentication.connectivity.dn': 'Bind DN',

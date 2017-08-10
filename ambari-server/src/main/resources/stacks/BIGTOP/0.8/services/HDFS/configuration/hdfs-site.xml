@@ -72,6 +72,12 @@
       excluded.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>manage.include.files</name>
+    <value>false</value>
+    <description>If true Ambari will manage include file if dfs.hosts is configured.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
   <!--
     <property>
       <name>dfs.hosts</name>

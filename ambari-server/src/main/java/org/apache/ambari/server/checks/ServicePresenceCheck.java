@@ -109,7 +109,7 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
     for(String service: removedServices){
       if (installedServices.contains(service.toUpperCase())){
         prerequisiteCheck.getFailedOn().add(service);
-        String msg = String.format(reason, service);
+        String msg = String.format(reason, service, service);
         failReasons.add(msg);
       }
     }
@@ -159,7 +159,7 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
   +   * @return service names
   +   * */
   private List<String> getRemovedServices(PrereqCheckRequest request){
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
     String value = getPropertyValue(request, REMOVED_SERVICES_PROPERTY_NAME);
     if (null != value){
       String[] services = value.split(",");

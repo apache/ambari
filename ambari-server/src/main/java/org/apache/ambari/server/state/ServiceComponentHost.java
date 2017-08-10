@@ -96,24 +96,6 @@ public interface ServiceComponentHost {
   void setState(State state);
 
   /**
-   * Gets the current security state for this ServiceComponent
-   * <p/>
-   * The returned SecurityState may be any endpoint or transitional state.
-   *
-   * @return the current SecurityState for this ServiceComponent
-   */
-  SecurityState getSecurityState();
-
-  /**
-   * Sets the current security state for this ServiceComponent
-   * <p/>
-   * The new SecurityState may be any endpoint or transitional state.
-   *
-   * @param state the current SecurityState for this ServiceComponent
-   */
-  void setSecurityState(SecurityState state);
-
-  /**
    * Gets the version of the component.
    *
    * @return component version
@@ -126,27 +108,6 @@ public interface ServiceComponentHost {
    * @param version component version (e.g. 2.2.0.0-2041)
    */
   void setVersion(String version);
-
-  /**
-   * Gets the desired security state for this ServiceComponent
-   * <p/>
-   * The returned SecurityState is a valid endpoint state where
-   * SecurityState.isEndpoint() == true.
-   *
-   * @return the desired SecurityState for this ServiceComponent
-   */
-  SecurityState getDesiredSecurityState();
-
-  /**
-   * Sets the desired security state for this ServiceComponent
-   * <p/>
-   * It is expected that the new SecurityState is a valid endpoint state such that
-   * SecurityState.isEndpoint() == true.
-   *
-   * @param securityState the desired SecurityState for this ServiceComponent
-   * @throws AmbariException if the new state is not an endpoint state
-   */
-  void setDesiredSecurityState(SecurityState securityState) throws AmbariException;
 
   /**
    * @param upgradeState the upgrade state

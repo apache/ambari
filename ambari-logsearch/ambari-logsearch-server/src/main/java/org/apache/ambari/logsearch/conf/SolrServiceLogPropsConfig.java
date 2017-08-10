@@ -126,4 +126,9 @@ public class SolrServiceLogPropsConfig extends SolrConnectionPropsConfig {
   public void setReplicationFactor(Integer replicationFactor) {
     this.replicationFactor = replicationFactor;
   }
+
+  @Override
+  public String getLogType() {
+    return "service";
+  }
 }

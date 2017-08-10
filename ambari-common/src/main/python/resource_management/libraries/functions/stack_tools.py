@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 __all__ = ["get_stack_tool", "get_stack_tool_name", "get_stack_tool_path",
-           "get_stack_tool_package", "STACK_SELECTOR_NAME", "CONF_SELECTOR_NAME"]
+           "get_stack_tool_package", "get_stack_name", "STACK_SELECTOR_NAME", "CONF_SELECTOR_NAME"]
 
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
@@ -120,3 +120,16 @@ def get_stack_root(stack_name, stack_root_json):
     return "/usr/{0}".format(stack_name.lower())
 
   return stack_root[stack_name]
+
+
+def get_stack_name(stack_formatted):
+  """
+  Get the stack name (eg. HDP) from formatted string that may contain stack version (eg. HDP-2.6.1.0-123)
+  """
+  if stack_formatted is None:
+    return None
+
+  if '-' not in stack_formatted:
+    return stack_formatted
+
+  return stack_formatted.split('-')[0]

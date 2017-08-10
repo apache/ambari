@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -65,12 +66,22 @@ public class InstallPackagesCheckTest {
   private String repositoryVersion = "2.2.6.0-1234";
   private String clusterName = "cluster";
 
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
+  /**
+   *
+   */
+  @Before
+  public void setup() throws Exception {
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn(repositoryVersion);
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(targetStackId);
+  }
+
   @Test
   public void testIsApplicable() throws Exception {
     PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
-    checkRequest.setRepositoryVersion(repositoryVersion);
     checkRequest.setSourceStackId(sourceStackId);
-    checkRequest.setTargetStackId(targetStackId);
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
     InstallPackagesCheck ipc = new InstallPackagesCheck();
     Configuration config = Mockito.mock(Configuration.class);
     ipc.config = config;
@@ -144,9 +155,8 @@ public class InstallPackagesCheckTest {
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
     PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
-    checkRequest.setRepositoryVersion(repositoryVersion);
     checkRequest.setSourceStackId(sourceStackId);
-    checkRequest.setTargetStackId(targetStackId);
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
 
     // Case 1. Initialize with good values
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);

@@ -82,7 +82,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
 
   isSaveDisabled: Em.computed.or('controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged'),
 
-  serviceName: Em.computed.alias('controller.selectedService.serviceName'),
+  serviceName: Em.computed.alias('controller.content.serviceName'),
 
   displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
   /**

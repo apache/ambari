@@ -23,7 +23,7 @@ import sys
 
 # Local imports
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
@@ -51,9 +51,6 @@ class SparkClient(Script):
   def status(self, env):
     raise ClientComponentHasNoStatus()
   
-  def get_component_name(self):
-    return "spark-client"
-
   def stack_upgrade_save_new_config(self, env):
     """
     Because this gets called during a Rolling Upgrade, the new configs have already been saved, so we must be
@@ -72,7 +69,6 @@ class SparkClient(Script):
       # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
       # must change it now so this function can find the Jinja Templates for the service.
       env.config.basedir = base_dir
-      conf_select.select(params.stack_name, conf_select_name, params.version)
       self.configure(env, config_dir=config_dir, upgrade_type=UPGRADE_TYPE_ROLLING)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
@@ -81,8 +77,7 @@ class SparkClient(Script):
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Spark Client Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "spark", params.version)
-      stack_select.select("spark-client", params.version)
+      stack_select.select_packages(params.version)
 
 if __name__ == "__main__":
   SparkClient().execute()

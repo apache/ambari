@@ -22,7 +22,7 @@ import sys
 import os
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -62,17 +62,13 @@ class SparkThriftServer(Script):
     env.set_params(status_params)
     check_process_status(status_params.spark_thrift_server_pid_file)
 
-  def get_component_name(self):
-    return "spark-thriftserver"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Spark Thrift Server Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "spark", params.version)
-      stack_select.select("spark-thriftserver", params.version)
+      stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

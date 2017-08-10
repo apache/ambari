@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Arrays;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -25,6 +25,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -50,14 +51,10 @@ public class StormShutdownWarning extends AbstractCheckDescriptor {
 
   /**
    * {@inheritDoc}
-   * <p/>
-   * This check is only applicable if Storm is installed and the upgrade type is
-   * {@link UpgradeType#ROLLING}.
    */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    boolean isApplicable = super.isApplicable(request, Arrays.asList("STORM"), true);
-    return isApplicable && request.getUpgradeType() == UpgradeType.ROLLING;
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet("STORM");
   }
 
   /**

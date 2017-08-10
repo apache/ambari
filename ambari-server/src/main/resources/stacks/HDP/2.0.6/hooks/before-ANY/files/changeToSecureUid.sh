@@ -21,6 +21,7 @@
 
 username=$1
 directories=$2
+newUid=$3
 
 function find_available_uid() {
  for ((i=1001; i<=2000; i++))
@@ -34,7 +35,18 @@ function find_available_uid() {
  done
 }
 
-find_available_uid
+if [ -z $2 ]; then
+  test $(id -u ${username} 2>/dev/null)
+  if [ $? -ne 1 ]; then
+   newUid=`id -u ${username}`
+  else
+   find_available_uid
+  fi
+  echo $newUid
+  exit 0
+else
+  find_available_uid
+fi
 
 if [ $newUid -eq 0 ]
 then
@@ -43,7 +55,6 @@ then
 fi
 
 set -e
-
 dir_array=($(echo $directories | sed 's/,/\n/g'))
 old_uid=$(id -u $username)
 sudo_prefix="/var/lib/ambari-agent/ambari-sudo.sh -H -E"

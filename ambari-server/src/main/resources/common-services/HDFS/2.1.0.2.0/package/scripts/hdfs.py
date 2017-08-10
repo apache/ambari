@@ -170,6 +170,14 @@ def hdfs(component=None):
          owner=params.hdfs_user,
          mode="f",
          )
+
+    if params.hdfs_include_file:
+      File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user,
+         mode="f",
+         )
+      pass
   if params.service_map.has_key(component):
     service_name = params.service_map[component]
     ServiceConfig(service_name,

@@ -564,7 +564,7 @@ public class AmbariManagementControllerImplTest {
     ConfigurationRequest configurationRequest = createNiceMock(ConfigurationRequest.class);
 
     // requests
-    Set<ClusterRequest> setRequests = new HashSet<ClusterRequest>();
+    Set<ClusterRequest> setRequests = new HashSet<>();
     setRequests.add(clusterRequest);
 
     List<ConfigurationRequest> configRequests = new ArrayList<>();
@@ -2034,7 +2034,7 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-    
+
     OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
     EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
@@ -2059,6 +2059,14 @@ public class AmbariManagementControllerImplTest {
     String JCE_NAME = "jceName";
     String OJDBC_JAR_NAME = "OjdbcJarName";
     String SERVER_DB_NAME = "ServerDBName";
+    Map<PropertyInfo, String> notManagedHdfsPathMap = new HashMap<>();
+    PropertyInfo propertyInfo1 = new PropertyInfo();
+    propertyInfo1.setName("1");
+    PropertyInfo propertyInfo2 = new PropertyInfo();
+    propertyInfo2.setName("2");
+    notManagedHdfsPathMap.put(propertyInfo1, "/tmp");
+    notManagedHdfsPathMap.put(propertyInfo2, "/apps/falcon");
+
     Set<String> notManagedHdfsPathSet = new HashSet<>(Arrays.asList("/tmp", "/apps/falcon"));
     Gson gson = new Gson();
 
@@ -2089,8 +2097,10 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getPreviousDatabaseConnectorNames()).andReturn(new HashMap<String, String>()).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
     expect(repositoryVersionEntity.getStackId()).andReturn(stackId).anyTimes();
-    expect(configHelper.getPropertyValuesWithPropertyType(stackId,
+    expect(configHelper.getPropertiesWithPropertyType(stackId,
         PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs)).andReturn(
+            notManagedHdfsPathMap);
+    expect(configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST)).andReturn(
             notManagedHdfsPathSet);
 
     replay(manager, clusters, cluster, injector, stackId, configuration, repositoryVersionEntity, configHelper);
@@ -2388,12 +2398,9 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, configuration);
 
     ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
-    cr.setRepositoryVersion("2.1.1.0-1234");
     controller.createCluster(cr);
 
     // verification
     verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
   }
-
-
 }

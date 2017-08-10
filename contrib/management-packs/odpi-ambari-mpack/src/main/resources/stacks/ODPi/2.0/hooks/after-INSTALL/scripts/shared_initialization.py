@@ -29,7 +29,7 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
 
-def setup_stack_symlinks():
+def setup_stack_symlinks(struct_out_file):
   """
   Invokes <stack-selector-tool> set all against a calculated fully-qualified, "normalized" version based on a
   stack version, such as "2.3". This should always be called after a component has been
@@ -38,15 +38,26 @@ def setup_stack_symlinks():
   :return:
   """
   import params
-  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
-    # try using the exact version first, falling back in just the stack if it's not defined
-    # which would only be during an intial cluster installation
-    version = params.current_version if params.current_version is not None else params.stack_version_unformatted
+  if params.upgrade_suspended:
+    Logger.warning("Skipping running stack-selector-tool because there is a suspended upgrade")
+    return
 
-    if not params.upgrade_suspended:
-      # On parallel command execution this should be executed by a single process at a time.
-      with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-        stack_select.select_all(version)
+  # get the packages which the stack-select tool should be used on
+  stack_select_packages = stack_select.get_packages(stack_select.PACKAGE_SCOPE_INSTALL)
+  if stack_select_packages is None:
+    return
+
+  json_version = load_version(struct_out_file)
+
+  if not json_version:
+    Logger.info("There is no advertised version for this component stored in {0}".format(struct_out_file))
+    return
+
+  # On parallel command execution this should be executed by a single process at a time.
+  with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+    for package in stack_select_packages:
+      stack_select.select(package, json_version)
+
 
 def setup_config():
   import params

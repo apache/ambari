@@ -408,12 +408,14 @@ describe('App.ConfigsSaverMixin', function() {
       this.mockGroup = sinon.stub(mixin, 'getGroupFromModel');
       this.mockConfigs = sinon.stub(mixin, 'getConfigsForGroup');
       sinon.stub(mixin, 'saveGroup');
+      sinon.stub(mixin, 'isOverriddenConfigsModified').returns(true);
     });
 
     afterEach(function() {
       this.mockGroup.restore();
       this.mockConfigs.restore();
       mixin.saveGroup.restore();
+      mixin.isOverriddenConfigsModified.restore();
     });
 
     it("configGroup is null", function() {
@@ -1187,6 +1189,25 @@ describe('App.ConfigsSaverMixin', function() {
           desired_config: [{}]
         }
       }));
+    });
+  });
+
+  describe('#isOverriddenConfigsModified', function() {
+    it('no configs modified', function() {
+      expect(mixin.isOverriddenConfigsModified([
+        Em.Object.create({
+          savedValue: '1',
+          value: '1'
+        })
+      ])).to.be.false;
+    });
+    it('one config modified', function() {
+      expect(mixin.isOverriddenConfigsModified([
+        Em.Object.create({
+          savedValue: '1',
+          value: '2'
+        })
+      ])).to.be.true;
     });
   });
 

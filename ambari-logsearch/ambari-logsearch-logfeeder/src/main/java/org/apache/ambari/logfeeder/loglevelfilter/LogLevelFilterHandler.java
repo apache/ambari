@@ -29,37 +29,16 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
-import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import static org.apache.ambari.logfeeder.util.LogFeederUtil.LOGFEEDER_PROPERTIES_FILE;
-
 public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private static final Logger LOG = Logger.getLogger(LogLevelFilterHandler.class);
-  
-  private static final boolean DEFAULT_LOG_FILTER_ENABLE = false;
-  @LogSearchPropertyDescription(
-    name = "logfeeder.log.filter.enable",
-    description = "Enables the filtering of the log entries by log level filters.",
-    examples = {"true"},
-    defaultValue = DEFAULT_LOG_FILTER_ENABLE + "",
-    sources = {LOGFEEDER_PROPERTIES_FILE}
-  )
-  private static final String LOG_FILTER_ENABLE_PROPERTY = "logfeeder.log.filter.enable";
-
-  @LogSearchPropertyDescription(
-    name = "logfeeder.include.default.level",
-    description = "Comma separtaed list of the default log levels to be enabled by the filtering.",
-    examples = {"FATAL,ERROR,WARN"},
-    sources = {LOGFEEDER_PROPERTIES_FILE}
-  )
-  private static final String INCLUDE_DEFAULT_LEVEL_PROPERTY = "logfeeder.include.default.level";
 
   private static final String TIMEZONE = "GMT";
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
@@ -79,8 +58,8 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
 
   public static void init(LogSearchConfig config_) {
     config = config_;
-    filterEnabled = LogFeederUtil.getBooleanProperty(LOG_FILTER_ENABLE_PROPERTY, DEFAULT_LOG_FILTER_ENABLE);
-    defaultLogLevels = Arrays.asList(LogFeederUtil.getStringProperty(INCLUDE_DEFAULT_LEVEL_PROPERTY).split(","));
+    filterEnabled = LogFeederPropertiesUtil.isLogFilterEnabled();
+    defaultLogLevels = Arrays.asList(LogFeederPropertiesUtil.getIncludeDefaultLevel().split(","));
     TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
   }
 
@@ -120,7 +99,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     defaultFilter.setDefaultLevels(defaultLogLevels);
 
     try {
-      config.createLogLevelFilter(LogFeederUtil.getClusterName(), logId, defaultFilter);
+      config.createLogLevelFilter(LogFeederPropertiesUtil.getClusterName(), logId, defaultFilter);
       filters.put(logId, defaultFilter);
     } catch (Exception e) {
       LOG.warn("Could not persist the default filter for log " + logId, e);

@@ -31,29 +31,46 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.inject.Provider;
 
 /**
  * Tests for {@link org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheckTest}
  */
+@RunWith(MockitoJUnitRunner.class)
 public class MapReduce2JobHistoryStatePreservingCheckTest {
   private final Clusters m_clusters = Mockito.mock(Clusters.class);
   private final RepositoryVersionDAO m_repositoryVersionDao = Mockito.mock(RepositoryVersionDAO.class);
 
   private final MapReduce2JobHistoryStatePreservingCheck m_check = new MapReduce2JobHistoryStatePreservingCheck();
 
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
+
   /**
    *
    */
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     m_check.clustersProvider = new Provider<Clusters>() {
 
       @Override
@@ -75,6 +92,14 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     RepositoryVersionEntity rve = Mockito.mock(RepositoryVersionEntity.class);
     Mockito.when(rve.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersionDao.findByStackNameAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(rve);
+
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.3.1.1-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.3"));
+
+    m_services.clear();
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
   /**
@@ -87,18 +112,17 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     Mockito.when(m_clusters.getCluster("cluster")).thenReturn(cluster);
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.3"));
 
-    Map<String, Service> services = new HashMap<>();
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServices()).thenReturn(m_services);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetStackId(new StackId("HDP", "2.3.1.1"));
     request.setSourceStackId(new StackId("HDP", "2.3.0.0"));
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
     // MAPREDUCE2 not installed
     Assert.assertFalse(m_check.isApplicable(request));
 
     // MAPREDUCE2 installed
-    services.put("MAPREDUCE2", Mockito.mock(Service.class));
+    m_services.put("MAPREDUCE2", Mockito.mock(Service.class));
     Assert.assertTrue(m_check.isApplicable(request));
   }
 
@@ -152,11 +176,15 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
       }
     });
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("MYSTACK-12.2"));
-    RepositoryVersionEntity repositoryVersionEntity = Mockito.mock(RepositoryVersionEntity.class);
     Mockito.when(m_clusters.getCluster("c1")).thenReturn(cluster);
     PrereqCheckRequest request = new PrereqCheckRequest("c1");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
-    Mockito.when(repositoryVersionEntity.getVersion()).thenReturn("2.0.0.1");
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.0.0.1");
+
+    // MAPREDUCE2 installed
+    m_services.put("MAPREDUCE2", Mockito.mock(Service.class));
+
     boolean isApplicable = m_check.isApplicable(request);
     Assert.assertTrue(isApplicable);
   }

@@ -23,6 +23,7 @@ import io.swagger.jaxrs.listing.SwaggerSerializers;
 
 import io.swagger.models.Info;
 import io.swagger.models.License;
+import org.apache.ambari.logsearch.rest.ServiceLogsResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,7 +35,6 @@ public class ApiDocConfig {
   private static final String TITLE = "Log Search REST API";
   private static final String LICENSE = "Apache 2.0";
   private static final String LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.html";
-  private static final String RESOURCE_PACKAGE = "org.apache.ambari.logsearch.rest";
   private static final String BASE_PATH = "/api/v1";
 
   @Bean
@@ -53,7 +53,7 @@ public class ApiDocConfig {
     beanConfig.setLicenseUrl(LICENSE_URL);
     beanConfig.setScan(true);
     beanConfig.setVersion(VERSION);
-    beanConfig.setResourcePackage(RESOURCE_PACKAGE);
+    beanConfig.setResourcePackage(ServiceLogsResource.class.getPackage().getName());
 
     License license = new License();
     license.setName(LICENSE);

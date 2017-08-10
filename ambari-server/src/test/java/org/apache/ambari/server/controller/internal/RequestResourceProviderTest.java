@@ -1032,7 +1032,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(null, capturedResourceFilter.getComponentName());
     Assert.assertNotNull(capturedResourceFilter.getHostNames());
     Assert.assertEquals(0, capturedResourceFilter.getHostNames().size());
-    Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
+    Assert.assertEquals(1, actionRequest.getValue().getParameters().size());
   }
 
   @Test
@@ -1152,7 +1152,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(null, capturedResourceFilter.getComponentName());
     Assert.assertEquals(3, capturedResourceFilter.getHostNames().size());
     Assert.assertArrayEquals(expectedHosts, capturedResourceFilter.getHostNames().toArray());
-    Assert.assertEquals(2, capturedRequest.getParameters().size());
+    Assert.assertEquals(3, capturedRequest.getParameters().size());
     for(String key : expectedParams.keySet()) {
       Assert.assertEquals(expectedParams.get(key), capturedRequest.getParameters().get(key));
     }
@@ -1239,6 +1239,9 @@ public class RequestResourceProviderTest {
     }
     Assert.assertNotNull(propertyIdToAssert);
     Assert.assertEquals("true", propertyValueToAssert);
+    Assert.assertTrue(capturedRequest.getResourceFilters().isEmpty());
+    Assert.assertEquals(1, capturedRequest.getParameters().size());
+    Assert.assertEquals("true", capturedRequest.getParameters().get(RequestResourceProvider.HAS_RESOURCE_FILTERS));
   }
 
   @Test
@@ -1548,7 +1551,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(null, capturedResourceFilter.getComponentName());
     Assert.assertNotNull(capturedResourceFilter.getHostNames());
     Assert.assertEquals(2, capturedResourceFilter.getHostNames().size());
-    Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
+    Assert.assertEquals(1, actionRequest.getValue().getParameters().size());
   }
 
   @Test

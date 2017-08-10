@@ -22,7 +22,6 @@ import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
@@ -87,10 +86,6 @@ class HiveMetastoreWindows(HiveMetastore):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveMetastoreDefault(HiveMetastore):
-  def get_component_name(self):
-    return "hive-metastore"
-
-
   def status(self, env):
     import status_params
     from resource_management.libraries.functions import check_process_status
@@ -109,8 +104,7 @@ class HiveMetastoreDefault(HiveMetastore):
     is_upgrade = params.upgrade_direction == Direction.UPGRADE
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hive", params.version)
-      stack_select.select("hive-metastore", params.version)
+      stack_select.select_packages(params.version)
 
     if is_upgrade and params.stack_version_formatted_major and \
             check_stack_feature(StackFeature.HIVE_METASTORE_UPGRADE_SCHEMA, params.stack_version_formatted_major):

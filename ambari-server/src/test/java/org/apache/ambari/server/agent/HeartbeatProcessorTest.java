@@ -73,7 +73,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -469,9 +468,7 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost3 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(SECONDARY_NAMENODE).getServiceComponentHost(DummyHostname1);
     serviceComponentHost1.setState(State.INSTALLED);
-    serviceComponentHost1.setSecurityState(SecurityState.UNSECURED);
     serviceComponentHost2.setState(State.INSTALLED);
-    serviceComponentHost2.setSecurityState(SecurityState.SECURING);
     serviceComponentHost3.setState(State.STARTING);
 
     HeartBeat hb = new HeartBeat();
@@ -516,10 +513,8 @@ public class HeartbeatProcessorTest {
     State componentState3 = serviceComponentHost3.getState();
     assertEquals(State.STARTED, componentState1);
     assertEquals(State.INSTALLED, componentState2);
-    assertEquals(SecurityState.SECURING, serviceComponentHost2.getSecurityState());
     //starting state will not be overridden by status command
     assertEquals(State.STARTING, componentState3);
-    assertEquals(SecurityState.UNSECURED, serviceComponentHost3.getSecurityState());
   }
 
 

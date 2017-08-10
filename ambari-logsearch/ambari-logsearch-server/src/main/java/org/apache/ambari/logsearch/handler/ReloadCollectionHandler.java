@@ -33,9 +33,8 @@ public class ReloadCollectionHandler implements SolrZkRequestHandler<Boolean> {
     boolean result = false;
     try {
       LOG.info("Reload collection - '{}'", solrPropsConfig.getCollection());
-      CollectionAdminRequest.Reload reloadCollectionRequest = new CollectionAdminRequest.Reload();
-      reloadCollectionRequest.setCollectionName(solrPropsConfig.getCollection());
-      reloadCollectionRequest.process(solrClient);
+      CollectionAdminRequest.Reload request = CollectionAdminRequest.reloadCollection(solrPropsConfig.getCollection());
+      request.process(solrClient);
       result = true;
     } catch (Exception e) {
       LOG.error(String.format("Reload collection ('%s') failed.", solrPropsConfig.getCollection()), e);

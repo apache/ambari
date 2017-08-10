@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -80,6 +81,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -124,19 +126,32 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Injector injector = createInjector();
 
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
+    Capture<String> rackChangeAffectedClusterName = EasyMock.newCapture();
+    managementController.registerRackChange(capture(rackChangeAffectedClusterName));
+    EasyMock.expectLastCall().once();
+
+
     Clusters clusters = injector.getInstance(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
+    Host host = createMock(Host.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = getHostProvider(injector);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).atLeastOnce();
-    expect(clusters.getHost("Host100")).andReturn(null).atLeastOnce();
+    expect(clusters.getHost("Host100")).andReturn(host).atLeastOnce();
     clusters.updateHostWithClusterAndAttributes(EasyMock.<Map<String, Set<String>>>anyObject(), EasyMock.<Map<String, Map<String, String>>>anyObject());
+    EasyMock.expectLastCall().once();
+
+
+    expect(host.getRackInfo()).andReturn("/default-rack").anyTimes();
+    Capture<String> newRack = EasyMock.newCapture();
+    host.setRackInfo(capture(newRack));
     EasyMock.expectLastCall().once();
 
     expect(managementController.getClusters()).andReturn(clusters).atLeastOnce();
@@ -144,6 +159,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(),
         EasyMock.<Map<Resource.Type, String>>anyObject(),
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
+
     // replay
     replayAll();
 
@@ -163,6 +179,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     // add properties to the request map
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, "Host100");
+    properties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, "/test-rack");
 
     propertySet.add(properties);
 
@@ -173,6 +190,12 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     // verify
     verifyAll();
+
+    // the registerRackChange should be called on AmbariManagementController for Cluster100 cluster
+    assertEquals("Cluster100", rackChangeAffectedClusterName.getValue());
+
+    // new rack info of the host should be /test-rack
+    assertEquals("/test-rack", newRack.getValue());
   }
 
   @Test
@@ -1294,7 +1317,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  public static void createHosts(AmbariManagementController controller, Set<HostRequest> requests) throws AmbariException {
+  public static void createHosts(AmbariManagementController controller, Set<HostRequest> requests) throws AmbariException, AuthorizationException {
     HostResourceProvider provider = getHostProvider(controller);
     Set<Map<String, Object>> properties = new HashSet<>();
 

@@ -153,6 +153,10 @@
             <type>atlas-env</type>
             <replace key="content" find="-Xloggc:$ATLAS_LOG_DIRgc-worker.log" replace-with="-Xloggc:$ATLAS_LOG_DIR/gc-worker.log"/>
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete" summary="Updating Atlas Kafka configurations.">
+            <type>application-properties</type>
+            <transfer operation="delete" delete-key="atlas.kafka.auto.commit.enable"/>
+          </definition>
         </changes>
       </component>
     </service>
@@ -519,7 +523,7 @@
 
           <definition xsi:type="configure" id="llap_append_stack_size_java_opts" summary="Update JVM stack size for LLAP">
             <type>hive-interactive-env</type>
-            <insert key="llap_java_opts" value="-Xss512k" insert-type="append" newline-before="false" newline-after="false" />
+            <insert key="llap_java_opts" value=" -Xss512k " insert-type="append" newline-before="false" newline-after="false" />
           </definition>
 
           <definition xsi:type="configure" id="llap_update_shuffle_parallel_copies" summary="Update tez shuffle parallel copies for LLAP">

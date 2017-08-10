@@ -43,12 +43,6 @@ class TestLOGSEARCH050ServiceAdvisor(TestCase):
   def test_recommendLogsearchConfiguration(self):
     configurations = {
       "logsearch-properties": {
-        "properties": {
-          "logsearch.collection.service.logs.numshards" : "5",
-          "logsearch.collection.service.logs.replication.factor": "0",
-          "logsearch.collection.audit.logs.numshards" : "5",
-          "logsearch.collection.audit.logs.replication.factor": "0"
-        }
       }
     }
 
@@ -61,10 +55,12 @@ class TestLOGSEARCH050ServiceAdvisor(TestCase):
       "ramPerContainer": 256
     }
     expected = {
+      'logsearch-properties': {
+        'properties': {}
+      },
       'logfeeder-env': {
         'property_attributes': {
-          'logfeeder_external_solr_kerberos_keytab': {'visible': 'false'
-          },
+          'logfeeder_external_solr_kerberos_keytab': {'visible': 'false'},
           'logfeeder_external_solr_kerberos_principal': {'visible': 'false'}
         }
       },
@@ -80,24 +76,6 @@ class TestLOGSEARCH050ServiceAdvisor(TestCase):
         'property_attributes': {
           'logsearch_external_solr_kerberos_keytab': {'visible': 'false'},
           'logsearch_external_solr_kerberos_principal': {'visible': 'false'}
-        }
-      },
-      'logsearch-properties': {
-        'properties': {
-          "logsearch.collection.service.logs.numshards" : "2",
-          "logsearch.collection.service.logs.replication.factor": "1",
-          "logsearch.collection.audit.logs.numshards" : "2",
-          "logsearch.collection.audit.logs.replication.factor": "1"
-        },
-        "property_attributes": {
-          "logsearch.collection.service.logs.numshards": {
-            "minimum": "1",
-            "maximum": "3"
-          },
-          "logsearch.collection.audit.logs.numshards": {
-            "minimum": "1",
-            "maximum": "3"
-          }
         }
       }
     }

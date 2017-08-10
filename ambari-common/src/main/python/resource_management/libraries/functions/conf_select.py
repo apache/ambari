@@ -21,9 +21,9 @@ limitations under the License.
 __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_package_dirs"]
 
 # Python Imports
-import copy
 import os
 import subprocess
+import ambari_simplejson as json
 
 # Local Imports
 import stack_select
@@ -41,191 +41,6 @@ from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 
-STACK_ROOT_PATTERN = "{{ stack_root }}"
-
-_PACKAGE_DIRS = {
-  "atlas": [
-    {
-      "conf_dir": "/etc/atlas/conf",
-      "current_dir": "{0}/current/atlas-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "accumulo": [
-    {
-      "conf_dir": "/etc/accumulo/conf",
-      "current_dir": "{0}/current/accumulo-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "falcon": [
-    {
-      "conf_dir": "/etc/falcon/conf",
-      "current_dir": "{0}/current/falcon-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hadoop": [
-    {
-      "conf_dir": "/etc/hadoop/conf",
-      "current_dir": "{0}/current/hadoop-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hbase": [
-    {
-      "conf_dir": "/etc/hbase/conf",
-      "current_dir": "{0}/current/hbase-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hive": [
-    {
-      "conf_dir": "/etc/hive/conf",
-      "current_dir": "{0}/current/hive-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hive2": [
-    {
-      "conf_dir": "/etc/hive2/conf",
-      "current_dir": "{0}/current/hive-server2-hive2/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "kafka": [
-    {
-      "conf_dir": "/etc/kafka/conf",
-      "current_dir": "{0}/current/kafka-broker/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "knox": [
-    {
-      "conf_dir": "/etc/knox/conf",
-      "current_dir": "{0}/current/knox-server/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "mahout": [
-    {
-      "conf_dir": "/etc/mahout/conf",
-      "current_dir": "{0}/current/mahout-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "nifi": [
-    {
-      "conf_dir": "/etc/nifi/conf",
-      "current_dir": "{0}/current/nifi/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "oozie": [
-    {
-      "conf_dir": "/etc/oozie/conf",
-      "current_dir": "{0}/current/oozie-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "phoenix": [
-    {
-      "conf_dir": "/etc/phoenix/conf",
-      "current_dir": "{0}/current/phoenix-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-admin": [
-    {
-      "conf_dir": "/etc/ranger/admin/conf",
-      "current_dir": "{0}/current/ranger-admin/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-tagsync": [
-    {
-      "conf_dir": "/etc/ranger/tagsync/conf",
-      "current_dir": "{0}/current/ranger-tagsync/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-kms": [
-    {
-      "conf_dir": "/etc/ranger/kms/conf",
-      "current_dir": "{0}/current/ranger-kms/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-usersync": [
-    {
-      "conf_dir": "/etc/ranger/usersync/conf",
-      "current_dir": "{0}/current/ranger-usersync/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "slider": [
-    {
-      "conf_dir": "/etc/slider/conf",
-      "current_dir": "{0}/current/slider-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "spark": [
-    {
-      "conf_dir": "/etc/spark/conf",
-      "current_dir": "{0}/current/spark-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "zeppelin": [
-    {
-      "conf_dir": "/etc/zeppelin/conf",
-      "current_dir": "{0}/current/zeppelin-server/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "spark2": [
-    {
-      "conf_dir": "/etc/spark2/conf",
-      "current_dir": "{0}/current/spark2-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "sqoop": [
-    {
-      "conf_dir": "/etc/sqoop/conf",
-      "current_dir": "{0}/current/sqoop-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "storm": [
-    {
-      "conf_dir": "/etc/storm/conf",
-      "current_dir": "{0}/current/storm-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "tez": [
-    {
-      "conf_dir": "/etc/tez/conf",
-      "current_dir": "{0}/current/tez-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "zookeeper": [
-    {
-      "conf_dir": "/etc/zookeeper/conf",
-      "current_dir": "{0}/current/zookeeper-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "pig": [
-    {
-      "conf_dir": "/etc/pig/conf",
-      "current_dir": "{0}/current/pig-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "flume": [
-    {
-      "conf_dir": "/etc/flume/conf",
-      "current_dir": "{0}/current/flume-server/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "storm-slider-client": [
-    {
-      "conf_dir": "/etc/storm-slider-client/conf",
-      "current_dir": "{0}/current/storm-slider-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hive-hcatalog": [
-    {
-      "conf_dir": "/etc/hive-webhcat/conf",
-      "prefix": "/etc/hive-webhcat",
-      "current_dir": "{0}/current/hive-webhcat/etc/webhcat".format(STACK_ROOT_PATTERN)
-    },
-    {
-      "conf_dir": "/etc/hive-hcatalog/conf",
-      "prefix": "/etc/hive-hcatalog",
-      "current_dir": "{0}/current/hive-webhcat/etc/hcatalog".format(STACK_ROOT_PATTERN)
-    }
-  ]
-}
-
 DIRECTORY_TYPE_BACKUP = "backup"
 DIRECTORY_TYPE_CURRENT = "current"
 
@@ -241,13 +56,35 @@ def get_package_dirs():
   Get package dir mappings
   :return:
   """
+  stack_name = default("/hostLevelParams/stack_name", None)
+  if stack_name is None:
+    raise Fail("The stack name is not present in the command. Packages for conf-select tool cannot be loaded.")
+
+  stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
+  if stack_packages_config is None:
+    raise Fail("The stack packages are not defined on the command. Unable to load packages for the conf-select tool")
+
+  data = json.loads(stack_packages_config)
+
+  if stack_name not in data:
+    raise Fail(
+      "Cannot find conf-select packages for the {0} stack".format(stack_name))
+
+  conf_select_key = "conf-select"
+  data = data[stack_name]
+  if conf_select_key not in data:
+    raise Fail(
+      "There are no conf-select packages defined for this command for the {0} stack".format(stack_name))
+
+  package_dirs = data[conf_select_key]
+
   stack_root = Script.get_stack_root()
-  package_dirs = copy.deepcopy(_PACKAGE_DIRS)
   for package_name, directories in package_dirs.iteritems():
     for dir in directories:
       current_dir = dir['current_dir']
-      current_dir = current_dir.replace(STACK_ROOT_PATTERN, stack_root)
+      current_dir =  current_dir.format(stack_root)
       dir['current_dir'] = current_dir
+
   return package_dirs
 
 def create(stack_name, package, version, dry_run = False):

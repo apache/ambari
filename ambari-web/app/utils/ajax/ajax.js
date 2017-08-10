@@ -1838,7 +1838,7 @@ var urls = {
   },
 
   'admin.upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}&UpgradeChecks/upgrade_type={type}',
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id={value}&UpgradeChecks/upgrade_type={type}&UpgradeChecks/target_stack={targetStack}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 
@@ -2287,7 +2287,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type',
+    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version',
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {

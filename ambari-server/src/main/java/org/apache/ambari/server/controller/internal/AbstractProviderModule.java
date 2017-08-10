@@ -817,6 +817,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
             managementController.getClusters(),
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "public_host_name"),
             PropertyHelper.getPropertyId("HostRoles", "component_name"),
             HTTP_PROPERTY_REQUESTS));
 

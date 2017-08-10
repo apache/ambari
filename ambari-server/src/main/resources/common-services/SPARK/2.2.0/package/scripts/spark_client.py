@@ -20,7 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
@@ -43,10 +43,6 @@ class SparkClient(Script):
   def status(self, env):
     raise ClientComponentHasNoStatus()
   
-  def get_component_name(self):
-    # TODO, change to "spark" after RPM switches the name
-    return "spark2-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
@@ -54,8 +50,7 @@ class SparkClient(Script):
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Spark Client Stack Upgrade pre-restart")
       # TODO, change to "spark" after RPM switches the name
-      conf_select.select(params.stack_name, "spark2", params.version)
-      stack_select.select("spark2-client", params.version)
+      stack_select.select_packages(params.version)
 
 if __name__ == "__main__":
   SparkClient().execute()

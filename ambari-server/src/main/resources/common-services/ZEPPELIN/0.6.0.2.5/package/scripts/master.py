@@ -30,7 +30,6 @@ from resource_management.core.source import StaticFile
 from resource_management.libraries import XmlConfig
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.decorator import retry
@@ -39,9 +38,6 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 
 class Master(Script):
-
-  def get_component_name(self):
-    return "zeppelin-server"
 
   def install(self, env):
     import params
@@ -254,8 +250,7 @@ class Master(Script):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
-      conf_select.select(params.stack_name, "zeppelin", params.version)
-      stack_select.select("zeppelin-server", params.version)
+      stack_select.select_packages(params.version)
 
   def set_interpreter_settings(self, config_data):
     import params
@@ -295,6 +290,7 @@ class Master(Script):
           interpreter['properties']['zeppelin.jdbc.keytab.location'] = params.zeppelin_kerberos_keytab
           if params.zookeeper_znode_parent \
               and params.hbase_zookeeper_quorum \
+              and 'phoenix.url' in interpreter['properties'] \
               and params.zookeeper_znode_parent not in interpreter['properties']['phoenix.url']:
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                        params.hbase_zookeeper_quorum + ':' + \

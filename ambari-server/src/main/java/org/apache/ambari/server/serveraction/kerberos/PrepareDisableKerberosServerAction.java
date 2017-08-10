@@ -34,7 +34,6 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -85,12 +84,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
         kerberosDescriptor,
         getServiceComponentFilter(),
         null, identityFilter,
-        new KerberosHelper.Command<Boolean, ServiceComponentHost>() {
-          @Override
-          public Boolean invoke(ServiceComponentHost sch) throws AmbariException {
-            return (sch.getDesiredSecurityState() == SecurityState.UNSECURED) && (sch.getSecurityState() != SecurityState.UNSECURED);
-          }
-        });
+      sch -> true);
 
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
     Map<String, String> commandParameters = getCommandParameters();

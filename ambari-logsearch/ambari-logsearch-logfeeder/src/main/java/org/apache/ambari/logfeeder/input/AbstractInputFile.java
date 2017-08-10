@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.util.FileUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
 import org.apache.commons.lang.ObjectUtils;
@@ -68,8 +69,7 @@ public abstract class AbstractInputFile extends Input {
   public void init() throws Exception {
     LOG.info("init() called");
     
-    checkPointExtension = LogFeederUtil.getStringProperty(InputManager.CHECKPOINT_EXTENSION_PROPERTY,
-        InputManager.DEFAULT_CHECKPOINT_EXTENSION);
+    checkPointExtension = LogFeederPropertiesUtil.getCheckPointExtension();
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);

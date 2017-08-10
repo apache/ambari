@@ -19,7 +19,6 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +43,6 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.easymock.EasyMockSupport;
 import org.junit.Rule;
@@ -173,13 +171,9 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     clusterHostMap.put("host1", createMock(Host.class));
 
     final ServiceComponentHost serviceComponentHost = createMock(ServiceComponentHost.class);
-    expect(serviceComponentHost.getSecurityState()).andReturn(SecurityState.SECURING).anyTimes();
     expect(serviceComponentHost.getServiceName()).andReturn("SERVICE1").anyTimes();
     expect(serviceComponentHost.getServiceComponentName()).andReturn("COMPONENT1A").anyTimes();
     expect(serviceComponentHost.getHostName()).andReturn("host1").anyTimes();
-    expect(serviceComponentHost.getDesiredSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
-    serviceComponentHost.setSecurityState(SecurityState.SECURED_KERBEROS);
-    expectLastCall().once();
 
     final List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     serviceComponentHosts.add(serviceComponentHost);

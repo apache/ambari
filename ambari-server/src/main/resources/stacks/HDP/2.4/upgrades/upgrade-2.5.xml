@@ -480,6 +480,7 @@
     </group>
 
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
+      <scope>COMPLETE</scope>
       <execute-stage title="Update remaining HDP stack to {{version}}">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>

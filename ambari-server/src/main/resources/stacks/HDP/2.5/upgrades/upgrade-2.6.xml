@@ -1101,6 +1101,7 @@
           <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
           <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts"/>
           <task xsi:type="configure" id="atlas_env_gc_worker"/>
+          <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

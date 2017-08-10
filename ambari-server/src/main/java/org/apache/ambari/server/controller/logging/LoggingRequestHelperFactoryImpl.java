@@ -36,15 +36,19 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
 
   private static final Logger LOG = Logger.getLogger(LoggingRequestHelperFactoryImpl.class);
 
-  private static final String LOGSEARCH_ENV_CONFIG_TYPE_NAME = "logsearch-env";
+  private static final String LOGSEARCH_PROPERTIES_CONFIG_TYPE_NAME = "logsearch-properties";
 
   private static final String LOGSEARCH_SERVICE_NAME = "LOGSEARCH";
 
   private static final String LOGSEARCH_SERVER_COMPONENT_NAME = "LOGSEARCH_SERVER";
 
-  private static final String LOGSEARCH_UI_PORT_PROPERTY_NAME = "logsearch_ui_port";
+  private static final String LOGSEARCH_HTTP_PORT_PROPERTY_NAME = "logsearch.http.port";
 
-  private static final String LOGSEARCH_UI_PROTOCOL = "logsearch_ui_protocol";
+  private static final String LOGSEARCH_HTTPS_PORT_PROPERTY_NAME = "logsearch.https.port";
+
+  private static final String LOGSEARCH_UI_PROTOCOL = "logsearch.protocol";
+
+  private static final String LOGSEARCH_HTTPS_PROTOCOL_VALUE = "https";
 
   @Inject
   private Configuration ambariServerConfiguration;
@@ -73,7 +77,7 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
         }
 
         Config logSearchEnvConfig =
-          cluster.getDesiredConfigByType(LOGSEARCH_ENV_CONFIG_TYPE_NAME);
+          cluster.getDesiredConfigByType(LOGSEARCH_PROPERTIES_CONFIG_TYPE_NAME);
 
         List<ServiceComponentHost> listOfMatchingHosts =
           cluster.getServiceComponentHosts(LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME);
@@ -97,10 +101,13 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
         }
 
         final String logSearchHostName = serviceComponentHost.getHostName();
-        final String logSearchPortNumber =
-          logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PORT_PROPERTY_NAME);
+
         final String logSearchProtocol =
           logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PROTOCOL);
+
+        final String logSearchPortNumber = LOGSEARCH_HTTPS_PROTOCOL_VALUE.equalsIgnoreCase(logSearchProtocol)
+          ? logSearchEnvConfig.getProperties().get(LOGSEARCH_HTTPS_PORT_PROPERTY_NAME)
+          : logSearchEnvConfig.getProperties().get(LOGSEARCH_HTTP_PORT_PROPERTY_NAME);
 
         final LoggingRequestHelperImpl loggingRequestHelper = new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, logSearchProtocol, ambariManagementController.getCredentialStoreService(), cluster);
         // set configured timeouts for the Ambari connection to the LogSearch Portal service

@@ -27,22 +27,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Singleton;
 
@@ -74,25 +73,11 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
   }
 
   /**
-   * Verifies that the check can be run.  If the stack is HDP and 2.3 or higher, allow
-   * this to run.  If the stack is not HDP, the check should run.
+   * {@inheritDoc}
    */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request, Arrays.asList("RANGER"), true)) {
-      return false;
-    }
-
-    Service service = getCluster(request).getService("RANGER");
-
-    StackId stackId = service.getDesiredStackId();
-    if (stackId.getStackName().equals("HDP")) {
-      String sourceVersion = request.getSourceStackId().getStackVersion();
-
-      return VersionUtils.compareVersions(sourceVersion, "2.3.0.0") >= 0;
-    }
-
-    return true;
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet("RANGER");
   }
 
   @Override
@@ -293,7 +278,7 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
    */
   private boolean checkRangerUser(URLStreamProvider streamProvider, String rangerUserUrl,
       String username, String password, String userToSearch, PrerequisiteCheck check,
-      PrereqCheckRequest request, List<String> warnReasons) {
+      PrereqCheckRequest request, List<String> warnReasons) throws AmbariException {
 
     String url = String.format("%s?name=%s", rangerUserUrl, userToSearch);
 

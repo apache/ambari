@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.metadata;
 
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
@@ -46,7 +46,7 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
   @Inject
   private Clusters clusters;
 
-  private Map<Integer, RoleCommandOrder> rcoMap = new HashMap<>();
+  private Map<Integer, RoleCommandOrder> rcoMap = new ConcurrentHashMap<>();
 
   @Inject
   public CachedRoleCommandOrderProvider() {
@@ -124,4 +124,10 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
     return rco;
   }
 
+  /**
+   * Clear all entries - used after an upgrade
+   */
+  public void clearRoleCommandOrderCache() {
+    rcoMap.clear();
+  }
 }

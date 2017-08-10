@@ -413,6 +413,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
     if (currentVersion) {
       this.set('currentVersion', {
+        stack_name: currentVersion.get('repositoryVersion.stackVersionType'),
         repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
         repository_name: currentVersion.get('repositoryVersion.displayName'),
         id: currentVersion.get('repositoryVersion.id')
@@ -959,7 +960,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.get('upgradeMethods').forEach(function (method) {
       if (method.get('allowed')) {
         this.runPreUpgradeCheckOnly({
-          value: version.get('repositoryVersion'),
+          value: version.get('id'),
           label: version.get('displayName'),
           type: method.get('type')
         });
@@ -1090,7 +1091,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         },
         rerunCheck: function (event) {
           self.runPreUpgradeCheckOnly({
-            value: version.get('repositoryVersion'),
+            value: version.get('id'),
             label: version.get('displayName'),
             type: event.context.get('type')
           });
@@ -1126,7 +1127,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             bypassedFailures: bypassedFailures,
             callback: function () {
               self.runPreUpgradeCheckOnly.call(self, {
-                value: version.get('repositoryVersion'),
+                value: version.get('id'),
                 label: version.get('displayName'),
                 type: event.context.get('type')
               });
@@ -1375,7 +1376,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   runPreUpgradeCheck: function(version) {
     var params = {
-      value: version.get('repositoryVersion'),
+      value: version.get('id'),
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',

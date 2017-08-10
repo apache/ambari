@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_DESIRED_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SECURITY_STATE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_DESIRED_STATE_TABLE;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -177,6 +181,10 @@ public class UpgradeCatalog300Test {
     dbAccessor.addColumn(eq(UpgradeCatalog300.CLUSTER_CONFIG_TABLE), capture(clusterConfigSelectedTimestampColumn));
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
 
+    dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
+    dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
+    dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
+
     // component table
     Capture<DBAccessor.DBColumnInfo> componentStateColumn = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog300.COMPONENT_TABLE), capture(componentStateColumn));
@@ -331,9 +339,9 @@ public class UpgradeCatalog300Test {
     Map<String, String> expectedLogFeederLog4j = ImmutableMap.of(
         "content", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
 
-    Config mockLogFeederLog4j = easyMockSupport.createNiceMock(Config.class);
-    expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
-    expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
+    Config logFeederLog4jConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(logFeederLog4jConf).atLeastOnce();
+    expect(logFeederLog4jConf.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
     Capture<Map<String, String>> logFeederLog4jCapture = EasyMock.newCapture();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
@@ -344,45 +352,75 @@ public class UpgradeCatalog300Test {
     Map<String, String> expectedLogSearchLog4j = ImmutableMap.of(
         "content", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
 
-    Config mockLogSearchLog4j = easyMockSupport.createNiceMock(Config.class);
-    expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
-    expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
+    Config logSearchLog4jConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(logSearchLog4jConf).atLeastOnce();
+    expect(logSearchLog4jConf.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
     Capture<Map<String, String>> logSearchLog4jCapture = EasyMock.newCapture();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogSearchServiceLogsConf = ImmutableMap.of(
-      "content", "<before/><requestHandler name=\"/admin/\"   class=\"solr.admin.AdminHandlers\" /><after/>");
+        "content", "<before/><requestHandler name=\"/admin/\"   class=\"solr.admin.AdminHandlers\" /><after/>");
 
     Map<String, String> expectedLogSearchServiceLogsConf = ImmutableMap.of(
-      "content", "<before/><after/>");
+        "content", "<before/><after/>");
 
-    Config confLogSearchServiceLogsConf = easyMockSupport.createNiceMock(Config.class);
-    expect(cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig")).andReturn(confLogSearchServiceLogsConf).atLeastOnce();
-    expect(confLogSearchServiceLogsConf.getProperties()).andReturn(oldLogSearchServiceLogsConf).anyTimes();
+    Config logSearchServiceLogsConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig")).andReturn(logSearchServiceLogsConf).atLeastOnce();
+    expect(logSearchServiceLogsConf.getProperties()).andReturn(oldLogSearchServiceLogsConf).anyTimes();
     Capture<Map<String, String>> logSearchServiceLogsConfCapture = EasyMock.newCapture();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchServiceLogsConfCapture), anyString(),
-      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogSearchAuditLogsConf = ImmutableMap.of(
-      "content", "<before/><requestHandler name=\"/admin/\"   class=\"solr.admin.AdminHandlers\" /><after/>");
+        "content", "<before/><requestHandler name=\"/admin/\"   class=\"solr.admin.AdminHandlers\" /><after/>");
 
     Map<String, String> expectedLogSearchAuditLogsConf = ImmutableMap.of(
-      "content", "<before/><after/>");
+        "content", "<before/><after/>");
 
-    Config confLogSearchAuditLogsConf = easyMockSupport.createNiceMock(Config.class);
-    expect(cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig")).andReturn(confLogSearchAuditLogsConf).atLeastOnce();
-    expect(confLogSearchAuditLogsConf.getProperties()).andReturn(oldLogSearchAuditLogsConf).anyTimes();
+    Config logSearchAuditLogsConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig")).andReturn(logSearchAuditLogsConf).atLeastOnce();
+    expect(logSearchAuditLogsConf.getProperties()).andReturn(oldLogSearchAuditLogsConf).anyTimes();
     Capture<Map<String, String>> logSearchAuditLogsConfCapture = EasyMock.newCapture();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchAuditLogsConfCapture), anyString(),
-      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogFeederOutputConf = ImmutableMap.of(
+        "content",
+        "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
+        "      \"collection\":\"{{logsearch_solr_collection_service_logs}}\",\n" +
+        "      \"number_of_shards\": \"{{logsearch_collection_service_logs_numshards}}\",\n" +
+        "      \"splits_interval_mins\": \"{{logsearch_service_logs_split_interval_mins}}\",\n" +
+        "\n" +
+        "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
+        "      \"collection\":\"{{logsearch_solr_collection_audit_logs}}\",\n" +
+        "      \"number_of_shards\": \"{{logsearch_collection_audit_logs_numshards}}\",\n" +
+        "      \"splits_interval_mins\": \"{{logsearch_audit_logs_split_interval_mins}}\",\n"
+    );
+
+    Map<String, String> expectedLogFeederOutputConf = ImmutableMap.of(
+        "content",
+        "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
+        "      \"type\": \"service\",\n" +
+        "\n" +
+        "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
+        "      \"type\": \"audit\",\n"
+    );
+
+    Config logFeederOutputConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-output-config")).andReturn(logFeederOutputConf).atLeastOnce();
+    expect(logFeederOutputConf.getProperties()).andReturn(oldLogFeederOutputConf).anyTimes();
+    Capture<Map<String, String>> logFeederOutputConfCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederOutputConfCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
     replay(controller, injector2);
     replay(confSomethingElse1, confSomethingElse2, confLogSearchConf1, confLogSearchConf2);
     replay(logSearchPropertiesConf, logFeederPropertiesConf);
-    replay(mockLogFeederLog4j, mockLogSearchLog4j);
-    replay(confLogSearchServiceLogsConf, confLogSearchAuditLogsConf);
+    replay(logFeederLog4jConf, logSearchLog4jConf);
+    replay(logSearchServiceLogsConf, logSearchAuditLogsConf);
+    replay(logFeederOutputConf);
     new UpgradeCatalog300(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
@@ -409,5 +447,8 @@ public class UpgradeCatalog300Test {
 
     Map<String, String> updatedAuditLogsConf = logSearchAuditLogsConfCapture.getValue();
     assertTrue(Maps.difference(expectedLogSearchAuditLogsConf, updatedAuditLogsConf).areEqual());
+
+    Map<String, String> updatedLogFeederOutputConf = logFeederOutputConfCapture.getValue();
+    assertTrue(Maps.difference(expectedLogFeederOutputConf, updatedLogFeederOutputConf).areEqual());
   }
 }

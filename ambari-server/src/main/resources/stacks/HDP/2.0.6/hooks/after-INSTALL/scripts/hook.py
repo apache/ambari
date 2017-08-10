@@ -28,7 +28,7 @@ class AfterInstallHook(Hook):
     import params
 
     env.set_params(params)
-    setup_stack_symlinks()
+    setup_stack_symlinks(self.stroutfile)
     setup_config()
 
     link_configs(self.stroutfile)

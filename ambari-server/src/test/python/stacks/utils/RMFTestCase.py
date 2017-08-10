@@ -109,6 +109,9 @@ class RMFTestCase(TestCase):
     if "stack_features" not in self.config_dict["configurations"]["cluster-env"]:
       self.config_dict["configurations"]["cluster-env"]["stack_features"] = RMFTestCase.get_stack_features()
 
+    if "stack_packages" not in self.config_dict["configurations"]["cluster-env"]:
+      self.config_dict["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
+
     if config_overrides:
       for key, value in config_overrides.iteritems():
         self.config_dict[key] = value
@@ -189,6 +192,15 @@ class RMFTestCase(TestCase):
     """
     stack_features_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACKS, "2.0.6", "properties", "stack_features.json")
     with open(stack_features_file, "r") as f:
+      return f.read()
+
+  @staticmethod
+  def get_stack_packages():
+    """
+    Read stack_packages config property from resources/stacks/HDP/2.0.6/properties/stack_packages.json
+    """
+    stack_packages_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACKS, "2.0.6", "properties", "stack_packages.json")
+    with open(stack_packages_file, "r") as f:
       return f.read()
 
   @staticmethod

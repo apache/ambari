@@ -48,6 +48,12 @@
     <name>zookeeper.connect</name>
     <value>localhost:2181</value>
     <description>Used for repository creation on ranger admin</description>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>

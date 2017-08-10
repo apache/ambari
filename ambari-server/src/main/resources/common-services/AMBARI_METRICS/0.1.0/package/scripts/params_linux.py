@@ -26,6 +26,7 @@ from resource_management.core.shell import as_user
 from ambari_commons import OSCheck
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 
 config = Script.get_config()
 
@@ -36,6 +37,11 @@ ams_user = config['configurations']['ams-env']['ambari_metrics_user']
 rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
+
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+
+major_stack_version = get_major_version(stack_version_formatted)
 
 #hadoop params
 if rpm_version is not None:

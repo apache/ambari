@@ -50,6 +50,7 @@ class StackFeature:
   FALCON_EXTENSIONS = "falcon_extensions"
   DATANODE_NON_ROOT = "datanode_non_root"
   SECURE_ZOOKEEPER = "secure_zookeeper"
+  HADOOP_CUSTOM_EXTENSIONS = "hadoop_custom_extensions"
   REMOVE_RANGER_HDFS_PLUGIN_ENV = "remove_ranger_hdfs_plugin_env"
   RANGER = "ranger"
   RANGER_TAGSYNC_COMPONENT = "ranger_tagsync_component"
@@ -119,3 +120,4 @@ class StackFeature:
   SECURE_RANGER_SSL_PASSWORD = "secure_ranger_ssl_password"
   RANGER_KMS_SSL = "ranger_kms_ssl"
   KAFKA_ACL_MIGRATION_SUPPORT = "kafka_acl_migration_support"
+  ATLAS_CORE_SITE_SUPPORT="atlas_core_site_support"

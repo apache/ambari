@@ -79,38 +79,6 @@ class UpgradeSetAll(Script):
           link_config(dir_def['conf_dir'], dir_def['current_dir'])
 
 
-  def _unlink_config(self, original_conf_directory):
-    """
-    Reverses the work performed in link_config. This should only be used when downgrading from
-    HDP 2.3 to 2.2 in order to undo the conf symlink work required for 2.3.
-
-    1. Checks if conf.backup exists, if not then do no work
-    2. Check for existance of 'etc' symlink and remove it
-    3. Rename conf.back back to conf
-
-    :original_conf_directory: the original conf directory that was made into a symlink (/etc/component/conf)
-    """
-    # calculate the parent and backup directories
-    original_conf_parent_directory = os.path.abspath(os.path.join(original_conf_directory, os.pardir))
-    backup_conf_directory = os.path.join(original_conf_parent_directory, "conf.backup")
-    Logger.info("Analyzing potential link {0}".format(original_conf_directory))
-
-    if os.path.islink(original_conf_directory):
-      # remove the old symlink
-      Execute(("rm", original_conf_directory), sudo=True)
-    elif os.path.isdir(original_conf_directory):
-      Directory(original_conf_directory, action="delete")
-    else:
-      Logger.info("  Skipping the unlink of {0}; it is not a symlink or does not exist".format(original_conf_directory))
-
-    if os.path.isdir(backup_conf_directory):
-      # rename the backup to the original name
-      Logger.info("  Unlinking {0} and restoring {1}".format(original_conf_directory, backup_conf_directory))
-      Execute(("mv", backup_conf_directory, original_conf_directory), sudo=True)
-    else:
-      Logger.info("  Skipping restoring config from backup {0} since it does not exist".format(backup_conf_directory))
-
-
 def is_host_skippable(stack_selector_path, formatted_version):
   """
   Gets whether this host should not have the stack select tool called.

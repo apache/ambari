@@ -117,7 +117,7 @@
                 },
                 "group": {
                   "name": "${cluster-env/user_group}",
-                  "access": ""
+                  "access": "r"
                 },
                 "configuration": "hive-interactive-site/hive.llap.zk.sm.keytab.file"
               },
