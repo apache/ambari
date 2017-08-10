@@ -1444,6 +1444,83 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
+                                       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName,
+                                       String sourceConditionFieldName, String condition, Object initialValue) throws SQLException {
+
+    if (tableHasColumn(sourceTableName, sourceIDFieldName) &&
+        tableHasColumn(sourceTableName, sourceColumn.getName()) &&
+        tableHasColumn(sourceTableName, sourceConditionFieldName) &&
+        tableHasColumn(targetTableName, targetIDFieldName)
+        ) {
+
+      final String moveSQL = dbmsHelper.getCopyColumnToAnotherTableStatement(sourceTableName, sourceColumn.getName(),
+          sourceIDFieldName, targetTableName, targetColumn.getName(), targetIDFieldName, sourceConditionFieldName, condition);
+      final boolean isTargetColumnNullable = targetColumn.isNullable();
+
+      targetColumn.setNullable(true);  // setting column nullable by default to move rows with null
+
+      addColumn(targetTableName, targetColumn);
+      executeUpdate(moveSQL, false);
+
+      if (initialValue != null) {
+        String updateSQL = dbmsHelper.getColumnUpdateStatementWhereColumnIsNull(convertObjectName(targetTableName),
+            convertObjectName(targetColumn.getName()), convertObjectName(targetColumn.getName()));
+
+        executePreparedUpdate(updateSQL, initialValue);
+      }
+
+      if (!isTargetColumnNullable) {
+        setColumnNullable(targetTableName, targetColumn.getName(), false);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName1, String sourceIDFieldName2, String sourceIDFieldName3,
+                                       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName1, String targetIDFieldName2, String targetIDFieldName3,
+                                       String sourceConditionFieldName, String condition, Object initialValue) throws SQLException {
+
+    if (tableHasColumn(sourceTableName, sourceIDFieldName1) &&
+        tableHasColumn(sourceTableName, sourceIDFieldName2) &&
+        tableHasColumn(sourceTableName, sourceIDFieldName3) &&
+        tableHasColumn(sourceTableName, sourceColumn.getName()) &&
+        tableHasColumn(sourceTableName, sourceConditionFieldName) &&
+        tableHasColumn(targetTableName, targetIDFieldName1) &&
+        tableHasColumn(targetTableName, targetIDFieldName2) &&
+        tableHasColumn(targetTableName, targetIDFieldName3)
+        ) {
+
+      final String moveSQL = dbmsHelper.getCopyColumnToAnotherTableStatement(sourceTableName, sourceColumn.getName(),
+          sourceIDFieldName1, sourceIDFieldName2, sourceIDFieldName3, targetTableName, targetColumn.getName(),
+          targetIDFieldName1, targetIDFieldName2, targetIDFieldName3, sourceConditionFieldName, condition);
+      final boolean isTargetColumnNullable = targetColumn.isNullable();
+
+      targetColumn.setNullable(true);  // setting column nullable by default to move rows with null
+
+      addColumn(targetTableName, targetColumn);
+      executeUpdate(moveSQL, false);
+
+      if (initialValue != null) {
+        String updateSQL = dbmsHelper.getColumnUpdateStatementWhereColumnIsNull(convertObjectName(targetTableName),
+            convertObjectName(targetColumn.getName()), convertObjectName(targetColumn.getName()));
+
+        executePreparedUpdate(updateSQL, initialValue);
+      }
+
+      if (!isTargetColumnNullable) {
+        setColumnNullable(targetTableName, targetColumn.getName(), false);
+      }
+    }
+  }
+
+  /**
    * Remove all rows from the table
    *
    * @param tableName name of the table

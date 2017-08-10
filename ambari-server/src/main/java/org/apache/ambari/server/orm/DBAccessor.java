@@ -681,6 +681,51 @@ public interface DBAccessor {
        String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, Object initialValue) throws SQLException;
 
   /**
+   * Copy column from {@code targetTable} by matching
+   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
+   * and condition {@code sourceConditionFieldName} = {@code condition}
+   *
+   * @param sourceTableName          the source table name
+   * @param sourceColumn             the source column name
+   * @param sourceIDFieldName        the source id key filed name matched with {@code targetIDFieldName}
+   * @param targetTableName          the target table name
+   * @param targetColumn             the target column name
+   * @param targetIDFieldName        the target id key name matched with {@code sourceIDFieldName}
+   * @param sourceConditionFieldName source key column name which should match {@code condition}
+   * @param condition                value which should match {@code sourceConditionFieldName}
+   * @param initialValue             initial value for null-contained cells
+   * @throws SQLException
+   */
+  void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
+                                String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName,
+                                String sourceConditionFieldName, String condition, Object initialValue) throws SQLException;
+
+
+  /**
+   * Copy column from {@code targetTable} by matching
+   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
+   * and condition {@code sourceConditionFieldName} = {@code condition}
+   *
+   * @param sourceTableName          the source table name
+   * @param sourceColumn             the source column name
+   * @param sourceIDFieldName1       the source id key filed name matched with {@code targetIDFieldName1}
+   * @param sourceIDFieldName2       the source id key filed name matched with {@code targetIDFieldName2}
+   * @param sourceIDFieldName3       the source id key filed name matched with {@code targetIDFieldName3}
+   * @param targetTableName          the target table name
+   * @param targetColumn             the target column name
+   * @param targetIDFieldName1       the target id key name matched with {@code sourceIDFieldName1}
+   * @param targetIDFieldName2       the target id key name matched with {@code sourceIDFieldName2}
+   * @param targetIDFieldName3       the target id key name matched with {@code sourceIDFieldName3}
+   * @param sourceConditionFieldName source key column name which should match {@code condition}
+   * @param condition                value which should match {@code sourceConditionFieldName}
+   * @param initialValue             initial value for null-contained cells
+   * @throws SQLException
+   */
+  void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName1, String sourceIDFieldName2, String sourceIDFieldName3,
+                                String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName1, String targetIDFieldName2, String targetIDFieldName3,
+                                String sourceConditionFieldName, String condition, Object initialValue) throws SQLException;
+
+  /**
    * Remove all rows from the table
    * @param tableName name of the table
    */
