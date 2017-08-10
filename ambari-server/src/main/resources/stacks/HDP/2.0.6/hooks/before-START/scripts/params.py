@@ -331,7 +331,7 @@ if dfs_ha_enabled:
      namenode_rpc = nn_host
    pass
  pass
-elif 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
+elif 'hdfs-site' in config['configurations'] and 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
   namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
 else:
   namenode_rpc = default('/configurations/core-site/fs.defaultFS', None)
@@ -341,7 +341,7 @@ if namenode_rpc:
  try:
    nn_rpc_client_port = int(port_str)
  except ValueError:
-   nn_rpc_client_port = None
+   pass
 
 if dfs_ha_enabled:
  dfs_service_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.servicerpc-address.{dfs_ha_nameservices}.{namenode_id}'), None)
