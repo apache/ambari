@@ -35,7 +35,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
-import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
@@ -202,12 +201,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
 
-      // Clear any cached RCO data after version upgrade
-      if (roleCommandOrderProvider instanceof CachedRoleCommandOrderProvider) {
-        CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider;
-        cachedRcoProvider.clearRoleCommandOrderCache();
-      }
-
       // the upgrade is done!
       versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
 
@@ -329,12 +322,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
-
-      // Clear any cached RCO data after version upgrade
-      if (roleCommandOrderProvider instanceof CachedRoleCommandOrderProvider) {
-        CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider;
-        cachedRcoProvider.clearRoleCommandOrderCache();
-      }
 
       message = String.format("The downgrade from %s has completed.", downgradeFromVersion);
       outSB.append(message).append(System.lineSeparator());
