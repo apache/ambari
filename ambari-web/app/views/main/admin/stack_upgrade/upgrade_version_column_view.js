@@ -31,6 +31,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
 
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
+    App.tooltip($('.not-upgradable'), {title: Em.I18n.t('admin.stackVersions.version.service.notUpgradable')});
     if (!this.get('content.isCompatible')) {
       App.tooltip(this.$(".repo-version-tooltip"), {
         title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')
@@ -51,15 +52,18 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
 
   services: function() {
     var originalServices = this.get('content.stackServices');
+    var isStandard = this.get('content.isStandard');
     // sort the services in the order the same as service menu
     return App.Service.find().map(function (service) {
       var stackService = originalServices.findProperty('name', service.get('serviceName'));
+      var isAvailable = this.isStackServiceAvailable(stackService);
       return Em.Object.create({
         displayName: service.get('displayName'),
         name: service.get('serviceName'),
         latestVersion: stackService ? stackService.get('latestVersion') : '',
         isVersionInvisible: !stackService,
-        isAvailable: this.isStackServiceAvailable(stackService)
+        notUpgradable: !this.get('content.isStandard')  && isAvailable && !stackService.get('isUpgradable'),
+        isAvailable: isAvailable
       });
     }, this);
   }.property(),
