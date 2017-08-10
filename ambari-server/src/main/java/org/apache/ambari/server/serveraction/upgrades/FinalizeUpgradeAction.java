@@ -34,6 +34,7 @@ import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
@@ -112,6 +113,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
   @Inject
   VersionEventPublisher versionEventPublisher;
+
+  @Inject
+  private RoleCommandOrderProvider roleCommandOrderProvider;
 
   /**
    * Used for building {@link UpgradeContext} instances.

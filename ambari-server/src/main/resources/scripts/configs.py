@@ -30,7 +30,7 @@ import xml.etree.ElementTree as ET
 import os
 import logging
 
-logger = logging.getLogger('AmbariTakeoverConfigMerge')
+logger = logging.getLogger('AmbariConfig')
 
 HTTP_PROTOCOL = 'http'
 HTTPS_PROTOCOL = 'https'
