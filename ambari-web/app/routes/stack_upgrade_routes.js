@@ -72,7 +72,9 @@ module.exports = App.WizardRoute.extend({
               App.router.get('updateController').set('isWorking', true);
               App.router.transitionTo('main.admin.stackAndUpgrade.versions');
               this.hide();
-              location.reload();
+              if (['NOT_REQUIRED', 'COMPLETED'].contains(App.get('upgradeState'))) {
+                location.reload();
+              }
             }
           });
         });

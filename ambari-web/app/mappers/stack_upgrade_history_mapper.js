@@ -24,6 +24,7 @@ App.stackUpgradeHistoryMapper = App.QuickDataMapper.create({
   config: {
     "id": "Upgrade.request_id",
     "request_id": "Upgrade.request_id",
+    "upgrade_id": "Upgrade.upgrade_id",
     "cluster_name": "Upgrade.cluster_name",
     "direction": "Upgrade.direction",
     "associated_version": "Upgrade.associated_version",

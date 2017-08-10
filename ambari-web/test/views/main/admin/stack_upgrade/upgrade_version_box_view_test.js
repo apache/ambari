@@ -367,6 +367,19 @@ describe('App.UpgradeVersionBoxView', function () {
       },
       {
         inputData: {
+          'content.status': 'CURRENT',
+          'content.isPatch': true
+        },
+        expected: {
+          status: 'CURRENT',
+          isButton: true,
+          text: Em.I18n.t('common.revert'),
+          action: 'confirmRevertPatchUpgrade'
+        },
+        title: 'current patch version'
+      },
+      {
+        inputData: {
           'content.status': 'NOT_REQUIRED',
           'controller.requestInProgress': false,
           'parentView.repoVersions': [
