@@ -276,46 +276,52 @@ export class FilteringService {
 
   filtersForm = new FormGroup(this.filtersFormItems);
 
+  private getStartTime(value: any, current: string): string {
+    let time;
+    if (value) {
+      const endTime = moment(moment(current).valueOf());
+      switch (value.type) {
+        case 'LAST':
+          time = endTime.subtract(value.interval, value.unit);
+          break;
+        case 'CURRENT':
+          time = moment().tz(this.timeZone).startOf(value.unit);
+          break;
+        case 'PAST':
+          time = endTime.startOf(value.unit);
+          break;
+        default:
+          break;
+      }
+    }
+    return time ? time.toISOString() : '';
+  }
+
+  private getEndTime(value: any): string {
+    let time;
+    if (value) {
+      switch (value.type) {
+        case 'LAST':
+          time = moment();
+          break;
+        case 'CURRENT':
+          time = moment().tz(this.timeZone).endOf(value.unit);
+          break;
+        case 'PAST':
+          time = moment().tz(this.timeZone).startOf(value.unit).millisecond(-1);
+          break;
+        default:
+          break;
+      }
+    }
+    return time ? time.toISOString() : '';
+  }
+
   readonly valueGetters = {
-    end_time: value => {
-      let time;
-      if (value) {
-        switch (value.type) {
-          case 'LAST':
-            time = moment();
-            break;
-          case 'CURRENT':
-            time = moment().tz(this.timeZone).endOf(value.unit);
-            break;
-          case 'PAST':
-            time = moment().tz(this.timeZone).startOf(value.unit).millisecond(-1);
-            break;
-          default:
-            break;
-        }
-      }
-      return time ? time.toISOString() : '';
-    },
-    start_time: (value, current) => {
-      let time;
-      if (value) {
-        const endTime = moment(moment(current).valueOf());
-        switch (value.type) {
-          case 'LAST':
-            time = endTime.subtract(value.interval, value.unit);
-            break;
-          case 'CURRENT':
-            time = moment().tz(this.timeZone).startOf(value.unit);
-            break;
-          case 'PAST':
-            time = endTime.startOf(value.unit);
-            break;
-          default:
-            break;
-        }
-      }
-      return time ? time.toISOString() : '';
-    },
+    end_time: this.getEndTime.bind(this),
+    start_time: this.getStartTime.bind(this),
+    to: this.getEndTime.bind(this),
+    from: this.getStartTime.bind(this),
     sortType: value => value && value.type,
     sortBy: value => value && value.key,
     page: value => value == null ? value : value.toString()

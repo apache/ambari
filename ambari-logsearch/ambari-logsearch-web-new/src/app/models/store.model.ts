@@ -42,7 +42,7 @@ export interface AppStore {
   appState: AppState;
   auditLogs: AuditLog[];
   serviceLogs: ServiceLog[];
-  barGraphs: BarGraph[];
+  serviceLogsHistogramData: BarGraph[];
   graphs: Graph[];
   nodes: Node[];
   userConfigs: UserConfig[];

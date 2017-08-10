@@ -27,6 +27,7 @@
     "angular2-moment": "^1.4.0",
     "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",
+    "d3": "^4.10.0",
     "font-awesome": "^4.7.0",
     "jquery": "^1.12.4",
     "moment": "^2.18.1",
@@ -38,7 +39,9 @@
   "devDependencies": {
     "@angular/cli": "1.0.0",
     "@angular/compiler-cli": "^4.0.0",
+    "@types/d3": "^4.10.0",
     "@types/jasmine": "2.5.38",
+    "@types/jquery": "^1.10.33",
     "@types/moment": "^2.13.0",
     "@types/moment-timezone": "^0.2.34",
     "@types/node": "~6.0.60",

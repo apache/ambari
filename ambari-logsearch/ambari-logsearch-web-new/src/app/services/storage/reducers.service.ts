@@ -20,13 +20,13 @@ import {combineReducers} from '@ngrx/store';
 import {appSettings} from '@app/services/storage/app-settings.service';
 import {appState} from '@app/services/storage/app-state.service';
 import {auditLogs} from '@app/services/storage/audit-logs.service';
-import {barGraphs} from '@app/services/storage/bar-graphs.service';
 import {clusters} from '@app/services/storage/clusters.service';
 import {components} from '@app/services/storage/components.service';
 import {filters} from '@app/services/storage/filters.service';
 import {graphs} from '@app/services/storage/graphs.service';
 import {nodes} from '@app/services/storage/nodes.service';
 import {serviceLogs} from '@app/services/storage/service-logs.service';
+import {serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {userConfigs} from '@app/services/storage/user-configs.service';
 
 export const reducers = {
@@ -34,7 +34,7 @@ export const reducers = {
   appState,
   auditLogs,
   serviceLogs,
-  barGraphs,
+  serviceLogsHistogramData,
   graphs,
   nodes,
   userConfigs,

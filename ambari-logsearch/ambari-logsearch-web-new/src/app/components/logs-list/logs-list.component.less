@@ -17,125 +17,119 @@
 
 @import '../variables';
 
-:host {
-  display: block;
+.logs-header {
+  // TODO get rid of magic numbers, base on actual design
+  margin: 10px 0;
+  padding: 5px 0;
+  background-color: @list-header-background-color; // TODO implement actual color
   overflow: hidden;
-  padding-top: @block-margin-top;
+  text-transform: uppercase;
+}
 
-  .logs-header {
-    // TODO get rid of magic numbers, base on actual design
-    margin: 10px 0;
-    padding: 5px 0;
-    background-color: @list-header-background-color; // TODO implement actual color
+/deep/ filter-dropdown {
+  justify-content: flex-end;
+}
+
+.hexagon {
+  // TODO get rid of magic numbers, base on actual design
+  left: -7.5px;
+
+  &.fatal {
+    .common-hexagon(15px, @fatal-color);
+  }
+
+  &.error {
+    .common-hexagon(15px, @error-color);
+  }
+
+  &.warn {
+    .common-hexagon(15px, @warning-color);
+  }
+
+  &.info {
+    .common-hexagon(15px, @info-color);
+  }
+
+  &.debug {
+    .common-hexagon(15px, @debug-color);
+  }
+
+  &.trace {
+    .common-hexagon(15px, @trace-color);
+  }
+
+  &.unknown {
+    .common-hexagon(15px, @unknown-color);
+  }
+}
+
+.log-status {
+  text-transform: uppercase;
+
+  &.fatal {
+    color: @fatal-color;
+  }
+
+  &.error {
+    color: @error-color;
+  }
+
+  &.warn {
+    color: @warning-color;
+  }
+
+  &.info {
+    color: @info-color;
+  }
+
+  &.debug {
+    color: @debug-color;
+  }
+
+  &.trace {
+    color: @trace-color;
+  }
+
+  &.unknown {
+    color: @unknown-color;
+  }
+}
+
+.log-type {
+  color: @link-color;
+}
+
+.log-time {
+  color: @grey-color;
+}
+
+.log-content-wrapper {
+  position: relative;
+
+  // TODO get rid of magic numbers, base on actual design
+  .log-content {
     overflow: hidden;
-    text-transform: uppercase;
+    max-height: @default-line-height * 2em;
+    padding-right: 65px;
+    white-space: pre-wrap;
   }
 
-  /deep/ filter-dropdown {
-    justify-content: flex-end;
-  }
+  .log-actions {
+    position: absolute;
+    right: 40px;
+    top: 0;
+    border: @input-border;
 
-  .hexagon {
-    // TODO get rid of magic numbers, base on actual design
-    left: -7.5px;
-
-    &.fatal {
-      .common-hexagon(15px, @fatal-color);
+    &.collapsing + .log-content, &.collapse.in + .log-content {
+      min-height: 6em;
+      max-height: none;
+      overflow-x: auto;
     }
 
-    &.error {
-      .common-hexagon(15px, @error-color);
-    }
-
-    &.warn {
-      .common-hexagon(15px, @warning-color);
-    }
-
-    &.info {
-      .common-hexagon(15px, @info-color);
-    }
-
-    &.debug {
-      .common-hexagon(15px, @debug-color);
-    }
-
-    &.trace {
-      .common-hexagon(15px, @trace-color);
-    }
-
-    &.unknown {
-      .common-hexagon(15px, @unknown-color);
-    }
-  }
-
-  .log-status {
-    text-transform: uppercase;
-
-    &.fatal {
-      color: @fatal-color;
-    }
-
-    &.error {
-      color: @error-color;
-    }
-
-    &.warn {
-      color: @warning-color;
-    }
-
-    &.info {
-      color: @info-color;
-    }
-
-    &.debug {
-      color: @debug-color;
-    }
-
-    &.trace {
-      color: @trace-color;
-    }
-
-    &.unknown {
-      color: @unknown-color;
-    }
-  }
-
-  .log-type {
-    color: @link-color;
-  }
-
-  .log-time {
-    color: @grey-color;
-  }
-
-  .log-content-wrapper {
-    position: relative;
-
-    // TODO get rid of magic numbers, base on actual design
-    .log-content {
-      overflow: hidden;
-      max-height: @default-line-height * 2em;
-      padding-right: 65px;
-      white-space: pre-wrap;
-    }
-
-    .log-actions {
-      position: absolute;
-      right: 40px;
-      top: 0;
-      border: @input-border;
-
-      &.collapsing + .log-content, &.collapse.in + .log-content {
-        min-height: 6em;
-        max-height: none;
-        overflow-x: auto;
-      }
-
-      .action-icon {
-        .clickable-item;
-        display: block;
-        padding: 5px;
-      }
+    .action-icon {
+      .clickable-item;
+      display: block;
+      padding: 5px;
     }
   }
 }

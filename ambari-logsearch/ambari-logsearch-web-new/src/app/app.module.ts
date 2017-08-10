@@ -38,7 +38,7 @@ import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
-import {BarGraphsService} from '@app/services/storage/bar-graphs.service';
+import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {GraphsService} from '@app/services/storage/graphs.service';
 import {NodesService} from '@app/services/storage/nodes.service';
 import {UserConfigsService} from '@app/services/storage/user-configs.service';
@@ -62,6 +62,8 @@ import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
 import {PaginationControlsComponent} from '@app/components/pagination-controls/pagination-controls.component';
+import {TimeHistogramComponent} from '@app/components/time-histogram/time-histogram.component';
+import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
 
 export function HttpLoaderFactory(http: Http) {
   // adding 'static' parameter to step over mock data request
@@ -99,7 +101,9 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     LogsListComponent,
     DropdownButtonComponent,
     PaginationComponent,
-    PaginationControlsComponent
+    PaginationControlsComponent,
+    TimeHistogramComponent,
+    LogsContainerComponent
   ],
   imports: [
     BrowserModule,
@@ -127,7 +131,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     AppStateService,
     AuditLogsService,
     ServiceLogsService,
-    BarGraphsService,
+    ServiceLogsHistogramDataService,
     GraphsService,
     NodesService,
     UserConfigsService,

@@ -15,17 +15,17 @@
   limitations under the License.
 -->
 
-<form *ngIf="(logs | async).length" [formGroup]="filtersForm">
+<form *ngIf="logs.length" [formGroup]="filtersForm" class="pull-right">
   <filter-dropdown [label]="filters.sorting.label" formControlName="sorting" [options]="filters.sorting.options"
                    [defaultLabel]="filters.sorting.defaultLabel" isRightAlign="true"></filter-dropdown>
 </form>
-<div class="col-md-12 text-center" *ngIf="(logs | async).length">
+<div class="col-md-12 text-center" *ngIf="logs.length">
   <div class="logs-header">
     <div class="col-md-1">{{'logs.status' | translate}}</div>
     <div class="col-md-11">{{'logs.details' | translate}}</div>
   </div>
 </div>
-<accordion-panel *ngFor="let log of logs | async; let i = index" [toggleId]="'details-' + i" class="col-md-12">
+<accordion-panel *ngFor="let log of logs; let i = index" [toggleId]="'details-' + i" class="col-md-12">
   <ng-template>
     <div [ngClass]="'hexagon ' + log.className"></div>
     <div [ngClass]="'col-md-1 log-status ' + log.className">{{log.level}}</div>
@@ -43,5 +43,5 @@
     </div>
   </ng-template>
 </accordion-panel>
-<pagination class="col-md-12" *ngIf="(logs | async).length" [totalCount]="totalCount" [filtersForm]="filtersForm"
-            [filterInstance]="filters.pageSize" [currentCount]="(logs | async).length"></pagination>
+<pagination class="col-md-12" *ngIf="logs.length" [totalCount]="totalCount" [filtersForm]="filtersForm"
+            [filterInstance]="filters.pageSize" [currentCount]="logs.length"></pagination>

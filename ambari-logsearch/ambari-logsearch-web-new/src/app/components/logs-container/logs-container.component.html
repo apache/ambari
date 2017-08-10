@@ -15,10 +15,5 @@
   limitations under the License.
 -->
 
-<ng-template [ngTemplateOutlet]="template"></ng-template>
-<div *ngIf="isInitialLoading" class="text-center">
-  <span class="fa fa-spinner fa-spin"></span>
-</div>
-<login-form *ngIf="!isInitialLoading && !isAuthorized"></login-form>
-<filters-panel *ngIf="isAuthorized" class="row"></filters-panel>
-<logs-container *ngIf="isAuthorized" logsArrayId="serviceLogs"></logs-container>
+<time-histogram class="col-md-12" [data]="histogramData" [customOptions]="histogramOptions"></time-histogram>
+<logs-list [logs]="logs | async" [totalCount]="totalCount"></logs-list>

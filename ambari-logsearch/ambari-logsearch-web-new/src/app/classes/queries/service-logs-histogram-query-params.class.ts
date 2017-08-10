@@ -16,17 +16,18 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+import {QueryParams} from '@app/classes/queries/query-params.class';
 
-export const modelName = 'serviceLogs';
+export const defaultParams = {
+  unit: '+1HOUR'
+};
 
-@Injectable()
-export class ServiceLogsService extends CollectionModelService {
-  constructor(store: Store<AppStore>) {
-    super(modelName, store);
+export class ServiceLogsHistogramQueryParams extends QueryParams {
+  constructor(options: ServiceLogsHistogramQueryParams) {
+    const finalParams = Object.assign({}, defaultParams, options);
+    super(finalParams);
   }
+  from: string;
+  to: string;
+  unit?: string;
 }
-
-export const serviceLogs = getCollectionReducer(modelName);

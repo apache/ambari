@@ -22,6 +22,7 @@ import 'rxjs/add/operator/first';
 import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams} from '@angular/http';
 import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params.class';
 import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params.class';
+import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params.class';
 import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Injectable()
@@ -44,6 +45,10 @@ export class HttpClientService extends Http {
     serviceLogs: {
       url: 'service/logs',
       params: opts => new ServiceLogsQueryParams(opts)
+    },
+    serviceLogsHistogram: {
+      url: 'service/logs/histogram',
+      params: opts => new ServiceLogsHistogramQueryParams(opts)
     },
     components: {
       url: 'service/logs/components'

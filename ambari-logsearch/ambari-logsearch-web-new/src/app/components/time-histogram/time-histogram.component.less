@@ -16,17 +16,14 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+/deep/ .axis {
+  .domain {
+    display: none;
+  }
 
-export const modelName = 'serviceLogs';
-
-@Injectable()
-export class ServiceLogsService extends CollectionModelService {
-  constructor(store: Store<AppStore>) {
-    super(modelName, store);
+  .tick {
+    line {
+      display: none;
+    }
   }
 }
-
-export const serviceLogs = getCollectionReducer(modelName);

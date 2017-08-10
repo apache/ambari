@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment-timezone';
+import * as moment from 'moment';
 
 export const mockData = {
   login: {},
@@ -564,28 +564,28 @@ export const mockData = {
               {
                 dataCount: [
                   {
-                    name: 'n12',
-                    value: 1000
+                    name: moment().toISOString(),
+                    value: '1000'
                   },
                   {
-                    name: 'n13',
-                    value: 2000
+                    name: moment().add(1, 'h').toISOString(),
+                    value: '2000'
                   }
                 ],
-                name: 'graph6'
+                name: 'ERROR'
               },
               {
                 dataCount: [
                   {
-                    name: 'n14',
-                    value: 700
+                    name: moment().toISOString(),
+                    value: '700'
                   },
                   {
-                    name: 'n15',
-                    value: 900
+                    name: moment().add(1, 'h').toISOString(),
+                    value: '900'
                   }
                 ],
-                name: 'graph7'
+                name: 'WARN'
               }
             ]
           },
