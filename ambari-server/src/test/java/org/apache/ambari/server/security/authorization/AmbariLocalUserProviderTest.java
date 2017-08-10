@@ -36,6 +36,7 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
+import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -153,7 +154,24 @@ public class AmbariLocalUserProviderTest {
     ambariLocalUserProvider.authenticate(authentication);
   }
 
+  @Test(expected = TooManyLoginFailuresException.class)
+  public void testUserIsLockedOutAfterConsecutiveFailures() {
+    Users users = createMock(Users.class);
+    UserDAO userDAO = createMock(UserDAO.class);
+    Authentication authentication = createMock(Authentication.class);
 
+    UserEntity userEntity = combineUserEntity();
+    userEntity.setConsecutiveFailures(3);
+    expect(authentication.getName()).andReturn(TEST_USER_NAME).anyTimes();
+    expect(authentication.getCredentials()).andReturn(TEST_USER_PASS).anyTimes();
+    expect(userDAO.findUserByName(TEST_USER_NAME)).andReturn(userEntity).anyTimes();
+    expect(users.getUserAuthorities(userEntity)).andReturn(null);
+
+    replay(users, userDAO, authentication);
+    AmbariLocalUserProvider ambariLocalUserProvider = new AmbariLocalUserProvider(userDAO, users, passwordEncoder);
+    ambariLocalUserProvider.setMaxConsecutiveFailures(3);
+    ambariLocalUserProvider.authenticate(authentication);
+  }
 
   private UserEntity combineUserEntity() {
     PrincipalEntity principalEntity = new PrincipalEntity();

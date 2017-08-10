@@ -333,6 +333,10 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       request.setAdmin(Boolean.valueOf(properties.get(USER_ADMIN_PROPERTY_ID).toString()));
     }
 
+    if (null != properties.get(USER_CONSECUTIVE_FAILURES_PROPERTY_ID)) {
+      request.setConsecutiveFailures(Integer.parseInt(properties.get(USER_CONSECUTIVE_FAILURES_PROPERTY_ID).toString()));
+    }
+
     return request;
   }
 
@@ -475,6 +479,13 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       // Setting/Changing a user's password here is for backward compatibility to maintain API V1 contract
       if (request.getPassword() != null) {
         addOrUpdateLocalAuthenticationSource(asUserAdministrator, userEntity, request.getPassword(), request.getOldPassword());
+      }
+
+      if (request.getConsecutiveFailures() != null) {
+        if (!asUserAdministrator) {
+          throw new AuthorizationException("The authenticated user is not authorized to update the requested resource property");
+        }
+        users.safelyUpdateUserEntity(userEntity, user -> user.setConsecutiveFailures(request.getConsecutiveFailures()));
       }
     }
   }

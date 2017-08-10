@@ -23,6 +23,7 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
+import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,11 +37,10 @@ import com.google.inject.Inject;
 
 public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationProvider {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariLocalUserProvider.class);
-
   private UserDAO userDAO;
   private Users users;
   private PasswordEncoder passwordEncoder;
-
+  private int maxConsecutiveFailures = 0;
 
   @Inject
   public AmbariLocalUserProvider(UserDAO userDAO, Users users, PasswordEncoder passwordEncoder) {
@@ -73,6 +73,10 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
     if (!userEntity.getActive()) {
       LOG.debug("User account is disabled");
       throw new InvalidUsernamePasswordCombinationException(userName);
+    }
+
+    if (maxConsecutiveFailures > 0 && userEntity.getConsecutiveFailures() >= maxConsecutiveFailures) {
+      throw new TooManyLoginFailuresException(userName);
     }
 
     if (authentication.getCredentials() == null) {
@@ -110,5 +114,9 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
   @Override
   public boolean supports(Class<?> authentication) {
     return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+  }
+
+  public void setMaxConsecutiveFailures(int maxConsecutiveFailures) {
+    this.maxConsecutiveFailures = maxConsecutiveFailures;
   }
 }

@@ -243,7 +243,11 @@ angular.module('ambariAdminConsole')
       });
     });
   };
-
+  $scope.resetLoginFailures = function() {
+    User.resetLoginFailures($scope.user.user_name).then(function() {
+      $scope.user.consecutive_failures = 0;
+    });
+  };
   // Load privileges
   function loadPrivileges(){
     User.getPrivileges($routeParams.id).then(function(data) {

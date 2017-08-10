@@ -302,6 +302,8 @@ angular.module('ambariAdminConsole')
     'users.inactive': 'Inactive',
     'users.status': 'Status',
     'users.password': 'Password',
+    'users.loginFailures': 'Login failures',
+    'users.resetLoginFailures': 'Reset',
     'users.passwordConfirmation': 'Password сonfirmation',
     'users.userIsAdmin': 'This user is an Ambari Admin and has all privileges.',
     'users.showAll': 'Show all users',

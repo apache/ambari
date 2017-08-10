@@ -339,8 +339,9 @@ public class AmbariServer {
         injector.getInstance(PermissionHelper.class));
       factory.registerSingleton("ambariLdapAuthenticationProvider",
         injector.getInstance(AmbariLdapAuthenticationProvider.class));
-      factory.registerSingleton("ambariLocalAuthenticationProvider",
-        injector.getInstance(AmbariLocalUserProvider.class));
+      AmbariLocalUserProvider ambariLocalUserProvider = injector.getInstance(AmbariLocalUserProvider.class);
+      ambariLocalUserProvider.setMaxConsecutiveFailures(configs.getMaxAuthenticationFailures());
+      factory.registerSingleton("ambariLocalAuthenticationProvider", ambariLocalUserProvider);
       factory.registerSingleton("ambariLdapDataPopulator",
         injector.getInstance(AmbariLdapDataPopulator.class));
       factory.registerSingleton("ambariUserAuthorizationFilter",

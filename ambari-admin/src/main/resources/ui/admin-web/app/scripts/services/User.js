@@ -85,6 +85,15 @@ angular.module('ambariAdminConsole')
         }
       });
     },
+    resetLoginFailures: function(userId) {
+      return $http({
+        method: 'PUT',
+        url: Settings.baseUrl + '/users/' + userId,
+        data: {
+          'Users/consecutive_failures': 0
+        }
+      });
+    },
     /**
      * Generate user info to display by response data from API.
      * Generally this is a single point to manage all required and useful data

@@ -125,7 +125,7 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
       AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
           .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
           .withTimestamp(System.currentTimeMillis())
-          .withReasonOfFailure("Invalid username/password combination")
+          .withReasonOfFailure(message)
           .withConsecutiveFailures(consecutiveFailures)
           .withUserName(username)
           .build();

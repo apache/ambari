@@ -2765,6 +2765,15 @@ public class Configuration {
           "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
 
 
+  /**
+   * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
+   */
+  @Markdown(
+    description = "The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures.")
+  public static final ConfigurationProperty<Integer> MAX_LOCAL_AUTHENTICATION_FAILURES = new ConfigurationProperty<>(
+    "authentication.local.max.failures", 10);
+
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -6188,5 +6197,9 @@ public class Configuration {
 
   public String getAutoGroupCreation() {
     return getProperty(AUTO_GROUP_CREATION);
+  }
+
+  public int getMaxAuthenticationFailures() {
+    return Integer.parseInt(getProperty(MAX_LOCAL_AUTHENTICATION_FAILURES));
   }
 }

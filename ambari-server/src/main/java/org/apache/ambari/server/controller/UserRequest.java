@@ -35,6 +35,7 @@ public class UserRequest {
 
   private String displayName;
   private String localUserName;
+  private Integer consecutiveFailures;
 
   public UserRequest(String name) {
     this.userName = name;
@@ -97,6 +98,15 @@ public class UserRequest {
 
   public void setLocalUserName(String localUserName) {
     this.localUserName = localUserName;
+  }
+
+  @ApiModelProperty(name = UserResourceProvider.CONSECUTIVE_FAILURES_PROPERTY_ID)
+  public Integer getConsecutiveFailures() {
+    return consecutiveFailures;
+  }
+
+  public void setConsecutiveFailures(Integer consecutiveFailures) {
+    this.consecutiveFailures = consecutiveFailures;
   }
 
   @Override
