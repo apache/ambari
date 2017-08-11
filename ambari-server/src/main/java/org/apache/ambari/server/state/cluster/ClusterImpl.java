@@ -1819,12 +1819,18 @@ public class ClusterImpl implements Cluster {
     if (serviceConfigEntity.getGroupId() == null) {
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
       List<ClusterConfigEntity> enabledConfigs = clusterDAO.getEnabledConfigsByTypes(clusterId, configTypes);
+      List<ClusterConfigEntity> serviceConfigEntities = serviceConfigEntity.getClusterConfigEntities();
+      ArrayList<ClusterConfigEntity> duplicatevalues = new ArrayList<ClusterConfigEntity>(serviceConfigEntities);
+      duplicatevalues.retainAll(enabledConfigs);
+      enabledConfigs.removeAll(duplicatevalues);
+      serviceConfigEntities.removeAll(duplicatevalues);
+
       for (ClusterConfigEntity enabledConfig : enabledConfigs) {
         enabledConfig.setSelected(false);
         clusterDAO.merge(enabledConfig);
       }
 
-      for (ClusterConfigEntity configEntity : serviceConfigEntity.getClusterConfigEntities()) {
+      for (ClusterConfigEntity configEntity : serviceConfigEntities) {
         configEntity.setSelected(true);
         clusterDAO.merge(configEntity);
       }
