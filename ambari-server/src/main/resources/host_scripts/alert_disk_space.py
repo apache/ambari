@@ -67,7 +67,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     return (('UNKNOWN', ['There were no configurations supplied to the script.']))
 
   if not STACK_NAME in configurations or not STACK_ROOT in configurations:
-    return (('STACK_ROOT', ['cluster-env/stack_name and cluster-env/stack_root are required']))
+    return (('UNKNOWN', ['cluster-env/stack_name and cluster-env/stack_root are required']))
 
   path = stack_tools.get_stack_root(configurations[STACK_NAME], configurations[STACK_ROOT])
 
