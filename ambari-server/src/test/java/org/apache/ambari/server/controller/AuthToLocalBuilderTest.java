@@ -561,4 +561,49 @@ public class AuthToLocalBuilderTest {
 
     assertEquals(existingRules, builder.generate());
   }
+
+  @Test
+  public void testCustomRuleCanBeAddedWithCaseSensitivity() {
+    AuthToLocalBuilder builder = new AuthToLocalBuilder("EXAMPLE.COM", Collections.<String>emptyList(), false)
+      .addRule("yarn/_HOST@EXAMPLE.COM", "yarn")
+      .addRules(
+      "RULE:[1:$1@$0](.*@HDP01.LOCAL)s/.*/ambari-qa//L\n" +
+    "RULE:[2:$1@$0](yarn@EXAMPLE.COM)s/.*/yarn/\n" +
+    "DEFAULT");
+    assertEquals(
+      "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+        "RULE:[1:$1@$0](.*@HDP01.LOCAL)s/.*/ambari-qa//L\n" +
+        "RULE:[2:$1@$0](yarn@EXAMPLE.COM)s/.*/yarn/\n" +
+        "DEFAULT"
+      , builder.generate());
+  }
+
+  @Test
+  public void testCaseSensitivityFlagIsRemovedAfterItWasAddedToAmbariRule() {
+    AuthToLocalBuilder builder = new AuthToLocalBuilder("EXAMPLE.COM", Collections.<String>emptyList(), false)
+      .addRule("yarn/_HOST@EXAMPLE.COM", "yarn")
+      .addRules(
+          "RULE:[2:$1@$0](yarn@EXAMPLE.COM)s/.*/yarn//L\n" +
+          "DEFAULT");
+    assertEquals(
+      "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+        "RULE:[2:$1@$0](yarn@EXAMPLE.COM)s/.*/yarn/\n" +
+        "DEFAULT"
+      , builder.generate());
+  }
+
+  @Test
+  public void testCaseSensitivityFlagIsAddedAfterItWasFromAmbariRule() {
+    AuthToLocalBuilder builder = new AuthToLocalBuilder("EXAMPLE.COM", Collections.<String>emptyList(), true)
+      .addRule("yarn/_HOST@EXAMPLE.COM", "yarn")
+      .addRules(
+          "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+          "RULE:[2:$1@$0](yarn@EXAMPLE.COM)s/.*/yarn/\n" +
+          "DEFAULT");
+    assertEquals(
+      "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*///L\n" +
+        "RULE:[2:$1@$0](yarn@EXAMPLE.COM)s/.*/yarn/\n" +
+        "DEFAULT"
+      , builder.generate());
+  }
 }

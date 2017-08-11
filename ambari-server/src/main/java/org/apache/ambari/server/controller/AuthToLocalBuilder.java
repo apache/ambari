@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +27,12 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * AuthToLocalBuilder helps to create auth_to_local rules for use in configuration files like
@@ -60,7 +64,7 @@ public class AuthToLocalBuilder implements Cloneable {
   /**
    * Ordered set of rules which have been added to the builder.
    */
-  private Set<Rule> setRules = new TreeSet<Rule>();
+  private Set<Rule> setRules = new TreeSet<>();
 
   /**
    * The default realm.
@@ -105,7 +109,7 @@ public class AuthToLocalBuilder implements Cloneable {
 
     this.additionalRealms = (additionalRealms == null)
         ? Collections.<String>emptySet()
-        : Collections.unmodifiableSet(new HashSet<String>(additionalRealms));
+        : Collections.unmodifiableSet(new HashSet<>(additionalRealms));
 
     this.caseInsensitiveUser = caseInsensitiveUserSupport;
   }
@@ -115,7 +119,7 @@ public class AuthToLocalBuilder implements Cloneable {
     AuthToLocalBuilder copy = (AuthToLocalBuilder) super.clone();
 
     /* **** Copy mutable members **** */
-    copy.setRules = new TreeSet<Rule>(setRules);
+    copy.setRules = new TreeSet<>(setRules);
 
     return copy;
   }
@@ -126,19 +130,21 @@ public class AuthToLocalBuilder implements Cloneable {
    *
    * @param authToLocalRules config property value containing the existing rules
    */
-  public void addRules(String authToLocalRules) {
+  public AuthToLocalBuilder addRules(String authToLocalRules) {
     if (!StringUtils.isEmpty(authToLocalRules)) {
       String[] rules = authToLocalRules.split("RULE:|DEFAULT");
       for (String r : rules) {
         r = r.trim();
         if (!r.isEmpty()) {
           Rule rule = createRule(r);
-          setRules.add(rule);
+          if (!setRules.contains(rule.caseSensitivityInverted())) {
+            setRules.add(rule);
+          }
         }
       }
     }
+    return this;
   }
-
 
   /**
    * Adds a rule for the given principal and local user.
@@ -157,7 +163,7 @@ public class AuthToLocalBuilder implements Cloneable {
    * @param localUsername a string declaring that local username to map the principal to
    * @throws IllegalArgumentException if the provided principal doesn't contain a realm element
    */
-  public void addRule(String principal, String localUsername) {
+  public AuthToLocalBuilder addRule(String principal, String localUsername) {
     if (!StringUtils.isEmpty(principal) && !StringUtils.isEmpty(localUsername)) {
       Principal p = new Principal(principal);
       if (p.getRealm() == null) {
@@ -168,6 +174,7 @@ public class AuthToLocalBuilder implements Cloneable {
       Rule rule = createHostAgnosticRule(p, localUsername);
       setRules.add(rule);
     }
+    return this;
   }
 
   /**
@@ -264,10 +271,10 @@ public class AuthToLocalBuilder implements Cloneable {
   private Rule createHostAgnosticRule(Principal principal, String localUser) {
     List<String> principalComponents = principal.getComponents();
     int componentCount = principalComponents.size();
-
-    return new Rule(principal, componentCount, 1, String.format(
-        "RULE:[%d:$1@$0](%s@%s)s/.*/%s/", componentCount,
-        principal.getComponent(1), principal.getRealm(), localUser));
+    return new Rule(
+      MatchingRule.ignoreHostWhenComponentCountIs(componentCount),
+      new Principal(principal.getComponent(1) + "@" + principal.getRealm()),
+      new Substitution(".*", localUser, "", false));
   }
 
   /**
@@ -278,10 +285,10 @@ public class AuthToLocalBuilder implements Cloneable {
    * @return a new default realm rule
    */
   private Rule createDefaultRealmRule(String realm, boolean caseInsensitive) {
-    String caseSensitivityRule = caseInsensitive ? "/L" : "";
-
-    return new Rule(new Principal(String.format(".*@%s", realm)),
-        1, 1, String.format("RULE:[1:$1@$0](.*@%s)s/@.*//" + caseSensitivityRule, realm));
+    return new Rule(
+      MatchingRule.ignoreHostWhenComponentCountIs(1),
+      new Principal(".*@" + realm),
+      new Substitution("@.*", "", "", caseInsensitive));
   }
 
   /**
@@ -291,7 +298,7 @@ public class AuthToLocalBuilder implements Cloneable {
    * @return a new rule which matches the provided string representation
    */
   private Rule createRule(String rule) {
-    return new Rule(rule.startsWith("RULE:") ? rule : String.format("RULE:%s", rule));
+    return Rule.parse(rule.startsWith("RULE:") ? rule : String.format("RULE:%s", rule));
   }
 
   /**
@@ -304,7 +311,7 @@ public class AuthToLocalBuilder implements Cloneable {
     Collection<String> collection = null;
 
     if (!StringUtils.isEmpty(string)) {
-      collection = new HashSet<String>();
+      collection = new HashSet<>();
 
       for (String realm : string.split("\\s*(?:\\r?\\n|,)\\s*")) {
         realm = realm.trim();
@@ -317,124 +324,68 @@ public class AuthToLocalBuilder implements Cloneable {
     return collection;
   }
 
-
   /**
-   * Rule implementation.
+   * I represent an auth-to-local rule that maps a principal of the form username/hostname@REALM to username.
    */
   private static class Rule implements Comparable<Rule> {
-    /**
-     * pattern used to parse existing rules
-     */
     private static final Pattern PATTERN_RULE_PARSE =
-        Pattern.compile("RULE:\\s*\\[\\s*(\\d)\\s*:\\s*(.+?)(?:@(.+?))??\\s*\\]\\s*\\((.+?)\\)\\s*s/(.*?)/(.*?)/([a-zA-Z]*)(?:.|\n)*");
+      Pattern.compile("RULE:\\s*\\[\\s*(\\d)\\s*:\\s*(.+?)(?:@(.+?))??\\s*\\]\\s*\\((.+?)\\)\\s*s/(.*?)/(.*?)/([a-zA-Z]*)((/L)?)(?:.|\n)*");
+    private final MatchingRule matchingRule;
+    private final Principal principal;
+    private final Substitution substitution;
 
     /**
-     * associated principal
+     * @param rule in the following format RULE:[n:string](regexp)s/pattern/replacement/[modifier]/[L]
      */
-    private Principal principal;
-
-    /**
-     * string representation of the rule
-     */
-    private String rule;
-
-    /**
-     * expected component count
-     */
-    private int expectedComponentCount;
-
-    /**
-     * number of components being matched in the rule
-     */
-    private int matchComponentCount;
-
-    /**
-     * Constructor.
-     *
-     * @param principal              principal
-     * @param expectedComponentCount number of components needed by a principal to match
-     * @param matchComponentCount    number of components which are included in the rule evaluation
-     * @param rule                   string representation of the rule
-     */
-    public Rule(Principal principal, int expectedComponentCount, int matchComponentCount, String rule) {
-      this.principal = principal;
-      this.expectedComponentCount = expectedComponentCount;
-      this.matchComponentCount = matchComponentCount;
-      this.rule = rule;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param rule string representation of the rule
-     */
-    public Rule(String rule) {
-      //this.rule = rule;
+    public static Rule parse(String rule) {
       Matcher m = PATTERN_RULE_PARSE.matcher(rule);
       if (!m.matches()) {
         throw new IllegalArgumentException("Invalid rule: " + rule);
       }
-      expectedComponentCount = Integer.valueOf(m.group(1));
-
+      int expectedComponentCount = Integer.valueOf(m.group(1));
       String matchPattern = m.group(2);
-      matchComponentCount = (matchPattern.startsWith("$") ?
-          matchPattern.substring(1) :
-          matchPattern).
-          split("\\$").length;
-      String patternRealm = m.group(3);
-      principal = new Principal(m.group(4));
+      String optionalPatternRealm = m.group(3);
+      String matchingRegexp = m.group(4);
       String replacementPattern = m.group(5);
       String replacementReplacement = m.group(6);
       String replacementModifier = m.group(7);
-      if (patternRealm != null) {
-        this.rule = String.format("RULE:[%d:%s@%s](%s)s/%s/%s/%s",
-            expectedComponentCount, matchPattern, patternRealm,
-            principal.toString(), replacementPattern, replacementReplacement, replacementModifier);
-      } else {
-        this.rule = String.format("RULE:[%d:%s](%s)s/%s/%s/%s",
-            expectedComponentCount, matchPattern,
-            principal.toString(), replacementPattern, replacementReplacement, replacementModifier);
-      }
+      String caseSensitivity = m.group(8);
+      return new Rule(
+        new MatchingRule(expectedComponentCount, matchPattern, optionalPatternRealm),
+        new Principal(matchingRegexp),
+        new Substitution(replacementPattern, replacementReplacement, replacementModifier, !caseSensitivity.isEmpty()));
     }
 
-    /**
-     * Get the associated principal.
-     *
-     * @return associated principal
-     */
-    public Principal getPrincipal() {
-      return principal;
+    public Rule(MatchingRule matchingRule, Principal principal, Substitution substitution) {
+      this.matchingRule = matchingRule;
+      this.principal = principal;
+      this.substitution = substitution;
     }
 
-    /**
-     * Get the expected component count.  This specified the number of components
-     * that a principal must contain to match this rule.
-     *
-     * @return the expected component count
-     */
-    public int getExpectedComponentCount() {
-      return expectedComponentCount;
-    }
-
-    /**
-     * Get the match component count.  This is the number of components that are evaluated
-     * when attempting to match a principal to the rule.
-     *
-     * @return the match component count
-     */
-    public int getMatchComponentCount() {
-      return matchComponentCount;
-    }
-
-    /**
-     * String representation of the rule in the form
-     * RULE:[componentCount:matchString](me@foo.com)s/pattern/localUser/
-     *
-     * @return string representation of the rule
-     */
     @Override
     public String toString() {
-      return rule;
+      return String.format("RULE:%s(%s)%s", matchingRule, principal, substitution);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Rule rule = (Rule) o;
+      return new EqualsBuilder()
+        .append(matchingRule, rule.matchingRule)
+        .append(principal, rule.principal)
+        .append(substitution, rule.substitution)
+        .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+      return new HashCodeBuilder(17, 37)
+        .append(matchingRule)
+        .append(principal)
+        .append(substitution)
+        .toHashCode();
     }
 
     /**
@@ -453,26 +404,22 @@ public class AuthToLocalBuilder implements Cloneable {
      */
     @Override
     public int compareTo(Rule other) {
-      int retVal = expectedComponentCount - other.getExpectedComponentCount();
-
+      int retVal = matchingRule.expectedComponentCount - other.matchingRule.expectedComponentCount;
       if (retVal == 0) {
-        retVal = other.getMatchComponentCount() - matchComponentCount;
-
+        retVal = other.matchingRule.matchComponentCount() - matchingRule.matchComponentCount();
         if (retVal == 0) {
-          Principal otherPrincipal = other.getPrincipal();
-          if (principal.equals(otherPrincipal)) {
-            retVal = rule.compareTo(other.rule);
+          if (this.principal.equals(other.principal)) {
+            retVal = toString().compareTo(other.toString());
           } else {
             // check for wildcard realms '.*'
-            String realm = principal.getRealm();
-            String otherRealm = otherPrincipal.getRealm();
+            String realm = this.principal.getRealm();
+            String otherRealm = other.principal.getRealm();
             retVal = compareValueWithWildcards(realm, otherRealm);
-
             if (retVal == 0) {
-              for (int i = 1; i <= matchComponentCount; i++) {
+              for (int i = 1; i <= matchingRule.matchComponentCount(); i++) {
                 // check for wildcard component
-                String component1 = principal.getComponent(1);
-                String otherComponent1 = otherPrincipal.getComponent(1);
+                String component1 = this.principal.getComponent(1);
+                String otherComponent1 = other.principal.getComponent(1);
                 retVal = compareValueWithWildcards(component1, otherComponent1);
 
                 if (retVal != 0) {
@@ -483,18 +430,7 @@ public class AuthToLocalBuilder implements Cloneable {
           }
         }
       }
-
       return retVal;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      return this == o || o instanceof Rule && rule.equals(((Rule) o).rule);
-    }
-
-    @Override
-    public int hashCode() {
-      return rule.hashCode();
     }
 
     /**
@@ -531,6 +467,134 @@ public class AuthToLocalBuilder implements Cloneable {
       } else {
         return s1.compareTo(s2);
       }
+    }
+
+    public Rule caseSensitivityInverted() {
+      return new Rule(matchingRule, principal, substitution.caseSensitivityInverted());
+    }
+  }
+
+  /**
+   * The matching rule part of an auth-to-local rule: [n:string]
+   * Indicates a matching rule where n declares the number of expected components in the principal.
+   * Components are separated by a /, where a user account has one component (ambari-qa) and a service account has two components (nn/fqdn).
+   * The string value declares how to reformat the value to be used in the rest of the expression.
+   * The placeholders are as follows:
+   *  $0 - realm
+   *  $1 - 1st component
+   *  $2 - 2nd component
+   *  For example: [2:$1@$0] matches on nn/c6501.ambari.apache.org@EXAMPLE.COM and translates to nn@EXAMPLE.COM
+   */
+  private static class MatchingRule {
+    private final int expectedComponentCount;
+    private final String matchPattern;
+    private final String realmPattern;
+
+    public static MatchingRule ignoreHostWhenComponentCountIs(int expectedComponentCount) {
+      return new MatchingRule(expectedComponentCount, "$1", "$0");
+    }
+
+    public MatchingRule(int expectedComponentCount, String matchPattern, @Nullable String realmPattern) {
+      this.expectedComponentCount = expectedComponentCount;
+      this.matchPattern = matchPattern;
+      this.realmPattern = realmPattern;
+    }
+
+    /**
+     * Get the match component count. This is the number of components that are evaluated
+     * when attempting to match a principal to the rule.
+     */
+    public int matchComponentCount() {
+      return (matchPattern.startsWith("$")
+        ? matchPattern.substring(1)
+        : matchPattern).split("\\$").length;
+    }
+
+    @Override
+    public String toString() {
+      return realmPattern != null
+        ? String.format("[%d:%s@%s]", expectedComponentCount, matchPattern, realmPattern)
+        : String.format("[%d:%s]", expectedComponentCount, matchPattern);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      MatchingRule that = (MatchingRule) o;
+      return new EqualsBuilder()
+        .append(expectedComponentCount, that.expectedComponentCount)
+        .append(matchPattern, that.matchPattern)
+        .append(realmPattern, that.realmPattern)
+        .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+      return new HashCodeBuilder(17, 37)
+        .append(expectedComponentCount)
+        .append(matchPattern)
+        .append(realmPattern)
+        .toHashCode();
+    }
+  }
+
+  /**
+   * I'm the substitution part of an auth-to-local rule.
+   * I have 4 parts:
+   *  s/pattern/replacement/g/L where the last 2 parts are optional.
+   * The pattern part of this expression is a regular expression used to find the portion of the string to replace.
+   * The replacement part of this expression is the value to use for replacing the matched section.
+   * If g is specified after the last /, the replacements will occur for every match in the value, else only the first match is processed.
+   */
+  private static class Substitution {
+    private final String pattern;
+    private final String replacement;
+    private final String modifier;
+    private final boolean caseInsensitiveUser;
+
+    public Substitution(String pattern, String replacement, String modifier, boolean caseInsensitiveUser) {
+      this.pattern = pattern;
+      this.replacement = replacement;
+      this.modifier = modifier;
+      this.caseInsensitiveUser = caseInsensitiveUser;
+    }
+
+    @Override
+    public String toString() {
+      return String.format(
+        "s/%s/%s/%s%s",
+        pattern,
+        replacement,
+        modifier,
+        caseInsensitiveUser ? "/L" : "");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Substitution that = (Substitution) o;
+      return new EqualsBuilder()
+        .append(caseInsensitiveUser, that.caseInsensitiveUser)
+        .append(pattern, that.pattern)
+        .append(replacement, that.replacement)
+        .append(modifier, that.modifier)
+        .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+      return new HashCodeBuilder(17, 37)
+        .append(pattern)
+        .append(replacement)
+        .append(modifier)
+        .append(caseInsensitiveUser)
+        .toHashCode();
+    }
+
+    public Substitution caseSensitivityInverted() {
+      return new Substitution(pattern, replacement, modifier, !caseInsensitiveUser);
     }
   }
 
