@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -107,8 +108,22 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
        * 
        * @see JsonRequestBodyParser for arrays parsing
        */
-      List<String> hosts = (List<String>) getRequestProperty(request, HOST_PROPERTY);
-      List<String> services = (List<String>) getRequestProperty(request, SERVICES_PROPERTY);
+      Object hostsObject = getRequestProperty(request, HOST_PROPERTY);
+      if (hostsObject instanceof LinkedHashSet) {
+        if (((LinkedHashSet)hostsObject).isEmpty()) {
+          throw new Exception("Empty host list passed to recommendation service");
+        }
+      }
+      List<String> hosts = (List<String>) hostsObject;
+
+      Object servicesObject = getRequestProperty(request, SERVICES_PROPERTY);
+      if (servicesObject instanceof LinkedHashSet) {
+        if (((LinkedHashSet)servicesObject).isEmpty()) {
+          throw new Exception("Empty service list passed to recommendation service");
+        }
+      }
+      List<String> services = (List<String>) servicesObject;
+
       Map<String, Set<String>> hgComponentsMap = calculateHostGroupComponentsMap(request);
       Map<String, Set<String>> hgHostsMap = calculateHostGroupHostsMap(request);
       Map<String, Set<String>> componentHostsMap = calculateComponentHostsMap(hgComponentsMap,
@@ -134,7 +149,6 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
       LOG.warn("Error occurred during preparation of stack advisor request", e);
       Response response = Response.status(Status.BAD_REQUEST)
           .entity(String.format("Request body is not correct, error: %s", e.getMessage())).build();
-      // TODO: Hosts and services must not be empty
       throw new WebApplicationException(response);
     }
   }
