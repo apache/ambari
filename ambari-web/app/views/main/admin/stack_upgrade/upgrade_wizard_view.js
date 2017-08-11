@@ -208,6 +208,22 @@ App.upgradeWizardView = Em.View.extend({
   isFinalizeItem: Em.computed.equalProperties('manualItem.context', 'controller.finalizeContext'),
 
   /**
+   * Upgrade of PATCH version is revertible
+   */
+  isRevertibleUpgrade: function() {
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var upgradeVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    return ['PATCH'].contains(upgradeVersion.get('type'));
+  }.property('controller.upgradeData.Upgrade.associated_version'),
+
+  revertibleFinalizeMessage: function() {
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var upgradeVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    return Em.I18n.t('admin.stackUpgrade.finalize.message.revertible')
+      .format(upgradeVersion.get('type'), upgradeVersion.get('displayName'));
+  }.property('controller.upgradeData.Upgrade.associated_version'),
+
+  /**
    * label of Upgrade status
    * @type {string}
    */
