@@ -25,6 +25,7 @@ from collections import defaultdict
 from Grep import Grep
 
 from ambari_agent import Constants
+from ambari_agent import security
 
 logger = logging.getLogger()
 
@@ -59,11 +60,14 @@ class CommandStatusDict():
     self.force_update_to_server({command['clusterId']: [new_report]})
 
   def force_update_to_server(self, reports_dict):
-    if self.initializer_module.is_registered:
+    if not self.initializer_module.is_registered:
+      return False
+
+    try:
       self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
       return True
-
-    return False
+    except security.ConnectionIsNotEstablished:
+      return False
 
   def report(self):
     report = self.generate_report()

@@ -24,6 +24,7 @@ import threading
 from ambari_agent import Constants
 from ambari_agent.LiveStatus import LiveStatus
 from collections import defaultdict
+from ambari_agent import security
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,8 @@ class ComponentStatusExecutor(threading.Thread):
                 self.recovery_manager.handle_status_change(component_name, status)
 
         self.send_updates_to_server(cluster_reports)
+      except security.ConnectionIsNotEstablished: # server and agent disconnected during sending data. Not an issue
+        pass
       except:
         logger.exception("Exception in ComponentStatusExecutor. Re-running it")
 

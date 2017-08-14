@@ -90,12 +90,16 @@ class WsTransport(Transport):
 
   def send(self, encoded_frame):
     logger.debug("Outgoing STOMP message:\n>>> " + encoded_frame)
+    if self.ws.terminated:
+      raise ConnectionIsAlreadyClosed("Connection is already closed cannot send data")
+
     self.ws.send(encoded_frame)
 
   def receive(self):
     try:
-      msg = str(self.ws.receive())
-      logger.debug("Incoming STOMP message:\n<<< " + msg)
+      msg = self.ws.receive()
+      msg = str(msg) if msg is not None else msg
+      logger.debug("Incoming STOMP message:\n<<< {0}".format(msg))
       return msg
     except:
       # exceptions from this method are hidden by the framework so implementing logging by ourselves
@@ -105,9 +109,9 @@ class WsTransport(Transport):
   def stop(self):
     self.running = False
     try:
-      self.ws.close_connection()
+      self.ws.terminate()
     except:
-      logger.exception("Exception during self.ws.close_connection()")
+      logger.exception("Exception during self.ws.terminate()")
 
     try:
       self.disconnect_socket()
@@ -140,3 +144,9 @@ class ConnectionResponseTimeout(StompException):
   """
   Raised when sent 'STOMP' frame and have not received 'CONNECTED' a certain timeout.
   """
+
+class ConnectionIsAlreadyClosed(StompException):
+  """
+  Raised when trying to send data on connection which is already closed. Usually after it was brought down by server.
+  """
+  pass

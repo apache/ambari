@@ -32,8 +32,8 @@ class ServerResponsesListener(EventListener):
   Listener of Constants.SERVER_RESPONSES_TOPIC events from server.
   """
   def __init__(self):
-    self.responses = Utils.BlockingDictionary()
     self.listener_functions = {}
+    self.reset_responses()
 
   def on_event(self, headers, message):
     """
@@ -65,5 +65,11 @@ class ServerResponsesListener(EventListener):
       correlation_id = headers[Constants.CORRELATION_ID_STRING]
       return " (correlation_id={0}): {1}".format(correlation_id, message_json)
     return str(message_json)
+
+  def reset_responses(self):
+    """
+    Clear responses dictionary
+    """
+    self.responses = Utils.BlockingDictionary()
 
 

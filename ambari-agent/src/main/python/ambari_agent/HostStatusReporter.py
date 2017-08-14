@@ -23,6 +23,7 @@ from ambari_agent import Constants
 from ambari_agent.HostInfo import HostInfo
 from ambari_agent.Utils import Utils
 from ambari_agent.Hardware import Hardware
+from ambari_agent import security
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,8 @@ class HostStatusReporter(threading.Thread):
         # don't use else to avoid race condition
         if not self.initializer_module.is_registered:
           self.last_report = {}
+      except security.ConnectionIsNotEstablished: # server and agent disconnected during sending data. Not an issue
+        pass
       except:
         logger.exception("Exception in HostStatusReporter. Re-running it")
 

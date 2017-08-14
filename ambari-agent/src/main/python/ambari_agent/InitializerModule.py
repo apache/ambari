@@ -21,7 +21,6 @@ limitations under the License.
 import threading
 import logging
 import os
-from socket import error as socket_error
 
 from ambari_agent.FileCache import FileCache
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -30,13 +29,12 @@ from ambari_agent.ClusterTopologyCache import ClusterTopologyCache
 from ambari_agent.ClusterMetadataCache import ClusterMetadataCache
 from ambari_agent.ClusterHostLevelParamsCache import ClusterHostLevelParamsCache
 from ambari_agent.ClusterAlertDefinitionsCache import ClusterAlertDefinitionsCache
-from ambari_agent.Utils import lazy_property
-from ambari_agent.security import AmbariStompConnection
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.RecoveryManager import RecoveryManager
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
+from ambari_agent import security
 
 logger = logging.getLogger(__name__)
 
@@ -96,29 +94,13 @@ class InitializerModule:
     self.action_queue = ActionQueue(self)
     self.alert_scheduler_handler = AlertSchedulerHandler(self)
 
-  @lazy_property
+  @property
   def connection(self):
-    """
-    Create a stomp connection
-    """
-    # TODO STOMP: handle if agent.ssl=false?
-    connection_url = 'wss://{0}:{1}/agent/stomp/v1'.format(self.server_hostname, self.secured_url_port)
-
-    logging.info("Connecting to {0}".format(connection_url))
-
-    conn = AmbariStompConnection(connection_url)
     try:
-      conn.start()
-      conn.connect(wait=True)
-    except Exception as ex:
-      try:
-        conn.disconnect()
-      except:
-        logger.exception("Exception during conn.disconnect()")
-
-      if isinstance(ex, socket_error):
-        logger.warn("Could not connect to {0}".format(connection_url))
-
-      raise
-
-    return conn
+      return self._connection
+    except AttributeError:
+      """
+      Can be a result of race condition:
+      begin sending X -> got disconnected by HeartbeatThread -> continue sending X
+      """
+      raise security.ConnectionIsNotEstablished("Connection to server is not established")

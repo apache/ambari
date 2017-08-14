@@ -32,6 +32,7 @@ import platform
 import ambari_stomp
 import threading
 from ambari_stomp.adapter.websocket import WsConnection
+from socket import error as socket_error
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +103,32 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
     return sock
 
-class ConnectionFailed(Exception):
+
+class ConnectionIsNotEstablished(Exception):
   pass
+
+def establish_connection(connection_url):
+  """
+  Create a stomp connection
+  """
+  logging.info("Connecting to {0}".format(connection_url))
+
+  conn = AmbariStompConnection(connection_url)
+  try:
+    conn.start()
+    conn.connect(wait=True)
+  except Exception as ex:
+    try:
+      conn.disconnect()
+    except:
+      logger.exception("Exception during conn.disconnect()")
+
+    if isinstance(ex, socket_error):
+      logger.warn("Could not connect to {0}".format(connection_url))
+
+    raise
+
+  return conn
 
 class AmbariStompConnection(WsConnection):
   def __init__(self, url):

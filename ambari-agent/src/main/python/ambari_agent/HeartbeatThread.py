@@ -23,7 +23,6 @@ import ambari_stomp
 import threading
 from socket import error as socket_error
 
-from ambari_agent.security import ConnectionFailed
 from ambari_agent import Constants
 from ambari_agent.Register import Register
 from ambari_agent.Utils import BlockingDictionary
@@ -35,6 +34,8 @@ from ambari_agent.listeners.MetadataEventListener import MetadataEventListener
 from ambari_agent.listeners.CommandsEventListener import CommandsEventListener
 from ambari_agent.listeners.HostLevelParamsEventListener import HostLevelParamsEventListener
 from ambari_agent.listeners.AlertDefinitionsEventListener import AlertDefinitionsEventListener
+from ambari_agent import security
+from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
 HEARTBEAT_INTERVAL = 10
 REQUEST_RESPONSE_TIMEOUT = 10
@@ -90,30 +91,22 @@ class HeartbeatThread(threading.Thread):
         logger.debug("Heartbeat response is {0}".format(response))
         self.handle_heartbeat_reponse(response)
       except Exception as ex:
-        if not isinstance(ex, (socket_error, ConnectionFailed)):
+        if not isinstance(ex, (socket_error, ConnectionIsAlreadyClosed)):
           logger.exception("Exception in HeartbeatThread. Re-running the registration")
 
-        self.initializer_module.is_registered = False
-
-        if hasattr(self.initializer_module, '_connection'):
-          try:
-            self.initializer_module.connection.disconnect()
-          except:
-            logger.exception("Exception during self.initializer_module.connection.disconnect()")
-
-          delattr(self.initializer_module, '_connection')
+        self.unregister()
 
       self.stop_event.wait(self.heartbeat_interval)
 
-    self.initializer_module.is_registered = False
-    self.initializer_module.connection.disconnect()
-    delattr(self.initializer_module, '_connection')
+    self.unregister()
     logger.info("HeartbeatThread has successfully finished")
 
   def register(self):
     """
     Subscribe to topics, register with server, wait for server's response.
     """
+    self.establish_connection()
+
     self.add_listeners()
     self.subscribe_to_topics(Constants.PRE_REGISTRATION_TOPICS_TO_SUBSCRIBE)
 
@@ -140,6 +133,27 @@ class HeartbeatThread(threading.Thread):
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
     self.file_cache.reset()
     self.initializer_module.is_registered = True
+    # now when registration is done we can expose connection to other threads.
+    self.initializer_module._connection = self.connection
+
+  def unregister(self):
+    """
+    Disconnect and remove connection object from initializer_module so other threads cannot use it
+    """
+    self.initializer_module.is_registered = False
+
+    if hasattr(self, 'connection'):
+      try:
+        self.connection.disconnect()
+      except:
+        logger.exception("Exception during self.connection.disconnect()")
+
+      if hasattr(self.initializer_module, '_connection'):
+        delattr(self.initializer_module, '_connection')
+      delattr(self, 'connection')
+
+      # delete any responses, which were not handled (possibly came during disconnect, etc.)
+      self.server_responses_listener.reset_responses()
 
   def handle_registration_response(self, response):
     # exitstatus is a code of error which was raised on server side.
@@ -179,28 +193,35 @@ class HeartbeatThread(threading.Thread):
     """
     return {'id':self.responseId}
 
+  def establish_connection(self):
+    """
+    Create a stomp connection
+    """
+    # TODO STOMP: handle if agent.ssl=false?
+    connection_url = 'wss://{0}:{1}/agent/stomp/v1'.format(self.initializer_module.server_hostname, self.initializer_module.secured_url_port)
+    self.connection = security.establish_connection(connection_url)
+
   def add_listeners(self):
     """
     Subscribe to topics and set listener classes.
     """
     for listener in self.listeners:
-      self.initializer_module.connection.add_listener(listener)
+      self.connection.add_listener(listener)
 
   def subscribe_to_topics(self, topics_list):
     for topic_name in topics_list:
-      self.initializer_module.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
+      self.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
 
   def blocking_request(self, message, destination, timeout=REQUEST_RESPONSE_TIMEOUT):
     """
     Send a request to server and waits for the response from it. The response it detected by the correspondence of correlation_id.
     """
     try:
-      correlation_id = self.initializer_module.connection.send(message=message, destination=destination)
-    except AttributeError:
+      correlation_id = self.connection.send(message=message, destination=destination)
+    except ConnectionIsAlreadyClosed:
       # this happens when trying to connect to broken connection. Happens if ambari-server is restarted.
-      err_msg = "Connection failed while trying to connect to {0}".format(destination)
-      logger.warn(err_msg)
-      raise ConnectionFailed(err_msg)
+      logger.warn("Connection failed while trying to connect to {0}".format(destination))
+      raise
 
     try:
       return self.server_responses_listener.responses.blocking_pop(str(correlation_id), timeout=timeout)

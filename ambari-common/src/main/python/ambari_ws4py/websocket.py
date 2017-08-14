@@ -422,6 +422,9 @@ class WebSocket(object):
         """
         s = self.stream
 
+        if s is None:
+          return
+
         try:
             if s.closing is None:
                 self.closed(1006, "Going away")
