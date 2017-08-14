@@ -476,6 +476,10 @@
         <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating logger configurations for Atlas.">
+        <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
+      </execute-stage>
+
       <!--KAFKA-->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">
         <task xsi:type="configure" id="kafka_log4j_parameterize">

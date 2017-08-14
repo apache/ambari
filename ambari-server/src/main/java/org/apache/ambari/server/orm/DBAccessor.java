@@ -184,6 +184,16 @@ public interface DBAccessor {
     throws SQLException;
 
   /**
+   * Add unique table constraint
+   * @param constraintName name of the constraint
+   * @param tableName name of the table
+   * @param columnNames list of columns
+   * @throws SQLException
+   */
+  void updateUniqueConstraint(String tableName, String constraintName, String... columnNames)
+      throws SQLException;
+
+  /**
    *
    * @param tableName name of the table
    * @param constraintName name of the constraint

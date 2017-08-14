@@ -18,7 +18,6 @@ limitations under the License.
 
 """
 from ambari_commons import OSCheck
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -27,7 +26,6 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.default import default
-from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 import status_params
 
@@ -52,14 +50,10 @@ stack_name = default("/hostLevelParams/stack_name", None)
 # stack version
 stack_version = default("/commandParams/version", None)
 
-# un-formatted stack version
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-
 # default role to coordinator needed for service checks
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "DRUID_COORDINATOR")
 
 hostname = config['hostname']
-sudo = AMBARI_SUDO_BINARY
 
 # default druid parameters
 druid_home = format("{stack_root}/current/{component_directory}")
@@ -236,10 +230,3 @@ if not len(druid_router_hosts) == 0:
   druid_router_host = druid_router_hosts[0]
 druid_coordinator_port = config['configurations']['druid-coordinator']['druid.port']
 druid_router_port = config['configurations']['druid-router']['druid.port']
-
-# Create current Hadoop Clients  Libs
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-lzo_packages = get_lzo_packages(stack_version_unformatted)
-hadoop_lib_home = stack_root + '/' + stack_version + '/hadoop'

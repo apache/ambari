@@ -25,6 +25,7 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import check_process_status
+from resource_management.libraries.functions.check_process_status import wait_process_stopped
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core import shell

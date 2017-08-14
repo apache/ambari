@@ -138,8 +138,8 @@ public class MetricCollectorHAController {
         if (CollectionUtils.isEmpty(nodes) || !nodes.contains(instanceConfig.getInstanceName())) {
           LOG.info("Adding participant instance " + instanceConfig);
           admin.addInstance(clusterName, instanceConfig);
-          success = true;
         }
+        success = true;
       } catch (HelixException | ZkNoNodeException ex) {
         LOG.warn("Helix Cluster not yet setup fully.");
         if (i < tries - 1) {

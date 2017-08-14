@@ -22,6 +22,7 @@ import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 from resource_management.core.resources.system import Directory, File, Execute
+from resource_management.libraries.functions.check_process_status import wait_process_stopped
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions.version import compare_versions
@@ -280,6 +281,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
 
   elif action == "stop":
     Execute(daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports)
+    wait_process_stopped(pid_file)
     File(pid_file, action="delete")
 
 

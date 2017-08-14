@@ -114,6 +114,10 @@ public class ExecutionCommandWrapperTest {
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
+    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster1);
+    cluster1.addService("HDFS", repositoryVersion);
+
     SERVICE_SITE_CLUSTER = new HashMap<>();
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME2, SERVICE_SITE_VAL2);
@@ -172,14 +176,6 @@ public class ExecutionCommandWrapperTest {
 
   @Test
   public void testGetExecutionCommand() throws JSONException, AmbariException {
-
-    Cluster cluster = clusters.getCluster(CLUSTER1);
-
-    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-
-    cluster.addService("HDFS", repositoryVersion);
-
     Map<String, Map<String, String>> confs = new HashMap<>();
     Map<String, String> configurationsGlobal = new HashMap<>();
     configurationsGlobal.put(GLOBAL_NAME1, GLOBAL_VAL1);

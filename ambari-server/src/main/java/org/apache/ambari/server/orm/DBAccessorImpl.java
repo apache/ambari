@@ -571,6 +571,13 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public void updateUniqueConstraint(String tableName, String constraintName, String... columnNames)
+      throws SQLException {
+    dropUniqueConstraint(tableName, constraintName);
+    addUniqueConstraint(tableName, constraintName, columnNames);
+  }
+
+  @Override
   public void addPKConstraint(String tableName, String constraintName, boolean ignoreErrors, String... columnName) throws SQLException {
     if (!tableHasPrimaryKey(tableName, null) && tableHasColumn(tableName, columnName)) {
       String query = dbmsHelper.getAddPrimaryKeyConstraintStatement(tableName, constraintName, columnName);
