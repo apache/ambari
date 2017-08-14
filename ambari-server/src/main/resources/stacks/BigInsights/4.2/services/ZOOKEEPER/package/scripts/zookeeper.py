@@ -72,8 +72,8 @@ def zookeeper(type = None, upgrade_type=None):
          content = myid
     )
     # This path may be missing after Ambari upgrade. We need to create it.
-    if (upgrade_type == "rolling") and (not os.path.exists("/usr/iop/current/zookeeper-server")) and params.current_version:
-      conf_select(params.stack_name, "zookeeper", params.current_version)
+    if (upgrade_type == "rolling") and (not os.path.exists("/usr/iop/current/zookeeper-server")) and params.version:
+      conf_select(params.stack_name, "zookeeper", params.version)
       stack_select.select_packages(params.version)
       #Execute(format("iop-select set zookeeper-server {version}"))
 

@@ -44,19 +44,16 @@ class KafkaBroker(Script):
     import params
     env.set_params(params)
 
+    # grab the current version of the component
+    pre_upgrade_version = stack_select.get_role_component_current_stack_version()
+
     if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
       stack_select.select_packages(params.version)
 
     # This is extremely important since it should only be called if crossing the IOP 4.2 boundary.
-    if params.current_version and params.version and params.upgrade_direction:
-      src_version = dst_version = None
-      if params.upgrade_direction == Direction.UPGRADE:
-        src_version = format_stack_version(params.current_version)
-        dst_version = format_stack_version(params.version)
-      else:
-        # These represent the original values during the UPGRADE direction
-        src_version = format_stack_version(params.version)
-        dst_version = format_stack_version(params.downgrade_from_version)
+    if pre_upgrade_version and params.version_for_stack_feature_checks and params.upgrade_direction:
+      src_version = format_stack_version(pre_upgrade_version)
+      dst_version = format_stack_version(params.version_for_stack_feature_checks)
 
       if compare_versions(src_version, '4.2.0.0') < 0 and compare_versions(dst_version, '4.2.0.0') >= 0:
         # Upgrade from IOP 4.1 to 4.2, Calling the acl migration script requires the configs to be present.

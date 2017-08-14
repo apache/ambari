@@ -2541,7 +2541,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setCommandParams(commandParams);
 
     execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, component, host));
-    hostParams.put(KeyNames.CURRENT_VERSION, repoVersion.getVersion());
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
       LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
@@ -3632,7 +3631,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               clusterServiceMasterForDecommissionMap.put(componentHost.getClusterName(), serviceMasterMap);
 
               Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
-              masterSlaveHostsMap.put(masterComponentName, new HashSet<String>(Collections.singletonList(componentHost.getHostName())));
+              masterSlaveHostsMap.put(masterComponentName, new HashSet<>(Collections.singletonList(componentHost.getHostName())));
               clusterMasterSlaveHostsMap.put(componentHost.getClusterName(), masterSlaveHostsMap);
             }
           }

@@ -37,8 +37,7 @@
         "stack_name": "HDP",
         "group_list": "[\"hadoop\",\"users\",\"knox\"]", 
         "host_sys_prepped": "false", 
-        "ambari_db_rca_username": "mapred", 
-        "current_version": "2.3.0.0-2075", 
+        "ambari_db_rca_username": "mapred",
         "jdk_name": "jdk-8u60-linux-x64.tar.gz", 
         "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar", 
         "repo_info": "[]", 
@@ -65,7 +64,23 @@
     "role": "KNOX_GATEWAY", 
     "forceRefreshConfigTags": [], 
     "taskId": 100, 
-    "public_hostname": "c6401.ambari.apache.org", 
+    "public_hostname": "c6401.ambari.apache.org",
+    "upgradeSummary": {
+      "services": {
+        "KNOX": {
+          "sourceRepositoryId": 1,
+          "sourceStackId": "HDP-2.3",
+          "sourceVersion": "2.3.0.0-2075",
+          "targetRepositoryId": 2,
+          "targetStackId": "HDP-2.3",
+          "targetVersion": "2.3.0.0-2096"
+        }
+      },
+      "direction": "UPGRADE",
+      "type": "rolling_upgrade",
+      "isRevert": false,
+      "orchestration": "STANDARD"
+    },
     "configurations": {
         "gateway-log4j": {
             "content": "\n\n      # Licensed to the Apache Software Foundation (ASF) under one\n      # or more contributor license agreements. See the NOTICE file\n      # distributed with this work for additional information\n      # regarding copyright ownership. The ASF licenses this file\n      # to you under the Apache License, Version 2.0 (the\n      # \"License\"); you may not use this file except in compliance\n      # with the License. You may obtain a copy of the License at\n      #\n      # http://www.apache.org/licenses/LICENSE-2.0\n      #\n      # Unless required by applicable law or agreed to in writing, software\n      # distributed under the License is distributed on an \"AS IS\" BASIS,\n      # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n      # See the License for the specific language governing permissions and\n      # limitations under the License.\n\n      app.log.dir=${launcher.dir}/../logs\n      app.log.file=${launcher.name}.log\n      app.audit.file=${launcher.name}-audit.log\n\n      log4j.rootLogger=ERROR, drfa\n\n      log4j.logger.org.apache.hadoop.gateway=INFO\n      #log4j.logger.org.apache.hadoop.gateway=DEBUG\n\n      #log4j.logger.org.eclipse.jetty=DEBUG\n      #log4j.logger.org.apache.shiro=DEBUG\n      #log4j.logger.org.apache.http=DEBUG\n      #log4j.logger.org.apache.http.client=DEBUG\n      #log4j.logger.org.apache.http.headers=DEBUG\n      #log4j.logger.org.apache.http.wire=DEBUG\n\n      log4j.appender.stdout=org.apache.log4j.ConsoleAppender\n      log4j.appender.stdout.layout=org.apache.log4j.PatternLayout\n      log4j.appender.stdout.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\n\n      log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender\n      log4j.appender.drfa.File=${app.log.dir}/${app.log.file}\n      log4j.appender.drfa.DatePattern=.yyyy-MM-dd\n      log4j.appender.drfa.layout=org.apache.log4j.PatternLayout\n      log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n\n\n      log4j.logger.audit=INFO, auditfile\n      log4j.appender.auditfile=org.apache.log4j.DailyRollingFileAppender\n      log4j.appender.auditfile.File=${app.log.dir}/${app.audit.file}\n      log4j.appender.auditfile.Append = true\n      log4j.appender.auditfile.DatePattern = '.'yyyy-MM-dd\n      log4j.appender.auditfile.layout = org.apache.hadoop.gateway.audit.log4j.layout.AuditLayout"

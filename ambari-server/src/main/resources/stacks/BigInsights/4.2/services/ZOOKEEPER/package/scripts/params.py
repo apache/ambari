@@ -38,7 +38,6 @@ stack_name = default("/hostLevelParams/stack_name", None)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
-current_version = default("/hostLevelParams/current_version", None)
 
 #hadoop params
 role_root = "zookeeper-client"

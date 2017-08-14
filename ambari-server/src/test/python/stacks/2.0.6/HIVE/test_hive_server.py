@@ -255,22 +255,24 @@ class TestHiveServer(RMFTestCase):
   @patch("hive_service.check_fs_root")
   @patch("socket.socket")
   def test_start_secured(self, socket_mock, check_fs_root_mock, copy_to_hfds_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    json_content['commandParams']['version'] = '2.3.0.0-1234'
+
     s = socket_mock.return_value
     copy_to_hfds_mock.return_value = None
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
-                       config_file="secured.json",
+                       config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
-                              user = 'hive',
-                              )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
@@ -299,10 +301,6 @@ class TestHiveServer(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
-                              user = 'hive',
-                              )
 
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
         not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
@@ -850,7 +848,6 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
       ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'),
       sudo=True)
 
-    self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart(self, copy_to_hdfs_mock):

@@ -42,7 +42,6 @@ java64_home = config['hostLevelParams']['java_home']
 version = default("/commandParams/version", None)
 
 # current host stack version
-current_version = default("/hostLevelParams/current_version", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 iop_stack_version = format_stack_version(stack_version_unformatted)
 
@@ -96,7 +95,7 @@ for host in config['clusterHostInfo']['zookeeper_hosts']:
   if index < len(config['clusterHostInfo']['zookeeper_hosts']):
     zookeeper_quorum += ","
 
-if compare_versions(format_stack_version(current_version), '4.2.0.0') >= 0:
+if compare_versions(format_stack_version(version), '4.2.0.0') >= 0:
   if upgrade_direction is not None and upgrade_direction == Direction.DOWNGRADE and version is not None and compare_versions(format_stack_version(version), '4.2.0.0') < 0:
     lib_dir=default("/configurations/solr-env/solr_lib_dir", None)
   else:

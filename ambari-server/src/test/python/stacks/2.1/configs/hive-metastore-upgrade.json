@@ -29,8 +29,7 @@
         "stack_name": "HDP", 
         "group_list": "[\"hadoop\",\"users\"]", 
         "host_sys_prepped": "false", 
-        "ambari_db_rca_username": "mapred", 
-        "current_version": "2.3.0.0-2557", 
+        "ambari_db_rca_username": "mapred",
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "mysql_jdbc_url": "http://10.0.0.13:8080/resources//mysql-connector-java.jar", 
         "repo_info": "[{\"baseUrl\":\"http://repos.ambari.apache.org/hdp/HDP-2.3.0.0-2557\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.3\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.3.4.0-3360\",\"baseSaved\":true},{\"baseUrl\":\"http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.20\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.20\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"baseSaved\":true}]", 
@@ -57,7 +56,23 @@
     "role": "HIVE_METASTORE", 
     "requestId": 9, 
     "taskId": 176, 
-    "public_hostname": "c6402.ambari.apache.org", 
+    "public_hostname": "c6402.ambari.apache.org",
+    "upgradeSummary": {
+      "services": {
+        "HIVE": {
+          "sourceRepositoryId": 1,
+          "sourceStackId": "HDP-2.3",
+          "sourceVersion": "2.3.0.0-2557",
+          "targetRepositoryId": 2,
+          "targetStackId": "HDP-2.3",
+          "targetVersion": "2.3.2.0-2950"
+        }
+      },
+      "direction": "UPGRADE",
+      "type": "nonrolling_upgrade",
+      "isRevert": false,
+      "orchestration": "STANDARD"
+    },
     "configurations": {
         "webhcat-env": {
             "content": "\n# The file containing the running pid\nPID_FILE={{webhcat_pid_file}}\n\nTEMPLETON_LOG_DIR={{templeton_log_dir}}/\n\n\nWEBHCAT_LOG_DIR={{templeton_log_dir}}/\n\n# The console error log\nERROR_LOG={{templeton_log_dir}}/webhcat-console-error.log\n\n# The console log\nCONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log\n\n#TEMPLETON_JAR=templeton_jar_name\n\n#HADOOP_PREFIX=hadoop_prefix\n\n#HCAT_PREFIX=hive_prefix\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}"

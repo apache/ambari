@@ -34,6 +34,7 @@ import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -43,6 +44,9 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -70,6 +74,9 @@ public class ExecutionCommandWrapper {
 
   @Inject
   private Gson gson;
+
+  @Inject
+  private UpgradeContextFactory upgradeContextFactory;
 
   /**
    * Used for injecting hooks and common-services into the command.
@@ -230,8 +237,6 @@ public class ExecutionCommandWrapper {
           if (!commandParams.containsKey(KeyNames.VERSION)
               && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
             commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
-            executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
-
           }
 
           StackId stackId = repositoryVersion.getStackId();
@@ -262,6 +267,15 @@ public class ExecutionCommandWrapper {
       // set the desired versions of versionable components.  This is safe even during an upgrade because
       // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.
       executionCommand.setComponentVersions(cluster);
+
+      // provide some basic information about a cluster upgrade if there is one
+      // in progress
+      UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+      if (null != upgrade) {
+        UpgradeContext upgradeContext = upgradeContextFactory.create(cluster, upgrade);
+        UpgradeSummary upgradeSummary = upgradeContext.getUpgradeSummary();
+        executionCommand.setUpgradeSummary(upgradeSummary);
+      }
 
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,

@@ -37,7 +37,7 @@ def solr_service(action='start'):
 
     Execute (params.solr_home+'/server/scripts/cloud-scripts/zkcli.sh -zkhost ' + params.zookeeper_hosts_list + ' -cmd makepath ' + params.zookeeper_chroot, user=params.solr_user, ignore_failures=True )
 
-    if (params.upgrade_direction is not None and params.upgrade_direction == Direction.UPGRADE) or (compare_versions(format_stack_version(params.current_version), '4.2.0.0') >= 0):
+    if (params.upgrade_direction is not None and params.upgrade_direction == Direction.UPGRADE) or (compare_versions(format_stack_version(params.version), '4.2.0.0') >= 0):
       solr_home_dir = params.solr_data_dir
     else:
       solr_home_dir = params.lib_dir + "/data"

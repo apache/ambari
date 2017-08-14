@@ -534,8 +534,22 @@ class TestHiveMetastore(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
     json_content['hostLevelParams']['stack_version'] = "2.3"
-    json_content['hostLevelParams']['current_version'] = "2.2.7.0-1234"
-
+    json_content["upgradeSummary"] = {
+      "services":{
+        "HIVE":{
+          "sourceRepositoryId":1,
+          "sourceStackId":"HDP-2.2",
+          "sourceVersion":"2.2.7.0-1234",
+          "targetRepositoryId":2,
+          "targetStackId":"HDP-2.3",
+          "targetVersion":version
+        }
+      },
+      "direction":"UPGRADE",
+      "type":"nonrolling_upgrade",
+      "isRevert":False,
+      "orchestration":"STANDARD"
+    }
 
     # trigger the code to think it needs to copy the JAR
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "com.mysql.jdbc.Driver"
@@ -591,7 +605,7 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema',
          logoutput = True,
-         environment = {'HIVE_CONF_DIR': '/etc/hive/conf.server'},
+         environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-metastore/conf/conf.server'},
          tries = 1,
          user = 'hive')
 

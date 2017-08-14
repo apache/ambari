@@ -52,8 +52,8 @@ def kafka(upgrade_type=None):
     # similarly we need preserve port as well during the upgrade
 
     if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and \
-      check_stack_feature(StackFeature.CREATE_KAFKA_BROKER_ID, params.current_version) and \
-      check_stack_feature(StackFeature.KAFKA_LISTENERS, params.version):
+      check_stack_feature(StackFeature.CREATE_KAFKA_BROKER_ID, params.version_for_stack_feature_checks) and \
+      check_stack_feature(StackFeature.KAFKA_LISTENERS, params.version_for_stack_feature_checks):
       if len(params.kafka_hosts) > 0 and params.hostname in params.kafka_hosts:
         brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
         kafka_server_config['broker.id'] = brokerid

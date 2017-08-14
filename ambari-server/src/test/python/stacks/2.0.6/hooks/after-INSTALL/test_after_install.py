@@ -217,7 +217,6 @@ class TestHookAfterInstall(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
-    json_content['hostLevelParams']['current_version'] = "2.3.0.0-1234"
 
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
       classname="AfterInstallHook",
@@ -314,7 +313,6 @@ class TestHookAfterInstall(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
-    json_content['hostLevelParams']['current_version'] = "2.3.0.0-1234"
     json_content['hostLevelParams']['host_sys_prepped'] = "true"
 
     self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",

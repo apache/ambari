@@ -125,7 +125,7 @@ def falcon(type, action = None, upgrade_type=None):
     # Generate atlas-application.properties.xml file
     if params.falcon_atlas_support and params.enable_atlas_hook:
       # If Atlas is added later than Falcon, this package will be absent.
-      if check_stack_feature(StackFeature.ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT,params.current_version_formatted):
+      if check_stack_feature(StackFeature.ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT,params.version):
         install_atlas_hook_packages(params.atlas_plugin_package, params.atlas_ubuntu_plugin_package, params.host_sys_prepped,
                                     params.agent_stack_retry_on_unavailability, params.agent_stack_retry_count)
 
@@ -134,7 +134,7 @@ def falcon(type, action = None, upgrade_type=None):
 
       # Falcon 0.10 uses FALCON_EXTRA_CLASS_PATH.
       # Setup symlinks for older versions.
-      if params.current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, params.current_version_formatted):
+      if check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, params.version):
         setup_atlas_jar_symlinks("falcon", params.falcon_webinf_lib)
 
   if type == 'server':

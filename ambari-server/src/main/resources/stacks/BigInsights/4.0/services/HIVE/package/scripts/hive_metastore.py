@@ -158,7 +158,7 @@ class HiveMetastoreDefault(HiveMetastore):
     # ensure that the JDBC drive is present for the schema tool; if it's not
     # present, then download it first
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
-      source = format("/usr/iop/{current_version}/hive/lib/{jdbc_jar_name}")
+      source = params.source_jdbc_file
       target_directory = format("/usr/iop/{version}/hive/lib")
       if not os.path.exists(source):
         # download it
@@ -178,9 +178,9 @@ class HiveMetastoreDefault(HiveMetastore):
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
-    if params.current_version is not None:
-      current_version = format_stack_version(params.current_version)
-      if compare_versions(current_version, "4.1.0.0") < 0:
+    if params.version_for_stack_feature_checks is not None:
+      version_for_stack_feature_checks = format_stack_version(params.version_for_stack_feature_checks)
+      if compare_versions(version_for_stack_feature_checks, "4.1.0.0") < 0:
         schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 
     env_dict = {

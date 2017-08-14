@@ -62,7 +62,6 @@ stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBERO
 stack_supports_config_versioning = check_stack_feature(StackFeature.CONFIG_VERSIONING, version_for_stack_feature_checks)
 
 
-downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 ranger_home    = '/usr/iop/current/ranger-admin'
 # ranger_conf    = '/etc/ranger/admin/conf'  # commented as we have below 

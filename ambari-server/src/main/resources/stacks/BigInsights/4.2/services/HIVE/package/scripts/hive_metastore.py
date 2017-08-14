@@ -213,9 +213,9 @@ class HiveMetastoreDefault(HiveMetastore):
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
-    if params.current_version is not None:
-      current_version = format_stack_version(params.current_version)
-      if compare_versions(current_version, "4.1.0.0") < 0:
+    if params.version_for_stack_feature_checks:
+      version = format_stack_version(params.version_for_stack_feature_checks)
+      if compare_versions(version, "4.1.0.0") < 0:
         schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 
     env_dict = {

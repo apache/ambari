@@ -38,7 +38,6 @@ stack_version_formatted = status_params.stack_version_formatted
 stack_root = status_params.stack_root
 
 stack_name = status_params.stack_name
-current_version = default("/hostLevelParams/current_version", None)
 component_directory = status_params.component_directory
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade

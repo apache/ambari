@@ -27,10 +27,9 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 import os
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions import stack_features
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 
 config = Script.get_config()
 stack_root = status_params.stack_root
@@ -39,17 +38,13 @@ stack_name = status_params.stack_name
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
-# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
-version = default("/commandParams/version", None)
+version = stack_features.get_stack_feature_version(config)
 
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 jdk_location = config['hostLevelParams']['jdk_location']
 
-# current host stack version
-current_version = default("/hostLevelParams/current_version", None)
-current_version_formatted = format_stack_version(current_version)
 
 etc_prefix_dir = "/etc/falcon"
 
@@ -57,7 +52,7 @@ etc_prefix_dir = "/etc/falcon"
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
-if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+if check_stack_feature(StackFeature.ROLLING_UPGRADE, version):
   # if this is a server action, then use the server binaries; smoke tests
   # use the client binaries
   server_role_dir_mapping = { 'FALCON_SERVER' : 'falcon-server',
@@ -135,7 +130,7 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 supports_hive_dr = config['configurations']['falcon-env']['supports_hive_dr']
 # HDP 2.4 still supported the /usr/$STACK/$VERSION/falcon/data-mirroring folder, which had to be copied to HDFS
 # In HDP 2.5, an empty data-mirroring folder has to be created, and the extensions folder has to be uploaded to HDFS.
-supports_data_mirroring = supports_hive_dr and (stack_version_formatted and not check_stack_feature(StackFeature.FALCON_EXTENSIONS, stack_version_formatted))
+supports_data_mirroring = supports_hive_dr and not check_stack_feature(StackFeature.FALCON_EXTENSIONS, version)
 
 local_data_mirroring_dir = format('{stack_root}/current/falcon-server/data-mirroring')
 dfs_data_mirroring_dir = "/apps/data-mirroring"
@@ -156,22 +151,22 @@ falcon_atlas_support = False
 atlas_hook_cp = ""
 if enable_atlas_hook:
 
-  # stack_version doesn't contain a minor number of the stack (only first two numbers: 2.3). Get it from current_version_formatted
-  falcon_atlas_support = current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, current_version_formatted) \
-      or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted)
+  # stack_version doesn't contain a minor number of the stack (only first two numbers: 2.3). Get it from the command version
+  falcon_atlas_support = check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, version) \
+      or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, version)
 
-  if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
+  if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, version):
     atlas_conf_dir = format('{stack_root}/current/atlas-server/conf')
     atlas_home_dir = format('{stack_root}/current/atlas-server')
     atlas_hook_cp = atlas_conf_dir + os.pathsep + os.path.join(atlas_home_dir, "hook", "falcon", "*") + os.pathsep
-  elif check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, stack_version_formatted):
+  elif check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version):
     atlas_hook_cp = format('{stack_root}/current/atlas-client/hook/falcon/*') + os.pathsep
 
 atlas_application_class_addition = ""
 if falcon_atlas_support:
   # Some stack versions do not support Atlas Falcon hook. See stack_features.json
   # Packaging was different in older versions.
-  if current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, current_version_formatted):
+  if check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, version):
     atlas_application_class_addition = ",\\\norg.apache.falcon.atlas.service.AtlasService"
     atlas_plugin_package = "atlas-metadata*-falcon-plugin"
     atlas_ubuntu_plugin_package = "atlas-metadata.*-falcon-plugin"

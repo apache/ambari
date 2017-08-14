@@ -41,12 +41,10 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-current_version = default("/hostLevelParams/current_version", None)
-iop_full_version = format_stack_version(current_version)
-
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 stack_name = default("/hostLevelParams/stack_name", None)
+iop_full_version = format_stack_version(version)
 
 hadoop_home = "/usr/iop/current/hadoop-client"
 spark_conf = format("/usr/iop/current/{component_directory}/conf")
