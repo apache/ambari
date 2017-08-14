@@ -387,7 +387,7 @@ class Script(object):
     status_method = getattr(self, 'status')
     component_is_stopped = False
     counter = 0
-    while not component_is_stopped :
+    while not component_is_stopped:
       try:
         if counter % 100 == 0:
           Logger.logger.info("Waiting for actual component stop")

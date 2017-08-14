@@ -26,6 +26,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.shell import call, checked_call
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.check_process_status import wait_process_stopped
 
 from zkfc_slave import ZkfcSlave
 
@@ -251,6 +252,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
   )
 
   if action == "stop":
+    wait_process_stopped(pid_file)
     File(pid_file,
          action="delete",
     )
