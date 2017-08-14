@@ -32,7 +32,9 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from status_params import *
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions import stack_select, conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
@@ -64,7 +66,7 @@ stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CO
 
 # This is the version whose state is CURRENT. During an RU, this is the source version.
 # DO NOT format it since we need the build number too.
-upgrade_from_version = default("/hostLevelParams/current_version", None)
+upgrade_from_version = upgrade_summary.get_source_version()
 
 # server configurations
 # Default value used in HDP 2.3.0.0 and earlier.

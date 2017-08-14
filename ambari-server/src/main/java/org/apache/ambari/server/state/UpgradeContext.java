@@ -84,6 +84,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Objects;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -105,12 +106,6 @@ public class UpgradeContext {
   public static final String COMMAND_PARAM_UPGRADE_TYPE = "upgrade_type";
   public static final String COMMAND_PARAM_TASKS = "tasks";
   public static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
-
-  @Deprecated
-  @Experimental(
-      feature = ExperimentalFeature.PATCH_UPGRADES,
-      comment = "This isn't needed anymore, but many python classes still use it")
-  public static final String COMMAND_PARAM_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
 
   /*
    * The cluster that the upgrade is for.
@@ -185,8 +180,9 @@ public class UpgradeContext {
   private boolean m_autoSkipManualVerification = false;
 
   /**
-   * A set of services which are included in this upgrade. If this is empty,
-   * then all cluster services are included.
+   * A set of services which are included in this upgrade. This will never be
+   * empty - if all services of a cluster are included, then the cluster's
+   * current list of services is populated.
    */
   private final Set<String> m_services = new HashSet<>();
 
@@ -797,7 +793,6 @@ public class UpgradeContext {
    * <ul>
    * <li>{@link #COMMAND_PARAM_CLUSTER_NAME}
    * <li>{@link #COMMAND_PARAM_DIRECTION}
-   * <li>{@link #COMMAND_PARAM_DOWNGRADE_FROM_VERSION}
    * <li>{@link #COMMAND_PARAM_UPGRADE_TYPE}
    * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
    * order to have the commands contain the correct configurations. Otherwise,
@@ -815,10 +810,6 @@ public class UpgradeContext {
     Direction direction = getDirection();
     parameters.put(COMMAND_PARAM_CLUSTER_NAME, m_cluster.getClusterName());
     parameters.put(COMMAND_PARAM_DIRECTION, direction.name().toLowerCase());
-
-    if (direction == Direction.DOWNGRADE) {
-      parameters.put(COMMAND_PARAM_DOWNGRADE_FROM_VERSION, m_repositoryVersion.getVersion());
-    }
 
     if (null != getType()) {
       // use the serialized attributes of the enum to convert it to a string,
@@ -865,6 +856,44 @@ public class UpgradeContext {
    */
   public boolean isPatchRevert() {
     return m_isRevert;
+  }
+
+  /**
+   * Gets a POJO of the upgrade suitable to serialize.
+   *
+   * @return the upgrade summary as a POJO.
+   */
+  public UpgradeSummary getUpgradeSummary() {
+    UpgradeSummary summary = new UpgradeSummary();
+    summary.direction = m_direction;
+    summary.type = m_type;
+    summary.orchestration = m_orchestration;
+    summary.isRevert = m_isRevert;
+
+    summary.services = new HashMap<>();
+
+    for (String serviceName : m_services) {
+      RepositoryVersionEntity sourceRepositoryVersion = m_sourceRepositoryMap.get(serviceName);
+      RepositoryVersionEntity targetRepositoryVersion = m_targetRepositoryMap.get(serviceName);
+      if (null == sourceRepositoryVersion || null == targetRepositoryVersion) {
+        LOG.warn("Unable to get the source/target repositories for {} for the upgrade summary",
+            serviceName);
+        continue;
+      }
+
+      UpgradeServiceSummary serviceSummary = new UpgradeServiceSummary();
+      serviceSummary.sourceRepositoryId = sourceRepositoryVersion.getId();
+      serviceSummary.sourceStackId = sourceRepositoryVersion.getStackId().getStackId();
+      serviceSummary.sourceVersion = sourceRepositoryVersion.getVersion();
+
+      serviceSummary.targetRepositoryId = targetRepositoryVersion.getId();
+      serviceSummary.targetStackId = targetRepositoryVersion.getStackId().getStackId();
+      serviceSummary.targetVersion = targetRepositoryVersion.getVersion();
+
+      summary.services.put(serviceName, serviceSummary);
+    }
+
+    return summary;
   }
 
   /**
@@ -1253,5 +1282,50 @@ public class UpgradeContext {
 
       return hostOrderItems;
     }
+  }
+
+  /**
+   * The {@link UpgradeSummary} class is a simple POJO used to serialize the
+   * infomration about and upgrade.
+   */
+  public static class UpgradeSummary {
+    @SerializedName("direction")
+    public Direction direction;
+
+    @SerializedName("type")
+    public UpgradeType type;
+
+    @SerializedName("orchestration")
+    public RepositoryType orchestration;
+
+    @SerializedName("isRevert")
+    public boolean isRevert = false;
+
+    @SerializedName("services")
+    public Map<String, UpgradeServiceSummary> services;
+  }
+
+  /**
+   * The {@link UpgradeServiceSummary} class is used as a way to encapsulate the
+   * service source and target versions during an upgrade.
+   */
+  public static class UpgradeServiceSummary {
+    @SerializedName("sourceRepositoryId")
+    public long sourceRepositoryId;
+
+    @SerializedName("targetRepositoryId")
+    public long targetRepositoryId;
+
+    @SerializedName("sourceStackId")
+    public String sourceStackId;
+
+    @SerializedName("targetStackId")
+    public String targetStackId;
+
+    @SerializedName("sourceVersion")
+    public String sourceVersion;
+
+    @SerializedName("targetVersion")
+    public String targetVersion;
   }
 }

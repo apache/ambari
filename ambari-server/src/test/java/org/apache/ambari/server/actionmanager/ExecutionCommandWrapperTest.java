@@ -298,7 +298,7 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setRequestAndStage(1, 1);
     executionCommand.setHostname(HOST1);
     executionCommand.setRole("NAMENODE");
-    executionCommand.setRoleParams(Collections.emptyMap());
+    executionCommand.setRoleParams(Collections.<String, String>emptyMap());
     executionCommand.setRoleCommand(RoleCommand.INSTALL);
     executionCommand.setServiceName("HDFS");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
@@ -310,7 +310,7 @@ public class ExecutionCommandWrapperTest {
 
     ExecutionCommand processedExecutionCommand = execCommWrap.getExecutionCommand();
     commandParams = processedExecutionCommand.getCommandParams();
-    Assert.assertTrue(commandParams.containsKey(KeyNames.VERSION));
+    Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
 
     // now try with a START command which should populate the version even
     // though the state is INSTALLING
@@ -322,7 +322,7 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setRequestAndStage(1, 1);
     executionCommand.setHostname(HOST1);
     executionCommand.setRole("NAMENODE");
-    executionCommand.setRoleParams(Collections.emptyMap());
+    executionCommand.setRoleParams(Collections.<String, String> emptyMap());
     executionCommand.setRoleCommand(RoleCommand.START);
     executionCommand.setServiceName("HDFS");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
@@ -335,7 +335,7 @@ public class ExecutionCommandWrapperTest {
     processedExecutionCommand = execCommWrap.getExecutionCommand();
     commandParams = processedExecutionCommand.getCommandParams();
     Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
-  }
+    }
 
   @AfterClass
   public static void tearDown() throws AmbariException, SQLException {

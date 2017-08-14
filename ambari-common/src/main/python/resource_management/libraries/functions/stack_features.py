@@ -110,10 +110,6 @@ def get_stack_feature_version(config):
   command_version = default("/commandParams/version", None)
   command_stack = default("/commandParams/target_stack", None)
 
-  # something like 2.4.0.0-1234
-  # (or None if this is a cluster install and it hasn't been calculated yet)
-  current_cluster_version = default("/hostLevelParams/current_version", None)
-
   # UPGRADE or DOWNGRADE (or None)
   upgrade_direction = default("/commandParams/upgrade_direction", None)
 
@@ -123,8 +119,8 @@ def get_stack_feature_version(config):
   # if this is not an upgrade, then we take the simple path
   if upgrade_direction is None:
     Logger.info(
-      "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3} -> {4}".format(
-        stack_version, current_cluster_version, command_stack, command_version, version_for_stack_feature_checks))
+      "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2} -> {3}".format(
+        stack_version, command_stack, command_version, version_for_stack_feature_checks))
 
     return version_for_stack_feature_checks
 
@@ -133,33 +129,24 @@ def get_stack_feature_version(config):
   is_stop_command = _is_stop_command(config)
   if not is_stop_command:
     Logger.info(
-      "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3}, Upgrade Direction={4} -> {5}".format(
-        stack_version, current_cluster_version, command_stack, command_version, upgrade_direction,
+      "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2}, Upgrade Direction={3} -> {4}".format(
+        stack_version, command_stack, command_version, upgrade_direction,
         version_for_stack_feature_checks))
 
     return version_for_stack_feature_checks
 
-  # something like 2.5.0.0-5678 (or None)
-  downgrade_from_version = default("/commandParams/downgrade_from_version", None)
-
+  is_downgrade = upgrade_direction.lower() == Direction.DOWNGRADE.lower()
   # guaranteed to have a STOP command now during an UPGRADE/DOWNGRADE, check direction
-  if upgrade_direction.lower() == Direction.DOWNGRADE.lower():
-    if downgrade_from_version is None:
-      Logger.warning(
-        "Unable to determine the version being downgraded when stopping services, using {0}".format(
-          version_for_stack_feature_checks))
-    else:
-      version_for_stack_feature_checks = downgrade_from_version
+  if is_downgrade:
+    from resource_management.libraries.functions import upgrade_summary
+    version_for_stack_feature_checks = upgrade_summary.get_source_version(default_version = version_for_stack_feature_checks)
   else:
     # UPGRADE
-    if current_cluster_version is not None:
-      version_for_stack_feature_checks = current_cluster_version
-    else:
       version_for_stack_feature_checks = command_version if command_version is not None else stack_version
 
   Logger.info(
-    "Stack Feature Version Info: Cluster Stack={0}, Cluster Current Version={1}, Command Stack={2}, Command Version={3}, Upgrade Direction={4}, stop_command={5} -> {6}".format(
-      stack_version, current_cluster_version, command_stack, command_version, upgrade_direction,
+    "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2}, Upgrade Direction={3}, stop_command={4} -> {5}".format(
+      stack_version, command_stack, command_version, upgrade_direction,
       is_stop_command, version_for_stack_feature_checks))
 
   return version_for_stack_feature_checks
