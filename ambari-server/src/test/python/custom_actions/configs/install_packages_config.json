@@ -53,7 +53,7 @@
     "repositoryFile": {
         "stackName": "HDP",
         "repoVersionId": 1,
-        "repoVersion": "2",
+        "repoVersion": "2.2.0.1-885",
         "repositories": [
             {
                 "repoName": "HDP-UTILS",
