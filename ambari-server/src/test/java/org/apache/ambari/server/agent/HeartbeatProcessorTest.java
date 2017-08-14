@@ -1138,7 +1138,6 @@ public class HeartbeatProcessorTest {
     json.addProperty("installed_repository_version", "0.1-1234");
     json.addProperty("stack_id", cluster.getDesiredStackVersion().getStackId());
 
-
     CommandReport cmdReport = new CommandReport();
     cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
     cmdReport.setTaskId(1);
@@ -1166,7 +1165,69 @@ public class HeartbeatProcessorTest {
 
     heartbeatProcessor.processHeartbeat(hb);
 
-    entity = dao.findByStackAndVersion(stackId, "0.1-1234");
+    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
+    Assert.assertNull(entity);
+
+    entity = dao.findByStackAndVersion(stackId, "0.1.1");
+    Assert.assertNotNull(entity);
+  }
+
+  @Test
+  public void testInstallPackagesWithId() throws Exception {
+    // required since this test method checks the DAO result of handling a
+    // heartbeat which performs some async tasks
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
+    final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
+        Role.DATANODE, null, null);
+
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
+        Collections.singletonList(command)).anyTimes();
+    replay(am);
+
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+
+    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
+    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
+    Assert.assertNotNull(entity);
+
+    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, new ActionQueue());
+    HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
+    HeartBeat hb = new HeartBeat();
+
+    JsonObject json = new JsonObject();
+    json.addProperty("actual_version", "2.2.1.0-2222");
+    json.addProperty("package_installation_result", "SUCCESS");
+    json.addProperty("repository_version_id", entity.getId());
+
+    CommandReport cmdReport = new CommandReport();
+    cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
+    cmdReport.setTaskId(1);
+    cmdReport.setCustomCommand("install_packages");
+    cmdReport.setStructuredOut(json.toString());
+    cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
+    cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
+    cmdReport.setRole("install_packages");
+    cmdReport.setClusterName(DummyCluster);
+
+    List<CommandReport> reports = new ArrayList<>();
+    reports.add(cmdReport);
+    hb.setReports(reports);
+    hb.setTimestamp(0L);
+    hb.setResponseId(0);
+    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
+    hb.setHostname(DummyHostname1);
+    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+
+    StackId stackId = new StackId("HDP", "0.1");
+
+    heartbeatProcessor.processHeartbeat(hb);
+
+    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
+    Assert.assertNotNull(entity);
+
+    entity = dao.findByStackAndVersion(stackId, "0.1.1");
     Assert.assertNull(entity);
   }
 

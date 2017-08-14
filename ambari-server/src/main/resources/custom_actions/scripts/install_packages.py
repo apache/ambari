@@ -18,11 +18,10 @@ limitations under the License.
 
 """
 import signal
-
+import os
 import re
 
 import ambari_simplejson as json
-import sys, traceback
 
 from ambari_commons.os_check import OSCheck
 from ambari_commons.str_utils import cbool, cint
@@ -60,6 +59,11 @@ class InstallPackages(Script):
     # Parse parameters
     config = Script.get_config()
 
+    try:
+      command_repository = CommandRepository(config['repositoryFile'])
+    except KeyError:
+      raise Fail("The command repository indicated by 'repositoryFile' was not found")
+
     repo_rhel_suse = config['configurations']['cluster-env']['repo_suse_rhel_template']
     repo_ubuntu = config['configurations']['cluster-env']['repo_ubuntu_template']
     template = repo_rhel_suse if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else repo_ubuntu
@@ -68,29 +72,17 @@ class InstallPackages(Script):
     signal.signal(signal.SIGTERM, self.abort_handler)
     signal.signal(signal.SIGINT, self.abort_handler)
 
-    self.repository_version_id = None
+    self.repository_version = command_repository.version_string
+
     self.ignore_package_dependencies = 'ignore_package_dependencies' in config['roleParams'] and config['roleParams']['ignore_package_dependencies']
 
-    base_urls = []
     # Select dict that contains parameters
     try:
-      if 'base_urls' in config['roleParams']:
-        base_urls = json.loads(config['roleParams']['base_urls'])
-
-      self.repository_version = config['roleParams']['repository_version']
       package_list = json.loads(config['roleParams']['package_list'])
       stack_id = config['roleParams']['stack_id']
-
-      if 'repository_version_id' in config['roleParams']:
-        self.repository_version_id = config['roleParams']['repository_version_id']
     except KeyError:
       pass
 
-    # current stack information
-    self.current_stack_version_formatted = None
-    if 'stack_version' in config['hostLevelParams']:
-      current_stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-      self.current_stack_version_formatted = format_stack_version(current_stack_version_unformatted)
 
 
     self.stack_name = Script.get_stack_name()
@@ -106,47 +98,24 @@ class InstallPackages(Script):
 
     self.repository_version = self.repository_version.strip()
 
-    # Install/update repositories
-    self.current_repositories = []
-    self.current_repo_files = set()
-
-    # Enable base system repositories
-    # We don't need that for RHEL family, because we leave all repos enabled
-    # except disabled HDP* ones
-    if OSCheck.is_suse_family():
-      self.current_repositories.append('base')
-    elif OSCheck.is_ubuntu_family():
-      self.current_repo_files.add('base')
-
-    Logger.info("Will install packages for repository version {0}".format(self.repository_version))
-
-    if 0 == len(base_urls):
-      Logger.warning("Repository list is empty. Ambari may not be managing the repositories for {0}.".format(self.repository_version))
-
     try:
-      if 'repositoryFile' in config:
-        create_repo_files(template, CommandRepository(config['repositoryFile']))
+      if 0 == len(command_repository.repositories):
+        Logger.warning(
+          "Repository list is empty. Ambari may not be managing the repositories for {0}.".format(
+            self.repository_version))
       else:
-        append_to_file = False
-        for url_info in base_urls:
-          repo_name, repo_file = self.install_repository(url_info, append_to_file, template)
-          self.current_repositories.append(repo_name)
-          self.current_repo_files.add(repo_file)
-          append_to_file = True
-
+        Logger.info(
+          "Will install packages for repository version {0}".format(self.repository_version))
+        create_repo_files(template, command_repository)
     except Exception, err:
       Logger.logger.exception("Cannot install repository files. Error: {0}".format(str(err)))
       num_errors += 1
 
     # Build structured output with initial values
     self.structured_output = {
-      'installed_repository_version': self.repository_version,
-      'stack_id': stack_id,
-      'package_installation_result': 'FAIL'
+      'package_installation_result': 'FAIL',
+      'repository_version_id': command_repository.version_id
     }
-
-    if self.repository_version_id is not None:
-      self.structured_output['repository_version_id'] = self.repository_version_id
 
     self.put_structured_out(self.structured_output)
 
