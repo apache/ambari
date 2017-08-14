@@ -97,9 +97,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
    */
   selectedCategory: Em.computed.findBy('categories', 'isSelected', true),
 
-  filteredCount: function () {
-    return this.get('filteredContent').map(function(item) {return Object.keys(item.get('versions') || {}).length}).reduce(Em.sum, 0);
-  }.property('filteredContent'),
+  filteredCount: Em.computed.alias('filteredContent.length'),
 
   /**
    * displaying content filtered by upgrade type and upgrade status.
@@ -125,23 +123,39 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
 
   processForDisplay: function (content) {
     var upgradeMethods = this.get('upgradeMethods');
-    return arrayUtils.flatten(content.map(function(item) {
+    var repoVersions = App.RepositoryVersion.find();
+    return content.map(function(item) {
       var versions = item.get('versions');
+      var repoVersion = repoVersions.findProperty('repositoryVersion', item.get('associatedVersion'));
       var method = upgradeMethods.findProperty('type', item.get('upgradeType'));
-      return Object.keys(versions).map(function(serviceName) {
-        return {
-          version: versions[serviceName].to_repository_version,
-          serviceName: App.format.role(serviceName),
-          directionLabel: item.get('direction') === 'UPGRADE' ? Em.I18n.t('common.upgrade') : Em.I18n.t('common.downgrade'),
-          upgradeTypeLabel: method ? method.get('displayName') : method,
-          startTimeLabel: date.startTime(App.dateTimeWithTimeZone(item.get('startTime'))),
-          endTimeLabel: date.endTime(App.dateTimeWithTimeZone(item.get('endTime'))),
-          duration: date.durationSummary(item.get('startTime'), item.get('endTime')),
-          displayStatus: item.get('displayStatus'),
-          stackUpgradeHistoryItem: item
-        };
-      });
-    }));
+      return {
+        idHref: '#' + item.get('upgradeId'),
+        id: item.get('upgradeId'),
+        repositoryName: repoVersion.get('displayName'),
+        repositoryType: repoVersion.get('type').toLowerCase().capitalize(),
+        directionLabel: item.get('direction') === 'UPGRADE' ? Em.I18n.t('common.upgrade') : Em.I18n.t('common.downgrade'),
+        upgradeTypeLabel: method ? method.get('displayName') : method,
+        startTimeLabel: date.startTime(App.dateTimeWithTimeZone(item.get('startTime'))),
+        endTimeLabel: date.endTime(App.dateTimeWithTimeZone(item.get('endTime'))),
+        duration: date.durationSummary(item.get('startTime'), item.get('endTime')),
+        displayStatus: item.get('displayStatus'),
+        stackUpgradeHistoryItem: item,
+        services: this.getRepoServicesForDisplay(versions)
+      };
+    }, this);
+  },
+
+  getRepoServicesForDisplay: function(versions) {
+    return Object.keys(versions).map(function(serviceName) {
+      var fromVersion = App.RepositoryVersion.find(versions[serviceName].from_repository_id);
+      var toVersion = App.RepositoryVersion.find(versions[serviceName].to_repository_id);
+      return {
+        name: serviceName,
+        displayName: fromVersion.get('stackServices').findProperty('name', serviceName).get('displayName'),
+        fromVersion: fromVersion.get('stackServices').findProperty('name', serviceName).get('latestVersion'),
+        toVersion: toVersion.get('stackServices').findProperty('name', serviceName).get('latestVersion')
+      }
+    });
   },
 
   paginationLeftClass: function () {
@@ -191,6 +205,9 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
 
   didInsertElement: function () {
     this.observesCategories();
+    this.$(".accordion").on("show hide", function (e) {
+      $(e.target).siblings(".accordion-heading").find("i.accordion-toggle").toggleClass('icon-caret-right icon-caret-down');
+    });
   },
 
   observesCategories: function () {
@@ -316,7 +333,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
         var scrollable = this.$().find('#modal .scrollable-block');
         scrollable.css('max-height', Number(block.css('max-height').slice(0, -2)) - block.height());
         block.css('max-height', 'none');
-      },
+      }
     });
-  },
+  }
 });
