@@ -416,6 +416,10 @@
         <task xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous"/>
       </execute-stage>
 
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm AutoCreds">
+        <task xsi:type="configure" id="storm_nimbus_autocred_config"/>
+      </execute-stage>
+
       <!--RANGER-->
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Parameterizing Ranger Admin Log4J Properties">
         <task xsi:type="configure" id="admin_log4j_parameterize">
