@@ -328,10 +328,6 @@
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_storm_plugin_cluster_name"/>
       </execute-stage>
 
-      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm AutoCreds">
-        <task xsi:type="configure" id="storm_nimbus_autocred_config"/>
-      </execute-stage>
-
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for Ranger Yarn plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name"/>

@@ -63,13 +63,6 @@
             <regex-replace key="content" find="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}&quot;&#xA;                 filePattern=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
                                          replace-with="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}&quot;&#xA;                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_a1_maxbackupindex}}"/>
           </definition>
-          <definition xsi:type="configure" id="storm_nimbus_autocred_config" summary="Update Storm's Nimbus AutoCred config">
-            <type>storm-site</type>
-            <set key="nimbus.autocredential.plugins.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
-            <set key="nimbus.credential.renewers.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
-            <set key="nimbus.credential.renewers.freq.secs" value="82800" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
-          </definition>
-
         </changes>
       </component>
     </service>

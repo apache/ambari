@@ -1375,21 +1375,3 @@ class DefaultStackAdvisor(StackAdvisor):
 
       if recommendation:
         put_f(name, ",".join(recommendation))
-        
-  @classmethod
-  def appendToYamlString(cls, yaml_string, list_classes):
-    updated_yaml_string = ""
-    try:
-      strip_yaml_str = re.sub('[\[\]\']', ' ', yaml_string)
-      klass_array = [x.strip() for x in strip_yaml_str.split(',')]
-      if yaml_string:
-        for klass in list_classes:
-          klass = klass.strip()
-          klass_array.append(klass)
-          klass_set = set(klass_array)
-          klass_list = [("'" + e + "'") for e in klass_set]
-          updated_yaml_string = "[" + ",".join(klass_list) + "]"
-    except Exception:
-      klass_list = [("'" + e + "'") for e in list_classes]
-      updated_yaml_string = "[" + ",".join(klass_list) + "]"
-    return updated_yaml_string

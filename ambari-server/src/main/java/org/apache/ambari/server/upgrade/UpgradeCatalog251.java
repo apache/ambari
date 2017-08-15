@@ -170,40 +170,4 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
       }
     }
   }
-
-  /**
-   * Make sure storm-env changes are applied to anyone upgrading to HDP-2.6.1 Storm
-   * If the base version was before Ambari 2.5.0, this method should wind up doing nothing.
-   * @throws AmbariException
-   */
-  protected void updateSTORMConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
-
-          if (installedServices.contains("STORM") && cluster.getSecurityType() == SecurityType.KERBEROS) {
-            Config stormEnv = cluster.getDesiredConfigByType(STORM_ENV_CONFIG);
-            String content = stormEnv.getProperties().get("content");
-            if (content != null && !content.contains("STORM_AUTOCREDS_LIB_DIR")) {
-              Map<String, String> newProperties = new HashMap<>();
-              String stormEnvConfigs = "\n #set storm-auto creds \n" +
-                  "# check if storm_jaas.conf in config , only enable storm_auto_creds in secure mode.\n " +
-                  "STORM_JAAS_CONF=$STORM_HOME/conf/storm_jaas.conf \n" +
-                  "STORM_AUTOCREDS_LIB_DIR=$STORM_HOME/external/storm-autocreds \n" +
-                  "if [ -f $STORM_JAAS_CONF ] &amp;&amp; [ -d $STORM_AUTOCREDS_LIB_DIR ]; then \n" +
-                  "   export STORM_EXT_CLASSPATH=$STORM_AUTOCREDS_LIB_DIR \n" +
-                  "fi\n";
-              content += stormEnvConfigs;
-              newProperties.put("content", content);
-              updateConfigurationPropertiesForCluster(cluster, "storm-env", newProperties, true, false);
-            }
-          }
-        }
-      }
-    }
-  }
 }

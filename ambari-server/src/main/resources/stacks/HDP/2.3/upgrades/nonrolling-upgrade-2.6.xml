@@ -638,10 +638,6 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0"/>
       </execute-stage>
 
-      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm AutoCreds">
-        <task xsi:type="configure" id="storm_nimbus_autocred_config"/>
-      </execute-stage>
-
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm">
         <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs"/>
