@@ -24,7 +24,7 @@ import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-
 @Component({
   selector: 'filter-dropdown',
   templateUrl: '../dropdown-button/dropdown-button.component.html',
-  styleUrls: ['../dropdown-button/dropdown-button.component.less', './filter-dropdown.component.less'],
+  styleUrls: ['../dropdown-button/dropdown-button.component.less'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http; //www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,12 +27,15 @@ import {Graph} from '@app/models/graph.model';
 import {Node} from '@app/models/node.model';
 import {UserConfig} from '@app/models/user-config.model';
 import {Filter} from '@app/models/filter.model';
+import {AuditLogField} from '@app/models/audit-log-field.model';
+import {ServiceLogField} from '@app/models/service-log-field.model';
 
 export const storeActions = {
   'ARRAY.ADD': 'ADD',
   'ARRAY.DELETE.PRIMITIVE': 'DELETE_PRIMITIVE',
   'ARRAY.DELETE.OBJECT': 'DELETE_OBJECT',
   'ARRAY.CLEAR': 'CLEAR',
+  'ARRAY.UPDATE.OBJECT': 'UPDATE_OBJECT',
 
   'OBJECT.SET': 'SET'
 };
@@ -49,6 +52,8 @@ export interface AppStore {
   filters: Filter[];
   clusters: string[];
   components: string[];
+  serviceLogsFields: ServiceLogField[];
+  auditLogsFields: AuditLogField[];
 }
 
 export class ModelService {
@@ -90,7 +95,7 @@ export class CollectionModelService extends ModelService {
 
   deletePrimitiveInstance(instance: any): void {
     this.store.dispatch({
-      type: `${storeActions['ARRAY.DELETE.PRINITIVE']}_${this.modelName}`,
+      type: `${storeActions['ARRAY.DELETE.PRIMITIVE']}_${this.modelName}`,
       payload: instance
     });
   }
@@ -98,6 +103,17 @@ export class CollectionModelService extends ModelService {
   clear(): void {
     this.store.dispatch({
       type: `${storeActions['ARRAY.CLEAR']}_${this.modelName}`
+    });
+  }
+
+  updateObjectInstance(key: string, value: any, keyToModify: string, modifier: (value: any) => {}): void {
+    this.store.dispatch({
+      type: `${storeActions['ARRAY.UPDATE.OBJECT']}_${this.modelName}`,
+      payload: {
+        selector: item => item[key] === value,
+        key: keyToModify,
+        modifier: (currentValue) => modifier(currentValue)
+      }
     });
   }
 
@@ -135,6 +151,14 @@ export function getCollectionReducer(modelName: string, defaultState: any = []):
         return state.filter(item => item !== action.payload);
       case `${storeActions['ARRAY.CLEAR']}_${modelName}`:
         return [];
+      case `${storeActions['ARRAY.UPDATE.OBJECT']}_${modelName}`:
+        const payload = action.payload;
+        let newState = state.slice(),
+          item = newState.find(payload.selector);
+        if (item) {
+          item[payload.key] = payload.modifier(item[payload.key]);
+        }
+        return newState;
       default:
         return state;
     }

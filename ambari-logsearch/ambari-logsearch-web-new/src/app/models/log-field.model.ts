@@ -16,8 +16,12 @@
  * limitations under the License.
  */
 
-@import '../variables';
-
-.pagination-control {
-  .clickable-item;
+export class LogField {
+  constructor(name: string) {
+    this.name = name;
+  }
+  name: string;
+  displayName: string = this.name;
+  isDisplayed: boolean = false;
+  isAvailable: boolean = true;
 }

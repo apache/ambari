@@ -50,6 +50,12 @@ export class DropdownButtonComponent implements OnInit {
   action?: string;
 
   @Input()
+  additionalArgs?: any[] = [];
+
+  @Input()
+  isMultipleChoice?: boolean = false;
+
+  @Input()
   isRightAlign?: boolean = false;
 
   @Input()
@@ -73,7 +79,7 @@ export class DropdownButtonComponent implements OnInit {
       this.value = value;
       this.selectedLabel = options.label;
       if (this.action) {
-        this.actions[this.action](value);
+        this.actions[this.action](value, ...this.additionalArgs);
       }
     }
   }

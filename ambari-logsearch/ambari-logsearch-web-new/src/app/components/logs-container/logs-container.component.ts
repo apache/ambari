@@ -18,11 +18,18 @@
 
 import {Component, OnInit, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
+import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
+import {AuditLogsService} from '@app/services/storage/audit-logs.service';
+import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
+import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
+import {AuditLog} from '@app/models/audit-log.model';
+import {ServiceLog} from '@app/models/service-log.model';
+import {LogField} from '@app/models/log-field.model';
 
 @Component({
   selector: 'logs-container',
@@ -31,7 +38,7 @@ import {ServiceLogsHistogramDataService} from '@app/services/storage/service-log
 })
 export class LogsContainerComponent implements OnInit {
 
-  constructor(private httpClient: HttpClientService, private serviceLogsStorage: ServiceLogsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private filtering: FilteringService) {
+  constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private filtering: FilteringService) {
     this.serviceLogsHistogramStorage.getAll().subscribe(data => {
       let histogramData = {};
       data.forEach(type => {
@@ -51,6 +58,31 @@ export class LogsContainerComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.logsTypeMapObject = this.logsTypeMap[this.logsType];
+    this.availableColumns = this[this.logsTypeMapObject.fieldsModel].getAll().map(fields => {
+      const availableFields = fields.filter(field => field.isAvailable),
+        availableNames = availableFields.map(field => field.name);
+      if (availableNames.length) {
+        this.logs = this[this.logsTypeMapObject.logsModel].getAll().map(logs => logs.map(log => {
+          let logObject = availableNames.reduce((obj, key) => Object.assign(obj, {
+            [key]: log[key]
+          }), {});
+          if (logObject.level) {
+            logObject.className = logObject.level.toLowerCase();
+          }
+          return logObject;
+        }));
+      }
+      return availableFields.map(field => {
+        return {
+          value: field.name,
+          label: field.displayName || field.name
+        };
+      });
+    });
+    this[this.logsTypeMapObject.fieldsModel].getAll().subscribe(columns => {
+      this.displayedColumns = columns.filter(column => column.isAvailable && column.isDisplayed);
+    });
     this.loadLogs();
     this.filtersForm.valueChanges.subscribe(() => {
       this.loadLogs();
@@ -58,7 +90,9 @@ export class LogsContainerComponent implements OnInit {
   }
 
   @Input()
-  private logsArrayId: string;
+  private logsType: string;
+
+  logsTypeMapObject: any;
 
   totalCount: number = 0;
 
@@ -77,15 +111,22 @@ export class LogsContainerComponent implements OnInit {
     timeRange: ['to', 'from']
   };
 
-  logs = this.serviceLogsStorage.getAll().map(logs => logs.map(log => {
-    return {
-      type: log.type,
-      level: log.level,
-      className: log.level.toLowerCase(),
-      message: log.log_message,
-      time: log.logtime
-    };
-  }));
+  private readonly logsTypeMap = {
+    auditLogs: {
+      logsModel: 'auditLogsStorage',
+      fieldsModel: 'auditLogsFieldsStorage'
+    },
+    serviceLogs: {
+      logsModel: 'serviceLogsStorage',
+      fieldsModel: 'serviceLogsFieldsStorage'
+    }
+  };
+
+  logs: Observable<AuditLog[] | ServiceLog[]>;
+
+  availableColumns: Observable<LogField[]>;
+
+  displayedColumns: any[] = [];
 
   histogramData: any;
 
@@ -106,7 +147,7 @@ export class LogsContainerComponent implements OnInit {
   }
 
   private loadLogs(): void {
-    this.httpClient.get(this.logsArrayId, this.getParams('listFilters')).subscribe(response => {
+    this.httpClient.get(this.logsType, this.getParams('listFilters')).subscribe(response => {
       const jsonResponse = response.json();
       this.serviceLogsStorage.clear();
       if (jsonResponse) {

@@ -45,6 +45,8 @@ import {UserConfigsService} from '@app/services/storage/user-configs.service';
 import {FiltersService} from '@app/services/storage/filters.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
+import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
+import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
@@ -138,6 +140,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FiltersService,
     ClustersService,
     ComponentsService,
+    ServiceLogsFieldsService,
+    AuditLogsFieldsService,
     {
       provide: XHRBackend,
       useFactory: getXHRBackend,

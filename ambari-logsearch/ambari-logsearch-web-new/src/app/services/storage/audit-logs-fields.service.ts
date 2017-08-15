@@ -16,8 +16,17 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
 
-.pagination-control {
-  .clickable-item;
+export const modelName = 'auditLogsFields';
+
+@Injectable()
+export class AuditLogsFieldsService extends CollectionModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
+  }
 }
+
+export const auditLogsFields = getCollectionReducer(modelName);

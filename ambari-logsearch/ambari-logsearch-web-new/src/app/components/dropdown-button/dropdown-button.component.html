@@ -18,7 +18,7 @@
 <div class="filter-label" *ngIf="label">{{label | translate}}</div>
 <div [ngClass]="{'dropup': isDropup}">
   <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">
-    {{selectedLabel | translate}} <span class="caret"></span>
+    <span *ngIf="!isMultipleChoice">{{selectedLabel | translate}}</span> <span class="caret"></span>
   </button>
   <ul data-component="dropdown-list" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
       [items]="options" (selectedItemChange)="updateValue($event)"></ul>

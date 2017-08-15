@@ -18,6 +18,7 @@
 
 import {Injectable} from '@angular/core';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
+import {CollectionModelService} from '@app/models/store.model';
 
 @Injectable()
 export class ComponentActionsService {
@@ -41,6 +42,10 @@ export class ComponentActionsService {
 
   setTimeZone(timeZone: string): void {
     this.appSettings.setParameter('timeZone', timeZone);
+  }
+
+  updateSelectedColumns(columnName: string, model: CollectionModelService): void {
+    model.updateObjectInstance('name', columnName, 'isDisplayed', currentValue => !currentValue);
   }
 
 }

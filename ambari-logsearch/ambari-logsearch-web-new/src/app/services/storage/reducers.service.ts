@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http; //www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,8 @@ import {graphs} from '@app/services/storage/graphs.service';
 import {nodes} from '@app/services/storage/nodes.service';
 import {serviceLogs} from '@app/services/storage/service-logs.service';
 import {serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
+import {auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {userConfigs} from '@app/services/storage/user-configs.service';
 
 export const reducers = {
@@ -40,7 +42,9 @@ export const reducers = {
   userConfigs,
   filters,
   clusters,
-  components
+  components,
+  serviceLogsFields,
+  auditLogsFields
 };
 
 export function reducer(state: any, action: any) {

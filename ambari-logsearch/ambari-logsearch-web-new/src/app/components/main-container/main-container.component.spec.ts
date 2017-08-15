@@ -21,6 +21,8 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {HttpModule} from '@angular/http';
 import {StoreModule} from '@ngrx/store';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
+import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {HttpClientService} from '@app/services/http-client.service';
 
 import {MainContainerComponent} from './main-container.component';
@@ -35,12 +37,16 @@ describe('MainContainerComponent', () => {
       imports: [
         HttpModule,
         StoreModule.provideStore({
-          appState
+          appState,
+          auditLogsFields,
+          serviceLogsFields
         })
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         AppStateService,
+        AuditLogsFieldsService,
+        ServiceLogsFieldsService,
         HttpClientService
       ]
     })

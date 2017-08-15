@@ -68,7 +68,7 @@ export const mockData = {
               event_count: 0,
               event_md5: '09876543211234567890',
               event_dur_ms: 100,
-              _ttl_: "+7DAYS",
+              _ttl_: '+7DAYS',
               _expire_at_: '2017-05-29T11:30:22.531Z',
               _router_field_: 5
             },
@@ -115,7 +115,7 @@ export const mockData = {
               event_count: 2,
               event_md5: '01928374650192837465',
               event_dur_ms: 500,
-              _ttl_: "+7DAYS",
+              _ttl_: '+7DAYS',
               _expire_at_: '2017-05-29T11:30:22.531Z',
               _router_field_: 10
             }
@@ -182,7 +182,79 @@ export const mockData = {
             ]
           },
           schema: {
-            fields: ''
+            fields: {
+              'cluster': 'key_lower_case',
+              'ws_status': 'text_ws',
+              'reason': 'text_std_token_lower_case',
+              'agent': 'key_lower_case',
+              'Base URL': 'key_lower_case',
+              'sess': 'key_lower_case',
+              'type': 'key_lower_case',
+              'seq_num': 'tlong',
+              'path': 'key_lower_case',
+              'ugi': 'key_lower_case',
+              'host': 'key_lower_case',
+              'case_id': 'key_lower_case',
+              'action': 'key_lower_case',
+              'id': 'string',
+              'logger_name': 'key_lower_case',
+              'text': 'text_std_token_lower_case',
+              'Repo id': 'key_lower_case',
+              'Stack version': 'tdouble',
+              'logfile_line_number': 'tint',
+              'Status': 'tlong',
+              'RequestId': 'tlong',
+              'level': 'key_lower_case',
+              'resource': 'key_lower_case',
+              'resType': 'key_lower_case',
+              'ip': 'key_lower_case',
+              'Hostname': 'key_lower_case',
+              'Roles': 'key_lower_case',
+              'Stack': 'key_lower_case',
+              'req_self_id': 'key_lower_case',
+              'repoType': 'tint',
+              'VersionNote': 'key_lower_case',
+              'Cluster name': 'key_lower_case',
+              'bundle_id': 'key_lower_case',
+              'cliType': 'key_lower_case',
+              'reqContext': 'key_lower_case',
+              'ws_result_status': 'text_ws',
+              'proxyUsers': 'key_lower_case',
+              'RequestType': 'key_lower_case',
+              'Repositories': 'key_lower_case',
+              'logType': 'key_lower_case',
+              'Repo version': 'key_lower_case',
+              'TaskId': 'tlong',
+              'User': 'key_lower_case',
+              'access': 'key_lower_case',
+              'dst': 'key_lower_case',
+              'perm': 'key_lower_case',
+              'event_count': 'tlong',
+              'repo': 'key_lower_case',
+              'reqUser': 'key_lower_case',
+              'task_id': 'tlong',
+              'Operation': 'key_lower_case',
+              'Reason': 'key_lower_case',
+              'reqData': 'text_std_token_lower_case',
+              'result': 'tint',
+              'file': 'key_lower_case',
+              'log_message': 'key_lower_case',
+              'agentHost': 'key_lower_case',
+              'Component': 'key_lower_case',
+              'authType': 'key_lower_case',
+              'Display name': 'key_lower_case',
+              'policy': 'tlong',
+              'cliIP': 'key_lower_case',
+              'OS': 'key_lower_case',
+              'RemoteIp': 'key_lower_case',
+              'ResultStatus': 'tlong',
+              'evtTime': 'tdate',
+              'VersionNumber': 'key_lower_case',
+              'url': 'key_lower_case',
+              'req_caller_id': 'key_lower_case',
+              'enforcer': 'key_lower_case',
+              'Command': 'key_lower_case'
+            }
           },
           serviceload: {
             graphData: [
@@ -242,7 +314,7 @@ export const mockData = {
               event_count: 5,
               event_md5: '1908755391',
               event_dur_ms: 200,
-              _ttl_: "+5DAYS",
+              _ttl_: '+5DAYS',
               _expire_at_: moment().add(5, 'd').valueOf(),
               _router_field_: 20
             },
@@ -266,7 +338,7 @@ export const mockData = {
               event_count: 2,
               event_md5: '1029384756',
               event_dur_ms: 700,
-              _ttl_: "+5DAYS",
+              _ttl_: '+5DAYS',
               _expire_at_: moment().add(3, 'd').valueOf(),
               _router_field_: 5
             },
@@ -290,7 +362,7 @@ export const mockData = {
               event_count: 2,
               event_md5: '67589403',
               event_dur_ms: 100,
-              _ttl_: "+5DAYS",
+              _ttl_: '+5DAYS',
               _expire_at_: moment().subtract(5, 'd').valueOf(),
               _router_field_: 45
             },
@@ -314,7 +386,7 @@ export const mockData = {
               event_count: 2,
               event_md5: '67589403',
               event_dur_ms: 1000,
-              _ttl_: "+5DAYS",
+              _ttl_: '+5DAYS',
               _expire_at_: moment().subtract(25, 'h').add(5, 'd').valueOf(),
               _router_field_: 55
             },
@@ -338,7 +410,7 @@ export const mockData = {
               event_count: 2,
               event_md5: '67589403',
               event_dur_ms: 1000,
-              _ttl_: "+5DAYS",
+              _ttl_: '+5DAYS',
               _expire_at_: moment().subtract(20, 'd').valueOf(),
               _router_field_: 55
             },
@@ -362,7 +434,7 @@ export const mockData = {
               event_count: 2,
               event_md5: '67589403',
               event_dur_ms: 1000,
-              _ttl_: "+5DAYS",
+              _ttl_: '+5DAYS',
               _expire_at_: moment().subtract(2, 'h').add(5, 'd').valueOf(),
               _router_field_: 55
             },
@@ -386,7 +458,7 @@ export const mockData = {
               event_count: 2,
               event_md5: '67589403',
               event_dur_ms: 1000,
-              _ttl_: "+5DAYS",
+              _ttl_: '+5DAYS',
               _expire_at_: moment().subtract(26, 'd').valueOf(),
               _router_field_: 55
             }
@@ -688,7 +760,31 @@ export const mockData = {
             }
           },
           schema: {
-            fields: ''
+            fields: {
+              cluster: 'key_lower_case',
+              method: 'key_lower_case',
+              level: 'key_lower_case',
+              event_count: 'tlong',
+              ip: 'string',
+              rowtype: 'key_lower_case',
+              key_log_message: 'key_lower_case',
+              type: 'key_lower_case',
+              seq_num: 'tlong',
+              path: 'key_lower_case',
+              logtype: 'key_lower_case',
+              file: 'key_lower_case',
+              line_number: 'tint',
+              thread_name: 'key_lower_case',
+              bundle_id: 'key_lower_case',
+              host: 'key_lower_case',
+              case_id: 'key_lower_case',
+              log_message: 'text_std_token_lower_case',
+              id: 'string',
+              logger_name: 'key_lower_case',
+              text: 'text_std_token_lower_case',
+              logfile_line_number: 'tint',
+              logtime: 'tdate'
+            }
           },
           serviceconfig: '',
           tree: {
@@ -783,7 +879,7 @@ export const mockData = {
                 event_count: 5,
                 event_md5: '1908755391',
                 event_dur_ms: 200,
-                _ttl_: "+5DAYS",
+                _ttl_: '+5DAYS',
                 _expire_at_: '2017-05-29T11:30:22.531Z',
                 _router_field_: 20
               },
@@ -807,7 +903,7 @@ export const mockData = {
                 event_count: 2,
                 event_md5: '1029384756',
                 event_dur_ms: 700,
-                _ttl_: "+5DAYS",
+                _ttl_: '+5DAYS',
                 _expire_at_: '2017-05-29T10:30:22.531Z',
                 _router_field_: 5
               }

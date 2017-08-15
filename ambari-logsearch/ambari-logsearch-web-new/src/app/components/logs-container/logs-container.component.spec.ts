@@ -22,7 +22,10 @@ import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
+import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
+import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
@@ -50,7 +53,10 @@ describe('LogsContainerComponent', () => {
           appSettings,
           clusters,
           components,
+          auditLogs,
+          auditLogsFields,
           serviceLogs,
+          serviceLogsFields,
           serviceLogsHistogramData
         })
       ],
@@ -62,7 +68,10 @@ describe('LogsContainerComponent', () => {
         AppSettingsService,
         ClustersService,
         ComponentsService,
+        AuditLogsService,
+        AuditLogsFieldsService,
         ServiceLogsService,
+        ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         FilteringService,
         UtilsService
@@ -75,6 +84,7 @@ describe('LogsContainerComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(LogsContainerComponent);
     component = fixture.componentInstance;
+    component.logsType = 'serviceLogs';
     fixture.detectChanges();
   });
 

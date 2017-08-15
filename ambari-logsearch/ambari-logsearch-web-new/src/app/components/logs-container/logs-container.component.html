@@ -16,4 +16,7 @@
 -->
 
 <time-histogram class="col-md-12" [data]="histogramData" [customOptions]="histogramOptions"></time-histogram>
-<logs-list [logs]="logs | async" [totalCount]="totalCount"></logs-list>
+<dropdown-button class="pull-right" label="logs.columns" [options]="availableColumns | async" isRightAlign="true"
+                 isMultipleChoice="true" action="updateSelectedColumns"
+                 [additionalArgs]="this[this.logsTypeMapObject.fieldsModel]"></dropdown-button>
+<logs-list [logs]="logs | async" [totalCount]="totalCount" [displayedColumns]="displayedColumns"></logs-list>

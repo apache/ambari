@@ -42,6 +42,9 @@ export class HttpClientService extends Http {
       url: 'audit/logs',
       params: opts => new AuditLogsQueryParams(opts)
     },
+    auditLogsFields: {
+      url: 'audit/logs/schema/fields'
+    },
     serviceLogs: {
       url: 'service/logs',
       params: opts => new ServiceLogsQueryParams(opts)
@@ -49,6 +52,9 @@ export class HttpClientService extends Http {
     serviceLogsHistogram: {
       url: 'service/logs/histogram',
       params: opts => new ServiceLogsHistogramQueryParams(opts)
+    },
+    serviceLogsFields: {
+      url: 'service/logs/schema/fields'
     },
     components: {
       url: 'service/logs/components'

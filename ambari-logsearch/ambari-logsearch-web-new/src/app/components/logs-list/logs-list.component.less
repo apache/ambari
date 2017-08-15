@@ -107,11 +107,14 @@
   position: relative;
 
   // TODO get rid of magic numbers, base on actual design
-  .log-content {
+  .log-content-inner-wrapper {
     overflow: hidden;
     max-height: @default-line-height * 2em;
     padding-right: 65px;
-    white-space: pre-wrap;
+
+    .log-content {
+      white-space: pre-wrap;
+    }
   }
 
   .log-actions {
@@ -120,7 +123,7 @@
     top: 0;
     border: @input-border;
 
-    &.collapsing + .log-content, &.collapse.in + .log-content {
+    &.collapsing + .log-content-inner-wrapper, &.collapse.in + .log-content-inner-wrapper {
       min-height: 6em;
       max-height: none;
       overflow-x: auto;

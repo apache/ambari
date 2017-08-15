@@ -36,6 +36,11 @@ export class LogsListComponent {
   @Input()
   totalCount: number = 0;
 
+  @Input()
+  displayedColumns: any[] = [];
+
+  readonly customStyledColumns = ['level', 'type', 'logtime', 'log_message'];
+
   timeFormat: string = 'DD/MM/YYYY HH:mm:ss';
 
   get timeZone(): string {
@@ -48,6 +53,10 @@ export class LogsListComponent {
   
   get filtersForm(): FormGroup {
     return this.filtering.filtersForm;
+  }
+
+  isColumnDisplayed(key: string): boolean {
+    return this.displayedColumns.some(column => column.name === key);
   }
 
 }
