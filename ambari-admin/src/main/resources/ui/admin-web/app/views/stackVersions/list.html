@@ -70,6 +70,7 @@
         <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">
           {{repo.display_name}}
           <span ng-if="repo.isPatch" class="badge btn-warning">{{'versions.patch' | translate}}</span>
+          <span ng-if="repo.isMaint" class="badge btn-warning">{{'versions.maint' | translate}}</span>
         </a>
       </td>
       <td class="col-medium">

@@ -29,10 +29,13 @@
 <p class="repository-name">({{view.content.repositoryVersion}})</p>
 
 <p class="patch-icon">
-  {{#if view.isPatch}}
+  {{#if view.content.isMaint}}
+    <i class="icon-umbrella"></i>&nbsp;{{t common.maint}}
+  {{/if}}
+  {{#if view.content.isPatch}}
     <i class="icon-umbrella"></i>&nbsp;{{t common.patch}}
   {{/if}}
-  {{#if view.isService}}
+  {{#if view.content.isService}}
     <i class="icon-umbrella"></i>&nbsp;{{t common.service}}
   {{/if}}
 </p>

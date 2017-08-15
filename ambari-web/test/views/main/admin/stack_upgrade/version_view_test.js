@@ -73,6 +73,18 @@ describe('App.mainAdminStackVersionsView', function () {
         }),
         Em.Object.create({
           status: "INSTALLED",
+          repositoryVersion: "2.0.0.1",
+          stackVersionType: 'HDP',
+          isPatch: true
+        }),
+        Em.Object.create({
+          status: "INSTALLED",
+          repositoryVersion: "2.0.0.1",
+          stackVersionType: 'HDP',
+          isMaint: true
+        }),
+        Em.Object.create({
+          status: "INSTALLED",
           repositoryVersion: "2.2.2.1",
           stackVersionType: 'HDP'
         }),
@@ -124,6 +136,18 @@ describe('App.mainAdminStackVersionsView', function () {
               repositoryVersion: "2.0.2.1",
               stackVersionType: 'HCP',
               isCompatible: true
+            }),
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.0.0.1",
+              stackVersionType: 'HDP',
+              isPatch: true
+            }),
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.0.0.1",
+              stackVersionType: 'HDP',
+              isMaint: true
             }),
             Em.Object.create({
               status: "INSTALLED",
@@ -195,6 +219,18 @@ describe('App.mainAdminStackVersionsView', function () {
               repositoryVersion: "2.0.2.1",
               stackVersionType: 'HCP',
               isCompatible: true
+            }),
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.0.0.1",
+              stackVersionType: 'HDP',
+              isPatch: true
+            }),
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.0.0.1",
+              stackVersionType: 'HDP',
+              isMaint: true
             })
           ]
         },

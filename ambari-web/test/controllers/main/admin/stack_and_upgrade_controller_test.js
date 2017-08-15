@@ -3526,8 +3526,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       );
     });
     it('should return patch upgrade header', function() {
-      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, true)).to.be.equal(
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, Em.Object.create({isPatch: true}))).to.be.equal(
         Em.I18n.t('admin.stackUpgrade.dialog.upgrade.patch.header').format('t1', 'v1')
+      );
+    });
+    it('should return maint upgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, Em.Object.create({isMaint: true}))).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.upgrade.maint.header').format('t1', 'v1')
       );
     });
     it('should return upgrade header', function() {

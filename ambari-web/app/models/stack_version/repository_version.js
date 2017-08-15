@@ -36,6 +36,10 @@ App.RepositoryVersion = DS.Model.extend({
 
   isPatch: Em.computed.equal('type', 'PATCH'),
 
+  isMaint: Em.computed.equal('type', 'MAINT'),
+
+  isService: Em.computed.equal('type', 'SERVICE'),
+
   isStandard: Em.computed.equal('type', 'STANDARD'),
 
   /**

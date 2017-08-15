@@ -175,6 +175,7 @@ angular.module('ambariAdminConsole')
         });
         repos = repos.map(function (stack) {
           stack.RepositoryVersions.isPatch = stack.RepositoryVersions.type === 'PATCH';
+          stack.RepositoryVersions.isMaint = stack.RepositoryVersions.type === 'MAINT';
           return stack.RepositoryVersions;
         });
         // prepare response data with client side pagination
@@ -407,8 +408,8 @@ angular.module('ambariAdminConsole')
 
     filterAvailableServices: function (response) {
       var stackVersion = response.updateObj.RepositoryVersions || response.updateObj.VersionDefinition;
-      var patchOrService = stackVersion.type === 'PATCH' || stackVersion.type === 'SERVICE';
-      var availableServices = (patchOrService ? stackVersion.services : response.services).map(function (s) {
+      var nonStandardVersion = stackVersion.type !== 'STANDARD';
+      var availableServices = (nonStandardVersion ? stackVersion.services : response.services).map(function (s) {
         return s.name;
       });
       return response.services.filter(function (service) {

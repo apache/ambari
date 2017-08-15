@@ -69,10 +69,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return this.get('content.status') === 'CURRENT' ? 'current-version-box' : '';
   }.property('content.status'),
 
-  isPatch: Em.computed.equal('content.type', 'PATCH'),
-
-  isService: Em.computed.equal('content.type', 'SERVICE'),
-
   /**
    * @type {boolean}
    */
@@ -177,10 +173,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
     });
     var isSuspended = App.get('upgradeSuspended');
 
-    if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
+    if (status === 'CURRENT' && (this.get('content.isPatch') || this.get('content.isMaint')) && !this.get('isUpgrading')) {
       element.setProperties(statePropertiesMap['CURRENT_PATCH']);
     }
-    else if (['INSTALLING', 'CURRENT'].contains(status) && !this.get('content.isPatch')) {
+    else if (['INSTALLING'].contains(status)) {
+      element.setProperties(statePropertiesMap[status]);
+    }
+    else if (['CURRENT'].contains(status) && (!this.get('content.isPatch') && !this.get('content.isMaint'))) {
       element.setProperties(statePropertiesMap[status]);
     }
     else if (status === 'NOT_REQUIRED') {
