@@ -32,10 +32,12 @@ import platform
 import re
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  from resource_management.core.environment import Environment
-  from resource_management.libraries.script.config_dictionary import ConfigDictionary
-  from resource_management.libraries.script.script import Script
-  from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+  with patch("os.geteuid", return_value=45000):  # required to mock sudo and run tests with right scenario
+    from resource_management.core import sudo
+    from resource_management.core.environment import Environment
+    from resource_management.libraries.script.config_dictionary import ConfigDictionary
+    from resource_management.libraries.script.script import Script
+    from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
 PATH_TO_STACKS = "main/resources/stacks/HDP"
 PATH_TO_STACK_TESTS = "test/python/stacks/"
