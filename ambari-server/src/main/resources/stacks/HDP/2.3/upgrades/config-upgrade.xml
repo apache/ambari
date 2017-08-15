@@ -664,6 +664,13 @@
                      replace-with="${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}"/>
           </definition>
 
+          <definition xsi:type="configure" id="storm_nimbus_autocred_config" summary="Update Storm's Nimbus AutoCred config">
+            <type>storm-site</type>
+            <set key="nimbus.autocredential.plugins.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+            <set key="nimbus.credential.renewers.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+            <set key="nimbus.credential.renewers.freq.secs" value="82800" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
+          </definition>
+
         </changes>
       </component>
     </service>
