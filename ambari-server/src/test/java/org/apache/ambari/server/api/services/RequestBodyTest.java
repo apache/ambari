@@ -51,7 +51,7 @@ public class RequestBodyTest {
   public void testAddGetPropertySets() {
     RequestBody body = new RequestBody();
     assertEquals(0, body.getNamedPropertySets().size());
-    NamedPropertySet ps = new NamedPropertySet("foo", new HashMap<String, Object>());
+    NamedPropertySet ps = new NamedPropertySet("foo", new HashMap<>());
     body.addPropertySet(ps);
     assertEquals(1, body.getNamedPropertySets().size());
     assertSame(ps, body.getNamedPropertySets().iterator().next());

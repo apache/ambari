@@ -160,8 +160,8 @@ public class ArtifactResourceProviderTest {
     entities.add(entity);
     entities.add(entity2);
 
-    Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
-    Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
+    Map<String, Object> artifact_data = Collections.singletonMap("foo", "bar");
+    Map<String, Object> artifact_data2 = Collections.singletonMap("foo2", "bar2");
 
     Map<String, String> responseForeignKeys = new HashMap<>();
     responseForeignKeys.put("cluster", "500");
@@ -316,8 +316,8 @@ public class ArtifactResourceProviderTest {
     entities.add(entity);
     entities.add(entity2);
 
-    Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
-    Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
+    Map<String, Object> artifact_data = Collections.singletonMap("foo", "bar");
+    Map<String, Object> artifact_data2 = Collections.singletonMap("foo2", "bar2");
 
     Map<String, String> responseForeignKeys = new HashMap<>();
     responseForeignKeys.put("cluster", "500");
@@ -403,8 +403,8 @@ public class ArtifactResourceProviderTest {
     entities.add(entity);
     entities.add(entity2);
 
-    Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
-    Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
+    Map<String, Object> artifact_data = Collections.singletonMap("foo", "bar");
+    Map<String, Object> artifact_data2 = Collections.singletonMap("foo2", "bar2");
 
     Map<String, String> responseForeignKeys = new HashMap<>();
     responseForeignKeys.put("cluster", "500");

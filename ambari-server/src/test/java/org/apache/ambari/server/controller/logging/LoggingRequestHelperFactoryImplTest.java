@@ -199,7 +199,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     expect(clusterMock.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchEnvConfig).atLeastOnce();
-    expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.<ServiceComponentHost>emptyList()).atLeastOnce();
+    expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.emptyList()).atLeastOnce();
     expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service)null)).atLeastOnce();
 
     mockSupport.replayAll();

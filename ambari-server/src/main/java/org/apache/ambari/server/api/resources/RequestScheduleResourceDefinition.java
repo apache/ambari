@@ -42,7 +42,7 @@ public class RequestScheduleResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public List<PostProcessor> getPostProcessors() {
-    return Collections.<PostProcessor>singletonList(new
+    return Collections.singletonList(new
       RequestScheduleHrefPostProcessor());
   }
 

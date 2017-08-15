@@ -113,7 +113,7 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
    * The executor responsible for dispatching.
    */
   private final Executor m_executor = new ThreadPoolExecutor(0, 1, 5L, TimeUnit.MINUTES,
-      new LinkedBlockingQueue<Runnable>(), new ScriptDispatchThreadFactory(),
+    new LinkedBlockingQueue<>(), new ScriptDispatchThreadFactory(),
       new ThreadPoolExecutor.CallerRunsPolicy());
 
   /**

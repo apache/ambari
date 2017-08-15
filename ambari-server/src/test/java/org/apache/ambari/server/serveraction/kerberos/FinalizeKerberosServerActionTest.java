@@ -149,7 +149,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     expect(executionCommand.getCommandParams()).andReturn(commandParams).anyTimes();
     expect(executionCommand.getRoleCommand()).andReturn(RoleCommand.EXECUTE).anyTimes();
     expect(executionCommand.getRole()).andReturn(Role.AMBARI_SERVER_ACTION.name()).anyTimes();
-    expect(executionCommand.getConfigurationTags()).andReturn(Collections.<String, Map<String, String>>emptyMap()).anyTimes();
+    expect(executionCommand.getConfigurationTags()).andReturn(Collections.emptyMap()).anyTimes();
     expect(executionCommand.getServiceName()).andReturn("AMBARI_SERVER").anyTimes();
     expect(executionCommand.getTaskId()).andReturn(3L).anyTimes();
 

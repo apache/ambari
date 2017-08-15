@@ -75,7 +75,7 @@ public class AmbariUserAuthenticationFilterTest {
     User user = combineUser();
 
     expect(users.getUser(TEST_USER_ID)).andReturn(user);
-    expect(users.getUserAuthorities(user.getUserName(), user.getUserType())).andReturn(new HashSet<AmbariGrantedAuthority>());
+    expect(users.getUserAuthorities(user.getUserName(), user.getUserType())).andReturn(new HashSet<>());
     Capture<String> userHeaderValue = newCapture();
     response.setHeader(eq("User"), capture(userHeaderValue));
     expectLastCall();

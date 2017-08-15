@@ -67,6 +67,6 @@ public class ScalingThreadPoolExecutor extends ThreadPoolExecutor {
    */
   public ScalingThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,
       TimeUnit unit, int workerQueueSize) {
-    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new LinkedBlockingQueue<Runnable>(workerQueueSize));
+    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new LinkedBlockingQueue<>(workerQueueSize));
   }
 }

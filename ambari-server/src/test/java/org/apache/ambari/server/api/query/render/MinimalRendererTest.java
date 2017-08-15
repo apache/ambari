@@ -63,7 +63,7 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, schema);
 
-    QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), new HashSet<String>());
+    QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), new HashSet<>());
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     MinimalRenderer renderer = new MinimalRenderer();
@@ -182,7 +182,7 @@ public class MinimalRendererTest {
     HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
-    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
+    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<>()), "Component");
 
     MinimalRenderer renderer = new MinimalRenderer();
     renderer.init(schemaFactory);
@@ -259,7 +259,7 @@ public class MinimalRendererTest {
     HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
-    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
+    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<>()), "Component");
 
     MinimalRenderer renderer = new MinimalRenderer();
     renderer.init(schemaFactory);
@@ -296,7 +296,7 @@ public class MinimalRendererTest {
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
-    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
+    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<>()), "Component");
 
     MinimalRenderer renderer = new MinimalRenderer();
     renderer.init(schemaFactory);
@@ -457,7 +457,7 @@ public class MinimalRendererTest {
 
   private TreeNode<QueryInfo> createPropertyTree() {
     TreeNode<QueryInfo> propertyTree = new TreeNodeImpl<>(null, new QueryInfo(
-      new ClusterResourceDefinition(), new HashSet<String>()), "Cluster");
+      new ClusterResourceDefinition(), new HashSet<>()), "Cluster");
     Set<String> clusterProperties = propertyTree.getObject().getProperties();
     clusterProperties.add("Clusters/cluster_name");
     clusterProperties.add("Clusters/version");
@@ -469,14 +469,14 @@ public class MinimalRendererTest {
 
   private TreeNode<QueryInfo> createPropertyTreeWithSubProps() {
     TreeNode<QueryInfo> propertyTree = new TreeNodeImpl<>(null, new QueryInfo(
-      new ClusterResourceDefinition(), new HashSet<String>()), "Cluster");
+      new ClusterResourceDefinition(), new HashSet<>()), "Cluster");
     Set<String> clusterProperties = propertyTree.getObject().getProperties();
     clusterProperties.add("Clusters/cluster_name");
     clusterProperties.add("Clusters/version");
     clusterProperties.add("Clusters/prop1");
     clusterProperties.add("foo");
 
-    propertyTree.addChild(new QueryInfo(new HostResourceDefinition(), new HashSet<String>()), "Host");
+    propertyTree.addChild(new QueryInfo(new HostResourceDefinition(), new HashSet<>()), "Host");
     propertyTree.getChild("Host").getObject().getProperties().add("foo");
 
     return propertyTree;

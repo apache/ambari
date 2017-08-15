@@ -57,7 +57,6 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
@@ -263,7 +262,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     //todo: StageUtils shouldn't be called for this test
     StageUtils.setTopologyManager(topologyManager);
     expect(topologyManager.getPendingHostComponents()).andReturn(
-        Collections.<String, Collection<String>>emptyMap()).anyTimes();
+        Collections.emptyMap()).anyTimes();
 
     StageUtils.setConfiguration(configuration);
     expect(configuration.getApiSSLAuthentication()).andReturn(false).anyTimes();
@@ -995,14 +994,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Service service2 = createNiceMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(service2.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
@@ -1052,7 +1051,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
         .andReturn(createMock(RoleCommandOrder.class))
@@ -1174,14 +1173,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Service service2 = createNiceMock(Service.class);
     expect(service2.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
@@ -1227,7 +1226,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
         .andReturn(createMock(RoleCommandOrder.class))
@@ -1267,35 +1266,35 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Update Configs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Destroy Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Delete Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
 
     // Cleanup Stage
@@ -1303,7 +1302,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
 
     replayAll();
@@ -1385,14 +1384,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
@@ -1443,7 +1442,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
         .andReturn(createMock(RoleCommandOrder.class))
@@ -1470,42 +1469,42 @@ public class KerberosHelperTest extends EasyMockSupport {
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Create Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Distribute Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Update Configurations Stage
       expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Clean-up/Finalize Stage
       expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
     } else {
       requestStageContainer = null;
@@ -1556,7 +1555,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
     assertEquals(null, kerberosHelper.getManageIdentitiesDirective(null));
-    assertEquals(null, kerberosHelper.getManageIdentitiesDirective(Collections.<String, String>emptyMap()));
+    assertEquals(null, kerberosHelper.getManageIdentitiesDirective(Collections.emptyMap()));
 
     assertEquals(null, kerberosHelper.getManageIdentitiesDirective(
         new HashMap<String, String>() {
@@ -1618,7 +1617,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
     assertEquals(false, kerberosHelper.getForceToggleKerberosDirective(null));
-    assertEquals(false, kerberosHelper.getForceToggleKerberosDirective(Collections.<String, String>emptyMap()));
+    assertEquals(false, kerberosHelper.getForceToggleKerberosDirective(Collections.emptyMap()));
 
     assertEquals(false, kerberosHelper.getForceToggleKerberosDirective(
         new HashMap<String, String>() {
@@ -1693,15 +1692,15 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).times(1);
-    expect(identityDescriptor1.shouldInclude(EasyMock.<Map<String, Object>>anyObject())).andReturn(true).anyTimes();
+    expect(identityDescriptor1.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).times(1);
-    expect(identityDescriptor2.shouldInclude(EasyMock.<Map<String, Object>>anyObject())).andReturn(true).anyTimes();
+    expect(identityDescriptor2.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptor3 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor3.getPrincipalDescriptor()).andReturn(principalDescriptor3).times(1);
-    expect(identityDescriptor3.shouldInclude(EasyMock.<Map<String, Object>>anyObject())).andReturn(true).anyTimes();
+    expect(identityDescriptor3.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
 
     final KerberosComponentDescriptor componentDescriptor1 = createMockComponentDescriptor(
         "COMPONENT1",
@@ -1713,7 +1712,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         null);
 
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(Arrays.asList(
+    expect(serviceDescriptor1.getIdentities(eq(true), EasyMock.anyObject())).andReturn(Arrays.asList(
         identityDescriptor1,
         identityDescriptor2
     )).times(1);
@@ -1731,7 +1730,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getProperty("additional_realms")).andReturn(null).times(1);
-    expect(kerberosDescriptor.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(null).times(1);
+    expect(kerberosDescriptor.getIdentities(eq(true), EasyMock.anyObject())).andReturn(null).times(1);
     expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(null).times(1);
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
 
@@ -1973,7 +1972,7 @@ public class KerberosHelperTest extends EasyMockSupport {
             put("COMPONENT2B", componentDescriptor2b);
           }
         },
-        Collections.<KerberosIdentityDescriptor>emptyList());
+        Collections.emptyList());
     expect(serviceDescriptor2.getComponent("COMPONENT2A")).andReturn(componentDescriptor2a).times(2);
     expect(serviceDescriptor2.getComponent("COMPONENT2B")).andReturn(componentDescriptor2b).times(2);
 
@@ -1984,7 +1983,7 @@ public class KerberosHelperTest extends EasyMockSupport {
             put("COMPONENT3A", componentDescriptor3a);
           }
         },
-        Collections.<KerberosIdentityDescriptor>emptyList());
+        Collections.emptyList());
     expect(serviceDescriptor3.getComponent("COMPONENT3A")).andReturn(componentDescriptor3a).times(4);
 
     final Map<String, String> kerberosDescriptorProperties = new HashMap<>();
@@ -1996,7 +1995,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).atLeastOnce();
     expect(kerberosDescriptor.getService("SERVICE3")).andReturn(serviceDescriptor3).atLeastOnce();
     expect(kerberosDescriptor.getProperty("additional_realms")).andReturn(null).atLeastOnce();
-    expect(kerberosDescriptor.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(null).atLeastOnce();
+    expect(kerberosDescriptor.getIdentities(eq(true), EasyMock.anyObject())).andReturn(null).atLeastOnce();
     expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(Collections.singleton("core-site/auth.to.local")).atLeastOnce();
 
     setupKerberosDescriptor(kerberosDescriptor);
@@ -2098,7 +2097,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getService("SERVICE1")).andReturn(service1).atLeastOnce();
     expect(cluster.getService("SERVICE2")).andReturn(service2).atLeastOnce();
     expect(cluster.getService("SERVICE3")).andReturn(service3).atLeastOnce();
-    expect(cluster.getServiceComponentHostMap(EasyMock.<Set<String>>anyObject(), EasyMock.<Set<String>>anyObject())).andReturn(serviceComponentHostMap).anyTimes();
+    expect(cluster.getServiceComponentHostMap(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(serviceComponentHostMap).anyTimes();
 
     final Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>() {
       {
@@ -2450,20 +2449,20 @@ public class KerberosHelperTest extends EasyMockSupport {
     Capture<? extends String> capturePrincipalForKeytab = newCapture(CaptureType.ALL);
 
     CreatePrincipalsServerAction createPrincipalsServerAction = injector.getInstance(CreatePrincipalsServerAction.class);
-    expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(false), EasyMock.<Map<String, String>>anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
+    expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(false), EasyMock.anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
         .andReturn(new CreatePrincipalsServerAction.CreatePrincipalResult("anything", "password", 1))
         .times(3);
 
     if(createAmbariIdentities) {
       if (ambariServerPrincipalAsService) {
-        expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(true), EasyMock.<Map<String, String>>anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
+        expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(true), EasyMock.anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
             .andReturn(new CreatePrincipalsServerAction.CreatePrincipalResult("anything", "password", 1))
             .times(2);
       } else {
-        expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(true), EasyMock.<Map<String, String>>anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
+        expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(true), EasyMock.anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
             .andReturn(new CreatePrincipalsServerAction.CreatePrincipalResult("anything", "password", 1))
             .times(1);
-        expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(false), EasyMock.<Map<String, String>>anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
+        expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(false), EasyMock.anyObject(), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
             .andReturn(new CreatePrincipalsServerAction.CreatePrincipalResult("anything", "password", 1))
             .times(1);
       }
@@ -2600,7 +2599,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   private void setupKerberosDescriptor(KerberosDescriptor kerberosDescriptor) throws Exception {
     // cluster.getCurrentStackVersion expectation is already specified in main test method
     expect(metaInfo.getKerberosDescriptor("HDP", "2.2")).andReturn(kerberosDescriptor).anyTimes();
-    expect(kerberosDescriptor.principals()).andReturn(Collections.<String, String>emptyMap()).anyTimes();
+    expect(kerberosDescriptor.principals()).andReturn(Collections.emptyMap()).anyTimes();
   }
 
   private void setupStageFactory() {
@@ -2614,7 +2613,7 @@ public class KerberosHelperTest extends EasyMockSupport {
             Stage stage = createNiceMock(Stage.class);
 
             expect(stage.getHostRoleCommands())
-                .andReturn(Collections.<String, Map<String, HostRoleCommand>>emptyMap())
+                .andReturn(Collections.emptyMap())
                 .anyTimes();
             replay(stage);
             return stage;
@@ -2696,14 +2695,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
@@ -2794,7 +2793,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .times(3);
     expect(ambariManagementController.getRoleCommandOrder(cluster))
         .andReturn(createMock(RoleCommandOrder.class))
@@ -2864,42 +2863,42 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Getting missing keytabs
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Create Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Create Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Distribute Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
 
     replayAll();
@@ -2962,14 +2961,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
@@ -3017,7 +3016,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
         .andReturn(createMock(RoleCommandOrder.class))
@@ -3077,28 +3076,28 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Delete Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Delete Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
 
     replayAll();
@@ -3178,14 +3177,14 @@ public class KerberosHelperTest extends EasyMockSupport {
       expect(service1.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
       expect(service1.getName()).andReturn("SERVICE1").anyTimes();
       expect(service1.getServiceComponents())
-          .andReturn(Collections.<String, ServiceComponent>emptyMap())
+          .andReturn(Collections.emptyMap())
           .anyTimes();
 
       final Service service2 = createNiceMock(Service.class);
       expect(service2.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
       expect(service2.getName()).andReturn("SERVICE2").anyTimes();
       expect(service2.getServiceComponents())
-          .andReturn(Collections.<String, ServiceComponent>emptyMap())
+          .andReturn(Collections.emptyMap())
           .anyTimes();
 
 
@@ -3228,14 +3227,14 @@ public class KerberosHelperTest extends EasyMockSupport {
 
       final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
       expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-          .andReturn(Collections.<String, Map<String, String>>emptyMap())
+          .andReturn(Collections.emptyMap())
           .once();
       expect(ambariManagementController.getRoleCommandOrder(cluster))
           .andReturn(createMock(RoleCommandOrder.class))
           .once();
 
       final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-      expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject()))
+      expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.anyObject()))
           .andReturn(new HashMap<String, Map<String, String>>() {
             {
               put("cluster-env", new HashMap<String, String>() {{
@@ -3256,14 +3255,14 @@ public class KerberosHelperTest extends EasyMockSupport {
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Getting missing keytabs
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
@@ -3271,28 +3270,28 @@ public class KerberosHelperTest extends EasyMockSupport {
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
 
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Create Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Distribute Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
       // Clean-up/Finalize Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
       requestStageContainer.setClusterHostInfo(anyString());
       expectLastCall().once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.addStages(EasyMock.anyObject());
       expectLastCall().once();
     }
 
@@ -3359,14 +3358,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Service service2 = createNiceMock(Service.class);
     expect(service2.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
@@ -3408,14 +3407,14 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
         .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject()))
+    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.anyObject()))
         .andReturn(new HashMap<String, Map<String, String>>() {
           {
             put("cluster-env", new HashMap<String, String>() {
@@ -3440,28 +3439,28 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Delete Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Delete Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
 
     replayAll();
@@ -3533,14 +3532,14 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Service service2 = createNiceMock(Service.class);
     expect(service2.getDesiredStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
-        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final Map<String, Host> hostMap = new HashMap<String, Host>() {
@@ -3574,7 +3573,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         })
         .anyTimes();
     expect(cluster.getServiceComponentHosts(InetAddress.getLocalHost().getCanonicalHostName().toLowerCase()))
-        .andReturn(new ArrayList<ServiceComponentHost>())
+        .andReturn(new ArrayList<>())
         .anyTimes();
 
     final Map<String, String> kerberosEnvProperties = new HashMap<String, String>() {
@@ -3630,17 +3629,17 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host2"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .andReturn(Collections.emptyMap())
         .anyTimes();
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject()))
+    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.anyObject()))
         .andReturn(new HashMap<String, Map<String, String>>() {
           {
             put("cluster-env", new HashMap<String, String>() {{
@@ -3700,7 +3699,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(identityDescriptor1.getReference()).andReturn(null).anyTimes();
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).anyTimes();
     expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).anyTimes();
-    expect(identityDescriptor1.shouldInclude(EasyMock.<Map<String, Object>>anyObject())).andReturn(true).anyTimes();
+    expect(identityDescriptor1.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
     expect(identityDescriptor1.getWhen()).andReturn(null).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
@@ -3708,7 +3707,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(identityDescriptor2.getReference()).andReturn(null).anyTimes();
     expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).anyTimes();
     expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).anyTimes();
-    expect(identityDescriptor2.shouldInclude(EasyMock.<Map<String, Object>>anyObject())).andReturn(true).anyTimes();
+    expect(identityDescriptor2.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
     expect(identityDescriptor2.getWhen()).andReturn(null).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptorService1 = createMock(KerberosIdentityDescriptor.class);
@@ -3716,22 +3715,22 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(identityDescriptorService1.getReference()).andReturn(null).anyTimes();
     expect(identityDescriptorService1.getPrincipalDescriptor()).andReturn(principalDescriptorService1).anyTimes();
     expect(identityDescriptorService1.getKeytabDescriptor()).andReturn(keytabDescriptorService1).anyTimes();
-    expect(identityDescriptorService1.shouldInclude(EasyMock.<Map<String, Object>>anyObject())).andReturn(true).anyTimes();
+    expect(identityDescriptorService1.shouldInclude(EasyMock.anyObject())).andReturn(true).anyTimes();
     expect(identityDescriptorService1.getWhen()).andReturn(null).anyTimes();
 
     final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections.singletonList(identityDescriptor1)).anyTimes();
+    expect(componentDescriptor1.getIdentities(eq(true), EasyMock.anyObject())).andReturn(Collections.singletonList(identityDescriptor1)).anyTimes();
 
     final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections.singletonList(identityDescriptor2)).anyTimes();
+    expect(componentDescriptor2.getIdentities(eq(true), EasyMock.anyObject())).andReturn(Collections.singletonList(identityDescriptor2)).anyTimes();
 
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).anyTimes();
-    expect(serviceDescriptor1.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections.singletonList(identityDescriptorService1)).anyTimes();
+    expect(serviceDescriptor1.getIdentities(eq(true), EasyMock.anyObject())).andReturn(Collections.singletonList(identityDescriptorService1)).anyTimes();
 
     final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).anyTimes();
-    expect(serviceDescriptor2.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(null).anyTimes();
+    expect(serviceDescriptor2.getIdentities(eq(true), EasyMock.anyObject())).andReturn(null).anyTimes();
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getProperties()).andReturn(new HashMap<String, String>() {
@@ -3802,7 +3801,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     List<KerberosIdentityDescriptor> identities = (createAmbariIdentities)
         ? kerberosHelper.getAmbariServerIdentities(kerberosDescriptor)
-        : new ArrayList<KerberosIdentityDescriptor>();
+        : new ArrayList<>();
 
     verifyAll();
 
@@ -3849,7 +3848,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosServiceDescriptor descriptor = createMock(KerberosServiceDescriptor.class);
     expect(descriptor.getName()).andReturn(serviceName).anyTimes();
     expect(descriptor.getComponents()).andReturn(componentMap).anyTimes();
-    expect(descriptor.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(identities).anyTimes();
+    expect(descriptor.getIdentities(eq(true), EasyMock.anyObject())).andReturn(identities).anyTimes();
     expect(descriptor.getAuthToLocalProperties()).andReturn(null).anyTimes();
     return descriptor;
   }
@@ -3870,7 +3869,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       throws AmbariException {
     KerberosComponentDescriptor descriptor = createMock(KerberosComponentDescriptor.class);
     expect(descriptor.getName()).andReturn(componentName).anyTimes();
-    expect(descriptor.getIdentities(eq(true), EasyMock.<Map<String, Object>>anyObject())).andReturn(identities).anyTimes();
+    expect(descriptor.getIdentities(eq(true), EasyMock.anyObject())).andReturn(identities).anyTimes();
     expect(descriptor.getConfigurations(true)).andReturn(configurations).anyTimes();
     expect(descriptor.getAuthToLocalProperties()).andReturn(null).anyTimes();
     return descriptor;

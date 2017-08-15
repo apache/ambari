@@ -208,7 +208,7 @@ public class PersistedStateImpl implements PersistedState {
             clusterTopology.setProvisionAction(entity.getProvisionAction());
           }
           topologyRequests.put(replayedRequest.getClusterId(), clusterTopology);
-          allRequests.put(clusterTopology, new ArrayList<LogicalRequest>());
+          allRequests.put(clusterTopology, new ArrayList<>());
         } catch (InvalidTopologyException e) {
           throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
         }

@@ -114,7 +114,7 @@ public class ExecutionCommandWrapper {
 
       // sanity; if no configurations, just initialize to prevent NPEs
       if (null == executionCommand.getConfigurations()) {
-        executionCommand.setConfigurations(new TreeMap<String, Map<String, String>>());
+        executionCommand.setConfigurations(new TreeMap<>());
       }
 
       Map<String, Map<String, String>> configurations = executionCommand.getConfigurations();
@@ -176,7 +176,7 @@ public class ExecutionCommandWrapper {
             configurations.get(type).putAll(mergedConfig);
 
           } else {
-            configurations.put(type, new HashMap<String, String>());
+            configurations.put(type, new HashMap<>());
             configurations.get(type).putAll(allLevelMergedConfig);
           }
         }
@@ -190,8 +190,7 @@ public class ExecutionCommandWrapper {
 
           if (executionCommand.getConfigurationAttributes() != null) {
             if (!executionCommand.getConfigurationAttributes().containsKey(type)) {
-              executionCommand.getConfigurationAttributes().put(type,
-                  new TreeMap<String, Map<String, String>>());
+              executionCommand.getConfigurationAttributes().put(type, new TreeMap<>());
             }
             configHelper.cloneAttributesMap(attributes,
                 executionCommand.getConfigurationAttributes().get(type));

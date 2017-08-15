@@ -66,6 +66,6 @@ public class GangliaHostComponentPropertyProvider extends GangliaPropertyProvide
     
     return new HashSet<>(GANGLIA_CLUSTER_NAME_MAP.containsKey(component) ?
       GANGLIA_CLUSTER_NAME_MAP.get(component) :
-      Collections.<String>emptyList());
+      Collections.emptyList());
   }
 }

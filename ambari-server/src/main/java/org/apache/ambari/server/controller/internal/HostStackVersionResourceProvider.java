@@ -524,7 +524,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     actionContext = new ActionExecutionContext(
       cluster.getClusterName(), STACK_SELECT_ACTION,
       Collections.singletonList(filter),
-      Collections.<String, String>emptyMap());
+      Collections.emptyMap());
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     try {

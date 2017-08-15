@@ -604,7 +604,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       if (!serviceNames.containsKey(request.getClusterName())) {
-        serviceNames.put(request.getClusterName(), new HashSet<String>());
+        serviceNames.put(request.getClusterName(), new HashSet<>());
       }
 
       if (serviceNames.get(request.getClusterName())
@@ -707,7 +707,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
         }
         if (!changedServices.containsKey(newState)) {
-          changedServices.put(newState, new ArrayList<Service>());
+          changedServices.put(newState, new ArrayList<>());
         }
         changedServices.get(newState).add(s);
       }
@@ -790,7 +790,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + ", newDesiredState=" + newState);
         }
         if (!changedComps.containsKey(newState)) {
-          changedComps.put(newState, new ArrayList<ServiceComponent>());
+          changedComps.put(newState, new ArrayList<>());
         }
         changedComps.get(newState).add(sc);
       }
@@ -858,12 +858,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           }
         }
         if (!changedScHosts.containsKey(sc.getName())) {
-          changedScHosts.put(sc.getName(),
-              new EnumMap<State, List<ServiceComponentHost>>(State.class));
+          changedScHosts.put(sc.getName(), new EnumMap<>(State.class));
         }
         if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
-          changedScHosts.get(sc.getName()).put(newState,
-              new ArrayList<ServiceComponentHost>());
+          changedScHosts.get(sc.getName()).put(newState, new ArrayList<>());
         }
         if (LOG.isDebugEnabled()) {
           LOG.debug("Handling update to ServiceComponentHost, clusterName={}, serviceName={}, componentName={}, hostname={}, currentState={}, newDesiredState={}",
@@ -1030,7 +1028,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       if (!serviceNames.containsKey(clusterName)) {
-        serviceNames.put(clusterName, new HashSet<String>());
+        serviceNames.put(clusterName, new HashSet<>());
       }
 
       if (serviceNames.get(clusterName).contains(serviceName)) {

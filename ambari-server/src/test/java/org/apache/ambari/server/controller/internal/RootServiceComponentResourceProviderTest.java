@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.RootServiceComponentRequest;
 import org.apache.ambari.server.controller.RootServiceComponentResponse;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -63,8 +62,8 @@ public class RootServiceComponentResourceProviderTest {
 
 
     // set expectations
-    expect(managementController.getRootServiceComponents(EasyMock.<Set<RootServiceComponentRequest>>anyObject())).andReturn(allResponse).once();
-    expect(managementController.getRootServiceComponents(EasyMock.<Set<RootServiceComponentRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController.getRootServiceComponents(EasyMock.anyObject())).andReturn(allResponse).once();
+    expect(managementController.getRootServiceComponents(EasyMock.anyObject())).andReturn(nameResponse).once();
     // replay
     replay(managementController);
 

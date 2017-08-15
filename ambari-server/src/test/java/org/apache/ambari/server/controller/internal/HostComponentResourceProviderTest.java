@@ -50,7 +50,6 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -116,8 +115,8 @@ public class HostComponentResourceProviderTest {
         AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
             "Cluster100", "Service100", "Component100", "Host100", null, null));
 
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(hostComponentResourceProvider).anyTimes();
 
@@ -219,8 +218,8 @@ public class HostComponentResourceProviderTest {
 
 
     // set expectations
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(hostComponentResourceProvider).anyTimes();
 
@@ -374,7 +373,7 @@ public class HostComponentResourceProviderTest {
     expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
 
     expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse).once();
+        EasyMock.anyObject())).andReturn(nameResponse).once();
 
     Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<>();
     List<ServiceComponentHost> changedComponentHosts = new ArrayList<>();
@@ -382,7 +381,7 @@ public class HostComponentResourceProviderTest {
     changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
 
     expect(managementController.addStages(null, cluster, mapRequestProps, null, null, null, changedHosts,
-        Collections.<ServiceComponentHost>emptyList(), false, false)).andReturn(stageContainer).once();
+        Collections.emptyList(), false, false)).andReturn(stageContainer).once();
 
     stageContainer.persist();
     expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
@@ -394,8 +393,8 @@ public class HostComponentResourceProviderTest {
     provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
     provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(provider).anyTimes();
 
@@ -574,7 +573,7 @@ public class HostComponentResourceProviderTest {
     expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
 
     expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(Collections.<ServiceComponentHostResponse>emptySet()).once();
+        EasyMock.anyObject())).andReturn(Collections.emptySet()).once();
 
     Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<>();
     List<ServiceComponentHost> changedComponentHosts = new ArrayList<>();
@@ -588,8 +587,8 @@ public class HostComponentResourceProviderTest {
     provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
     provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(provider).anyTimes();
 

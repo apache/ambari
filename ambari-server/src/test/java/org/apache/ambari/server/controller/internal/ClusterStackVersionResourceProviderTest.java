@@ -50,8 +50,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
+ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
@@ -86,7 +85,6 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
@@ -225,7 +223,7 @@ public class ClusterStackVersionResourceProviderTest {
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
-          Collections.<HostVersionEntity>emptyList()).anyTimes();
+          Collections.emptyList()).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -277,11 +275,11 @@ public class ClusterStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-            EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
+            EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).times((hostCount - 1) * 2); // 1 host has no versionable components, other hosts have 2 services
 //            // that's why we don't send commands to it
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(), EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -291,7 +289,7 @@ public class ClusterStackVersionResourceProviderTest {
     String clusterName = "Cluster100";
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
-    expect(cluster.getServices()).andReturn(new HashMap<String, Service>()).anyTimes();
+    expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andAnswer(new IAnswer<List<ServiceComponentHost>>() {
       @Override
@@ -335,7 +333,7 @@ public class ClusterStackVersionResourceProviderTest {
                     anyObject(StackId.class),
                     anyObject(String.class))).andReturn(repoVersion);
 
-    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.emptyList()).anyTimes();
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
@@ -417,7 +415,7 @@ public class ClusterStackVersionResourceProviderTest {
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
-          Collections.<HostVersionEntity>emptyList()).anyTimes();
+          Collections.emptyList()).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -428,8 +426,8 @@ public class ClusterStackVersionResourceProviderTest {
     expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
     expect(hbaseService.getName()).andReturn("HBASE").anyTimes();
 
-    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
-    expect(hbaseService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<>());
+    expect(hbaseService.getServiceComponents()).andReturn(new HashMap<>());
 
     Map<String, Service> serviceMap = new HashMap<>();
     serviceMap.put("HDFS", hdfsService);
@@ -482,10 +480,10 @@ public class ClusterStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-            EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
+            EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).times(1); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(), EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -540,7 +538,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     actionManager.sendActions(capture(c), capture(ear));
     expectLastCall().atLeastOnce();
-    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.emptyList()).anyTimes();
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
@@ -640,7 +638,7 @@ public class ClusterStackVersionResourceProviderTest {
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
-          Collections.<HostVersionEntity>emptyList()).anyTimes();
+          Collections.emptyList()).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -656,8 +654,8 @@ public class ClusterStackVersionResourceProviderTest {
     expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
     expect(hbaseService.getName()).andReturn("HBASE").anyTimes();
 
-    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
-    expect(hbaseService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<>());
+    expect(hbaseService.getServiceComponents()).andReturn(new HashMap<>());
 
     Map<String, Service> serviceMap = new HashMap<>();
     serviceMap.put("HDFS", hdfsService);
@@ -706,10 +704,10 @@ public class ClusterStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-            EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
+            EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).anyTimes(); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(), EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -769,7 +767,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     actionManager.sendActions(capture(c), capture(ear));
     expectLastCall().atLeastOnce();
-    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.emptyList()).anyTimes();
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
@@ -882,7 +880,7 @@ public class ClusterStackVersionResourceProviderTest {
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
-          Collections.<HostVersionEntity>emptyList()).anyTimes();
+          Collections.emptyList()).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -897,8 +895,8 @@ public class ClusterStackVersionResourceProviderTest {
     expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
     expect(hbaseService.getName()).andReturn("HBASE").anyTimes();
 
-    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
-    expect(hbaseService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<>());
+    expect(hbaseService.getServiceComponents()).andReturn(new HashMap<>());
 
     Map<String, Service> serviceMap = new HashMap<>();
     serviceMap.put("HDFS", hdfsService);
@@ -947,10 +945,10 @@ public class ClusterStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-            EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
+            EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).anyTimes(); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(), EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -1008,7 +1006,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     actionManager.sendActions(capture(c), capture(ear));
     expectLastCall().atLeastOnce();
-    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.emptyList()).anyTimes();
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
@@ -1178,11 +1176,11 @@ public class ClusterStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-            EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).
+            EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).times((hostCount - 1) * 2); // 1 host has no versionable components, other hosts have 2 services
 //            // that's why we don't send commands to it
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(), EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -1192,7 +1190,7 @@ public class ClusterStackVersionResourceProviderTest {
     String clusterName = "Cluster100";
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
-    expect(cluster.getServices()).andReturn(new HashMap<String, Service>()).anyTimes();
+    expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andAnswer(new IAnswer<List<ServiceComponentHost>>() {
       @Override
@@ -1209,7 +1207,7 @@ public class ClusterStackVersionResourceProviderTest {
     // now the important expectations - that the cluster transition methods were
     // called correctly
     expect(cluster.transitionHostsToInstalling(anyObject(RepositoryVersionEntity.class),
-        anyObject(VersionDefinitionXml.class), eq(false))).andReturn(Collections.<Host>emptyList()).anyTimes();
+        anyObject(VersionDefinitionXml.class), eq(false))).andReturn(Collections.emptyList()).anyTimes();
 
 
     ExecutionCommand executionCommand = createNiceMock(ExecutionCommand.class);
@@ -1236,7 +1234,7 @@ public class ClusterStackVersionResourceProviderTest {
     expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(StackId.class),
         anyObject(String.class))).andReturn(repoVersion);
 
-    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.emptyList()).anyTimes();
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
@@ -1351,7 +1349,7 @@ public class ClusterStackVersionResourceProviderTest {
       if (i < hostCount - 2) {
         expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(true).atLeastOnce();
         hostsNeedingInstallCommands.add(host);
-        expect(host.getAllHostVersions()).andReturn(Collections.<HostVersionEntity>emptyList()).anyTimes();
+        expect(host.getAllHostVersions()).andReturn(Collections.emptyList()).anyTimes();
       } else {
         expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(false).atLeastOnce();
 
@@ -1372,7 +1370,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     Service hdfsService = createNiceMock(Service.class);
     expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
-    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<>());
 
     Map<String, Service> serviceMap = new HashMap<>();
     serviceMap.put("HDFS", hdfsService);
@@ -1400,11 +1398,11 @@ public class ClusterStackVersionResourceProviderTest {
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-        EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).andReturn(
+        EasyMock.anyObject(), anyObject(String.class))).andReturn(
             packages).anyTimes(); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Resource.Type, String>>anyObject(), eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(), eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
     expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(

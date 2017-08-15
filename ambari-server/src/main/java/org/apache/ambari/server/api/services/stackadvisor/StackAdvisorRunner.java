@@ -188,7 +188,7 @@ public class StackAdvisorRunner {
     String servicesFile = actionDirectory + File.separator + "services.json";
 
     // includes the original command plus the arguments for it
-    List<String> builderParameters = new ArrayList<String>();
+    List<String> builderParameters = new ArrayList<>();
 
     switch (serviceAdvisorType) {
       case PYTHON:

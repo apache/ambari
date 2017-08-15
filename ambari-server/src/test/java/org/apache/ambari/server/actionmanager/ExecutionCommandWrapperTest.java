@@ -198,13 +198,13 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setRequestAndStage(1, 1);
     executionCommand.setHostname(HOST1);
     executionCommand.setRole("NAMENODE");
-    executionCommand.setRoleParams(Collections.<String, String>emptyMap());
+    executionCommand.setRoleParams(Collections.emptyMap());
     executionCommand.setRoleCommand(RoleCommand.START);
     executionCommand.setConfigurations(confs);
     executionCommand.setConfigurationTags(confTags);
     executionCommand.setServiceName("HDFS");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
-    executionCommand.setCommandParams(Collections.<String, String>emptyMap());
+    executionCommand.setCommandParams(Collections.emptyMap());
 
     String json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
 
@@ -298,7 +298,7 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setRequestAndStage(1, 1);
     executionCommand.setHostname(HOST1);
     executionCommand.setRole("NAMENODE");
-    executionCommand.setRoleParams(Collections.<String, String>emptyMap());
+    executionCommand.setRoleParams(Collections.emptyMap());
     executionCommand.setRoleCommand(RoleCommand.INSTALL);
     executionCommand.setServiceName("HDFS");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
@@ -322,7 +322,7 @@ public class ExecutionCommandWrapperTest {
     executionCommand.setRequestAndStage(1, 1);
     executionCommand.setHostname(HOST1);
     executionCommand.setRole("NAMENODE");
-    executionCommand.setRoleParams(Collections.<String, String> emptyMap());
+    executionCommand.setRoleParams(Collections.emptyMap());
     executionCommand.setRoleCommand(RoleCommand.START);
     executionCommand.setServiceName("HDFS");
     executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);

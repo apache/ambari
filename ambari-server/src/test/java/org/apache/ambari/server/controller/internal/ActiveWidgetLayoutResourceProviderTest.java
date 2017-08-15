@@ -60,7 +60,6 @@ import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
-import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -360,7 +359,7 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
     expect(widgetLayoutEntity.getScope()).andReturn("CLUSTER").anyTimes();
     expect(widgetLayoutEntity.getDisplayName()).andReturn("display name" + id).anyTimes();
     expect(widgetLayoutEntity.getClusterId()).andReturn(2L).anyTimes();
-    expect(widgetLayoutEntity.getListWidgetLayoutUserWidgetEntity()).andReturn(Collections.<WidgetLayoutUserWidgetEntity>emptyList()).anyTimes();
+    expect(widgetLayoutEntity.getListWidgetLayoutUserWidgetEntity()).andReturn(Collections.emptyList()).anyTimes();
     return widgetLayoutEntity;
   }
 

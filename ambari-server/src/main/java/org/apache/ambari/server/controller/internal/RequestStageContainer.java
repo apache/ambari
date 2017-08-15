@@ -97,7 +97,7 @@ public class RequestStageContainer {
   public RequestStageContainer(Long id, List<Stage> stages, RequestFactory factory, ActionManager manager,
                                ExecuteActionRequest actionRequest) {
     this.id = id;
-    this.stages = stages == null ? new ArrayList<Stage>() : stages;
+    this.stages = stages == null ? new ArrayList<>() : stages;
     this.requestFactory = factory;
     this.actionManager = manager;
     this.actionRequest = actionRequest;

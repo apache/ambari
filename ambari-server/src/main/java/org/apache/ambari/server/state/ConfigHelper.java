@@ -399,7 +399,7 @@ public class ConfigHelper {
       for (Entry<String, Map<String, String>> attributesEntry : sourceAttributesMap.entrySet()) {
         String attributeName = attributesEntry.getKey();
         if (!targetAttributesMap.containsKey(attributeName)) {
-          targetAttributesMap.put(attributeName, new TreeMap<String, String>());
+          targetAttributesMap.put(attributeName, new TreeMap<>());
         }
         for (Entry<String, String> attributesValue : attributesEntry.getValue().entrySet()) {
           targetAttributesMap.get(attributeName).put(attributesValue.getKey(), attributesValue.getValue());
@@ -411,7 +411,7 @@ public class ConfigHelper {
   public void applyCustomConfig(Map<String, Map<String, String>> configurations,
                                 String type, String name, String value, Boolean deleted) {
     if (!configurations.containsKey(type)) {
-      configurations.put(type, new HashMap<String, String>());
+      configurations.put(type, new HashMap<>());
     }
     String nameToUse = deleted ? DELETED + name : name;
     Map<String, String> properties = configurations.get(type);
@@ -1070,7 +1070,7 @@ public class ConfigHelper {
       String authenticatedUserName, String serviceVersionNote) throws AmbariException {
 
     createConfigType(cluster, stackId, controller, configType, properties,
-        new HashMap<String, Map<String, String>>(), authenticatedUserName, serviceVersionNote);
+      new HashMap<>(), authenticatedUserName, serviceVersionNote);
   }
 
   public void createConfigType(Cluster cluster, StackId stackId,
@@ -1109,13 +1109,13 @@ public class ConfigHelper {
       Map<String, String> properties = entry.getValue();
 
       Config baseConfig = createConfig(cluster, stackId, controller, type, FIRST_VERSION_TAG,
-          properties, Collections.<String, Map<String, String>> emptyMap());
+          properties, Collections.emptyMap());
 
       if (null != baseConfig) {
         try {
           String service = cluster.getServiceForConfigTypes(Collections.singleton(type));
           if (!serviceMapped.containsKey(service)) {
-            serviceMapped.put(service, new HashSet<Config>());
+            serviceMapped.put(service, new HashSet<>());
           }
           serviceMapped.get(service).add(baseConfig);
         } catch (Exception e) {
@@ -1208,7 +1208,7 @@ public class ConfigHelper {
       String type = ConfigHelper.fileNameToConfigType(stackDefaultProperty.getFilename());
 
       if (!defaultPropertiesByType.containsKey(type)) {
-        defaultPropertiesByType.put(type, new HashMap<String, String>());
+        defaultPropertiesByType.put(type, new HashMap<>());
       }
 
       defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
@@ -1240,7 +1240,7 @@ public class ConfigHelper {
       String type = ConfigHelper.fileNameToConfigType(stackDefaultProperty.getFilename());
 
       if (!defaultPropertiesByType.containsKey(type)) {
-        defaultPropertiesByType.put(type, new HashMap<String, String>());
+        defaultPropertiesByType.put(type, new HashMap<>());
       }
 
       defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
@@ -1256,7 +1256,7 @@ public class ConfigHelper {
       String type = ConfigHelper.fileNameToConfigType(serviceDefaultProperty.getFilename());
 
       if (!defaultPropertiesByType.containsKey(type)) {
-        defaultPropertiesByType.put(type, new HashMap<String, String>());
+        defaultPropertiesByType.put(type, new HashMap<>());
       }
 
       defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),

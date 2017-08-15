@@ -720,9 +720,9 @@ public class ConfigGroupResourceProvider extends
                 request.getServiceConfigVersionNote(), configGroup);
 
         ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(configGroup.getId(), cluster.getClusterName(), configGroup.getName(),
-                request.getTag(), "", new HashSet<Map<String, Object>>(), new HashSet<Map<String, Object>>());
-        Set<Map<String, Object>> versionTags = new HashSet<Map<String, Object>>();
-        Map<String, Object> tagsMap = new HashMap<String, Object>();
+                request.getTag(), "", new HashSet<>(), new HashSet<>());
+        Set<Map<String, Object>> versionTags = new HashSet<>();
+        Map<String, Object> tagsMap = new HashMap<>();
         for (Config config : configGroup.getConfigurations().values()) {
           tagsMap.put(config.getType(), config.getTag());
         }
@@ -808,7 +808,7 @@ public class ConfigGroupResourceProvider extends
               } else if ("properties_attributes".equals(PropertyHelper.getPropertyCategory(propertyCategory))) {
                 String attributeName = PropertyHelper.getPropertyName(propertyCategory);
                 if (!configAttributes.containsKey(attributeName)) {
-                  configAttributes.put(attributeName, new HashMap<String, String>());
+                  configAttributes.put(attributeName, new HashMap<>());
                 }
                 Map<String, String> attributeValues
                     = configAttributes.get(attributeName);

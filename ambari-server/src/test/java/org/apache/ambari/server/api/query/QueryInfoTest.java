@@ -43,7 +43,7 @@ public class QueryInfoTest {
   @Test
   public void testGetResource() {
     ResourceDefinition resource = new ClusterResourceDefinition();
-    QueryInfo info = new QueryInfo(resource, new HashSet<String>());
+    QueryInfo info = new QueryInfo(resource, new HashSet<>());
 
     assertSame(resource, info.getResource());
   }

@@ -43,7 +43,7 @@ public class EventImplTest {
 
   @Test
   public void testGetId() throws Exception {
-    EventImpl event = getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml);
+    EventImpl event = getEvent("MyEvent", Collections.emptyMap(), view_xml);
     Assert.assertEquals("MyEvent", event.getId());
   }
 
@@ -59,7 +59,7 @@ public class EventImplTest {
 
   @Test
   public void testGetViewSubject() throws Exception {
-    EventImpl event = getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml);
+    EventImpl event = getEvent("MyEvent", Collections.emptyMap(), view_xml);
 
     Assert.assertEquals("MY_VIEW", event.getViewSubject().getViewName());
     Assert.assertEquals("My View!", event.getViewSubject().getLabel());
@@ -68,11 +68,11 @@ public class EventImplTest {
 
   @Test
   public void testGetViewInstanceSubject() throws Exception {
-    EventImpl event = getEvent("MyEvent", Collections.<String, String>emptyMap(), view_xml);
+    EventImpl event = getEvent("MyEvent", Collections.emptyMap(), view_xml);
     Assert.assertNull(event.getViewInstanceSubject());
 
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
-    event = getEvent("MyEvent", Collections.<String, String>emptyMap(), viewInstanceEntity);
+    event = getEvent("MyEvent", Collections.emptyMap(), viewInstanceEntity);
     Assert.assertEquals(viewInstanceEntity, event.getViewInstanceSubject());
   }
 

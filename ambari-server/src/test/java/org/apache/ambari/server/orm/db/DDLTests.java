@@ -227,7 +227,7 @@ public class DDLTests {
   }
 
   static <T> Set<T> toSet(Optional<T> arg) {
-    return arg.isPresent() ? ImmutableSet.of(arg.get()) : ImmutableSet.<T>of();
+    return arg.isPresent() ? ImmutableSet.of(arg.get()) : ImmutableSet.of();
   }
 
   static <ContentType> List<String> compareSets(String message, Set<ContentType> base, Set<ContentType> other) {

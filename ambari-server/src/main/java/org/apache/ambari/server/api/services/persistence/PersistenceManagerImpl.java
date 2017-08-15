@@ -82,7 +82,7 @@ public class PersistenceManagerImpl implements PersistenceManager {
 
       Set<NamedPropertySet> setProperties = requestBody.getNamedPropertySets();
       if (setProperties.isEmpty()) {
-        requestBody.addPropertySet(new NamedPropertySet("", new HashMap<String, Object>()));
+        requestBody.addPropertySet(new NamedPropertySet("", new HashMap<>()));
       }
 
       for (NamedPropertySet propertySet : setProperties) {

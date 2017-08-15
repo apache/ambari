@@ -774,7 +774,7 @@ public class DatabaseConsistencyCheckHelper {
         }
         // Check if the right schema is first on the search path
         List<Object> searchPathResultColumn = getResultSetColumn(searchPathRs, "search_path");
-        List<String> searchPath = searchPathResultColumn.isEmpty() ? ImmutableList.<String>of() :
+        List<String> searchPath = searchPathResultColumn.isEmpty() ? ImmutableList.of() :
             ImmutableList.copyOf(Splitter.on(",").trimResults().split(String.valueOf(searchPathResultColumn.get(0))));
         String firstSearchPathItem = searchPath.isEmpty() ? null : searchPath.get(0);
         if (!Objects.equals(firstSearchPathItem, conf.getDatabaseSchema())) {

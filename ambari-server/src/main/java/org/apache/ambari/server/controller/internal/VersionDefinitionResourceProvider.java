@@ -338,7 +338,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
       s_repoVersionDAO.create(xmlHolder.entity);
 
-      res = toResource(xmlHolder.entity, Collections.<String>emptySet());
+      res = toResource(xmlHolder.entity, Collections.emptySet());
       notifyCreate(Resource.Type.VersionDefinition, request);
     }
 

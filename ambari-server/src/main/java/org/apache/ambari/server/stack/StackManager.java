@@ -250,7 +250,7 @@ public class StackManager {
   private void createLinks() {
     LOG.info("Creating links");
     Collection<ExtensionInfo> extensions = getExtensions();
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     for(ExtensionInfo extension : extensions){
       names.add(extension.getName());
     }
@@ -270,7 +270,7 @@ public class StackManager {
    */
   private void createLinksForExtension(String name) {
     Collection<ExtensionInfo> collection = getExtensions(name);
-    List<ExtensionInfo> extensions = new ArrayList<ExtensionInfo>(collection.size());
+    List<ExtensionInfo> extensions = new ArrayList<>(collection.size());
     extensions.addAll(collection);
     try {
       helper.createExtensionLinks(this, extensions);
@@ -316,11 +316,11 @@ public class StackManager {
    * @return A map of all stacks with the name as the key.
    */
   public Map<String, List<StackInfo>> getStacksByName() {
-    Map<String, List<StackInfo>> stacks = new HashMap<String, List<StackInfo>>();
+    Map<String, List<StackInfo>> stacks = new HashMap<>();
     for (StackInfo stack: stackMap.values()) {
       List<StackInfo> list = stacks.get(stack.getName());
       if (list == null) {
-        list = new ArrayList<StackInfo>();
+        list = new ArrayList<>();
         stacks.put(stack.getName(),  list);
       }
       list.add(stack);

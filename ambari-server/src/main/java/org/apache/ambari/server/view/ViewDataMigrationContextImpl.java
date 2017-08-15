@@ -294,7 +294,7 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
     for (ViewInstanceDataEntity entity : instanceDefinition.getData()) {
 
       if (!instanceDataByUser.containsKey(entity.getUser())) {
-        instanceDataByUser.put(entity.getUser(), new HashMap<String, String>());
+        instanceDataByUser.put(entity.getUser(), new HashMap<>());
       }
       instanceDataByUser.get(entity.getUser()).put(entity.getName(), entity.getValue());
     }

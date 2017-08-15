@@ -129,8 +129,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
             // All remain nodes will be also primitives
             primitives.add(next.asText());
           } else {
-            NamedPropertySet arrayPropertySet = new NamedPropertySet(name,
-                new HashMap<String, Object>());
+            NamedPropertySet arrayPropertySet = new NamedPropertySet(name, new HashMap<>());
             processNode(next, "", arrayPropertySet, requestInfoProps);
             arraySet.add(arrayPropertySet.getProperties());
           }

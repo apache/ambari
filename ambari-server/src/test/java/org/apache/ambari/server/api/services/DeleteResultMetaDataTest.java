@@ -58,7 +58,7 @@ public class DeleteResultMetaDataTest {
     metadata.addException(key1, new AuthorizationException("Exception"));
     metadata.addException(key2, new SystemException("Exception"));
     metadata.addException(key3, new HostNotFoundException("Exception"));
-    metadata.addException(key4, new UnsupportedPropertyException(Resource.Type.Action, Collections.<String>emptySet()));
+    metadata.addException(key4, new UnsupportedPropertyException(Resource.Type.Action, Collections.emptySet()));
     metadata.addException(key5, new NullPointerException());
 
     assertTrue(metadata.getDeletedKeys().isEmpty());

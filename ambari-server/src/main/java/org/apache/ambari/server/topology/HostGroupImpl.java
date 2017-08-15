@@ -206,7 +206,7 @@ public class HostGroupImpl implements HostGroup {
   public Collection<String> getComponents(String service) {
     return componentsForService.containsKey(service) ?
       new HashSet<>(componentsForService.get(service)) :
-        Collections.<String>emptySet();
+        Collections.emptySet();
   }
 
   /**

@@ -539,8 +539,7 @@ public class ControllerModule extends AbstractModule {
 
       LOG.info("Searching package {} for annotations matching {}", AMBARI_PACKAGE, classes);
 
-      matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE,
-          new ArrayList<Class<?>>(), classes);
+      matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE, new ArrayList<>(), classes);
 
       if (null == matchedClasses || matchedClasses.size() == 0) {
         LOG.warn("No instances of {} found to register", classes);

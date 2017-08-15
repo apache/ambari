@@ -185,15 +185,15 @@ public abstract class AbstractKerberosDescriptor {
   }
 
   public static <T> Collection<T> nullToEmpty(Collection<T> collection) {
-    return collection == null ? Collections.<T>emptyList() : collection;
+    return collection == null ? Collections.emptyList() : collection;
   }
 
   public static <T> List<T> nullToEmpty(List<T> list) {
-    return list == null ? Collections.<T>emptyList() : list;
+    return list == null ? Collections.emptyList() : list;
   }
 
   public static <K,V> Map<K,V> nullToEmpty(Map<K,V> collection) {
-    return collection == null ? Collections.<K,V>emptyMap() : collection;
+    return collection == null ? Collections.emptyMap() : collection;
   }
 
   @Override

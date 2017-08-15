@@ -50,7 +50,7 @@ public class LockFactory {
   @Inject
   public LockFactory(Configuration config) {
     profiling = config.isServerLocksProfilingEnabled();
-    profiledLocks = profiling ? new CopyOnWriteArraySet<ProfiledLock>() : null;
+    profiledLocks = profiling ? new CopyOnWriteArraySet<>() : null;
     LOG.info("Lock profiling is {}", profiling ? "enabled" : "disabled");
   }
 

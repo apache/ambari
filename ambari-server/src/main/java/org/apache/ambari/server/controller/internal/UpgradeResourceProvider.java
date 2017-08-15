@@ -1112,7 +1112,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
-      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.<String> emptyList()));
+      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.emptyList()));
     }
 
     Cluster cluster = context.getCluster();
@@ -1255,7 +1255,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        Role.AMBARI_SERVER_ACTION.toString(), Collections.<RequestResourceFilter> emptyList(),
+        Role.AMBARI_SERVER_ACTION.toString(), Collections.emptyList(),
         commandParams);
 
     actionContext.setTimeout(Short.valueOf((short) -1));

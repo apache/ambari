@@ -127,7 +127,7 @@ public abstract class AbstractCheckDescriptor {
    *           if server error happens
    */
   public final boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    List<CheckQualification> qualifications = Lists.<CheckQualification> newArrayList(
+    List<CheckQualification> qualifications = Lists.newArrayList(
         new ServiceQualification());
 
     // add any others from the concrete check

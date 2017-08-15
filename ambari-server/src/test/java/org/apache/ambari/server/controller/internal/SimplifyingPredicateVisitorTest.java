@@ -80,7 +80,7 @@ public class SimplifyingPredicateVisitorTest {
 
     //expectations
 
-    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>emptySet()).anyTimes();
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.emptySet()).anyTimes();
 
     replay(provider);
 
@@ -158,7 +158,7 @@ public class SimplifyingPredicateVisitorTest {
     //reset assertions.  For property D, indicate that it is not supported.
     verify(provider);
     reset(provider);
-    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>emptySet());
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.emptySet());
     expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.singleton(PROPERTY_D));
     replay(provider);
 
@@ -172,7 +172,7 @@ public class SimplifyingPredicateVisitorTest {
 
     verify(provider);
     reset(provider);
-    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>emptySet()).anyTimes();
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.emptySet()).anyTimes();
     replay(provider);
 
     // ---

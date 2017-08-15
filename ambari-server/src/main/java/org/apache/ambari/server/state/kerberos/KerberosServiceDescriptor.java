@@ -275,7 +275,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
   public List<KerberosIdentityDescriptor> getComponentIdentities(String componentName) {
     return getComponent(componentName) != null
       ? nullToEmpty(getComponent(componentName).getIdentities())
-      : Collections.<KerberosIdentityDescriptor>emptyList();
+      : Collections.emptyList();
   }
 
   @Override

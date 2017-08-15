@@ -81,7 +81,7 @@ public class AggregateDefinitionMapping {
     Long id = Long.valueOf(clusterId);
 
     if (!m_aggregateMap.containsKey(id)) {
-      m_aggregateMap.put(id, new HashMap<String, AlertDefinition>());
+      m_aggregateMap.put(id, new HashMap<>());
     }
 
     Map<String, AlertDefinition> map = m_aggregateMap.get(id);

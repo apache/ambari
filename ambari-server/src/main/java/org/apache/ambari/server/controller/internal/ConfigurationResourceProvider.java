@@ -284,7 +284,7 @@ public class ConfigurationResourceProvider extends
 
     ConfigurationRequest configRequest = new ConfigurationRequest(
         (String) properties.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID),
-        type, tag, new HashMap<String, String>(), new HashMap<String, Map<String, String>>());
+        type, tag, new HashMap<>(), new HashMap<>());
 
     Set<String> requestedIds = request.getPropertyIds();
     if (requestedIds.contains("properties") || requestedIds.contains("*")) {

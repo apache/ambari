@@ -87,7 +87,7 @@ public class QuickLinkArtifactResourceProviderTest {
         property(QuickLinkArtifactResourceProvider.STACK_SERVICE_NAME_PROPERTY_ID).equals("YARN").
         toPredicate();
     Set<Resource> resources =
-        provider.getResources(PropertyHelper.getReadRequest(Sets.<String>newHashSet()), predicate);
+        provider.getResources(PropertyHelper.getReadRequest(Sets.newHashSet()), predicate);
     Map<String, Link> linkMap = getLinks(resources);
 
     for (Map.Entry<String, Link> entry: linkMap.entrySet()) {
@@ -112,7 +112,7 @@ public class QuickLinkArtifactResourceProviderTest {
         property(QuickLinkArtifactResourceProvider.STACK_SERVICE_NAME_PROPERTY_ID).equals("YARN").
         toPredicate();
     Set<Resource> resources =
-        provider.getResources(PropertyHelper.getReadRequest(Sets.<String>newHashSet()), predicate);
+        provider.getResources(PropertyHelper.getReadRequest(Sets.newHashSet()), predicate);
     Map<String, Link> linkMap = getLinks(resources);
 
     for (Link link: linkMap.values()) {
@@ -136,7 +136,7 @@ public class QuickLinkArtifactResourceProviderTest {
         property(QuickLinkArtifactResourceProvider.STACK_SERVICE_NAME_PROPERTY_ID).equals("YARN").
         toPredicate();
     Set<Resource> resources =
-        provider.getResources(PropertyHelper.getReadRequest(Sets.<String>newHashSet()), predicate);
+        provider.getResources(PropertyHelper.getReadRequest(Sets.newHashSet()), predicate);
     Map<String, Link> linkMap = getLinks(resources);
 
     for (Link link: linkMap.values()) {

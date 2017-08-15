@@ -29,7 +29,7 @@ public class ConfigGroupResponse {
   private String description;
   private Set<Map<String, Object>> hosts;
   private Set<Map<String, Object>> configVersions;
-  private Set<Map<String, Object>> versionTags =  new HashSet<Map<String, Object>>();
+  private Set<Map<String, Object>> versionTags = new HashSet<>();
 
   public ConfigGroupResponse(Long id, String clusterName,
           String groupName, String tag, String description,

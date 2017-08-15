@@ -122,7 +122,7 @@ public class QueryLexer {
    * @throws InvalidQueryException if the query is invalid
    */
   public Token[] tokens(String exp) throws InvalidQueryException {
-    return tokens(exp, Collections.<String>emptySet());
+    return tokens(exp, Collections.emptySet());
   }
 
   /**

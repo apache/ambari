@@ -687,7 +687,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
     replayAll();
 
-    Map<String, String> kerberosConfiguration = new HashMap<String, String>();
+    Map<String, String> kerberosConfiguration = new HashMap<>();
     kerberosConfiguration.put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
     kerberosConfiguration.put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
 

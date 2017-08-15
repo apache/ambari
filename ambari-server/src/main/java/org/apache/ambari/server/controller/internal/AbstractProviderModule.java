@@ -204,10 +204,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
     jmxDesiredRpcSuffixProperties.put("NAMENODE-HA", initPropMap);
 
     HTTP_PROPERTY_REQUESTS.put("RESOURCEMANAGER",
-        Collections.<HttpPropertyProvider.HttpPropertyRequest>singletonList(new ResourceManagerHttpPropertyRequest()));
+        Collections.singletonList(new ResourceManagerHttpPropertyRequest()));
 
     HTTP_PROPERTY_REQUESTS.put("ATLAS_SERVER",
-        Collections.<HttpPropertyProvider.HttpPropertyRequest>singletonList(new AtlasServerHttpPropertyRequest()));
+        Collections.singletonList(new AtlasServerHttpPropertyRequest()));
   }
 
   /**
@@ -572,7 +572,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
             // this will trigger using the default port for the component
             String portString = getPortString(entry.getValue());
             if (null != portString) {
-              clusterJmxPorts.putIfAbsent(hostName, new ConcurrentHashMap<String, String>());
+              clusterJmxPorts.putIfAbsent(hostName, new ConcurrentHashMap<>());
               clusterJmxPorts.get(hostName).put(entry.getKey(), portString);
             }
           }
@@ -1219,7 +1219,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
         componentToPortsMap = jmxDesiredRpcSuffixes.get(clusterName);
       } else {
         componentToPortsMap = new HashMap<>();
-        componentToPortsMap.put(componentName, new HashMap<String, String>());
+        componentToPortsMap.put(componentName, new HashMap<>());
         jmxDesiredRpcSuffixes.put(clusterName, componentToPortsMap);
       }
 

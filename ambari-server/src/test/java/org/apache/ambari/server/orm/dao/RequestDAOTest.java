@@ -175,11 +175,11 @@ public class RequestDAOTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(requestId);
     requestEntity.setClusterId(clusterEntity.getClusterId());
-    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestEntity.setStages(new ArrayList<>());
     requestDAO.create(requestEntity);
 
     HostEntity host = hostDAO.findByName(hostName);
-    host.setHostRoleCommandEntities(new ArrayList<HostRoleCommandEntity>());
+    host.setHostRoleCommandEntities(new ArrayList<>());
 
     long stageId = 1L;
 
@@ -202,7 +202,7 @@ public class RequestDAOTest {
       stageEntity.setClusterId(clusterEntity.getClusterId());
       stageEntity.setRequest(re);
       stageEntity.setStageId(stageId);
-      stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+      stageEntity.setHostRoleCommands(new ArrayList<>());
       stageEntity.setSkippable(skipStage);
       stageDAO.create(stageEntity);
 

@@ -157,8 +157,8 @@ public class StackAdvisorResourceProviderTest {
       keyPropertyIds, ambariManagementController);
 
     Request request = mock(Request.class);
-    Set<Map<String, Object>> propertiesSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> propertiesMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> propertiesSet = new HashSet<>();
+    Map<String, Object> propertiesMap = new HashMap<>();
     propertiesMap.put("hosts", new LinkedHashSet<>());
     propertiesMap.put("recommend", "configurations");
     propertiesSet.add(propertiesMap);

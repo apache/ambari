@@ -65,10 +65,10 @@ public class AndPredicateTest extends EasyMockSupport {
   @Test
   public void testToMap() {
     Predicate mockPredicate1 = createStrictMock(Predicate.class);
-    expect(mockPredicate1.toMap()).andReturn(Collections.<String, Object>singletonMap("nop", "foo")).times(1);
+    expect(mockPredicate1.toMap()).andReturn(Collections.singletonMap("nop", "foo")).times(1);
 
     Predicate mockPredicate2 = createStrictMock(Predicate.class);
-    expect(mockPredicate2.toMap()).andReturn(Collections.<String, Object>singletonMap("nop", "baz")).times(1);
+    expect(mockPredicate2.toMap()).andReturn(Collections.singletonMap("nop", "baz")).times(1);
 
     replayAll();
 
@@ -89,10 +89,10 @@ public class AndPredicateTest extends EasyMockSupport {
   @Test
   public void testToJSON() {
     Predicate mockPredicate1 = createStrictMock(Predicate.class);
-    expect(mockPredicate1.toMap()).andReturn(Collections.<String, Object>singletonMap("nop", "foo")).times(1);
+    expect(mockPredicate1.toMap()).andReturn(Collections.singletonMap("nop", "foo")).times(1);
 
     Predicate mockPredicate2 = createStrictMock(Predicate.class);
-    expect(mockPredicate2.toMap()).andReturn(Collections.<String, Object>singletonMap("nop", "baz")).times(1);
+    expect(mockPredicate2.toMap()).andReturn(Collections.singletonMap("nop", "baz")).times(1);
 
     replayAll();
 

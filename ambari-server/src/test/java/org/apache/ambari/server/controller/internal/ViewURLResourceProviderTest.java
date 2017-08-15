@@ -142,7 +142,7 @@ public class ViewURLResourceProviderTest {
     expect(viewEntity.getVersion()).andReturn("1.0.0").once();
     expect(viewInstanceEntity.getName()).andReturn("test").once();
     expect(viewInstanceEntity.getViewUrl()).andReturn(null).once();
-    expect(viewURLDAO.findByName("test")).andReturn(Optional.<ViewURLEntity>absent());
+    expect(viewURLDAO.findByName("test")).andReturn(Optional.absent());
     Capture<ViewURLEntity> urlEntityCapture = newCapture();
     viewURLDAO.save(capture(urlEntityCapture));
     viewregistry.updateViewInstance(viewInstanceEntity);

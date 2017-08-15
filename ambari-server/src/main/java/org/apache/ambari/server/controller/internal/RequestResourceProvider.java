@@ -445,7 +445,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> resourceFilterList = null;
     Set<Map<String, Object>> resourceFilters;
 
-    Map<String, String> params = new HashMap<String, String>();
+    Map<String, String> params = new HashMap<>();
     Object resourceFilterObj = propertyMap.get(REQUEST_RESOURCE_FILTER_ID);
     if (resourceFilterObj != null && resourceFilterObj instanceof HashSet) {
       resourceFilters = (HashSet<Map<String, Object>>) resourceFilterObj;

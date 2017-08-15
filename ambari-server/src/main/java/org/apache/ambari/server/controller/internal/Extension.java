@@ -245,7 +245,7 @@ public class Extension {
   //todo: full dependency graph
   public Collection<DependencyInfo> getDependenciesForComponent(String component) {
     return dependencies.containsKey(component) ? dependencies.get(component) :
-        Collections.<DependencyInfo>emptySet();
+        Collections.emptySet();
   }
 
   /**

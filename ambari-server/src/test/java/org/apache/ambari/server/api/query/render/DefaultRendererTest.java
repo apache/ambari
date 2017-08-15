@@ -60,7 +60,7 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, schema);
 
-    QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), new HashSet<String>());
+    QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), new HashSet<>());
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     DefaultRenderer renderer = new DefaultRenderer();
@@ -188,7 +188,7 @@ public class DefaultRendererTest {
     HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
-    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
+    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<>()), "Component");
 
     DefaultRenderer renderer = new DefaultRenderer();
     renderer.init(schemaFactory);
@@ -273,7 +273,7 @@ public class DefaultRendererTest {
     HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
-    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
+    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<>()), "Component");
 
     DefaultRenderer renderer = new DefaultRenderer();
     renderer.init(schemaFactory);
@@ -314,7 +314,7 @@ public class DefaultRendererTest {
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
-    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
+    queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<>()), "Component");
 
     DefaultRenderer renderer = new DefaultRenderer();
     renderer.init(schemaFactory);

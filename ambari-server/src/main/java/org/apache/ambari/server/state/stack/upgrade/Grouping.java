@@ -266,7 +266,7 @@ public class Grouping {
       List<String> displays = new ArrayList<>();
       for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
-            service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+            service, "", Collections.emptySet(), new ServiceCheckTask()));
 
         displays.add(upgradeContext.getServiceDisplay(service));
       }

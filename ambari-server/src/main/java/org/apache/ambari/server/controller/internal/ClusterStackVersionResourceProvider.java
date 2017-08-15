@@ -253,7 +253,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       final List<RepositoryVersionState> allStates = new ArrayList<>();
       final Map<RepositoryVersionState, List<String>> hostStates = new HashMap<>();
       for (RepositoryVersionState state: RepositoryVersionState.values()) {
-        hostStates.put(state, new ArrayList<String>());
+        hostStates.put(state, new ArrayList<>());
       }
 
       StackEntity repoVersionStackEntity = repositoryVersion.getStack();
@@ -482,7 +482,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       if (operatingSystem.isAmbariManagedRepos()) {
         perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
       } else {
-        perOsRepos.put(operatingSystem.getOsType(), Collections.<RepositoryEntity> emptyList());
+        perOsRepos.put(operatingSystem.getOsType(), Collections.emptyList());
       }
     }
 

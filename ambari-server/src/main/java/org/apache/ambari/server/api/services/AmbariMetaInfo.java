@@ -385,8 +385,7 @@ public class AmbariMetaInfo {
     Map<String, List<RepositoryInfo>> reposResult = new HashMap<>();
     for (RepositoryInfo repo : repository) {
       if (!reposResult.containsKey(repo.getOsType())) {
-        reposResult.put(repo.getOsType(),
-          new ArrayList<RepositoryInfo>());
+        reposResult.put(repo.getOsType(), new ArrayList<>());
       }
       reposResult.get(repo.getOsType()).add(repo);
     }
@@ -1244,7 +1243,7 @@ public class AmbariMetaInfo {
     try {
       StackInfo stack = getStack(stackName, stackVersion);
       return stack.getUpgradePacks() == null ?
-          Collections.<String, UpgradePack>emptyMap() : stack.getUpgradePacks();
+          Collections.emptyMap() : stack.getUpgradePacks();
 
     } catch (AmbariException e) {
       LOG.debug("Cannot load upgrade packs for non-existent stack {}-{}", stackName, stackVersion, e);

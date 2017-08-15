@@ -293,7 +293,7 @@ public class Stack {
   public Set<String> getExcludedConfigurationTypes(String service) {
     return excludedConfigurationTypes.containsKey(service) ?
         excludedConfigurationTypes.get(service) :
-        Collections.<String>emptySet();
+        Collections.emptySet();
   }
 
   /**
@@ -504,7 +504,7 @@ public class Stack {
   //todo: full dependency graph
   public Collection<DependencyInfo> getDependenciesForComponent(String component) {
     return dependencies.containsKey(component) ? dependencies.get(component) :
-        Collections.<DependencyInfo>emptySet();
+        Collections.emptySet();
   }
 
   /**
@@ -558,7 +558,7 @@ public class Stack {
         Map<String, Map<String, String>> stackTypeAttributes = getConfigurationAttributes(service, type);
         if (!stackTypeAttributes.isEmpty()) {
           if (! attributes.containsKey(type)) {
-            attributes.put(type, new HashMap<String, Map<String, String>>());
+            attributes.put(type, new HashMap<>());
           }
           Map<String, Map<String, String>> typeAttributes = attributes.get(type);
           for (Map.Entry<String, Map<String, String>> attribute : stackTypeAttributes.entrySet()) {
@@ -592,7 +592,7 @@ public class Stack {
         Map<String, Map<String, String>> stackTypeAttributes = getConfigurationAttributes(service, type);
         if (!stackTypeAttributes.isEmpty()) {
           if (! stackAttributes.containsKey(type)) {
-            stackAttributes.put(type, new HashMap<String, Map<String, String>>());
+            stackAttributes.put(type, new HashMap<>());
           }
           Map<String, Map<String, String>> typeAttrs = stackAttributes.get(type);
           for (Map.Entry<String, Map<String, String>> attribute : stackTypeAttributes.entrySet()) {
@@ -702,7 +702,7 @@ public class Stack {
     Set<String> configTypes = stackService.getConfigTypes().keySet();
     for (String configType: configTypes) {
       if (!mapServiceConfig.containsKey(configType)) {
-        mapServiceConfig.put(configType, Collections.<String, ConfigProperty>emptyMap());
+        mapServiceConfig.put(configType, Collections.emptyMap());
       }
     }
   }

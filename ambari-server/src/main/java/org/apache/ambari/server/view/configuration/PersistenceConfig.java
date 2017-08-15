@@ -41,6 +41,6 @@ public class PersistenceConfig {
    * @return the entity configurations
    */
   public List<EntityConfig> getEntities() {
-    return entities == null ? Collections.<EntityConfig>emptyList() : entities;
+    return entities == null ? Collections.emptyList() : entities;
   }
 }

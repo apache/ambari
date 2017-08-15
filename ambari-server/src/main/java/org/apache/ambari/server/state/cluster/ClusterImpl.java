@@ -378,16 +378,14 @@ public class ClusterImpl implements Cluster {
       /* get all the service component hosts **/
       Service service = serviceKV.getValue();
       if (!serviceComponentHosts.containsKey(service.getName())) {
-        serviceComponentHosts.put(service.getName(),
-            new ConcurrentHashMap<String, ConcurrentMap<String, ServiceComponentHost>>());
+        serviceComponentHosts.put(service.getName(), new ConcurrentHashMap<>());
       }
 
       for (Entry<String, ServiceComponent> svcComponent : service.getServiceComponents().entrySet()) {
         ServiceComponent comp = svcComponent.getValue();
         String componentName = svcComponent.getKey();
         if (!serviceComponentHosts.get(service.getName()).containsKey(componentName)) {
-          serviceComponentHosts.get(service.getName()).put(componentName,
-              new ConcurrentHashMap<String, ServiceComponentHost>());
+          serviceComponentHosts.get(service.getName()).put(componentName, new ConcurrentHashMap<>());
         }
 
         // Get Service Host Components
@@ -395,8 +393,7 @@ public class ClusterImpl implements Cluster {
           String hostname = svchost.getKey();
           ServiceComponentHost svcHostComponent = svchost.getValue();
           if (!serviceComponentHostsByHost.containsKey(hostname)) {
-            serviceComponentHostsByHost.put(hostname,
-                new CopyOnWriteArrayList<ServiceComponentHost>());
+            serviceComponentHostsByHost.put(hostname, new CopyOnWriteArrayList<>());
           }
 
           List<ServiceComponentHost> compList = serviceComponentHostsByHost.get(hostname);
@@ -640,13 +637,11 @@ public class ClusterImpl implements Cluster {
     }
 
     if (!serviceComponentHosts.containsKey(serviceName)) {
-      serviceComponentHosts.put(serviceName,
-          new ConcurrentHashMap<String, ConcurrentMap<String, ServiceComponentHost>>());
+      serviceComponentHosts.put(serviceName, new ConcurrentHashMap<>());
     }
 
     if (!serviceComponentHosts.get(serviceName).containsKey(componentName)) {
-      serviceComponentHosts.get(serviceName).put(componentName,
-          new ConcurrentHashMap<String, ServiceComponentHost>());
+      serviceComponentHosts.get(serviceName).put(componentName, new ConcurrentHashMap<>());
     }
 
     if (serviceComponentHosts.get(serviceName).get(componentName).containsKey(
@@ -657,8 +652,7 @@ public class ClusterImpl implements Cluster {
     }
 
     if (!serviceComponentHostsByHost.containsKey(hostname)) {
-      serviceComponentHostsByHost.put(hostname,
-          new CopyOnWriteArrayList<ServiceComponentHost>());
+      serviceComponentHostsByHost.put(hostname, new CopyOnWriteArrayList<>());
     }
 
     if (LOG.isDebugEnabled()) {
@@ -1162,7 +1156,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
       if (!allConfigs.containsKey(config.getType())) {
-        allConfigs.put(config.getType(), new ConcurrentHashMap<String, Config>());
+        allConfigs.put(config.getType(), new ConcurrentHashMap<>());
       }
 
       allConfigs.get(config.getType()).put(config.getTag(), config);
@@ -1624,8 +1618,7 @@ public class ClusterImpl implements Cluster {
       Set<ServiceConfigVersionResponse> responses = getActiveServiceConfigVersionSet();
       for (ServiceConfigVersionResponse response : responses) {
         if (map.get(response.getServiceName()) == null) {
-          map.put(response.getServiceName(),
-              new ArrayList<ServiceConfigVersionResponse>());
+          map.put(response.getServiceName(), new ArrayList<>());
         }
         map.get(response.getServiceName()).add(response);
       }
@@ -1745,7 +1738,7 @@ public class ClusterImpl implements Cluster {
    * @return serviceConfigVersionResponse
    */
   private ServiceConfigVersionResponse getServiceConfigVersionResponseWithConfig(ServiceConfigVersionResponse serviceConfigVersionResponse, ServiceConfigEntity serviceConfigEntity) {
-    serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
+    serviceConfigVersionResponse.setConfigurations(new ArrayList<>());
     List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
     for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
       Config config = allConfigs.get(clusterConfigEntity.getType()).get(
@@ -1807,7 +1800,7 @@ public class ClusterImpl implements Cluster {
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
       List<ClusterConfigEntity> enabledConfigs = clusterDAO.getEnabledConfigsByTypes(clusterId, configTypes);
       List<ClusterConfigEntity> serviceConfigEntities = serviceConfigEntity.getClusterConfigEntities();
-      ArrayList<ClusterConfigEntity> duplicatevalues = new ArrayList<ClusterConfigEntity>(serviceConfigEntities);
+      ArrayList<ClusterConfigEntity> duplicatevalues = new ArrayList<>(serviceConfigEntities);
       duplicatevalues.retainAll(enabledConfigs);
       enabledConfigs.removeAll(duplicatevalues);
       serviceConfigEntities.removeAll(duplicatevalues);
@@ -1967,7 +1960,7 @@ public class ClusterImpl implements Cluster {
     Map<Long, Map<String, DesiredConfig>> desiredConfigsByHost = new HashMap<>();
 
     for (Long hostId : hostIds) {
-      desiredConfigsByHost.put(hostId, new HashMap<String, DesiredConfig>());
+      desiredConfigsByHost.put(hostId, new HashMap<>());
     }
 
     for (HostConfigMapping mappingEntity : mappingEntities) {
@@ -2169,7 +2162,7 @@ public class ClusterImpl implements Cluster {
       //todo: in what conditions is AmbariException thrown?
       throw new RuntimeException("Unable to get hosts for cluster: " + clusterName, e);
     }
-    return hosts == null ? Collections.<Host>emptyList() : hosts.values();
+    return hosts == null ? Collections.emptyList() : hosts.values();
   }
 
   private ClusterHealthReport getClusterHealthReport(
@@ -2310,7 +2303,7 @@ public class ClusterImpl implements Cluster {
     Map<String, Object>  attributes =
         (Map<String, Object>) getSessionManager().getAttribute(getClusterSessionAttributeName());
 
-    return attributes == null ? Collections.<String, Object>emptyMap() : attributes;
+    return attributes == null ? Collections.emptyMap() : attributes;
   }
 
   /**
@@ -2521,7 +2514,7 @@ public class ClusterImpl implements Cluster {
         for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
 
           if (!allConfigs.containsKey(entity.getType())) {
-            allConfigs.put(entity.getType(), new ConcurrentHashMap<String, Config>());
+            allConfigs.put(entity.getType(), new ConcurrentHashMap<>());
           }
 
           Config config = configFactory.createExisting(this, entity);

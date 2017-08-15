@@ -67,7 +67,7 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
    */
   @Override
   public List<CheckQualification> getQualifications() {
-    return Lists.<CheckQualification> newArrayList(new YarnTimelineServerMinVersionQualification());
+    return Lists.newArrayList(new YarnTimelineServerMinVersionQualification());
   }
 
   /**

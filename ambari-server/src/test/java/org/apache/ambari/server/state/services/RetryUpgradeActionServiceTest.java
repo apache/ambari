@@ -295,7 +295,7 @@ public class RetryUpgradeActionServiceTest {
     hrc1.setRole(Role.ZOOKEEPER_SERVER);
     hrc1.setRoleCommand(RoleCommand.RESTART);
 
-    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    stageEntity.setHostRoleCommands(new ArrayList<>());
     stageEntity.getHostRoleCommands().add(hrc1);
     hostRoleCommandDAO.create(hrc1);
     stageDAO.merge(stageEntity);

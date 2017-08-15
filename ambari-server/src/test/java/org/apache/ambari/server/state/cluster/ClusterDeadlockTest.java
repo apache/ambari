@@ -127,10 +127,8 @@ public class ClusterDeadlockTest {
     cluster = clusters.getCluster("c1");
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    Config config1 = configFactory.createNew(cluster, "test-type1", "version1", new HashMap<String, String>(), new HashMap<String,
-        Map<String, String>>());
-    Config config2 = configFactory.createNew(cluster, "test-type2", "version1", new HashMap<String, String>(), new HashMap<String,
-        Map<String, String>>());
+    Config config1 = configFactory.createNew(cluster, "test-type1", "version1", new HashMap<>(), new HashMap<>());
+    Config config2 = configFactory.createNew(cluster, "test-type2", "version1", new HashMap<>(), new HashMap<>());
 
     cluster.addDesiredConfig("test user", new HashSet<>(Arrays.asList(config1, config2)));
 

@@ -186,7 +186,7 @@ public class ServiceInfo implements Validable{
   private List<ServicePropertyInfo> servicePropertyList = Lists.newArrayList();
 
   @XmlTransient
-  private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.<String, String>newHashMap()));
+  private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.newHashMap()));
 
   /**
    *
@@ -633,7 +633,7 @@ public class ServiceInfo implements Validable{
    */
   public synchronized Map<String, Map<String, Map<String, String>>> getConfigTypeAttributes() {
     Map<String, Map<String, Map<String, String>>> tmpConfigTypes = configTypes == null ?
-        new HashMap<String, Map<String, Map<String, String>>>() : configTypes;
+      new HashMap<>() : configTypes;
 
     for(String excludedtype : excludedConfigTypes){
       tmpConfigTypes.remove(excludedtype);
@@ -726,7 +726,7 @@ public class ServiceInfo implements Validable{
             type = type.substring(0, idx);
 
             if (!configLayout.containsKey(type))
-              configLayout.put(type, new HashSet<String>());
+              configLayout.put(type, new HashSet<>());
 
             configLayout.get(type).add(pi.getName());
           }

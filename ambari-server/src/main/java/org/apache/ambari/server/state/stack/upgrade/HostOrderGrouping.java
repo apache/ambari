@@ -280,7 +280,7 @@ public class HostOrderGrouping extends Grouping {
         }
 
         StageWrapper manualWrapper = new StageWrapper(StageWrapper.Type.SERVER_SIDE_ACTION, "Manual Confirmation",
-            new TaskWrapper(null, null, Collections.<String>emptySet(), mt));
+            new TaskWrapper(null, null, Collections.emptySet(), mt));
 
         wrappers.add(manualWrapper);
 
@@ -319,7 +319,7 @@ public class HostOrderGrouping extends Grouping {
 
         StageWrapper wrapper = new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
             String.format("Service Check %s", upgradeContext.getServiceDisplay(serviceName)),
-            new TaskWrapper(serviceName, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+            new TaskWrapper(serviceName, "", Collections.emptySet(), new ServiceCheckTask()));
 
         wrappers.add(wrapper);
       }

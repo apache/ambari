@@ -197,7 +197,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    */
   public AlertNoticeDispatchService() {
     m_executor = new ThreadPoolExecutor(0, 2, 5L, TimeUnit.MINUTES,
-        new LinkedBlockingQueue<Runnable>(), new AlertDispatchThreadFactory(),
+      new LinkedBlockingQueue<>(), new AlertDispatchThreadFactory(),
         new ThreadPoolExecutor.CallerRunsPolicy());
 
     GsonBuilder gsonBuilder = new GsonBuilder();

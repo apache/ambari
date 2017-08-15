@@ -128,7 +128,7 @@ public class ResourceConfig {
    * @return the sub-resource names
    */
   public List<String> getSubResourceNames() {
-    return subResourceNames == null ? Collections.<String>emptyList() : subResourceNames;
+    return subResourceNames == null ? Collections.emptyList() : subResourceNames;
   }
 
   /**

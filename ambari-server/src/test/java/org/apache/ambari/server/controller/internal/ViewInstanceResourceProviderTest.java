@@ -46,7 +46,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -97,7 +96,7 @@ public class ViewInstanceResourceProviderTest {
 
     expect(viewInstanceEntity.getPropertyMap()).andReturn(propertyMap);
 
-    expect(viewInstanceEntity.getData()).andReturn(Collections.<ViewInstanceDataEntity>emptyList()).anyTimes();
+    expect(viewInstanceEntity.getData()).andReturn(Collections.emptyList()).anyTimes();
 
     expect(viewregistry.checkAdmin()).andReturn(true);
     expect(viewregistry.checkAdmin()).andReturn(false);

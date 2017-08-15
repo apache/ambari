@@ -73,8 +73,8 @@ public class ProvisionClusterRequestTest {
   private static final Blueprint blueprint = createNiceMock(Blueprint.class);
   private static final ResourceProvider hostResourceProvider = createMock(ResourceProvider.class);
   private static final Configuration blueprintConfig = new Configuration(
-      Collections.<String, Map<String, String>>emptyMap(),
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap(),
+      Collections.emptyMap());
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -92,7 +92,7 @@ public class ProvisionClusterRequestTest {
     expect(blueprintFactory.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).once();
     expect(blueprint.getConfiguration()).andReturn(blueprintConfig).anyTimes();
     expect(hostResourceProvider.checkPropertyIds(Collections.singleton("Hosts/host_name"))).
-        andReturn(Collections.<String>emptySet()).once();
+        andReturn(Collections.emptySet()).once();
 
     replay(blueprintFactory, blueprint, hostResourceProvider);
   }

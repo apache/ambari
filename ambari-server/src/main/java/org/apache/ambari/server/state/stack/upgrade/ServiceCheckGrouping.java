@@ -279,7 +279,7 @@ public class ServiceCheckGrouping extends Grouping {
     ServiceCheckStageWrapper(String service, String serviceDisplay, boolean priority) {
       super(StageWrapper.Type.SERVICE_CHECK,
           String.format("Service Check %s", serviceDisplay),
-          new TaskWrapper(service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+          new TaskWrapper(service, "", Collections.emptySet(), new ServiceCheckTask()));
 
       this.service = service;
       this.priority = priority;

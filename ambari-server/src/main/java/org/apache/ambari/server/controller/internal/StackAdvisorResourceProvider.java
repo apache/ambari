@@ -132,7 +132,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
       List<ChangedConfigInfo> changedConfigurations =
         requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES ?
-          calculateChangedConfigurations(request) : Collections.<ChangedConfigInfo>emptyList();
+          calculateChangedConfigurations(request) : Collections.emptyList();
 
       Set<RecommendationResponse.ConfigGroup> configGroups = calculateConfigGroups(request);
       return StackAdvisorRequestBuilder.
@@ -248,7 +248,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
               RecommendationResponse.BlueprintConfigurations configurations =
                 new RecommendationResponse.BlueprintConfigurations();
               configGroup.getConfigurations().put(siteName, configurations);
-              configGroup.getConfigurations().get(siteName).setProperties(new HashMap<String, String>());
+              configGroup.getConfigurations().get(siteName).setProperties(new HashMap<>());
             }
             configGroup.getConfigurations().get(siteName).getProperties().put(propertyName, entry.getValue());
           }

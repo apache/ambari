@@ -284,7 +284,7 @@ public class DatabaseConsistencyCheckHelperTest {
     services.put("HDFS", mockHDFSServiceInfo);
 
     Map<String, Map<String, Map<String, String>>> configAttributes = new HashMap<>();
-    configAttributes.put("core-site", new HashMap<String, Map<String, String>>());
+    configAttributes.put("core-site", new HashMap<>());
 
     expect(mockHDFSServiceInfo.getConfigTypeAttributes()).andReturn(configAttributes);
     expect(mockAmbariMetainfo.getServices("HDP", "2.2")).andReturn(services);
@@ -361,7 +361,7 @@ public class DatabaseConsistencyCheckHelperTest {
 
   @Test
   public void testSchemaName_NoAmbariSchema() throws Exception {
-    setupMocksForTestSchemaName("ambari", null, newArrayList("public"), Lists.<String>newArrayList());
+    setupMocksForTestSchemaName("ambari", null, newArrayList("public"), Lists.newArrayList());
     DatabaseConsistencyCheckHelper.checkSchemaName();
     assertTrue("Warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
         DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
@@ -481,7 +481,7 @@ public class DatabaseConsistencyCheckHelperTest {
     services.put("HDFS", mockHDFSServiceInfo);
 
     Map<String, Map<String, Map<String, String>>> configAttributes = new HashMap<>();
-    configAttributes.put("core-site", new HashMap<String, Map<String, String>>());
+    configAttributes.put("core-site", new HashMap<>());
 
     expect(mockHDFSServiceInfo.getConfigTypeAttributes()).andReturn(configAttributes);
     expect(mockAmbariMetainfo.getServices("HDP", "2.2")).andReturn(services);

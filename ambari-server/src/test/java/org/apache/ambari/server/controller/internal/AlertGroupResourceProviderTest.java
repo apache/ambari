@@ -543,7 +543,7 @@ public class AlertGroupResourceProviderTest {
     List<AlertTargetEntity> targetEntities = new ArrayList<>();
     targetEntities.addAll(getMockTargets());
 
-    m_dao.createGroups(EasyMock.<List<AlertGroupEntity>>anyObject());
+    m_dao.createGroups(EasyMock.anyObject());
     expectLastCall().times(1);
 
     AlertGroupEntity group = new AlertGroupEntity();

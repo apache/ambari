@@ -129,7 +129,7 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
     customScriptServerAction.setExecutionCommand(executionCommand);
 
     EasyMock.expect(collectionPersisterServiceFactoryMock.createCsvFilePersisterService(EasyMock.anyString())).andReturn(collectionPersisterService);
-    EasyMock.expect(collectionPersisterService.persistMap(EasyMock.<Map<String, List<String>>>anyObject())).andReturn(Boolean.TRUE);
+    EasyMock.expect(collectionPersisterService.persistMap(EasyMock.anyObject())).andReturn(Boolean.TRUE);
 
     replayAll();
 
@@ -165,7 +165,7 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
   private void mockExecutionCommand(int callCnt) {
     EasyMock.expect(executionCommand.getRoleCommand()).andReturn(RoleCommand.EXECUTE).times(callCnt);
     EasyMock.expect(executionCommand.getClusterName()).andReturn("unit-test-cluster").times(callCnt);
-    EasyMock.expect(executionCommand.getConfigurationTags()).andReturn(Collections.<String, Map<String, String>>emptyMap()).times(callCnt);
+    EasyMock.expect(executionCommand.getConfigurationTags()).andReturn(Collections.emptyMap()).times(callCnt);
     EasyMock.expect(executionCommand.getRole()).andReturn(Role.AMBARI_SERVER_ACTION.toString()).times(callCnt);
     EasyMock.expect(executionCommand.getServiceName()).andReturn("custom-hook-script").times(callCnt);
     EasyMock.expect(executionCommand.getTaskId()).andReturn(-1l).times(callCnt);

@@ -240,7 +240,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     }
 
     // Generate list of services that have no config types
-    List<String> servicesWithNoConfigs = new ArrayList<String>();
+    List<String> servicesWithNoConfigs = new ArrayList<>();
     for(ServiceModule serviceModule: serviceModules.values()){
       if (!serviceModule.hasConfigs()){
         servicesWithNoConfigs.add(serviceModule.getId());
@@ -678,7 +678,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       StackModule parent, Map<String,StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     stackInfo.getProperties().clear();
-    stackInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
+    stackInfo.setAllConfigAttributes(new HashMap<>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
@@ -1162,7 +1162,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     // Uniqueness is checked for each os type
     for (String osType: serviceReposByOsType.keySet()) {
-      List<RepositoryInfo> stackReposForOsType = stackReposByOsType.containsKey(osType) ? stackReposByOsType.get(osType) : Collections.<RepositoryInfo>emptyList();
+      List<RepositoryInfo> stackReposForOsType = stackReposByOsType.containsKey(osType) ? stackReposByOsType.get(osType) : Collections.emptyList();
       List<RepositoryInfo> serviceReposForOsType = serviceReposByOsType.get(osType);
       Set<String> stackRepoNames = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.GET_REPO_NAME_FUNCTION));
       Set<String> stackRepoUrls = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.SAFE_GET_BASE_URL_FUNCTION));

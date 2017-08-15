@@ -239,7 +239,7 @@ public class UpgradeCatalog251Test {
     expect(mockClusters.getClusters()).andReturn(Collections.singletonMap("normal", mockClusterExpected)).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("kafka-broker")).andReturn(kafkaBroker).atLeastOnce();
     expect(mockClusterExpected.getSecurityType()).andReturn(SecurityType.KERBEROS).atLeastOnce();
-    expect(mockClusterExpected.getServices()).andReturn(Collections.<String, Service>singletonMap("KAFKA", null)).atLeastOnce();
+    expect(mockClusterExpected.getServices()).andReturn(Collections.singletonMap("KAFKA", null)).atLeastOnce();
 
     UpgradeCatalog251 upgradeCatalog251 = createMockBuilder(UpgradeCatalog251.class)
         .withConstructor(Injector.class)

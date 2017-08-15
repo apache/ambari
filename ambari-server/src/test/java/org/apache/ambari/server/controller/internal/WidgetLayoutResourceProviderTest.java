@@ -164,7 +164,7 @@ public class WidgetLayoutResourceProviderTest {
 
     WidgetEntity widgetEntity = new WidgetEntity();
     widgetEntity.setId(1l);
-    widgetEntity.setListWidgetLayoutUserWidgetEntity(new ArrayList<WidgetLayoutUserWidgetEntity>());
+    widgetEntity.setListWidgetLayoutUserWidgetEntity(new ArrayList<>());
     expect(widgetDAO.findById(anyLong())).andReturn(widgetEntity).anyTimes();
 
     replay(amc, clusters, cluster, dao, widgetDAO);
@@ -224,10 +224,10 @@ public class WidgetLayoutResourceProviderTest {
 
     WidgetEntity widgetEntity = new WidgetEntity();
     widgetEntity.setId(1L);
-    widgetEntity.setListWidgetLayoutUserWidgetEntity(new ArrayList<WidgetLayoutUserWidgetEntity>());
+    widgetEntity.setListWidgetLayoutUserWidgetEntity(new ArrayList<>());
     WidgetEntity widgetEntity2 = new WidgetEntity();
     widgetEntity2.setId(2L);
-    widgetEntity2.setListWidgetLayoutUserWidgetEntity(new ArrayList<WidgetLayoutUserWidgetEntity>());
+    widgetEntity2.setListWidgetLayoutUserWidgetEntity(new ArrayList<>());
     expect(widgetDAO.findById(1L)).andReturn(widgetEntity).atLeastOnce();
 
     replay(amc, clusters, cluster, dao, widgetDAO);
