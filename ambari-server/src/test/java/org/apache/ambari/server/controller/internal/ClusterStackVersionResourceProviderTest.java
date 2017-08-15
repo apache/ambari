@@ -819,7 +819,8 @@ public class ClusterStackVersionResourceProviderTest {
     Float successFactor = successFactors.get(Role.INSTALL_PACKAGES);
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
 
-    Assert.assertTrue(executionCommand.getRoleParams().containsKey(KeyNames.PACKAGE_VERSION));
+    Assert.assertTrue(executionCommand.getRoleParams().containsKey(KeyNames.PACKAGE_LIST));
+    Assert.assertTrue(executionCommand.getRoleParams().containsKey("stack_id"));
   }
 
    @Test
@@ -1057,7 +1058,6 @@ public class ClusterStackVersionResourceProviderTest {
     Float successFactor = successFactors.get(Role.INSTALL_PACKAGES);
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
 
-    Assert.assertTrue(executionCommand.getRoleParams().containsKey(KeyNames.PACKAGE_VERSION));
     Assert.assertNotNull(executionCommand.getRepositoryFile());
     Assert.assertEquals(0, executionCommand.getRepositoryFile().getRepositories().size());
   }

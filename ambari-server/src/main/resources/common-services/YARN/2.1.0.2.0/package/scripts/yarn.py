@@ -327,6 +327,7 @@ def setup_historyserver():
                        action="create_on_execute",
                        owner=params.mapred_user,
                        group=params.user_group,
+                       change_permissions_for_parents=True,
                        mode=0777
   )
   params.HdfsResource(None, action="execute")
@@ -401,7 +402,6 @@ def setup_resourcemanager():
     params.HdfsResource(params.node_labels_dir,
                          type="directory",
                          action="create_on_execute",
-                         change_permissions_for_parents=True,
                          owner=params.yarn_user,
                          group=params.user_group,
                          mode=0700

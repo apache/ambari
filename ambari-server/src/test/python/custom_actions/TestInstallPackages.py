@@ -99,8 +99,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -150,9 +149,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['base_urls'] = "[]"
-    del command_json['repositoryFile']
-
+    command_json['repositoryFile']['repositories'] = []
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value=[]
@@ -166,8 +163,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     
     self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -209,8 +205,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -271,8 +266,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -347,8 +341,7 @@ class TestInstallPackages(RMFTestCase):
 
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
-                      {'stack_id': 'HDP-2.2',
-                      'installed_repository_version': VERSION_STUB,
+                      {'repository_version_id': 1,
                       'package_installation_result': 'FAIL'})
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -403,8 +396,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -474,8 +466,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 4,
                        'actual_version': VERSION_STUB})
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
                               base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
@@ -529,7 +520,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['repository_version'] = VERSION_STUB
+    command_json['repositoryFile']['repoVersion'] = VERSION_STUB
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
@@ -543,8 +534,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertTrue(write_actual_version_to_history_file_mock.called)
     self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
@@ -564,7 +554,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['repository_version'] = VERSION_STUB
+    command_json['repositoryFile']['repoVersion'] = VERSION_STUB
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
@@ -578,12 +568,10 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
-
 
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
@@ -630,10 +618,9 @@ class TestInstallPackages(RMFTestCase):
 
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
-                      {
+                      { 'actual_version': '2.2.0.1-885',
                         'package_installation_result': 'FAIL',
-                        'installed_repository_version': '2.2.0.1',
-                        'stack_id': u'HDP-2.2'})
+                        'repository_version_id': 1})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
 
@@ -666,7 +653,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['repository_version'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
+    command_json['repositoryFile']['repoVersion'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
@@ -685,8 +672,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
                       {'package_installation_result': 'FAIL',
-                       'stack_id': u'HDP-2.2',
-                       'installed_repository_version': '2.2.0.1'})
+                       'repository_version_id': 1})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
 
@@ -706,7 +692,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['repository_version'] = VERSION_STUB
+    command_json['repositoryFile']['repoVersion'] = VERSION_STUB
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
@@ -725,8 +711,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'FAIL',
-                       'stack_id': u'HDP-2.2',
-                       'installed_repository_version': VERSION_STUB,
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
@@ -766,8 +751,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB_WITHOUT_BUILD_NUMBER,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertTrue(write_actual_version_to_history_file_mock.called)
     self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
@@ -787,7 +771,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['repository_version'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
+    command_json['repositoryFile']['repoVersion'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
@@ -801,8 +785,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB_WITHOUT_BUILD_NUMBER,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
@@ -828,7 +811,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['repository_version'] = '2.2.0.1-500'  # User specified wrong build number
+    command_json['repositoryFile']['repoVersion'] = '2.2.0.1-500'  # User specified wrong build number
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
@@ -842,8 +825,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': '2.2.0.1-500',
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertTrue(write_actual_version_to_history_file_mock.called)
     self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], ('2.2.0.1', VERSION_STUB))
@@ -877,8 +859,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': '2.2.0.1-500',
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
@@ -908,7 +889,7 @@ class TestInstallPackages(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['roleParams']['repository_version'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
+    command_json['repositoryFile']['repoVersion'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
@@ -927,8 +908,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
                       {'package_installation_result': 'FAIL',
-                       'stack_id': u'HDP-2.2',
-                       'installed_repository_version': '2.2.0.1'})
+                       'repository_version_id': 1})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
 
@@ -967,8 +947,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'FAIL',
-                       'stack_id': u'HDP-2.2',
-                       'installed_repository_version': VERSION_STUB,
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
@@ -1008,9 +987,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
-                       'repository_version_id': '2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
     self.assertTrue(write_actual_version_to_history_file_mock.called)
     self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
@@ -1045,9 +1022,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
-                       'repository_version_id': '2',
+                       'repository_version_id': 1,
                        'actual_version': VERSION_STUB})
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
@@ -1081,8 +1056,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': 4,
                        'actual_version': VERSION_STUB})
 
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',

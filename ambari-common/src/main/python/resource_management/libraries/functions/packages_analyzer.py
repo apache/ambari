@@ -314,9 +314,9 @@ def getReposToRemove(repos, ignoreList):
 
 def getInstalledPackageVersion(package_name):
   if OSCheck.is_ubuntu_family():
-    code, out, err = rmf_shell.checked_call("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name), stderr=subprocess.PIPE)
+    code, out = rmf_shell.checked_call("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name))
   else:
-    code, out, err = rmf_shell.checked_call("rpm -q --queryformat '%{{version}}-%{{release}}' {0} | sed -e 's/\.el[0-9]//g'".format(package_name), stderr=subprocess.PIPE)
+    code, out = rmf_shell.checked_call("rpm -q --queryformat '%{{version}}-%{{release}}' {0} | sed -e 's/\.el[0-9]//g'".format(package_name))
 
   return out
 

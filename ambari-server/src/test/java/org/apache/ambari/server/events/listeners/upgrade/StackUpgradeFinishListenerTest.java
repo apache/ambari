@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -33,11 +34,14 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
 import org.easymock.TestSubject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.google.inject.Provider;
 
 
 /**
@@ -67,6 +71,8 @@ public class StackUpgradeFinishListenerTest extends EasyMockSupport {
   @TestSubject
   private StackUpgradeFinishListener listener = new StackUpgradeFinishListener(publisher);
 
+  @Mock(type = MockType.NICE)
+  private Provider<RoleCommandOrderProvider> roleCommandOrderProviderProviderMock;
 
   @Before
   public void setup() throws Exception {

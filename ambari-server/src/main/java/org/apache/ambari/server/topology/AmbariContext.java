@@ -57,6 +57,7 @@ import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -79,9 +80,12 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
@@ -195,11 +199,38 @@ public class AmbariContext {
     Stack stack = topology.getBlueprint().getStack();
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
-    RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+    RepositoryVersionEntity repoVersion = null;
+    if (null == repoVersionString) {
+      List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
 
-    if (null == repoVersion) {
-      throw new IllegalArgumentException(String.format("Could not identify repository version with stack %s and version %s for installing services",
-          stackId, repoVersionString));
+      if (stackRepoVersions.isEmpty()) {
+        throw new IllegalArgumentException(String.format("No repositories were found for %s", stackId));
+      } else if (stackRepoVersions.size() > 1) {
+
+        Function<RepositoryVersionEntity, String> function = new Function<RepositoryVersionEntity, String>() {
+          @Override
+          public String apply(RepositoryVersionEntity input) {
+            return input.getVersion();
+          }
+        };
+
+        Collection<String> versions = Collections2.transform(stackRepoVersions, function);
+
+        throw new IllegalArgumentException(String.format("Several repositories were found for %s:  %s.  Specify the version"
+            + " with '%s'", stackId, StringUtils.join(versions, ", "), ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+      } else {
+        repoVersion = stackRepoVersions.get(0);
+        LOG.warn("Cluster is being provisioned using the single matching repository version {}", repoVersion.getVersion());
+      }
+    } else {
+      repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+
+      if (null == repoVersion) {
+        throw new IllegalArgumentException(String.format(
+            "Could not identify repository version with stack %s and version %s for installing services. "
+            + "Specify a valid version with '%s'",
+            stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+      }
     }
 
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);

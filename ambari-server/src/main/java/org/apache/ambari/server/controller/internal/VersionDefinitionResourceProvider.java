@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -71,6 +72,8 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -442,22 +445,24 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     boolean emptyCompatible = StringUtils.isBlank(holder.xml.release.compatibleWith);
 
-    for (RepositoryVersionEntity candidate : entities) {
-      String baseVersion = candidate.getVersion();
+    for (RepositoryVersionEntity version : entities) {
+      String baseVersion = version.getVersion();
       if (baseVersion.lastIndexOf('-') > -1) {
         baseVersion = baseVersion.substring(0,  baseVersion.lastIndexOf('-'));
       }
 
       if (emptyCompatible) {
         if (baseVersion.equals(holder.xml.release.version)) {
-          matching.add(candidate);
+          matching.add(version);
         }
       } else {
         if (baseVersion.matches(holder.xml.release.compatibleWith)) {
-          matching.add(candidate);
+          matching.add(version);
         }
       }
     }
+
+    RepositoryVersionEntity parent = null;
 
     if (matching.isEmpty()) {
       String format = "No versions matched pattern %s";
@@ -465,16 +470,42 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       throw new IllegalArgumentException(String.format(format,
           emptyCompatible ? holder.xml.release.version : holder.xml.release.compatibleWith));
     } else if (matching.size() > 1) {
-      Set<String> versions= new HashSet<>();
-      for (RepositoryVersionEntity match : matching) {
-        versions.add(match.getVersion());
-      }
 
-      throw new IllegalArgumentException(String.format("More than one repository matches patch %s: %s",
+      Function<RepositoryVersionEntity, String> function = new Function<RepositoryVersionEntity, String>() {
+        @Override
+        public String apply(RepositoryVersionEntity input) {
+          return input.getVersion();
+        }
+      };
+
+      Collection<String> versions = Collections2.transform(matching, function);
+
+      List<RepositoryVersionEntity> used = s_repoVersionDAO.findByServiceDesiredVersion(matching);
+
+      if (used.isEmpty()) {
+        throw new IllegalArgumentException(String.format("Could not determine which version " +
+          "to associate patch %s. Remove one of %s and try again.",
           entity.getVersion(), StringUtils.join(versions, ", ")));
+      } else if (used.size() > 1) {
+        Collection<String> usedVersions = Collections2.transform(used, function);
+
+        throw new IllegalArgumentException(String.format("Patch %s was found to match more " +
+            "than one repository in use: %s. Move all services to a common version and try again.",
+            entity.getVersion(), StringUtils.join(usedVersions, ", ")));
+      } else {
+        parent = used.get(0);
+        LOG.warn("Patch {} was found to match more than one repository in {}. " +
+            "Repository {} is in use and will be the parent.", entity.getVersion(),
+               StringUtils.join(versions, ", "), parent.getVersion());
+      }
+    } else {
+      parent = matching.get(0);
     }
 
-    RepositoryVersionEntity parent = matching.get(0);
+    if (null == parent) {
+      throw new IllegalArgumentException(String.format("Could not find any parent repository for %s.",
+          entity.getVersion()));
+    }
 
     entity.setParent(parent);
   }

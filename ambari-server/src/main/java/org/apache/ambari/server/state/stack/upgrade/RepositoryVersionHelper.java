@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -291,22 +290,8 @@ public class RepositoryVersionHelper {
 
     Map<String, String> roleParams = new HashMap<>();
     roleParams.put("stack_id", stackId.getStackId());
-    roleParams.put("repository_version", repoVersion.getVersion());
     // !!! TODO make roleParams <String, Object> so we don't have to do this awfulness.
     roleParams.put(KeyNames.PACKAGE_LIST, gson.toJson(packages));
-    roleParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
-
-    VersionDefinitionXml xml = null;
-    try {
-      xml = repoVersion.getRepositoryXml();
-    } catch (Exception e) {
-      throw new SystemException(String.format("Could not load xml from repo version %s",
-          repoVersion.getVersion()));
-    }
-
-    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
-      roleParams.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
-    }
 
     return roleParams;
   }

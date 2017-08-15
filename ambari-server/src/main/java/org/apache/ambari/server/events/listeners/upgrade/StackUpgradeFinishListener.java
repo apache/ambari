@@ -53,7 +53,7 @@ public class StackUpgradeFinishListener {
   Provider<AmbariMetaInfo> ambariMetaInfo;
 
   @Inject
-  RoleCommandOrderProvider roleCommandOrderProvider;
+  Provider<RoleCommandOrderProvider> roleCommandOrderProvider;
 
   /**
    * Constructor.
@@ -88,9 +88,9 @@ public class StackUpgradeFinishListener {
       }
 
       // Clear the RoleCommandOrder cache on upgrade
-      if (roleCommandOrderProvider instanceof CachedRoleCommandOrderProvider) {
+      if (roleCommandOrderProvider.get() instanceof CachedRoleCommandOrderProvider) {
         LOG.info("Clearing RCO cache");
-        CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider;
+        CachedRoleCommandOrderProvider cachedRcoProvider = (CachedRoleCommandOrderProvider) roleCommandOrderProvider.get();
         cachedRcoProvider.clearRoleCommandOrderCache();
       }
     }

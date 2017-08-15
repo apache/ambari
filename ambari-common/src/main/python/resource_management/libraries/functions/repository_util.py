@@ -94,6 +94,7 @@ class CommandRepository(object):
     # version_id is the primary id of the repo_version table in the database
     self.version_id = _find_value(json_dict, 'repoVersionId')
     self.stack_name = _find_value(json_dict, 'stackName')
+    self.version_string = _find_value(json_dict, 'repoVersion')
     self.repositories = []
 
     repos_def = _find_value(json_dict, 'repositories')
