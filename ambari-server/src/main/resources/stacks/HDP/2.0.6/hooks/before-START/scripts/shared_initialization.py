@@ -206,7 +206,7 @@ def setup_unlimited_key_jce_policy():
 
     * The cluster has not been previously prepared (sys preped) - cluster-env/sysprep_skip_setup_jce = False
     * Ambari is managing the host's JVM - /ambariLevelParams/jdk_name is set
-    * Either security is enabled OR a service requires it - /hostLevelParams/unlimited_key_jce_required = True
+    * Either security is enabled OR a service requires it - /componentLevelParams/unlimited_key_jce_required = True
     * The unlimited key JCE policy has not already been installed
 
   If the conditions are met, the following steps are taken to install the unlimited key JCE policy JARs

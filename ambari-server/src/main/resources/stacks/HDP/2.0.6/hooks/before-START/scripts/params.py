@@ -78,15 +78,15 @@ current_service = config['serviceName']
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-ambari_server_resources_url = default("/hostLevelParams/jdk_location", None)
+ambari_server_resources_url = default("/ambariLevelParams/jdk_location", None)
 if ambari_server_resources_url is not None and ambari_server_resources_url.endswith('/'):
   ambari_server_resources_url = ambari_server_resources_url[:-1]
 
 # Unlimited key JCE policy params
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-unlimited_key_jce_required = default("/hostLevelParams/unlimited_key_jce_required", False)
+jce_policy_zip = default("/ambariLevelParams/jce_name", None) # None when jdk is already installed by user
+unlimited_key_jce_required = default("/componentLevelParams/unlimited_key_jce_required", False)
 jdk_name = default("/ambariLevelParams/jdk_name", None)
-java_home = default("/hostLevelParams/java_home", None)
+java_home = default("/ambariLevelParams/java_home", None)
 java_exec = "{0}/bin/java".format(java_home) if java_home is not None else "/bin/java"
 
 #users and groups
@@ -179,17 +179,8 @@ hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_p
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hbase_tmp_dir = "/tmp/hbase-hbase"
 #db params
-server_db_name = config['hostLevelParams']['db_name']
-db_driver_filename = config['hostLevelParams']['db_driver_filename']
-oracle_driver_url = config['hostLevelParams']['oracle_jdbc_url']
-mysql_driver_url = config['hostLevelParams']['mysql_jdbc_url']
 oracle_driver_symlink_url = format("{ambari_server_resources_url}/oracle-jdbc-driver.jar")
 mysql_driver_symlink_url = format("{ambari_server_resources_url}/mysql-jdbc-driver.jar")
-
-ambari_db_rca_url = config['hostLevelParams']['ambari_db_rca_url'][0]
-ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver'][0]
-ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username'][0]
-ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password'][0]
 
 if has_namenode and 'rca_enabled' in config['configurations']['hadoop-env']:
   rca_enabled =  config['configurations']['hadoop-env']['rca_enabled']

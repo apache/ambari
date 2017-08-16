@@ -36,8 +36,8 @@ user_to_groups_dict = collections.defaultdict(lambda:[user_group])
 jdk_name = default("/ambariLevelParams/jdk_name", None)
 java_home = config['ambariLevelParams']['java_home']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
-jdk_location = config['hostLevelParams']['jdk_location']
-java_version = expect("/hostLevelParams/java_version", int)
+jdk_location = config['ambariLevelParams']['jdk_location']
+java_version = expect("/ambariLevelParams/java_version", int)
 
 service_name = config["serviceName"]
 component_name = config["role"]

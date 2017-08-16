@@ -252,7 +252,7 @@ hive_user = config['configurations']['hive-env']['hive_user']
 # is it a restart command
 is_restart_command = False
 if 'roleCommand' in config and 'CUSTOM_COMMAND' == config['roleCommand']:
-  if 'custom_command' in config['hostLevelParams'] and 'RESTART' == config['hostLevelParams']['custom_command']:
+  if 'custom_command' in config['commandParams'] and 'RESTART' == config['commandParams']['custom_command']:
     is_restart_command = True
 
 #JDBC driver jar name
