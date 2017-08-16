@@ -26,19 +26,19 @@ class TestPackagesAnalyzer(TestCase):
   @patch.object(OSCheck, "is_ubuntu_family")
   def test_get_installed_package_version_ubuntu(self, is_ubuntu_family_mock, checked_call_mock):
     is_ubuntu_family_mock.return_value = True
-    checked_call_mock.return_value = (0, '1.2.3','')
+    checked_call_mock.return_value = (0, '1.2.3')
     result = packages_analyzer.getInstalledPackageVersion("package1")
     self.assertEqual(result, '1.2.3')
-    self.assertEqual(checked_call_mock.call_args_list, [call("dpkg -s package1 | grep Version | awk '{print $2}'", stderr=-1)])
+    self.assertEqual(checked_call_mock.call_args_list, [call("dpkg -s package1 | grep Version | awk '{print $2}'")])
     
   @patch("resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call")
   @patch.object(OSCheck, "is_ubuntu_family")
   def test_get_installed_package_version_centos_suse(self, is_ubuntu_family_mock, checked_call_mock):
     is_ubuntu_family_mock.return_value = False
-    checked_call_mock.return_value = (0, '0.0.1-SNAPSHOT','')
+    checked_call_mock.return_value = (0, '0.0.1-SNAPSHOT')
     result = packages_analyzer.getInstalledPackageVersion("package1")
     self.assertEqual(result, '0.0.1-SNAPSHOT')
-    self.assertEqual(checked_call_mock.call_args_list, [call("rpm -q --queryformat '%{version}-%{release}' package1 | sed -e 's/\\.el[0-9]//g'", stderr=-1)])
+    self.assertEqual(checked_call_mock.call_args_list, [call("rpm -q --queryformat '%{version}-%{release}' package1 | sed -e 's/\\.el[0-9]//g'")])
 
   @patch("resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call")
   @patch.object(OSCheck, "is_in_family")
