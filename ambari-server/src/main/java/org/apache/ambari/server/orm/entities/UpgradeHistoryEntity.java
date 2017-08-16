@@ -134,7 +134,7 @@ public class UpgradeHistoryEntity {
    *
    * @return the repository that the upgrade is coming from (not {@code null}).
    */
-  public RepositoryVersionEntity getFromReposistoryVersion() {
+  public RepositoryVersionEntity getSourceRepositoryVersion() {
     return fromRepositoryVersion;
   }
 

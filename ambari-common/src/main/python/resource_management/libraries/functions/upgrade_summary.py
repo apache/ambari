@@ -20,6 +20,7 @@ limitations under the License.
 
 from collections import namedtuple
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.constants import Direction
 
 UpgradeSummary = namedtuple("UpgradeSummary", "type direction orchestration is_revert services")
 UpgradeServiceSummary = namedtuple("UpgradeServiceSummary", "service_name source_stack source_version target_stack target_version")
@@ -84,6 +85,28 @@ def get_upgrade_summary():
   return UpgradeSummary(type=upgrade_summary["type"], direction=upgrade_summary["direction"],
     orchestration=upgrade_summary["orchestration"], is_revert = upgrade_summary["isRevert"],
     services = service_summary_dict)
+
+
+def get_downgrade_from_version(service_name = None):
+  """
+  Gets the downgrade-from-version for the specificed service. If there is no downgrade or
+  the service isn't participating in the downgrade, then this will return None
+  :param service_name:  the service, or optionally onmitted to infer it from the command.
+  :return: the downgrade-from-version or None
+  """
+  upgrade_summary = get_upgrade_summary()
+  if upgrade_summary is None:
+    return None
+
+  if Direction.DOWNGRADE.lower() != upgrade_summary.direction.lower():
+    return None
+
+  service_summary = _get_service_summary(service_name)
+  if service_summary is None:
+    return None
+
+  return service_summary.source_version
+
 
 def _get_service_summary(service_name):
   """

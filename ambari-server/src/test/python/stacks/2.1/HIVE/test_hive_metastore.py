@@ -513,10 +513,10 @@ class TestHiveMetastore(RMFTestCase):
   @patch("resource_management.core.shell.call")
   @patch("resource_management.libraries.functions.get_stack_version")
   def test_upgrade_metastore_schema(self, get_stack_version_mock, call_mock, os_path_exists_mock):
-    get_stack_version_mock.return_value = '2.3.0.0-1234'
+    get_stack_version_mock.return_value = '2.4.0.0-1234'
 
     def side_effect(path):
-      if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
+      if path == "/usr/hdp/2.3.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
         return True
       if ".j2" in path:
         return True
@@ -529,19 +529,19 @@ class TestHiveMetastore(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    # must be HDP 2.3+
-    version = '2.3.0.0-1234'
+    # must be HDP 2.4+
+    version = '2.4.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['hostLevelParams']['stack_version'] = "2.4"
     json_content["upgradeSummary"] = {
       "services":{
         "HIVE":{
           "sourceRepositoryId":1,
-          "sourceStackId":"HDP-2.2",
-          "sourceVersion":"2.2.7.0-1234",
+          "sourceStackId":"HDP-2.3",
+          "sourceVersion":"2.3.7.0-1234",
           "targetRepositoryId":2,
-          "targetStackId":"HDP-2.3",
+          "targetStackId":"HDP-2.4",
           "targetVersion":version
         }
       },
@@ -569,7 +569,7 @@ class TestHiveMetastore(RMFTestCase):
      '/usr/bin/hdp-select',
      'set',
      'hive-metastore',
-     '2.3.0.0-1234'),
+     '2.4.0.0-1234'),
         sudo = True)
 
     # we don't care about configure here - the strings are different anyway because this
@@ -587,23 +587,23 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/tmp/mysql-connector-java.jar',
-     '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar'),
+     '/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True)
 
-    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar',
         mode = 0644)
 
     self.assertResourceCalled('Execute', ('cp',
-     '/usr/hdp/2.2.7.0-1234/hive/lib/mysql-connector-java.jar',
-     '/usr/hdp/2.3.0.0-1234/hive/lib'),
+     '/usr/hdp/2.3.7.0-1234/hive/lib/mysql-connector-java.jar',
+     '/usr/hdp/2.4.0.0-1234/hive/lib'),
         path = ['/bin', '/usr/bin/'],
         sudo = True)
 
-    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar',
         mode = 0644)
 
-    self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema',
+    self.assertResourceCalled('Execute', '/usr/hdp/2.4.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema',
          logoutput = True,
          environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-metastore/conf/conf.server'},
          tries = 1,

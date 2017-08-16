@@ -60,8 +60,13 @@ def post_upgrade_deregister():
     hive_server_conf_dir = "/etc/hive/conf.server"
 
   # deregister
-  source_version = params.version_for_stack_feature_checks
-  hive_execute_path = _get_hive_execute_path(source_version)
+  hive_execute_path = params.execute_path
+  # If upgrading, the upgrade-target hive binary should be used to call the --deregister command.
+  # If downgrading, the downgrade-source hive binary should be used to call the --deregister command.
+  # By now <stack-selector-tool> has been called to set 'current' to target-stack
+  if params.downgrade_from_version is not None:
+    hive_execute_path = _get_hive_execute_path(params.downgrade_from_version)
+
   command = format('hive --config {hive_server_conf_dir} --service hiveserver2 --deregister ' + current_hiveserver_version)
   Execute(command, user=params.hive_user, path=hive_execute_path, tries=1 )
 
@@ -100,7 +105,11 @@ def _get_current_hiveserver_version():
   import params
 
   try:
+    # When downgrading the source version should be the version we are downgrading from
     source_version = params.version_for_stack_feature_checks
+    if params.downgrade_from_version is not None:
+      source_version = params.downgrade_from_version
+
     hive_execute_path = _get_hive_execute_path(source_version)
     version_hive_bin = params.hive_bin
     formatted_source_version = format_stack_version(source_version)

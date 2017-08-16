@@ -125,7 +125,7 @@ public class UpgradeContextTest extends EasyMockSupport {
 
     UpgradeHistoryEntity upgradeHistoryEntity = createNiceMock(UpgradeHistoryEntity.class);
     expect(upgradeHistoryEntity.getServiceName()).andReturn(HDFS_SERVICE_NAME).anyTimes();
-    expect(upgradeHistoryEntity.getFromReposistoryVersion()).andReturn(m_sourceRepositoryVersion).anyTimes();
+    expect(upgradeHistoryEntity.getSourceRepositoryVersion()).andReturn(m_sourceRepositoryVersion).anyTimes();
     expect(upgradeHistoryEntity.getTargetRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
     List<UpgradeHistoryEntity> upgradeHistory = Lists.newArrayList(upgradeHistoryEntity);
 

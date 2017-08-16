@@ -570,7 +570,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         continue;
       }
 
-      serviceVersions = new RepositoryVersions(history.getFromReposistoryVersion(),
+      serviceVersions = new RepositoryVersions(history.getSourceRepositoryVersion(),
           history.getTargetRepositoryVersion());
 
       repositoryVersions.put(history.getServiceName(), serviceVersions);
@@ -960,7 +960,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
             comment = "Shouldn't be getting the overall downgrade-to version.")
         UpgradeHistoryEntity lastHistory = lastUpgrade.getHistory().iterator().next();
-        params.put(KeyNames.VERSION, lastHistory.getFromReposistoryVersion().getVersion());
+        params.put(KeyNames.VERSION, lastHistory.getSourceRepositoryVersion().getVersion());
       }
     }
 
@@ -1429,7 +1429,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         // depending on whether this is an upgrade or a downgrade, the history
         // will be different
-        if (upgradeContext.getDirection() == Direction.UPGRADE || upgradeContext.isPatchRevert()) {
+        if (upgradeContext.getDirection() == Direction.UPGRADE) {
           history.setFromRepositoryVersion(component.getDesiredRepositoryVersion());
           history.setTargetRepositoryVersion(upgradeContext.getRepositoryVersion());
         } else {

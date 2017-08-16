@@ -75,6 +75,10 @@ stack_version_formatted = functions.get_stack_version('hive-server2')
 # It cannot be used during the initial Cluser Install because the version is not yet known.
 version = default("/commandParams/version", None)
 
+# When downgrading the 'version' is pointing to the downgrade-target version
+# downgrade_from_version provides the source-version the downgrade is happening from
+downgrade_from_version = upgrade_summary.get_downgrade_from_version("HIVE")
+
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
 

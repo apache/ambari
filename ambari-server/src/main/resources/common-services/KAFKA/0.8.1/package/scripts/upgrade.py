@@ -50,7 +50,7 @@ def run_migration(env, upgrade_type):
   Logger.info("Upgrade type: {0}, direction: {1}".format(str(upgrade_type), params.upgrade_direction))
 
   # If the schema upgrade script exists in the version upgrading to, then attempt to upgrade/downgrade it while still using the present bits.
-  kafka_acls_script = format("{stack_root}/{version_for_stack_feature_checks}/kafka/bin/kafka-acls.sh")
+  kafka_acls_script = format("{stack_root}/{downgrade_from_version}/kafka/bin/kafka-acls.sh")
   command_suffix = ""
   if params.upgrade_direction == Direction.UPGRADE:
     command_suffix = "--upgradeAcls"

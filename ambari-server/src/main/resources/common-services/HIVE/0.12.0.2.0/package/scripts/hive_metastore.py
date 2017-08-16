@@ -25,14 +25,10 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
-from resource_management.libraries.functions.security_commons import get_params_from_filesystem
-from resource_management.libraries.functions.security_commons import validate_security_config_properties
-from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.core.resources.system import File
 from setup_ranger_hive import setup_ranger_hive_metastore_service
 
@@ -180,7 +176,11 @@ class HiveMetastoreDefault(HiveMetastore):
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
-    if not(check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version_for_stack_feature_checks)):
+
+    upgrade_from_version = upgrade_summary.get_source_version("HIVE",
+      default_version = params.version_for_stack_feature_checks)
+
+    if not (check_stack_feature(StackFeature.CONFIG_VERSIONING, upgrade_from_version)):
       schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 
     env_dict = {

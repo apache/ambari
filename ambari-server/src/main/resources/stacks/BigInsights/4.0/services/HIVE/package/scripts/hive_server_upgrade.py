@@ -139,10 +139,9 @@ def post_upgrade_deregister():
   hive_execute_path = params.execute_path
   # If upgrading, the upgrade-target hive binary should be used to call the --deregister command.
   # If downgrading, the downgrade-source hive binary should be used to call the --deregister command.
-  # By now hdp-select has been called to set 'current' to target-stack
-  if "downgrade" == params.upgrade_direction:
-    # hive_bin
-    hive_execute_path = _get_hive_execute_path(params.version_for_stack_feature_checks)
+  # By now <stack-selector-tool> has been called to set 'current' to target-stack
+  if params.downgrade_from_version is not None:
+    hive_execute_path = _get_hive_execute_path(params.downgrade_from_version)
 
   command = format('hive --config {hive_server_conf_dir} --service hiveserver2 --deregister ' + current_hiveserver_version)
   Execute(command, user=params.hive_user, path=hive_execute_path, tries=1 )

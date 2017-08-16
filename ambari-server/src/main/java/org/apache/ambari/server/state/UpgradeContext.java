@@ -302,27 +302,20 @@ public class UpgradeContext {
         throw new AmbariException("Can only revert successful upgrades, not downgrades.");
       }
 
-      Set<RepositoryVersionEntity> priors = new HashSet<>();
       for (UpgradeHistoryEntity history : revertUpgrade.getHistory()) {
-        priors.add(history.getFromReposistoryVersion());
-
         // !!! build all service-specific
         m_services.add(history.getServiceName());
         m_sourceRepositoryMap.put(history.getServiceName(), history.getTargetRepositoryVersion());
-        m_targetRepositoryMap.put(history.getServiceName(), history.getFromReposistoryVersion());
+        m_targetRepositoryMap.put(history.getServiceName(), history.getSourceRepositoryVersion());
       }
 
-      if (priors.size() != 1) {
-        String message = String.format("Upgrade from %s could not be reverted as there is no single "
-            + " repository across services.", revertUpgrade.getRepositoryVersion().getVersion());
-
-        throw new AmbariException(message);
-      }
-
-      m_repositoryVersion = priors.iterator().next();
+      // downgrades (which is what a revert really is) have the same associated
+      // repo, just like regular downgrades
+      m_repositoryVersion = revertUpgrade.getRepositoryVersion();
 
       // !!! the version is used later in validators
       upgradeRequestMap.put(UPGRADE_REPO_VERSION_ID, m_repositoryVersion.getId().toString());
+
       // !!! use the same upgrade pack that was used in the upgrade being reverted
       upgradeRequestMap.put(UPGRADE_PACK, revertUpgrade.getUpgradePackage());
 
@@ -368,7 +361,7 @@ public class UpgradeContext {
           for (UpgradeHistoryEntity history : upgrade.getHistory()) {
             m_services.add(history.getServiceName());
             m_sourceRepositoryMap.put(history.getServiceName(), m_repositoryVersion);
-            m_targetRepositoryMap.put(history.getServiceName(), history.getFromReposistoryVersion());
+            m_targetRepositoryMap.put(history.getServiceName(), history.getSourceRepositoryVersion());
           }
 
           break;
@@ -378,7 +371,6 @@ public class UpgradeContext {
               String.format("%s is not a valid upgrade direction.", m_direction));
       }
     }
-
 
     /**
      * For the unit tests tests, there are multiple upgrade packs for the same
@@ -454,7 +446,7 @@ public class UpgradeContext {
     List<UpgradeHistoryEntity> allHistory = upgradeEntity.getHistory();
     for (UpgradeHistoryEntity history : allHistory) {
       String serviceName = history.getServiceName();
-      RepositoryVersionEntity sourceRepositoryVersion = history.getFromReposistoryVersion();
+      RepositoryVersionEntity sourceRepositoryVersion = history.getSourceRepositoryVersion();
       RepositoryVersionEntity targetRepositoryVersion = history.getTargetRepositoryVersion();
       m_sourceRepositoryMap.put(serviceName, sourceRepositoryVersion);
       m_targetRepositoryMap.put(serviceName, targetRepositoryVersion);

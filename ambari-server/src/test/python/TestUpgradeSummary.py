@@ -49,6 +49,20 @@ class TestUpgradeSummary(TestCase):
     self.assertEqual("2.4.0.0-1234", upgrade_summary.get_source_version("HDFS"))
     self.assertEqual("2.5.9.9-9999", upgrade_summary.get_target_version("HDFS"))
 
+    self.assertIsNone(upgrade_summary.get_downgrade_from_version("HDFS"))
+
+
+  def test_get_downgrade_from_version(self):
+    """
+    Tests that simple downgrade returns the correct version
+    :return:
+    """
+    command_json = TestUpgradeSummary._get_cluster_simple_downgrade_json()
+    Script.config = command_json
+
+    self.assertIsNone(upgrade_summary.get_downgrade_from_version("FOO"))
+    self.assertEqual("2.5.9.9-9999", upgrade_summary.get_downgrade_from_version("HDFS"))
+
 
   @staticmethod
   def _get_cluster_simple_upgrade_json():
@@ -80,6 +94,42 @@ class TestUpgradeSummary(TestCase):
           }
         },
         "direction":"UPGRADE",
+        "type":"rolling_upgrade",
+        "isRevert":False,
+        "orchestration":"STANDARD"
+      }
+    }
+
+  @staticmethod
+  def _get_cluster_simple_downgrade_json():
+    """
+    A restart command during a downgrade.
+    :return:
+    """
+    return {
+      "roleCommand":"ACTIONEXECUTE",
+      "hostLevelParams": {
+        "stack_name": "HDP",
+        "stack_version": "2.4",
+      },
+      "commandParams": {
+        "source_stack": "2.5",
+        "target_stack": "2.4",
+        "upgrade_direction": "downgrade",
+        "version": "2.4.0.0-1234"
+      },
+      "upgradeSummary": {
+        "services":{
+          "HDFS":{
+            "sourceRepositoryId":2,
+            "sourceStackId":"HDP-2.5",
+            "sourceVersion":"2.5.9.9-9999",
+            "targetRepositoryId":1,
+            "targetStackId":"HDP-2.4",
+            "targetVersion":"2.4.0.0-1234"
+          }
+        },
+        "direction":"DOWNGRADE",
         "type":"rolling_upgrade",
         "isRevert":False,
         "orchestration":"STANDARD"

@@ -23,6 +23,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version import compare_versions
@@ -178,9 +179,12 @@ class HiveMetastoreDefault(HiveMetastore):
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
+
+    upgrade_from_version = upgrade_summary.get_source_version("HIVE",
+      default_version = params.version_for_stack_feature_checks)
+
     if params.version_for_stack_feature_checks is not None:
-      version_for_stack_feature_checks = format_stack_version(params.version_for_stack_feature_checks)
-      if compare_versions(version_for_stack_feature_checks, "4.1.0.0") < 0:
+      if compare_versions(upgrade_from_version, "4.1.0.0") < 0:
         schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 
     env_dict = {

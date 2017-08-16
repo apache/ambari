@@ -18,10 +18,11 @@ limitations under the License.
 """
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management import Script
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File, Directory
+from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from kafka import ensure_base_directories
@@ -44,16 +45,19 @@ class KafkaBroker(Script):
     import params
     env.set_params(params)
 
-    # grab the current version of the component
-    pre_upgrade_version = stack_select.get_role_component_current_stack_version()
-
     if params.version and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
       stack_select.select_packages(params.version)
 
-    # This is extremely important since it should only be called if crossing the IOP 4.2 boundary.
-    if pre_upgrade_version and params.version_for_stack_feature_checks and params.upgrade_direction:
-      src_version = format_stack_version(pre_upgrade_version)
-      dst_version = format_stack_version(params.version_for_stack_feature_checks)
+    # This is extremely important since it should only be called if crossing the HDP 2.3.4.0 boundary.
+    if params.version and params.upgrade_direction:
+      src_version = dst_version = None
+      if params.upgrade_direction == Direction.UPGRADE:
+        src_version = upgrade_summary.get_source_version("KAFKA", default_version = params.version)
+        dst_version = upgrade_summary.get_target_version("KAFKA", default_version = params.version)
+      else:
+        # These represent the original values during the UPGRADE direction
+        src_version = upgrade_summary.get_target_version("KAFKA", default_version = params.version)
+        dst_version = upgrade_summary.get_source_version("KAFKA", default_version = params.version)
 
       if compare_versions(src_version, '4.2.0.0') < 0 and compare_versions(dst_version, '4.2.0.0') >= 0:
         # Upgrade from IOP 4.1 to 4.2, Calling the acl migration script requires the configs to be present.

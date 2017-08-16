@@ -19,6 +19,7 @@ limitations under the License.
 """
 from resource_management.libraries.functions import format
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
@@ -49,6 +50,9 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 iop_stack_version = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
+# When downgrading the 'version' is pointing to the downgrade-target version
+# downgrade_from_version provides the source-version the downgrade is happening from
+downgrade_from_version = upgrade_summary.get_downgrade_from_version("KAFKA")
 
 # default kafka parameters
 kafka_home = '/usr/iop/current/kafka-broker'

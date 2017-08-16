@@ -65,7 +65,6 @@ class StackFeature:
   SPARK_LIVY2 = "spark_livy2"
   STORM_KERBEROS = "storm_kerberos"
   STORM_AMS = "storm_ams"
-  CREATE_KAFKA_BROKER_ID = "create_kafka_broker_id"
   KAFKA_LISTENERS = "kafka_listeners"
   KAFKA_KERBEROS = "kafka_kerberos"
   PIG_ON_TEZ = "pig_on_tez"

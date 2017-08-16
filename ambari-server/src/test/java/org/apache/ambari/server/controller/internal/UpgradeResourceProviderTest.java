@@ -1559,7 +1559,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     for( UpgradeHistoryEntity history : histories){
       assertEquals( "ZOOKEEPER", history.getServiceName() );
-      assertEquals(repoVersionEntity2110, history.getFromReposistoryVersion());
+      assertEquals(repoVersionEntity2110, history.getSourceRepositoryVersion());
       assertEquals(repoVersionEntity2200, history.getTargetRepositoryVersion());
     }
 
@@ -1585,7 +1585,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     for (UpgradeHistoryEntity history : histories) {
       assertEquals("ZOOKEEPER", history.getServiceName());
-      assertEquals(repoVersionEntity2200, history.getFromReposistoryVersion());
+      assertEquals(repoVersionEntity2200, history.getSourceRepositoryVersion());
       assertEquals(repoVersionEntity2110, history.getTargetRepositoryVersion());
     }
   }
