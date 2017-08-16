@@ -163,9 +163,6 @@ rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = default('/configurations/yarn-site/yarn.resourcemanager.webapp.https.address', ":8090").split(':')[-1]
-# TODO UPGRADE default, update site during upgrade
-rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
-rm_nodes_exclude_dir = os.path.dirname(rm_nodes_exclude_path)
 
 java64_home = config['hostLevelParams']['java_home']
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
@@ -227,6 +224,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 #exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
+rm_nodes_exclude_dir = os.path.dirname(exclude_file_path)
 
 ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0
@@ -238,6 +236,7 @@ include_file_path = default("/configurations/yarn-site/yarn.resourcemanager.node
 include_hosts = None
 manage_include_files = default("/configurations/yarn-site/manage.include.files", False)
 if include_file_path and manage_include_files:
+  rm_nodes_include_dir = os.path.dirname(include_file_path)
   include_hosts = list(set(nm_hosts) - set(exclude_hosts))
 
 # don't using len(nm_hosts) here, because check can take too much time on large clusters
