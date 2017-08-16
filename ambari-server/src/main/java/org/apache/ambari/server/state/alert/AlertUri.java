@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.List;
+import java.util.Set;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -28,6 +31,11 @@ import com.google.gson.annotations.SerializedName;
  * URI.
  */
 public class AlertUri {
+  /**
+   * The HTTP URI to use.
+   */
+  @SerializedName("acceptable_codes")
+  private Set<Integer> m_acceptableCodes;
 
   /**
    * The HTTP URI to use.
@@ -179,6 +187,14 @@ public class AlertUri {
    */
   public HighAvailability getHighAvailability() {
     return m_highAvailability;
+  }
+
+  public Set<Integer> getAcceptableCodes() {
+    return m_acceptableCodes;
+  }
+
+  public void setAcceptableCodes(Set<Integer> m_acceptableCodes) {
+    this.m_acceptableCodes = m_acceptableCodes;
   }
 
   /**
