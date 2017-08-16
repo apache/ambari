@@ -108,6 +108,7 @@ from ambari_agent.InitializerModule import InitializerModule
 from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 from ambari_agent.CommandStatusReporter import CommandStatusReporter
 from ambari_agent.HostStatusReporter import HostStatusReporter
+from ambari_agent.AlertStatusReporter import AlertStatusReporter
 
 #logging.getLogger('ambari_agent').propagate = False
 
@@ -366,13 +367,20 @@ def run_threads(initializer_module):
   host_status_reporter = HostStatusReporter(initializer_module)
   host_status_reporter.start()
 
+  alert_status_reporter = AlertStatusReporter(initializer_module)
+  alert_status_reporter.start()
+
   initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():
     time.sleep(0.1)
 
-  heartbeat_thread.join()
+  command_status_reporter.join()
   component_status_executor.join()
+  host_status_reporter.join()
+  alert_status_reporter.join()
+  heartbeat_thread.join()
+  initializer_module.action_queue.join()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available

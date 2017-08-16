@@ -51,7 +51,7 @@ class ClusterConfigurationCache(ClusterCache):
     """
     self._cache_lock.acquire()
     try:
-      dictionary = self[cluster_id]
+      dictionary = self[str(cluster_id)]['configurations']
       for layer_key in key.split('/'):
         dictionary = dictionary[layer_key]
 

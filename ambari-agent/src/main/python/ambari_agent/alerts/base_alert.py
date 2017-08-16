@@ -45,6 +45,7 @@ class BaseAlert(object):
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
     self.cluster_name = ''
+    self.cluster_id = None
     self.host_name = ''
     self.config = config
     
@@ -86,9 +87,10 @@ class BaseAlert(object):
     self.cluster_configuration_cache = cluster_configuration_cache
 
 
-  def set_cluster(self, cluster_name, host_name):
+  def set_cluster(self, cluster_name, cluster_id, host_name):
     """ sets cluster information for the alert """
     self.cluster_name = cluster_name
+    self.cluster_id = cluster_id
     self.host_name = host_name
 
 
@@ -216,7 +218,7 @@ class BaseAlert(object):
     resolved_key = key
     for placeholder_key in placeholder_keys:
       value = self.cluster_configuration_cache.get_configuration_value(
-        self.cluster_name, placeholder_key)
+        self.cluster_id, placeholder_key)
 
       # if any of the placeholder keys is missing from the configuration, then
       # return None as per the contract of this function

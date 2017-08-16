@@ -307,7 +307,7 @@ class AlertSchedulerHandler():
         alert = RecoveryAlert(json_definition, source, self.config, self.recovery_manger)
 
       if alert is not None:
-        alert.set_cluster(clusterName, hostName)
+        alert.set_cluster(clusterName, json_definition['clusterId'], hostName)
 
     except Exception, exception:
       logger.exception("[AlertScheduler] Unable to load an invalid alert definition. It will be skipped.")

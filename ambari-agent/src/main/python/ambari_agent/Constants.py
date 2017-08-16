@@ -38,6 +38,7 @@ ALERTS_DEFENITIONS_REQUEST_ENDPOINT = '/agents/alert_defenitions'
 COMPONENT_STATUS_REPORTS_ENDPOINT = '/reports/component_status'
 COMMANDS_STATUS_REPORTS_ENDPOINT = '/reports/commands_status'
 HOST_STATUS_REPORTS_ENDPOINT = '/reports/host_status'
+ALERTS_STATUS_REPORTS_ENDPOINT = '/reports/alerts_status'
 
 HEARTBEAT_ENDPOINT = '/heartbeat'
 REGISTRATION_ENDPOINT = '/register'
