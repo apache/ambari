@@ -572,7 +572,7 @@ CREATE table viewurl(
   url_id BIGINT ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -1101,7 +1101,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('setting_id_seq', 0),
   ('hostcomponentstate_id_seq', 0),
   ('servicecomponentdesiredstate_id_seq', 0),
-  ('servicecomponent_history_id_seq', 0),
+  ('upgrade_history_id_seq', 0),
   ('blueprint_setting_id_seq', 0),
   ('ambari_operation_history_id_seq', 0),
   ('remote_cluster_id_seq', 0),
