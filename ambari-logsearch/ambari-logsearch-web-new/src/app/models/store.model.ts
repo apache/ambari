@@ -35,7 +35,7 @@ export const storeActions = {
   'ARRAY.DELETE.PRIMITIVE': 'DELETE_PRIMITIVE',
   'ARRAY.DELETE.OBJECT': 'DELETE_OBJECT',
   'ARRAY.CLEAR': 'CLEAR',
-  'ARRAY.UPDATE.OBJECT': 'UPDATE_OBJECT',
+  'ARRAY.MAP': 'MAP',
 
   'OBJECT.SET': 'SET'
 };
@@ -106,13 +106,11 @@ export class CollectionModelService extends ModelService {
     });
   }
 
-  updateObjectInstance(key: string, value: any, keyToModify: string, modifier: (value: any) => {}): void {
+  mapCollection(modifier: (item: any) => {}): void {
     this.store.dispatch({
-      type: `${storeActions['ARRAY.UPDATE.OBJECT']}_${this.modelName}`,
+      type: `${storeActions['ARRAY.MAP']}_${this.modelName}`,
       payload: {
-        selector: item => item[key] === value,
-        key: keyToModify,
-        modifier: (currentValue) => modifier(currentValue)
+        modifier: modifier
       }
     });
   }
@@ -151,14 +149,8 @@ export function getCollectionReducer(modelName: string, defaultState: any = []):
         return state.filter(item => item !== action.payload);
       case `${storeActions['ARRAY.CLEAR']}_${modelName}`:
         return [];
-      case `${storeActions['ARRAY.UPDATE.OBJECT']}_${modelName}`:
-        const payload = action.payload;
-        let newState = state.slice(),
-          item = newState.find(payload.selector);
-        if (item) {
-          item[payload.key] = payload.modifier(item[payload.key]);
-        }
-        return newState;
+      case `${storeActions['ARRAY.MAP']}_${modelName}`:
+        return state.map(action.payload.modifier);
       default:
         return state;
     }

@@ -37,13 +37,16 @@ export class mockApiDataService implements InMemoryDbService {
       totalCountKey: 'totalCount',
       filters: {
         clusters: {
-          key: 'cluster'
+          key: 'cluster',
+          isValuesList: true
         },
-        component_name: {
-          key: 'type'
+        mustBe: {
+          key: 'type',
+          isValuesList: true
         },
         level: {
-          key: 'level'
+          key: 'level',
+          isValuesList: true
         },
         iMessage: {
           key: 'log_message',
@@ -110,11 +113,14 @@ export class mockApiDataService implements InMemoryDbService {
           let filteredCollection = collection.filter(item => {
             let result = true;
               query.paramsMap.forEach((value, key) => {
-              const paramValue = decodeURIComponent(value[0]), // TODO implement multiple conditions
-                paramFilter = filterMapItem.filters[key];
+              const paramValue = decodeURIComponent(value[0]),
+                paramFilter = filterMapItem.filters[key],
+                paramValuesList = paramFilter && paramFilter.isValuesList && paramValue ? paramValue.split(',') : [],
+                currentValue = paramFilter && item[paramFilter.key];
               if (paramFilter &&
-                ((paramFilter.filterFunction && !paramFilter.filterFunction(item[paramFilter.key], paramValue)) ||
-                (!paramFilter.filterFunction && item[paramFilter.key] !== paramValue))) {
+                ((paramFilter.filterFunction && !paramFilter.filterFunction(currentValue, paramValue)) ||
+                (!paramFilter.filterFunction && !paramFilter.isValuesList && currentValue !== paramValue) ||
+                (!paramFilter.filterFunction && paramFilter.isValuesList && paramValuesList.indexOf(currentValue) === -1))) {
                 result = false;
               }
             });

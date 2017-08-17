@@ -31,6 +31,9 @@ export class DropdownListComponent {
   @Input()
   defaultAction: Function;
 
+  @Input()
+  isMultipleChoice?: boolean = false;
+
   @Output()
   selectedItemChange: EventEmitter<any> = new EventEmitter();
 

@@ -16,5 +16,13 @@
 -->
 
 <li *ngFor="let item of items">
-  <a href="#" (click)="changeSelectedItem({value: item.value, label: item.label})">{{item.label | translate}}</a>
+  <label class="list-item-label" *ngIf="isMultipleChoice">
+    <input type="checkbox" [attr.id]="item.id || item.value" [attr.checked]="item.isChecked ? 'checked' : null"
+           (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked})">
+    <label [attr.for]="item.id || item.value">{{item.label | translate}}</label>
+  </label>
+  <span class="list-item-label" *ngIf="!isMultipleChoice"
+        (click)="changeSelectedItem({value: item.value, label: item.label})">
+    {{item.label | translate}}
+  </span>
 </li>

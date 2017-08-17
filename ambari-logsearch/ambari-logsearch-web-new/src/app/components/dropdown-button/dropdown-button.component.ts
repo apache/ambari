@@ -73,13 +73,22 @@ export class DropdownButtonComponent implements OnInit {
     this.selectedValue = value;
   }
 
-  updateValue(options: any) {
-    const value = options && options.value;
-    if (this.utils.valueHasChanged(this.value, value)) {
-      this.value = value;
-      this.selectedLabel = options.label;
-      if (this.action) {
-        this.actions[this.action](value, ...this.additionalArgs);
+  updateValue(eventOptions: any): void {
+    const value = eventOptions && eventOptions.value,
+      action = this.action && this.actions[this.action];
+    if (this.isMultipleChoice) {
+      this.value = this.utils.updateMultiSelectValue(this.value, value, eventOptions.isChecked);
+      this.options.find(item => item.value === value).isChecked = eventOptions.isChecked;
+      if (action) {
+        action(this.options.filter(item => item.isChecked).map(item => item.value), ...this.additionalArgs);
+      }
+    } else {
+      if (this.utils.valueHasChanged(this.value, value)) {
+        this.value = value;
+        this.selectedLabel = eventOptions.label;
+        if (action) {
+          action(this.value, ...this.additionalArgs);
+        }
       }
     }
   }

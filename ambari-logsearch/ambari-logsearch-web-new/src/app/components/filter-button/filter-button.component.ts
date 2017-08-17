@@ -56,10 +56,14 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
     this.onChange(newValue);
   }
 
-  updateValue(options: any) {
+  updateValue(options: any): void {
     const value = options && options.value;
-    if (this.utils.valueHasChanged(this.selectedValue, value)) {
-      this.value = value;
+    if (this.isMultipleChoice) {
+      this.value = this.utils.updateMultiSelectValue(this.value, value, options.isChecked);
+    } else {
+      if (this.utils.valueHasChanged(this.selectedValue, value)) {
+        this.value = value;
+      }
     }
   }
 

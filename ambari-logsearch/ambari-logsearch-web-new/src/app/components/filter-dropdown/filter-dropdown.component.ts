@@ -41,6 +41,10 @@ export class FilterDropdownComponent extends DropdownButtonComponent implements 
 
   private onChange: (fn: any) => void;
 
+  get value(): any {
+    return this.selectedValue;
+  }
+
   set value(newValue: any) {
     this.selectedValue = newValue;
     this.onChange(newValue);

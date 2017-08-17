@@ -27,6 +27,7 @@ import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.se
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuditLog} from '@app/models/audit-log.model';
 import {ServiceLog} from '@app/models/service-log.model';
 import {LogField} from '@app/models/log-field.model';
@@ -38,7 +39,7 @@ import {LogField} from '@app/models/log-field.model';
 })
 export class LogsContainerComponent implements OnInit {
 
-  constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private filtering: FilteringService) {
+  constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService, private filtering: FilteringService) {
     this.serviceLogsHistogramStorage.getAll().subscribe(data => {
       let histogramData = {};
       data.forEach(type => {
@@ -59,10 +60,11 @@ export class LogsContainerComponent implements OnInit {
 
   ngOnInit() {
     this.logsTypeMapObject = this.logsTypeMap[this.logsType];
+    this.appState.getParameter(this.logsTypeMapObject.isSetFlag).subscribe(value => this.isLogsSet = value);
     this.availableColumns = this[this.logsTypeMapObject.fieldsModel].getAll().map(fields => {
       const availableFields = fields.filter(field => field.isAvailable),
         availableNames = availableFields.map(field => field.name);
-      if (availableNames.length) {
+      if (availableNames.length && !this.isLogsSet) {
         this.logs = this[this.logsTypeMapObject.logsModel].getAll().map(logs => logs.map(log => {
           let logObject = availableNames.reduce((obj, key) => Object.assign(obj, {
             [key]: log[key]
@@ -72,11 +74,13 @@ export class LogsContainerComponent implements OnInit {
           }
           return logObject;
         }));
+        this.appState.setParameter(this.logsTypeMapObject.isSetFlag, true);
       }
       return availableFields.map(field => {
         return {
           value: field.name,
-          label: field.displayName || field.name
+          label: field.displayName || field.name,
+          isChecked: field.isDisplayed
         };
       });
     });
@@ -92,6 +96,8 @@ export class LogsContainerComponent implements OnInit {
   @Input()
   private logsType: string;
 
+  private isLogsSet: boolean = false;
+
   logsTypeMapObject: any;
 
   totalCount: number = 0;
@@ -100,7 +106,7 @@ export class LogsContainerComponent implements OnInit {
     clusters: ['clusters'],
     text: ['iMessage'],
     timeRange: ['end_time', 'start_time'],
-    components: ['component_name'],
+    components: ['mustBe'],
     levels: ['level'],
     sorting: ['sortType', 'sortBy'],
     pageSize: ['pageSize'],
@@ -114,11 +120,13 @@ export class LogsContainerComponent implements OnInit {
   private readonly logsTypeMap = {
     auditLogs: {
       logsModel: 'auditLogsStorage',
-      fieldsModel: 'auditLogsFieldsStorage'
+      fieldsModel: 'auditLogsFieldsStorage',
+      isSetFlag: 'isAuditLogsSet'
     },
     serviceLogs: {
       logsModel: 'serviceLogsStorage',
-      fieldsModel: 'serviceLogsFieldsStorage'
+      fieldsModel: 'serviceLogsFieldsStorage',
+      isSetFlag: 'isServiceLogsSet'
     }
   };
 

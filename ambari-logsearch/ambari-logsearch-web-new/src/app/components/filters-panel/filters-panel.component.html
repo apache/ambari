@@ -18,7 +18,7 @@
 <form class="col-md-12" [formGroup]="filtersForm">
   <div class="form-inline filter-input-container col-md-8">
     <filter-dropdown [label]="filters.clusters.label" formControlName="clusters" [options]="filters.clusters.options"
-                     [defaultLabel]="filters.clusters.defaultLabel"></filter-dropdown>
+                     [defaultLabel]="filters.clusters.defaultLabel" [isMultipleChoice]="true"></filter-dropdown>
     <filter-text-field [label]="filters.text.label"
                        formControlName="text"></filter-text-field>
     <filter-dropdown formControlName="timeRange" [options]="filters.timeRange.options"
@@ -35,9 +35,9 @@
     </a>
     <filter-button formControlName="components" [label]="filters.components.label"
                    [iconClass]="filters.components.iconClass" [subItems]="filters.components.options"
-                   isRightAlign="true"></filter-button>
+                   [isMultipleChoice]="true" isRightAlign="true"></filter-button>
     <filter-button formControlName="levels" [label]="filters.levels.label" [iconClass]="filters.levels.iconClass"
-                   [subItems]="filters.levels.options" isRightAlign="true"></filter-button>
+                   [subItems]="filters.levels.options" [isMultipleChoice]="true" isRightAlign="true"></filter-button>
     <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
   </div>
 </form>

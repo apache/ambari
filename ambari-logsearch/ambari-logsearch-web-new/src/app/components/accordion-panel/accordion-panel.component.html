@@ -19,7 +19,7 @@
   <div class="panel-body">
     <ng-template [ngTemplateOutlet]="template"></ng-template>
     <div class="accordion-toggle">
-      <span class="fa collapsed toggle-icon" data-toggle="collapse" [attr.data-target]="'#' + toggleId" aria-expanded="false">&nbsp;</span>
+      <span class="fa collapsed toggle-icon" data-toggle="collapse" attr.data-target="#{{toggleId}}" aria-expanded="false">&nbsp;</span>
     </div>
   </div>
 </div>

@@ -29,8 +29,12 @@ export class FilteringService {
 
   constructor(private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private utils: UtilsService) {
     this.appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
-    this.clustersStorage.getAll().subscribe(clusters => this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)]);
-    this.componentsStorage.getAll().subscribe(components => this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)]);
+    this.clustersStorage.getAll().subscribe(clusters => {
+      this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)];
+    });
+    this.componentsStorage.getAll().subscribe(components => {
+      this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)];
+    });
   }
 
   private getListItem(name: string): any {
@@ -49,14 +53,8 @@ export class FilteringService {
   filters = {
     clusters: {
       label: 'filter.clusters',
-      options: [
-        {
-          label: 'filter.all',
-          value: ''
-        }
-      ],
-      defaultValue: '',
-      defaultLabel: 'filter.all'
+      options: [],
+      defaultValue: ''
     },
     text: {
       label: 'filter.message',
@@ -141,22 +139,13 @@ export class FilteringService {
     components: {
       label: 'filter.components',
       iconClass: 'fa fa-cubes',
-      options: [
-        {
-          label: 'filter.all',
-          value: ''
-        }
-      ],
+      options: [],
       defaultValue: ''
     },
     levels: {
       label: 'filter.levels',
       iconClass: 'fa fa-sort-amount-asc',
       options: [
-        {
-          label: 'filter.all',
-          value: ''
-        },
         {
           label: 'levels.fatal',
           value: 'FATAL'

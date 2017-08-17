@@ -20,10 +20,14 @@ export interface AppState {
   isAuthorized: boolean;
   isInitialLoading: boolean;
   isLoginInProgress: boolean;
+  isAuditLogsSet: boolean;
+  isServiceLogsSet: boolean;
 }
 
 export const initialState: AppState = {
   isAuthorized: false,
   isInitialLoading: false,
-  isLoginInProgress: false
+  isLoginInProgress: false,
+  isAuditLogsSet: false,
+  isServiceLogsSet: false
 }

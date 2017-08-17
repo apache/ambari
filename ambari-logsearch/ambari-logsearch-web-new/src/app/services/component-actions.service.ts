@@ -44,8 +44,10 @@ export class ComponentActionsService {
     this.appSettings.setParameter('timeZone', timeZone);
   }
 
-  updateSelectedColumns(columnName: string, model: CollectionModelService): void {
-    model.updateObjectInstance('name', columnName, 'isDisplayed', currentValue => !currentValue);
+  updateSelectedColumns(columnNames: string[], model: CollectionModelService): void {
+    model.mapCollection(item => Object.assign({}, item, {
+      isDisplayed: columnNames.indexOf(item.name) > -1
+    }));
   }
 
 }

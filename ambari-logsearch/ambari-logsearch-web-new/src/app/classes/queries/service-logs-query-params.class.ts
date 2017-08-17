@@ -21,7 +21,7 @@ import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params
 export class ServiceLogsQueryParams extends AuditLogsQueryParams {
   level?: string;
   host_name?: string;
-  component_name?: string;
+  mustBe?: string;
   file_name?: string;
   bundle_id?: string;
   hostList?: string;

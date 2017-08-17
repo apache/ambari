@@ -16,7 +16,22 @@
  * limitations under the License.
  */
 
+@import '../variables';
+
 :host {
   max-height: 500px; // TODO get rid of magic number, base on actual design
   overflow-y: auto;
+
+  .list-item-label {
+    .dropdown-item-default;
+
+    label {
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+
+    input[type=checkbox]:checked + label:after {
+      top: @checkbox-top;
+    }
+  }
 }

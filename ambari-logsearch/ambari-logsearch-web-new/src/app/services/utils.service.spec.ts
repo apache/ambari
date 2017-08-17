@@ -30,4 +30,57 @@ describe('UtilsService', () => {
   it('should create service', inject([UtilsService], (service: UtilsService) => {
     expect(service).toBeTruthy();
   }));
+
+  describe('#updateMultiSelectValue()', () => {
+    const cases = [
+      {
+        currentValue: '',
+        value: 'v0',
+        isChecked: true,
+        result: 'v0',
+        title: 'check; no checked items before'
+      },
+      {
+        currentValue: 'v1,v2',
+        value: 'v3',
+        isChecked: true,
+        result: 'v1,v2,v3',
+        title: 'check'
+      },
+      {
+        currentValue: 'v4,v5',
+        value: 'v4',
+        isChecked: false,
+        result: 'v5',
+        title: 'uncheck'
+      },
+      {
+        currentValue: 'v6,v7',
+        value: 'v6',
+        isChecked: true,
+        result: 'v6,v7',
+        title: 'avoid repeating check action'
+      },
+      {
+        currentValue: 'v8,v9',
+        value: 'v10',
+        isChecked: false,
+        result: 'v8,v9',
+        title: 'avoid repeating uncheck action'
+      },
+      {
+        currentValue: 'v11',
+        value: 'v11',
+        isChecked: false,
+        result: '',
+        title: 'uncheck last item'
+      }
+    ];
+
+    cases.forEach(test => {
+      it(test.title, inject([UtilsService], (service: UtilsService) => {
+        expect(service.updateMultiSelectValue(test.currentValue, test.value, test.isChecked)).toEqual(test.result);
+      }));
+    });
+  });
 });

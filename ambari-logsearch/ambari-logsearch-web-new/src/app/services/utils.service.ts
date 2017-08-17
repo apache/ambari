@@ -33,6 +33,17 @@ export class UtilsService {
     }
   }
 
+  updateMultiSelectValue(currentValue: string, value: string, isChecked: boolean): string {
+    let valuesArray = currentValue ? currentValue.split(',') : [],
+      valuePosition = valuesArray.indexOf(value);
+    if (isChecked && valuePosition === -1) {
+      valuesArray.push(value);
+    } else if (!isChecked && valuePosition > -1) {
+      valuesArray.splice(valuePosition, 1);
+    }
+    return valuesArray.join(',');
+  }
+
   getTimeZoneLabel(timeZone) {
     return `${timeZone} (${moment.tz(timeZone).format('Z')})`;
   }

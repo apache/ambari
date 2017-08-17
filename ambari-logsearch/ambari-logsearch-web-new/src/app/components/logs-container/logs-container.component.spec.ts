@@ -20,6 +20,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
@@ -51,6 +52,7 @@ describe('LogsContainerComponent', () => {
       imports: [
         StoreModule.provideStore({
           appSettings,
+          appState,
           clusters,
           components,
           auditLogs,
@@ -66,6 +68,7 @@ describe('LogsContainerComponent', () => {
           useValue: httpClient
         },
         AppSettingsService,
+        AppStateService,
         ClustersService,
         ComponentsService,
         AuditLogsService,

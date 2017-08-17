@@ -49,6 +49,9 @@ export class MenuButtonComponent {
   subItems?: any[];
 
   @Input()
+  isMultipleChoice?: boolean = false;
+
+  @Input()
   hideCaret?: boolean = false;
 
   @Input()

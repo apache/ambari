@@ -21,5 +21,5 @@
     <span *ngIf="!isMultipleChoice">{{selectedLabel | translate}}</span> <span class="caret"></span>
   </button>
   <ul data-component="dropdown-list" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
-      [items]="options" (selectedItemChange)="updateValue($event)"></ul>
+      [items]="options" [isMultipleChoice]="isMultipleChoice" (selectedItemChange)="updateValue($event)"></ul>
 </div>
