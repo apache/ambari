@@ -165,26 +165,6 @@ public interface DbmsHelper {
    *
    * @param sourceTable              the source table name
    * @param sourceColumnName         the source column name
-   * @param sourceIDColumnName       source key id column which would be used to match right rows for {@code targetTable}
-   * @param targetTable              the destination table name
-   * @param targetColumnName         the destination column name
-   * @param targetIDColumnName       destination key id column name which should match {@code sourceIDColumnName}
-   * @param sourceConditionFieldName source key column name which should match {@code condition}
-   * @param condition                value which should match {@code sourceConditionFieldName}
-   * @return
-   */
-  String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
-                                              String sourceIDColumnName, String targetTable,
-                                              String targetColumnName, String targetIDColumnName,
-                                              String sourceConditionFieldName, String condition);
-
-  /**
-   * Get's the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
-   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
-   * and condition {@code sourceConditionFieldName} = {@code condition}
-   *
-   * @param sourceTable              the source table name
-   * @param sourceColumnName         the source column name
    * @param sourceIDColumnName1      source key id column which would be used to math right rows for {@code targetTable}
    * @param sourceIDColumnName2      source key id column which would be used to math right rows for {@code targetTable}
    * @param sourceIDColumnName3      source key id column which would be used to math right rows for {@code targetTable}

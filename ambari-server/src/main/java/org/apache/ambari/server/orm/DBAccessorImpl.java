@@ -1454,42 +1454,6 @@ public class DBAccessorImpl implements DBAccessor {
    * {@inheritDoc}
    */
   @Override
-  public void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
-                                       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName,
-                                       String sourceConditionFieldName, String condition, Object initialValue) throws SQLException {
-
-    if (tableHasColumn(sourceTableName, sourceIDFieldName) &&
-        tableHasColumn(sourceTableName, sourceColumn.getName()) &&
-        tableHasColumn(sourceTableName, sourceConditionFieldName) &&
-        tableHasColumn(targetTableName, targetIDFieldName)
-        ) {
-
-      final String moveSQL = dbmsHelper.getCopyColumnToAnotherTableStatement(sourceTableName, sourceColumn.getName(),
-          sourceIDFieldName, targetTableName, targetColumn.getName(), targetIDFieldName, sourceConditionFieldName, condition);
-      final boolean isTargetColumnNullable = targetColumn.isNullable();
-
-      targetColumn.setNullable(true);  // setting column nullable by default to move rows with null
-
-      addColumn(targetTableName, targetColumn);
-      executeUpdate(moveSQL, false);
-
-      if (initialValue != null) {
-        String updateSQL = dbmsHelper.getColumnUpdateStatementWhereColumnIsNull(convertObjectName(targetTableName),
-            convertObjectName(targetColumn.getName()), convertObjectName(targetColumn.getName()));
-
-        executePreparedUpdate(updateSQL, initialValue);
-      }
-
-      if (!isTargetColumnNullable) {
-        setColumnNullable(targetTableName, targetColumn.getName(), false);
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName1, String sourceIDFieldName2, String sourceIDFieldName3,
                                        String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName1, String targetIDFieldName2, String targetIDFieldName3,
                                        String sourceConditionFieldName, String condition, Object initialValue) throws SQLException {
@@ -1549,5 +1513,59 @@ public class DBAccessorImpl implements DBAccessor {
   public void clearTableColumn(String tableName, String columnName, Object value) throws SQLException {
     String sqlQuery = String.format("UPDATE %s SET %s = ?", convertObjectName(tableName), convertObjectName(columnName));
     executePreparedUpdate(sqlQuery, value);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<Integer> getIntColumnValues(String tableName, String columnName, String[] conditionColumnNames,
+                                          String[] values, boolean ignoreFailure) throws SQLException {
+
+    if (!tableHasColumn(tableName, columnName)) {
+      throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, columnName));
+    }
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT ").append(columnName).append(" FROM ").append(tableName);
+    if (conditionColumnNames != null && conditionColumnNames.length > 0) {
+      for (String name : conditionColumnNames) {
+        if (!tableHasColumn(tableName, name)) {
+          throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, name));
+        }
+      }
+      if (conditionColumnNames.length != values.length) {
+        throw new IllegalArgumentException("number of columns should be equal to number of values");
+      }
+      builder.append(" WHERE ").append(conditionColumnNames[0]).append("='").append(values[0]).append("'");
+      for (int i = 1; i < conditionColumnNames.length; i++) {
+        builder.append(" AND ").append(conditionColumnNames[i]).append("='").append(values[i]).append("'");
+      }
+    }
+
+    List<Integer> result = new ArrayList<>();
+    Statement statement = getConnection().createStatement();
+    ResultSet resultSet = null;
+    String query = builder.toString();
+    try {
+      resultSet = statement.executeQuery(query);
+      if (resultSet != null) {
+        while (resultSet.next()) {
+          result.add(resultSet.getInt(1));
+        }
+      }
+    } catch (SQLException e) {
+      LOG.warn("Unable to execute query: " + query, e);
+      if (!ignoreFailure) {
+        throw e;
+      }
+    } finally {
+      if (resultSet != null) {
+        resultSet.close();
+      }
+      if (statement != null) {
+        statement.close();
+      }
+    }
+    return result;
   }
 }

@@ -97,17 +97,4 @@ public class H2Helper extends GenericDbmsHelper {
         targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName1, targetIDColumnName2, targetIDColumnName3,
         sourceIDColumnName1, sourceIDColumnName2, sourceIDColumnName3, sourceConditionFieldName, condition);
   }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
-                                                     String sourceIDColumnName, String targetTable,
-                                                     String targetColumnName, String targetIDColumnName,
-                                                     String sourceConditionFieldName, String condition) {
-    return String.format("UPDATE %1$s a SET %3$s = (SELECT b.%4$s FROM %2$s b WHERE b.%6$s = a.%5$s AND b.%7$s = '%8$s'  LIMIT 1)",
-        targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName, sourceIDColumnName, sourceConditionFieldName, condition);
-  }
 }
