@@ -702,9 +702,6 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
     response.operating_systems.forEach(function(supportedOS) {
       if(!existedMap[supportedOS.OperatingSystems.os_type]) {
         supportedOS.isSelected = false;
-        supportedOS.repositories.forEach(function(repo) {
-          repo.Repositories.base_url = '';
-        });
         existedOS.push(supportedOS);
       } else if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
         existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
