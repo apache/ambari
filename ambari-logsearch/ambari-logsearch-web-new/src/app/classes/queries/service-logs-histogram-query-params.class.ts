@@ -63,4 +63,7 @@ export class ServiceLogsHistogramQueryParams extends QueryParams {
   from: string;
   to: string;
   unit?: string;
+  clusters?: string;
+  iMessage?: string;
+  level?: string;
 }

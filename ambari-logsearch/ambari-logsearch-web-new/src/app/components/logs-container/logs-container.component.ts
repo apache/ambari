@@ -114,7 +114,11 @@ export class LogsContainerComponent implements OnInit {
   };
 
   private readonly histogramFilters = {
-    timeRange: ['to', 'from']
+    clusters: ['clusters'],
+    text: ['iMessage'],
+    timeRange: ['to', 'from'],
+    components: ['mustBe'],
+    levels: ['level']
   };
 
   private readonly logsTypeMap = {
