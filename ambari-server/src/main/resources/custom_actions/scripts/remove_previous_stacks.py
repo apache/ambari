@@ -25,8 +25,8 @@ import os
 from resource_management import Script, format, Package, Execute, Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import stack_tools
-from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions.stack_select import get_stack_versions
+from resource_management.core.providers import get_provider
 
 CURRENT_ = "/current/"
 stack_root = Script.get_stack_root()
@@ -43,6 +43,7 @@ class RemovePreviousStacks(Script):
     self.stack_tool_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
 
     versions_to_remove = self.get_lower_versions(version)
+    self.pkg_provider = get_provider("Package")
 
     for low_version in versions_to_remove:
       self.remove_stack_version(structured_output, low_version)
@@ -73,8 +74,8 @@ class RemovePreviousStacks(Script):
   def get_packages_to_remove(self, version):
     packages = []
     formated_version = version.replace('.', '_').replace('-', '_')
-    all_installed_packages = []
-    allInstalledPackages(all_installed_packages)
+    all_installed_packages = self.pkg_provider.all_installed_packages()
+
     all_installed_packages = [package[0] for package in all_installed_packages]
     for package in all_installed_packages:
       if formated_version in package and self.stack_tool_package not in package:
