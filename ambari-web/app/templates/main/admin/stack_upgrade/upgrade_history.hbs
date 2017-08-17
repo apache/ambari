@@ -57,13 +57,12 @@
       <tbody class="accordion" id="versionsAccordion">
         {{#if view.pageContent}}
           {{#each item in view.pageContent}}
-            <tr>
+            <tr data-toggle="collapse"
+                data-parent="#versionsAccordion"
+                {{bindAttr href="item.idHref"}}>
               <td class="name accordion-group">
                 <span class="trim_hostname accordion-heading">
-                  <i class="icon-caret-right accordion-toggle"
-                     data-toggle="collapse"
-                     data-parent="#versionsAccordion"
-                     {{bindAttr href="item.idHref"}}></i>
+                  <i class="icon-caret-right accordion-toggle"></i>
                   <a href="#" class="black"
                      {{action "showUpgradeHistoryRecord" item.stackUpgradeHistoryItem target="view"}}>
                     {{unbound item.directionLabel}}

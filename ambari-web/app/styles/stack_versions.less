@@ -817,11 +817,15 @@
 }
 
 #upgrade-summary-table {
+  & > tbody > tr {
+    cursor: pointer;
+  }
   .wide-column {
     width: 14%;
   }
   .accordion-group {
     border-right: none;
+    border-bottom: none;
   }
   .accordion-inner {
     border-top: none;
