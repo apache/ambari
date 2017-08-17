@@ -148,6 +148,10 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames') : [];
   }.property('content.serviceName', 'App.router.clusterController.isConfigsPropertiesLoaded'),
 
+  configDependentServiceNames: function() {
+    return this.get('dependentServiceNames').concat(App.StackService.find(this.get('content.serviceName')).get('requiredServices'))
+  }.property('dependentServiceNames'),
+
   /**
    * List of service names that could be deleted
    * Common case when there is only current service should be removed
@@ -171,7 +175,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {String[]}
    */
   sitesToLoad: function() {
-    var services = this.get('dependentServiceNames'), configTypeList = [];
+    var services = this.get('configDependentServiceNames'), configTypeList = [];
     if (services.length) {
       configTypeList = App.StackService.find().filter(function(s) {
         return services.contains(s.get('serviceName'));
@@ -225,7 +229,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
         });
 
-        self.get('dependentServiceNames').forEach(function(serviceName) {
+        self.get('configDependentServiceNames').forEach(function(serviceName) {
           var configTypes = App.StackService.find(serviceName).get('configTypeList');
           var configsByService = allConfigs.filter(function (c) {
             return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
