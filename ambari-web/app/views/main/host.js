@@ -50,6 +50,16 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   contentBinding: 'controller.content',
 
+  filteredContent: [],
+
+  filteredContentObserver: function() {
+    Em.run.once(this, this.setFilteredContentOnce);
+  }.observes('content.@each'),
+
+  setFilteredContentOnce: function() {
+    this.set('filteredContent', this.get('content').filterProperty('isFiltered'));
+  },
+
   onRequestErrorHandler: function() {
     this.set('requestError', null);
     this.set('filteringComplete', true);
