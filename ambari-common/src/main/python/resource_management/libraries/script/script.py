@@ -51,13 +51,13 @@ from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
 from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -435,7 +435,9 @@ class Script(object):
     if not Script.stack_version_from_distro_select or '*' in Script.stack_version_from_distro_select:
       # FIXME: this method is not reliable to get stack-selector-version
       # as if there are multiple versions installed with different <stack-selector-tool>, we won't detect the older one (if needed).
-      Script.stack_version_from_distro_select = packages_analyzer.getInstalledPackageVersion(
+      pkg_provider = get_provider("Package")
+
+      Script.stack_version_from_distro_select = pkg_provider.get_installed_package_version(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
 
     return Script.stack_version_from_distro_select
@@ -456,12 +458,19 @@ class Script(object):
         return package
 
 
-  def format_package_name(self, name):
+  def format_package_name(self, name, repo_version=None):
     from resource_management.libraries.functions.default import default
     """
     This function replaces ${stack_version} placeholder with actual version.  If the package
     version is passed from the server, use that as an absolute truth.
+    
+    :param name name of the package
+    :param repo_version actual version of the repo currently installing
     """
+    stack_version_package_formatted = ""
+
+    if not repo_version:
+      repo_version = self.get_stack_version_before_packages_installed()
 
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
 
@@ -497,7 +506,7 @@ class Script(object):
 
     # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we try to specify it.
     if not package_version or '*' in package_version:
-      stack_version_package_formatted = self.get_stack_version_before_packages_installed().replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
+      stack_version_package_formatted = repo_version.replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
 
     package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
 
@@ -703,7 +712,7 @@ class Script(object):
 
     if 'host_sys_prepped' in config['hostLevelParams']:
       # do not install anything on sys-prepped host
-      if config['hostLevelParams']['host_sys_prepped'] == True:
+      if config['hostLevelParams']['host_sys_prepped'] is True:
         Logger.info("Node has all packages pre-installed. Skipping.")
         return
       pass
@@ -711,8 +720,9 @@ class Script(object):
       package_list_str = config['hostLevelParams']['package_list']
       agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
       agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
+      pkg_provider = get_provider("Package")
       try:
-        available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+        available_packages_in_repos = pkg_provider.get_available_packages_in_repos(config['repositoryFile']['repositories'])
       except Exception as err:
         available_packages_in_repos = []
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:

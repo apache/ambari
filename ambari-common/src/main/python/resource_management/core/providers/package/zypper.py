@@ -19,12 +19,13 @@ limitations under the License.
 Ambari Agent
 
 """
-
-from resource_management.core.providers.package import PackageProvider
-from resource_management.core import shell
+from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.core.providers.package import RPMBasedPackageProvider
 from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
-from resource_management.core.utils import suppress_stdout
+
+import re
+import os
 
 INSTALL_CMD = {
   True: ['/usr/bin/zypper', 'install', '--auto-agree-with-licenses', '--no-confirm'],
@@ -40,8 +41,144 @@ REMOVE_WITHOUT_DEPENDENCIES_CMD = ['rpm', '-e', '--nodeps']
 REPO_UPDATE_CMD = ['/usr/bin/zypper', 'clean']
 
 LIST_ACTIVE_REPOS_CMD = ['/usr/bin/zypper', 'repos']
+ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--installed-only", "--details"]
+ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--uninstalled-only", "--details"]
+VERIFY_DEPENDENCY_CMD = ['/usr/bin/zypper', '--quiet', '--non-interactive', 'verify', '--dry-run']
 
-class ZypperProvider(PackageProvider):
+# base command output sample:
+# -----------------------------
+#
+# S | Name   | Type    | Version     | Arch   | Repository
+# --+--------+---------+-------------+--------+---------------
+# i | select | package | 2.6.3.0-60  | noarch | REPO-2.6.3.0-60
+# v | select | package | 2.6.3.0-57  | noarch | REPO-2.6.3.0-57
+# v | select | package | 2.6.1.0-129 | noarch | REPO-2.6.1.0
+# v | select | package | 2.5.6.0-40  | noarch | REPO-2.5
+
+LIST_ALL_SELECT_TOOL_PACKAGES_CMD = "zypper -q search -s {pkg_name}|grep '|' | grep -v 'Repository'| cut -d '|' -f 4"
+SELECT_TOOL_VERSION_PATTERN = re.compile("(\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,2}-*\d*).*")  # xx.xx.xx.xx(-xxxx)
+
+
+class ZypperProvider(RPMBasedPackageProvider):
+
+  def get_available_packages_in_repos(self, repositories):
+    """
+    Gets all (both installed and available) packages that are available at given repositories.
+    :param repositories: from command configs like config['repositoryFile']['repositories']
+    :return: installed and available packages from these repositories
+    """
+
+    available_packages = []
+    available_packages_in_repos = []
+    repo_ids = [repository['repoId'] for repository in repositories]
+
+    for repo in repo_ids:
+      available_packages.extend(self._lookup_packages([AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--details", "--repo", repo]))
+
+    available_packages_in_repos += [package[0] for package in available_packages]
+
+    return available_packages_in_repos
+
+  def get_all_package_versions(self, pkg_name):
+    """
+    :type pkg_name str
+    """
+    command = LIST_ALL_SELECT_TOOL_PACKAGES_CMD.replace("{pkg_name}", pkg_name)
+    result = self._call_with_timeout(command)
+
+    if result["retCode"] == 0:
+      return result["out"].split(os.linesep)
+
+    return None
+
+  def __parse_select_tool_version(self, v):
+    """
+    :type v str
+    """
+    matches = SELECT_TOOL_VERSION_PATTERN.findall(v.strip())
+    return matches[0] if matches else None
+
+  def normalize_select_tool_versions(self, versions):
+    """
+    Function expect output from get_all_package_versions
+
+    :type versions str|list|set
+    :rtype list
+    """
+    if isinstance(versions, str):
+      versions = [versions]
+
+    return [self.__parse_select_tool_version(i) for i in versions]
+
+  def _lookup_packages(self, command):
+    """
+    :type command list[str]
+    """
+    packages = []
+    skip_index = None
+
+    result = self._call_with_timeout(command)
+
+    if result and 0 == result['retCode']:
+      lines = result['out'].strip().split('\n')
+      lines = [line.strip() for line in lines]
+      for index in range(len(lines)):
+        if "--+--" in lines[index]:
+          skip_index = index + 1
+          break
+
+      if skip_index:
+        for line in lines[skip_index:]:
+          items = line.strip(' \t\n\r').split('|')
+          packages.append([items[1].strip(), items[3].strip(), items[5].strip()])
+
+    return packages
+
+  def all_installed_packages(self, from_unknown_repo=False):
+    """
+    Return all installed packages in the system except packages in REPO_URL_EXCLUDE
+
+    :arg from_unknown_repo return packages from unknown repos
+    :type from_unknown_repo bool
+
+    :return result_type formatted list of packages
+    """
+    #  ToDo: move to iterative package lookup (check apt provider for details)
+    return self._lookup_packages(ALL_INSTALLED_PACKAGES_CMD)
+
+  def all_available_packages(self, result_type=list, group_by_index=-1):
+    """
+    Return all available packages in the system except packages in REPO_URL_EXCLUDE
+
+    :arg result_type Could be list or dict, defines type of returning value
+    :arg group_by_index index of element in the __packages_reader result, which would be used as key
+    :return result_type formatted list of packages, including installed and available in repos
+
+    :type result_type type
+    :type group_by_index int
+    :rtype list|dict
+    """
+    #  ToDo: move to iterative package lookup (check apt provider for details)
+    return self._lookup_packages(ALL_AVAILABLE_PACKAGES_CMD)
+
+  def verify_dependencies(self):
+    """
+    Verify that we have no dependency issues in package manager. Dependency issues could appear because of aborted or terminated
+    package installation process or invalid packages state after manual modification of packages list on the host
+
+    :return True if no dependency issues found, False if dependency issue present
+    :rtype bool
+    """
+    code, out = self.checked_call(VERIFY_DEPENDENCY_CMD, sudo=True)
+    pattern = re.compile("\d+ new package(s)? to install")
+
+    if code or (out and pattern.search(out)):
+      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (VERIFY_DEPENDENCY_CMD, code, out))
+      Logger.error(err_msg)
+      return False
+
+    return True
+
   def install_package(self, name, use_repos=[], skip_repos=[], is_upgrade=False):
     if is_upgrade or use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
