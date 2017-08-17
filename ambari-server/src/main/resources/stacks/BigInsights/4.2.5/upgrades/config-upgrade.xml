@@ -156,6 +156,10 @@
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="bind_anonymous" />
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_solr_plugin_enabled_property">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="ranger-solr-plugin-enabled" if-type="ranger-env" if-key="ranger-solr-plugin-enabled" if-key-state="present" />
+          </definition>
           <definition xsi:type="configure" id="admin_log4j_parameterize" summary="Parameterizing Ranger Log4J Properties">
             <type>admin-log4j</type>
             <set key="ranger_xa_log_maxfilesize" value="256"/>
