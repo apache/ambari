@@ -563,6 +563,10 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs"/>
       </execute-stage>
 
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm AutoCreds">
+        <task xsi:type="configure" id="storm_nimbus_autocred_config"/>
+      </execute-stage>
+
       <execute-stage service="STORM" component="NIMBUS" title="Apply security changes for Storm">
         <!-- Add nimbus.impersonation acls . -->
         <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />

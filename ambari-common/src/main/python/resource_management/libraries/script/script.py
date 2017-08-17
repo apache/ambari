@@ -453,6 +453,7 @@ class Script(object):
       return name
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
     package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter))
+    package_regex = "^{0}$".format(package_regex)
     for package in available_packages_in_repos:
       if re.match(package_regex, package):
         return package

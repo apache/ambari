@@ -595,7 +595,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipSurefireTests}</skip>
-          <argLine>-Xmx1024m -XX:MaxPermSize=512m -Xms512m</argLine>
+          <argLine>${surefire.argLine}</argLine>
 
           <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
           <groups>${testcase.groups}</groups>

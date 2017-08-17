@@ -230,7 +230,7 @@ CREATE TABLE host_version (
   CONSTRAINT PK_host_version PRIMARY KEY (id),
   CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id, state));
+  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id));
 
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
@@ -275,6 +275,7 @@ CREATE TABLE groups (
   principal_id BIGINT NOT NULL,
   group_name VARCHAR(255) NOT NULL,
   ldap_group INTEGER NOT NULL DEFAULT 0,
+  group_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
   CONSTRAINT PK_groups PRIMARY KEY (group_id),
   UNIQUE (ldap_group, group_name),
   CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id));
@@ -552,7 +553,7 @@ CREATE table viewurl(
   url_id BIGINT ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -809,6 +810,7 @@ CREATE TABLE upgrade (
   cluster_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id BIGINT NOT NULL,

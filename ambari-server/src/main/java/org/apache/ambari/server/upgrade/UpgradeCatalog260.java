@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,64 +35,64 @@ import com.google.inject.Injector;
  */
 public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
 
-  private static final String CLUSTER_CONFIG_MAPPING_TABLE = "clusterconfigmapping";
-  private static final String CLUSTER_VERSION_TABLE = "cluster_version";
-  private static final String CLUSTER_ID_COLUMN = "cluster_id";
-  private static final String STATE_COLUMN = "state";
-  private static final String CREATE_TIMESTAMP_COLUMN = "create_timestamp";
-  private static final String VERSION_TAG_COLUMN = "version_tag";
-  private static final String TYPE_NAME_COLUMN = "type_name";
+  public static final String CLUSTER_CONFIG_MAPPING_TABLE = "clusterconfigmapping";
+  public static final String CLUSTER_VERSION_TABLE = "cluster_version";
+  public static final String CLUSTER_ID_COLUMN = "cluster_id";
+  public static final String STATE_COLUMN = "state";
+  public static final String CREATE_TIMESTAMP_COLUMN = "create_timestamp";
+  public static final String VERSION_TAG_COLUMN = "version_tag";
+  public static final String TYPE_NAME_COLUMN = "type_name";
 
-  private static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
-  private static final String SELECTED_COLUMN = "selected";
-  private static final String SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
+  public static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
+  public static final String SELECTED_COLUMN = "selected";
+  public static final String SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
 
-  private static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
-  private static final String DESIRED_STACK_ID_COLUMN = "desired_stack_id";
-  private static final String DESIRED_VERSION_COLUMN = "desired_version";
-  private static final String DESIRED_REPO_VERSION_ID_COLUMN = "desired_repo_version_id";
-  private static final String REPO_STATE_COLUMN = "repo_state";
-  private static final String FK_SCDS_DESIRED_STACK_ID = "FK_scds_desired_stack_id";
-  private static final String FK_SCDS_DESIRED_REPO_ID = "FK_scds_desired_repo_id";
+  public static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
+  public static final String DESIRED_STACK_ID_COLUMN = "desired_stack_id";
+  public static final String DESIRED_VERSION_COLUMN = "desired_version";
+  public static final String DESIRED_REPO_VERSION_ID_COLUMN = "desired_repo_version_id";
+  public static final String REPO_STATE_COLUMN = "repo_state";
+  public static final String FK_SCDS_DESIRED_STACK_ID = "FK_scds_desired_stack_id";
+  public static final String FK_SCDS_DESIRED_REPO_ID = "FK_scds_desired_repo_id";
 
-  private static final String REPO_VERSION_TABLE = "repo_version";
-  private static final String REPO_VERSION_ID_COLUMN = "repo_version_id";
+  public static final String REPO_VERSION_TABLE = "repo_version";
+  public static final String REPO_VERSION_ID_COLUMN = "repo_version_id";
 
-  private static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
-  private static final String FK_HCDS_DESIRED_STACK_ID = "FK_hcds_desired_stack_id";
+  public static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
+  public static final String FK_HCDS_DESIRED_STACK_ID = "FK_hcds_desired_stack_id";
 
-  private static final String HOST_COMPONENT_STATE_TABLE = "hostcomponentstate";
-  private static final String CURRENT_STACK_ID_COLUMN = "current_stack_id";
-  private static final String FK_HCS_CURRENT_STACK_ID = "FK_hcs_current_stack_id";
+  public static final String HOST_COMPONENT_STATE_TABLE = "hostcomponentstate";
+  public static final String CURRENT_STACK_ID_COLUMN = "current_stack_id";
+  public static final String FK_HCS_CURRENT_STACK_ID = "FK_hcs_current_stack_id";
 
-  private static final String HOST_VERSION_TABLE = "host_version";
-  private static final String UQ_HOST_REPO = "UQ_host_repo";
-  private static final String HOST_ID_COLUMN = "host_id";
+  public static final String HOST_VERSION_TABLE = "host_version";
+  public static final String UQ_HOST_REPO = "UQ_host_repo";
+  public static final String HOST_ID_COLUMN = "host_id";
 
-  private static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
-  private static final String FK_SDS_DESIRED_STACK_ID = "FK_sds_desired_stack_id";
-  private static final String FK_REPO_VERSION_ID = "FK_repo_version_id";
+  public static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
+  public static final String FK_SDS_DESIRED_STACK_ID = "FK_sds_desired_stack_id";
+  public static final String FK_REPO_VERSION_ID = "FK_repo_version_id";
 
-  private static final String UPGRADE_TABLE = "upgrade";
-  private static final String FROM_REPO_VERSION_ID_COLUMN = "from_repo_version_id";
-  private static final String TO_REPO_VERSION_ID_COLUMN = "to_repo_version_id";
-  private static final String ORCHESTRATION_COLUMN = "orchestration";
-  private static final String FK_UPGRADE_FROM_REPO_ID = "FK_upgrade_from_repo_id";
-  private static final String FK_UPGRADE_TO_REPO_ID = "FK_upgrade_to_repo_id";
-  private static final String FK_UPGRADE_REPO_VERSION_ID = "FK_upgrade_repo_version_id";
+  public static final String UPGRADE_TABLE = "upgrade";
+  public static final String FROM_REPO_VERSION_ID_COLUMN = "from_repo_version_id";
+  public static final String TO_REPO_VERSION_ID_COLUMN = "to_repo_version_id";
+  public static final String ORCHESTRATION_COLUMN = "orchestration";
+  public static final String FK_UPGRADE_FROM_REPO_ID = "FK_upgrade_from_repo_id";
+  public static final String FK_UPGRADE_TO_REPO_ID = "FK_upgrade_to_repo_id";
+  public static final String FK_UPGRADE_REPO_VERSION_ID = "FK_upgrade_repo_version_id";
 
-  private static final String SERVICE_COMPONENT_HISTORY_TABLE = "servicecomponent_history";
-  private static final String UPGRADE_HISTORY_TABLE = "upgrade_history";
-  private static final String ID_COLUMN = "id";
-  private static final String UPGRADE_ID_COLUMN = "upgrade_id";
-  private static final String SERVICE_NAME_COLUMN = "service_name";
-  private static final String COMPONENT_NAME_COLUMN = "component_name";
-  private static final String TARGET_REPO_VERSION_ID_COLUMN = "target_repo_version_id";
-  private static final String PK_UPGRADE_HIST = "PK_upgrade_hist";
-  private static final String FK_UPGRADE_HIST_UPGRADE_ID = "FK_upgrade_hist_upgrade_id";
-  private static final String FK_UPGRADE_HIST_FROM_REPO = "FK_upgrade_hist_from_repo";
-  private static final String FK_UPGRADE_HIST_TARGET_REPO = "FK_upgrade_hist_target_repo";
-  private static final String UQ_UPGRADE_HIST = "UQ_upgrade_hist";
+  public static final String SERVICE_COMPONENT_HISTORY_TABLE = "servicecomponent_history";
+  public static final String UPGRADE_HISTORY_TABLE = "upgrade_history";
+  public static final String ID_COLUMN = "id";
+  public static final String UPGRADE_ID_COLUMN = "upgrade_id";
+  public static final String SERVICE_NAME_COLUMN = "service_name";
+  public static final String COMPONENT_NAME_COLUMN = "component_name";
+  public static final String TARGET_REPO_VERSION_ID_COLUMN = "target_repo_version_id";
+  public static final String PK_UPGRADE_HIST = "PK_upgrade_hist";
+  public static final String FK_UPGRADE_HIST_UPGRADE_ID = "FK_upgrade_hist_upgrade_id";
+  public static final String FK_UPGRADE_HIST_FROM_REPO = "FK_upgrade_hist_from_repo";
+  public static final String FK_UPGRADE_HIST_TARGET_REPO = "FK_upgrade_hist_target_repo";
+  public static final String UQ_UPGRADE_HIST = "UQ_upgrade_hist";
 
   /**
    * Logger.
@@ -134,16 +135,15 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    updateServiceComponentDesiredStateTable();
-    updateServiceDesiredStateTable();
+    int currentVersionID = getCurrentVersionID();
+    updateServiceComponentDesiredStateTable(currentVersionID);
+    updateServiceDesiredStateTable(currentVersionID);
     addSelectedCollumsToClusterconfigTable();
     updateHostComponentDesiredStateTable();
     updateHostComponentStateTable();
     updateUpgradeTable();
     createUpgradeHistoryTable();
     dropStaleTables();
-
-
   }
 
   private void createUpgradeHistoryTable() throws SQLException {
@@ -204,12 +204,12 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    *
    * @throws java.sql.SQLException
    */
-  private void updateServiceDesiredStateTable() throws SQLException {
-    DBAccessor.DBColumnInfo desiredRepoVersionIDColumnInfo = new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, null, false);
-    DBAccessor.DBColumnInfo RepoVersionIDColumnInfo = new DBAccessor.DBColumnInfo(REPO_VERSION_ID_COLUMN, Long.class, null, null, false);
+  private void updateServiceDesiredStateTable(int currentRepoID) throws SQLException {
 
-
-    dbAccessor.copyColumnToAnotherTable(CLUSTER_VERSION_TABLE, RepoVersionIDColumnInfo, CLUSTER_ID_COLUMN, SERVICE_DESIRED_STATE_TABLE, desiredRepoVersionIDColumnInfo, CLUSTER_ID_COLUMN, STATE_COLUMN, CURRENT, null);
+    dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
+        new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, currentRepoID, false));
+    dbAccessor.alterColumn(SERVICE_DESIRED_STATE_TABLE,
+        new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, null, false));
 
     dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, FK_REPO_VERSION_ID, DESIRED_REPO_VERSION_ID_COLUMN, REPO_VERSION_TABLE, REPO_VERSION_ID_COLUMN, false);
     dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, FK_SDS_DESIRED_STACK_ID);
@@ -237,12 +237,12 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     DBAccessor.DBColumnInfo selectedColumnInfo = new DBAccessor.DBColumnInfo(SELECTED_COLUMN, Short.class, null, 0, false);
     DBAccessor.DBColumnInfo selectedmappingColumnInfo = new DBAccessor.DBColumnInfo(SELECTED_COLUMN, Integer.class, null, 0, false);
     DBAccessor.DBColumnInfo selectedTimestampColumnInfo = new DBAccessor.DBColumnInfo(SELECTED_TIMESTAMP_COLUMN, Long.class, null, 0, false);
-    DBAccessor.DBColumnInfo CreateTimestampColumnInfo = new DBAccessor.DBColumnInfo(CREATE_TIMESTAMP_COLUMN, Long.class, null, null, false);
+    DBAccessor.DBColumnInfo createTimestampColumnInfo = new DBAccessor.DBColumnInfo(CREATE_TIMESTAMP_COLUMN, Long.class, null, null, false);
     dbAccessor.copyColumnToAnotherTable(CLUSTER_CONFIG_MAPPING_TABLE, selectedmappingColumnInfo,
         CLUSTER_ID_COLUMN, TYPE_NAME_COLUMN, VERSION_TAG_COLUMN, CLUSTER_CONFIG_TABLE, selectedColumnInfo,
         CLUSTER_ID_COLUMN, TYPE_NAME_COLUMN, VERSION_TAG_COLUMN, SELECTED_COLUMN, SELECTED, 0);
 
-    dbAccessor.copyColumnToAnotherTable(CLUSTER_CONFIG_MAPPING_TABLE, CreateTimestampColumnInfo,
+    dbAccessor.copyColumnToAnotherTable(CLUSTER_CONFIG_MAPPING_TABLE, createTimestampColumnInfo,
         CLUSTER_ID_COLUMN, TYPE_NAME_COLUMN, VERSION_TAG_COLUMN, CLUSTER_CONFIG_TABLE, selectedTimestampColumnInfo,
         CLUSTER_ID_COLUMN, TYPE_NAME_COLUMN, VERSION_TAG_COLUMN, SELECTED_COLUMN, SELECTED, 0);
   }
@@ -257,12 +257,11 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    *
    * @throws java.sql.SQLException
    */
-  private void updateServiceComponentDesiredStateTable() throws SQLException {
-    DBAccessor.DBColumnInfo desiredRepoVersionIDColumnInfo = new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, null, false);
-    DBAccessor.DBColumnInfo RepoVersionIDColumnInfo = new DBAccessor.DBColumnInfo(REPO_VERSION_ID_COLUMN, Long.class, null, null, false);
-
-
-    dbAccessor.copyColumnToAnotherTable(CLUSTER_VERSION_TABLE, RepoVersionIDColumnInfo, CLUSTER_ID_COLUMN, SERVICE_COMPONENT_DESIRED_STATE_TABLE, desiredRepoVersionIDColumnInfo, CLUSTER_ID_COLUMN, STATE_COLUMN, CURRENT, null);
+  private void updateServiceComponentDesiredStateTable(int currentRepoID) throws SQLException {
+    dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
+        new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, currentRepoID, false));
+    dbAccessor.alterColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
+        new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, null, false));
 
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
         new DBAccessor.DBColumnInfo(REPO_STATE_COLUMN, String.class, 255, CURRENT, false));
@@ -314,5 +313,25 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
+  }
+
+  /**
+   * get {@value #REPO_VERSION_ID_COLUMN} value from {@value #CLUSTER_VERSION_TABLE}
+   * where {@value #STATE_COLUMN} = {@value #CURRENT}
+   * and validate it
+   *
+   * @return current version ID
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  public int getCurrentVersionID() throws AmbariException, SQLException {
+    List<Integer> currentVersionList = dbAccessor.getIntColumnValues(CLUSTER_VERSION_TABLE, REPO_VERSION_ID_COLUMN,
+        new String[]{STATE_COLUMN}, new String[]{CURRENT}, false);
+    if (currentVersionList.isEmpty()) {
+      throw new AmbariException("Unable to find any CURRENT repositories.");
+    } else if (currentVersionList.size() != 1) {
+      throw new AmbariException("The following repositories were found to be CURRENT: ".concat(StringUtils.join(currentVersionList, ",")));
+    }
+    return currentVersionList.get(0);
   }
 }

@@ -548,7 +548,7 @@ CREATE table viewurl(
   url_id NUMERIC ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -804,6 +804,7 @@ CREATE TABLE upgrade (
   cluster_id NUMERIC(19) NOT NULL,
   request_id NUMERIC(19) NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id NUMERIC(19) NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,

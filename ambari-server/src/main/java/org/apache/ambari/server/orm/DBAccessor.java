@@ -367,6 +367,21 @@ public interface DBAccessor {
   void executePreparedUpdate(String query, boolean ignoreFailure, Object...arguments) throws SQLException;
 
   /**
+   * Execute select {@code columnName} from {@code tableName}
+   * where {@code columnNames} values = {@code values}
+   *
+   * @param tableName
+   * @param columnName
+   * @param columnNames
+   * @param values
+   * @param ignoreFailure
+   * @return
+   * @throws SQLException
+   */
+  List<Integer> getIntColumnValues(String tableName, String columnName, String[] columnNames,
+                                   String[] values, boolean ignoreFailure) throws SQLException;
+
+  /**
    * Drop table from schema
    * @param tableName
    * @throws SQLException
@@ -689,27 +704,6 @@ public interface DBAccessor {
    */
   void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
        String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, Object initialValue) throws SQLException;
-
-  /**
-   * Copy column from {@code targetTable} by matching
-   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
-   * and condition {@code sourceConditionFieldName} = {@code condition}
-   *
-   * @param sourceTableName          the source table name
-   * @param sourceColumn             the source column name
-   * @param sourceIDFieldName        the source id key filed name matched with {@code targetIDFieldName}
-   * @param targetTableName          the target table name
-   * @param targetColumn             the target column name
-   * @param targetIDFieldName        the target id key name matched with {@code sourceIDFieldName}
-   * @param sourceConditionFieldName source key column name which should match {@code condition}
-   * @param condition                value which should match {@code sourceConditionFieldName}
-   * @param initialValue             initial value for null-contained cells
-   * @throws SQLException
-   */
-  void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
-                                String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName,
-                                String sourceConditionFieldName, String condition, Object initialValue) throws SQLException;
-
 
   /**
    * Copy column from {@code targetTable} by matching

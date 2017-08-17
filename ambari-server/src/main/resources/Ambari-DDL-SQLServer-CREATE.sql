@@ -202,10 +202,9 @@ CREATE TABLE hostcomponentdesiredstate (
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required BIT NOT NULL DEFAULT 0,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY CLUSTERED (id),
-  CONSTRAINT UQ_hcdesiredstate_name UNIQUE NONCLUSTERED (component_name, service_name, host_id, cluster_id),
-  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id),
-  CONSTRAINT hstcmponentdesiredstatehstid FOREIGN KEY (host_id) REFERENCES hosts (host_id));
-
+  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
+  CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
@@ -558,7 +557,7 @@ CREATE table viewurl(
   url_id BIGINT ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY CLUSTERED (url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY CLUSTERED (url_id)
 );
 
 
@@ -826,6 +825,7 @@ CREATE TABLE upgrade (
   cluster_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
   repo_version_id BIGINT NOT NULL,

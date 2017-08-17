@@ -41,10 +41,91 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "HIVE": self.recommendHIVEConfigurations,
         "HBASE": self.recommendHBASEConfigurations,
         "YARN": self.recommendYARNConfigurations,
-        "KAFKA": self.recommendKAFKAConfigurations
+        "KAFKA": self.recommendKAFKAConfigurations,
+        "BEACON": self.recommendBEACONConfigurations,
+        "STORM": self.recommendSTORMConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
+
+  def recommendSTORMConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    In HDF-2.6.1 we introduced a new way of doing Auto Credentials with services such as
+    HDFS, HIVE, HBASE. This method will update the required configs for autocreds if the users installs
+    STREAMLINE service.
+    """
+    super(HDP26StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
+    storm_site = self.getServicesSiteProperties(services, "storm-site")
+    storm_env = self.getServicesSiteProperties(services, "storm-env")
+    putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+    putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
+    security_enabled = self.isSecurityEnabled(services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if storm_env and storm_site and security_enabled and 'STREAMLINE' in servicesList:
+      storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"] if "nimbus.impersonation.acl" in storm_site else None
+      streamline_env = self.getServicesSiteProperties(services, "streamline-env")
+      _streamline_principal_name = streamline_env['streamline_principal_name'] if 'streamline_principal_name' in streamline_env else None
+      if _streamline_principal_name is not None and storm_nimbus_impersonation_acl is not None:
+        streamline_bare_principal = get_bare_principal(_streamline_principal_name)
+        storm_nimbus_impersonation_acl.replace('{{streamline_bare_principal}}', streamline_bare_principal)
+        putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+      
+      storm_nimbus_autocred_plugin_classes = storm_site["nimbus.autocredential.plugins.classes"] if "nimbus.autocredential.plugins.classes" in storm_site else None
+      if storm_nimbus_autocred_plugin_classes is not None:
+        new_storm_nimbus_autocred_plugin_classes = ['org.apache.storm.hdfs.security.AutoHDFS',
+                                                    'org.apache.storm.hbase.security.AutoHBase',
+                                                    'org.apache.storm.hive.security.AutoHive']
+        new_conf = DefaultStackAdvisor.appendToYamlString(storm_nimbus_autocred_plugin_classes,
+                                      new_storm_nimbus_autocred_plugin_classes)
+
+        putStormSiteProperty("nimbus.autocredential.plugins.classes", new_conf)
+      else:
+        putStormSiteProperty("nimbus.autocredential.plugins.classes", "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']")
+
+
+      storm_nimbus_credential_renewer_classes = storm_site["nimbus.credential.renewers.classes"] if "nimbus.credential.renewers.classes" in storm_site else None
+      if storm_nimbus_credential_renewer_classes is not None:
+        new_storm_nimbus_credential_renewer_classes_array = ['org.apache.storm.hdfs.security.AutoHDFS',
+                                                             'org.apache.storm.hbase.security.AutoHBase',
+                                                             'org.apache.storm.hive.security.AutoHive']
+        new_conf = DefaultStackAdvisor.appendToYamlString(storm_nimbus_credential_renewer_classes,
+                                      new_storm_nimbus_credential_renewer_classes_array)
+        putStormSiteProperty("nimbus.autocredential.plugins.classes", new_conf)
+      else:
+        putStormSiteProperty("nimbus.credential.renewers.classes", "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']")
+      putStormSiteProperty("nimbus.credential.renewers.freq.secs", "82800")
+    pass  
+      
+  def recommendBEACONConfigurations(self, configurations, clusterData, services, hosts):
+    beaconEnvProperties = self.getSiteProperties(services['configurations'], 'beacon-env')
+    putbeaconEnvProperty = self.putProperty(configurations, "beacon-env", services)
+
+    # database URL and driver class recommendations
+    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_driver') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
+      putbeaconEnvProperty('beacon_store_driver', self.getDBDriver(beaconEnvProperties['beacon_database']))
+    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_db_name', 'beacon_store_url') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
+      beaconServerHost = self.getHostWithComponent('BEACON', 'BEACON_SERVER', services, hosts)
+      beaconDBConnectionURL = beaconEnvProperties['beacon_store_url']
+      protocol = self.getProtocol(beaconEnvProperties['beacon_database'])
+      oldSchemaName = getOldValue(self, services, "beacon-env", "beacon_store_db_name")
+      oldDBType = getOldValue(self, services, "beacon-env", "beacon_database")
+      # under these if constructions we are checking if beacon server hostname available,
+      # if it's default db connection url with "localhost" or if schema name was changed or if db type was changed (only for db type change from default mysql to existing mysql)
+      # or if protocol according to current db type differs with protocol in db connection url(other db types changes)
+      if beaconServerHost is not None:
+        if (beaconDBConnectionURL and "//localhost" in beaconDBConnectionURL) or oldSchemaName or oldDBType or (protocol and beaconDBConnectionURL and not beaconDBConnectionURL.startswith(protocol)):
+          dbConnection = self.getDBConnectionStringBeacon(beaconEnvProperties['beacon_database']).format(beaconServerHost['Hosts']['host_name'], beaconEnvProperties['beacon_store_db_name'])
+          putbeaconEnvProperty('beacon_store_url', dbConnection)
+
+  def getDBConnectionStringBeacon(self, databaseType):
+    driverDict = {
+      'NEW DERBY DATABASE': 'jdbc:derby:${{beacon.data.dir}}/${{beacon.store.db.name}}-db;create=true',
+      'EXISTING MYSQL DATABASE': 'jdbc:mysql://{0}/{1}',
+      'EXISTING MYSQL / MARIADB DATABASE': 'jdbc:mysql://{0}/{1}',
+      'EXISTING ORACLE DATABASE': 'jdbc:oracle:thin:@//{0}:1521/{1}'
+    }
+    return driverDict.get(databaseType.upper())
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendAtlasConfigurations(configurations, clusterData, services, hosts)
@@ -401,9 +482,9 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
          propertyValue = "https://"+webapp_address+"/ws/v1/applicationhistory"
       Logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
       if services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"] != propertyValue:
-         validationItems.append(
+         validationItems = [
               {"config-name": "yarn.log.server.web-service.url",
-               "item": self.getWarnItem("Value should be %s" % propertyValue)})
+               "item": self.getWarnItem("Value should be %s" % propertyValue)}]
       return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateDruidHistoricalConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
