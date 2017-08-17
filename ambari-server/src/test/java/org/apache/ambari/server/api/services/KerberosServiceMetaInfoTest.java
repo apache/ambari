@@ -191,7 +191,7 @@ public class KerberosServiceMetaInfoTest {
   public void test220Dependencies() throws Exception {
     testDependencies(new HashMap<String, Map<String, DependencyInfo>>() {
       {
-        put("KERBEROS_CLIENT", new HashMap<String, DependencyInfo>());
+        put("KERBEROS_CLIENT", new HashMap<>());
       }
     });
   }

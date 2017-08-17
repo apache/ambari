@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -79,7 +78,7 @@ public class StackServiceResourceProviderTest {
     StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
     expect(stackServiceResponse.getServiceProperties()).andReturn(TEST_SERVICE_PROPERTIES);
 
-    expect(managementController.getStackServices(EasyMock.<Set<StackServiceRequest>>anyObject()))
+    expect(managementController.getStackServices(EasyMock.anyObject()))
       .andReturn(ImmutableSet.of(stackServiceResponse));
 
     replay(managementController, stackServiceResponse);
@@ -122,7 +121,7 @@ public class StackServiceResourceProviderTest {
 
 
 
-    expect(managementController.getStackServices(EasyMock.<Set<StackServiceRequest>>anyObject()))
+    expect(managementController.getStackServices(EasyMock.anyObject()))
       .andReturn(ImmutableSet.of(stackServiceResponse));
 
     replay(managementController);

@@ -206,6 +206,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         parsedItem.not_started_components = notStartedComponents;
         parsedItem.components_in_passive_state = componentsInPassiveState;
         parsedItem.components_with_stale_configs = componentsWithStaleConfigs;
+        parsedItem.is_filtered = true;
 
         hostIds[item.Hosts.host_name] = parsedItem;
 
@@ -224,6 +225,7 @@ App.hostsMapper = App.QuickDataMapper.create({
 
       //"itemTotal" present only for Hosts page request
       if (!Em.isNone(json.itemTotal)) {
+        App.Host.find().setEach('isFiltered', false);
         App.Host.find().clear();
         //App.HostComponent.find contains master components which requested across the app hence it should not be cleared
       }

@@ -622,7 +622,7 @@ public class ComponentModuleTest {
       parentComponent = new ComponentModule(parentInfo);
     }
 
-    component.resolve(parentComponent, Collections.<String, StackModule>emptyMap(), Collections.<String, ServiceModule>emptyMap(), Collections.<String, ExtensionModule>emptyMap());
+    component.resolve(parentComponent, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
 
     return component;
   }

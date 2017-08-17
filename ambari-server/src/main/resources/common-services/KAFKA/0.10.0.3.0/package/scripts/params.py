@@ -32,6 +32,7 @@ import status_params
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
@@ -46,10 +47,6 @@ retryAble = default("/commandParams/command_retry_enabled", False)
 # Version being upgraded/downgraded to
 version = default("/commandParams/version", None)
 
-# Version that is CURRENT.
-current_version = default("/hostLevelParams/current_version", None)
-
-
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -61,9 +58,9 @@ stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBERO
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT, version_for_stack_feature_checks)
 
-# When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
+# When downgrading the 'version' is pointing to the downgrade-target version
 # downgrade_from_version provides the source-version the downgrade is happening from
-downgrade_from_version = default("/commandParams/downgrade_from_version", None)
+downgrade_from_version = upgrade_summary.get_downgrade_from_version("KAFKA")
 
 hostname = config['hostname']
 

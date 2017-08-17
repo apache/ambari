@@ -161,7 +161,7 @@ public class TestHeartbeatMonitor {
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     Config config = configFactory.createNew(cluster, "hadoop-env", "version1",
-        new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<>());
     cluster.addDesiredConfig("_test", Collections.singleton(config));
 
 
@@ -245,13 +245,13 @@ public class TestHeartbeatMonitor {
     Config hadoopEnvConfig = configFactory.createNew(cluster, "hadoop-env", "version1",
       new HashMap<String, String>() {{
         put("a", "b");
-      }}, new HashMap<String, Map<String,String>>());
+      }}, new HashMap<>());
 
 
     Config hbaseEnvConfig = configFactory.createNew(cluster, "hbase-env", "version1",
             new HashMap<String, String>() {{
               put("a", "b");
-            }}, new HashMap<String, Map<String,String>>());
+            }}, new HashMap<>());
 
     cluster.addDesiredConfig("_test", Collections.singleton(hadoopEnvConfig));
 

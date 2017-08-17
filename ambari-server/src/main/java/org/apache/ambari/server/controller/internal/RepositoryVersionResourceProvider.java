@@ -388,7 +388,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
 
         for (HostVersionEntity hostVersion : hostVersions) {
           if (!hostsInUse.containsKey(hostVersion.getState())) {
-            hostsInUse.put(hostVersion.getState(), new HashSet<String>());
+            hostsInUse.put(hostVersion.getState(), new HashSet<>());
           }
 
           hostsInUse.get(hostVersion.getState()).add(hostVersion.getHostName());

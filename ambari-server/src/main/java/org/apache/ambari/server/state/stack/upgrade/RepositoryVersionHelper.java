@@ -268,7 +268,7 @@ public class RepositoryVersionHelper {
       }
 
       List<ServiceOsSpecific.Package> packagesForService = amc.getPackagesForServiceHost(info,
-        new HashMap<String, String>(), osFamily);
+        new HashMap<>(), osFamily);
 
       List<String> blacklistedPackagePrefixes = configuration.get().getRollingUpgradeSkipPackagesPrefixes();
 

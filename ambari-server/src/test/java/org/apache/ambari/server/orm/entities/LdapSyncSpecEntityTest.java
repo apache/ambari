@@ -32,22 +32,22 @@ public class LdapSyncSpecEntityTest {
   @Test
   public void testGetPrincipalType() throws Exception {
     LdapSyncSpecEntity entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.<String>emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
     Assert.assertEquals(LdapSyncSpecEntity.PrincipalType.USERS, entity.getPrincipalType());
 
     entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.GROUPS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.<String>emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
     Assert.assertEquals(LdapSyncSpecEntity.PrincipalType.GROUPS, entity.getPrincipalType());
   }
 
   @Test
   public void testGetSyncType() throws Exception {
     LdapSyncSpecEntity entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.<String>emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
     Assert.assertEquals(LdapSyncSpecEntity.SyncType.ALL, entity.getSyncType());
 
     entity = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-        LdapSyncSpecEntity.SyncType.EXISTING, Collections.<String>emptyList());
+        LdapSyncSpecEntity.SyncType.EXISTING, Collections.emptyList());
     Assert.assertEquals(LdapSyncSpecEntity.SyncType.EXISTING, entity.getSyncType());
   }
 
@@ -66,7 +66,7 @@ public class LdapSyncSpecEntityTest {
   public void testIllegalConstruction() throws Exception {
     try {
       new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.USERS,
-          LdapSyncSpecEntity.SyncType.SPECIFIC, Collections.<String>emptyList());
+          LdapSyncSpecEntity.SyncType.SPECIFIC, Collections.emptyList());
       Assert.fail("expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // expected

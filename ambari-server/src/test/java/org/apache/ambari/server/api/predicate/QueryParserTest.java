@@ -207,7 +207,7 @@ public class QueryParserTest {
 
   @Test
   public void testParse_InOp__HostName_Empty() throws Exception {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     // foo.in(one,two,3)
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".in("));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "Hosts/host_name"));

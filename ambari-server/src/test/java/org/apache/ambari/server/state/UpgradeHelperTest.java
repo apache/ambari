@@ -141,7 +141,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_configHelper.getPlaceholderValueFromDesiredConfigurations(
         EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn("placeholder-rendered-properly").anyTimes();
     expect(m_configHelper.getEffectiveDesiredTags(
-        EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
+        EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<>()).anyTimes();
   }
 
   @Before
@@ -1216,7 +1216,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
    * @throws AmbariException
    */
   private Cluster makeCluster(boolean clean) throws AmbariException, AuthorizationException {
-    return makeCluster(clean, new HashSet<String>());
+    return makeCluster(clean, new HashSet<>());
   }
 
   /**
@@ -1836,7 +1836,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
         ProcessingComponent pc = new ProcessingComponent();
         pc.name = "NIMBUS_MESSAGE";
-        pc.preTasks = Lists.<Task>newArrayList(mt);
+        pc.preTasks = Lists.newArrayList(mt);
 
         return Collections.singletonMap("STORM", Collections.singletonMap("NIMBUS", pc));
       }
@@ -2329,7 +2329,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     Service zookeeper = createNiceMock(Service.class);
     expect(zookeeper.getName()).andReturn("ZOOKEEPER").atLeastOnce();
     expect(zookeeper.getServiceComponents()).andReturn(
-        new HashMap<String, ServiceComponent>()).once();
+      new HashMap<>()).once();
     zookeeper.setDesiredRepositoryVersion(repoVersion220);
     expectLastCall().once();
 
@@ -2436,17 +2436,17 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     Config clusterEnv = cf.createNew(cluster, "cluster-env", "version1",
         ImmutableMap.<String, String>builder().put("a", "b").build(),
-        Collections.<String, Map<String, String>>emptyMap());
+        Collections.emptyMap());
 
     Config zooCfg = cf.createNew(cluster, "zoo.cfg", "version1",
         ImmutableMap.<String, String>builder().put("c", "d").build(),
-        Collections.<String, Map<String, String>>emptyMap());
+        Collections.emptyMap());
 
     cluster.addDesiredConfig("admin", Sets.newHashSet(clusterEnv, zooCfg));
 
     Map<String, Map<String, String>> stackMap = new HashMap<>();
-    stackMap.put("cluster-env", new HashMap<String, String>());
-    stackMap.put("hive-site", new HashMap<String, String>());
+    stackMap.put("cluster-env", new HashMap<>());
+    stackMap.put("hive-site", new HashMap<>());
 
     final Map<String, String> clusterEnvMap = new HashMap<>();
 

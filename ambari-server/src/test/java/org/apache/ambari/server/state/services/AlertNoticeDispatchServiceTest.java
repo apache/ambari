@@ -202,7 +202,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   @Test
   public void testNoDispatch() throws Exception {
     EasyMock.expect(m_dao.findPendingNotices()).andReturn(
-        new ArrayList<AlertNoticeEntity>()).once();
+      new ArrayList<>()).once();
 
     // m_dispatchFactory should not be called at all
     EasyMock.replay(m_dao, m_dispatchFactory);

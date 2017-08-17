@@ -132,7 +132,7 @@ public class VersionDefinitionXml {
       if (availableServices.isEmpty()) {
         // !!! populate available services from the manifest
         for (ManifestService ms : manifests.values()) {
-          addToAvailable(ms, stack, Collections.<String>emptySet());
+          addToAvailable(ms, stack, Collections.emptySet());
         }
       } else {
         for (AvailableServiceReference ref : availableServices) {
@@ -193,7 +193,7 @@ public class VersionDefinitionXml {
       String name = manifest.serviceName;
 
       if (!manifestVersions.containsKey(name)) {
-        manifestVersions.put(manifest.serviceName, new TreeSet<String>());
+        manifestVersions.put(manifest.serviceName, new TreeSet<>());
       }
 
       manifestVersions.get(manifest.serviceName).add(manifest.version);

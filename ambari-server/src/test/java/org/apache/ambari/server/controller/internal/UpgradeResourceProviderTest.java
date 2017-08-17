@@ -172,7 +172,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     expect(
         configHelper.getDefaultProperties(EasyMock.anyObject(StackId.class),
             EasyMock.anyString())).andReturn(
-        new HashMap<String, Map<String, String>>()).anyTimes();
+      new HashMap<>()).anyTimes();
 
     replay(configHelper);
 
@@ -620,7 +620,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(2L);
     requestEntity.setClusterId(cluster.getClusterId());
-    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestEntity.setStages(new ArrayList<>());
     requestDao.create(requestEntity);
 
     UpgradeEntity upgradeEntity = new UpgradeEntity();

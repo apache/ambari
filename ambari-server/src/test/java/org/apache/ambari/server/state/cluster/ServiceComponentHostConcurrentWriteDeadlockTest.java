@@ -119,11 +119,9 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     cluster = clusters.getCluster("c1");
     m_repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
 
-    Config config1 = configFactory.createNew(cluster, "test-type1", null, new HashMap<String, String>(), new HashMap<String,
-        Map<String, String>>());
+    Config config1 = configFactory.createNew(cluster, "test-type1", null, new HashMap<>(), new HashMap<>());
 
-    Config config2 = configFactory.createNew(cluster, "test-type2", null, new HashMap<String, String>(), new HashMap<String,
-        Map<String, String>>());
+    Config config2 = configFactory.createNew(cluster, "test-type2", null, new HashMap<>(), new HashMap<>());
 
     cluster.addDesiredConfig("test user", new HashSet<>(Arrays.asList(config1, config2)));
 

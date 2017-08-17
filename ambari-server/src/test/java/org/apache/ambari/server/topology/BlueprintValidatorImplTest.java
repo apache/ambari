@@ -87,7 +87,7 @@ public class BlueprintValidatorImplTest {
   private List<DependencyConditionInfo> dependenciesConditionInfos1 = new ArrayList<>();
   private AutoDeployInfo autoDeploy = new AutoDeployInfo();
   private Map<String, Map<String, String>> configProperties = new HashMap<>();
-  private Configuration configuration = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+  private Configuration configuration = new Configuration(configProperties, Collections.emptyMap());
 
 
   @Before
@@ -152,7 +152,7 @@ public class BlueprintValidatorImplTest {
 
     expect(stack.getComponents("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
 
-    expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.<HostGroup>emptyList()).anyTimes();
+    expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.emptyList()).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
 
     replay(blueprint, stack, group1, group2, dependency1);
@@ -165,7 +165,7 @@ public class BlueprintValidatorImplTest {
     group1Components.add("component2");
     services.addAll(Collections.singleton("service1"));
 
-    expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.<HostGroup>emptyList()).anyTimes();
+    expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.emptyList()).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
 
     expect(stack.getComponents("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
@@ -186,9 +186,9 @@ public class BlueprintValidatorImplTest {
     dependencies1.add(dependency1);
     services.addAll(Collections.singleton("service1"));
 
-    expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.<HostGroup>emptyList()).anyTimes();
+    expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.emptyList()).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
-    expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Collections.<HostGroup>emptyList()).anyTimes();
+    expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Collections.emptyList()).anyTimes();
 
     expect(stack.getComponents("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
     expect(stack.getComponents("service2")).andReturn(Collections.singleton("component3")).anyTimes();
@@ -228,7 +228,7 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("HIVE"));
 
-    Configuration config = new Configuration(new HashMap<String, Map<String, String>>(), new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration config = new Configuration(new HashMap<>(), new HashMap<>());
     expect(group1.getConfiguration()).andReturn(config).anyTimes();
 
     expect(stack.getComponents("HIVE")).andReturn(Collections.singleton("HIVE_METASTORE")).anyTimes();
@@ -252,7 +252,7 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("OOZIE"));
 
-    Configuration config = new Configuration(new HashMap<String, Map<String, String>>(), new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration config = new Configuration(new HashMap<>(), new HashMap<>());
     expect(group1.getConfiguration()).andReturn(config).anyTimes();
 
     expect(stack.getComponents("OOZIE")).andReturn(Collections.singleton("OOZIE_SERVER")).anyTimes();
@@ -375,7 +375,7 @@ public class BlueprintValidatorImplTest {
     properties.put("yarn-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-       Collections.<String, Map<String, Map<String, String>>>emptyMap());
+       Collections.emptyMap());
 
     Cardinality cardinality = new Cardinality("1");
 
@@ -400,8 +400,8 @@ public class BlueprintValidatorImplTest {
     expect(dependency2.getName()).andReturn("dependency-2").anyTimes();
     expect(dependency2.hasDependencyConditions()).andReturn(false).anyTimes();
 
-    expect(dependencyConditionInfo1.isResolved(EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(true).anyTimes();
-    expect(dependencyConditionInfo2.isResolved(EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(false).anyTimes();
+    expect(dependencyConditionInfo1.isResolved(EasyMock.anyObject())).andReturn(true).anyTimes();
+    expect(dependencyConditionInfo2.isResolved(EasyMock.anyObject())).andReturn(false).anyTimes();
 
 
     expect(dependencyComponentInfo.isClient()).andReturn(false).anyTimes();

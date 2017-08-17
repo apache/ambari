@@ -40,24 +40,25 @@ class TestFalconServer(RMFTestCase):
       classname="FalconServer",
       command="start",
       config_file="default.json",
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-config.sh server falcon',
+    self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-config.sh server falcon',
       path = ['/usr/bin'],
       user = 'falcon',
       environment = {'HADOOP_HOME': '/usr/lib/hadoop'},
       not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )
 
-    self.assertResourceCalled('File', '/usr/lib/falcon/server/webapp/falcon/WEB-INF/lib/je-5.0.73.jar',
+    self.assertResourceCalled('File', '/usr/hdp/current/falcon-server/server/webapp/falcon/WEB-INF/lib/je-5.0.73.jar',
       content=DownloadSource('http://c6401.ambari.apache.org:8080/resources//je-5.0.73.jar'),
       mode=0755
     )
 
-    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
+    self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
       path = ['/usr/bin'],
       user = 'falcon',
       environment = {'HADOOP_HOME': '/usr/lib/hadoop'},
@@ -71,10 +72,11 @@ class TestFalconServer(RMFTestCase):
       classname="FalconServer",
       command="stop",
       config_file="default.json",
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-stop',
+    self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-stop',
       path = ['/usr/bin'],
       user = 'falcon',
       environment = {'HADOOP_HOME': '/usr/lib/hadoop'})
@@ -89,6 +91,7 @@ class TestFalconServer(RMFTestCase):
                        classname="FalconServer",
                        command="configure",
                        config_file="default.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -108,11 +111,11 @@ class TestFalconServer(RMFTestCase):
                               cd_access = "a",
                               mode = 0755,
                               )
-    self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server/webapp',
                               owner = 'falcon',
                               create_parents = True
                               )
-    self.assertResourceCalled('Directory', '/usr/lib/falcon',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server',
                               owner = 'falcon',
                               create_parents = True
                               )

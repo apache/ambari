@@ -217,7 +217,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
     List<String> expectedSpecs = new ArrayList<>();
@@ -244,7 +244,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
 
     // request with an empty set should get all supported properties
-    request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
@@ -457,7 +457,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -498,7 +498,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "INSTALLED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -537,7 +537,7 @@ public class JMXPropertyProviderTest {
       resources.add(resource);
     }
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Set<Resource> resourceSet = propertyProvider.populateResources(resources, request, null);
 
@@ -581,7 +581,7 @@ public class JMXPropertyProviderTest {
     resources.add(resource);
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Set<Resource> resourceSet = propertyProvider.populateResources(resources, request, null);
 

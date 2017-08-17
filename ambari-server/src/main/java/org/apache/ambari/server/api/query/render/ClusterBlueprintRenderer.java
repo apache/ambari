@@ -102,22 +102,22 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     String configType = Resource.Type.Configuration.name();
     if (resultTree.getChild(configType) == null) {
-      resultTree.addChild(new HashSet<String>(), configType);
+      resultTree.addChild(new HashSet<>(), configType);
     }
 
     String serviceType = Resource.Type.Service.name();
     if (resultTree.getChild(serviceType) == null) {
-      resultTree.addChild(new HashSet<String>(), serviceType);
+      resultTree.addChild(new HashSet<>(), serviceType);
     }
     TreeNode<Set<String>> serviceNode = resultTree.getChild(serviceType);
     if (serviceNode == null) {
-      serviceNode = resultTree.addChild(new HashSet<String>(), serviceType);
+      serviceNode = resultTree.addChild(new HashSet<>(), serviceType);
     }
     String serviceComponentType = Resource.Type.Component.name();
     TreeNode<Set<String>> serviceComponentNode = resultTree.getChild(
       serviceType + "/" + serviceComponentType);
     if (serviceComponentNode == null) {
-      serviceComponentNode = serviceNode.addChild(new HashSet<String>(), serviceComponentType);
+      serviceComponentNode = serviceNode.addChild(new HashSet<>(), serviceComponentType);
     }
     serviceComponentNode.getObject().add("ServiceComponentInfo/cluster_name");
     serviceComponentNode.getObject().add("ServiceComponentInfo/service_name");
@@ -132,9 +132,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     if (hostComponentNode == null) {
       TreeNode<Set<String>> hostNode = resultTree.getChild(hostType);
       if (hostNode == null) {
-        hostNode = resultTree.addChild(new HashSet<String>(), hostType);
+        hostNode = resultTree.addChild(new HashSet<>(), hostType);
       }
-      hostComponentNode = hostNode.addChild(new HashSet<String>(), hostComponentType);
+      hostComponentNode = hostNode.addChild(new HashSet<>(), hostComponentType);
     }
     resultTree.getChild(configType).getObject().add("properties");
     hostComponentNode.getObject().add("HostRoles/component_name");
@@ -345,8 +345,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     ResourceProvider artifactProvider =
        clusterController.ensureResourceProvider(Resource.Type.Artifact);
 
-    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
-      Collections.<Map<String, Object>>emptySet(), Collections.<String, String>emptyMap(), null);
+    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
+      Collections.emptySet(), Collections.emptyMap(), null);
 
     Set<Resource> response = null;
     try {

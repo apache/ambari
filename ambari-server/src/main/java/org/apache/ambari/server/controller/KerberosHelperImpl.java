@@ -450,7 +450,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     return (applyStackAdvisorUpdates)
         ? applyStackAdvisorUpdates(cluster, installedServices.keySet(), configurations, kerberosConfigurations, propertiesToIgnore,
-        new HashMap<String, Set<String>>(), kerberosEnabled)
+      new HashMap<>(), kerberosEnabled)
         : kerberosConfigurations;
   }
 
@@ -1140,7 +1140,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       context.put("services", services);
 
       // Get the Kerberos identities that need to be pruned
-      Map<String, Set<String>> identitiesToRemove = processWhenClauses("", kerberosDescriptor, context, new HashMap<String, Set<String>>());
+      Map<String, Set<String>> identitiesToRemove = processWhenClauses("", kerberosDescriptor, context, new HashMap<>());
 
       // Prune off the Kerberos identities that need to be removed due to the evaluation of its _when_ clause
       for (Map.Entry<String, Set<String>> identity : identitiesToRemove.entrySet()) {
@@ -1945,7 +1945,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       handler.createStages(cluster,
           clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, kerberosDetails,
           dataDirectory, requestStageContainer, serviceComponentHostsToProcess,
-          Collections.<String, Collection<String>>emptyMap(), null, null, hostsWithValidKerberosClient);
+          Collections.emptyMap(), null, null, hostsWithValidKerberosClient);
 
 
       handler.addFinalizeOperationStage(cluster, clusterHostInfoJson, hostParamsJson, event,
@@ -3064,8 +3064,8 @@ public class KerberosHelperImpl implements KerberosHelper {
                 cluster.getClusterName(),
                 "DISABLE_SECURITY",
                 singletonList(new RequestResourceFilter(service.getName(), component.getName(), singletonList(firstHost))),
-                Collections.<String, String>emptyMap());
-              customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap(), null);
+                Collections.emptyMap());
+              customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.emptyMap(), null);
           }
         }
       }
@@ -3097,8 +3097,8 @@ public class KerberosHelperImpl implements KerberosHelper {
             cluster.getClusterName(),
             "STOP",
             singletonList(new RequestResourceFilter(zookeeper.getName(), component.getName(), new ArrayList<>(hosts))),
-            Collections.<String, String>emptyMap());
-          customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap(), null);
+            Collections.emptyMap());
+          customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.emptyMap(), null);
       }
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);

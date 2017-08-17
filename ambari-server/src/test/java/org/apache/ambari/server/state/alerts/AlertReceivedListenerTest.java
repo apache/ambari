@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
@@ -844,7 +843,7 @@ public class AlertReceivedListenerTest {
           {
             put(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "3");
           }
-        }, new HashMap<String, Map<String, String>>());
+        }, new HashMap<>());
 
     m_cluster.addDesiredConfig("user", Collections.singleton(config));
 

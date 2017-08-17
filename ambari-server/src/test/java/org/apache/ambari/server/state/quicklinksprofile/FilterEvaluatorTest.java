@@ -61,7 +61,7 @@ public class FilterEvaluatorTest {
    */
   @Test
   public void testWithEmptyFilters() throws Exception {
-    FilterEvaluator evaluator = new FilterEvaluator(new ArrayList<Filter>());
+    FilterEvaluator evaluator = new FilterEvaluator(new ArrayList<>());
     assertEquals(Optional.absent(), evaluator.isVisible(namenodeUi));
 
     FilterEvaluator evaluator2 = new FilterEvaluator(null);
@@ -129,7 +129,7 @@ public class FilterEvaluatorTest {
    */
   @Test
   public void testHideFilterTakesPrecedence() throws Exception {
-    List<Filter> filters = Lists.<Filter>newArrayList(
+    List<Filter> filters = Lists.newArrayList(
         linkAttributeFilter(AUTHENTICATED, false),
         linkAttributeFilter(SSO, true));
     FilterEvaluator evaluator = new FilterEvaluator(filters);
@@ -168,7 +168,7 @@ public class FilterEvaluatorTest {
    */
   @Test(expected = QuickLinksProfileEvaluationException.class)
   public void contradictingPropertyFiltersRejected() throws Exception {
-    List<Filter> filters = Lists.<Filter>newArrayList(
+    List<Filter> filters = Lists.newArrayList(
         linkAttributeFilter(SSO, true),
         linkAttributeFilter(SSO, false));
     new FilterEvaluator(filters);
@@ -180,7 +180,7 @@ public class FilterEvaluatorTest {
    */
   @Test(expected = QuickLinksProfileEvaluationException.class)
   public void contradictingLinkAttributeFiltersRejected() throws Exception {
-    List<Filter> filters = Lists.<Filter>newArrayList(
+    List<Filter> filters = Lists.newArrayList(
         linkAttributeFilter(SSO, true),
         linkAttributeFilter(SSO, false));
     new FilterEvaluator(filters);

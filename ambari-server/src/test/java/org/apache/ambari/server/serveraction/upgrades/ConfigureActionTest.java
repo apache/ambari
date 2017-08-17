@@ -615,7 +615,7 @@ public class ConfigureActionTest {
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");
-    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.setRoleParams(new HashMap<>());
     executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
 
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
@@ -1202,7 +1202,7 @@ public class ConfigureActionTest {
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");
-    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.setRoleParams(new HashMap<>());
     executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
 
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null,
@@ -1838,7 +1838,7 @@ public class ConfigureActionTest {
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setClusterName("c1");
     executionCommand.setCommandParams(commandParams);
-    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.setRoleParams(new HashMap<>());
     executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
 
     return executionCommand;

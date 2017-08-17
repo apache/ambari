@@ -34,7 +34,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
@@ -217,7 +216,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
         || serviceInfo.getRequiredServices().size() == 0) {
       serviceInfo.setRequiredServices(parent.getRequiredServices() != null ?
           parent.getRequiredServices() :
-          Collections.<String>emptyList());
+          Collections.emptyList());
     }
 
     if (serviceInfo.isRestartRequiredAfterChange() == null) {
@@ -426,7 +425,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       for (String excludedType : serviceInfo.getExcludedConfigTypes()) {
         if (! configurationModules.containsKey(excludedType)) {
           ConfigurationInfo configInfo = new ConfigurationInfo(
-              Collections.<PropertyInfo>emptyList(), Collections.<String, String>emptyMap());
+              Collections.emptyList(), Collections.emptyMap());
           ConfigurationModule config = new ConfigurationModule(excludedType, configInfo);
 
           config.setDeleted(true);
@@ -545,7 +544,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     //currently there is no way to remove an inherited config dependency
     List<String> configDependencies = serviceInfo.getConfigDependencies();
     List<String> parentConfigDependencies = parent.getConfigDependencies() != null ?
-        parent.getConfigDependencies() : Collections.<String>emptyList();
+        parent.getConfigDependencies() : Collections.emptyList();
 
     if (configDependencies == null) {
       serviceInfo.setConfigDependencies(parentConfigDependencies);
@@ -570,7 +569,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       ServiceModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     serviceInfo.getProperties().clear();
-    serviceInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
+    serviceInfo.setAllConfigAttributes(new HashMap<>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);

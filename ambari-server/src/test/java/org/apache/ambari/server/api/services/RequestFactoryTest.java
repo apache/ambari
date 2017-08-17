@@ -55,7 +55,7 @@ public class RequestFactoryTest {
 
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
-    expect(mapQueryParams.entrySet()).andReturn(Collections.<Map.Entry<String, List<String>>>emptySet()).anyTimes();
+    expect(mapQueryParams.entrySet()).andReturn(Collections.emptySet()).anyTimes();
     expect(body.getQueryString()).andReturn(null);
 
     replay(headers, uriInfo, body, resource, mapQueryParams);
@@ -89,7 +89,7 @@ public class RequestFactoryTest {
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
     expect(mapQueryParams.entrySet()).andReturn(mapProps.entrySet()).anyTimes();
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceDefinition.getCreateDirectives()).andReturn(Collections.<String>emptySet());
+    expect(resourceDefinition.getCreateDirectives()).andReturn(Collections.emptySet());
     expect(body.getQueryString()).andReturn(null);
 
     replay(headers, uriInfo, body, resource, mapQueryParams, resourceDefinition);
@@ -239,7 +239,7 @@ public class RequestFactoryTest {
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
     expect(mapQueryParams.entrySet()).andReturn(mapProps.entrySet()).anyTimes();
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceDefinition.getDeleteDirectives()).andReturn(Collections.<String>emptySet());
+    expect(resourceDefinition.getDeleteDirectives()).andReturn(Collections.emptySet());
     expect(body.getQueryString()).andReturn(null);
     expect(body.getRequestInfoProperties()).andReturn(requestInfoMap).anyTimes();
 
@@ -269,9 +269,9 @@ public class RequestFactoryTest {
 
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
-    expect(mapQueryParams.entrySet()).andReturn(Collections.<Map.Entry<String, List<String>>>emptySet()).anyTimes();
+    expect(mapQueryParams.entrySet()).andReturn(Collections.emptySet()).anyTimes();
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceDefinition.getCreateDirectives()).andReturn(Collections.<String>emptySet());
+    expect(resourceDefinition.getCreateDirectives()).andReturn(Collections.emptySet());
     expect(body.getQueryString()).andReturn("foo=bar");
 
     replay(headers, uriInfo, body, resource, mapQueryParams, resourceDefinition);
@@ -305,7 +305,7 @@ public class RequestFactoryTest {
 
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
-    expect(mapQueryParams.entrySet()).andReturn(Collections.<Map.Entry<String, List<String>>>emptySet()).anyTimes();
+    expect(mapQueryParams.entrySet()).andReturn(Collections.emptySet()).anyTimes();
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getCreateDirectives()).andReturn(Collections.singleton("foo"));
     expect(body.getQueryString()).andReturn("foo=bar");

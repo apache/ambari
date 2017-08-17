@@ -122,7 +122,7 @@ public class ArtifactEntity {
    */
   public Map<String, String> getForeignKeys() {
     return foreignKeys == null ?
-        Collections.<String, String>emptyMap() :
+        Collections.emptyMap() :
         jsonSerializer.<Map<String, String>>fromJson(foreignKeys, Map.class);
   }
 

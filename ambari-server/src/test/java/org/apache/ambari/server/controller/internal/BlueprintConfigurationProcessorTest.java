@@ -96,7 +96,7 @@ import com.google.common.collect.Maps;
 @PrepareForTest(AmbariServer.class)
 public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
-  private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(), Collections.<String, Map<String, Map<String, String>>>emptyMap());
+  private static final Configuration EMPTY_CONFIG = new Configuration(Collections.emptyMap(), Collections.emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<>();
   private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
   private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
@@ -149,11 +149,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
     // return false for all components since for this test we don't care about the value
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
-    expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.<String, Stack.ConfigProperty>emptyMap()).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.emptyMap()).anyTimes();
 
     expect(serviceInfo.getRequiredProperties()).andReturn(
-      Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
-    expect(serviceInfo.getRequiredServices()).andReturn(Collections.<String>emptyList()).anyTimes();
+      Collections.emptyMap()).anyTimes();
+    expect(serviceInfo.getRequiredServices()).andReturn(Collections.emptyList()).anyTimes();
 
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
@@ -271,7 +271,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("yarn-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -319,7 +319,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -358,7 +358,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       ImmutableMap.of("admin-properties", rangerAdminProperties);
 
 
-    Configuration clusterConfig = new Configuration(properties, ImmutableMap.<String, Map<String, Map<String, String>>>of());
+    Configuration clusterConfig = new Configuration(properties, ImmutableMap.of());
 
     Collection<String> hostGroup1Components = ImmutableSet.of("RANGER_ADMIN");
     TestHostGroup group1 = new TestHostGroup("group1", hostGroup1Components, Collections.singleton("testhost1"));
@@ -394,10 +394,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     parentProperties.put("yarn-site", parentYarnSiteProps);
 
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -430,7 +430,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("yarn-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -448,11 +448,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group2YarnSiteProps.put("yarn.resourcemanager.webapp.https.address", "{{rm_host}}");
     group2Properties.put("yarn-site", group2YarnSiteProps);
     // host group config -> BP config -> cluster scoped config
-    Configuration group2BPConfiguration = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), clusterConfig);
+    Configuration group2BPConfiguration = new Configuration(Collections.emptyMap(),
+      Collections.emptyMap(), clusterConfig);
 
     Configuration group2Configuration = new Configuration(group2Properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), group2BPConfiguration);
+      Collections.emptyMap(), group2BPConfiguration);
 
     // set config on hostgroup
     TestHostGroup group2 = new TestHostGroup("group2", hgComponents2,
@@ -481,7 +481,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("core-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -513,7 +513,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("yarn-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -545,7 +545,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("hbase-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -592,7 +592,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("webhcat-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -643,7 +643,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("storm-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -703,7 +703,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("hive-site", hiveSiteProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -737,7 +737,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("hive-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -789,7 +789,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("secret-test-properties", secretProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -874,7 +874,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     falconStartupProperties.put("*.falcon.http.authentication.kerberos.principal", "HTTP/" + expectedHostName + "@EXAMPLE.COM");
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -916,7 +916,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     tezSiteProperties.put("tez.tez-ui.history-url.base", "http://host:port/TEZ/TEZ_VIEW");
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -966,7 +966,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     coreSiteProperties.put("hadoop.security.auth_to_local", "RULE:clustername");
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1031,7 +1031,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, expectedHostName + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1104,7 +1104,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hadoopEnvProperties.put("dfs_ha_initial_namenode_standby", expectedHostName);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1164,7 +1164,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/apps/accumulo/data");
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1203,7 +1203,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       0, hdfsSiteProperties.size());
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1262,7 +1262,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeTwo, expectedHostNameTwo + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1340,7 +1340,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.log.server.web-service.url", expectedHostName + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1406,7 +1406,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1481,7 +1481,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedHostName + ":" + expectedPortNum + "/apps/accumulo/data");
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1561,7 +1561,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     coreSiteProperties.put("hadoop.proxyuser.hcat.hosts", expectedHostName + "," + expectedHostNameTwo);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1659,7 +1659,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     coreSiteProperties.put("hadoop.proxyuser.hcat.hosts", expectedHostName + "," + expectedHostNameTwo);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> groupComponents = new HashSet<>();
     groupComponents.add("NAMENODE");
@@ -1749,7 +1749,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // note: test hostgroups may not accurately reflect the required components for the config properties
     // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
@@ -1827,7 +1827,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedHostNameTwo + "/ooziedb");
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("OOZIE_SERVER");
     hgComponents.add("ZOOKEEPER_SERVER");
@@ -1866,7 +1866,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + "%HOSTGROUP::group1%" + "/ooziedb");
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("OOZIE_SERVER");
     hgComponents.add("ZOOKEEPER_SERVER");
@@ -1925,7 +1925,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     accumuloSiteProperties.put("instance.zookeeper.host", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     // test hostgroups may not accurately reflect the required components for the config properties which are mapped to them
     Collection<String> groupComponents = new HashSet<>();
@@ -2006,7 +2006,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 //    multiOozieSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> groupComponents = new HashSet<>();
     groupComponents.add("KNOX_GATEWAY");
@@ -2058,7 +2058,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     kafkaBrokerProperties.put("kafka.ganglia.metrics.host", createHostAddress(expectedHostName, expectedPortNumberOne));
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> groupComponents = new HashSet<>();
     groupComponents.add("KAFKA_BROKER");
@@ -2102,7 +2102,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("worker.childopts", "some other info, undefined, more info");
 
     Configuration clusterConfig = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> groupComponents = new HashSet<>();
     groupComponents.add("ZOOKEEPER_SERVER");
@@ -2139,7 +2139,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("oozie-env", typeProps2);
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2192,10 +2192,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     parentProperties.put("yarn-site", parentYarnSiteProps);
 
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2229,7 +2229,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("yarn-site", yarnSiteProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2247,11 +2247,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     group2Properties.put("yarn-site", group2YarnSiteProperties);
     // group 2 host group configuration
     // HG config -> BP HG config -> cluster scoped config
-    Configuration group2BPConfig = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), clusterConfig);
+    Configuration group2BPConfig = new Configuration(Collections.emptyMap(),
+      Collections.emptyMap(), clusterConfig);
 
     Configuration group2Config = new Configuration(group2Properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), group2BPConfig);
+      Collections.emptyMap(), group2BPConfig);
     // set config on HG
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"), group2Config);
 
@@ -2276,7 +2276,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("yarn-site", yarnSiteProps);
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2295,11 +2295,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // group 2 host group configuration
     // HG config -> BP HG config -> cluster scoped config
     Configuration group2BPConfig = new Configuration(group2BPProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), clusterConfig);
+      Collections.emptyMap(), clusterConfig);
 
     // can't set parent here because it is reset in cluster topology
-    Configuration group2Config = new Configuration(new HashMap<String, Map<String, String>>(),
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration group2Config = new Configuration(new HashMap<>(),
+      Collections.emptyMap());
     // set config on HG
     TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"), group2Config);
 
@@ -2327,7 +2327,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("yarn.timeline-service.address", "localhost");
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2367,7 +2367,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("yarn.timeline-service.address", "localhost");
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2411,7 +2411,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("yarn.timeline-service.webapp.https.address", "testhost:8190");
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2450,7 +2450,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("yarn.timeline-service.address", expectedHostName);
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> group1Components = new HashSet<>();
     group1Components.add("NAMENODE");
@@ -2484,7 +2484,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("fs.defaultFS", "localhost:5050");
     properties.put("core-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -2515,7 +2515,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("hbase.zookeeper.quorum", "localhost");
     properties.put("hbase-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -2572,7 +2572,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("templeton.zookeeper.hosts", "localhost:9090");
     properties.put("webhcat-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -2636,7 +2636,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put(propertyName, originalValue);
     properties.put(typeName, typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add(component1);
@@ -2675,7 +2675,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put(propertyName, originalValue);
     properties.put(typeName, typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add(component1);
@@ -2710,7 +2710,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put(propertyName, originalValue);
     properties.put(typeName, typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add(component1);
@@ -2740,9 +2740,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     HashMap<String, String> clusterEnvProperties = new HashMap<>();
     configProperties.put("cluster-env", clusterEnvProperties);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
-    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.<String>emptySet(), Collections.<String>emptySet());
+    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup));
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2780,9 +2780,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     clusterEnvProperties.put("command_retry_max_time_in_sec", "1");
 
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
-    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.<String>emptySet(), Collections.<String>emptySet());
+    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup));
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -2854,7 +2854,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // configure the hbase rootdir to use the nameservice URL
     accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -2932,7 +2932,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // setup properties that include host information
     webHCatSiteProperties.put("templeton.hive.properties", expectedPropertyValue);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -2979,7 +2979,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     hiveSiteProperties.put("hive.metastore.uris", expectedMetaStoreURIs);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("HIVE_SERVER");
@@ -3041,7 +3041,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     hiveSiteProperties.put("hive.metastore.uris", inputMetaStoreURIs);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("HIVE_SERVER");
@@ -3161,7 +3161,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     hiveInteractiveSiteProperties.put(llapZkProperty, createHostAddress(expectedHostName, "2181") + "," + createHostAddress(expectedHostNameTwo, "2181"));
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("ZOOKEEPER_SERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
@@ -3213,7 +3213,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("OOZIE_SERVER");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton("host1"));
@@ -3277,7 +3277,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("OOZIE_SERVER");
     hgComponents.add("ZOOKEEPER_SERVER");
@@ -3335,7 +3335,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
     yarnSiteProperties.put("yarn.resourcemanager.ha.rm-ids", "rm1, rm2");
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
@@ -3422,7 +3422,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteProperties.put("yarn.resourcemanager.webapp.https.address", expectedHostName + ":" + "8080");
 
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("RESOURCEMANAGER");
     hgComponents.add("APP_TIMELINE_SERVER");
@@ -3509,7 +3509,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     hdfsSiteProperties.put("dfs.namenode.shared.edits.dir", expectedQuorumJournalURL);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton("host1"));
@@ -3539,7 +3539,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("storm.zookeeper.servers", "['localhost']");
     properties.put("storm-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3603,7 +3603,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("nimbus.seeds", "localhost");
     properties.put("storm-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NIMBUS");
@@ -3653,7 +3653,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("nimbus.seeds", expectedValue);
     properties.put("storm-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NIMBUS");
@@ -3690,7 +3690,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("hbase_master_heapsize", "512m");
     properties.put("hbase-env", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3722,7 +3722,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("hbase_master_heapsize", "512");
     properties.put("hbase-env", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3754,7 +3754,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("yarn.resourcemanager.hostname", "%HOSTGROUP::group1%");
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3786,7 +3786,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("yarn.resourcemanager.hostname", "%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-6%");
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3818,7 +3818,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("yarn.resourcemanager.hostname", "%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-6%:2180");
     properties.put("yarn-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3850,7 +3850,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("fs.defaultFS", "%HOSTGROUP::group1%:5050");
     properties.put("core-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3882,7 +3882,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("hbase.zookeeper.quorum", "%HOSTGROUP::group1%,%HOSTGROUP::group2%");
     properties.put("hbase-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3940,7 +3940,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("templeton.zookeeper.hosts", "%HOSTGROUP::group1%:9090,%HOSTGROUP::group2%:9091");
     properties.put("webhcat-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -3998,7 +3998,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("ha.zookeeper.quorum", "%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-6%:2181,%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-5%:2181,%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-7%:2181");
     properties.put("core-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4059,7 +4059,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     yarnSiteConfig.put("hadoop.registry.zk.quorum", "%HOSTGROUP::host_group_1%:2181");
     properties.put("yarn-site", yarnSiteConfig);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4086,7 +4086,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("nimbus.seeds", "[%HOSTGROUP::group1%, %HOSTGROUP::group4%]");
     properties.put("storm-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4182,7 +4182,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("hive-site", hiveSiteProps);
     properties.put("hive-env", hiveEnvProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4218,7 +4218,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("hive-site", hiveSiteProps);
     properties.put("hive-env", hiveEnvProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4252,7 +4252,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("hive_database", "Existing MySQL Database");
     properties.put("hive-env", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4288,12 +4288,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     // customized stack calls for this test only
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site"));
-    expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.<String>emptySet());
+    expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.emptySet());
     expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
     expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
 
     Map<String, Map<String, String>> properties = new HashMap<>();
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("FALCON_SERVER");
@@ -4332,7 +4332,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
 
     Map<String, Map<String, String>> properties = new HashMap<>();
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("FALCON_SERVER");
@@ -4361,7 +4361,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
-    expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.<String, Stack.ConfigProperty>emptyMap()).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.emptyMap()).anyTimes();
 
     // customized stack calls for this test only
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site")).anyTimes();
@@ -4372,7 +4372,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     typeProps.put("oozie.service.ELService.ext.functions.coord-job-submit-instances", "overridedValue");
     properties.put("oozie-site", typeProps);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("FALCON_SERVER");
@@ -4408,14 +4408,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     excludedConfigTypes.add("oozie-site");
     excludedConfigTypes.add("storm-site");
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(excludedConfigTypes);
-    expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.<String>emptySet());
+    expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.emptySet());
     expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
     expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
     // simulate the case where the STORM service has been removed manually from the stack definitions
     expect(stack.getServiceForConfigType("storm-site")).andThrow(new IllegalArgumentException("TEST: Configuration not found in stack definitions!"));
 
     Map<String, Map<String, String>> properties = new HashMap<>();
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("FALCON_SERVER");
@@ -4455,7 +4455,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     falconStartupProperties.put("*.falcon.service.authentication.kerberos.principal", "falcon/" + createExportedHostName(expectedHostGroupName) + "@EXAMPLE.COM");
     falconStartupProperties.put("*.falcon.http.authentication.kerberos.principal", "HTTP/" + createExportedHostName(expectedHostGroupName) + "@EXAMPLE.COM");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("FALCON_SERVER");
@@ -4501,7 +4501,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     falconStartupProperties.put("*.falcon.service.authentication.kerberos.principal", "falcon/" + "localhost" + "@EXAMPLE.COM");
     falconStartupProperties.put("*.falcon.http.authentication.kerberos.principal", "HTTP/" + "localhost" + "@EXAMPLE.COM");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("FALCON_SERVER");
@@ -4544,7 +4544,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // setup properties that include host information
     webHCatSiteProperties.put("templeton.hive.properties", expectedPropertyValue);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4620,7 +4620,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4698,7 +4698,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("hive-site")).andThrow(new RuntimeException("Expected Test Error")).once();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4776,7 +4776,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4864,7 +4864,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HBASE", "hbase-site")).andReturn(mapOfMetadata).atLeastOnce();
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4932,7 +4932,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HBASE", "hbase-site")).andReturn(mapOfMetadata).atLeastOnce();
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -4971,7 +4971,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     webHCatSiteProperties.put("templeton.hive.properties",
       expectedPropertyValue);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("HIVE_METASTORE");
@@ -5013,7 +5013,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     atlasProperties.put("atlas.audit.hbase.zookeeper.quorum", "localhost");
 
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("KAFKA_BROKER");
@@ -5081,7 +5081,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     webHCatSiteProperties.put("templeton.hive.properties",
       expectedPropertyValue);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("HIVE_METASTORE");
@@ -5121,7 +5121,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     kafkaBrokerProperties.put("kafka.ganglia.metrics.host", "localhost");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("HIVE_METASTORE");
@@ -5171,7 +5171,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     kafkaBrokerProperties.put("kafka.ganglia.metrics.host", "localhost");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("GANGLIA_SERVER");
@@ -5258,7 +5258,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // configure the hbase rootdir to use the nameservice URL
     accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -5377,7 +5377,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
     hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -5451,7 +5451,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hadoopEnvProperties.put("dfs_ha_initial_namenode_active", expectedHostName);
     hadoopEnvProperties.put("dfs_ha_initial_namenode_standby", expectedHostNameTwo);
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
@@ -5596,7 +5596,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // setup shared edit property, that includes a qjournal URL scheme
     hdfsSiteProperties.put("dfs.namenode.shared.edits.dir", "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/mycluster");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("NAMENODE");
@@ -5638,7 +5638,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // setup shared edit property, that includes a qjournal URL scheme
     hdfsSiteProperties.put("dfs.namenode.shared.edits.dir", "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/mycluster");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("NAMENODE");
@@ -5694,9 +5694,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     TestHostGroup group1 = new TestHostGroup("master_1", ImmutableSet.of("DATANODE", "NAMENODE"), Collections.singleton("node_1"));
     TestHostGroup group2 = new TestHostGroup("master_2", ImmutableSet.of("DATANODE", "NAMENODE"), Collections.singleton("node_2"));
@@ -5728,7 +5728,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("HIVE_SERVER");
@@ -5760,7 +5760,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     coreSiteMap.put("fs.defaultFS", "localhost");
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
@@ -5793,7 +5793,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     coreSiteMap.put("fs.defaultFS", "localhost");
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
@@ -5843,7 +5843,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     falconEnvProperties.put("falcon_user", "test-falcon-user");
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("DATANODE");
@@ -5890,7 +5890,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     falconEnvProperties.put("falcon_user", "test-falcon-user");
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("DATANODE");
@@ -5934,7 +5934,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     falconEnvProperties.put("falcon_user", "test-falcon-user");
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("DATANODE");
@@ -5974,10 +5974,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     coreSiteProperties.put("hadoop.proxyuser.test-oozie-user.hosts", "testOozieHostsVal");
 
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("DATANODE");
@@ -6020,9 +6020,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> hgComponents1 = new HashSet<>();
@@ -6111,9 +6111,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   private void validateAtlasHivePropertiesForTestCase(Map<String, Map<String, String>> properties) throws Exception {
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("ATLAS_SERVER");
@@ -6158,9 +6158,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> hgComponents1 = new HashSet<>();
@@ -6191,9 +6191,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("METRICS_COLLECTOR");
@@ -6222,9 +6222,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("METRICS_COLLECTOR");
@@ -6253,9 +6253,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("METRICS_COLLECTOR");
@@ -6285,9 +6285,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("METRICS_COLLECTOR");
@@ -6342,10 +6342,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     Configuration parentConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+      Collections.emptyMap(), createStackDefaults());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentConfig);
+      Collections.emptyMap(), parentConfig);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
@@ -6402,10 +6402,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
 
     Configuration parentConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+      Collections.emptyMap(), createStackDefaults());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentConfig);
+      Collections.emptyMap(), parentConfig);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
@@ -6470,10 +6470,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+      Collections.emptyMap(), createStackDefaults());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
@@ -6525,10 +6525,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
 
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+      Collections.emptyMap(), createStackDefaults());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
@@ -6559,9 +6559,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> rangerComponents = new HashSet<>();
@@ -6595,9 +6595,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> rangerComponents = new HashSet<>();
@@ -6631,9 +6631,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> rangerComponents = new HashSet<>();
@@ -6679,8 +6679,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
-    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
@@ -6743,8 +6743,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     }
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
-    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
@@ -6804,8 +6804,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
-    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
@@ -6878,8 +6878,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
-    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
@@ -6944,8 +6944,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
-    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
@@ -7016,8 +7016,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
-    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<>(), parentClusterConfig);
 
     Collection<String> rangerComponents = new HashSet<>();
     rangerComponents.add("RANGER_ADMIN");
@@ -7072,9 +7072,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7114,9 +7114,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7152,9 +7152,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7210,9 +7210,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> hdfsComponents = new HashSet<>();
@@ -7251,9 +7251,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7294,9 +7294,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7348,9 +7348,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7407,9 +7407,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> stormComponents = new HashSet<>();
@@ -7451,9 +7451,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7499,9 +7499,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> hdfsComponents = new HashSet<>();
@@ -7540,9 +7540,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
 
     Collection<String> kmsServerComponents = new HashSet<>();
@@ -7793,7 +7793,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hawqSite.put("hawq_standby_address_host", "localhost");
     hawqSite.put("hawq_dfs_url", createHostAddress("localhost", expectedPortNamenode) + "/hawq_data");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     //Host group which has NAMENODE
     Collection<String> hgComponents = new HashSet<>();
@@ -7837,7 +7837,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hawqSite.put("hawq_master_address_host", "localhost");
     hawqSite.put("hawq_standby_address_host", "localhost");
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     //Host group which has HAWQMASTER
     Collection<String> hgComponents1 = new HashSet<>();
@@ -7861,7 +7861,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   public void testDoUpdateForBlueprintExport_NonTopologyProperty__AtlasClusterName() throws Exception {
     Map<String, Map<String, String>> properties = new HashMap<>();
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("ATLAS_SERVER");
@@ -7888,7 +7888,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     String someString = "String.To.Represent.A.String.Value";
     Map<String, Map<String, String>> properties = new HashMap<>();
 
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("ATLAS_SERVER");
@@ -7938,9 +7938,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("METRICS_COLLECTOR");
@@ -7968,9 +7968,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     hgComponents1.add("METRICS_COLLECTOR");
@@ -7998,9 +7998,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     Collection<String> hgComponents2 = new HashSet<>();
@@ -8030,10 +8030,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("ranger-admin-site", rangerAdminSiteProps);
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
 
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("NAMENODE");
     hgComponents.add("SECONDARY_NAMENODE");
@@ -8074,12 +8074,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     advMap.put("core-site", new AdvisedConfiguration(confProp, valueAttributesInfoMap));
     Map<String, String> dummyConfProp = new HashMap<>();
     dummyConfProp.put("dummy.prop", "dummyValue");
-    advMap.put("dummy-site", new AdvisedConfiguration(dummyConfProp, new HashMap<String, ValueAttributesInfo>()));
+    advMap.put("dummy-site", new AdvisedConfiguration(dummyConfProp, new HashMap<>()));
     Map<String, ValueAttributesInfo> dummy2attrMap = new HashMap<>();
     ValueAttributesInfo dummy2valInfo = new ValueAttributesInfo();
     dummy2valInfo.setDelete("true");
     dummy2attrMap.put("dummy2.property", dummy2valInfo);
-    advMap.put("dummy2-site", new AdvisedConfiguration(new HashMap<String, String>(), dummy2attrMap));
+    advMap.put("dummy2-site", new AdvisedConfiguration(new HashMap<>(), dummy2attrMap));
     return advMap;
   }
 
@@ -8119,9 +8119,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap());
     Configuration clusterConfig = new Configuration(properties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+      Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
@@ -8248,8 +8248,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       this.name = name;
       this.components = components;
       this.hosts = hosts;
-      configuration = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      configuration = new Configuration(Collections.emptyMap(),
+        Collections.emptyMap());
     }
 
     public TestHostGroup(String name, Collection<String> components, Collection<String> hosts, Configuration configuration) {

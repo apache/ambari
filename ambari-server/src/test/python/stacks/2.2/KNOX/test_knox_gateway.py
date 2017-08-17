@@ -208,7 +208,23 @@ class TestKnoxGateway(RMFTestCase):
     version = "2.3.2.0-5678"
     # This is an RU from 2.3.0.0 to 2.3.2.0
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['current_version'] = source_version
+
+    json_content["upgradeSummary"] = {
+      "services":{
+        "KNOX":{
+          "sourceRepositoryId":1,
+          "sourceStackId":"HDP-2.2",
+          "sourceVersion":source_version,
+          "targetRepositoryId":2,
+          "targetStackId":"HDP-2.3",
+          "targetVersion":version
+        }
+      },
+      "direction":"UPGRADE",
+      "type":"nonrolling_upgrade",
+      "isRevert":False,
+      "orchestration":"STANDARD"
+    }
 
     path_exists_mock.return_value = True
     mocks_dict = {}
@@ -251,7 +267,23 @@ class TestKnoxGateway(RMFTestCase):
     version = "2.3.2.0-1001"
     # This is an RU from 2.3.2.0 to 2.3.2.1
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['current_version'] = source_version
+
+    json_content["upgradeSummary"] = {
+      "services":{
+        "KNOX":{
+          "sourceRepositoryId":1,
+          "sourceStackId":"HDP-2.2",
+          "sourceVersion":source_version,
+          "targetRepositoryId":2,
+          "targetStackId":"HDP-2.3",
+          "targetVersion":version
+        }
+      },
+      "direction":"UPGRADE",
+      "type":"rolling_upgrade",
+      "isRevert":False,
+      "orchestration":"STANDARD"
+    }
 
     path_exists_mock.return_value = True
     mocks_dict = {}

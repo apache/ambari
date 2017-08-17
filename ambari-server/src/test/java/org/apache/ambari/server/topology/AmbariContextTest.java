@@ -191,8 +191,8 @@ public class AmbariContextTest {
     expect(type1Group1.getTag()).andReturn("group1").anyTimes();
     expect(type1Group1.getProperties()).andReturn(group1ResolvedProperties).anyTimes();
     expect(configFactory.createReadOnly(EasyMock.eq("type1"), EasyMock.eq("group1"),
-        EasyMock.<Map<String, String>> anyObject(),
-        EasyMock.<Map<String, Map<String, String>>> anyObject())).andReturn(type1Group1).anyTimes();
+        EasyMock.anyObject(),
+        EasyMock.anyObject())).andReturn(type1Group1).anyTimes();
     replay(type1Group1);
 
     Config type1Service1 = createNiceMock(Config.class);
@@ -200,8 +200,8 @@ public class AmbariContextTest {
     expect(type1Service1.getTag()).andReturn("service1").anyTimes();
     expect(type1Service1.getProperties()).andReturn(type1Props).anyTimes();
     expect(configFactory.createReadOnly(EasyMock.eq("type1"), EasyMock.eq("service1"),
-        EasyMock.<Map<String, String>> anyObject(),
-        EasyMock.<Map<String, Map<String, String>>> anyObject())).andReturn(
+        EasyMock.anyObject(),
+        EasyMock.anyObject())).andReturn(
             type1Service1).anyTimes();
     replay(type1Service1);
 
@@ -434,7 +434,7 @@ public class AmbariContextTest {
   @Test
   public void testRegisterHostWithConfigGroup_createNewConfigGroup() throws Exception {
     // test specific expectations
-    expect(cluster.getConfigGroups()).andReturn(Collections.<Long, ConfigGroup>emptyMap()).once();
+    expect(cluster.getConfigGroups()).andReturn(Collections.emptyMap()).once();
     expect(clusterController.ensureResourceProvider(Resource.Type.ConfigGroup)).andReturn(configGroupResourceProvider).once();
     //todo: for now not using return value so just returning null
     expect(configGroupResourceProvider.createResources(capture(configGroupRequestCapture))).andReturn(null).once();
@@ -474,7 +474,7 @@ public class AmbariContextTest {
   @Test
   public void testRegisterHostWithConfigGroup_createNewConfigGroupWithPendingHosts() throws Exception {
     // test specific expectations
-    expect(cluster.getConfigGroups()).andReturn(Collections.<Long, ConfigGroup>emptyMap()).once();
+    expect(cluster.getConfigGroups()).andReturn(Collections.emptyMap()).once();
     expect(clusterController.ensureResourceProvider(Resource.Type.ConfigGroup)).andReturn(configGroupResourceProvider).once();
     //todo: for now not using return value so just returning null
     expect(configGroupResourceProvider.createResources(capture(configGroupRequestCapture))).andReturn(null).once();
@@ -553,7 +553,7 @@ public class AmbariContextTest {
     replayAll();
 
     // verify that wait returns successfully with empty updated list passed in
-    context.waitForConfigurationResolution(CLUSTER_NAME, Collections.<String>emptySet());
+    context.waitForConfigurationResolution(CLUSTER_NAME, Collections.emptySet());
   }
 
   @Test

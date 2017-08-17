@@ -27,7 +27,6 @@ import java.util.Set;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -77,7 +76,7 @@ public class RootServiceComponentPropertyProviderTest {
       requestIds.add(RootServiceComponentPropertyProvider.JCE_POLICY_PROPERTY_ID);
     }
 
-    Request request = PropertyHelper.getReadRequest(requestIds, new HashMap<String, TemporalInfo>());
+    Request request = PropertyHelper.getReadRequest(requestIds, new HashMap<>());
 
     Set<Resource> resources = propertyProvider.populateResources(Collections.singleton(resource), request, null);
     Assert.assertEquals(1, resources.size());

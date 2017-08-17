@@ -129,7 +129,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
 
       return view.isDeployed() ?
           Collections.singletonMap(viewInstanceEntity.getResource().getId(), viewInstanceEntity) :
-          Collections.<Long, ViewInstanceEntity>emptyMap();
+          Collections.emptyMap();
     }
 
     Set<ViewEntity> viewEntities = new HashSet<>();

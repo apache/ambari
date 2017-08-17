@@ -476,7 +476,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
@@ -602,7 +602,7 @@ public class HeartbeatProcessorTest {
     cr.setRoleCommand("START");
     reports.add(cr);
     hb.setReports(reports);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
@@ -720,7 +720,7 @@ public class HeartbeatProcessorTest {
     cr.setExitCode(777);
     reports.add(cr);
     hb.setReports(reports);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
@@ -795,7 +795,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
 
     List<Map<String, String>> procs = new ArrayList<>();
     Map<String, String> proc1info = new HashMap<>();
@@ -845,7 +845,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(1);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
 
     componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
@@ -1055,8 +1055,7 @@ public class HeartbeatProcessorTest {
   public void testHeartBeatWithAlertAndInvalidCluster() throws Exception {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
 
-    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
-        new ArrayList<HostRoleCommand>());
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<>());
 
     replay(am);
 
@@ -1150,7 +1149,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     StackId stackId = new StackId("HDP", "0.1");
 
@@ -1213,7 +1212,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     StackId stackId = new StackId("HDP", "0.1");
 
@@ -1255,7 +1254,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();

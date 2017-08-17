@@ -55,7 +55,7 @@ public class NotPredicateTest extends EasyMockSupport {
   @Test
   public void testToMap() {
     Predicate mockPredicate = createStrictMock(Predicate.class);
-    expect(mockPredicate.toMap()).andReturn(Collections.<String, Object>singletonMap("nop", "foo")).times(1);
+    expect(mockPredicate.toMap()).andReturn(Collections.singletonMap("nop", "foo")).times(1);
 
     replayAll();
 
@@ -73,7 +73,7 @@ public class NotPredicateTest extends EasyMockSupport {
   @Test
   public void testToJSON() {
     Predicate mockPredicate = createStrictMock(Predicate.class);
-    expect(mockPredicate.toMap()).andReturn(Collections.<String, Object>singletonMap("nop", "foo")).times(1);
+    expect(mockPredicate.toMap()).andReturn(Collections.singletonMap("nop", "foo")).times(1);
 
     replayAll();
 

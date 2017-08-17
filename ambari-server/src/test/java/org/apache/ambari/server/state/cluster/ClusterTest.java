@@ -74,7 +74,6 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AgentVersion;
@@ -259,7 +258,7 @@ public class ClusterTest {
     hostEntities.add(host2);
 
     clusterEntity.setHostEntities(hostEntities);
-    clusterEntity.setClusterConfigEntities(Collections.<ClusterConfigEntity>emptyList());
+    clusterEntity.setClusterConfigEntities(Collections.emptyList());
     //both sides of relation should be set when modifying in runtime
     host1.setClusterEntities(Arrays.asList(clusterEntity));
     host2.setClusterEntities(Arrays.asList(clusterEntity));
@@ -277,7 +276,7 @@ public class ClusterTest {
     clusterServiceEntity.setServiceName("HDFS");
     clusterServiceEntity.setClusterEntity(clusterEntity);
     clusterServiceEntity.setServiceComponentDesiredStateEntities(
-        Collections.<ServiceComponentDesiredStateEntity>emptyList());
+        Collections.emptyList());
 
     ServiceDesiredStateEntity stateEntity = mock(ServiceDesiredStateEntity.class);
 
@@ -936,10 +935,10 @@ public class ClusterTest {
     createDefaultCluster();
 
     Map<String, Map<String, String>> c1PropAttributes = new HashMap<>();
-    c1PropAttributes.put("final", new HashMap<String, String>());
+    c1PropAttributes.put("final", new HashMap<>());
     c1PropAttributes.get("final").put("a", "true");
     Map<String, Map<String, String>> c2PropAttributes = new HashMap<>();
-    c2PropAttributes.put("final", new HashMap<String, String>());
+    c2PropAttributes.put("final", new HashMap<>());
     c2PropAttributes.get("final").put("x", "true");
     Config config1 = configFactory.createNew(c1, "global", "version1",
         new HashMap<String, String>() {{ put("a", "b"); }}, c1PropAttributes);
@@ -948,7 +947,7 @@ public class ClusterTest {
         new HashMap<String, String>() {{ put("x", "y"); }}, c2PropAttributes);
 
     Config config3 = configFactory.createNew(c1, "core-site", "version2",
-        new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<>());
 
     c1.addDesiredConfig("_test", Collections.singleton(config1));
     Config res = c1.getDesiredConfigByType("global");
@@ -970,13 +969,13 @@ public class ClusterTest {
     createDefaultCluster();
 
     Config config1 = configFactory.createNew(c1, "global", "version1",
-        new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
 
     Config config2 = configFactory.createNew(c1, "global", "version2",
-        new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<>());
 
     Config config3 = configFactory.createNew(c1, "core-site", "version2",
-        new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<>());
 
     try {
       c1.addDesiredConfig(null, Collections.singleton(config1));
@@ -1101,10 +1100,10 @@ public class ClusterTest {
     c1.addService("HDFS", repositoryVersion);
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
-      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
 
     Config config2 = configFactory.createNew(c1, "core-site", "version2",
-      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<>());
 
     Set<Config> configs = new HashSet<>();
     configs.add(config1);
@@ -1166,7 +1165,7 @@ public class ClusterTest {
     HostEntity hostEntity1 = hostDAO.findByName("h1");
 
     Map<String, Map<String, String>> propAttributes = new HashMap<>();
-    propAttributes.put("final", new HashMap<String, String>());
+    propAttributes.put("final", new HashMap<>());
     propAttributes.get("final").put("test", "true");
     Config config = configFactory.createNew(c1, "hdfs-site", "1", new HashMap<String, String>(){{
       put("test", "test");
@@ -1206,10 +1205,10 @@ public class ClusterTest {
     createDefaultCluster();
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
-      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
 
     Config config2 = configFactory.createNew(c1, "hdfs-site", "version2",
-      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<>());
 
     c1.addDesiredConfig("admin", Collections.singleton(config1));
     List<ServiceConfigVersionResponse> serviceConfigVersions =
@@ -1264,10 +1263,10 @@ public class ClusterTest {
     createDefaultCluster();
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
-      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
 
     Config config2 = configFactory.createNew(c1, "core-site", "version2",
-      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<>());
 
     Set<Config> configs = new HashSet<>();
     configs.add(config1);
@@ -1297,7 +1296,7 @@ public class ClusterTest {
     c1.addService("HDFS", repositoryVersion);
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
-      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
 
     ServiceConfigVersionResponse scvResponse =
       c1.addDesiredConfig("admin", Collections.singleton(config1));
@@ -1310,11 +1309,11 @@ public class ClusterTest {
 
     //create config group
     Config config2 = configFactory.createNew(c1, "hdfs-site", "version2",
-      new HashMap<String, String>() {{ put("a", "c"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("a", "c"); }}, new HashMap<>());
 
     ConfigGroup configGroup =
       configGroupFactory.createNew(c1, "HDFS", "test group", "HDFS", "descr", Collections.singletonMap("hdfs-site", config2),
-        Collections.<Long, Host>emptyMap());
+        Collections.emptyMap());
 
     c1.addConfigGroup(configGroup);
 
@@ -1327,7 +1326,7 @@ public class ClusterTest {
       2, activeServiceConfigVersions.get("HDFS").size());
 
     Config config3 = configFactory.createNew(c1, "hdfs-site", "version3",
-      new HashMap<String, String>() {{ put("a", "d"); }}, new HashMap<String, Map<String,String>>());
+      new HashMap<String, String>() {{ put("a", "d"); }}, new HashMap<>());
 
     configGroup.setConfigurations(Collections.singletonMap("hdfs-site", config3));
 
@@ -1367,7 +1366,7 @@ public class ClusterTest {
     ConfigGroup configGroup2 =
         configGroupFactory.createNew(c1, "HDFS", "test group 2", "HDFS", "descr",
             new HashMap<>(Collections.singletonMap("hdfs-site", config4)),
-            Collections.<Long, Host>emptyMap());
+            Collections.emptyMap());
 
     c1.addConfigGroup(configGroup2);
 
@@ -1386,7 +1385,7 @@ public class ClusterTest {
     createDefaultCluster();
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
-        ImmutableMap.of("p1", "v1"), ImmutableMap.<String, Map<String,String>>of());
+        ImmutableMap.of("p1", "v1"), ImmutableMap.of());
 
     ServiceConfigVersionResponse hdfsSiteConfigResponseV1 = c1.addDesiredConfig("admin", Collections.singleton(hdfsSiteConfigV1));
     List<ConfigurationResponse> configResponsesDefaultGroup =  Collections.singletonList(
@@ -1398,9 +1397,9 @@ public class ClusterTest {
     hdfsSiteConfigResponseV1.setConfigurations(configResponsesDefaultGroup);
 
     Config hdfsSiteConfigV2 = configFactory.createNew(c1, "hdfs-site", "version2",
-        ImmutableMap.of("p1", "v2"), ImmutableMap.<String, Map<String,String>>of());
+        ImmutableMap.of("p1", "v2"), ImmutableMap.of());
 
-    ConfigGroup configGroup = configGroupFactory.createNew(c1, "HDFS", "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
+    ConfigGroup configGroup = configGroupFactory.createNew(c1, "HDFS", "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.of());
 
     c1.addConfigGroup(configGroup);
     ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
@@ -1445,7 +1444,7 @@ public class ClusterTest {
     createDefaultCluster();
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
-        ImmutableMap.of("p1", "v1"), ImmutableMap.<String, Map<String,String>>of());
+        ImmutableMap.of("p1", "v1"), ImmutableMap.of());
 
     ServiceConfigVersionResponse hdfsSiteConfigResponseV1 = c1.addDesiredConfig("admin", Collections.singleton(hdfsSiteConfigV1));
     List<ConfigurationResponse> configResponsesDefaultGroup =  Collections.singletonList(
@@ -1457,9 +1456,9 @@ public class ClusterTest {
     hdfsSiteConfigResponseV1.setConfigurations(configResponsesDefaultGroup);
 
     Config hdfsSiteConfigV2 = configFactory.createNew(c1, "hdfs-site", "version2",
-        ImmutableMap.of("p1", "v2"), ImmutableMap.<String, Map<String,String>>of());
+        ImmutableMap.of("p1", "v2"), ImmutableMap.of());
 
-    ConfigGroup configGroup = configGroupFactory.createNew(c1, "HDFS", "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
+    ConfigGroup configGroup = configGroupFactory.createNew(c1, "HDFS", "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.of());
 
     c1.addConfigGroup(configGroup);
     ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
@@ -1940,14 +1939,14 @@ public class ClusterTest {
           {
             put("one", "two");
           }
-        }, new HashMap<String, Map<String, String>>());
+        }, new HashMap<>());
 
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS", "g1", "t1", "",
         new HashMap<String, Config>() {
           {
             put("foo-site", originalConfig);
           }
-        }, Collections.<Long, Host> emptyMap());
+        }, Collections.emptyMap());
 
     cluster.addConfigGroup(configGroup);
 

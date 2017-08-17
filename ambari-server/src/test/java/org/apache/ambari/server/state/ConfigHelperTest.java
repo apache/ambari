@@ -520,7 +520,7 @@ public class ConfigHelperTest {
       config1Attributes.put("attribute1", attributes);
 
       final Config config1 = configFactory.createNew(cluster, "core-site3", "version122",
-          new HashMap<String, String>(), config1Attributes);
+        new HashMap<>(), config1Attributes);
 
       attributes = new HashMap<>();
       attributes.put("namenode_heapsize", "z");
@@ -529,7 +529,7 @@ public class ConfigHelperTest {
       config2Attributes.put("attribute2", attributes);
 
       final Config config2 = configFactory.createNew(cluster, "global3", "version122",
-          new HashMap<String, String>(), config2Attributes);
+        new HashMap<>(), config2Attributes);
 
       Long groupId = addConfigGroup("g3", "t1", new ArrayList<String>() {{
         add("h3");
@@ -799,7 +799,7 @@ public class ConfigHelperTest {
       confGroupAttributes.put("final", confGroupFinalAttrs);
 
       Config overrideConfig = configFactory.createNew(cluster, "type", "version122",
-          new HashMap<String,String>(), confGroupAttributes);
+        new HashMap<>(), confGroupAttributes);
 
       Map<String, Map<String, String>> result
           = configHelper.overrideAttributes(overrideConfig, persistedAttributes);
@@ -958,7 +958,7 @@ public class ConfigHelperTest {
       List<Config> configs = new ArrayList<>();
 
       Config configImpl = configFactory.createNew(cluster, "flume-conf", "FLUME1",
-          new HashMap<String,String>(), null);
+        new HashMap<>(), null);
 
       configs.add(configImpl);
       addConfigGroup("configGroup1", "FLUME", hosts, configs);

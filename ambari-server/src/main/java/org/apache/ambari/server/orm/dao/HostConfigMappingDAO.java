@@ -253,7 +253,7 @@ public class HostConfigMappingDAO {
     
     for (String type : types) {
       if (!mappingsByType.containsKey(type)) {
-        mappingsByType.put(type, new ArrayList<HostConfigMapping>());
+        mappingsByType.put(type, new ArrayList<>());
       }
     }
 

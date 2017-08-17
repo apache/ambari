@@ -558,7 +558,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     // return null to simulate an error occurring during the LogSearch data request
-    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(Collections.<String>emptySet());
+    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(Collections.emptySet());
     // expect that the completed request is removed from the current request set,
     // even in the event of a failure to obtain the LogSearch data
     expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();

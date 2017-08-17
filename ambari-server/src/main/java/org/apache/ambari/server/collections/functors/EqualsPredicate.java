@@ -103,7 +103,7 @@ public class EqualsPredicate extends OperationPredicate {
 
   @Override
   public Map<String, Object> toMap() {
-    return Collections.<String, Object>singletonMap(NAME,
+    return Collections.singletonMap(NAME,
       new ArrayList<>(Arrays.asList(getContextKey(), delegate.getValue().toString())));
   }
 

@@ -31,6 +31,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,6 +156,9 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("componentVersionMap")
   private Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
+
+  @SerializedName("upgradeSummary")
+  private UpgradeSummary upgradeSummary;
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
@@ -500,23 +504,13 @@ public class ExecutionCommand extends AgentCommand {
     /**
      * The version of the component to send down with the command. Normally,
      * this is simply the repository version of the component. However, during
-     * ugprades, this value may change depending on the progress of the upgrade
+     * upgrades, this value may change depending on the progress of the upgrade
      * and the type/direction.
      */
     @Experimental(
         feature = ExperimentalFeature.PATCH_UPGRADES,
         comment = "Change this to reflect the component version")
     String VERSION = "version";
-
-    /**
-     * Put on hostLevelParams to indicate the version that the component should
-     * be.
-     */
-    @Deprecated
-    @Experimental(
-        feature = ExperimentalFeature.PATCH_UPGRADES,
-        comment = "This should be replaced by a map of all service component versions")
-    String CURRENT_VERSION = "current_version";
   }
 
   /**
@@ -551,5 +545,24 @@ public class ExecutionCommand extends AgentCommand {
     }
 
     this.componentVersionMap = componentVersionMap;
+  }
+
+  /**
+   * Sets the upgrade summary if there is an active upgrade in the cluster.
+   *
+   * @param upgradeSummary
+   *          the upgrade or {@code null} for none.
+   */
+  public void setUpgradeSummary(UpgradeSummary upgradeSummary) {
+    this.upgradeSummary = upgradeSummary;
+  }
+
+  /**
+   * Gets the upgrade summary if there is an active upgrade in the cluster.
+   *
+   * @return the upgrade or {@code null} for none.
+   */
+  public UpgradeSummary getUpgradeSummary() {
+    return upgradeSummary;
   }
 }

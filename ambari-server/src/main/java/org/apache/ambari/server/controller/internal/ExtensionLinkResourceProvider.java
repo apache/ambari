@@ -120,7 +120,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
 
     final Set<ExtensionLinkRequest> requests = new HashSet<>();
     if (predicate == null) {
-      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+      requests.add(getRequest(Collections.emptyMap()));
     } else {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));
@@ -159,7 +159,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
 
     final Set<ExtensionLinkRequest> requests = new HashSet<>();
     if (predicate == null) {
-      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+      requests.add(getRequest(Collections.emptyMap()));
     } else {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));

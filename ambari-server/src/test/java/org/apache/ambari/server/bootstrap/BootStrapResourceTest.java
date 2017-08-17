@@ -110,7 +110,7 @@ public class BootStrapResourceTest extends JerseyTest {
     BootStrapStatus status = new BootStrapStatus();
     status.setLog("Logging ");
     status.setStatus(BSStat.ERROR);
-    status.setHostsStatus(new ArrayList<BSHostStatus>());
+    status.setHostsStatus(new ArrayList<>());
     return status;
   }
 

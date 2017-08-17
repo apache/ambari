@@ -258,7 +258,7 @@ public class AmbariCustomCommandExecutionHelperTest {
            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))
        ),
        new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
-        new HashMap<String, String>(), false);
+      new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
 
@@ -293,7 +293,7 @@ public class AmbariCustomCommandExecutionHelperTest {
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
         new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
-        new HashMap<String, String>(), false);
+      new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
 
@@ -330,7 +330,7 @@ public class AmbariCustomCommandExecutionHelperTest {
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
         new RequestOperationLevel(Resource.Type.Host, "c1", "GANGLIA", null, null),
-        new HashMap<String, String>(), false);
+      new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
 
@@ -376,7 +376,7 @@ public class AmbariCustomCommandExecutionHelperTest {
         Collections.singletonList("c6402"))),
 
         new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
-        new HashMap<String, String>(), false);
+      new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
     ambariManagementController.createAction(actionRequest, requestProperties);
@@ -416,7 +416,7 @@ public class AmbariCustomCommandExecutionHelperTest {
         Collections.singletonList("c6402"))),
 
         new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
-        new HashMap<String, String>(), false);
+      new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
     ambariManagementController.createAction(actionRequest, requestProperties);
@@ -434,7 +434,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
     Stage stage = EasyMock.niceMock(Stage.class);
 
-    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>(), null);
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
 
     Assert.fail("Expected an exception since there are no hosts which can run the Flume service check");
   }
@@ -469,7 +469,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
     EasyMock.replay(configHelper, stage, execCmdWrapper, execCmd);
 
-    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>(), null);
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
     Map<String, String> configMap = timeOutCapture.getValues().get(0);
     for (Map.Entry<String, String> config : configMap.entrySet()) {
       if (config.getKey().equals(ExecutionCommand.KeyNames.COMMAND_TIMEOUT)) {
@@ -519,7 +519,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
     EasyMock.replay(configHelper, stage, execCmdWrapper, execCmd);
 
-    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>(), null);
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
   }
 
   @Test

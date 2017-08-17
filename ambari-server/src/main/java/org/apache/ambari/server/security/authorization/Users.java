@@ -792,7 +792,7 @@ public class Users {
       // make sure user entities are refreshed so that membership is updated
       userEntity = userDAO.findByPK(userEntity.getUserId());
 
-      usersToGroups.put(userEntity.getUserName(), new HashSet<String>());
+      usersToGroups.put(userEntity.getUserName(), new HashSet<>());
 
       for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
         usersToGroups.get(userEntity.getUserName()).add(memberEntity.getGroup().getGroupName());

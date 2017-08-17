@@ -331,12 +331,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       debug("Received a createComponent request: {}", request);
 
       if (!componentNames.containsKey(request.getClusterName())) {
-        componentNames.put(request.getClusterName(), new HashMap<String, Set<String>>());
+        componentNames.put(request.getClusterName(), new HashMap<>());
       }
 
       Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
       if (!serviceComponents.containsKey(request.getServiceName())) {
-        serviceComponents.put(request.getServiceName(), new HashSet<String>());
+        serviceComponents.put(request.getServiceName(), new HashSet<>());
       }
 
       if (serviceComponents.get(request.getServiceName()).contains(request.getComponentName())) {
@@ -568,10 +568,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Validate.isTrue(clusterNames.size() == 1, "Updates to multiple clusters is not supported");
 
       if (!componentNames.containsKey(clusterName)) {
-        componentNames.put(clusterName, new HashMap<String, Set<String>>());
+        componentNames.put(clusterName, new HashMap<>());
       }
       if (!componentNames.get(clusterName).containsKey(serviceName)) {
-        componentNames.get(clusterName).put(serviceName, new HashSet<String>());
+        componentNames.get(clusterName).put(serviceName, new HashSet<>());
       }
       if (componentNames.get(clusterName).get(serviceName).contains(componentName)){
         // throw error later for dup
@@ -642,7 +642,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
 
         if (!changedComps.containsKey(newState)) {
-          changedComps.put(newState, new ArrayList<ServiceComponent>());
+          changedComps.put(newState, new ArrayList<>());
         }
         debug("Handling update to ServiceComponent"
               + ", clusterName=" + clusterName
@@ -709,10 +709,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", newDesiredState=" + newState);
         }
         if (!changedScHosts.containsKey(sc.getName())) {
-          changedScHosts.put(sc.getName(), new HashMap<State, List<ServiceComponentHost>>());
+          changedScHosts.put(sc.getName(), new HashMap<>());
         }
         if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
-          changedScHosts.get(sc.getName()).put(newState, new ArrayList<ServiceComponentHost>());
+          changedScHosts.get(sc.getName()).put(newState, new ArrayList<>());
         }
 
         debug("Handling update to ServiceComponentHost"

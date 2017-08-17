@@ -49,7 +49,7 @@ public class LdapSyncRequest {
    */
   public LdapSyncRequest(LdapSyncSpecEntity.SyncType type, Set<String> principalNames) {
     this.type  = type;
-    this.principalNames = principalNames == null ? new HashSet<String>() : principalNames;
+    this.principalNames = principalNames == null ? new HashSet<>() : principalNames;
   }
 
   /**

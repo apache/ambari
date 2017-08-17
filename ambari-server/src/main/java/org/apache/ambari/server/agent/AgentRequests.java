@@ -71,7 +71,7 @@ public class AgentRequests {
     if (!requiresExecCmdDetails.containsKey(host)) {
       synchronized (_lock) {
         if (!requiresExecCmdDetails.containsKey(host)) {
-          requiresExecCmdDetails.put(host, new HashMap<String, Boolean>());
+          requiresExecCmdDetails.put(host, new HashMap<>());
         }
       }
     }

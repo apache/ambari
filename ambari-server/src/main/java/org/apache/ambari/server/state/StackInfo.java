@@ -85,7 +85,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   /**
   * List of services withnot configurations
   * */
-  private List<String> servicesWithNoConfigs = new ArrayList<String>();
+  private List<String> servicesWithNoConfigs = new ArrayList<>();
 
   public String getMinJdk() {
     return minJdk;
@@ -247,7 +247,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    */
   public synchronized Map<String, Map<String, Map<String, String>>> getConfigTypeAttributes() {
     return configTypes == null ?
-        Collections.<String, Map<String, Map<String, String>>>emptyMap() :
+        Collections.emptyMap() :
         Collections.unmodifiableMap(configTypes);
   }
 
@@ -344,7 +344,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
         isActive(), getParentStackVersion(), getConfigTypeAttributes(),
         (stackDescriptorFileFilePath == null) ? null : new File(stackDescriptorFileFilePath),
         serviceDescriptorFiles,
-        null == upgradePacks ? Collections.<String>emptySet() : upgradePacks.keySet(),
+        null == upgradePacks ? Collections.emptySet() : upgradePacks.keySet(),
         isValid(), getErrors(), getMinJdk(), getMaxJdk());
   }
 
@@ -515,7 +515,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
             Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
             for (PropertyInfo.PropertyType propertyType : types) {
               if (!propertiesTypes.containsKey(propertyType))
-                propertiesTypes.put(propertyType, new HashSet<String>());
+                propertiesTypes.put(propertyType, new HashSet<>());
               propertiesTypes.get(propertyType).add(propertyInfo.getName());
             }
           }
@@ -551,10 +551,10 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
         String hidden = pi.getPropertyValueAttributes().getHidden();
         if(hidden != null){
           if(!result.containsKey(propertyConfigType)){
-            result.put(propertyConfigType, new HashMap<String, Map<String, String>>());
+            result.put(propertyConfigType, new HashMap<>());
           }
           if(!result.get(propertyConfigType).containsKey("hidden")){
-            result.get(propertyConfigType).put("hidden", new HashMap<String, String>());
+            result.get(propertyConfigType).put("hidden", new HashMap<>());
           }
           result.get(propertyConfigType).get("hidden").put(propertyName, hidden);
         }

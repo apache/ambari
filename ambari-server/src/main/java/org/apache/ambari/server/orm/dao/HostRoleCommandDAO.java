@@ -430,7 +430,7 @@ public class HostRoleCommandDAO {
 
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       if (!hostCommands.containsKey(commandEntity.getHostName())) {
-        hostCommands.put(commandEntity.getHostName(), new ArrayList<HostRoleCommandEntity>());
+        hostCommands.put(commandEntity.getHostName(), new ArrayList<>());
       }
 
       hostCommands.get(commandEntity.getHostName()).add(commandEntity);

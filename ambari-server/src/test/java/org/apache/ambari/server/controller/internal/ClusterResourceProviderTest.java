@@ -152,7 +152,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn(null)
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
       .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
@@ -185,7 +185,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
     expect(topologyRequest.getBlueprint()).andReturn(blueprint).anyTimes();
@@ -212,7 +212,7 @@ public class ClusterResourceProviderTest {
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
     expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
-    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
@@ -501,7 +501,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn(null)
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
@@ -600,7 +600,7 @@ public class ClusterResourceProviderTest {
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController.getClusters(EasyMock.anyObject())).andReturn(nameResponse).once();
     expect(managementController.updateClusters(
         AbstractResourceProviderTest.Matcher.getClusterRequestSet(102L, "Cluster102", State.INSTALLED.name(), SecurityType.NONE, "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
@@ -668,7 +668,7 @@ public class ClusterResourceProviderTest {
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).times(2);
+    expect(managementController.getClusters(EasyMock.anyObject())).andReturn(nameResponse).times(2);
     expect(managementController.updateClusters(Collections.singleton(EasyMock.anyObject(ClusterRequest.class)),
         eq(mapRequestProps))).andReturn(response).times(1);
     expect(managementController.getClusterUpdateResults(anyObject(ClusterRequest.class))).andReturn(null).anyTimes();
@@ -842,7 +842,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn(null)
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();

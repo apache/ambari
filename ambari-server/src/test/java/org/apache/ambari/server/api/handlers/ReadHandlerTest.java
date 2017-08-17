@@ -158,7 +158,7 @@ public class ReadHandlerTest {
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getBody()).andReturn(null);
-    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getFields()).andReturn(Collections.emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
@@ -194,7 +194,7 @@ public class ReadHandlerTest {
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getBody()).andReturn(null);
-    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getFields()).andReturn(Collections.emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
@@ -231,7 +231,7 @@ public class ReadHandlerTest {
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getBody()).andReturn(null);
-    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getFields()).andReturn(Collections.emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
@@ -267,7 +267,7 @@ public class ReadHandlerTest {
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getBody()).andReturn(null);
-    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getFields()).andReturn(Collections.emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate).anyTimes();
     query.setUserPredicate(predicate);
@@ -302,7 +302,7 @@ public class ReadHandlerTest {
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getBody()).andReturn(null);
-    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getFields()).andReturn(Collections.emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(null).anyTimes();
     query.setUserPredicate(null);
@@ -338,7 +338,7 @@ public class ReadHandlerTest {
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
     expect(request.getBody()).andReturn(null);
-    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getFields()).andReturn(Collections.emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);

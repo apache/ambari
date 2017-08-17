@@ -122,7 +122,7 @@ public class ConfigUpgradePack {
     for (ConfigUpgradePack configUpgradePack : cups) {
       for (AffectedService service : configUpgradePack.services) {
         if (! mergedServiceMap.containsKey(service.name)) {
-          mergedServiceMap.put(service.name, new HashMap<String, AffectedComponent>());
+          mergedServiceMap.put(service.name, new HashMap<>());
         }
         Map<String, AffectedComponent> mergedComponentMap = mergedServiceMap.get(service.name);
 

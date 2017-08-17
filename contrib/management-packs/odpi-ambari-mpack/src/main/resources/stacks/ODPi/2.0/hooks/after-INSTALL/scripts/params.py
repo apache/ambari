@@ -39,9 +39,6 @@ sudo = AMBARI_SUDO_BINARY
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-# current host stack version
-current_version = default("/hostLevelParams/current_version", None)
-
 # default hadoop params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")

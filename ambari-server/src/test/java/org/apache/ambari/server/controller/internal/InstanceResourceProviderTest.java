@@ -59,7 +59,7 @@ public class InstanceResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
     InstanceResourceProvider provider = new InstanceResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRInstance),
@@ -104,7 +104,7 @@ public class InstanceResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
     InstanceResourceProvider provider = new InstanceResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRInstance),
@@ -145,7 +145,7 @@ public class InstanceResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
     InstanceResourceProvider provider = new InstanceResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRInstance),

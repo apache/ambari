@@ -89,8 +89,8 @@ public class StateRecoveryManagerTest {
       getHostVersionMock("install_failed_version", RepositoryVersionState.INSTALL_FAILED, installFailedHostVersionCapture),
       getHostVersionMock("installing_version", RepositoryVersionState.INSTALLING, installingHostVersionCapture),
       getHostVersionMock("installed_version", RepositoryVersionState.INSTALLED, installedHostVersionCapture),
-      getHostVersionMock("out_of_sync_version", RepositoryVersionState.OUT_OF_SYNC, outOfSyncHostVersionCapture),
-      getHostVersionMock("current_version", RepositoryVersionState.CURRENT, currentHostVersionCapture)));
+        getHostVersionMock("out_of_sync_version", RepositoryVersionState.OUT_OF_SYNC,
+            outOfSyncHostVersionCapture)));
 
     // Adding all possible cluster version states
 
@@ -101,14 +101,13 @@ public class StateRecoveryManagerTest {
     final Capture<RepositoryVersionState> upgradeFailedClusterVersionCapture = EasyMock.newCapture();
     final Capture<RepositoryVersionState> upgradingClusterVersionCapture = EasyMock.newCapture();
     final Capture<RepositoryVersionState> upgradedClusterVersionCapture = EasyMock.newCapture();
-    final Capture<RepositoryVersionState> currentClusterVersionCapture = EasyMock.newCapture();
 
     expect(serviceComponentDesiredStateDAOMock.findAll()).andReturn(Lists.newArrayList(
       getDesiredStateEntityMock("install_failed_version", RepositoryVersionState.INSTALL_FAILED, installFailedClusterVersionCapture),
       getDesiredStateEntityMock("installing_version", RepositoryVersionState.INSTALLING, installingClusterVersionCapture),
       getDesiredStateEntityMock("installed_version", RepositoryVersionState.INSTALLED, installedClusterVersionCapture),
-      getDesiredStateEntityMock("out_of_sync_version", RepositoryVersionState.OUT_OF_SYNC, outOfSyncClusterVersionCapture),
-      getDesiredStateEntityMock("current_version", RepositoryVersionState.CURRENT, currentClusterVersionCapture)));
+        getDesiredStateEntityMock("out_of_sync_version", RepositoryVersionState.OUT_OF_SYNC,
+            outOfSyncClusterVersionCapture)));
 
     replay(hostVersionDAOMock, serviceComponentDesiredStateDAOMock);
 
@@ -132,7 +131,6 @@ public class StateRecoveryManagerTest {
     assertFalse(upgradeFailedClusterVersionCapture.hasCaptured());
     assertFalse(upgradingClusterVersionCapture.hasCaptured());
     assertFalse(upgradedClusterVersionCapture.hasCaptured());
-    assertFalse(currentClusterVersionCapture.hasCaptured());
   }
 
 

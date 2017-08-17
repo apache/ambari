@@ -136,7 +136,7 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
 
     EasyMock.expect(
         dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject())).andReturn(
-            new ArrayList<AlertNoticeEntity>()).once();
+      new ArrayList<>()).once();
 
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
@@ -507,7 +507,7 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
 
     EasyMock.expect(
         dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject())).andReturn(
-            new ArrayList<AlertNoticeEntity>()).once();
+      new ArrayList<>()).once();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
     AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);

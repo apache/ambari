@@ -90,7 +90,7 @@ public class RoleCommandOrder implements Cloneable {
     RoleCommandPair rcp2 = new RoleCommandPair(blockerRole, blockerCommand);
 
     if (dependencies.get(rcp1) == null || overrideExisting) {
-      dependencies.put(rcp1, new HashSet<RoleCommandPair>());
+      dependencies.put(rcp1, new HashSet<>());
     }
 
     dependencies.get(rcp1).add(rcp2);

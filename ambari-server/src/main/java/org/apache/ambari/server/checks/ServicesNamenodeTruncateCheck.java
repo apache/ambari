@@ -58,7 +58,7 @@ public class ServicesNamenodeTruncateCheck extends AbstractCheckDescriptor {
    */
   @Override
   public List<CheckQualification> getQualifications() {
-    return Arrays.<CheckQualification> asList(
+    return Arrays.asList(
         new PriorCheckQualification(CheckDescription.SERVICES_NAMENODE_HA));
   }
 

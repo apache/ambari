@@ -30,7 +30,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
@@ -132,7 +131,7 @@ public class SecondaryNamenodeDeletedCheckTest {
     final ServiceComponent serviceComponent = Mockito.mock(ServiceComponent.class);
     Mockito.when(cluster.getService("HDFS")).thenReturn(service);
     Mockito.when(service.getServiceComponent("SECONDARY_NAMENODE")).thenReturn(serviceComponent);
-    Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.<String, ServiceComponentHost>singletonMap("host", null));
+    Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.singletonMap("host", null));
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     secondaryNamenodeDeletedCheck.perform(check, new PrereqCheckRequest("cluster"));
@@ -140,7 +139,7 @@ public class SecondaryNamenodeDeletedCheckTest {
     Assert.assertEquals("HDFS", check.getFailedOn().toArray(new String[1])[0]);
     Assert.assertEquals("The SNameNode component must be deleted from host: host.", check.getFailReason());
 
-    Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.<String, ServiceComponentHost> emptyMap());
+    Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.emptyMap());
     check = new PrerequisiteCheck(null, null);
     secondaryNamenodeDeletedCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());

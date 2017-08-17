@@ -371,7 +371,7 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     Request request = createMock(Request.class);
     expect(request.getPropertyIds()).andReturn(null).atLeastOnce();
-    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap()).atLeastOnce();
+    expect(request.getRequestInfoProperties()).andReturn(Collections.emptyMap()).atLeastOnce();
 
     replayAll();
 

@@ -75,7 +75,6 @@ stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature
 stack_supports_ranger_solr_configs = check_stack_feature(StackFeature.RANGER_SOLR_CONFIG_SUPPORT, version_for_stack_feature_checks)
 stack_supports_secure_ssl_password = check_stack_feature(StackFeature.SECURE_RANGER_SSL_PASSWORD, version_for_stack_feature_checks)
 
-downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 ranger_conf    = '/etc/ranger/admin/conf'

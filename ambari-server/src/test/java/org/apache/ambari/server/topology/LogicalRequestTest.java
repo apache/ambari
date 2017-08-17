@@ -36,7 +36,6 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
-import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -159,7 +158,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost1Matched.setId(1L);
     hostRequestEntityHost1Matched.setHostName(host1.getFqdn()); //host request matched host1
     hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host1.getFqdn()))).andReturn(true).anyTimes();
 
 
@@ -167,20 +166,20 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost2Matched.setId(2L);
     hostRequestEntityHost2Matched.setHostName(host2.getFqdn()); // host request matched host2
     hostRequestEntityHost2Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host2.getFqdn()))).andReturn(true).anyTimes();
 
     // host request that hasn't been matched to any registered host yet
     TopologyHostRequestEntity hostRequestEntityHost3NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost3NotMatched.setId(3L);
     hostRequestEntityHost3NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host3.getFqdn()))).andReturn(false).anyTimes();
 
     TopologyHostRequestEntity hostRequestEntityHost4NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost4NotMatched.setId(4L);
     hostRequestEntityHost4NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host4.getFqdn()))).andReturn(false).anyTimes();
 
     Collection<TopologyHostRequestEntity> reservedHostRequestEntities = ImmutableSet.of(
@@ -262,7 +261,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost1Matched.setId(1L);
     hostRequestEntityHost1Matched.setHostName("host1"); //host request matched host1
     hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host1"))).andReturn(true).anyTimes();
 
 
@@ -270,20 +269,20 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost2Matched.setId(2L);
     hostRequestEntityHost2Matched.setHostName("host2"); // host request matched host2
     hostRequestEntityHost2Matched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host2"))).andReturn(true).anyTimes();
 
     // host request that hasn't been matched to any registered host yet
     TopologyHostRequestEntity hostRequestEntityHost3NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost3NotMatched.setId(3L);
     hostRequestEntityHost3NotMatched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host3"))).andReturn(false).anyTimes();
 
     TopologyHostRequestEntity hostRequestEntityHost4NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost4NotMatched.setId(4L);
     hostRequestEntityHost4NotMatched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host4"))).andReturn(false).anyTimes();
 
     Collection<TopologyHostRequestEntity> reservedHostRequestEntities = ImmutableSet.of(
@@ -372,7 +371,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost1Matched.setId(1L);
     hostRequestEntityHost1Matched.setHostName(host1.getFqdn()); //host request matched host1
     hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host1.getFqdn()))).andReturn(true).anyTimes();
 
 
@@ -380,14 +379,14 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost2Matched.setId(2L);
     hostRequestEntityHost2Matched.setHostName(host2.getFqdn()); // host request matched host2
     hostRequestEntityHost2Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host2.getFqdn()))).andReturn(true).anyTimes();
 
     // host request that hasn't been matched to any registered host yet
     TopologyHostRequestEntity hostRequestEntityHost3NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost3NotMatched.setId(3L);
     hostRequestEntityHost3NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host3.getFqdn()))).andReturn(false).anyTimes();
 
 
@@ -395,7 +394,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost4Matched.setId(4L);
     hostRequestEntityHost4Matched.setHostName(host4.getFqdn()); // host request matched host4
     hostRequestEntityHost4Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost4Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost4Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host4.getFqdn()))).andReturn(true).anyTimes();
 
     Collection<TopologyHostRequestEntity> reservedHostRequestEntities = ImmutableSet.of(
@@ -486,7 +485,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost1Matched.setId(1L);
     hostRequestEntityHost1Matched.setHostName(host1.getFqdn()); //host request matched host1
     hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host1.getFqdn()))).andReturn(true).anyTimes();
 
 
@@ -494,7 +493,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     TopologyHostRequestEntity hostRequestEntityHost2NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost2NotMatched.setId(2L);
     hostRequestEntityHost2NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost2NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost2NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host2.getFqdn()))).andReturn(false).anyTimes();
 
 
@@ -590,7 +589,7 @@ public class LogicalRequestTest extends EasyMockSupport {
       TopologyHostRequestEntity hostRequestEntity = new TopologyHostRequestEntity();
       hostRequestEntity.setId(i);
       hostRequestEntity.setTopologyHostGroupEntity(hostGroupEntity);
-      hostRequestEntity.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+      hostRequestEntity.setTopologyHostTaskEntities(Collections.emptySet());
       hostRequests.add(hostRequestEntity);
     }
 

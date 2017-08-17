@@ -409,7 +409,7 @@ public class ViewConfig {
    * @return the list of parameters
    */
   public List<ParameterConfig> getParameters() {
-    return parameters == null ? Collections.<ParameterConfig>emptyList() : parameters;
+    return parameters == null ? Collections.emptyList() : parameters;
   }
 
   /**
@@ -418,7 +418,7 @@ public class ViewConfig {
    * @return return the list of resources
    */
   public List<ResourceConfig> getResources() {
-    return resources == null ? Collections.<ResourceConfig>emptyList() : resources;
+    return resources == null ? Collections.emptyList() : resources;
   }
 
   /**
@@ -436,7 +436,7 @@ public class ViewConfig {
    * @return the list of view instances
    */
   public List<InstanceConfig> getInstances() {
-    return instances == null ? Collections.<InstanceConfig>emptyList() : instances;
+    return instances == null ? Collections.emptyList() : instances;
   }
 
   /**
@@ -454,7 +454,7 @@ public class ViewConfig {
    * @return the list of custom permissions
    */
   public List<PermissionConfig> getPermissions() {
-    return permissions == null ? Collections.<PermissionConfig>emptyList() : permissions;
+    return permissions == null ? Collections.emptyList() : permissions;
   }
 
   /**

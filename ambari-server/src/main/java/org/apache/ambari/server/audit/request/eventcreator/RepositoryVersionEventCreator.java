@@ -162,7 +162,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
         Map<?, ?> map = (Map<?, ?>) entry;
         String osType = (String) map.get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
         if (!result.containsKey(osType)) {
-          result.put(osType, new LinkedList<Map<String, String>>());
+          result.put(osType, new LinkedList<>());
         }
         if (map.get("repositories") instanceof Set) {
           Set<?> repos = (Set<?>) map.get("repositories");

@@ -63,7 +63,7 @@ public class LdapSyncEventEntityTest {
   public void testSetGetSpecs() throws Exception {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
     LdapSyncSpecEntity spec = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.GROUPS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.<String>emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
 
     event.setSpecs(Collections.singletonList(spec));
 

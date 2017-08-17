@@ -32,7 +32,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
-import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -84,7 +83,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
     expect(osFamily.os_list()).andReturn(Collections.singleton("centos6")).anyTimes();
 
     ExtensionLinkDAO linkDao = injector.getInstance(ExtensionLinkDAO.class);
-    expect(linkDao.findByStack(anyString(), anyString())).andReturn(Collections.<ExtensionLinkEntity>emptyList()).anyTimes();
+    expect(linkDao.findByStack(anyString(), anyString())).andReturn(Collections.emptyList()).anyTimes();
 
     TypedQuery<StackEntity> query = createNiceMock(TypedQuery.class);
     expect(query.setMaxResults(1)).andReturn(query).anyTimes();
