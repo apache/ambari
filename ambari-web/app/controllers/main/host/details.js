@@ -364,13 +364,17 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var dfd = $.Deferred();
     var miscController = App.MainAdminServiceAccountsController.create();
     miscController.loadUsers();
-    var interval = setInterval(function () {
+    miscController.addObserver('dataIsLoaded', this, function() {
       if (miscController.get('dataIsLoaded') && miscController.get('users')) {
-        self.set('hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
+        if (miscController.get('users').someProperty('name', 'hdfs_user')) {
+          self.set('hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
+        } else {
+          self.set('hdfsUser', '&lt;hdfs-user&gt;');
+        }
         dfd.resolve();
-        clearInterval(interval);
+        miscController.destroy();
       }
-    }, 10);
+    });
     return dfd.promise();
   },
 
