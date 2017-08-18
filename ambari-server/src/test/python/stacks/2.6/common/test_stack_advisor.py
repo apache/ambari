@@ -990,6 +990,22 @@ class TestHDP26StackAdvisor(TestCase):
       },
       "hive-atlas-application.properties" : {
         "properties": {}
+      },
+      "druid-coordinator": {
+        "properties": {'druid.port': 8081}
+      },
+      "druid-broker": {
+        "properties": {'druid.port': 8082}
+      },
+      "druid-common": {
+        "properties": {
+          "database_name": "druid",
+          "metastore_hostname": "c6401.ambari.apache.org",
+          "druid.metadata.storage.type": "mysql",
+          'druid.metadata.storage.connector.port': '3306',
+          'druid.metadata.storage.connector.user': 'druid',
+          'druid.metadata.storage.connector.connectURI': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true'
+        }
       }
     }
 
@@ -1053,6 +1069,37 @@ class TestHDP26StackAdvisor(TestCase):
               "service_version": "0.7.0"
             },
             "components": []
+          },
+          {
+            "StackServices": {
+              "service_name": "DRUID",
+            },
+            "components": [
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_COORDINATOR",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              },
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_OVERLORD",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              },
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_BROKER",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              },
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_ROUTER",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              }
+            ]
           }
         ],
       "Versions": {
@@ -1143,7 +1190,12 @@ class TestHDP26StackAdvisor(TestCase):
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.optimize.sort.dynamic.partition': 'false',
-          'hive.server2.enable.doAs': 'false'
+          'hive.server2.enable.doAs': 'false',
+          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
+          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
+          'hive.druid.metadata.db.type': 'mysql',
+          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
+          'hive.druid.metadata.username': 'druid',
         },
         'property_attributes': {
           'hive.tez.container.size': {
@@ -1239,6 +1291,12 @@ class TestHDP26StackAdvisor(TestCase):
     expected['core-site'] = {
       'properties': {}
     }
+
+    # case there is router in the stack
+    services['configurations']['druid-router'] = {}
+    services['configurations']['druid-router']['properties'] = {}
+    services['configurations']['druid-router']['properties']['druid.port'] = 8083
+    expected['hive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)

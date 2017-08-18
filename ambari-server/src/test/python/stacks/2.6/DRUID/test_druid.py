@@ -605,6 +605,7 @@ class TestDruid(RMFTestCase):
                               principal_name = 'missing_principal',
                               user = 'hdfs',
                               owner = 'druid',
+                              group='hadoop',
                               hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
@@ -628,7 +629,8 @@ class TestDruid(RMFTestCase):
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
-                              mode=0755
+                              group='hadoop',
+                              mode=0775
                               )
     self.assertResourceCalled('HdfsResource', '/tmp',
         security_enabled = False,
@@ -663,11 +665,12 @@ class TestDruid(RMFTestCase):
                               principal_name = 'missing_principal',
                               user = 'hdfs',
                               owner = 'druid',
+                              group='hadoop',
                               hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
-                              mode=0755
+                              mode=0775
                               )
 
     self.assertResourceCalled('HdfsResource', '/user/druid/logs',
@@ -681,6 +684,7 @@ class TestDruid(RMFTestCase):
                               principal_name = 'missing_principal',
                               user = 'hdfs',
                               owner = 'druid',
+                              group='hadoop',
                               hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',

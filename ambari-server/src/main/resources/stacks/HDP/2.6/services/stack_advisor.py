@@ -105,7 +105,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           # recommend HDFS as default deep storage
           extensions_load_list = self.addToList(extensions_load_list, "druid-hdfs-storage")
           putCommonProperty("druid.storage.type", "hdfs")
-          putCommonProperty("druid.storage.storageDirectory", "/user/druid/data")
+          putCommonProperty("druid.storage.storageDirectory", "/apps/druid/warehouse")
           # configure indexer logs configs
           putCommonProperty("druid.indexer.logs.type", "hdfs")
           putCommonProperty("druid.indexer.logs.directory", "/user/druid/logs")
@@ -555,6 +555,53 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'delete', 'true')
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'delete', 'true')
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'delete', 'true')
+
+    # druid is not in list of services to be installed
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'DRUID' in servicesList:
+        putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
+        if 'druid-coordinator' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_COORDINATOR', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            druid_coordinator_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-coordinator']['properties']['druid.port'])
+        else:
+            druid_coordinator_host_port = "localhost:8081"
+
+        if 'druid-router' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_ROUTER', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            print host
+            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-router']['properties']['druid.port'])
+        elif 'druid-broker' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_BROKER', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-broker']['properties']['druid.port'])
+        else:
+            druid_broker_host_port = "localhost:8083"
+
+        if 'druid-common' in services['configurations']:
+            druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
+            druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']
+            if 'druid.metadata.storage.connector.user' in services['configurations']['druid-common']['properties']:
+                druid_metadata_user = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.user']
+            else:
+                druid_metadata_user = ""
+
+        putHiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
+        putHiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
+        putHiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
+        putHiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
+        putHiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
+
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)

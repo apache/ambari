@@ -854,3 +854,14 @@ if security_enabled:
 # For ldap - hive_check
 hive_ldap_user= config['configurations']['hive-env'].get('alert_ldap_username','')
 hive_ldap_passwd=config['configurations']['hive-env'].get('alert_ldap_password','')
+# For druid metadata password
+druid_metadata_password = ""
+if 'druid-common' in config['configurations'] \
+        and 'druid.metadata.storage.connector.password' in config['configurations']['druid-common']:
+  druid_metadata_password = config['configurations']['druid-common']['druid.metadata.storage.connector.password']
+
+# For druid storage directory, hive will write segments here
+druid_storage_dir = ""
+if 'druid-common' in config['configurations'] \
+        and 'druid.storage.storageDirectory' in config['configurations']['druid-common']:
+  druid_storage_dir = config['configurations']['druid-common']['druid.storage.storageDirectory']
