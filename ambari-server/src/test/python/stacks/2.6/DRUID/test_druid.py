@@ -48,7 +48,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_OVERLORD' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-overlord')
     self.assertNoMoreResources()
@@ -60,7 +61,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        stack_version=self.STACK_VERSION,
                        config_overrides = { 'role' : 'DRUID_OVERLORD' },
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-overlord')
     self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-overlord/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
@@ -80,7 +82,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        stack_version=self.STACK_VERSION,
                        config_overrides = { 'role' : 'DRUID_OVERLORD' },
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-overlord/conf/druid-env.sh ; /usr/hdp/current/druid-overlord/bin/node.sh overlord stop'),
                               user='druid'
@@ -94,7 +97,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_COORDINATOR' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-coordinator')
     self.assertNoMoreResources()
@@ -140,7 +144,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_BROKER' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-broker')
     self.assertNoMoreResources()
@@ -152,7 +157,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        stack_version=self.STACK_VERSION,
                        config_overrides = { 'role' : 'DRUID_BROKER' },
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-broker')
     self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-broker/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
@@ -232,7 +238,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_HISTORICAL' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-historical')
     self.assertNoMoreResources()
@@ -278,7 +285,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_MIDDLEMANAGER' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-middlemanager')
     self.assertNoMoreResources()
