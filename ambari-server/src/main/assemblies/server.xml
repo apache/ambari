@@ -195,7 +195,6 @@
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${supplemental.distribution}</outputDirectory>
       <excludes>
         <exclude>/4.2/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
-        <exclude>/4.2.5/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
       </excludes>
     </fileSet>
     <fileSet>
