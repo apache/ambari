@@ -68,6 +68,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCreden
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -417,6 +418,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       LOG.warn("Received an empty requests set");
       return;
     }
+
     Clusters clusters = getManagementController().getClusters();
     // do all validation checks
     validateCreateRequests(requests, clusters);
@@ -428,6 +430,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       if (null == repositoryVersion) {
         throw new AmbariException("Could not find any repository on the request.");
+      }
+
+      if (repositoryVersion.getType() != RepositoryType.STANDARD
+          && cluster.getProvisioningState() == State.INIT) {
+        throw new AmbariException(String.format(
+            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: $s",
+            request.getServiceName(), cluster.getClusterName(), RepositoryType.STANDARD,
+            repositoryVersion));
       }
 
       Service s = cluster.addService(request.getServiceName(), repositoryVersion);

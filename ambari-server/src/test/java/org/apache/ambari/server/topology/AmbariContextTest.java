@@ -69,6 +69,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -209,6 +210,7 @@ public class AmbariContextTest {
     RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
     expect(repositoryVersion.getId()).andReturn(1L).atLeastOnce();
     expect(repositoryVersion.getVersion()).andReturn("1.1.1.1").atLeastOnce();
+    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
     expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
         Collections.singletonList(repositoryVersion)).atLeastOnce();
