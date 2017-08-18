@@ -18,6 +18,7 @@ limitations under the License.
 """
 import json
 import os
+from resource_management import Fail
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import DownloadSource
@@ -113,6 +114,17 @@ def druid(upgrade_type=None, nodeType=None):
            node_jvm_opts=druid_env_config[format('druid.{node_type_lowercase}.jvm.opts')])
          )
     Logger.info(format("Created druid-{node_type_lowercase} jvm.config"))
+    # Handling hadoop Lzo jars if enable and node type is hadoop related eg Overlords and MMs
+    if ['middleManager', 'overlord'].__contains__(node_type_lowercase) and params.lzo_enabled and len(
+            params.lzo_packages) > 0:
+        try:
+            Logger.info(
+                format(
+                    "Copying hadoop lzo jars from {hadoop_lib_home} to {druid_hadoop_dependencies_dir}/hadoop-client/*/"))
+            Execute(
+                format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {druid_hadoop_dependencies_dir}/hadoop-client/*/'))
+        except Fail as ex:
+            Logger.info(format("No Hadoop LZO found at {hadoop_lib_home}/hadoop-lzo*.jar"))
 
   # All druid nodes have dependency on hdfs_client
   ensure_hadoop_directories()
