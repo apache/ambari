@@ -153,8 +153,8 @@ def setup_logging(logger, filename, logging_level):
   logger.setLevel(logging_level)
   logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
 
-GRACEFUL_STOP_TRIES = 10
-GRACEFUL_STOP_TRIES_SLEEP = 3
+GRACEFUL_STOP_TRIES = 300
+GRACEFUL_STOP_TRIES_SLEEP = 0.1
 
 
 def add_syslog_handler(logger):
@@ -374,6 +374,8 @@ def run_threads(initializer_module):
 
   while not initializer_module.stop_event.is_set():
     time.sleep(0.1)
+
+  initializer_module.action_queue.interrupt()
 
   command_status_reporter.join()
   component_status_executor.join()

@@ -45,11 +45,21 @@ class AlertDefinitionsEventListener(EventListener):
     if message == {}:
       return
 
-    self.alert_definitions_cache.rewrite_cache(message['clusters'])
-    print message
-    self.alert_definitions_cache.hash = message['hash']
+    event_type = message['eventType']
 
-    self.alert_scheduler_handler.update_definitions()
+    if event_type == 'CREATE':
+      self.alert_definitions_cache.rewrite_cache(message['clusters'])
+      self.alert_definitions_cache.hash = message['hash']
+    elif event_type == 'UPDATE':
+      self.alert_definitions_cache.cache_update(message['clusters'])
+      self.alert_definitions_cache.hash = message['hash']
+    elif event_type == 'DELETE':
+      self.alert_definitions_cache.cache_delete(message['clusters'])
+      self.alert_definitions_cache.hash = message['hash']
+    else:
+      logger.error("Unknown event type '{0}' for alert event")
+
+    self.alert_scheduler_handler.update_definitions(event_type)
 
   def get_handled_path(self):
     return Constants.ALERTS_DEFENITIONS_TOPIC

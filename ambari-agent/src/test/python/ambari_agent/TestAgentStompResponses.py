@@ -33,6 +33,7 @@ from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 from ambari_agent.CommandStatusReporter import CommandStatusReporter
 from ambari_agent.HostStatusReporter import HostStatusReporter
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
+from ambari_agent.Utils import Utils
 
 from mock.mock import MagicMock, patch
 
@@ -50,19 +51,23 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     return super(TestAgentStompResponses, self).setUp()
 
+  def tearDown(self):
+    self.initializer_module.stop_event.set()
+    return super(TestAgentStompResponses, self).tearDown()
+
   @patch.object(CustomServiceOrchestrator, "runCommand")
   def test_mock_server_can_start(self, runCommand_mock):
     runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}
 
-    initializer_module = InitializerModule()
-    heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
+    self.initializer_module = InitializerModule()
+    heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
     heartbeat_thread.start()
 
-    action_queue = initializer_module.action_queue
+    action_queue = self.initializer_module.action_queue
     action_queue.start()
-    initializer_module.alert_scheduler_handler.start()
+    self.initializer_module.alert_scheduler_handler.start()
 
-    component_status_executor = ComponentStatusExecutor(initializer_module)
+    component_status_executor = ComponentStatusExecutor(self.initializer_module)
     component_status_executor.start()
 
     connect_frame = self.server.frames_queue.get()
@@ -96,13 +101,13 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     initial_host_level_params_request = self.server.frames_queue.get()
     initial_alert_definitions_request = self.server.frames_queue.get()
 
-    while not initializer_module.is_registered:
+    while not self.initializer_module.is_registered:
       time.sleep(0.1)
 
-    command_status_reporter = CommandStatusReporter(initializer_module)
+    command_status_reporter = CommandStatusReporter(self.initializer_module)
     command_status_reporter.start()
 
-    host_status_reporter = HostStatusReporter(initializer_module)
+    host_status_reporter = HostStatusReporter(self.initializer_module)
     host_status_reporter.start()
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/commands'}, body=self.get_json("execution_commands.json"))
@@ -125,7 +130,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     dn_recovery_failed_frame = json.loads(self.server.frames_queue.get().body)
     host_status_report = json.loads(self.server.frames_queue.get().body)
 
-    initializer_module.stop_event.set()
+    self.initializer_module.stop_event.set()
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '6'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
@@ -137,9 +142,9 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     action_queue.join()
 
     self.assertTrue('mounts' in host_status_report)
-    self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
-    self.assertEquals(initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
-    self.assertEquals(initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
+    self.assertEquals(self.initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
+    self.assertEquals(self.initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
+    self.assertEquals(self.initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
     self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['roleCommand'], 'INSTALL')
     self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['role'], 'DATANODE')
     self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['status'], 'IN_PROGRESS')
@@ -152,24 +157,24 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     #============================================================================================
 
 
-    initializer_module = InitializerModule()
+    self.initializer_module = InitializerModule()
     self.server.frames_queue.queue.clear()
 
-    heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
+    heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
     heartbeat_thread.start()
 
 
-    action_queue = initializer_module.action_queue
+    action_queue = self.initializer_module.action_queue
     action_queue.start()
-    initializer_module.alert_scheduler_handler.start()
+    self.initializer_module.alert_scheduler_handler.start()
 
-    component_status_executor = ComponentStatusExecutor(initializer_module)
+    component_status_executor = ComponentStatusExecutor(self.initializer_module)
     component_status_executor.start()
 
-    command_status_reporter = CommandStatusReporter(initializer_module)
+    command_status_reporter = CommandStatusReporter(self.initializer_module)
     command_status_reporter.start()
 
-    host_status_reporter = HostStatusReporter(initializer_module)
+    host_status_reporter = HostStatusReporter(self.initializer_module)
     host_status_reporter.start()
 
     connect_frame = self.server.frames_queue.get()
@@ -202,7 +207,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     heartbeat_frame = self.server.frames_queue.get()
     status_reports_frame = self.server.frames_queue.get()
 
-    initializer_module.stop_event.set()
+    self.initializer_module.stop_event.set()
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '6'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
@@ -215,8 +220,8 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
 
   def test_topology_update_and_delete(self):
-    initializer_module = InitializerModule()
-    heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
+    self.initializer_module = InitializerModule()
+    heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
     heartbeat_thread.start()
 
     connect_frame = self.server.frames_queue.get()
@@ -250,7 +255,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     initial_host_level_params_request = self.server.frames_queue.get()
     initial_alert_definitions_request = self.server.frames_queue.get()
 
-    while not initializer_module.is_registered:
+    while not self.initializer_module.is_registered:
       time.sleep(0.1)
 
     f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_add_component.json"))
@@ -275,16 +280,81 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.server.topic_manager.send(f)
 
     def is_json_equal():
-      json_topology = json.dumps(initializer_module.topology_cache, indent=2, sort_keys=True)
-      json_excepted_lopology = json.dumps(self.get_dict_from_file("topology_cache_expected.json"), indent=2, sort_keys=True)
+      #json_topology = json.dumps(self.initializer_module.topology_cache, indent=2, sort_keys=True)
+      #json_excepted_lopology = json.dumps(self.get_dict_from_file("topology_cache_expected.json"), indent=2, sort_keys=True)
       #print json_topology
       #print json_excepted_lopology
-      self.assertEquals(json_topology, json_excepted_lopology)
-      #self.assertEquals(initializer_module.topology_cache, self.get_dict_from_file("topology_cache_expected.json"))
+      self.assertEquals(Utils.get_mutable_copy(self.initializer_module.topology_cache), self.get_dict_from_file("topology_cache_expected.json"))
 
     self.assert_with_retries(is_json_equal, tries=80, try_sleep=0.1)
 
-    initializer_module.stop_event.set()
+    self.initializer_module.stop_event.set()
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '6'}, body=json.dumps({'id':'1'}))
+    self.server.topic_manager.send(f)
+
+    heartbeat_thread.join()
+
+
+  def test_alert_definitions_update_and_delete(self):
+    self.initializer_module = InitializerModule()
+    heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
+    heartbeat_thread.start()
+
+    connect_frame = self.server.frames_queue.get()
+    users_subscribe_frame = self.server.frames_queue.get()
+    registration_frame = self.server.frames_queue.get()
+
+    # server sends registration response
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '0'}, body=self.get_json("registration_response.json"))
+    self.server.topic_manager.send(f)
+
+
+    # response to /initial_topology
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '1'}, body='{}')
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body='{}')
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{}')
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body='{}')
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '5'}, body=self.get_json("alert_definitions_small.json"))
+    self.server.topic_manager.send(f)
+
+    initial_topology_request = self.server.frames_queue.get()
+    initial_metadata_request = self.server.frames_queue.get()
+    initial_configs_request = self.server.frames_queue.get()
+    initial_host_level_params_request = self.server.frames_queue.get()
+    initial_alert_definitions_request = self.server.frames_queue.get()
+
+    while not self.initializer_module.is_registered:
+      time.sleep(0.1)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_defenitions'}, body=self.get_json("alert_definitions_add.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_defenitions'}, body=self.get_json("alert_definitions_edit.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_defenitions'}, body=self.get_json("alert_definitions_delete.json"))
+    self.server.topic_manager.send(f)
+
+
+    def is_json_equal():
+      #json_alert_definitions = json.dumps(self.initializer_module.alert_definitions_cache, indent=2, sort_keys=True)
+      #json_excepted_definitions = json.dumps(self.get_dict_from_file("alert_definition_expected.json"), indent=2, sort_keys=True)
+      #print json_definitions
+      #print json_excepted_definitions
+      self.assertEquals(Utils.get_mutable_copy(self.initializer_module.alert_definitions_cache), self.get_dict_from_file("alert_definition_expected.json"))
+
+    self.assert_with_retries(is_json_equal, tries=80, try_sleep=0.1)
+
+    self.initializer_module.stop_event.set()
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '6'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)

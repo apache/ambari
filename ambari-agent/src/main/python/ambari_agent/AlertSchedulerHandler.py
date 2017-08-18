@@ -62,9 +62,6 @@ class AlertSchedulerHandler():
 
     self.config = initializer_module.config
 
-    # a mapping between a cluster name and a unique hash for all definitions
-    self._cluster_hashes = {}
-
     # the amount of time, in seconds, that an alert can run after it's scheduled time
     alert_grace_period = int(self.config.get('agent', 'alert_grace_period', 5))
 
@@ -108,7 +105,7 @@ class AlertSchedulerHandler():
     self.stop()
 
 
-  def update_definitions(self):
+  def update_definitions(self, event_type):
     """
     Updates the persisted alert definitions JSON.
     :return:
@@ -119,12 +116,7 @@ class AlertSchedulerHandler():
       command_copy = Utils.get_mutable_copy(command)
       alert_definitions.append(command_copy)
 
-    # determine how to reschedule the jobs
-    reschedule_all = False
-    if "clusterName" in command_copy and command_copy["clusterName"] not in self._cluster_hashes:
-      reschedule_all = True
-
-    if reschedule_all is True:
+    if event_type == "CREATE":
       # reschedule all jobs, creating new instances
       self.reschedule_all()
     else:
@@ -255,12 +247,7 @@ class AlertSchedulerHandler():
     for cluster_id, command_json in self.alert_definitions_cache.iteritems():
       clusterName = '' if not 'clusterName' in command_json else command_json['clusterName']
       hostName = '' if not 'hostName' in command_json else command_json['hostName']
-      clusterHash = None if not 'hash' in command_json else command_json['hash']
 
-      # cache the cluster and cluster hash after loading the JSON
-      if clusterName != '' and clusterHash is not None:
-        logger.info('[AlertScheduler] Caching cluster {0} with alert hash {1}'.format(clusterName, clusterHash))
-        self._cluster_hashes[clusterName] = clusterHash
       for definition in command_json['alertDefinitions']:
         alert = self.__json_to_callable(clusterName, hostName, Utils.get_mutable_copy(definition))
 

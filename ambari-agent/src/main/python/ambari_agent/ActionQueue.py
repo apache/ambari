@@ -102,6 +102,9 @@ class ActionQueue(threading.Thread):
       else:
         self.commandQueue.put(command)
 
+  def interrupt(self):
+    self.commandQueue.put(None)
+
   def cancel(self, commands):
     for command in commands:
 
@@ -136,12 +139,19 @@ class ActionQueue(threading.Thread):
         try:
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+
+            if command == None:
+              break
+
             self.process_command(command)
           else:
             # If parallel execution is enabled, just kick off all available
             # commands using separate threads
             while not self.stop_event.is_set():
               command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+
+              if command == None:
+                break
               # If command is not retry_enabled then do not start them in parallel
               # checking just one command is enough as all commands for a stage is sent
               # at the same time and retry is only enabled for initial start/install

@@ -58,5 +58,43 @@ class ClusterAlertDefinitionsCache(ClusterCache):
     """
     super(ClusterAlertDefinitionsCache, self).__init__(cluster_cache_dir)
 
+  def get_alert_definition_index_by_id(self, alert_dict, cluster_id, alert_id):
+    definitions = alert_dict[cluster_id]['alertDefinitions']
+    for i in xrange(len(definitions)):
+      if definitions[i]['definitionId'] == alert_id:
+        return i
+
+    return None
+
+  def cache_update(self, cache_update):
+    mutable_dict = self._get_mutable_copy()
+
+    for cluster_id in mutable_dict:
+      for alert_definition in cache_update[cluster_id]['alertDefinitions']:
+        id_to_update = alert_definition['definitionId']
+        index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
+        if index_of_alert == None:
+          mutable_dict[cluster_id]['alertDefinitions'].append(alert_definition)
+        else:
+          mutable_dict[cluster_id]['alertDefinitions'][index_of_alert] = alert_definition
+
+    self.rewrite_cache(mutable_dict)
+
+  def cache_delete(self, cache_update):
+    mutable_dict = self._get_mutable_copy()
+
+    for cluster_id in mutable_dict:
+      for alert_definition in cache_update[cluster_id]['alertDefinitions']:
+        id_to_update = alert_definition['definitionId']
+        index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
+
+        if index_of_alert == None:
+          raise Exception("Cannot delete an alert with id={0}".format(id_to_update))
+
+        del mutable_dict[cluster_id]['alertDefinitions'][index_of_alert]
+
+    self.rewrite_cache(mutable_dict)
+
+
   def get_cache_name(self):
     return 'alert_definitions'
