@@ -55,8 +55,6 @@ public class ClusterRequest {
    */
   private final Map<String, Object> sessionAttributes;
 
-  private String repositoryVersion = null;
-
 
   // ----- Constructors ------------------------------------------------------
 

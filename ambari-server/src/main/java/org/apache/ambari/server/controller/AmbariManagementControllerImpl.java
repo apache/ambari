@@ -39,7 +39,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_R
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom;
 
 import java.io.File;
@@ -429,20 +428,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()
         || request.getClusterId() != null) {
-      throw new IllegalArgumentException("Cluster name should be provided" +
-          " and clusterId should be null");
+      throw new IllegalArgumentException(
+          "Cluster name should be provided and clusterId should be null");
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createCluster request"
-          + ", clusterName=" + request.getClusterName()
-          + ", request=" + request);
+      LOG.debug("Received a createCluster request, clusterName={}, request={}",
+          request.getClusterName(), request);
     }
 
     if (request.getStackVersion() == null
         || request.getStackVersion().isEmpty()) {
-      throw new IllegalArgumentException("Stack information should be"
-          + " provided when creating a cluster");
+      throw new IllegalArgumentException(
+          "Stack information should be provided when creating a cluster");
     }
 
     StackId stackId = new StackId(request.getStackVersion());
@@ -2399,10 +2397,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
-
-        if (repoVersion != null) {
-         commandParams.put(VERSION, repoVersion.getVersion());
-        }
 
         if (script.getTimeout() > 0) {
           scriptCommandTimeout = String.valueOf(script.getTimeout());

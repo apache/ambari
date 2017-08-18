@@ -76,6 +76,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -231,6 +232,13 @@ public class AmbariContext {
             + "Specify a valid version with '%s'",
             stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
       }
+    }
+
+    // only use a STANDARD repo when creating a new cluster
+    if (repoVersion.getType() != RepositoryType.STANDARD) {
+      throw new IllegalArgumentException(String.format(
+          "Unable to create a cluster using the following repository since it is not a STANDARD type: %s",
+          repoVersion));
     }
 
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);

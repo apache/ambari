@@ -55,6 +55,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -387,6 +388,15 @@ public class RepositoryVersionEntity {
     result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
     result = 31 * result + (operatingSystems != null ? operatingSystems.hashCode() : 0);
     return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("id", id).add("stack", stack).add("version",
+        version).add("type", type).toString();
   }
 
   /**
