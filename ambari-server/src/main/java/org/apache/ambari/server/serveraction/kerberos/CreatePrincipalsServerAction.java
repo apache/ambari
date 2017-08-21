@@ -74,13 +74,13 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
   private Set<String> seenPrincipals = new HashSet<>();
 
   /**
-   * Called to execute this action.  Upon invocation, calls
+   * Called to execute this action. Upon invocation, calls
    * {@link org.apache.ambari.server.serveraction.kerberos.KerberosServerAction#processIdentities(java.util.Map)}
    * to iterate through the Kerberos identity metadata and call
    * {@link org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerAction#processIdentities(java.util.Map)}
    * for each identity to process.
    *
-   * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
+   * @param requestSharedDataContext a Map to be used as shared data among all ServerActions related
    *                                 to a given request
    * @return a CommandReport indicating the result of this action
    * @throws AmbariException
@@ -94,11 +94,11 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
 
 
   /**
-   * For each identity, generate a unique password create a new or update an existing principal in
-   * an assume to be configured KDC.
+   * For each identity, generate a unique password, and create a new or update an existing principal in
+   * an assumed to be configured KDC.
    * <p/>
-   * If a password has not been previously created the current evaluatedPrincipal, create a "secure"
-   * password using {@link SecurePasswordHelper#createSecurePassword()}.  Then if the principal
+   * If a password has not been previously created for the current evaluatedPrincipal, create a "secure"
+   * password using {@link SecurePasswordHelper#createSecurePassword()}. Then if the principal
    * does not exist in the KDC, create it using the generated password; else if it does exist update
    * its password.  Finally store the generated password in the shared principal-to-password map and
    * store the new key numbers in the shared principal-to-key_number map so that subsequent process
@@ -110,7 +110,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
    * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
-   * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
+   * @param requestSharedDataContext a Map to be used as shared data among all ServerActions related
    *                                 to a given request  @return a CommandReport, indicating an error
    *                                 condition; or null, indicating a success condition
    * @throws AmbariException if an error occurs while processing the identity record
@@ -183,7 +183,8 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * @param kerberosConfiguration    the kerberos-env configuration properties
    * @param kerberosOperationHandler the KerberosOperationHandler for the relevant KDC
    * @param regenerateKeytabs        true if this was triggered in response to regenerating keytab files; false otherwise
-   * @param actionLog                the logger (may be null if no logging is desired)  @return a CreatePrincipalResult containing the generated password and key number value
+   * @param actionLog                the logger (may be null if no logging is desired)
+   * @return a CreatePrincipalResult containing the generated password and key number value
    */
   public CreatePrincipalResult createPrincipal(String principal, boolean isServicePrincipal,
                                                Map<String, String> kerberosConfiguration,
@@ -364,7 +365,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
     /**
      * Gets the principal's password
      *
-     * @return the principal's passwrod
+     * @return the principal's password
      */
     public String getPassword() {
       return password;
