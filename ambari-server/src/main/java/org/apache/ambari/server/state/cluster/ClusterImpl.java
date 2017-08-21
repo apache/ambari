@@ -1817,22 +1817,29 @@ public class ClusterImpl implements Cluster {
 
     // disable all configs related to service
     if (serviceConfigEntity.getGroupId() == null) {
+      // Here was fixed bug with entity changes revert. More you can find here AMBARI-21173.
+      // This issue reproduces only if you are changing same entity in first and second loop.
+      // In that case eclipselink will revert changes to cached, if entity has fluchGroup and it
+      // needs to be refreshed. Actually we don't need to change same antities in few steps, so i
+      // decided to filter out. duplicates and do not change them. It will be better for performance and bug will be fixed.
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
       List<ClusterConfigEntity> enabledConfigs = clusterDAO.getEnabledConfigsByTypes(clusterId, configTypes);
       List<ClusterConfigEntity> serviceConfigEntities = serviceConfigEntity.getClusterConfigEntities();
       ArrayList<ClusterConfigEntity> duplicatevalues = new ArrayList<ClusterConfigEntity>(serviceConfigEntities);
       duplicatevalues.retainAll(enabledConfigs);
-      enabledConfigs.removeAll(duplicatevalues);
-      serviceConfigEntities.removeAll(duplicatevalues);
 
       for (ClusterConfigEntity enabledConfig : enabledConfigs) {
-        enabledConfig.setSelected(false);
-        clusterDAO.merge(enabledConfig);
+        if (!duplicatevalues.contains(enabledConfig)) {
+          enabledConfig.setSelected(false);
+          clusterDAO.merge(enabledConfig);
+        }
       }
 
       for (ClusterConfigEntity configEntity : serviceConfigEntities) {
-        configEntity.setSelected(true);
-        clusterDAO.merge(configEntity);
+        if (!duplicatevalues.contains(configEntity)) {
+          configEntity.setSelected(true);
+          clusterDAO.merge(configEntity);
+        }
       }
     } else {
       Long configGroupId = serviceConfigEntity.getGroupId();
