@@ -361,7 +361,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'CURRENT',
           isLabel: true,
           text: Em.I18n.t('common.current'),
-          class: 'label label-success'
+          class: 'label top-label label-success'
         },
         title: 'current version'
       },
@@ -372,10 +372,10 @@ describe('App.UpgradeVersionBoxView', function () {
           'isUpgrading': false
         },
         expected: {
-          status: 'CURRENT',
-          isButton: true,
-          text: Em.I18n.t('common.revert'),
-          action: 'confirmRevertPatchUpgrade'
+          isLabel: true,
+          text: Em.I18n.t('common.current'),
+          class: 'label top-label label-success',
+          canBeReverted: true
         },
         title: 'current patch version'
       },

@@ -158,15 +158,11 @@
   }
   .left-menu-table {
     padding: 10px 0;
-    margin-top: 141px;
+    margin-top: 136px;
     td.service-display-name {
       border-top: 2px solid #e4e4e4;
       border-bottom: 2px solid #e4e4e4;
     }
-  }
-  div.current-version-box {
-    background: none repeat scroll 0 0 #e6f1f6;
-    box-shadow: 0 8px 6px -6px black;
   }
   .version-box {
     position: relative;
@@ -273,8 +269,10 @@
   }
   .version-column {
     min-height: 500px;
-    min-width: 145px;
-    margin: 15px 7px 0px 7px;
+    min-width: 175px;
+    margin: 15px 7px 0 7px;
+    padding-top: 0;
+    background-color: #efefef;
     .version-column-display-name {
       color: #000;
       text-align: center;
@@ -288,8 +286,7 @@
       text-align: center;
       font-size: 13px;
       padding: 5px 5px;
-      border-bottom: 1px solid #e4e4e4;
-      margin-bottom: 0px;
+      margin-bottom: 18px;
       a {
         cursor: pointer;
       }
@@ -297,18 +294,57 @@
     .patch-icon {
       margin: 0 0 -5px 0;
     }
+    .icon-trash {
+      padding: 3px 5px;
+      border-radius: 15px;
+      border: 1px solid black;
+      font-size: 12px;
+      cursor: pointer;
+      background: white;
+    }
     .state {
-      margin: 5px 0px 15px 0px;
+      margin: 0 0 25px 0;
       line-height: 20px;
-      .label-success {
+      padding-top: 0;
+      .top-label {
+        font-size: inherit;
+        border-radius: 0;
+        width: 100%;
+        display: inline-block;
+        padding: 0;
         line-height: 30px;
+        position: relative;
       }
-      .btn.btn-primary:not(.dropdown-toggle) {
-        padding: 4px 5px;
-        min-width: 70px;
+      .top-label::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 100%;
+        width: 0;
+        height: 0;
+        border-left: 86px solid transparent;
+        border-right: 86px solid transparent;
+        border-top: 10px solid @current-green;
+        clear: both;
+      }
+      .btn-group {
+        display: inline-block;
+        width: 100%;
+        .btn:not(.dropdown-toggle) {
+          width: 81%;
+          border-radius: 0;
+          padding: 9px 5px;
+          min-width: 70px;
+        }
+        .dropdown-toggle {
+          width: 20%;
+          border-radius: 0;
+          padding: 9px 5px;
+        }
       }
       .open .dropdown-menu {
-        min-width: 90px;
+        min-width: 100px;
+        right: 0;
       }
     }
     .state.installing {
@@ -340,18 +376,8 @@
     .icon-info-sign {
       color: @blue;
     }
-  }
-  .patch-upgrade-column {
-    margin-left: -7px;
-    border-color: @health-status-red;
-    background-color: rgba(255, 0, 0, 0.1);
-    .services-section {
-      .line-separator {
-        margin-left: 0;
-      }
-      .line-separator-bottom {
-        margin-left: 0;
-      }
+    .icon-medkit, .icon-bug {
+      color: @gray;
     }
   }
   .service-version-info {
@@ -364,7 +390,7 @@
       position: relative;
     }
     span.label.available {
-      background-color: #468847;
+      background-color: @current-green;;
     }
   }
 }

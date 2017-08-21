@@ -3434,7 +3434,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
 
     it('App.ModalPopup.show should be called', function() {
-      controller.confirmRevertPatchUpgrade(Em.Object.create());
+      controller.confirmRevertPatchUpgrade({context: Em.Object.create()});
       expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
   });

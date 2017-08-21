@@ -1982,10 +1982,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    *
-   * @param {Em.Object} version
+   * @param {object} event
    */
-  confirmRevertPatchUpgrade: function(version) {
+  confirmRevertPatchUpgrade: function(event) {
     var self = this;
+    var version = event.context;
     var currentStack = App.RepositoryVersion.find(this.get('currentVersion.id'));
 
     App.ModalPopup.show({

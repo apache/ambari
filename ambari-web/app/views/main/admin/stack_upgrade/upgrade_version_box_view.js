@@ -114,7 +114,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'CURRENT': {
       isLabel: true,
       text: Em.I18n.t('common.current'),
-      class: 'label label-success'
+      class: 'label top-label label-success'
     },
     'NOT_REQUIRED': {
       isButton: true,
@@ -143,9 +143,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
       action: 'resumeUpgrade'
     },
     'CURRENT_PATCH': {
-      isButton: true,
-      text: Em.I18n.t('common.revert'),
-      action: 'confirmRevertPatchUpgrade'
+      isLabel: true,
+      text: Em.I18n.t('common.current'),
+      class: 'label top-label label-success',
+      canBeReverted: true
     }
   },
 
