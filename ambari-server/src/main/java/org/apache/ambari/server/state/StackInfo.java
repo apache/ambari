@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -76,6 +77,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
   private Set<String> errorSet = new HashSet<>();
   private RepositoryXml repoXml = null;
+
+  private VersionDefinitionXml latestVersion = null;
 
   /**
    * List of services removed from current stack
@@ -606,5 +609,19 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   public void setServicesWithNoConfigs(List<String> servicesWithNoConfigs) {
     this.servicesWithNoConfigs = servicesWithNoConfigs;
+  }
+
+  /**
+   * @param xml the version definition parsed from {@link LatestRepoCallable}
+   */
+  public void setLatestVersionDefinition(VersionDefinitionXml xml) {
+    latestVersion = xml;
+  }
+
+  /**
+   * @param xml the version definition parsed from {@link LatestRepoCallable}
+   */
+  public VersionDefinitionXml getLatestVersionDefinition() {
+    return latestVersion;
   }
 }

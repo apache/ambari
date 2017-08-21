@@ -167,6 +167,13 @@ public class VersionDefinitionXml {
     }
   }
 
+  /**
+   * Sets if the version definition is a stack default.  This can only be true
+   * when parsing "latest-vdf" for a stack.
+   */
+  public void setStackDefault(boolean stackDefault) {
+    m_stackDefault = stackDefault;
+  }
 
   /**
    * Gets if the version definition was built as the default for a stack

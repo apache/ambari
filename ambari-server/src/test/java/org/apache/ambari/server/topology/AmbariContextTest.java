@@ -55,10 +55,12 @@ import org.apache.ambari.server.controller.internal.HostComponentResourceProvide
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -699,26 +701,50 @@ public class AmbariContextTest {
   @Test
   public void testCreateAmbariResourcesNoVersions() throws Exception {
 
+    VersionDefinitionResourceProvider vdfResourceProvider = createNiceMock(VersionDefinitionResourceProvider.class);
+    Class<AmbariContext> clazz = AmbariContext.class;
+    Field f = clazz.getDeclaredField("versionDefinitionResourceProvider");
+    f.setAccessible(true);
+    f.set(null, vdfResourceProvider);
+
+    Resource resource = createNiceMock(Resource.class);
+    expect(resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID)).andReturn(1L).atLeastOnce();
+
+    RequestStatus requestStatus = createNiceMock(RequestStatus.class);
+    expect(requestStatus.getAssociatedResources()).andReturn(Collections.singleton(resource)).atLeastOnce();
+
+    expect(vdfResourceProvider.createResources(EasyMock.anyObject(Request.class))).andReturn(requestStatus);
+
     RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
     expect(repositoryVersion.getId()).andReturn(1L).atLeastOnce();
     expect(repositoryVersion.getVersion()).andReturn("1.1.1.1").atLeastOnce();
+    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
     expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
         Collections.<RepositoryVersionEntity>emptyList()).atLeastOnce();
-    replay(repositoryVersionDAO, repositoryVersion);
+    expect(repositoryVersionDAO.findByPK(EasyMock.anyLong())).andReturn(repositoryVersion);
+
+    replay(repositoryVersionDAO, repositoryVersion, resource, requestStatus, vdfResourceProvider);
 
     context.repositoryVersionDAO = repositoryVersionDAO;
+
+    controller.createCluster(capture(Capture.<ClusterRequest>newInstance()));
+    expectLastCall().once();
+    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
+
+    serviceResourceProvider.createServices(capture(Capture.<Set<ServiceRequest>>newInstance()));
+    expectLastCall().once();
+    componentResourceProvider.createComponents(capture(Capture.<Set<ServiceComponentRequest>>newInstance()));
+    expectLastCall().once();
+
+    expect(serviceResourceProvider.updateResources(
+        capture(Capture.<Request>newInstance()), capture(Capture.<Predicate>newInstance()))).andReturn(null).atLeastOnce();
 
     replayAll();
 
     // test
-    try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null, null);
-      fail("Expected failure when no versions are found");
-    } catch (IllegalArgumentException e) {
-      assertEquals("No repositories were found for testStack-testVersion", e.getMessage());
-    }
+    context.createAmbariResources(topology, CLUSTER_NAME, null, null);
   }
 
   @Test

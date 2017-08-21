@@ -10,8 +10,12 @@
       "2.2.1.0": {
         "centos6": "./version-2.2.0.4-123.xml",
         "debian6": "./version-2.2.0.4-123.xml",
+        "ubuntu14": "./version-2.2.0.4-123.xml",
         "suse11sp3": "./version-2.2.0.4-123-suse11.xml"
       }
+    },
+    "latest-vdf": {
+        "centos6": "./version-2.2.0.5.xml"
     }
   }
 }
