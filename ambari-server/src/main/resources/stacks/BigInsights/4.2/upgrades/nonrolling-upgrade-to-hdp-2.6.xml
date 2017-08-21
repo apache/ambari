@@ -316,6 +316,12 @@
       <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark Thrift server">
         <task xsi:type="configure" id="biginsights_4_2_spark_env" />
       </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_JOBHISTORYSERVER" title="Apply config changes for Spark History Server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_history_defaults" />
+      </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_JOBHISTORYSERVER" title="Apply config changes for Spark History Server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_history_env" />
+      </execute-stage>
 
       <!-- OOZIE -->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie server">

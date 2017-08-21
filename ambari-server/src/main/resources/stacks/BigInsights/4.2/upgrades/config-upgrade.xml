@@ -372,6 +372,22 @@
           </definition>
         </changes>
       </component>
+      <component name="SPARK_JOBHISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_spark_history_defaults" summary="Update spark-defaults for History Server">
+            <type>spark-defaults</type>
+            <transfer operation="copy" to-key="spark.history.fs.logDirectory" from-type="spark-defaults" from-key="spark.eventLog.dir" if-type="spark-defaults" if-key="spark.eventLog.dir" if-key-state="present" />
+            <replace key="spark.eventLog.dir" find="hdfs:///spark-history" replace-with="hdfs:///iop/apps/4.2.0.0/spark/logs/history-server" />
+            <replace key="spark.history.fs.logDirectory" find="hdfs:///spark-history" replace-with="hdfs:///iop/apps/4.2.0.0/spark/logs/history-server" />
+            <insert key="spark.eventLog.dir" value="hdfs://" insert-type="prepend" />
+            <insert key="spark.history.fs.logDirectory" value="hdfs://" insert-type="prepend" />
+          </definition>
+          <definition xsi:type="configure" id="biginsights_4_2_spark_history_env" summary="Update spark-env for History Server">
+            <type>spark-env</type>
+            <replace key="content" find="-Dspark.history.fs.logDirectory={{spark_eventlog_dir_default}}" replace-with="" />
+          </definition>
+        </changes>
+      </component>
     </service>
 
     <service name="KNOX">
