@@ -2031,12 +2031,12 @@ class DefaultStackAdvisor(StackAdvisor):
     If the property exists and is equal to "true", then is it enabled; otherwise is it assumed to be
     disabled.
 
+    This is an alias for stacks.stack_advisor.DefaultStackAdvisor#is_secured_cluster
+
     :param services: the services structure containing the current configurations
     :return: true if security is enabled; otherwise false
     """
-    return "cluster-env" in services["configurations"] \
-           and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
-           and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
+    return self.is_secured_cluster(services)
 
   def parseCardinality(self, cardinality, hostsCount):
     """

@@ -509,6 +509,203 @@ class TestHDP25StackAdvisor(TestCase):
     self.expected_visibility_false = {'visible': 'false'}
     self.expected_visibility_true = {'visible': 'true'}
 
+  def test_recommendSPARKConfigurations_SecurityEnabledZeppelinInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.superusers": "zeppelin_user",
+          "livy.property1": "value1"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSparkConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendSPARKConfigurations_SecurityNotEnabledZeppelinInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "false",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "false",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSparkConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendSPARKConfigurations_SecurityEnabledZeppelinInstalledExistingValue(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.superusers": "livy_user"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.superusers": "livy_user,zeppelin_user"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSparkConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendSPARKConfigurations_SecurityEnabledZeppelinNotInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSparkConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
   def test_recommendSPARK2Configurations(self):
     configurations = {}
     services = {"configurations": configurations}

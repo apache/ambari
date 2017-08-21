@@ -40,10 +40,32 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "HIVE": self.recommendHIVEConfigurations,
         "HBASE": self.recommendHBASEConfigurations,
         "YARN": self.recommendYARNConfigurations,
-        "KAFKA": self.recommendKAFKAConfigurations
+        "KAFKA": self.recommendKAFKAConfigurations,
+        "SPARK2": self.recommendSPARK2Configurations,
+        "ZEPPELIN": self.recommendZEPPELINConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
+
+  def recommendSPARK2Configurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    super(HDP26StackAdvisor, self).recommendSpark2Configurations(configurations, clusterData, services, hosts)
+    self.__addZeppelinToLivy2SuperUsers(configurations, services)
+
+  def recommendZEPPELINConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    super(HDP26StackAdvisor, self).recommendZeppelinConfigurations(configurations, clusterData, services, hosts)
+    self.__addZeppelinToLivy2SuperUsers(configurations, services)
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendAtlasConfigurations(configurations, clusterData, services, hosts)
@@ -644,3 +666,39 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerKafkaPluginProperty("REPOSITORY_CONFIG_USERNAME",kafka_user)
     else:
       self.logger.info("Not setting Kafka Repo user for Ranger.")
+
+  def __addZeppelinToLivy2SuperUsers(self, configurations, services):
+    """
+    If Kerberos is enabled AND Zeppelin is installed AND Spark2 Livy Server is installed, then set
+    livy2-conf/livy.superusers to contain the Zeppelin principal name from
+    zeppelin-env/zeppelin.server.kerberos.principal
+
+    :param configurations:
+    :param services:
+    """
+    if self.isSecurityEnabled(services):
+      zeppelin_env = self.getServicesSiteProperties(services, "zeppelin-env")
+
+      if zeppelin_env and 'zeppelin.server.kerberos.principal' in zeppelin_env:
+        zeppelin_principal = zeppelin_env['zeppelin.server.kerberos.principal']
+        zeppelin_user = zeppelin_principal.split('@')[0] if zeppelin_principal else None
+
+        if zeppelin_user:
+          livy2_conf = self.getServicesSiteProperties(services, 'livy2-conf')
+
+          if livy2_conf:
+            superusers = livy2_conf['livy.superusers'] if livy2_conf and 'livy.superusers' in livy2_conf else None
+
+            # add the Zeppelin user to the set of users
+            if superusers:
+              _superusers = superusers.split(',')
+              _superusers = [x.strip() for x in _superusers]
+              _superusers = filter(None, _superusers)  # Removes empty string elements from array
+            else:
+              _superusers = []
+
+            if zeppelin_user not in _superusers:
+              _superusers.append(zeppelin_user)
+
+              putLivy2ConfProperty = self.putProperty(configurations, 'livy2-conf', services)
+              putLivy2ConfProperty('livy.superusers', ','.join(_superusers))
