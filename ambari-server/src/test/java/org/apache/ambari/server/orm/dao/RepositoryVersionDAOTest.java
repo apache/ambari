@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Assert;
@@ -197,6 +198,17 @@ public class RepositoryVersionDAOTest {
     Assert.assertNotNull(repositoryVersionDAO.findByDisplayName("OTHER-1.0.1.0-1234"));
     Assert.assertNotNull(repositoryVersionDAO.findByStackAndVersion(OTHER_10,
         "1.0.1.0-1234"));
+  }
+
+  @Test
+  public void testFindByStackAndType() {
+    createSingleRecord();
+
+    Assert.assertEquals(1,
+        repositoryVersionDAO.findByStackAndType(HDP_206, RepositoryType.STANDARD).size());
+
+    Assert.assertEquals(0,
+        repositoryVersionDAO.findByStackAndType(HDP_206, RepositoryType.MAINT).size());
   }
 
   @After

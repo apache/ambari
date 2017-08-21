@@ -134,6 +134,26 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   }
 
   /**
+   * Retrieves repository version by stack.
+   *
+   * @param stackId
+   *          stack id stack with major version (like HDP-2.2)
+   * @param type
+   *          the repository type
+   *
+   * @return null if there is no suitable repository version
+   */
+  @RequiresSession
+  public List<RepositoryVersionEntity> findByStackAndType(StackId stackId, RepositoryType type) {
+    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "repositoryVersionByStackAndType", RepositoryVersionEntity.class);
+    query.setParameter("stackName", stackId.getStackName());
+    query.setParameter("stackVersion", stackId.getStackVersion());
+    query.setParameter("type", type);
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets the first repository which matches the specified version. There can be
    * multiple repositories matching a single version as long as they have
    * different stacks. This method is a fallback mechanism if the repository
