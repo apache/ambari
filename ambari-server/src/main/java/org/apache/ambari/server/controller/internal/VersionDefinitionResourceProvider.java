@@ -437,7 +437,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       return;
     }
 
-    List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStack(entity.getStackId());
+    List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStackAndType(
+        entity.getStackId(), RepositoryType.STANDARD);
+
     if (entities.isEmpty()) {
       throw new IllegalArgumentException(String.format("Patch %s was uploaded, but there are no repositories for %s",
           entity.getVersion(), entity.getStackId().toString()));
