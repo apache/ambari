@@ -30,6 +30,8 @@ var App = require('app');
 var wrapperView = Em.View.extend({
   tagName: 'tr',
 
+  name: 'SortWrapperView',
+
   classNames: ['sort-wrapper'],
 
   willInsertElement: function () {
@@ -87,9 +89,10 @@ var wrapperView = Em.View.extend({
    * @param property {object}
    * @param order {Boolean} true - DESC, false - ASC
    * @param returnSorted {Boolean}
+   * @param content {Array}
    */
-  sort: function (property, order, returnSorted) {
-    var content = this.get('content').toArray();
+  sort: function (property, order, returnSorted, content) {
+    content = content || this.get('content').toArray();
     var sortFunc = this.getSortFunc(property, order);
     var status = order ? 'sorting_desc' : 'sorting_asc';
 
@@ -120,6 +123,25 @@ var wrapperView = Em.View.extend({
       }, this);
     }
   }.observes('controller.contentUpdater'),
+
+  /**
+   *
+   * @param {Em.Object[]} content
+   * @returns {Em.Object[]}
+   */
+  getSortedContent: function(content) {
+    if (!this.get('isSorting') && content.get('length')) {
+      var activeSortViews = this.get('childViews').rejectProperty('status', 'sorting');
+      if (activeSortViews[0]) {
+        var status = activeSortViews[0].get('status');
+        this.set('isSorting', true);
+        content = this.sort(activeSortViews[0], status === 'sorting_desc', true, content);
+        this.set('isSorting', false);
+        activeSortViews[0].set('status', status);
+      }
+    }
+    return content;
+  },
 
   /**
    * reset all sorts fields
