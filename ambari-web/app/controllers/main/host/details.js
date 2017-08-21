@@ -2474,6 +2474,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       zkServerInstalled: false,
       lastComponents: [],
       masterComponents: [],
+      nonAddableMasterComponents: [],
+      lastMasterComponents: [],
       runningComponents: [],
       nonDeletableComponents: [],
       unknownComponents: [],
@@ -2484,12 +2486,22 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         if (cInstance.get('componentName') === 'ZOOKEEPER_SERVER') {
           container.zkServerInstalled = true;
         }
+        var isLastComponent = false;
         if (this.getTotalComponent(cInstance) === 1) {
           container.lastComponents.push(cInstance.get('displayName'));
+          isLastComponent = true;
         }
         var workStatus = cInstance.get('workStatus');
+
         if (cInstance.get('isMaster')) {
-          container.masterComponents.push(cInstance.get('displayName'));
+          var displayName = cInstance.get('displayName')
+          container.masterComponents.push(displayName);
+          if (!App.StackServiceComponent.find(cInstance.get('componentName')).get('isMasterAddableInstallerWizard'))  {
+            container.nonAddableMasterComponents.push(displayName);
+          }
+          if(isLastComponent) {
+            container.lastMasterComponents.push(displayName);
+          }
         }
         if (stoppedStates.indexOf(workStatus) < 0) {
           container.runningComponents.push(cInstance.get('displayName'));
@@ -2515,16 +2527,20 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   validateAndDeleteHost: function () {
     var container = this.getHostComponentsInfo();
 
-    if (container.masterComponents.length > 0) {
-      this.raiseDeleteComponentsError(container, 'masterList');
-      return;
-    } else if (container.nonDeletableComponents.length > 0) {
+    if (container.nonDeletableComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'nonDeletableList');
+      return;
+    } else if (container.nonAddableMasterComponents.length > 0) {
+      this.raiseDeleteComponentsError(container, 'masterList');
       return;
     } else if (container.runningComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'runningList');
       return;
+    } else if(container.lastMasterComponents.length > 0) {
+      this.raiseDeleteComponentsError(container, 'lastMasterList');
+      return;
     }
+
     if (container.zkServerInstalled) {
       var self = this;
       return App.showConfirmationPopup(function () {
@@ -2545,17 +2561,19 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
       type: type,
-      showBodyEnd: Em.computed.existsIn('type', ['runningList', 'masterList']),
+      showBodyEnd: Em.computed.existsIn('type', ['runningList', 'masterList', 'lastMasterList']),
       container: container,
       components: function(){
         var container = this.get('container');
         switch (this.get('type')) {
           case 'masterList':
-            return container.masterComponents;
+            return container.nonAddableMasterComponents;
           case 'nonDeletableList':
             return container.nonDeletableComponents;
           case 'runningList':
             return container.runningComponents;
+          case 'lastMasterList':
+            return container.lastMasterComponents;
         }
       }.property('type'),
       componentsStr: function () {
