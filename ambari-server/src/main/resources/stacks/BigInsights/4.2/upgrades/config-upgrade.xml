@@ -164,7 +164,11 @@
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
             <type>yarn-site</type>
-            <replace key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+            <!-- adjust the spark shuffle values for spark1 based on whether spark is installed -->
+            <set key="yarn.nodemanager.aux-services" value="mapreduce_shuffle,spark_shuffle" if-type="spark-env" if-key="content" if-key-state="present"/>
+            <set key="yarn.nodemanager.aux-services.spark_shuffle.class" value="org.apache.spark.network.yarn.YarnShuffleService" if-type="spark-env" if-key="content" if-key-state="present"/>
+            <set key="yarn.nodemanager.aux-services.spark_shuffle.classpath" value="{{stack_root}}/${hdp.version}/spark/aux/*" if-type="spark-env" if-key="content" if-key-state="present"/>
+
             <insert key="yarn.application.classpath" insert-type="append" newline-after="false" newline-before="false" value=",/usr/hdp/current/ext/hadoop/*"/>
           </definition>
           <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">

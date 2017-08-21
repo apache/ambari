@@ -76,7 +76,12 @@
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
             <type>yarn-site</type>
-            <replace key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+            <!-- adjust the spark shuffle values for spark1 and spark2 -->
+            <set key="yarn.nodemanager.aux-services" value="mapreduce_shuffle,spark_shuffle,spark2_shuffle"/>
+            <set key="yarn.nodemanager.aux-services.spark_shuffle.class" value="org.apache.spark.network.yarn.YarnShuffleService"/>
+            <set key="yarn.nodemanager.aux-services.spark_shuffle.classpath" value="{{stack_root}}/${hdp.version}/spark/aux/*"/>
+            <set key="yarn.nodemanager.aux-services.spark2_shuffle.class" value="org.apache.spark.network.yarn.YarnShuffleService"/>
+            <set key="yarn.nodemanager.aux-services.spark2_shuffle.classpath" value="{{stack_root}}/${hdp.version}/spark2/aux/*"/>
           </definition>
           <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
             <type>yarn-env</type>
