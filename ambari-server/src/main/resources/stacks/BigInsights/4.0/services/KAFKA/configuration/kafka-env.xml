@@ -27,6 +27,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description></description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>kafka_log_dir</name>

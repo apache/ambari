@@ -27,6 +27,10 @@
     <description>User to run Titan as</description>
     <property-type>USER</property-type>
     <value>titan</value>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
 

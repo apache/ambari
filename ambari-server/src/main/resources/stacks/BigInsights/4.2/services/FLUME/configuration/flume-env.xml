@@ -51,6 +51,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Flume User</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
     <property>	
     <name>flume_run_dir</name>	

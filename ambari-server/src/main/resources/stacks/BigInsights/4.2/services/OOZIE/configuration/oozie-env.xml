@@ -28,6 +28,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Oozie User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>oozie_admin_users</name>

@@ -51,6 +51,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>YARN User</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>yarn_heapsize</name>
