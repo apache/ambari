@@ -32,7 +32,10 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
   contentObsOnce: function() {
     var content = this.get('controller.content') && App.get('router.clusterController.isAlertsLoaded') ?
-      this.get('controller.content').toArray().sort(App.AlertDefinition.getSortDefinitionsByStatus(true)) : [];
+      this.get('controller.content').toArray() : [];
+    if (this.get('childViews').someProperty('name', 'SortWrapperView')) {
+      content = this.get('childViews').findProperty('name', 'SortWrapperView').getSortedContent(content);
+    }
     this.set('content', content);
   },
 
@@ -46,7 +49,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     if (savedSortConditions.everyProperty('status', 'sorting')) {
       savedSortConditions.push({
         name: "summary",
-        status: "sorting_asc"
+        status: "sorting_desc"
       });
       App.db.setSortingStatuses(controllerName, savedSortConditions);
     }

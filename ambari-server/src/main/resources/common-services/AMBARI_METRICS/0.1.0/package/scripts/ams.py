@@ -334,14 +334,12 @@ def ams(name=None, action=None):
             mode=0644
       )
 
-      # Remove spnego configs from core-site, since AMS does not support spnego (AMBARI-14384)
+      # Remove spnego configs from core-site if platform does not have python-kerberos library
       truncated_core_site = {}
       truncated_core_site.update(params.config['configurations']['core-site'])
-      if 'core-site' in params.config['configurations']:
-        if 'hadoop.http.authentication.type' in params.config['configurations']['core-site']:
-          truncated_core_site.pop('hadoop.http.authentication.type')
-        if 'hadoop.http.filter.initializers' in params.config['configurations']['core-site']:
-          truncated_core_site.pop('hadoop.http.filter.initializers')
+      if is_spnego_enabled(params) and is_redhat_centos_6_plus() == False:
+        truncated_core_site.pop('hadoop.http.authentication.type')
+        truncated_core_site.pop('hadoop.http.filter.initializers')
 
       XmlConfig("core-site.xml",
                 conf_dir=params.ams_collector_conf_dir,
@@ -367,6 +365,13 @@ def ams(name=None, action=None):
     pass
 
   elif name == 'monitor':
+
+    if is_spnego_enabled(params) and is_redhat_centos_6_plus():
+      try:
+        import kerberos
+      except ImportError:
+        raise ImportError("python-kerberos package need to be installed to run AMS in SPNEGO mode")
+
     Directory(params.ams_monitor_conf_dir,
               owner=params.ams_user,
               group=params.user_group,
@@ -480,6 +485,22 @@ def ams(name=None, action=None):
       export_ca_certs(params.ams_grafana_conf_dir)
 
     pass
+
+def is_spnego_enabled(params):
+  if 'core-site' in params.config['configurations'] \
+      and 'hadoop.http.authentication.type' in params.config['configurations']['core-site'] \
+      and params.config['configurations']['core-site']['hadoop.http.authentication.type'] == "kerberos" \
+      and 'hadoop.http.filter.initializers' in params.config['configurations']['core-site'] \
+      and params.config['configurations']['core-site']['hadoop.http.filter.initializers'] == "org.apache.hadoop.security.AuthenticationFilterInitializer":
+    return True
+  return False
+
+def is_redhat_centos_6_plus():
+  import platform
+
+  if platform.dist()[0] in ['redhat', 'centos'] and platform.dist()[1] > '6.0':
+    return True
+  return False
 
 def export_ca_certs(dir_path):
   # export ca certificates on every restart to handle changed truststore content

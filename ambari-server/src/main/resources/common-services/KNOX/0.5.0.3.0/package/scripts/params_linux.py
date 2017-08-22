@@ -149,16 +149,29 @@ else:
 
 has_namenode = not namenode_host == None
 namenode_http_port = "50070"
+namenode_https_port = "50470"
 namenode_rpc_port = "8020"
 
 if has_namenode:
   if 'dfs.namenode.http-address' in config['configurations']['hdfs-site']:
     namenode_http_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
+  if 'dfs.namenode.https-address' in config['configurations']['hdfs-site']:
+    namenode_https_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.https-address'])
   if dfs_ha_enabled and namenode_rpc:
     namenode_rpc_port = get_port_from_url(namenode_rpc)
   else:
     if 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
       namenode_rpc_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.rpc-address'])
+
+dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
+
+hdfs_https_on = False
+hdfs_scheme = 'http'
+if dfs_http_policy  !=  None :
+   hdfs_https_on = (dfs_http_policy.upper() == 'HTTPS_ONLY')
+   hdfs_scheme = 'http' if not hdfs_https_on else 'https'
+   hdfs_port = str(namenode_http_port)  if not hdfs_https_on else str(namenode_https_port)
+   namenode_http_port = hdfs_port
 
 webhdfs_service_urls = ""
 
@@ -179,6 +192,12 @@ if len(namenode_host_keys) > 0:
 else:
   webhdfs_service_urls = buildUrlElement("http", namenode_host, namenode_http_port, "/webhdfs")
 
+yarn_http_policy = default('/configurations/yarn-site/yarn.http.policy', None )
+yarn_https_on = False
+yarn_scheme = 'http'
+if yarn_http_policy !=  None :
+   yarn_https_on = ( yarn_http_policy.upper() == 'HTTPS_ONLY')
+   yarn_scheme = 'http' if not yarn_https_on else 'https'
 
 rm_hosts = default("/clusterHostInfo/rm_host", None)
 if type(rm_hosts) is list:
@@ -219,17 +238,24 @@ if type(hbase_master_hosts) is list:
 else:
   hbase_master_host = hbase_master_hosts
 
+oozie_https_port = None
 oozie_server_hosts = default("/clusterHostInfo/oozie_server", None)
 if type(oozie_server_hosts) is list:
   oozie_server_host = oozie_server_hosts[0]
 else:
   oozie_server_host = oozie_server_hosts
 
+oozie_scheme = 'http'
 has_oozie = not oozie_server_host == None
 oozie_server_port = "11000"
 
 if has_oozie:
   oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
+  oozie_https_port = default("/configurations/oozie-site/oozie.https.port", None)
+
+if oozie_https_port is not None:
+   oozie_scheme = 'https'
+   oozie_server_port = oozie_https_port
 
 # Knox managed properties
 knox_managed_pid_symlink= format('{stack_root}/current/knox-server/pids')

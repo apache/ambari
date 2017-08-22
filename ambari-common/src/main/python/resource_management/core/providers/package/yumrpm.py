@@ -119,36 +119,10 @@ class YumProvider(RPMBasedPackageProvider):
     :type repo_filter str|None
     :rtype list[list,]
     """
-    packages = []
-    cmd_filter = "| grep \"{0}\"".format(repo_filter) if repo_filter else ""
 
-    # tr '\n' '#' %s | sed -e 's/# / /g' | tr '#' '\n' - fix yum formatted output for default console width
-    cmd = AMBARI_SUDO_BINARY + " yum list installed {filter}|tr '\\n' '#' | sed -e 's/# / /g' | tr '#' '\\n'|awk '{printf \"%s;%s;%s\\n\", $1,$2,$3}'".replace("{filter}", cmd_filter)
-    result = self._call_with_timeout(cmd)
-    col_sep = ";"
-
-    """
-    command would return everything in following format:
-    
-    Loaded;plugins:;fastestmirror
-    Installed;Packages;
-    package_name;version;@Repo
-    ....
-    """
-
-    if result and 0 == result['retCode']:
-      raw_pkgs = result['out'].split("\n")
-
-      for line in raw_pkgs:
-        package_item = line.split(col_sep)
-
-        if len(package_item) < 3:
-          continue
-        elif not package_item[2].startswith("@"):
-          continue
-
-        package_item[2] = package_item[2][1:]
-        packages.append(package_item)
+    packages = self._lookup_packages([AMBARI_SUDO_BINARY, "yum", "list", "installed"], "Installed Packages")
+    if repo_filter:
+      packages = [item for item in packages if item[2].lower() == repo_filter.lower()]
 
     return packages
 

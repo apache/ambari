@@ -75,6 +75,16 @@ class TestInstallPackages(RMFTestCase):
   def _add_packages_lookUpYum(*args):
     return TestInstallPackages._add_packages_available(*args)
 
+  def test_get_installed_package_version(self):
+    from resource_management.core.providers.package.yumrpm import YumProvider
+
+    provider = YumProvider(None)
+    with patch.object(provider, "checked_call") as checked_call_mock:
+      checked_call_mock.return_value = 0, "3.1.0.0-54.el7.centos"
+      expected_version = provider.get_installed_package_version("test")
+      self.assertEquals("3.1.0.0-54", expected_version)
+
+
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("resource_management.core.providers.get_provider")
   @patch("resource_management.libraries.script.Script.put_structured_out")

@@ -91,10 +91,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   public static final String VERSION_DEF_STACK_NAME                  = "VersionDefinition/stack_name";
   public static final String VERSION_DEF_STACK_VERSION               = "VersionDefinition/stack_version";
 
-  protected static final String VERSION_DEF_ID                       = "VersionDefinition/id";
+  public static final String VERSION_DEF_ID                       = "VersionDefinition/id";
   protected static final String VERSION_DEF_TYPE_PROPERTY_ID         = "VersionDefinition/type";
   protected static final String VERSION_DEF_DEFINITION_URL           = "VersionDefinition/version_url";
-  protected static final String VERSION_DEF_AVAILABLE_DEFINITION     = "VersionDefinition/available";
+  public static final String VERSION_DEF_AVAILABLE_DEFINITION     = "VersionDefinition/available";
   protected static final String VERSION_DEF_DEFINITION_BASE64        = PropertyHelper.getPropertyId(VERSION_DEF, VERSION_DEF_BASE64_PROPERTY);
 
   protected static final String VERSION_DEF_FULL_VERSION             = "VersionDefinition/repository_version";
@@ -378,6 +378,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           String id = (String) propertyMap.get(VERSION_DEF_ID);
 
           if (null != id) {
+            // id is either the repo version id from the db, or it's a phantom id from
+            // the stack
             if (NumberUtils.isDigits(id)) {
 
               RepositoryVersionEntity entity = s_repoVersionDAO.findByPK(Long.parseLong(id));
@@ -435,7 +437,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       return;
     }
 
-    List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStack(entity.getStackId());
+    List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStackAndType(
+        entity.getStackId(), RepositoryType.STANDARD);
+
     if (entities.isEmpty()) {
       throw new IllegalArgumentException(String.format("Patch %s was uploaded, but there are no repositories for %s",
           entity.getVersion(), entity.getStackId().toString()));

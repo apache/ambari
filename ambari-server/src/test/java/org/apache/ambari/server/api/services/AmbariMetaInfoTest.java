@@ -84,6 +84,7 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -1517,6 +1518,35 @@ public class AmbariMetaInfoTest {
           "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
           ri.getDefaultBaseUrl());
     }
+  }
+
+
+  @Test
+  public void testLatestVdf() throws Exception {
+    // ensure that all of the latest repo retrieval tasks have completed
+    StackManager sm = metaInfo.getStackManager();
+    int maxWait = 45000;
+    int waitTime = 0;
+    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
+      Thread.sleep(5);
+      waitTime += 5;
+    }
+
+    if (waitTime >= maxWait) {
+      fail("Latest Repo tasks did not complete");
+    }
+
+    // !!! default stack version is from latest-vdf.  2.2.0 only has one entry
+    VersionDefinitionXml vdf = metaInfo.getVersionDefinition("HDP-2.2.0");
+    assertNotNull(vdf);
+    assertEquals(1, vdf.repositoryInfo.getOses().size());
+
+    // !!! this stack has no "manifests" and no "latest-vdf".  So the default VDF should contain
+    // information from repoinfo.xml and the "latest" structure
+    vdf = metaInfo.getVersionDefinition("HDP-2.2.1");
+    assertNotNull(vdf);
+
+    assertEquals(2, vdf.repositoryInfo.getOses().size());
   }
 
   @Test

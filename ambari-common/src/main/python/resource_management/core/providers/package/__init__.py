@@ -23,9 +23,6 @@ Ambari Agent
 import time
 import re
 import logging
-import sys
-
-import subprocess
 
 from resource_management.core.exceptions import ExecutionFailed
 from resource_management.core.providers import Provider
@@ -344,6 +341,7 @@ class RPMBasedPackageProvider(PackageProvider):
   """
    RPM Based abstract package provider
   """
+  INSTALLED_PACKAGE_VERSION_COMMAND = "rpm -q --queryformat '%{{version}}-%{{release}}' \"{0}\""
 
   def rpm_check_package_available(self, name):
     import rpm # this is faster then calling 'rpm'-binary externally.
@@ -359,8 +357,13 @@ class RPMBasedPackageProvider(PackageProvider):
     return False
 
   def get_installed_package_version(self, package_name):
-    result = self.checked_call("rpm -q --queryformat '%{{version}}-%{{release}}' {0} | sed -e 's/\.el[0-9]//g'".format(package_name), stderr=subprocess.PIPE)
-    if len(result) >= 2:
-      return result[1]
+    version = None
 
-    return None
+    result = self.checked_call(self.INSTALLED_PACKAGE_VERSION_COMMAND.format(package_name))
+    try:
+      if result[0] == 0:
+        version = result[1].strip().partition(".el")[0]
+    except IndexError:
+      pass
+
+    return version

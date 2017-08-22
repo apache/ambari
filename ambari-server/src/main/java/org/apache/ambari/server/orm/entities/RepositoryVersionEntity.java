@@ -80,6 +80,9 @@ import com.google.inject.Provider;
         name = "repositoryVersionByStack",
         query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
     @NamedQuery(
+        name = "repositoryVersionByStackAndType",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion AND repoversion.type=:type"),
+    @NamedQuery(
         name = "repositoryVersionByStackNameAndVersion",
         query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
     @NamedQuery(
@@ -380,11 +383,9 @@ public class RepositoryVersionEntity {
    * {@inheritDoc}
    */
   @Override
-  public String toString(){
-    return Objects.toStringHelper(this)
-        .add("id", id)
-        .add("stack", stack)
-        .add("version", version).toString();
+  public String toString() {
+    return Objects.toStringHelper(this).add("id", id).add("stack", stack).add("version",
+        version).add("type", type).toString();
   }
 
   /**

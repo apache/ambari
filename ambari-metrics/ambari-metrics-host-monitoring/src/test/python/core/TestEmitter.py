@@ -27,6 +27,7 @@ from only_for_platform import get_platform, PLATFORM_WINDOWS
 from mock.mock import patch, MagicMock
 from security import CachedHTTPConnection
 from blacklisted_set import BlacklistedSet
+from spnego_kerberos_auth import SPNEGOKerberosAuth
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = ('Suse','11','Final')
@@ -86,6 +87,29 @@ class TestEmitter(TestCase):
     self.assertEqual(request_mock.call_count, 3)
     self.assertUrlData(request_mock)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(CachedHTTPConnection, "create_connection", new = MagicMock())
+  @patch.object(SPNEGOKerberosAuth, "authenticate_handshake")
+  @patch.object(CachedHTTPConnection, "getresponse")
+  @patch.object(CachedHTTPConnection, "request")
+  def test_spnego_negotiation(self, request_mock, getresponse_mock, auth_mock):
+    request_mock.return_value = MagicMock()
+    getresponse_mock.return_value.status = 401
+    getresponse_mock.return_value.getheader.return_value = "Negotiate   "
+
+    auth_mock.return_value.status = 200
+
+    stop_handler = bind_signal_handlers()
+
+    config = Configuration()
+    application_metric_map = ApplicationMetricMap("host","10.10.10.10")
+    application_metric_map.clear()
+    application_metric_map.put_metric("APP1", {"metric1":1}, 1)
+    emitter = Emitter(config, application_metric_map, stop_handler)
+    emitter.submit_metrics()
+
+
+    self.assertEqual(request_mock.call_count, 1)
   def assertUrlData(self, request_mock):
     self.assertEqual(len(request_mock.call_args), 2)
     data = request_mock.call_args[0][2]

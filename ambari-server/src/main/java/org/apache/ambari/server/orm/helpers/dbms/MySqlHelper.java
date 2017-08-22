@@ -105,4 +105,20 @@ public class MySqlHelper extends GenericDbmsHelper {
       targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName, sourceIDColumnName);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+                                                     String sourceIDColumnName1, String sourceIDColumnName2,
+                                                     String sourceIDColumnName3,
+                                                     String targetTable, String targetColumnName,
+                                                     String targetIDColumnName1, String targetIDColumnName2,
+                                                     String targetIDColumnName3,
+                                                     String sourceConditionFieldName, String condition) {
+    return String.format("UPDATE %1$s AS a INNER JOIN %2$s AS b ON a.%5$s = b.%8$s AND a.%6$s = b.%9$s AND a.%7$s = b.%10$s AND b.%11$s = '%12$s' SET a.%3$s = b.%4$s",
+        targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName1, targetIDColumnName2, targetIDColumnName3,
+        sourceIDColumnName1, sourceIDColumnName2, sourceIDColumnName3, sourceConditionFieldName, condition);
+  }
+
 }

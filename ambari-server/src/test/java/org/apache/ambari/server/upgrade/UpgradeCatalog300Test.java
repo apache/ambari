@@ -173,21 +173,12 @@ public class UpgradeCatalog300Test {
       }
     };
 
-    Capture<DBAccessor.DBColumnInfo> clusterConfigSelectedColumn = newCapture();
-    Capture<DBAccessor.DBColumnInfo> clusterConfigSelectedTimestampColumn = newCapture();
     Capture<DBAccessor.DBColumnInfo> hrcOpsDisplayNameColumn = newCapture();
-
-    dbAccessor.addColumn(eq(UpgradeCatalog300.CLUSTER_CONFIG_TABLE), capture(clusterConfigSelectedColumn));
-    dbAccessor.addColumn(eq(UpgradeCatalog300.CLUSTER_CONFIG_TABLE), capture(clusterConfigSelectedTimestampColumn));
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
 
     dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
     dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
     dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
-
-    // component table
-    Capture<DBAccessor.DBColumnInfo> componentStateColumn = newCapture();
-    dbAccessor.addColumn(eq(UpgradeCatalog300.COMPONENT_TABLE), capture(componentStateColumn));
 
     replay(dbAccessor, configuration);
 
@@ -195,77 +186,12 @@ public class UpgradeCatalog300Test {
     UpgradeCatalog300 upgradeCatalog300 = injector.getInstance(UpgradeCatalog300.class);
     upgradeCatalog300.executeDDLUpdates();
 
-    DBAccessor.DBColumnInfo capturedSelectedColumn = clusterConfigSelectedColumn.getValue();
-    Assert.assertNotNull(capturedSelectedColumn);
-    Assert.assertEquals(UpgradeCatalog300.CLUSTER_CONFIG_SELECTED_COLUMN, capturedSelectedColumn.getName());
-    Assert.assertEquals(Short.class, capturedSelectedColumn.getType());
-
-    DBAccessor.DBColumnInfo capturedSelectedTimestampColumn = clusterConfigSelectedTimestampColumn.getValue();
-    Assert.assertNotNull(capturedSelectedTimestampColumn);
-    Assert.assertEquals(UpgradeCatalog300.CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN, capturedSelectedTimestampColumn.getName());
-    Assert.assertEquals(Long.class, capturedSelectedTimestampColumn.getType());
-
-    // component table
-    DBAccessor.DBColumnInfo capturedStateColumn = componentStateColumn.getValue();
-    Assert.assertNotNull(componentStateColumn);
-    Assert.assertEquals("repo_state", capturedStateColumn.getName());
-    Assert.assertEquals(String.class, capturedStateColumn.getType());
-
     DBAccessor.DBColumnInfo capturedOpsDisplayNameColumn = hrcOpsDisplayNameColumn.getValue();
     Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedOpsDisplayNameColumn.getName());
     Assert.assertEquals(null, capturedOpsDisplayNameColumn.getDefaultValue());
     Assert.assertEquals(String.class, capturedOpsDisplayNameColumn.getType());
 
     verify(dbAccessor);
-  }
-
-  /**
-   * Tests pre-DML executions.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testExecutePreDMLUpdates() throws Exception {
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-      }
-    };
-
-    EntityManagerFactory emFactory = EasyMock.createNiceMock(EntityManagerFactory.class);
-    Cache emCache = EasyMock.createNiceMock(Cache.class);
-
-    expect(entityManager.getEntityManagerFactory()).andReturn(emFactory).atLeastOnce();
-    expect(emFactory.getCache()).andReturn(emCache).atLeastOnce();
-
-    EntityTransaction mockTransaction = EasyMock.createNiceMock(EntityTransaction.class);
-    Connection mockConnection = EasyMock.createNiceMock(Connection.class);
-    Statement mockStatement = EasyMock.createNiceMock(Statement.class);
-
-    expect(dbAccessor.getConnection()).andReturn(mockConnection).once();
-    expect(mockConnection.createStatement()).andReturn(mockStatement).once();
-
-    expect(mockStatement.executeQuery(EasyMock.anyString())).andReturn(
-        EasyMock.createNiceMock(ResultSet.class));
-
-    expect(entityManager.getTransaction()).andReturn(
-        mockTransaction).atLeastOnce();
-
-    dbAccessor.dropTable(UpgradeCatalog300.CLUSTER_CONFIG_MAPPING_TABLE);
-    EasyMock.expectLastCall().once();
-
-    replay(dbAccessor, entityManager, emFactory, emCache, mockConnection, mockTransaction,
-        mockStatement, configuration);
-
-    Injector injector = Guice.createInjector(module);
-    UpgradeCatalog300 upgradeCatalog300 = injector.getInstance(UpgradeCatalog300.class);
-    upgradeCatalog300.executePreDMLUpdates();
-
-    verify(dbAccessor, entityManager, emFactory, emCache);
   }
 
   @Test

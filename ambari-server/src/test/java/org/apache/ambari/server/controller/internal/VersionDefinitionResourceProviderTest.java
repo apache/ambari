@@ -60,7 +60,6 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -277,7 +276,7 @@ public class VersionDefinitionResourceProviderTest {
         VersionDefinitionResourceProvider.SHOW_AVAILABLE).equals("true").toPredicate();
 
     Set<Resource> results = versionProvider.getResources(getRequest, predicate);
-    Assert.assertEquals(2, results.size());
+    Assert.assertEquals(3, results.size());
 
     boolean found1 = false;
     boolean found2 = false;
@@ -291,17 +290,10 @@ public class VersionDefinitionResourceProviderTest {
         VersionDefinitionXml vdf = ami.getVersionDefinition("HDP-2.2.0");
 
         Assert.assertNotNull(vdf);
-        Assert.assertEquals(2, vdf.repositoryInfo.getOses().size());
+        Assert.assertEquals(1, vdf.repositoryInfo.getOses().size());
 
         String family1 = vdf.repositoryInfo.getOses().get(0).getFamily();
-        String family2 = vdf.repositoryInfo.getOses().get(1).getFamily();
-
-        Assert.assertFalse(family1.equals(family2));
-        Assert.assertTrue(Sets.newHashSet("suse11", "redhat6").contains(family1));
-        Assert.assertTrue(Sets.newHashSet("suse11", "redhat6").contains(family2));
-
-
-
+        Assert.assertEquals("redhat6", family1);
         found2 = true;
       }
     }

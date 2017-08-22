@@ -1381,7 +1381,14 @@ public class AmbariMetaInfo {
 
       if (stack.isActive() && stack.isValid()) {
         try {
-          VersionDefinitionXml xml = VersionDefinitionXml.build(stack);
+          // !!! check for a "latest-vdf" one.  This will be used for the default if one is not found.
+          VersionDefinitionXml xml = stack.getLatestVersionDefinition();
+
+          if (null == xml) {
+            // !!! "latest-vdf" was not found, use the stack.  this is the last-ditch effort
+            xml = VersionDefinitionXml.build(stack);
+          }
+
           versionDefinitions.put(String.format("%s-%s", stack.getName(), stack.getVersion()), xml);
         } catch (Exception e) {
           LOG.warn("Could not make a stack VDF for {}-{}: {}",
