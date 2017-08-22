@@ -29,7 +29,7 @@ import {AppSettingsService} from '@app/services/storage/app-settings.service';
 export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges {
 
   constructor(private appSettings: AppSettingsService) {
-    this.appSettings.getParameter('timeZone').subscribe(value => {
+    appSettings.getParameter('timeZone').subscribe(value => {
       this.timeZone = value;
       this.createHistogram();
     });

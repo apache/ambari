@@ -9,6 +9,9 @@
       ],
       "@envs/*": [
         "environments/*"
+      ],
+      "@vendor/*": [
+        "vendor/*"
       ]
     },
     "sourceMap": true,

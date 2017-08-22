@@ -640,7 +640,7 @@ export const mockData = {
                     value: '1000'
                   },
                   {
-                    name: moment().add(1, 'h').toISOString(),
+                    name: moment().subtract(1, 'h').toISOString(),
                     value: '2000'
                   }
                 ],
@@ -653,7 +653,7 @@ export const mockData = {
                     value: '700'
                   },
                   {
-                    name: moment().add(1, 'h').toISOString(),
+                    name: moment().subtract(1, 'h').toISOString(),
                     value: '900'
                   }
                 ],

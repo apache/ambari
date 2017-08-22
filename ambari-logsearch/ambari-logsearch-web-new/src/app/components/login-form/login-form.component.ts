@@ -29,7 +29,7 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 export class LoginFormComponent {
 
   constructor(private httpClient: HttpClientService, private appState: AppStateService) {
-    this.appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value);
+    appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value);
   }
 
   username: string;

@@ -1,6 +1,9 @@
 {
   "common.title": "Log Search",
 
+  "modal.submit": "OK",
+  "modal.cancel": "Cancel",
+
   "authorization.name": "Username",
   "authorization.password": "Password",
   "authorization.signIn": "Sign In",

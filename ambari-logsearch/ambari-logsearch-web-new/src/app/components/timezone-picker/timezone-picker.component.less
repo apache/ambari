@@ -18,34 +18,28 @@
 
 @import '../variables';
 
-:host {
-  display: block;
-  padding: @filters-panel-padding;
-  background-color: @filters-panel-background-color;
+.btn-link {
+  // TODO implement actual colors
+  color: @submit-color;
 
-  .filter-input-container {
-    .flex-vertical-align;
-    justify-content: flex-start;
+  &:hover {
+    color: @submit-hover-color;
+  }
+}
 
-    .btn-success {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
+/deep/ #timezone-map {
+  .Cbox {
+    .quickLink {
+      padding-top: 4px;
     }
+  }
 
-    filter-dropdown, dropdown-button, timezone-picker {
-      border: @input-border;
+  .hoverZone {
+    display: inline-block;
 
-      &:not(:last-child) {
-        border-right-width: 0;
-      }
-
-      &:first-child {
-        border-radius: @button-border-radius 0 0 @button-border-radius;
-      }
-
-      &:last-child {
-        border-radius: 0 @button-border-radius @button-border-radius 0;
-      }
+    &:after {
+      content: '\007C\00a0\00a0';
+      visibility: hidden;
     }
   }
 }

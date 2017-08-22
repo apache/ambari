@@ -33,8 +33,8 @@ export class MainContainerComponent {
 
   constructor(private httpClient: HttpClientService, private appState: AppStateService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService) {
     this.loadColumnsNames();
-    this.appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
-    this.appState.getParameter('isInitialLoading').subscribe(value => this.isInitialLoading = value);
+    appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
+    appState.getParameter('isInitialLoading').subscribe(value => this.isInitialLoading = value);
   }
 
   @ContentChild(TemplateRef)

@@ -39,10 +39,6 @@ export class FiltersPanelComponent {
     return this.filtering.filters;
   }
 
-  get timeZoneSelection(): any {
-    return this.filtering.timeZoneSelection;
-  }
-
   private loadClusters(): void {
     this.httpClient.get('clusters').subscribe(response => {
       const clusterNames = response.json();

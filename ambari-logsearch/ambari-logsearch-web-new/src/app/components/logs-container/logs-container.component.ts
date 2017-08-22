@@ -40,7 +40,7 @@ import {LogField} from '@app/models/log-field.model';
 export class LogsContainerComponent implements OnInit {
 
   constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService, private filtering: FilteringService) {
-    this.serviceLogsHistogramStorage.getAll().subscribe(data => {
+    serviceLogsHistogramStorage.getAll().subscribe(data => {
       let histogramData = {};
       data.forEach(type => {
         const name = type.name;

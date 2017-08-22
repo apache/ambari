@@ -66,6 +66,10 @@ import {PaginationComponent} from '@app/components/pagination/pagination.compone
 import {PaginationControlsComponent} from '@app/components/pagination-controls/pagination-controls.component';
 import {TimeHistogramComponent} from '@app/components/time-histogram/time-histogram.component';
 import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
+import {ModalComponent} from '@app/components/modal/modal.component';
+import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
+
+import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 
 export function HttpLoaderFactory(http: Http) {
   // adding 'static' parameter to step over mock data request
@@ -105,7 +109,10 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     PaginationComponent,
     PaginationControlsComponent,
     TimeHistogramComponent,
-    LogsContainerComponent
+    LogsContainerComponent,
+    ModalComponent,
+    TimeZonePickerComponent,
+    TimeZoneAbbrPipe
   ],
   imports: [
     BrowserModule,

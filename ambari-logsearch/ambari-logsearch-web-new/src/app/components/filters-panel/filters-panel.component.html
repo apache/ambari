@@ -23,8 +23,7 @@
                        formControlName="text"></filter-text-field>
     <filter-dropdown formControlName="timeRange" [options]="filters.timeRange.options"
                      [defaultLabel]="filters.timeRange.defaultLabel"></filter-dropdown>
-    <dropdown-button [options]="timeZoneSelection.options" [defaultValue]="timeZoneSelection.defaultValue"
-                     [defaultLabel]="timeZoneSelection.defaultLabel" action="setTimeZone"></dropdown-button>
+    <timezone-picker></timezone-picker>
     <!--button class="btn btn-success" type="button">
       <span class="fa fa-search"></span>
     </button-->

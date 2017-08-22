@@ -22,17 +22,16 @@ import * as moment from 'moment-timezone';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
-import {UtilsService} from '@app/services/utils.service';
 
 @Injectable()
 export class FilteringService {
 
-  constructor(private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private utils: UtilsService) {
-    this.appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
-    this.clustersStorage.getAll().subscribe(clusters => {
+  constructor(private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService) {
+    appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
+    clustersStorage.getAll().subscribe(clusters => {
       this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)];
     });
-    this.componentsStorage.getAll().subscribe(components => {
+    componentsStorage.getAll().subscribe(components => {
       this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)];
     });
   }
@@ -240,18 +239,6 @@ export class FilteringService {
     page: {
       defaultValue: 0
     }
-  };
-
-  timeZoneSelection = {
-    options: moment.tz.names().map(zone => {
-      // TODO map labels according to actual design requirements
-      return {
-        label: this.utils.getTimeZoneLabel(zone),
-        value: zone
-      };
-    }),
-    defaultValue: this.defaultTimeZone,
-    defaultLabel: this.utils.getTimeZoneLabel(this.defaultTimeZone)
   };
 
   private filtersFormItems = Object.keys(this.filters).reduce((currentObject, key) => {

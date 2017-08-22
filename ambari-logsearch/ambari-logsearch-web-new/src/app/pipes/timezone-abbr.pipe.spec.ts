@@ -16,36 +16,11 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {TimeZoneAbbrPipe} from './timezone-abbr.pipe';
 
-:host {
-  display: block;
-  padding: @filters-panel-padding;
-  background-color: @filters-panel-background-color;
-
-  .filter-input-container {
-    .flex-vertical-align;
-    justify-content: flex-start;
-
-    .btn-success {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-    }
-
-    filter-dropdown, dropdown-button, timezone-picker {
-      border: @input-border;
-
-      &:not(:last-child) {
-        border-right-width: 0;
-      }
-
-      &:first-child {
-        border-radius: @button-border-radius 0 0 @button-border-radius;
-      }
-
-      &:last-child {
-        border-radius: 0 @button-border-radius @button-border-radius 0;
-      }
-    }
-  }
-}
+describe('TimeZoneAbbrPipe', () => {
+  it('create an instance', () => {
+    const pipe = new TimeZoneAbbrPipe();
+    expect(pipe).toBeTruthy();
+  });
+});

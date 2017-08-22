@@ -17,7 +17,6 @@
  */
 
 import {Injectable} from '@angular/core';
-import * as moment from 'moment-timezone';
 
 @Injectable()
 export class UtilsService {
@@ -42,10 +41,6 @@ export class UtilsService {
       valuesArray.splice(valuePosition, 1);
     }
     return valuesArray.join(',');
-  }
-
-  getTimeZoneLabel(timeZone) {
-    return `${timeZone} (${moment.tz(timeZone).format('Z')})`;
   }
 
 }

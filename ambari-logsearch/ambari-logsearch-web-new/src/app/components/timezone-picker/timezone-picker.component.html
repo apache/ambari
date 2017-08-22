@@ -15,20 +15,12 @@
   limitations under the License.
 -->
 
-<header>
-  <nav class="navbar navbar-fixed-top">
-    <div class="container-fluid">
-      <h1 [ngClass]="{'full-flex-width': !isAuthorized, 'navbar-left': true}">{{'common.title' | translate}}</h1>
-      <top-menu *ngIf="isAuthorized" class="navbar-right"></top-menu>
-    </div>
-  </nav>
-</header>
-
-<main-container>
+<button class="btn btn-link" (click)="setTimeZonePickerDisplay(true)">
+  {{timeZone | timeZoneAbbr}} <span class="caret"></span>
+</button>
+<modal *ngIf="isTimeZonePickerDisplayed" [showCloseButton]="false" [isLargeModal]="true"
+       (init)="initMap()" (cancel)="setTimeZonePickerDisplay(false)" (submit)="setTimeZone()">
   <ng-template>
-    <!-- hidden element for moving the main bar outside the fixed header -->
-    <div class="navbar invisible">
-      <h1>&nbsp;</h1>
-    </div>
+    <div attr.id="{{mapElementId}}"></div>
   </ng-template>
-</main-container>
+</modal>

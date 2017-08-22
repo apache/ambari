@@ -16,36 +16,16 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {Pipe, PipeTransform} from '@angular/core';
+import * as moment from 'moment-timezone';
 
-:host {
-  display: block;
-  padding: @filters-panel-padding;
-  background-color: @filters-panel-background-color;
+@Pipe({
+  name: 'timeZoneAbbr'
+})
+export class TimeZoneAbbrPipe implements PipeTransform {
 
-  .filter-input-container {
-    .flex-vertical-align;
-    justify-content: flex-start;
-
-    .btn-success {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-    }
-
-    filter-dropdown, dropdown-button, timezone-picker {
-      border: @input-border;
-
-      &:not(:last-child) {
-        border-right-width: 0;
-      }
-
-      &:first-child {
-        border-radius: @button-border-radius 0 0 @button-border-radius;
-      }
-
-      &:last-child {
-        border-radius: 0 @button-border-radius @button-border-radius 0;
-      }
-    }
+  transform(value: string): string {
+    return moment.tz.zone(value).abbr(moment().valueOf());
   }
+
 }
