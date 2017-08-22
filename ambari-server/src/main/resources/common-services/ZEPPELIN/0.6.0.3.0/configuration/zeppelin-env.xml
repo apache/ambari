@@ -68,7 +68,6 @@ export JAVA_HOME={{java64_home}}
 export MASTER=yarn-client
 export SPARK_YARN_JAR={{spark_jar}}
 # export ZEPPELIN_JAVA_OPTS                   # Additional jvm options. for example, export ZEPPELIN_JAVA_OPTS="-Dspark.executor.memory=8g -Dspark.cores.max=16"
-export ZEPPELIN_JAVA_OPTS="-Dhdp.version={{full_stack_version}} -Dspark.executor.memory={{executor_mem}} -Dspark.executor.instances={{executor_instances}} -Dspark.yarn.queue={{spark_queue}}"
 # export ZEPPELIN_MEM                         # Zeppelin jvm mem options Default -Xms1024m -Xmx1024m -XX:MaxPermSize=512m
 # export ZEPPELIN_INTP_MEM                    # zeppelin interpreter process jvm mem options. Default -Xms1024m -Xmx1024m -XX:MaxPermSize=512m
 # export ZEPPELIN_INTP_JAVA_OPTS              # zeppelin interpreter process jvm options.
@@ -99,7 +98,7 @@ export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"
 ## defining SPARK_HOME makes Zeppelin run spark interpreter process using spark-submit
 ##
 # export SPARK_HOME                           # (required) When it is defined, load it instead of Zeppelin embedded Spark libraries
-#export SPARK_HOME={{spark_home}}
+# export SPARK_HOME={{spark_home}}
 # export SPARK_SUBMIT_OPTIONS                 # (optional) extra options to pass to spark submit. eg) "--driver-memory 512M --executor-memory 1G".
 # export SPARK_APP_NAME                       # (optional) The name of spark application.
 
@@ -114,9 +113,6 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
 # To configure pyspark, you need to set spark distribution's path to 'spark.home' property in Interpreter setting screen in Zeppelin GUI
 # export PYSPARK_PYTHON                       # path to the python command. must be the same path on the driver(Zeppelin) and all workers.
 # export PYTHONPATH
-
-export PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.8.2.1-src.zip"
-export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 
 ## Spark interpreter options ##
 ##
