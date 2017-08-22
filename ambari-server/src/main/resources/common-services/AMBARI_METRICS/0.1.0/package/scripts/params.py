@@ -304,7 +304,10 @@ service_check_data = functions.get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 hadoop_user = "hadoop"
 
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 kinit_cmd = ""
+klist_path_local = functions.get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
+klist_cmd = ""
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
@@ -327,6 +330,9 @@ if security_enabled:
   regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
   regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
   regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
+
+  kinit_cmd = '%s -kt %s %s' % (kinit_path_local, config['configurations']['ams-hbase-security-site']['ams.monitor.keytab'], config['configurations']['ams-hbase-security-site']['ams.monitor.principal'].replace('_HOST',_hostname_lowercase))
+  klist_cmd = '%s' % klist_path_local
 
 #Ambari metrics log4j settings
 ams_hbase_log_maxfilesize = default('configurations/ams-hbase-log4j/ams_hbase_log_maxfilesize',256)
@@ -362,7 +368,6 @@ if hbase_wal_dir and re.search("^file://|/", hbase_wal_dir): #If wal dir is on l
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 
 
