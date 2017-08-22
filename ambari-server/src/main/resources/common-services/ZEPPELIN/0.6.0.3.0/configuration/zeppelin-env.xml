@@ -91,8 +91,12 @@ export ZEPPELIN_PID_DIR={{zeppelin_pid_dir}}
 # export ZEPPELIN_NOTEBOOK_ONE_WAY_SYNC       # If there are multiple notebook storages, should we treat the first one as the only source of truth?
 # export ZEPPELIN_NOTEBOOK_PUBLIC             # Make notebook public by default when created, private otherwise
 export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"
-
 #### Spark interpreter configuration ####
+
+## Kerberos ticket refresh setting
+##
+export KINIT_FAIL_THRESHOLD=5
+export KERBEROS_REFRESH_INTERVAL=1d
 
 ## Use provided spark installation ##
 ## defining SPARK_HOME makes Zeppelin run spark interpreter process using spark-submit
@@ -165,6 +169,7 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
     <description>
       Kerberos principal name for the Zeppelin.
     </description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
