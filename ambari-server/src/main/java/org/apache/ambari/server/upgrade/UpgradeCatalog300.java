@@ -18,9 +18,7 @@
 package org.apache.ambari.server.upgrade;
 
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +38,6 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -48,11 +45,9 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.support.JdbcUtils;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -73,7 +68,6 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
   protected static final String CLUSTER_CONFIG_SELECTED_COLUMN = "selected";
   protected static final String CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
-  protected static final String CLUSTER_CONFIG_MAPPING_TABLE = "clusterconfigmapping";
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
   protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
@@ -117,7 +111,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getSourceVersion() {
-    return "2.5.2";
+    return "2.6.0";
   }
 
   /**
@@ -125,9 +119,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    addServiceComponentColumn();
     updateStageTable();
-    updateClusterConfigurationTable();
     addOpsDisplayNameColumnToHostRoleCommand();
     removeSecurityState();
   }
@@ -146,7 +138,6 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-    setSelectedConfigurationsAndRemoveMappingTable();
   }
 
   /**
@@ -179,17 +170,6 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
       }
     }
 
-  }
-
-  /**
-   * Updates the {@code servicecomponentdesiredstate} table.
-   *
-   * @throws SQLException
-   */
-  protected void addServiceComponentColumn() throws SQLException {
-    dbAccessor.addColumn(COMPONENT_TABLE,
-        new DBColumnInfo("repo_state", String.class, 255,
-            RepositoryVersionState.NOT_REQUIRED.name(), false));
   }
 
   protected void setStatusOfStagesAndRequests() {
@@ -228,81 +208,6 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         }
       }
     });
-  }
-
-  /**
-   * Performs the following operations on {@code clusterconfig}:
-   * <ul>
-   * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_COLUMN} to
-   * {@link #CLUSTER_CONFIG_TABLE}.
-   * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN} to
-   * {@link #CLUSTER_CONFIG_TABLE}.
-   * </ul>
-   */
-  protected void updateClusterConfigurationTable() throws SQLException {
-    dbAccessor.addColumn(CLUSTER_CONFIG_TABLE,
-        new DBAccessor.DBColumnInfo(CLUSTER_CONFIG_SELECTED_COLUMN, Short.class, null, 0, false));
-
-    dbAccessor.addColumn(CLUSTER_CONFIG_TABLE,
-        new DBAccessor.DBColumnInfo(CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN, Long.class, null, 0,
-            false));
-  }
-
-  /**
-   * Performs the following operations on {@code clusterconfig} and
-   * {@code clusterconfigmapping}:
-   * <ul>
-   * <li>Sets both selected columns to the current config by querying
-   * {@link #CLUSTER_CONFIG_MAPPING_TABLE}.
-   * <li>Removes {@link #CLUSTER_CONFIG_MAPPING_TABLE}.
-   * </ul>
-   */
-  protected void setSelectedConfigurationsAndRemoveMappingTable() throws SQLException {
-    // update the new selected columns
-    executeInTransaction(new Runnable() {
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void run() {
-        String selectSQL = String.format(
-            "SELECT cluster_id, type_name, version_tag FROM %s WHERE selected = 1 ORDER BY cluster_id ASC, type_name ASC, version_tag ASC",
-            CLUSTER_CONFIG_MAPPING_TABLE);
-
-        Statement statement = null;
-        ResultSet resultSet = null;
-
-        long now = System.currentTimeMillis();
-
-        try {
-          statement = dbAccessor.getConnection().createStatement();
-          resultSet = statement.executeQuery(selectSQL);
-
-          while (resultSet.next()) {
-            final Long clusterId = resultSet.getLong("cluster_id");
-            final String typeName = resultSet.getString("type_name");
-            final String versionTag = resultSet.getString("version_tag");
-
-            // inefficient since this can be done with a single nested SELECT,
-            // but this way we can log what's happening which is more useful
-            String updateSQL = String.format(
-                "UPDATE %s SET selected = 1, selected_timestamp = %d WHERE cluster_id = %d AND type_name = '%s' AND version_tag = '%s'",
-                CLUSTER_CONFIG_TABLE, now, clusterId, typeName, versionTag);
-
-            dbAccessor.executeQuery(updateSQL);
-          }
-        } catch (SQLException sqlException) {
-          throw new RuntimeException(sqlException);
-        } finally {
-          JdbcUtils.closeResultSet(resultSet);
-          JdbcUtils.closeStatement(statement);
-        }
-      }
-    });
-
-    // if the above execution and committed the transaction, then we can remove
-    // the cluster configuration mapping table
-    dbAccessor.dropTable(CLUSTER_CONFIG_MAPPING_TABLE);
   }
 
   /**
