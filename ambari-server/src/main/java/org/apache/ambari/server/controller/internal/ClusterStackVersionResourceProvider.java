@@ -506,16 +506,15 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     final AmbariManagementController managementController = getManagementController();
     final AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
 
-    String osFamily = getPowerPCOsFamily(hosts);
     // build the list of OS repos
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
     Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
-      String osType = getOsTypeForRepo(operatingSystem, osFamily);
-      if (operatingSystem.isAmbariManagedRepos()) {
-        perOsRepos.put(osType, operatingSystem.getRepositories());
+
+    if (operatingSystem.isAmbariManagedRepos()) {
+        perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
       } else {
-        perOsRepos.put(osType, Collections.<RepositoryEntity> emptyList());
+        perOsRepos.put(operatingSystem.getOsType(), Collections.<RepositoryEntity> emptyList());
       }
     }
 
@@ -1087,49 +1086,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       configHelper.updateConfigType(cluster, amc, clusterEnv.getType(), updatedProperties, null,
           amc.getAuthName(), serviceNote);
-    }
-  }
-
-  /**
-   * Check one host is enough to tell the arch
-   * because all hosts should have the same arch.
-   * @param hosts List<Host>
-   * @return osFamily, null if hosts is empty or is X86_64
-
-   */
-  private String getPowerPCOsFamily(List<Host> hosts) {
-    if (hosts.isEmpty()){
-      return null;
-    } else {
-      Host host = hosts.get(0);
-      String osFamily = host.getHostAttributes().get("os_family");
-      if (null != osFamily && osFamily.endsWith("-ppc")){
-        return osFamily;
-      } else {
-        return null;
-      }
-    }
-  }
-
-  /**
-   * Use os type with -ppc post fix for powerpc
-   * in order to have it consistent with the os information
-   * stored in the Hosts table
-   * No need to apply the change if os is x86_64
-   * */
-  private String getOsTypeForRepo(OperatingSystemEntity operatingSystem, String osFamily) {
-    if (null != osFamily){
-      String osType = operatingSystem.getOsType();
-      int pos = osFamily.indexOf("-ppc");
-      if (pos > 0){
-        String os = osType.substring(0, pos);
-        String majorVersion = osType.substring(os.length());
-        return String.format("%s-ppc%s", os, majorVersion);
-      } else {
-        return operatingSystem.getOsType();
-      }
-    } else {
-      return operatingSystem.getOsType();
     }
   }
 }
