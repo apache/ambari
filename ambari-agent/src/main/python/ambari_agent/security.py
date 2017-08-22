@@ -103,10 +103,6 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
     return sock
 
-
-class ConnectionIsNotEstablished(Exception):
-  pass
-
 def establish_connection(connection_url):
   """
   Create a stomp connection

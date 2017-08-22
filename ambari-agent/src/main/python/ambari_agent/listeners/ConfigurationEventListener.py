@@ -44,8 +44,7 @@ class ConfigurationEventListener(EventListener):
     if message == {}:
       return
 
-    self.configuration_cache.rewrite_cache(message['clusters'])
-    self.configuration_cache.hash = message['hash']
+    self.configuration_cache.rewrite_cache(message['clusters'], message['hash'])
 
   def get_handled_path(self):
     return Constants.CONFIGURATIONS_TOPIC

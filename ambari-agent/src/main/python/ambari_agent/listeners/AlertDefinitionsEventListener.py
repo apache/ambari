@@ -48,14 +48,11 @@ class AlertDefinitionsEventListener(EventListener):
     event_type = message['eventType']
 
     if event_type == 'CREATE':
-      self.alert_definitions_cache.rewrite_cache(message['clusters'])
-      self.alert_definitions_cache.hash = message['hash']
+      self.alert_definitions_cache.rewrite_cache(message['clusters'], message['hash'])
     elif event_type == 'UPDATE':
-      self.alert_definitions_cache.cache_update(message['clusters'])
-      self.alert_definitions_cache.hash = message['hash']
+      self.alert_definitions_cache.cache_update(message['clusters'], message['hash'])
     elif event_type == 'DELETE':
-      self.alert_definitions_cache.cache_delete(message['clusters'])
-      self.alert_definitions_cache.hash = message['hash']
+      self.alert_definitions_cache.cache_delete(message['clusters'], message['hash'])
     else:
       logger.error("Unknown event type '{0}' for alert event")
 

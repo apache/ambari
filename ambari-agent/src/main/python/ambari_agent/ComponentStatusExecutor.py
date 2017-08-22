@@ -24,7 +24,7 @@ import threading
 from ambari_agent import Constants
 from ambari_agent.LiveStatus import LiveStatus
 from collections import defaultdict
-from ambari_agent import security
+from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class ComponentStatusExecutor(threading.Thread):
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.stop_event = initializer_module.stop_event
     self.recovery_manager = initializer_module.recovery_manager
-    self.reported_component_status = defaultdict(lambda:defaultdict(lambda:None)) # component statuses which were received by server
+    self.reported_component_status = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:None))) # component statuses which were received by server
     threading.Thread.__init__(self)
 
   def run(self):
@@ -45,6 +45,7 @@ class ComponentStatusExecutor(threading.Thread):
     """
     while not self.stop_event.is_set():
       try:
+        self.clean_not_existing_clusters_info()
         cluster_reports = defaultdict(lambda:[])
 
         for cluster_id in self.topology_cache.get_cluster_ids():
@@ -71,6 +72,10 @@ class ComponentStatusExecutor(threading.Thread):
               if self.stop_event.is_set():
                 break
 
+              # cluster was already removed
+              if not cluster_id in self.topology_cache.get_cluster_ids():
+                break
+
               service_name = component_dict.serviceName
               component_name = component_dict.componentName
 
@@ -93,13 +98,13 @@ class ComponentStatusExecutor(threading.Thread):
                 'clusterId': cluster_id,
               }
 
-              if status != self.reported_component_status[component_name][command_name]:
+              if status != self.reported_component_status[cluster_id][component_name][command_name]:
                 logging.info("Status for {0} has changed to {1}".format(component_name, status))
                 cluster_reports[cluster_id].append(result)
                 self.recovery_manager.handle_status_change(component_name, status)
 
         self.send_updates_to_server(cluster_reports)
-      except security.ConnectionIsNotEstablished: # server and agent disconnected during sending data. Not an issue
+      except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
       except:
         logger.exception("Exception in ComponentStatusExecutor. Re-running it")
@@ -119,4 +124,12 @@ class ComponentStatusExecutor(threading.Thread):
         command = report['command']
         status = report['status']
 
-        self.reported_component_status[component_name][command] = status
+        self.reported_component_status[cluster_id][component_name][command] = status
+
+  def clean_not_existing_clusters_info(self):
+    """
+    This needs to be done to remove information about clusters which where deleted (e.g. ambari-server reset)
+    """
+    for cluster_id in self.reported_component_status.keys():
+      if not cluster_id in self.topology_cache.get_cluster_ids():
+        del self.reported_component_status[cluster_id]

@@ -66,7 +66,7 @@ class ClusterAlertDefinitionsCache(ClusterCache):
 
     return None
 
-  def cache_update(self, cache_update):
+  def cache_update(self, cache_update, cache_hash):
     mutable_dict = self._get_mutable_copy()
 
     for cluster_id in mutable_dict:
@@ -78,9 +78,9 @@ class ClusterAlertDefinitionsCache(ClusterCache):
         else:
           mutable_dict[cluster_id]['alertDefinitions'][index_of_alert] = alert_definition
 
-    self.rewrite_cache(mutable_dict)
+    self.rewrite_cache(mutable_dict, cache_hash)
 
-  def cache_delete(self, cache_update):
+  def cache_delete(self, cache_update, cache_hash):
     mutable_dict = self._get_mutable_copy()
 
     for cluster_id in mutable_dict:
@@ -93,7 +93,7 @@ class ClusterAlertDefinitionsCache(ClusterCache):
 
         del mutable_dict[cluster_id]['alertDefinitions'][index_of_alert]
 
-    self.rewrite_cache(mutable_dict)
+    self.rewrite_cache(mutable_dict, cache_hash)
 
 
   def get_cache_name(self):

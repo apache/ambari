@@ -48,18 +48,23 @@ class ClusterCache(dict):
     self.hash = None
 
     self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
+    self.__current_cache_hash_file = os.path.join(self.cluster_cache_dir, '.'+self.get_cache_name()+'.hash')
 
     self._cache_lock = threading.RLock()
     self.__file_lock = ClusterCache.file_locks[self.__current_cache_json_file]
 
     # if the file exists, then load it
     cache_dict = {}
-    if os.path.isfile(self.__current_cache_json_file):
-      with self.__file_lock:
+    with self.__file_lock:
+      if os.path.isfile(self.__current_cache_json_file):
         with open(self.__current_cache_json_file, 'r') as fp:
           cache_dict = json.load(fp)
 
-    self.rewrite_cache(cache_dict)
+      if os.path.isfile(self.__current_cache_hash_file):
+        with open(self.__current_cache_hash_file, 'r') as fp:
+          self.hash = fp.read()
+
+    self.rewrite_cache(cache_dict, self.hash)
 
   def get_cluster_indepedent_data(self):
     return self[ClusterCache.COMMON_DATA_CLUSTER]
@@ -70,7 +75,7 @@ class ClusterCache(dict):
       cluster_ids.remove(ClusterCache.COMMON_DATA_CLUSTER)
     return cluster_ids
 
-  def rewrite_cache(self, cache):
+  def rewrite_cache(self, cache, cache_hash):
     cache_ids_to_delete = []
     for existing_cluster_id in self:
       if not existing_cluster_id in cache:
@@ -83,17 +88,19 @@ class ClusterCache(dict):
       for cache_id_to_delete in cache_ids_to_delete:
         del self[cache_id_to_delete]
 
+    self.hash = cache_hash
+
     self.on_cache_update()
     self.persist_cache()
 
-  def cache_update(self, update_dict):
+  def cache_update(self, update_dict, cache_hash):
     """
     Update the current dictionary by other one
     """
     merged_dict = Utils.update_nested(self._get_mutable_copy(), update_dict)
-    self.rewrite_cache(merged_dict)
+    self.rewrite_cache(merged_dict, cache_hash)
 
-  def cache_delete(self, delete_dict):
+  def cache_delete(self, delete_dict, cache_hash):
     raise NotImplemented()
 
   def rewrite_cluster_cache(self, cluster_id, cache):
@@ -121,6 +128,10 @@ class ClusterCache(dict):
     with self.__file_lock:
       with open(self.__current_cache_json_file, 'w') as f:
         json.dump(self, f, indent=2)
+
+      if self.hash is not None:
+        with open(self.__current_cache_hash_file, 'w') as fp:
+          fp.write(self.hash)
 
   def _get_mutable_copy(self):
     with self._cache_lock:

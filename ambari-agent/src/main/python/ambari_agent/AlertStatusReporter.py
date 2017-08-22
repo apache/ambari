@@ -20,7 +20,7 @@ limitations under the License.
 
 import logging
 import threading
-from ambari_agent import security
+from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class AlertStatusReporter(threading.Thread):
           alerts = self.collector.alerts()
           if alerts:
             self.initializer_module.connection.send(message=alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT)
-      except security.ConnectionIsNotEstablished: # server and agent disconnected during sending data. Not an issue
+      except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
       except:
         logger.exception("Exception in AlertStatusReporter. Re-running it")

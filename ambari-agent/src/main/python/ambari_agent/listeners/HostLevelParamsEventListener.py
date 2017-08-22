@@ -45,8 +45,7 @@ class HostLevelParamsEventListener(EventListener):
     if message == {}:
       return
 
-    self.host_level_params_cache.rewrite_cache(message['clusters'])
-    self.host_level_params_cache.hash = message['hash']
+    self.host_level_params_cache.rewrite_cache(message['clusters'], message['hash'])
 
     if message['clusters']:
       # FIXME: Recovery manager does not support multiple cluster as of now.

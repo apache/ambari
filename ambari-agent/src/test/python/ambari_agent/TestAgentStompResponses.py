@@ -51,10 +51,6 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     return super(TestAgentStompResponses, self).setUp()
 
-  def tearDown(self):
-    self.initializer_module.stop_event.set()
-    return super(TestAgentStompResponses, self).tearDown()
-
   @patch.object(CustomServiceOrchestrator, "runCommand")
   def test_mock_server_can_start(self, runCommand_mock):
     runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}

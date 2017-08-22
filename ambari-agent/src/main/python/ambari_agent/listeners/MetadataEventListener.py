@@ -46,8 +46,7 @@ class MetadataEventListener(EventListener):
     if message == {}:
       return
 
-    self.metadata_cache.cache_update(message['clusters'])
-    self.metadata_cache.hash = message['hash']
+    self.metadata_cache.cache_update(message['clusters'], message['hash'])
 
   def get_handled_path(self):
     return Constants.METADATA_TOPIC

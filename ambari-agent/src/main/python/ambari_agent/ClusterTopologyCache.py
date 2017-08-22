@@ -127,7 +127,7 @@ class ClusterTopologyCache(ClusterCache):
         return component_dict
     return None
 
-  def cache_update(self, cache_update):
+  def cache_update(self, cache_update, cache_hash):
     """
     Handle event of update of topology.
 
@@ -171,9 +171,9 @@ class ClusterTopologyCache(ClusterCache):
           else:
             components_mutable_list.append(component_updates_dict)
 
-    self.rewrite_cache(mutable_dict)
+    self.rewrite_cache(mutable_dict, cache_hash)
 
-  def cache_delete(self, cache_update):
+  def cache_delete(self, cache_update, cache_hash):
     """
     Handle event of delete on topology.
 
@@ -219,6 +219,6 @@ class ClusterTopologyCache(ClusterCache):
     for cluster_id in clusters_ids_to_delete:
       del mutable_dict[cluster_id]
 
-    self.rewrite_cache(mutable_dict)
+    self.rewrite_cache(mutable_dict, cache_hash)
 
 

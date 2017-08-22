@@ -34,7 +34,7 @@ from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.RecoveryManager import RecoveryManager
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
-from ambari_agent import security
+from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger(__name__)
 
@@ -104,4 +104,4 @@ class InitializerModule:
       Can be a result of race condition:
       begin sending X -> got disconnected by HeartbeatThread -> continue sending X
       """
-      raise security.ConnectionIsNotEstablished("Connection to server is not established")
+      raise ConnectionIsAlreadyClosed("Connection to server is not established")

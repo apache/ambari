@@ -25,7 +25,7 @@ from collections import defaultdict
 from Grep import Grep
 
 from ambari_agent import Constants
-from ambari_agent import security
+from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger()
 
@@ -66,7 +66,7 @@ class CommandStatusDict():
     try:
       self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
       return True
-    except security.ConnectionIsNotEstablished:
+    except ConnectionIsAlreadyClosed:
       return False
 
   def report(self):
