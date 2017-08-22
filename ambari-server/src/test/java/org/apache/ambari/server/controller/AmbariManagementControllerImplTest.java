@@ -2448,10 +2448,10 @@ public class AmbariManagementControllerImplTest {
     ArrayList<Packlet> packletArrayList = new ArrayList<>();
     Packlet samplePacklet = new Packlet();
     Injector injector = createNiceMock(Injector.class);
-    samplePacklet.setType("service");
+    samplePacklet.setType(Packlet.PackletType.SERVICE_PACKLET);
     samplePacklet.setVersion("3.0.0");
     samplePacklet.setName("NIFI");
-    samplePacklet.setSourceDir("/abc/nifi.tar.gz");
+    samplePacklet.setSourceLocation("/abc/nifi.tar.gz");
     packletArrayList.add(samplePacklet);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
     expect(ambariMetaInfo.getPacklets(mpackId)).andReturn(packletArrayList).atLeastOnce();

@@ -21,22 +21,27 @@ import com.google.gson.annotations.SerializedName;
 
 
 public class Packlet {
+  public enum PackletType {
+    @SerializedName("service-packlet")
+    SERVICE_PACKLET
+  }
+
   @SerializedName("type")
-  private String type;
+  private PackletType type;
   @SerializedName("name")
   private String name;
   @SerializedName("version")
   private String version;
   @SerializedName("service-id")
   private String serviceId;
-  @SerializedName("source_dir")
-  private String sourceDir;
+  @SerializedName("source_location")
+  private String srcLocation;
 
-  public String getType() {
+  public PackletType getType() {
     return type;
   }
 
-  public void setType(String type) {
+  public void setType(PackletType type) {
     this.type = type;
   }
 
@@ -56,12 +61,12 @@ public class Packlet {
     this.version = version;
   }
 
-  public String getSourceDir() {
-    return sourceDir;
+  public String getSourceLocation() {
+    return srcLocation;
   }
 
-  public void setSourceDir(String sourceDir) {
-    this.sourceDir = sourceDir;
+  public void setSourceLocation(String srcLocation) {
+    this.srcLocation = srcLocation;
   }
 
 
@@ -85,7 +90,7 @@ public class Packlet {
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
     result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
-    result = prime * result + ((sourceDir == null) ? 0 : sourceDir.hashCode());
+    result = prime * result + ((srcLocation == null) ? 0 : srcLocation.hashCode());
     return result;
   }
 
@@ -136,11 +141,11 @@ public class Packlet {
       return false;
     }
 
-    if (sourceDir == null) {
-      if (other.sourceDir != null) {
+    if (srcLocation == null) {
+      if (other.srcLocation != null) {
         return false;
       }
-    } else if (!sourceDir.equals(other.sourceDir)) {
+    } else if (!srcLocation.equals(other.srcLocation)) {
       return false;
     }
     return true;
@@ -154,7 +159,7 @@ public class Packlet {
     sb.append("name=").append(name).append(", ");
     sb.append("version=").append(version).append(", ");
     sb.append("service id=").append(serviceId).append(", ");
-    sb.append("source directory=").append(sourceDir).append(", ");
+    sb.append("source location=").append(srcLocation).append(", ");
     sb.append('}');
     return sb.toString();
   }

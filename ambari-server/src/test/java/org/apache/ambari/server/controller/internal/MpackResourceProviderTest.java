@@ -164,8 +164,8 @@ public class MpackResourceProviderTest {
     ArrayList<Packlet> packletArrayList = new ArrayList<>();
     Packlet packlet = new Packlet();
     packlet.setName("testService");
-    packlet.setType("service");
-    packlet.setSourceDir("testDir/testDir");
+    packlet.setType(Packlet.PackletType.SERVICE_PACKLET);
+    packlet.setSourceLocation("testDir/testDir");
     packlet.setVersion("3.0");
     packletArrayList.add(packlet);
 

@@ -184,7 +184,7 @@ public class MpackManager {
    * @param tarPath
    * @throws IOException
    */
-  private void extractTar(Path tarPath, File tempOutputDirectory) throws IOException{
+  private void extractTar(Path tarPath, File tempOutputDirectory) throws IOException {
     TarArchiveInputStream tarFile = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(new File(String.valueOf(tarPath))))));
     TarArchiveEntry entry = null;
     File outputFile = null;
@@ -228,35 +228,32 @@ public class MpackManager {
             (Paths.get(mpacksStaging + File.separator + mpackTarDirectory.substring(mpackTarDirectory.lastIndexOf('/') + 1, mpackTarDirectory.indexOf(".tar")) + File.separator),
                     Paths.get(mpackDirectory), StandardCopyOption.REPLACE_EXISTING);
 
-    createServicesDirectory(extractedMpackDirectory);
+    createServicesDirectory(extractedMpackDirectory, mpack);
     createSymLinks(mpack);
   }
 
   /***
    * Create a services directory and extract all the services tar file inside it. This readies it for cluster deployment
    * @param extractedMpackDirectory
+   * @param mpack
    * @throws IOException
    */
-  private void createServicesDirectory(Path extractedMpackDirectory) throws IOException {
+  private void createServicesDirectory(Path extractedMpackDirectory, Mpack mpack) throws IOException {
     File servicesDir = new File(extractedMpackDirectory.toAbsolutePath() + File.separator + SERVICES_DIRECTORY);
     if (!servicesDir.exists()) {
       servicesDir.mkdir();
     }
-    File packletDir = new File(extractedMpackDirectory.toAbsolutePath() + File.separator + PACKLETS_DIRECTORY);
-    for (final File serviceTar : packletDir.listFiles()) {
-      String serviceName = serviceTar.getName();
-      if (serviceName.contains("tar.gz")) {
-        extractTar(serviceTar.toPath(), packletDir);
-        String serviceTarDirectory = serviceTar.toString();
-        String serviceNameVersion = serviceTarDirectory.substring(serviceTarDirectory.lastIndexOf('/') + 1, serviceTarDirectory.indexOf(".tar"));
-        String serviceFolderName = serviceNameVersion.substring(0,serviceNameVersion.indexOf("-packlet")); //Can we assume the names of the tar files?
-        Path extractedServiceDirectory = Files.move
-                (Paths.get(packletDir + File.separator + serviceNameVersion),
-                        Paths.get(servicesDir.toPath() + File.separator + serviceFolderName ), StandardCopyOption.REPLACE_EXISTING);
+    ArrayList<Packlet> packletArrayList = mpack.getPacklets();
+
+    for (Packlet packlet : packletArrayList) {
+      if (packlet.getType() == Packlet.PackletType.SERVICE_PACKLET) {
+        String packletSourceLocation = packlet.getSourceLocation();
+        File serviceTargetDir = new File(servicesDir + File.separator + packlet.getName());
+        extractTar(Paths.get(extractedMpackDirectory + File.separator + packlet.getSourceLocation()) , servicesDir );
+        Path extractedServiceDirectory = Files.move(Paths.get(servicesDir + File.separator + packletSourceLocation.substring(packletSourceLocation.indexOf("/")+1,packletSourceLocation.indexOf(".tar.gz"))),serviceTargetDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
       }
     }
-  }
-
 
   /**
    * Reads the mpack.json file within the {mpack-name}.tar.gz file and populates Mpack object.
@@ -302,12 +299,11 @@ public class MpackManager {
           File mpackDirectory = new File(mpacksStaging + File.separator + mpack.getName());
 
           if (!mpackDirectory.exists()) {
-            return mpackDirectory.mkdir();
-          } else {
-            return true;
+            mpackDirectory.mkdir();
           }
+          return true;
         } else {
-          String message = "Mpack :" + mpack.getName() + " version: " + mpack.getVersion() + " already exists in server";
+          String message = "Mpack: " + mpack.getName() + " version: " + mpack.getVersion() + " already exists in server";
           throw new ResourceAlreadyExistsException(message);
         }
       }
@@ -465,7 +461,7 @@ public class MpackManager {
     File mpackDirToDelete = new File(mpacksStaging + File.separator + mpackEntity.getMpackName() + File.separator + mpackEntity.getMpackVersion());
     File mpackDirectory = new File(mpacksStaging + "/" + mpackEntity.getMpackName());
     String mpackName = mpackEntity.getMpackName() + "-" + mpackEntity.getMpackVersion() + ".tar.gz";
-    Path mpackTarFile = Paths.get(mpacksStaging + File.separator + MPACK_TAR_LOCATION +File.separator + mpackName);
+    Path mpackTarFile = Paths.get(mpacksStaging + File.separator + MPACK_TAR_LOCATION + File.separator + mpackName);
 
     mpackMap.remove(mpackEntity.getMpackId());
     FileUtils.deleteDirectory(mpackDirToDelete);
@@ -488,7 +484,7 @@ public class MpackManager {
       stackDelete = true;
     }
 
-    if (Files.exists(mpackTarFile)){
+    if (Files.exists(mpackTarFile)) {
       Files.delete(mpackTarFile);
     }
     return stackDelete;

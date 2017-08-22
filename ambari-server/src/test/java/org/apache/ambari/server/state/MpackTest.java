@@ -72,14 +72,14 @@ public class MpackTest {
     expectedPrereq.put("min-ambari-version","3.0.0.0");
     ArrayList<Packlet> expectedPacklets = new ArrayList<>();
     Packlet nifi = new Packlet();
-    nifi.setType("service-packlet");
+    nifi.setType(Packlet.PackletType.SERVICE_PACKLET);
     nifi.setVersion("1.2.0.0-123");
-    nifi.setSourceDir("packlets/NIFI-1.2.0.0-123.tar.gz");
+    nifi.setSourceLocation("packlets/NIFI-1.2.0.0-123.tar.gz");
     nifi.setName("NIFI");
     Packlet streamline = new Packlet();
     streamline.setName("STREAMLINE");
-    streamline.setType("service-packlet");
-    streamline.setSourceDir("packlets/STREAMLINE-1.0.0.0-100.tar.gz");
+    streamline.setType(Packlet.PackletType.SERVICE_PACKLET);
+    streamline.setSourceLocation("packlets/STREAMLINE-1.0.0.0-100.tar.gz");
     streamline.setVersion("1.0.0.0-100");
     expectedPacklets.add(nifi);
     expectedPacklets.add(streamline);
