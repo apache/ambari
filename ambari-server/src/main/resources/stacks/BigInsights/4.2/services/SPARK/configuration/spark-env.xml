@@ -37,6 +37,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Spark User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -45,6 +49,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>GROUP</property-type>
     <description>spark group</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

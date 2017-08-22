@@ -42,6 +42,10 @@
         <on-ambari-upgrade add="true"/>
         <property-type>USER</property-type>
         <description>Knox Username.</description>
+        <value-attributes>
+          <type>user</type>
+          <overridable>false</overridable>
+        </value-attributes>
     </property>
 
     <property>
@@ -50,6 +54,10 @@
         <on-ambari-upgrade add="true"/>
         <property-type>GROUP</property-type>
         <description>Knox Group.</description>
+        <value-attributes>
+          <type>user</type>
+          <overridable>false</overridable>
+        </value-attributes>
     </property>
 
     <property>

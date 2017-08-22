@@ -7,6 +7,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <value>solr</value>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   
   <property>
