@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,9 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.state.SecurityType;
@@ -30,11 +32,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MetadataCluster {
   @JsonProperty("status_commands_to_run")
   private Set<String> statusCommandsToRun = new HashSet<>();
-  private TreeMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
-  private TreeMap<String, String> clusterLevelParams = new TreeMap<>();
+  private SortedMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
+  private SortedMap<String, String> clusterLevelParams = new TreeMap<>();
 
-  public MetadataCluster(SecurityType securityType, TreeMap<String,MetadataServiceInfo> serviceLevelParams,
-                         TreeMap<String, String> clusterLevelParams) {
+  public MetadataCluster(SecurityType securityType, SortedMap<String,MetadataServiceInfo> serviceLevelParams,
+                         SortedMap<String, String> clusterLevelParams) {
     if (securityType != null) {
       this.statusCommandsToRun.add("STATUS");
       if (SecurityType.KERBEROS.equals(securityType)) {
@@ -49,23 +51,15 @@ public class MetadataCluster {
     return statusCommandsToRun;
   }
 
-  public void setStatusCommandsToRun(Set<String> statusCommandsToRun) {
-    this.statusCommandsToRun = statusCommandsToRun;
-  }
-
-  public TreeMap<String, MetadataServiceInfo> getServiceLevelParams() {
+  public SortedMap<String, MetadataServiceInfo> getServiceLevelParams() {
     return serviceLevelParams;
   }
 
-  public void setServiceLevelParams(TreeMap<String, MetadataServiceInfo> serviceLevelParams) {
-    this.serviceLevelParams = serviceLevelParams;
-  }
-
-  public TreeMap<String, String> getClusterLevelParams() {
+  public SortedMap<String, String> getClusterLevelParams() {
     return clusterLevelParams;
   }
 
-  public void setClusterLevelParams(TreeMap<String, String> clusterLevelParams) {
+  public void setClusterLevelParams(SortedMap<String, String> clusterLevelParams) {
     this.clusterLevelParams = clusterLevelParams;
   }
 
@@ -76,18 +70,13 @@ public class MetadataCluster {
 
     MetadataCluster that = (MetadataCluster) o;
 
-    if (statusCommandsToRun != null ? !statusCommandsToRun.equals(that.statusCommandsToRun) : that.statusCommandsToRun != null)
-      return false;
-    if (serviceLevelParams != null ? !serviceLevelParams.equals(that.serviceLevelParams) : that.serviceLevelParams != null)
-      return false;
-    return clusterLevelParams != null ? clusterLevelParams.equals(that.clusterLevelParams) : that.clusterLevelParams == null;
+    return Objects.equals(statusCommandsToRun, that.statusCommandsToRun) &&
+      Objects.equals(serviceLevelParams, that.serviceLevelParams) &&
+      Objects.equals(clusterLevelParams, that.clusterLevelParams);
   }
 
   @Override
   public int hashCode() {
-    int result = statusCommandsToRun != null ? statusCommandsToRun.hashCode() : 0;
-    result = 31 * result + (serviceLevelParams != null ? serviceLevelParams.hashCode() : 0);
-    result = 31 * result + (clusterLevelParams != null ? clusterLevelParams.hashCode() : 0);
-    return result;
+    return Objects.hash(statusCommandsToRun, serviceLevelParams, clusterLevelParams);
   }
 }

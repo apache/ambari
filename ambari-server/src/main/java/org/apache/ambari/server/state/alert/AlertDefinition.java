@@ -21,6 +21,8 @@ import java.util.HashSet;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -36,6 +38,7 @@ import com.google.gson.annotations.SerializedName;
  * When making comparisons for equality for things like stack/database merging,
  * use {@link #deeplyEquals(Object)}.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AlertDefinition {
 
   private long clusterId;
@@ -175,6 +178,7 @@ public class AlertDefinition {
   /**
    * @return {@code true} if the host is ignored.
    */
+  @JsonProperty("ignore_host")
   public boolean isHostIgnored() {
     return ignoreHost;
   }
@@ -210,6 +214,7 @@ public class AlertDefinition {
   /**
    * @return the help url for this definition or {@code null} if none.
    */
+  @JsonProperty("help_url")
   public String getHelpURL() {
     return helpURL;
   }

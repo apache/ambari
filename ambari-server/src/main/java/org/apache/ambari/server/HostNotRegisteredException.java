@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,11 +23,15 @@ package org.apache.ambari.server;
  */
 public class HostNotRegisteredException extends AmbariException {
 
-  /**
-   * Constructor
-   * @param sessionId sessionId of websocket message
-   */
-  public HostNotRegisteredException(String sessionId) {
-    super(String.format("Host with [%s] sessionId not registered", sessionId));
+  public static HostNotRegisteredException forSessionId(String sessionId) {
+    return new HostNotRegisteredException(String.format("Host with sessionId '%s' not registered", sessionId));
+  }
+
+  public static HostNotRegisteredException forHostName(String hostName) {
+    return new HostNotRegisteredException(String.format("Host with hostName '%s' not registered", hostName));
+  }
+
+  private HostNotRegisteredException(String message) {
+    super(message);
   }
 }

@@ -828,7 +828,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     // publish the service component installed event
     ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(getClusterId(),
         stackId.getStackName(), stackId.getStackVersion(), getServiceName(),
-        getServiceComponentName(), getHostName(), isRecoveryEnabled());
+        getServiceComponentName(), getHostName(), isRecoveryEnabled(), serviceComponent.isMasterComponent());
 
     eventPublisher.publish(event);
 
@@ -1309,10 +1309,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       String componentName = getServiceComponentName();
       String hostName = getHostName();
       boolean recoveryEnabled = isRecoveryEnabled();
+      boolean masterComponent = serviceComponent.isMasterComponent();
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
           clusterId, stackName, stackVersion, serviceName, componentName,
-          hostName, recoveryEnabled);
+          hostName, recoveryEnabled, masterComponent);
 
       eventPublisher.publish(event);
       deleteMetaData.addDeletedHostComponent(componentName,

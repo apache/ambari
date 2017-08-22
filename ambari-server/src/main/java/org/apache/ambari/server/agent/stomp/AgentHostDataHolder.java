@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,49 +18,80 @@
 
 package org.apache.ambari.server.agent.stomp;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.server.events.AmbariHostUpdateEvent;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 
 /**
  * Is used to saving and updating last version of event in host scope
  * @param <T> event with hash to control version
  */
-public abstract class AgentHostDataHolder<T extends Hashable> extends AgentDataHolder {
-  private Map<String, T> data = new HashMap<>();
+public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hashable> extends AgentDataHolder<T> {
 
-  public T getUpdateIfChanged(String agentHash, String hostName) throws AmbariException {
-    if (StringUtils.isEmpty(agentHash) || (StringUtils.isNotEmpty(agentHash) && (!data.containsKey(hostName)
-        || !agentHash.equals(data.get(hostName).getHash())))) {
-      if (!data.containsKey(hostName)) {
-        data.put(hostName, getCurrentData(hostName));
-        data.get(hostName).setHash(getHash(data.get(hostName)));
-      }
-      return data.get(hostName);
-    }
-    return getEmptyData();
-  }
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
+
+  private final Map<String, T> data = new ConcurrentHashMap<>();
 
   protected abstract T getCurrentData(String hostName) throws AmbariException;
+  protected abstract boolean handleUpdate(T update) throws AmbariException;
 
-  protected abstract T getEmptyData();
-
-  protected void regenerateHash(String hostName) {
-    getData(hostName).setHash(null);
-    getData(hostName).setHash(getHash(getData(hostName)));
+  public T getUpdateIfChanged(String agentHash, String hostName) throws AmbariException {
+    T hostData = initializeDataIfNeeded(hostName, true);
+    return !Objects.equals(agentHash, hostData.getHash()) ? hostData : getEmptyData();
   }
 
-  public abstract void updateData(T update) throws AmbariException;
+  private T initializeDataIfNeeded(String hostName, boolean regenerateHash) throws AmbariException {
+    T hostData = data.get(hostName);
+    if (hostData == null) {
+      hostData = getCurrentData(hostName);
+      if (regenerateHash) {
+        regenerateHash(hostData);
+      }
+      data.put(hostName, hostData);
+    }
+    return hostData;
+  }
+
+  /**
+   * Apply an incremental update to the data (host-specific), and publish the
+   * event to listeners.
+   */
+  public final void updateData(T update) throws AmbariException {
+    initializeDataIfNeeded(update.getHostName(), false);
+    if (handleUpdate(update)) {
+      T hostData = getData(update.getHostName());
+      regenerateHash(hostData);
+      update.setHash(hostData.getHash());
+      stateUpdateEventPublisher.publish(update);
+    }
+  }
+
+  /**
+   * Reset data for the given host.  Used if changes are complex and it's easier to re-create data from scratch.
+   */
+  public final void resetData(String hostName) throws AmbariException {
+    T newData = getCurrentData(hostName);
+    data.replace(hostName, newData);
+    stateUpdateEventPublisher.publish(newData);
+  }
+
+  /**
+   * Remove data for the given host.
+   */
+  public final void onHostRemoved(String hostName) {
+    data.remove(hostName);
+  }
 
   public Map<String, T> getData() {
     return data;
-  }
-
-  public void setData(Map<String, T> data) {
-    this.data = data;
   }
 
   public T getData(String hostName) {

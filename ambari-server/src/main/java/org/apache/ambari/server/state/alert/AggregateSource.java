@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -27,6 +31,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AggregateSource extends Source {
 
   @SerializedName("alert_name")
@@ -35,6 +40,7 @@ public class AggregateSource extends Source {
   /**
    * @return the unique name of the alert that will have its values aggregated.
    */
+  @JsonProperty("alert_name")
   public String getAlertName() {
     return m_alertName;
   }
@@ -47,23 +53,11 @@ public class AggregateSource extends Source {
     m_alertName = alertName;
   }
 
-  /**
-   *
-   */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-
-    result = prime * result
-        + ((m_alertName == null) ? 0 : m_alertName.hashCode());
-
-    return result;
+    return Objects.hash(super.hashCode(), m_alertName);
   }
 
-  /**
-   *
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -79,14 +73,6 @@ public class AggregateSource extends Source {
     }
 
     AggregateSource other = (AggregateSource) obj;
-    if (m_alertName == null) {
-      if (other.m_alertName != null) {
-        return false;
-      }
-    } else if (!m_alertName.equals(other.m_alertName)) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(m_alertName, other.m_alertName);
   }
 }

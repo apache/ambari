@@ -160,8 +160,7 @@ public class AlertReceivedListener {
         clusterId = event.getClusterId();
       }
 
-      AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
-        alert.getName());
+      AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId, alert.getName());
 
       if (null == definition) {
         LOG.warn(
@@ -187,6 +186,14 @@ public class AlertReceivedListener {
           "Received an alert for {} which is disabled. No more alerts should be received for this definition.",
           alert.getName());
 
+        continue;
+      }
+
+      updateAlertDetails(alert, definition);
+
+      // jobs that were running when a service/component/host was changed
+      // which invalidate the alert should not be reported
+      if (!isValid(alert)) {
         continue;
       }
 
@@ -368,6 +375,15 @@ public class AlertReceivedListener {
     }
     if (!alertUpdates.isEmpty()) {
       stateUpdateEventPublisher.publish(new AlertUpdateEvent(alertUpdates));
+    }
+  }
+
+  private void updateAlertDetails(Alert alert, AlertDefinitionEntity definition) {
+    if (alert.getService() == null) {
+      alert.setService(definition.getServiceName());
+    }
+    if (alert.getComponent() == null) {
+      alert.setComponent(definition.getComponentName());
     }
   }
 

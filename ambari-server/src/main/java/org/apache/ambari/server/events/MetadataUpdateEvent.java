@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,7 @@
 package org.apache.ambari.server.events;
 
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
@@ -35,7 +36,7 @@ public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
   /**
    * Id used to send parameters common to all clusters.
    */
-  private final String AMBARI_LEVEL_CLUSTER_ID = "-1";
+  private static final String AMBARI_LEVEL_CLUSTER_ID = "-1";
 
   /**
    * Actual version hash.
@@ -46,15 +47,17 @@ public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
    * Map of metadatas for each cluster by cluster ids.
    */
   @JsonProperty("clusters")
-  private TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+  private final SortedMap<String, MetadataCluster> metadataClusters;
 
-  public MetadataUpdateEvent(TreeMap<String, MetadataCluster> metadataClusters, TreeMap<String, String> ambariLevelParams) {
+  private MetadataUpdateEvent() {
+    super(Type.METADATA);
+    metadataClusters = null;
+  }
+
+  public MetadataUpdateEvent(SortedMap<String, MetadataCluster> metadataClusters, SortedMap<String, String> ambariLevelParams) {
     super(Type.METADATA);
     this.metadataClusters = metadataClusters;
     if (ambariLevelParams != null) {
-      if (this.metadataClusters == null) {
-        this.metadataClusters = new TreeMap<>();
-      }
       this.metadataClusters.put(AMBARI_LEVEL_CLUSTER_ID, new MetadataCluster(null, new TreeMap<>(), ambariLevelParams));
     }
   }
@@ -63,21 +66,18 @@ public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
     return metadataClusters;
   }
 
-  public void setMetadataClusters(TreeMap<String, MetadataCluster> metadataClusters) {
-    this.metadataClusters = metadataClusters;
-  }
-
   @Override
   public String getHash() {
     return hash;
   }
 
+  @Override
   public void setHash(String hash) {
     this.hash = hash;
   }
 
   public static MetadataUpdateEvent emptyUpdate() {
-    return new MetadataUpdateEvent(null, null);
+    return new MetadataUpdateEvent();
   }
 
   @Override

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.events;
 
-import java.util.TreeMap;
+import java.util.SortedMap;
 
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 
@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TopologyAgentUpdateEvent extends TopologyUpdateEvent {
-  public TopologyAgentUpdateEvent(TreeMap<String, TopologyCluster> clusters, String hash, EventType eventType) {
+  public TopologyAgentUpdateEvent(SortedMap<String, TopologyCluster> clusters, String hash, EventType eventType) {
     super(Type.AGENT_TOPOLOGY, clusters, hash, eventType);
   }
 }

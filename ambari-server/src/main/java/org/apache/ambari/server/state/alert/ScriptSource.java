@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -25,6 +29,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ScriptSource extends ParameterizedSource {
 
   @SerializedName("path")
@@ -33,25 +38,16 @@ public class ScriptSource extends ParameterizedSource {
   /**
    * @return the path to the script file.
    */
+  @JsonProperty("path")
   public String getPath() {
     return m_path;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((m_path == null) ? 0 : m_path.hashCode());
-
-    return result;
+    return Objects.hash(super.hashCode(), m_path);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -67,15 +63,6 @@ public class ScriptSource extends ParameterizedSource {
     }
 
     ScriptSource other = (ScriptSource) obj;
-
-    if (m_path == null) {
-      if (other.m_path != null) {
-        return false;
-      }
-    } else if (!m_path.equals(other.m_path)) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(m_path, other.m_path);
   }
 }

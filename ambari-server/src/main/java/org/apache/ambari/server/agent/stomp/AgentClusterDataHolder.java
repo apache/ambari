@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,44 +18,73 @@
 
 package org.apache.ambari.server.agent.stomp;
 
+import java.util.Objects;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.server.events.AmbariUpdateEvent;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 
 /**
  * Is used to saving and updating last version of event in cluster scope
  * @param <T> event with hash to control version
  */
-public abstract class AgentClusterDataHolder<T extends Hashable> extends AgentDataHolder {
+public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hashable> extends AgentDataHolder<T> {
+
+  @Inject
+  protected StateUpdateEventPublisher stateUpdateEventPublisher;
+
   private T data;
 
   public T getUpdateIfChanged(String agentHash) throws AmbariException {
-    if (StringUtils.isEmpty(agentHash) || (StringUtils.isNotEmpty(agentHash) && (data == null || !agentHash.equals(data.getHash())))) {
-      if (data == null) {
-        data = getCurrentData();
-        data.setHash(getHash(data));
-      }
-      return data;
-    }
-    return getEmptyData();
+    initializeDataIfNeeded(true);
+    return !Objects.equals(agentHash, data.getHash()) ? data : getEmptyData();
   }
 
+  /**
+   * Builds an update with the full set of current data.
+   * The eventType should be "CREATE", if applicable.
+   */
   protected abstract T getCurrentData() throws AmbariException;
 
-  protected abstract T getEmptyData();
+  /**
+   * Handle an incremental update to the data.
+   * @return true if the update introduced any change
+   */
+  protected abstract boolean handleUpdate(T update) throws AmbariException;
 
-  protected void regenerateHash() {
-    getData().setHash(null);
-    getData().setHash(getHash(getData()));
+  /**
+   * Template method to update the data.
+   * @return true if the update introduced any change
+   */
+  public boolean updateData(T update) throws AmbariException {
+    initializeDataIfNeeded(false);
+    boolean changed = handleUpdate(update);
+    if (changed) {
+      regenerateHash();
+      update.setHash(getData().getHash());
+      stateUpdateEventPublisher.publish(update);
+    }
+    return changed;
   }
 
-  public abstract void updateData(T update) throws AmbariException;
+  protected final void regenerateHash() {
+    regenerateHash(data);
+  }
 
-  public T getData() {
+  protected final void initializeDataIfNeeded(boolean regenerateHash) throws AmbariException {
+    if (data == null) {
+      data = getCurrentData();
+      if (regenerateHash) {
+        regenerateHash();
+      }
+    }
+  }
+
+  public final T getData() {
     return data;
   }
 
-  public void setData(T data) {
-    this.data = data;
-  }
 }

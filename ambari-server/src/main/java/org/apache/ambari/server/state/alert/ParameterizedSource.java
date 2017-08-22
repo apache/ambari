@@ -19,11 +19,14 @@ package org.apache.ambari.server.state.alert;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.ambari.server.state.AlertState;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 
@@ -32,6 +35,7 @@ import com.google.gson.annotations.SerializedName;
  * computing the {@link AlertState} is dependant on user-specified parameters.
  * For example, the parameters might be threshold values.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public abstract class ParameterizedSource extends Source {
 
   /**
@@ -46,6 +50,7 @@ public abstract class ParameterizedSource extends Source {
    *
    * @return the list of parameters, or an empty list if none.
    */
+  @JsonProperty("parameters")
   public List<AlertParameter> getParameters() {
     if (null == m_parameters) {
       return Collections.emptyList();
@@ -58,6 +63,7 @@ public abstract class ParameterizedSource extends Source {
    * The {@link AlertParameter} class represents a single parameter that can be
    * passed into an alert which takes parameters.
    */
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   public static class AlertParameter {
     @SerializedName("name")
     private String m_name;
@@ -92,6 +98,7 @@ public abstract class ParameterizedSource extends Source {
      *
      * @return the name
      */
+    @JsonProperty("name")
     public String getName() {
       return m_name;
     }
@@ -101,6 +108,7 @@ public abstract class ParameterizedSource extends Source {
      *
      * @return the displayName
      */
+    @JsonProperty("display_name")
     public String getDisplayName() {
       return m_displayName;
     }
@@ -110,6 +118,7 @@ public abstract class ParameterizedSource extends Source {
      *
      * @return the units
      */
+    @JsonProperty("units")
     public String getUnits() {
       return m_units;
     }
@@ -119,6 +128,7 @@ public abstract class ParameterizedSource extends Source {
      *
      * @return the value
      */
+    @JsonProperty("value")
     public Object getValue() {
       return m_value;
     }
@@ -128,8 +138,14 @@ public abstract class ParameterizedSource extends Source {
      *
      * @return the description
      */
+    @JsonProperty("description")
     public String getDescription() {
       return m_description;
+    }
+
+    @JsonProperty("type")
+    public AlertParameterType getType() {
+      return m_type;
     }
 
     /**
@@ -137,6 +153,7 @@ public abstract class ParameterizedSource extends Source {
      *
      * @return the visibility
      */
+    @JsonProperty("visibility")
     public AlertParameterVisibility getVisibility() {
       return m_visibility;
     }
@@ -147,92 +164,34 @@ public abstract class ParameterizedSource extends Source {
      *
      * @return the threshold, or {@code null}.
      */
+    @JsonProperty("threshold")
     public AlertState getThreshold() {
       return m_threshold;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + ((m_description == null) ? 0 : m_description.hashCode());
-      result = prime * result + ((m_displayName == null) ? 0 : m_displayName.hashCode());
-      result = prime * result + ((m_name == null) ? 0 : m_name.hashCode());
-      result = prime * result + ((m_threshold == null) ? 0 : m_threshold.hashCode());
-      result = prime * result + ((m_type == null) ? 0 : m_type.hashCode());
-      result = prime * result + ((m_units == null) ? 0 : m_units.hashCode());
-      result = prime * result + ((m_value == null) ? 0 : m_value.hashCode());
-      result = prime * result + ((m_visibility == null) ? 0 : m_visibility.hashCode());
-      return result;
+      return Objects.hash(m_description, m_displayName, m_name, m_threshold, m_type, m_units, m_value, m_visibility);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(Object obj) {
       if (this == obj) {
         return true;
       }
-      if (obj == null) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
-      if (getClass() != obj.getClass()) {
-        return false;
-      }
+
       AlertParameter other = (AlertParameter) obj;
-      if (m_description == null) {
-        if (other.m_description != null) {
-          return false;
-        }
-      } else if (!m_description.equals(other.m_description)) {
-        return false;
-      }
-      if (m_displayName == null) {
-        if (other.m_displayName != null) {
-          return false;
-        }
-      } else if (!m_displayName.equals(other.m_displayName)) {
-        return false;
-      }
-      if (m_name == null) {
-        if (other.m_name != null) {
-          return false;
-        }
-      } else if (!m_name.equals(other.m_name)) {
-        return false;
-      }
-      if (m_threshold != other.m_threshold) {
-        return false;
-      }
-      if (m_type != other.m_type) {
-        return false;
-      }
-      if (m_units == null) {
-        if (other.m_units != null) {
-          return false;
-        }
-      } else if (!m_units.equals(other.m_units)) {
-        return false;
-      }
-      if (m_value == null) {
-        if (other.m_value != null) {
-          return false;
-        }
-      } else if (!m_value.equals(other.m_value)) {
-        return false;
-      }
-      if (m_visibility == null) {
-        if (other.m_visibility != null) {
-          return false;
-        }
-      } else if (!m_visibility.equals(other.m_visibility)) {
-        return false;
-      }
-      return true;
+      return Objects.equals(m_description, other.m_description) &&
+        Objects.equals(m_displayName, other.m_displayName) &&
+        Objects.equals(m_name, other.m_name) &&
+        Objects.equals(m_threshold, other.m_threshold) &&
+        Objects.equals(m_type, other.m_type) &&
+        Objects.equals(m_units, other.m_units) &&
+        Objects.equals(m_value, other.m_value) &&
+        Objects.equals(m_visibility, other.m_visibility);
     }
   }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,11 +31,16 @@ import com.google.gson.Gson;
  * @param <T> event with hash to control version
  */
 public abstract class AgentDataHolder<T extends Hashable> {
-  public final String salt = "";
+  private final String salt = "";
 
   protected abstract T getEmptyData();
 
-  protected String getHash(T data) {
+  final void regenerateHash(T data) {
+    data.setHash(null);
+    data.setHash(getHash(data));
+  }
+
+  private String getHash(T data) {
     String json = new Gson().toJson(data);
     String generatedPassword = null;
     try {
@@ -43,14 +48,11 @@ public abstract class AgentDataHolder<T extends Hashable> {
       md.update(salt.getBytes("UTF-8"));
       byte[] bytes = md.digest(json.getBytes("UTF-8"));
       StringBuilder sb = new StringBuilder();
-      for(int i=0; i< bytes.length ;i++){
-        sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+      for (byte b : bytes) {
+        sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
       }
       generatedPassword = sb.toString();
-    }
-    catch (NoSuchAlgorithmException e){
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
+    } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
       e.printStackTrace();
     }
     return generatedPassword;

@@ -514,7 +514,7 @@ public class HostVersionOutOfSyncListenerTest {
 
         ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
             c1.getClusterId(), clusterStackId.getStackName(), clusterStackId.getStackVersion(),
-            "HDFS", "DATANODE", sch.getHostName(), false);
+            "HDFS", "DATANODE", sch.getHostName(), false, false);
 
         m_eventPublisher.publish(event);
       }
@@ -585,7 +585,7 @@ public class HostVersionOutOfSyncListenerTest {
           .getServiceComponent(componentName), hostName));
       ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(cl.getClusterId(),
           stackIdObj.getStackName(), stackIdObj.getStackVersion(),
-          serviceName, componentName, hostName, false /* recovery not enabled */);
+          serviceName, componentName, hostName, false /* recovery not enabled */, false);
       m_eventPublisher.publish(event);
     }
   }

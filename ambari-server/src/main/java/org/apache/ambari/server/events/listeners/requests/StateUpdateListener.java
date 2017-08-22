@@ -1,5 +1,4 @@
-
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -55,16 +54,17 @@ public class StateUpdateListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onUpdateEvent(AmbariUpdateEvent event) throws HostNotRegisteredException {
+    String destination = event.getDestination();
     if (event instanceof AmbariHostUpdateEvent) {
-      AmbariHostUpdateEvent ambariHostUpdateEvent = (AmbariHostUpdateEvent) event;
-      String sessionId = agentSessionManager.getSessionId(ambariHostUpdateEvent.getHostName());
-      LOG.debug("Received status update event {} for host ()", ambariHostUpdateEvent.toString(),
-          ambariHostUpdateEvent.getHostName());
-      simpMessagingTemplate.convertAndSendToUser(sessionId, ambariHostUpdateEvent.getDestination(),
-          ambariHostUpdateEvent, createHeaders(sessionId));
+      AmbariHostUpdateEvent hostUpdateEvent = (AmbariHostUpdateEvent) event;
+      String hostName = hostUpdateEvent.getHostName();
+      String sessionId = agentSessionManager.getSessionId(hostName);
+      LOG.debug("Received status update event {} for host {} registered with session ID {}", hostUpdateEvent, hostName, sessionId);
+      MessageHeaders headers = createHeaders(sessionId);
+      simpMessagingTemplate.convertAndSendToUser(sessionId, destination, event, headers);
     } else {
-      LOG.debug("Received status update event {}", event.toString());
-      simpMessagingTemplate.convertAndSend(event.getDestination(), event);
+      LOG.debug("Received status update event {}", event);
+      simpMessagingTemplate.convertAndSend(destination, event);
     }
   }
 

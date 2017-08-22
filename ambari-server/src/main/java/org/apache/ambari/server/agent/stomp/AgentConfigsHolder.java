@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
 import org.apache.commons.collections.CollectionUtils;
 
 import com.google.inject.Inject;
@@ -37,36 +37,32 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
   private ConfigHelper configHelper;
 
   @Inject
-  private Provider<Clusters> m_clusters;
-
-  @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private Provider<Clusters> clusters;
 
   @Override
   public AgentConfigsUpdateEvent getCurrentData(String hostName) throws AmbariException {
     return configHelper.getHostActualConfigs(hostName);
   }
 
-  public void updateData(AgentConfigsUpdateEvent update) throws AmbariException {
-    //do nothing
+  protected boolean handleUpdate(AgentConfigsUpdateEvent update) throws AmbariException {
+    setData(update, update.getHostName());
+    return true;
   }
 
   public void updateData(Long clusterId, List<String> hostNames) throws AmbariException {
     if (CollectionUtils.isEmpty(hostNames)) {
       // TODO cluster configs will be created before hosts assigning
-      if (CollectionUtils.isEmpty(m_clusters.get().getCluster(clusterId).getHosts())) {
-        hostNames = m_clusters.get().getHosts().stream().map(h -> h.getHostName()).collect(Collectors.toList());
+      if (CollectionUtils.isEmpty(clusters.get().getCluster(clusterId).getHosts())) {
+        hostNames = clusters.get().getHosts().stream().map(Host::getHostName).collect(Collectors.toList());
       } else {
-        hostNames = m_clusters.get().getCluster(clusterId).getHosts().stream().map(h -> h.getHostName()).collect(Collectors.toList());
+        hostNames = clusters.get().getCluster(clusterId).getHosts().stream().map(Host::getHostName).collect(Collectors.toList());
       }
     }
 
     for (String hostName : hostNames) {
       AgentConfigsUpdateEvent agentConfigsUpdateEvent = configHelper.getHostActualConfigs(hostName);
       agentConfigsUpdateEvent.setHostName(hostName);
-      setData(agentConfigsUpdateEvent, hostName);
-      regenerateHash(hostName);
-      stateUpdateEventPublisher.publish(agentConfigsUpdateEvent);
+      updateData(agentConfigsUpdateEvent);
     }
   }
 

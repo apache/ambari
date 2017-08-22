@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,222 +18,63 @@
 
 package org.apache.ambari.server.events;
 
-import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.state.alert.AlertDefinition;
-import org.apache.ambari.server.state.alert.Scope;
-import org.apache.ambari.server.state.alert.Source;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.ambari.server.agent.stomp.dto.AlertCluster;
+import org.apache.ambari.server.agent.stomp.dto.Hashable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Contains info about alert definitions update. This update will be sent to all subscribed recipients.
+ * Contains info about alert definitions update. This update is specific to a single host.
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class AlertDefinitionsUpdateEvent extends AmbariUpdateEvent {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implements Hashable {
 
-  @JsonProperty("clusterId")
-  private Long clusterId;
+  private final Map<Long, AlertCluster> clusters;
+  private final EventType eventType;
+  private final String hostName;
+  private String hash;
 
-  @JsonProperty("componentName")
-  private String componentName;
+  public static AlertDefinitionsUpdateEvent emptyEvent() {
+    return new AlertDefinitionsUpdateEvent(null, null, null);
+  }
 
-  @JsonProperty("description")
-  private String description;
-
-  @JsonProperty("enabled")
-  private Boolean enabled;
-
-  @JsonProperty("helpUrl")
-  private String helpURL;
-
-  @JsonProperty("id")
-  private Long definitionId;
-
-  @JsonProperty("ignoreHost")
-  private Boolean ignoreHost;
-
-  @JsonProperty("interval")
-  private Integer interval;
-
-  @JsonProperty("label")
-  private String label;
-
-  @JsonProperty("name")
-  private String name;
-
-  @JsonProperty("repeatTolerance")
-  private Integer repeatTolerance;
-
-  @JsonProperty("repeatToleranceEnabled")
-  private Boolean repeatToleranceEnabled;
-
-  @JsonProperty("scope")
-  private Scope scope;
-
-  @JsonProperty("serviceName")
-  private String serviceName;
-
-  @JsonProperty("source")
-  private Source source;
-
-  public AlertDefinitionsUpdateEvent(Long clusterId, String componentName, String description, Boolean enabled,
-                               String helpURL, Long definitionId, Boolean ignoreHost, Integer interval, String label,
-                               String name, Integer repeatTolerance, Boolean repeatToleranceEnabled, Scope scope,
-                               String serviceName, Source source) {
+  public AlertDefinitionsUpdateEvent(EventType eventType, Map<Long, AlertCluster> clusters, String hostName) {
     super(Type.ALERT_DEFINITIONS);
-    this.clusterId = clusterId;
-    this.componentName = componentName;
-    this.description = description;
-    this.enabled = enabled;
-    this.helpURL = helpURL;
-    this.definitionId = definitionId;
-    this.ignoreHost = ignoreHost;
-    this.interval = interval;
-    this.label = label;
-    this.name = name;
-    this.repeatTolerance = repeatTolerance;
-    this.repeatToleranceEnabled = repeatToleranceEnabled;
-    this.scope = scope;
-    this.serviceName = serviceName;
-    this.source = source;
+    this.eventType = eventType;
+    this.clusters = clusters != null ? Collections.unmodifiableMap(clusters) : null;
+    this.hostName = hostName;
   }
 
-  public AlertDefinitionsUpdateEvent(AlertDefinition alertDefinition, Integer repeatTolerance, Boolean repeatToleranceEnabled) {
-    this(alertDefinition.getClusterId(), alertDefinition.getComponentName(), alertDefinition.getDescription(),
-        alertDefinition.isEnabled(), alertDefinition.getHelpURL(), alertDefinition.getDefinitionId(),
-        alertDefinition.isHostIgnored(), alertDefinition.getInterval(), alertDefinition.getLabel(),
-        alertDefinition.getName(), repeatTolerance, repeatToleranceEnabled, alertDefinition.getScope(),
-        alertDefinition.getServiceName(), alertDefinition.getSource());
+  @Override
+  public String getHash() {
+    return hash;
   }
 
-  public AlertDefinitionsUpdateEvent(long definitionId) {
-    super(Type.ALERT_DEFINITIONS);
-    this.definitionId = definitionId;
+  @Override
+  @JsonProperty("hash")
+  public void setHash(String hash) {
+    this.hash = hash;
   }
 
-  public AlertDefinitionsUpdateEvent(AlertDefinitionEntity alertDefinitionEntity) {
-    super(Type.ALERT_DEFINITIONS);
+  @Override
+  @JsonProperty("hostName")
+  public String getHostName() {
+    return hostName;
   }
 
-  public Long getClusterId() {
-    return clusterId;
+  @JsonProperty("eventType")
+  public EventType getEventType() {
+    return eventType;
   }
 
-  public void setClusterId(Long clusterId) {
-    this.clusterId = clusterId;
-  }
-
-  public String getComponentName() {
-    return componentName;
-  }
-
-  public void setComponentName(String componentName) {
-    this.componentName = componentName;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public Boolean getEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(Boolean enabled) {
-    this.enabled = enabled;
-  }
-
-  public String getHelpURL() {
-    return helpURL;
-  }
-
-  public void setHelpURL(String helpURL) {
-    this.helpURL = helpURL;
-  }
-
-  public Long getDefinitionId() {
-    return definitionId;
-  }
-
-  public void setDefinitionId(Long definitionId) {
-    this.definitionId = definitionId;
-  }
-
-  public Boolean getIgnoreHost() {
-    return ignoreHost;
-  }
-
-  public void setIgnoreHost(Boolean ignoreHost) {
-    this.ignoreHost = ignoreHost;
-  }
-
-  public Integer getInterval() {
-    return interval;
-  }
-
-  public void setInterval(Integer interval) {
-    this.interval = interval;
-  }
-
-  public String getLabel() {
-    return label;
-  }
-
-  public void setLabel(String label) {
-    this.label = label;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public Integer getRepeatTolerance() {
-    return repeatTolerance;
-  }
-
-  public void setRepeatTolerance(Integer repeatTolerance) {
-    this.repeatTolerance = repeatTolerance;
-  }
-
-  public Boolean getRepeatToleranceEnabled() {
-    return repeatToleranceEnabled;
-  }
-
-  public void setRepeatToleranceEnabled(Boolean repeatToleranceEnabled) {
-    this.repeatToleranceEnabled = repeatToleranceEnabled;
-  }
-
-  public Scope getScope() {
-    return scope;
-  }
-
-  public void setScope(Scope scope) {
-    this.scope = scope;
-  }
-
-  public String getServiceName() {
-    return serviceName;
-  }
-
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
-
-  public Source getSource() {
-    return source;
-  }
-
-  public void setSource(Source source) {
-    this.source = source;
+  @JsonProperty("clusters")
+  public Map<Long, AlertCluster> getClusters() {
+    return clusters;
   }
 
   @Override
@@ -241,44 +82,25 @@ public class AlertDefinitionsUpdateEvent extends AmbariUpdateEvent {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    AlertDefinitionsUpdateEvent that = (AlertDefinitionsUpdateEvent) o;
+    AlertDefinitionsUpdateEvent other = (AlertDefinitionsUpdateEvent) o;
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (description != null ? !description.equals(that.description) : that.description != null) return false;
-    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) return false;
-    if (helpURL != null ? !helpURL.equals(that.helpURL) : that.helpURL != null) return false;
-    if (definitionId != null ? !definitionId.equals(that.definitionId) : that.definitionId != null) return false;
-    if (ignoreHost != null ? !ignoreHost.equals(that.ignoreHost) : that.ignoreHost != null) return false;
-    if (interval != null ? !interval.equals(that.interval) : that.interval != null) return false;
-    if (label != null ? !label.equals(that.label) : that.label != null) return false;
-    if (name != null ? !name.equals(that.name) : that.name != null) return false;
-    if (repeatTolerance != null ? !repeatTolerance.equals(that.repeatTolerance) : that.repeatTolerance != null)
-      return false;
-    if (repeatToleranceEnabled != null ? !repeatToleranceEnabled.equals(that.repeatToleranceEnabled) : that.repeatToleranceEnabled != null)
-      return false;
-    if (scope != that.scope) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
-    return source != null ? source.equals(that.source) : that.source == null;
+    return Objects.equals(eventType, other.eventType) &&
+      Objects.equals(clusters, other.clusters);
   }
 
   @Override
   public int hashCode() {
-    int result = clusterId != null ? clusterId.hashCode() : 0;
-    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
-    result = 31 * result + (description != null ? description.hashCode() : 0);
-    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
-    result = 31 * result + (helpURL != null ? helpURL.hashCode() : 0);
-    result = 31 * result + (definitionId != null ? definitionId.hashCode() : 0);
-    result = 31 * result + (ignoreHost != null ? ignoreHost.hashCode() : 0);
-    result = 31 * result + (interval != null ? interval.hashCode() : 0);
-    result = 31 * result + (label != null ? label.hashCode() : 0);
-    result = 31 * result + (name != null ? name.hashCode() : 0);
-    result = 31 * result + (repeatTolerance != null ? repeatTolerance.hashCode() : 0);
-    result = 31 * result + (repeatToleranceEnabled != null ? repeatToleranceEnabled.hashCode() : 0);
-    result = 31 * result + (scope != null ? scope.hashCode() : 0);
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (source != null ? source.hashCode() : 0);
-    return result;
+    return Objects.hash(eventType, clusters);
   }
+
+  public enum EventType {
+    /** Full current alert definitions */
+    CREATE,
+    /** Remove existing alert definition */
+    DELETE,
+    /** Update existing alert definition, or add new one */
+    UPDATE,
+    ;
+  }
+
 }

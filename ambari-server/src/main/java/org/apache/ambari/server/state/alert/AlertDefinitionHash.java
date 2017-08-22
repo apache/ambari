@@ -22,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +32,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -52,6 +55,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -230,23 +234,26 @@ public class AlertDefinitionHash {
    * @return the alert definitions for the host, or an empty set (never
    *         {@code null}).
    */
-  public List<AlertDefinition> getAlertDefinitions(
-      String clusterName,
-      String hostName) {
-
-    Set<AlertDefinitionEntity> entities = getAlertDefinitionEntities(
-        clusterName, hostName);
-
-    List<AlertDefinition> definitions = new ArrayList<>(
-      entities.size());
-
-    for (AlertDefinitionEntity entity : entities) {
-      definitions.add(m_factory.coerce(entity));
-    }
-
-    return definitions;
+  public List<AlertDefinition> getAlertDefinitions(String clusterName, String hostName) {
+    return coerce(getAlertDefinitionEntities(clusterName, hostName));
   }
 
+  public Map<Long, Map<Long, AlertDefinition>> getAlertDefinitions(String hostName) throws AmbariException {
+    Map<Long, Map<Long, AlertDefinition>> result = new HashMap<>();
+    for (Cluster cluster : m_clusters.get().getClustersForHost(hostName)) {
+      List<AlertDefinition> alertDefinitions = getAlertDefinitions(cluster.getClusterName(), hostName);
+      result.put(cluster.getClusterId(), mapById(alertDefinitions));
+    }
+    return result;
+  }
+
+  public Map<Long, AlertDefinition> findByServiceComponent(long clusterId, String serviceName, String componentName) {
+    return mapById(coerce(m_definitionDao.findByServiceComponent(clusterId, serviceName, componentName)));
+  }
+
+  public Map<Long, AlertDefinition> findByServiceMaster(long clusterId, String... serviceName) {
+    return mapById(coerce(m_definitionDao.findByServiceMaster(clusterId, Sets.newHashSet(serviceName))));
+  }
 
   /**
    * Invalidate the hashes of any host that would be affected by the specified
@@ -635,8 +642,6 @@ public class AlertDefinitionHash {
     try {
       Cluster cluster = m_clusters.get().getCluster(clusterName);
       if (null == cluster) {
-
-
         return Collections.emptySet();
       }
 
@@ -650,8 +655,7 @@ public class AlertDefinitionHash {
           String componentName = serviceComponent.getServiceComponentName();
 
           // add all alerts for this service/component pair
-          definitions.addAll(m_definitionDao.findByServiceComponent(clusterId,
-              serviceName, componentName));
+          definitions.addAll(m_definitionDao.findByServiceComponent(clusterId, serviceName, componentName));
         }
 
         // for every service, get the master components and see if the host
@@ -693,4 +697,16 @@ public class AlertDefinitionHash {
 
     return definitions;
   }
+
+  private List<AlertDefinition> coerce(Collection<AlertDefinitionEntity> entities) {
+    return entities.stream()
+      .map(m_factory::coerce)
+      .collect(Collectors.toList());
+  }
+
+  private static Map<Long, AlertDefinition> mapById(Collection<AlertDefinition> definitions) {
+    return definitions.stream()
+      .collect(Collectors.toMap(AlertDefinition::getDefinitionId, Function.identity()));
+  }
+
 }

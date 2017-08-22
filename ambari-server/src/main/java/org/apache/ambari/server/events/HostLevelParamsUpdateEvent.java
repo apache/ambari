@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.events;
 
-import java.util.TreeMap;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
@@ -46,15 +48,15 @@ public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements
    * Host level parameters by clusters.
    */
   @JsonProperty("clusters")
-  private TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
+  private final Map<String, HostLevelParamsCluster> hostLevelParamsClusters;
 
-  public HostLevelParamsUpdateEvent(TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters) {
+  public HostLevelParamsUpdateEvent(Map<String, HostLevelParamsCluster> hostLevelParamsClusters) {
     super(Type.HOSTLEVELPARAMS);
     this.hostLevelParamsClusters = hostLevelParamsClusters;
   }
 
   public HostLevelParamsUpdateEvent(String clusterId, HostLevelParamsCluster hostLevelParamsCluster) {
-    this(new TreeMap<String, HostLevelParamsCluster>(){{put(clusterId, hostLevelParamsCluster);}});
+    this(Collections.singletonMap(clusterId, hostLevelParamsCluster));
   }
 
   @Override
@@ -65,14 +67,6 @@ public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements
   @Override
   public void setHash(String hash) {
     this.hash = hash;
-  }
-
-  public TreeMap<String, HostLevelParamsCluster> getHostLevelParamsClusters() {
-    return hostLevelParamsClusters;
-  }
-
-  public void setHostLevelParamsClusters(TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters) {
-    this.hostLevelParamsClusters = hostLevelParamsClusters;
   }
 
   public static HostLevelParamsUpdateEvent emptyUpdate() {
@@ -95,14 +89,12 @@ public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements
 
     HostLevelParamsUpdateEvent that = (HostLevelParamsUpdateEvent) o;
 
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    return hostLevelParamsClusters != null ? hostLevelParamsClusters.equals(that.hostLevelParamsClusters) : that.hostLevelParamsClusters == null;
+    return Objects.equals(hostName, that.hostName) &&
+      Objects.equals(hostLevelParamsClusters, that.hostLevelParamsClusters);
   }
 
   @Override
   public int hashCode() {
-    int result = hostName != null ? hostName.hashCode() : 0;
-    result = 31 * result + (hostLevelParamsClusters != null ? hostLevelParamsClusters.hashCode() : 0);
-    return result;
+    return Objects.hash(hostName, hostLevelParamsClusters);
   }
 }

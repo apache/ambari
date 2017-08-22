@@ -25,20 +25,11 @@ public class ServiceComponentInstalledEvent extends ServiceEvent {
   private final String m_componentName;
   private final String m_hostName;
   private final boolean m_recoveryEnabled;
+  private final boolean masterComponent;
 
-  /**
-   * Constructor.
-   *
-   * @param clusterId
-   * @param stackName
-   * @param stackVersion
-   * @param serviceName
-   * @param componentName
-   * @param hostName
-   */
   public ServiceComponentInstalledEvent(long clusterId, String stackName,
       String stackVersion, String serviceName, String componentName,
-      String hostName, boolean recoveryEnabled) {
+      String hostName, boolean recoveryEnabled, boolean masterComponent) {
     super(AmbariEventType.SERVICE_COMPONENT_INSTALL_SUCCESS, clusterId,
         stackName,
         stackVersion, serviceName);
@@ -46,6 +37,7 @@ public class ServiceComponentInstalledEvent extends ServiceEvent {
     m_componentName = componentName;
     m_hostName = hostName;
     m_recoveryEnabled = recoveryEnabled;
+    this.masterComponent = masterComponent;
   }
 
   public String getComponentName() {
@@ -63,13 +55,14 @@ public class ServiceComponentInstalledEvent extends ServiceEvent {
     return m_recoveryEnabled;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  public boolean isMasterComponent() {
+    return masterComponent;
+  }
+
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("ServiceComponentInstalledEvent{");
-    buffer.append("cluserId=").append(m_clusterId);
+    buffer.append("clusterId=").append(m_clusterId);
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);
     buffer.append(", serviceName=").append(m_serviceName);

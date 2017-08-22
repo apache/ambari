@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -61,7 +61,7 @@ public abstract class AmbariUpdateEvent {
     REQUEST("/events/requests", "events.requests"),
     SERVICE("/events/services", "events.services"),
     HOST("/events/hosts", "events.hosts"),
-    ALERT_DEFINITIONS("/events/alert_definitions", "events.alert_definitions"),
+    ALERT_DEFINITIONS("/alert_definitions", "events.alert_definitions"),
     COMMAND("/commands", "events.commands");
 
     /**

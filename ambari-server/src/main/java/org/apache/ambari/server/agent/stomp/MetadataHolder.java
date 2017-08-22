@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,7 +23,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.commons.collections.MapUtils;
 
 import com.google.inject.Inject;
@@ -35,35 +34,31 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   @Inject
   private AmbariManagementControllerImpl ambariManagementController;
 
-  @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
-
   @Override
   public MetadataUpdateEvent getCurrentData() throws AmbariException {
     return ambariManagementController.getClustersMetadata();
   }
 
-  public void updateData(MetadataUpdateEvent update) throws AmbariException {
-    if (getData() == null) {
-      setData(getCurrentData());
-    }
+  @Override
+  protected boolean handleUpdate(MetadataUpdateEvent update) throws AmbariException {
+    boolean changed = false;
     if (MapUtils.isNotEmpty(update.getMetadataClusters())) {
       for (Map.Entry<String, MetadataCluster> metadataClusterEntry : update.getMetadataClusters().entrySet()) {
-        if (getData().getMetadataClusters().containsKey(metadataClusterEntry.getKey())) {
-          getData().getMetadataClusters().get(metadataClusterEntry.getKey()).getClusterLevelParams().putAll(
-              metadataClusterEntry.getValue().getClusterLevelParams());
-          getData().getMetadataClusters().get(metadataClusterEntry.getKey()).getServiceLevelParams().putAll(
-              metadataClusterEntry.getValue().getServiceLevelParams());
-          getData().getMetadataClusters().get(metadataClusterEntry.getKey()).getStatusCommandsToRun().addAll(
-              metadataClusterEntry.getValue().getStatusCommandsToRun());
+        MetadataCluster updatedCluster = metadataClusterEntry.getValue();
+        String clusterId = metadataClusterEntry.getKey();
+        Map<String, MetadataCluster> clusters = getData().getMetadataClusters();
+        if (clusters.containsKey(clusterId)) {
+          MetadataCluster cluster = clusters.get(clusterId);
+          cluster.getClusterLevelParams().putAll(updatedCluster.getClusterLevelParams());
+          cluster.getServiceLevelParams().putAll(updatedCluster.getServiceLevelParams());
+          cluster.getStatusCommandsToRun().addAll(updatedCluster.getStatusCommandsToRun());
         } else {
-          getData().getMetadataClusters().put(metadataClusterEntry.getKey(), metadataClusterEntry.getValue());
+          clusters.put(clusterId, updatedCluster);
         }
+        changed = true;
       }
     }
-    regenerateHash();
-    update.setHash(getData().getHash());
-    stateUpdateEventPublisher.publish(update);
+    return changed;
   }
 
   @Override

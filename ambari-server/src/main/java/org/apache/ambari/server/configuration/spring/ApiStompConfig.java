@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,8 +19,6 @@ package org.apache.ambari.server.configuration.spring;
 
 import org.apache.ambari.server.api.stomp.TestController;
 import org.apache.ambari.server.events.listeners.requests.StateUpdateListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +34,6 @@ import com.google.inject.Injector;
 @ComponentScan(basePackageClasses = {TestController.class})
 @Import(RootStompConfig.class)
 public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
-  private static final Logger LOG = LoggerFactory.getLogger(ApiStompConfig.class);
 
   @Bean
   public StateUpdateListener requestStatusListener(Injector injector) {
@@ -46,8 +43,7 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1")
-        .setAllowedOrigins("*");
-    registry.addEndpoint("/v1")
-        .setAllowedOrigins("*").withSockJS();
+      .setAllowedOrigins("*")
+      .withSockJS();
   }
 }

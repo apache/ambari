@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,12 +21,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.stomp.dto.Hash;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
+import org.apache.ambari.server.events.AlertDefinitionsUpdateEvent;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -39,12 +38,13 @@ import com.google.inject.Injector;
 @SendToUser("/")
 @MessageMapping("/agents")
 public class AgentCurrentDataController {
-  private static Log LOG = LogFactory.getLog(AgentCurrentDataController.class);
+
   private final AgentSessionManager agentSessionManager;
   private final TopologyHolder topologyHolder;
   private final MetadataHolder metadataHolder;
   private final HostLevelParamsHolder hostLevelParamsHolder;
   private final AgentConfigsHolder agentConfigsHolder;
+  private final AlertDefinitionsHolder alertDefinitionsHolder;
 
   public AgentCurrentDataController(Injector injector) {
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
@@ -52,6 +52,7 @@ public class AgentCurrentDataController {
     metadataHolder = injector.getInstance(MetadataHolder.class);
     hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
     agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
+    alertDefinitionsHolder = injector.getInstance(AlertDefinitionsHolder.class);
   }
 
   @SubscribeMapping("/topologies")
@@ -64,7 +65,12 @@ public class AgentCurrentDataController {
     return metadataHolder.getUpdateIfChanged(hash.getHash());
   }
 
-  //TODO method should returns empty response in case hash is relevant
+  @SubscribeMapping("/alert_definitions")
+  public AlertDefinitionsUpdateEvent getAlertDefinitions(@Header String simpSessionId, Hash hash) throws AmbariException {
+    String hostName = agentSessionManager.getHost(simpSessionId).getHostName();
+    return alertDefinitionsHolder.getUpdateIfChanged(hash.getHash(), hostName);
+  }
+
   @SubscribeMapping("/configs")
   public AgentConfigsUpdateEvent getCurrentConfigs(@Header String simpSessionId, Hash hash) throws AmbariException {
     return agentConfigsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostName());
@@ -74,4 +80,5 @@ public class AgentCurrentDataController {
   public HostLevelParamsUpdateEvent getCurrentHostLevelParams(@Header String simpSessionId, Hash hash) throws AmbariException {
     return hostLevelParamsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostName());
   }
+
 }

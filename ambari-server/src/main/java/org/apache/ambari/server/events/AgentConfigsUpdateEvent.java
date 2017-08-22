@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,8 @@
 
 package org.apache.ambari.server.events;
 
-import java.util.TreeMap;
+import java.util.Objects;
+import java.util.SortedMap;
 
 import org.apache.ambari.server.agent.stomp.dto.ClusterConfigs;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
@@ -47,18 +48,10 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
    * Configs grouped by cluster id as keys.
    */
   @JsonProperty("clusters")
-  private TreeMap<String, ClusterConfigs> clustersConfigs = new TreeMap<>();
+  private final SortedMap<String, ClusterConfigs> clustersConfigs;
 
-  public AgentConfigsUpdateEvent(TreeMap<String, ClusterConfigs> clustersConfigs) {
+  public AgentConfigsUpdateEvent(SortedMap<String, ClusterConfigs> clustersConfigs) {
     super(Type.AGENT_CONFIGS);
-    this.clustersConfigs = clustersConfigs;
-  }
-
-  public TreeMap<String, ClusterConfigs> getClustersConfigs() {
-    return clustersConfigs;
-  }
-
-  public void setClustersConfigs(TreeMap<String, ClusterConfigs> clustersConfigs) {
     this.clustersConfigs = clustersConfigs;
   }
 
@@ -91,14 +84,12 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
 
     AgentConfigsUpdateEvent that = (AgentConfigsUpdateEvent) o;
 
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    return clustersConfigs != null ? clustersConfigs.equals(that.clustersConfigs) : that.clustersConfigs == null;
+    return Objects.equals(hostName, that.hostName) &&
+      Objects.equals(clustersConfigs, that.clustersConfigs);
   }
 
   @Override
   public int hashCode() {
-    int result = hostName != null ? hostName.hashCode() : 0;
-    result = 31 * result + (clustersConfigs != null ? clustersConfigs.hashCode() : 0);
-    return result;
+    return Objects.hash(hostName, clustersConfigs);
   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,7 +24,6 @@ import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -44,14 +43,6 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   @Inject
   private Clusters clusters;
 
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
-
-  @Inject
-  public HostLevelParamsHolder(StateUpdateEventPublisher stateUpdateEventPublisher) {
-    this.stateUpdateEventPublisher = stateUpdateEventPublisher;
-    stateUpdateEventPublisher.register(this);
-  }
-
   @Override
   public HostLevelParamsUpdateEvent getCurrentData(String hostName) throws AmbariException {
     TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
@@ -69,12 +60,10 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     return hostLevelParamsUpdateEvent;
   }
 
-  public void updateData(HostLevelParamsUpdateEvent update) throws AmbariException {
+  protected boolean handleUpdate(HostLevelParamsUpdateEvent update) throws AmbariException {
     //TODO implement update host level params process
     setData(update, update.getHostName());
-    regenerateHash(update.getHostName());
-    update.setHash(getData(update.getHostName()).getHash());
-    stateUpdateEventPublisher.publish(update);
+    return true;
   }
 
   @Override
