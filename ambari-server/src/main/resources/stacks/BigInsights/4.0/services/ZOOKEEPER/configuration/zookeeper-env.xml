@@ -27,6 +27,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>ZooKeeper User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>zk_log_dir</name>

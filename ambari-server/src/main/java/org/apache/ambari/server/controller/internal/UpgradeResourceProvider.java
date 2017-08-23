@@ -1396,7 +1396,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         taskIds.add(hrcEntity.getTaskId());
       }
 
-      actionManager.resubmitTasks(taskIds);
+      actionManager.resubmitTasks(requestId, taskIds);
 
       UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
       lastUpgradeItemForCluster.setSuspended(false);

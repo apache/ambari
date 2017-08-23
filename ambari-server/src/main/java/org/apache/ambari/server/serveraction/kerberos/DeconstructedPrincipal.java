@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  * This class will create a DeconstructedPrincipal from a String containing a principal using
  * {@link DeconstructedPrincipal#valueOf(String, String)}
  */
-class DeconstructedPrincipal {
+public class DeconstructedPrincipal {
   /**
    * Regular expression to parse the different principal formats:
    * <ul>

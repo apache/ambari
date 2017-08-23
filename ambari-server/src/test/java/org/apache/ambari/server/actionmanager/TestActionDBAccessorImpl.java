@@ -46,7 +46,9 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.MockServerAction;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
@@ -87,6 +89,9 @@ public class TestActionDBAccessorImpl {
 
   @Inject
   private Clusters clusters;
+
+  @Inject
+  private RequestDAO requestDAO;
 
   @Inject
   private ExecutionCommandDAO executionCommandDAO;
@@ -567,6 +572,7 @@ public class TestActionDBAccessorImpl {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
             .toString(), "host4", System.currentTimeMillis()), "cluster1", "HBASE", false, false);
+
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     s.getOrderedHostRoleCommands().get(0).setStatus(HostRoleStatus.PENDING);
@@ -594,7 +600,10 @@ public class TestActionDBAccessorImpl {
       }
     }
 
-    db.resubmitTasks(aborted);
+    RequestEntity requestEntity = requestDAO.findByPK(requestId);
+    assertTrue(requestEntity.getEndTime() != -1L);
+
+    db.resubmitTasks(requestId, aborted);
 
     commands = db.getRequestTasks(requestId);
 
@@ -606,6 +615,8 @@ public class TestActionDBAccessorImpl {
       }
     }
 
+    requestEntity = requestDAO.findByPK(requestId);
+    assertEquals(Long.valueOf(-1), requestEntity.getEndTime());
   }
 
   /**

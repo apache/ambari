@@ -141,6 +141,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>Hive User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <!--HCAT-->
@@ -176,6 +180,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>HCat User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>webhcat_user</name>
@@ -184,6 +192,10 @@
     <on-ambari-upgrade add="true"/>
     <property-type>USER</property-type>
     <description>WebHCat User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

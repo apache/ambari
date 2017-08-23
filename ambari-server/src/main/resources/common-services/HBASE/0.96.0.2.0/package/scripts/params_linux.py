@@ -131,6 +131,8 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xm
 
 hbase_regionserver_shutdown_timeout = expect('/configurations/hbase-env/hbase_regionserver_shutdown_timeout', int, 30)
 
+regionserver_cms_initiating_occupancy_fraction = expect('/configurations/hbase-env/hbase_regionserver_cms_initiating_occupancy_fraction', int, 50)
+
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
 has_phoenix = len(phoenix_hosts) > 0

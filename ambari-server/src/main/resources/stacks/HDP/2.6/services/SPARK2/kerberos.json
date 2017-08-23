@@ -43,8 +43,7 @@
         {
           "livy2-conf": {
             "livy.server.auth.type": "kerberos",
-            "livy.impersonation.enabled": "true",
-            "livy.superusers": "zeppelin${principal_suffix}"
+            "livy.impersonation.enabled": "true"
           }
         },
         {

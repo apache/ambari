@@ -461,10 +461,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "STORM": self.recommendStormConfigurations,
       "OOZIE": self.recommendOozieConfigurations,
-      "SPARK2": self.recommendSpark2Configurations
+      "SPARK": self.recommendSparkConfigurations,
+      "SPARK2": self.recommendSpark2Configurations,
+      "ZEPPELIN": self.recommendZeppelinConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
+
+  def recommendSparkConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    self.__addZeppelinToLivySuperUsers(configurations, services)
 
   def recommendSpark2Configurations(self, configurations, clusterData, services, hosts):
     """
@@ -537,6 +548,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putStormSiteProperty('storm.cluster.metrics.consumer.register', 'null')
       putStormSiteProperty('topology.metrics.consumer.register', 'null')
+
+  def recommendZeppelinConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    self.__addZeppelinToLivySuperUsers(configurations, services)
 
   def constructAtlasRestAddress(self, services, hosts):
     """
@@ -2175,6 +2195,42 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
                                     "Need to Install ATLAS service to set ranger.tagsync.source.atlas as true.")})
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-tagsync-site")
+
+  def __addZeppelinToLivySuperUsers(self, configurations, services):
+    """
+    If Kerberos is enabled AND Zeppelin is installed and Spark Livy Server is installed, then set
+    livy-conf/livy.superusers to contain the Zeppelin principal name from
+    zeppelin-env/zeppelin.server.kerberos.principal
+
+    :param configurations:
+    :param services:
+    """
+    if self.isSecurityEnabled(services):
+      zeppelin_env = self.getServicesSiteProperties(services, "zeppelin-env")
+
+      if zeppelin_env and 'zeppelin.server.kerberos.principal' in zeppelin_env:
+        zeppelin_principal = zeppelin_env['zeppelin.server.kerberos.principal']
+        zeppelin_user = zeppelin_principal.split('@')[0] if zeppelin_principal else None
+
+        if zeppelin_user:
+          livy_conf = self.getServicesSiteProperties(services, 'livy-conf')
+
+          if livy_conf:
+            superusers = livy_conf['livy.superusers'] if livy_conf and 'livy.superusers' in livy_conf else None
+
+            # add the Zeppelin user to the set of users
+            if superusers:
+              _superusers = superusers.split(',')
+              _superusers = [x.strip() for x in _superusers]
+              _superusers = filter(None, _superusers)  # Removes empty string elements from array
+            else:
+              _superusers = []
+
+            if zeppelin_user not in _superusers:
+              _superusers.append(zeppelin_user)
+
+              putLivyProperty = self.putProperty(configurations, 'livy-conf', services)
+              putLivyProperty('livy.superusers', ','.join(_superusers))
 
   def __isServiceDeployed(self, services, serviceName):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
