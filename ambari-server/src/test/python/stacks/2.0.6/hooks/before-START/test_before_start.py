@@ -92,6 +92,7 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_mappings.data',
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
+                              mode = 0644,
                               group = 'hadoop',
                               only_if = 'test -d /etc/hadoop/conf',
                               )
@@ -167,6 +168,7 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
+                              mode = 0644,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
@@ -246,6 +248,7 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
+                              mode = 0644,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
@@ -256,7 +259,7 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_hook_refresh_topology_custom_directories(self):
-    config_file = "stacks/2.0.6/configs/default.json"
+    config_file = "{0}/test/python/stacks/2.0.6/configs/default.json".format(self.get_src_folder())
     with open(config_file, "r") as f:
       default_json = json.load(f)
 
@@ -327,6 +330,7 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
+                              mode = 0644,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
