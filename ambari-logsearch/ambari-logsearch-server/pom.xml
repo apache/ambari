@@ -45,6 +45,12 @@
       </activation>
       <build>
         <finalName>LogSearch</finalName>
+        <resources>
+          <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+          </resource>
+        </resources>
         <pluginManagement>
           <plugins>
             <plugin>
@@ -247,6 +253,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
+      <version>${spring-boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
       <version>${spring-boot.version}</version>
     </dependency>
     <dependency>

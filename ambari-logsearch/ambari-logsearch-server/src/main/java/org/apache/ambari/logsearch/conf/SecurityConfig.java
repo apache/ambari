@@ -115,7 +115,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .addFilterAfter(logsearchAuditLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchServiceLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logSearchConfigStateFilter(), LogsearchSecurityContextFormationFilter.class)
-      .addFilterBefore(corsFilter(), LogsearchSecurityContextFormationFilter.class)
+      .addFilterBefore(logsearchCorsFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterBefore(logsearchJwtFilter(), LogsearchSecurityContextFormationFilter.class)
       .logout()
         .logoutUrl("/logout.html")
@@ -124,7 +124,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public LogsearchCorsFilter corsFilter() {
+  public LogsearchCorsFilter logsearchCorsFilter() {
     return new LogsearchCorsFilter(logSearchHttpHeaderConfig);
   }
 

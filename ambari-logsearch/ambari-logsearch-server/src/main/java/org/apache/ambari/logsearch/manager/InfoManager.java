@@ -28,12 +28,23 @@ import org.apache.ambari.logsearch.common.PropertyDescriptionStorage;
 import org.apache.ambari.logsearch.common.ShipperConfigDescriptionStorage;
 import org.apache.ambari.logsearch.model.response.PropertyDescriptionData;
 import org.apache.ambari.logsearch.model.response.ShipperConfigDescriptionData;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 @Named
 public class InfoManager extends JsonManagerBase {
+
+  @Value("${logsearch.app.version:}")
+  private String logsearchAppVersion;
+
+  @Value("${logsearch.solr.version:}")
+  private String logsearchSolrVersion;
+
+  @Value("${java.runtime.version}")
+  private String javaRuntimeVersion;
+
 
   @Inject
   private AuthPropsConfig authPropsConfig;
@@ -43,6 +54,14 @@ public class InfoManager extends JsonManagerBase {
 
   @Inject
   private ShipperConfigDescriptionStorage shipperConfigDescriptionStore;
+
+  public Map<String, String> getApplicationInfo() {
+    Map<String, String> appMap = new HashMap<>();
+    appMap.put("application.version", logsearchAppVersion);
+    appMap.put("solr.version", logsearchSolrVersion);
+    appMap.put("java.runtime.version", javaRuntimeVersion);
+    return appMap;
+  }
 
   public Map<String, Boolean> getAuthMap() {
     Map<String, Boolean> authMap = new HashMap<>();
