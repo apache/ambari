@@ -309,7 +309,7 @@ def oozie_server_specific(upgrade_type):
     Package(params.all_lzo_packages,
             retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
             retry_count=params.agent_stack_retry_count)
-    Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
+    Execute(format('{sudo} cp /usr/lib/hadoop-lzo/lib/hadoop-lzo*.jar {oozie_lib_dir}'),
       not_if  = no_op_test,
     )
 
