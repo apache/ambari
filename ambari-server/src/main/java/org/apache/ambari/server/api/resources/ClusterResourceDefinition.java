@@ -85,6 +85,8 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     directives.add(KerberosHelper.DIRECTIVE_REGENERATE_KEYTABS);
     directives.add(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES);
     directives.add(KerberosHelper.DIRECTIVE_FORCE_TOGGLE_KERBEROS);
+    directives.add(KerberosHelper.DIRECTIVE_HOSTS);
+    directives.add(KerberosHelper.DIRECTIVE_COMPONENTS);
     return directives;
   }
 
