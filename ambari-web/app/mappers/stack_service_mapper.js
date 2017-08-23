@@ -60,6 +60,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     bulk_commands_master_component_name: 'bulk_commands_master_component_name',
     service_name: 'service_name',
     component_category: 'component_category',
+    rolling_restart_supported: 'rolling_restart_supported',
     is_master: 'is_master',
     is_client: 'is_client',
     stack_name: 'stack_name',
