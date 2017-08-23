@@ -27,6 +27,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
     App.tooltip($('.not-upgradable'), {title: Em.I18n.t('admin.stackVersions.version.service.notUpgradable')});
+    App.tooltip($('.icon-trash'), {title: Em.I18n.t('common.revert.patch')});
     if (!this.get('content.isCompatible')) {
       App.tooltip(this.$(".repo-version-tooltip"), {
         title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')

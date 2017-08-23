@@ -20,7 +20,10 @@
   <i class="icon-exclamation-sign out-of-sync-badge"></i>
 {{/if}}
 
-<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state :repo-version-tooltip"}}>
+<div {{bindAttr class="view.stateElement.isInstalling:installing
+                       view.stateElement.isButton:attach-top
+                       view.stateElement.isCurrent:attach-top
+                       view.stateElement.isButtonGroup:attach-top :align-center :state :repo-version-tooltip"}}>
     {{#if view.stateElement.isButton}}
       <button class="btn btn-primary"
           {{action runAction target="view"}}

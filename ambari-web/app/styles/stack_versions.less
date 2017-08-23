@@ -269,7 +269,7 @@
   }
   .version-column {
     min-height: 500px;
-    min-width: 175px;
+    min-width: 190px;
     margin: 15px 7px 0 7px;
     padding-top: 0;
     background-color: #efefef;
@@ -295,17 +295,15 @@
       margin: 0 0 -5px 0;
     }
     .icon-trash {
-      padding: 3px 5px;
+      padding: 2px 4px;
       border-radius: 15px;
-      border: 1px solid black;
+      border: 1px solid #000;
       font-size: 12px;
       cursor: pointer;
       background: white;
     }
     .state {
-      margin: 0 0 25px 0;
-      line-height: 20px;
-      padding-top: 0;
+      margin: 10px 0;
       .top-label {
         font-size: inherit;
         border-radius: 0;
@@ -322,8 +320,8 @@
         top: 100%;
         width: 0;
         height: 0;
-        border-left: 86px solid transparent;
-        border-right: 86px solid transparent;
+        border-left: 95px solid transparent;
+        border-right: 95px solid transparent;
         border-top: 10px solid @current-green;
         clear: both;
       }
@@ -342,6 +340,11 @@
           padding: 9px 5px;
         }
       }
+      .btn {
+        width: 100%;
+        border-radius: 0;
+        padding: 9px 5px;
+      }
       .open .dropdown-menu {
         min-width: 100px;
         right: 0;
@@ -349,7 +352,12 @@
     }
     .state.installing {
       padding-bottom: 5px;
-      margin: 10px 0px;
+      margin: 5px 0 15px 0;
+    }
+    .state.attach-top {
+      margin: 0 0 25px 0;
+      line-height: 20px;
+      padding-top: 0;
     }
     .services-section {
       width: 100%;
