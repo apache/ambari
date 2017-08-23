@@ -41,7 +41,7 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 
 public class StackServiceComponentResourceProvider extends
     ReadOnlyResourceProvider {
-
+  
   private static final String STACK_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "stack_name");
 
@@ -92,6 +92,9 @@ public class StackServiceComponentResourceProvider extends
 
   private static final String RECOVERY_ENABLED = PropertyHelper.getPropertyId(
       "StackServiceComponents", "recovery_enabled");
+
+  private static final String ROLLING_RESTART_SUPPORTED = PropertyHelper.getPropertyId(
+          "StackServiceComponents", "rolling_restart_supported");
 
   private static final String AUTO_DEPLOY_ENABLED_ID = PropertyHelper.getPropertyId(
       "auto_deploy", "enabled");
@@ -189,6 +192,8 @@ public class StackServiceComponentResourceProvider extends
 
       setResourceProperty(resource, HAS_BULK_COMMANDS_PROPERTY_ID,
           response.hasBulkCommands(), requestedIds);
+
+      setResourceProperty(resource, ROLLING_RESTART_SUPPORTED, response.isRollingRestartSupported(),  requestedIds);
 
       AutoDeployInfo autoDeployInfo = response.getAutoDeploy();
       if (autoDeployInfo != null) {

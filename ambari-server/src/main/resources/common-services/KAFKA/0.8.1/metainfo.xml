@@ -30,6 +30,7 @@
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <rollingRestartSupported>true</rollingRestartSupported>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>

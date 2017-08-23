@@ -232,6 +232,7 @@
         "StackServiceComponents/has_bulk_commands_definition",
         "StackServiceComponents/bulk_commands_display_name",
         "StackServiceComponents/bulk_commands_master_component_name",
+        "StackServiceComponents/rolling_restart_supported",
         "auto_deploy/enabled",
         "auto_deploy/location",
         "_"
