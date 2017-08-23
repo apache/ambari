@@ -58,13 +58,13 @@ public class MpackTest {
             "      \"type\" : \"service-packlet\",\n" +
             "      \"name\" : \"NIFI\",\n" +
             "      \"version\" : \"1.2.0.0-123\",\n" +
-            "      \"source_dir\": \"packlets/NIFI-1.2.0.0-123.tar.gz\"\n" +
+            "      \"source_location\": \"packlets/NIFI-1.2.0.0-123.tar.gz\"\n" +
             "    },\n" +
             "    {\n" +
             "      \"type\" : \"service-packlet\",\n" +
             "      \"name\" : \"STREAMLINE\",\n" +
             "      \"version\" : \"1.0.0.0-100\",\n" +
-            "      \"source_dir\": \"packlets/STREAMLINE-1.0.0.0-100.tar.gz\"\n" +
+            "      \"source_location\": \"packlets/STREAMLINE-1.0.0.0-100.tar.gz\"\n" +
             "    }\n" +
             "  ]\n" +
             "}\n";

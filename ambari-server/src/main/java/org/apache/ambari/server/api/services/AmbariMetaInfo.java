@@ -678,6 +678,7 @@ public class AmbariMetaInfo {
    * @throws ResourceAlreadyExistsException
    */
   public MpackResponse registerMpack(MpackRequest mpackRequest) throws IOException, ResourceAlreadyExistsException {
+    versionDefinitions.clear();
     return mpackManager.registerMpack(mpackRequest);
   }
 
@@ -1432,7 +1433,8 @@ public class AmbariMetaInfo {
    */
   private void ensureVersionDefinitions() {
     if (null != versionDefinitions) {
-      return;
+      if(versionDefinitions.size() > 0)
+        return;
     }
 
     versionDefinitions = new HashMap<>();
@@ -1490,7 +1492,7 @@ public class AmbariMetaInfo {
    * @throws IOException
    */
   public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException {
-
+    versionDefinitions.clear();
     boolean stackDelete = mpackManager.removeMpack(mpackEntity, stackEntity);
 
     if(stackDelete) {
