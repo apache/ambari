@@ -20,7 +20,7 @@
 
 ## Runs superset as a daemon
 ## Environment Variables used by this script -
-## SUPERSET_CONFIG_DIR - directory having druid config files
+## SUPERSET_CONFIG_DIR - directory having superset config files
 ## SUPERSET_LOG_DIR - directory used to store superset logs
 ## SUPERSET_PID_DIR - directory used to store pid file
 

@@ -464,5 +464,48 @@ public class UpgradeCatalog260Test {
         capture(scdcaptureKey), capture(scdcaptureValue), eq(false))).andReturn(current).once();
   }
 
+  @Test
+  public void testRemoveDruidSuperset() throws Exception {
+
+    List<Integer> current = new ArrayList<Integer>();
+    current.add(1);
+
+    expect(dbAccessor.getConnection()).andReturn(connection).anyTimes();
+    expect(connection.createStatement()).andReturn(statement).anyTimes();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).anyTimes();
+    expect(configuration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).anyTimes();
+
+    dbAccessor.executeQuery("DELETE FROM clusterconfigmapping WHERE type_name like 'druid-superset%'");
+    expectLastCall().once();
+    dbAccessor.executeQuery("DELETE FROM serviceconfigmapping WHERE config_id IN (SELECT config_id from clusterconfig where type_name like 'druid-superset%')");
+    expectLastCall().once();
+    dbAccessor.executeQuery("DELETE FROM clusterconfig WHERE type_name like 'druid-superset%'");
+    expectLastCall().once();
+    dbAccessor.executeQuery("DELETE FROM hostcomponentdesiredstate WHERE component_name = 'DRUID_SUPERSET'");
+    expectLastCall().once();
+    dbAccessor.executeQuery("DELETE FROM hostcomponentstate WHERE component_name = 'DRUID_SUPERSET'");
+    expectLastCall().once();
+    dbAccessor.executeQuery("DELETE FROM servicecomponentdesiredstate WHERE component_name = 'DRUID_SUPERSET'");
+    expectLastCall().once();
+    replay(dbAccessor, configuration, connection, statement, resultSet);
+
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(osFamily);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(Configuration.class).toInstance(configuration);
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
+    upgradeCatalog260.removeSupersetFromDruid();
+
+    verify(dbAccessor);
+
+  }
+
 
 }

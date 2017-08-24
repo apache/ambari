@@ -114,12 +114,6 @@
             "druid.hadoop.security.spnego.excludedPaths": "[\"/status\"]",
             "druid.security.extensions.loadList": "[\"druid-kerberos\"]"
           }
-        },
-        {
-          "druid-superset": {
-            "ENABLE_KERBEROS_AUTHENTICATION": "True",
-            "KERBEROS_REINIT_TIME_SEC": "3600"
-          }
         }
       ],
       "auth_to_local_properties": [
