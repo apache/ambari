@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -294,6 +295,48 @@ public class UpgradeCatalog252Test {
         "      ]" +
         "    }," +
         "    {" +
+        "      \"name\": \"KNOX\"," +
+        "      \"components\": [" +
+        "        {" +
+        "          \"name\": \"KNOX_GATEWAY\"," +
+        "          \"configurations\": [" +
+        "            {" +
+        "              \"core-site\": {" +
+        "                \"property1\": \"true\"," +
+        "                \"property2\": \"true\"," +
+        "                \"hadoop.proxyuser.knox.groups\": \"somevalue\"," +
+        "                \"hadoop.proxyuser.knox.hosts\": \"somevalue\"" +
+        "              }" +
+        "            }," +
+        "            {" +
+        "              \"webhcat-site\": {" +
+        "                \"webhcat.proxyuser.knox.groups\": \"somevalue\"," +
+        "                \"webhcat.proxyuser.knox.hosts\": \"somevalue\"" +
+        "              }" +
+        "            }," +
+        "            {" +
+        "              \"oozie-site\": {" +
+        "                \"oozie.service.ProxyUserService.proxyuser.knox.groups\": \"somevalue\"," +
+        "                \"oozie.service.ProxyUserService.proxyuser.knox.hosts\": \"somevalue\"" +
+        "              }" +
+        "            }," +
+        "            {" +
+        "              \"falcon-runtime.properties\": {" +
+        "                \"*.falcon.service.ProxyUserService.proxyuser.knox.groups\": \"somevalue\"," +
+        "                \"*.falcon.service.ProxyUserService.proxyuser.knox.hosts\": \"somevalue\"" +
+        "              }" +
+        "            }," +
+        "            {" +
+        "              \"some-env\": {" +
+        "                \"groups\": \"${hadoop-env/proxyuser_group}\"," +
+        "                \"hosts\": \"${clusterHostInfo/existing_service_master_hosts}\"" +
+        "              }" +
+        "            }" +
+        "          ]" +
+        "        }" +
+        "      ]" +
+        "    }," +
+        "    {" +
         "      \"name\": \"NOT_SPARK\"," +
         "      \"configurations\": [" +
         "        {" +
@@ -365,5 +408,19 @@ public class UpgradeCatalog252Test {
     Assert.assertNotNull(result.getService("NOT_SPARK").getConfiguration("not-livy-conf"));
     Assert.assertNotNull(result.getService("NOT_SPARK").getConfiguration("not-livy-conf").getProperties());
     Assert.assertTrue(result.getService("NOT_SPARK").getConfiguration("not-livy-conf").getProperties().containsKey("livy.superusers"));
+
+    Assert.assertNotNull(result.getService("KNOX"));
+
+    KerberosComponentDescriptor knoxGateway = result.getService("KNOX").getComponent("KNOX_GATEWAY");
+    Assert.assertNotNull(knoxGateway);
+    Assert.assertNotNull(knoxGateway.getConfiguration("core-site"));
+    Assert.assertNotNull(knoxGateway.getConfiguration("core-site").getProperties());
+    Assert.assertTrue(knoxGateway.getConfiguration("core-site").getProperties().containsKey("property1"));
+    Assert.assertFalse(knoxGateway.getConfiguration("core-site").getProperties().containsKey("hadoop.proxyuser.knox.groups"));
+    Assert.assertFalse(knoxGateway.getConfiguration("core-site").getProperties().containsKey("hadoop.proxyuser.knox.hosts"));
+    Assert.assertNull(knoxGateway.getConfiguration("oozie-site"));
+    Assert.assertNull(knoxGateway.getConfiguration("webhcat-site"));
+    Assert.assertNull(knoxGateway.getConfiguration("falcon-runtime.properties"));
+    Assert.assertNotNull(knoxGateway.getConfiguration("some-env"));
   }
 }
