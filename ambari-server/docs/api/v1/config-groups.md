@@ -114,8 +114,12 @@ An update on a Config group expects the entire resource definition to be sent wi
              "description": "HDFS configs for rack added on May 19, 2010",
              "hosts": [
                 {
-                   "host_name": "host1",
-                   "host_name": "host2",
+                   "host_name": "host1"
+                },
+                {
+                   "host_name": "host2"
+                },
+                {
                    "host_name": "host3"
                 }
              ],
@@ -133,7 +137,7 @@ An update on a Config group expects the entire resource definition to be sent wi
        }
     ]
 
-    202 Accepted
+    200 Accepted
 
 A Config group identified by the :id can be deleted.
 
