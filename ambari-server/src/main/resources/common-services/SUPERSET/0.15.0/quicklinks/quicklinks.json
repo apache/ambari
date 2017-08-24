@@ -1,0 +1,24 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type": "HTTP_ONLY"
+    },
+    "links": [
+      {
+        "name": "superset",
+        "label": "Superset",
+        "component_name": "SUPERSET",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@",
+        "port": {
+          "http_property": "SUPERSET_WEBSERVER_PORT",
+          "http_default_port": "9088",
+          "regex": "^(\\d+)$",
+          "site": "superset"
+        }
+      }
+    ]
+  }
+}

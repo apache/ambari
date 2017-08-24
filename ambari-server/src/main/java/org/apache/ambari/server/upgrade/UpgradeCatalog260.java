@@ -92,6 +92,10 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String FK_UPGRADE_HIST_FROM_REPO = "FK_upgrade_hist_from_repo";
   public static final String FK_UPGRADE_HIST_TARGET_REPO = "FK_upgrade_hist_target_repo";
   public static final String UQ_UPGRADE_HIST = "UQ_upgrade_hist";
+  public static final String SERVICE_CONFIG_MAPPING_TABLE = "serviceconfigmapping";
+  public static final String SERVICE_COMPONENT_DESIRED_STATE = "servicecomponentdesiredstate";
+  public static final String HOST_COMPONENT_DESIRED_STATE = "hostcomponentdesiredstate";
+  public static final String HOST_COMPONENT_STATE = "hostcomponentstate";
 
   /**
    * Logger.
@@ -117,14 +121,14 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * {@inheritDoc}
    */
   @Override
-  public String getSourceVersion() {
+  public String getSourceVersion()
+  {
     return "2.5.2";
   }
 
   /**
    * {@inheritDoc}
    */
-  @Override
   public String getTargetVersion() {
     return "2.6.0";
   }
@@ -312,6 +316,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
+    removeSupersetFromDruid();
   }
 
   public int getCurrentVersionID() throws AmbariException, SQLException {
@@ -321,5 +326,44 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
       throw new AmbariException("Can't get current version id");
     }
     return currentVersionList.get(0);
+  }
+
+  // Superset is moved as an independent service in Ambari-2.6.
+  // This will remove superset component if installed under Druid Service
+  protected void removeSupersetFromDruid() throws SQLException {
+    removeComponent("DRUID_SUPERSET", "druid-superset");
+  }
+
+  private void removeComponent(String componentName, String configPrefix) throws SQLException {
+    String supersetConfigMappingRemoveSQL = String.format(
+        "DELETE FROM %s WHERE type_name like '%s%%'",
+        CLUSTER_CONFIG_MAPPING_TABLE, configPrefix);
+
+    String serviceConfigMappingRemoveSQL = String.format(
+        "DELETE FROM %s WHERE config_id IN (SELECT config_id from %s where type_name like '%s%%')",
+        SERVICE_CONFIG_MAPPING_TABLE, CLUSTER_CONFIG_TABLE, configPrefix);
+
+    String supersetConfigRemoveSQL = String.format(
+        "DELETE FROM %s WHERE type_name like '%s%%'",
+        CLUSTER_CONFIG_TABLE, configPrefix);
+
+    String hostComponentDesiredStateRemoveSQL = String.format(
+        "DELETE FROM %s WHERE component_name = '%s'",
+        HOST_COMPONENT_DESIRED_STATE, componentName);
+
+    String hostComponentStateRemoveSQL = String.format(
+        "DELETE FROM %s WHERE component_name = '%s'",
+        HOST_COMPONENT_STATE, componentName);
+
+    String serviceComponentDesiredStateRemoveSQL = String.format(
+        "DELETE FROM %s WHERE component_name = '%s'",
+        SERVICE_COMPONENT_DESIRED_STATE, componentName);
+
+    dbAccessor.executeQuery(supersetConfigMappingRemoveSQL);
+    dbAccessor.executeQuery(serviceConfigMappingRemoveSQL);
+    dbAccessor.executeQuery(supersetConfigRemoveSQL);
+    dbAccessor.executeQuery(hostComponentDesiredStateRemoveSQL);
+    dbAccessor.executeQuery(hostComponentStateRemoveSQL);
+    dbAccessor.executeQuery(serviceComponentDesiredStateRemoveSQL);
   }
 }

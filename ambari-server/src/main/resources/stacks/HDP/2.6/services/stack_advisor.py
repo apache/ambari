@@ -32,6 +32,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       parentRecommendConfDict = super(HDP26StackAdvisor, self).getServiceConfigurationRecommenderDict()
       childRecommendConfDict = {
         "DRUID": self.recommendDruidConfigurations,
+        "SUPERSET": self.recommendSupersetConfigurations,
         "ATLAS": self.recommendAtlasConfigurations,
         "TEZ": self.recommendTezConfigurations,
         "RANGER": self.recommendRangerConfigurations,
@@ -156,11 +157,12 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
               putComponentProperty('druid.processing.numThreads', processingThreads)
               putComponentProperty('druid.server.http.numThreads', max(10, (totalAvailableCpu * 17) / 16 + 2) + 30)
 
+  def recommendSupersetConfigurations(self, configurations, clusterData, services, hosts):
       # superset is in list of services to be installed
-      if 'druid-superset' in services['configurations']:
+      if 'superset' in services['configurations']:
         # Recommendations for Superset
-        superset_database_type = services['configurations']["druid-superset"]["properties"]["SUPERSET_DATABASE_TYPE"]
-        putSupersetProperty = self.putProperty(configurations, "druid-superset", services)
+        superset_database_type = services['configurations']["superset"]["properties"]["SUPERSET_DATABASE_TYPE"]
+        putSupersetProperty = self.putProperty(configurations, "superset", services)
 
         if superset_database_type == "mysql":
             putSupersetProperty("SUPERSET_DATABASE_PORT", "3306")

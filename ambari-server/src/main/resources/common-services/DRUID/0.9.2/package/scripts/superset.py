@@ -35,6 +35,9 @@ from resource_management.libraries.resources.properties_file import PropertiesFi
 
 class Superset(Script):
 
+  def get_component_name(self):
+    return format("superset")
+
   def install(self, env):
     self.install_packages(env)
 
@@ -44,7 +47,7 @@ class Superset(Script):
       [params.superset_pid_dir, params.superset_log_dir, params.superset_config_dir, params.superset_home_dir],
       mode=0755,
       cd_access='a',
-      owner=params.druid_user,
+      owner=params.superset_user,
       group=params.user_group,
       create_parents=True,
       recursive_ownership=True
@@ -52,18 +55,18 @@ class Superset(Script):
 
     File(format("{params.superset_config_dir}/superset-env.sh"),
          mode=0755,
-         owner=params.druid_user,
+         owner=params.superset_user,
          group=params.user_group,
          content=InlineTemplate(params.superset_env_sh_template)
          )
 
     File(os.path.join(params.superset_bin_dir, 'superset.sh'),
-         owner=params.druid_user,
+         owner=params.superset_user,
          group=params.user_group,
          mode=0755,
          content=Template("superset.sh")
          )
-    superset_config =  mutable_config_dict(params.config["configurations"]["druid-superset"])
+    superset_config =  mutable_config_dict(params.config["configurations"]["superset"])
 
     if params.superset_db_uri:
       superset_config["SQLALCHEMY_DATABASE_URI"] = params.superset_db_uri
@@ -71,24 +74,25 @@ class Superset(Script):
     PropertiesFile("superset_config.py",
                    dir=params.superset_config_dir,
                    properties=quote_string_values(superset_config),
-                   owner=params.druid_user,
+                   owner=params.superset_user,
                    group=params.user_group
                    )
 
     # Initialize DB and create admin user.
     Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset db upgrade"),
-            user=params.druid_user)
+            user=params.superset_user)
     Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/fabmanager create-admin --app superset --username '{params.superset_admin_user}' --password '{params.superset_admin_password!p}' --firstname '{params.superset_admin_firstname}' --lastname '{params.superset_admin_lastname}' --email '{params.superset_admin_email}'"),
-            user=params.druid_user)
+            user=params.superset_user)
     Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset init"),
-            user=params.druid_user)
+            user=params.superset_user)
 
     # Configure Druid Cluster in superset DB
-    Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset configure_druid_cluster --name druid-ambari --coordinator-host {params.druid_coordinator_host} --coordinator-port {params.druid_coordinator_port} --broker-host {params.druid_router_host} --broker-port {params.druid_router_port} --coordinator-endpoint druid/coordinator/v1/metadata --broker-endpoint druid/v2"),
-            user=params.druid_user)
+    if len(params.druid_coordinator_hosts) > 0 :
+      Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset configure_druid_cluster --name druid-ambari --coordinator-host {params.druid_coordinator_host} --coordinator-port {params.druid_coordinator_port} --broker-host {params.druid_router_host} --broker-port {params.druid_router_port} --coordinator-endpoint druid/coordinator/v1/metadata --broker-endpoint druid/v2"),
+            user=params.superset_user)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    Logger.info("Executing druid-superset Upgrade pre-restart")
+    Logger.info("Executing superset Upgrade pre-restart")
     import params
 
     env.set_params(params)
@@ -103,10 +107,10 @@ class Superset(Script):
     daemon_cmd = self.get_daemon_cmd(params, "start")
     try:
       Execute(daemon_cmd,
-              user=params.druid_user
+              user=params.superset_user
               )
     except:
-      show_logs(params.druid_log_dir, params.druid_user)
+      show_logs(params.superset_log_dir, params.superset_user)
       raise
 
   def stop(self, env, upgrade_type=None):
@@ -116,10 +120,10 @@ class Superset(Script):
     daemon_cmd = self.get_daemon_cmd(params, "stop")
     try:
       Execute(daemon_cmd,
-              user=params.druid_user
+              user=params.superset_user
               )
     except:
-      show_logs(params.druid_log_dir, params.druid_user)
+      show_logs(params.superset_log_dir, params.superset_user)
       raise
 
   def status(self, env):
@@ -130,11 +134,11 @@ class Superset(Script):
 
   def get_log_folder(self):
     import params
-    return params.druid_log_dir
+    return params.superset_log_dir
 
   def get_user(self):
     import params
-    return params.druid_user
+    return params.superset_user
 
   def get_daemon_cmd(self, params=None, command=None):
     return format('source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset.sh {command}')
