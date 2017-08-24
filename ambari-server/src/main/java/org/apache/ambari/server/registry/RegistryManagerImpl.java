@@ -99,6 +99,9 @@ public class RegistryManagerImpl implements RegistryManager {
     registryEntity.setRegistryName(registryName);
     registryEntity.setRegistryUri(registryUri);
     registryEntity.setRegistryType(registryType);
+    if(registryDAO.findByName(registryName) != null){
+      throw new AmbariException("Registry "+registryName + " already exists");
+    }
     Long registryId = registryDAO.create(registryEntity);
     registryEntity.setRegistryId(registryId);
     Registry registry = registryFactory.create(registryEntity);

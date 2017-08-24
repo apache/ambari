@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +42,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.registry.RegistryType;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -220,12 +223,19 @@ public class RegistryResourceProvider extends AbstractControllerResourceProvider
       Validate.notEmpty(registryUri, "Registry uri should be provided when adding a new software registry");
       Validate.isTrue(registryId == null, "Registry ID should not be set when adding a new software registry");
 
+      try {
+        URI uri = new URI(registryUri);
+        URL url = uri.toURL();
+        String jsonString = IOUtils.toString(url);
+      }catch(Exception e){
+        Validate.isTrue(e == null, e.getMessage() + " Invalid registry uri. Please check.");
+      }
+
       LOG.info("Received a createRegistry request"
         + ", registryName=" + registryName
         + ", registryType=" + registryType
         + ", registryUri=" + registryUri);
 
-      // TODO : Check if the software registry is already registered
       // TODO : Check for duplicates in the request.
       // TODO : Authorization??
     }
