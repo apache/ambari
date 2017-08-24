@@ -789,7 +789,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "AMBARI_METRICS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
               "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
               "ams-site": self.validateAmsSiteConfigurations,
-              "ams-env": self.validateAmsEnvConfigurations}
+              "ams-env": self.validateAmsEnvConfigurations,
+               "ams-grafana-env": self.validateGrafanaEnvConfigurations}
     }
 
   def validateMinMax(self, items, recommendedDefaults, configurations):
@@ -832,6 +833,17 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     elif len(self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")) > 1 and op_mode != 'distributed':
       correct_op_mode_item = self.getErrorItem("Correct value should be 'distributed' for clusters with more then 1 Metrics collector")
     validationItems.extend([{"config-name":'timeline.metrics.service.operation.mode', "item": correct_op_mode_item }])
+    return self.toConfigurationValidationProblems(validationItems, "ams-site")
+
+  def validateGrafanaEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+
+    grafana_pwd = properties.get("metrics_grafana_password")
+    grafana_pwd_length_item = None
+    if len(grafana_pwd) < 4:
+      grafana_pwd_length_item = self.getErrorItem("Grafana password length should be at least 4.")
+      pass
+    validationItems.extend([{"config-name":'metrics_grafana_password', "item": grafana_pwd_length_item }])
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
 
   def validateAmsHbaseSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
