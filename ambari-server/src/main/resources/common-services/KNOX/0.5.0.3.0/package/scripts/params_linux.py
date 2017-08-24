@@ -230,7 +230,12 @@ if type(webhcat_server_hosts) is list:
   webhcat_server_host = webhcat_server_hosts[0]
 else:
   webhcat_server_host = webhcat_server_hosts
+  
+hive_scheme = 'http'
+webhcat_scheme = 'http'
 
+hbase_master_scheme = 'http'
+hbase_master_ui_port = default('/configurations/hbase-site/hbase.master.info.port', "16010");
 hbase_master_port = default('/configurations/hbase-site/hbase.rest.port', "8080")
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", None)
 if type(hbase_master_hosts) is list:
@@ -238,25 +243,102 @@ if type(hbase_master_hosts) is list:
 else:
   hbase_master_host = hbase_master_hosts
 
+#
+# Oozie
+#
 oozie_https_port = None
+oozie_scheme = 'http'
+oozie_server_port = "11000"
 oozie_server_hosts = default("/clusterHostInfo/oozie_server", None)
+
 if type(oozie_server_hosts) is list:
   oozie_server_host = oozie_server_hosts[0]
 else:
   oozie_server_host = oozie_server_hosts
 
-oozie_scheme = 'http'
 has_oozie = not oozie_server_host == None
-oozie_server_port = "11000"
 
 if has_oozie:
   oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
   oozie_https_port = default("/configurations/oozie-site/oozie.https.port", None)
 
 if oozie_https_port is not None:
-   oozie_scheme = 'https'
-   oozie_server_port = oozie_https_port
+  oozie_scheme = 'https'
+  oozie_server_port = oozie_https_port
 
+#
+# Falcon
+#
+falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", None)
+if type(falcon_server_hosts) is list:
+  falcon_server_host = falcon_server_hosts[0]
+else:
+  falcon_server_host = falcon_server_hosts
+
+falcon_scheme = 'http'
+has_falcon = not falcon_server_host == None
+falcon_server_port = "15000"
+
+if has_falcon:
+  falcon_server_port = config['configurations']['falcon-env']['falcon_port']
+
+#
+# Solr
+#
+solr_scheme='http'
+solr_server_hosts  = default("/clusterHostInfo/solr_hosts", None)
+if type(solr_server_hosts ) is list:
+  solr_host = solr_server_hosts[0]
+else:
+  solr_host = solr_server_hosts
+solr_port=default("/configuration/solr/solr-env/solr_port","8983")
+
+#
+# Spark
+# 
+spark_scheme = 'http'
+spark_historyserver_hosts = default("/clusterHostInfo/spark_jobhistoryserver_hosts", None)
+if type(spark_historyserver_hosts) is list:
+  spark_historyserver_host = spark_historyserver_hosts[0]
+else: 
+  spark_historyserver_host = spark_historyserver_hosts
+spark_historyserver_ui_port = default("/configurations/spark-defaults/spark.history.ui.port", "18080")
+
+
+#
+# JobHistory mapreduce
+#
+mr_scheme='http'
+mr_historyserver_address = default("/configurations/mapred-site/mapreduce.jobhistory.webapp.address", None)
+
+#
+# Yarn nodemanager
+#
+nodeui_scheme= 'http'
+nodeui_port = "8042"
+nm_hosts = default("/clusterHostInfo/nm_hosts", None)
+if type(nm_hosts) is list:
+  nm_host = nm_hosts[0]
+else:
+  nm_host = nm_hosts
+
+has_yarn = default("/configurations/yarn-site", None )
+if has_yarn and 'yarn.nodemanager.webapp.address' in config['configurations']['yarn-site']:
+  nodeui_port = get_port_from_url(config['configurations']['yarn-site']['yarn.nodemanager.webapp.address'])
+
+
+#
+# Spark Thrift UI
+#
+spark_thriftserver_scheme = 'http'
+spark_thriftserver_ui_port = 4039
+spark_thriftserver_hosts = default("/clusterHostInfo/spark_thriftserver_hosts", None)
+if type(spark_thriftserver_hosts) is list:
+  spark_thriftserver_host = spark_thriftserver_hosts[0]
+else:
+  spark_thriftserver_host = spark_thriftserver_hosts
+  
+ 
 # Knox managed properties
 knox_managed_pid_symlink= format('{stack_root}/current/knox-server/pids')
 
