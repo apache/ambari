@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -290,6 +289,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     // grab stack level kerberos.json from parent stack
     if (stackInfo.getKerberosDescriptorFileLocation() == null) {
       stackInfo.setKerberosDescriptorFileLocation(parentStack.getModuleInfo().getKerberosDescriptorFileLocation());
+    }
+
+    // grab stack level kerberos_preconfigure.json from parent stack
+    if (stackInfo.getKerberosDescriptorPreConfigurationFileLocation() == null) {
+      stackInfo.setKerberosDescriptorPreConfigurationFileLocation(parentStack.getModuleInfo().getKerberosDescriptorPreConfigurationFileLocation());
     }
 
     if (stackInfo.getWidgetsDescriptorFileLocation() == null) {
@@ -571,6 +575,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setStackHooksFolder(stackDirectory.getHooksDir());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
       stackInfo.setKerberosDescriptorFileLocation(stackDirectory.getKerberosDescriptorFilePath());
+      stackInfo.setKerberosDescriptorPreConfigurationFileLocation(stackDirectory.getKerberosDescriptorPreconfigureFilePath());
       stackInfo.setWidgetsDescriptorFileLocation(stackDirectory.getWidgetsDescriptorFilePath());
       stackInfo.setUpgradesFolder(stackDirectory.getUpgradesDir());
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
@@ -652,7 +657,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private void populateConfigurationModules() {
     //todo: can't exclude types in stack config
     ConfigurationDirectory configDirectory = stackDirectory.getConfigurationDirectory(
-        AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME, AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME);
+        StackDirectory.SERVICE_CONFIG_FOLDER_NAME, StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME);
 
     if (configDirectory != null) {
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {

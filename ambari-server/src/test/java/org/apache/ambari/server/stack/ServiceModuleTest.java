@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CredentialStoreInfo;
@@ -1268,7 +1267,7 @@ public class ServiceModuleTest {
 
     ServiceDirectory serviceDirectory = createNiceMock(ServiceDirectory.class);
 
-    expect(serviceDirectory.getConfigurationDirectory(dir, AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME)).andReturn(configDir).anyTimes();
+    expect(serviceDirectory.getConfigurationDirectory(dir, StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME)).andReturn(configDir).anyTimes();
     expect(serviceDirectory.getMetricsFile(anyObject(String.class))).andReturn(new File("testMetricsFile")).anyTimes();
     expect(serviceDirectory.getWidgetsDescriptorFile(anyObject(String.class))).andReturn(new File("testWidgetsFile")).anyTimes();
     expect(serviceDirectory.getAlertsFile()).andReturn(new File("testAlertsFile")).anyTimes();

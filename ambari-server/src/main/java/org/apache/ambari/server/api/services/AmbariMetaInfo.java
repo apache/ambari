@@ -24,7 +24,6 @@ import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGRE
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -55,7 +54,6 @@ import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -97,30 +95,6 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class AmbariMetaInfo {
-  public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
-  public static final String SERVICE_PROPERTIES_FOLDER_NAME = "properties";
-  public static final String SERVICE_THEMES_FOLDER_NAME = "themes";
-  public static final String SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME = "quicklinks";
-  public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
-  public static final String RCO_FILE_NAME = "role_command_order.json";
-  public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
-  public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
-  public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
-
-  /**
-   * The filename for a Kerberos descriptor file at either the stack or service level
-   */
-  public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
-
-  /**
-   * The filename for a Widgets descriptor file at either the stack or service level
-   */
-  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
-
-  /**
-   * Filename for theme file at service layer
-   */
-  public static final String SERVICE_THEME_FILE_NAME = "theme.json";
 
   /**
    * This string is used in placeholder in places that are common for
@@ -131,13 +105,6 @@ public class AmbariMetaInfo {
    * Version of XML files with support of custom services and custom commands
    */
   public static final String SCHEMA_VERSION_2 = "2.0";
-  public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String s) {
-      return !(s.equals(".svn") || s.equals(".git") ||
-          s.equals(StackDirectory.HOOKS_FOLDER_NAME));
-    }
-  };
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
 
 
@@ -1276,40 +1243,52 @@ public class AmbariMetaInfo {
    * All of the kerberos.json files from the specified stack (and version) are read, parsed and
    * complied into a complete Kerberos descriptor hierarchy.
    *
-   * @param stackName    a String declaring the stack name
-   * @param stackVersion a String declaring the stack version
+   * @param stackName               a String declaring the stack name
+   * @param stackVersion            a String declaring the stack version
+   * @param includePreconfigureData a Boolean value indicating whether to include the pre-configuration
+   *                                data (<code>true</code>), or not (<code>false</code>)
    * @return a new complete KerberosDescriptor, or null if no Kerberos descriptor information is available
    * @throws AmbariException if an error occurs reading or parsing the stack's kerberos.json files
    */
-  public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion) throws AmbariException {
+  public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion, boolean includePreconfigureData) throws AmbariException {
     StackInfo stackInfo = getStack(stackName, stackVersion);
-
-    String kerberosDescriptorFileLocation = stackInfo.getKerberosDescriptorFileLocation();
 
     KerberosDescriptor kerberosDescriptor = null;
 
-    // Read in the stack-level Kerberos descriptor
-    if (kerberosDescriptorFileLocation != null) {
-      File file = new File(kerberosDescriptorFileLocation);
+    // Read in the stack-level Kerberos descriptor pre-configuration data
+    if (includePreconfigureData) {
+      kerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorPreConfigurationFileLocation());
 
-      if (file.canRead()) {
-        try {
-          kerberosDescriptor = kerberosDescriptorFactory.createInstance(file);
-        } catch (IOException e) {
-          throw new AmbariException(String.format("Failed to parse kerberos descriptor file %s",
-              file.getAbsolutePath()), e);
+      if (kerberosDescriptor != null) {
+        // Ensure the all services to be pre-configured are flagged appropriately.
+        Map<String, KerberosServiceDescriptor> serviceDescriptors = kerberosDescriptor.getServices();
+        if (serviceDescriptors != null) {
+          for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors.values()) {
+            serviceDescriptor.setPreconfigure(true);
+          }
         }
-      } else {
-        throw new AmbariException(String.format("Unable to read kerberos descriptor file %s",
-            file.getAbsolutePath()));
       }
     }
 
-    if (kerberosDescriptor == null) {
-      kerberosDescriptor = new KerberosDescriptor();
+    // Read in the base stack-level Kerberos descriptor.
+    KerberosDescriptor stackKerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorFileLocation());
+    if (stackKerberosDescriptor == null) {
+      // If kerberosDescriptor is null and stackKerberosDescriptor is null, then ensure
+      // kerberosDescriptor is an empty KerberosDescriptor.
+      if (kerberosDescriptor == null) {
+        kerberosDescriptor = new KerberosDescriptor();
+      }
+    } else {
+      if (kerberosDescriptor == null) {
+        // If kerberosDescriptor is null; then set it to stackKerberosDescriptor.
+        kerberosDescriptor = stackKerberosDescriptor;
+      } else {
+        // If kerberosDescriptor is not null; then update it using stackKerberosDescriptor.
+        kerberosDescriptor.update(stackKerberosDescriptor);
+      }
     }
 
-    // Read in the service-level Kerberos descriptors
+    // Read in the individual service-level Kerberos descriptors
     Map<String, ServiceInfo> services = getServices(stackName, stackVersion);
 
     if (services != null) {
@@ -1318,6 +1297,9 @@ public class AmbariMetaInfo {
 
         if (serviceDescriptors != null) {
           for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors) {
+            // Add the service-level Kerberos descriptor to kerberosDescriptor. If the service was
+            // previously added (possible from the pre-configure data), update the existing service-level
+            // Kerberos descriptor with this one.
             kerberosDescriptor.putService(serviceDescriptor);
           }
         }
@@ -1425,5 +1407,32 @@ public class AmbariMetaInfo {
     return versionDefinitions;
   }
 
+  /**
+   * Reads a Kerberos descriptor from the specified file path.
+   *
+   * @param fileLocation the path to the file
+   * @return a KerberosDescriptor or <code>null</code>, if no path is specified
+   * @throws AmbariException if an error occurs reading or parsing the Kerberos descriptor file
+   */
+  KerberosDescriptor readKerberosDescriptorFromFile(String fileLocation) throws AmbariException {
+    if (!StringUtils.isEmpty(fileLocation)) {
+      File file = new File(fileLocation);
 
+      if (file.canRead()) {
+        try {
+          return kerberosDescriptorFactory.createInstance(file);
+        } catch (IOException e) {
+          throw new AmbariException(String.format("Failed to parse Kerberos descriptor file %s",
+              file.getAbsolutePath()), e);
+        }
+      } else {
+        throw new AmbariException(String.format("Unable to read Kerberos descriptor file %s",
+            file.getAbsolutePath()));
+      }
+    } else {
+      LOG.debug("Missing path to Kerberos descriptor, returning null");
+    }
+
+    return null;
+  }
 }

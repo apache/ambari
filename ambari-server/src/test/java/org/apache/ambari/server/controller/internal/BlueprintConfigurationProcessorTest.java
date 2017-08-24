@@ -252,7 +252,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(kerberosHelper.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).anyTimes();
+    expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
     Set<String> properties = new HashSet<>();
     properties.add("core-site/hadoop.security.auth_to_local");
     expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();

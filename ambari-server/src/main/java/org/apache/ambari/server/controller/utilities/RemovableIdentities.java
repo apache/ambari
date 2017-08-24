@@ -58,7 +58,7 @@ public class RemovableIdentities {
     if (cluster.getSecurityType() != SecurityType.KERBEROS) {
       return RemovableIdentities.none();
     }
-    KerberosServiceDescriptor serviceDescriptor = kerberosHelper.getKerberosDescriptor(cluster).getService(event.getServiceName());
+    KerberosServiceDescriptor serviceDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false).getService(event.getServiceName());
     if (serviceDescriptor == null) {
       return RemovableIdentities.none();
     }
@@ -77,7 +77,7 @@ public class RemovableIdentities {
     if (cluster.getSecurityType() != SecurityType.KERBEROS) {
       return RemovableIdentities.none();
     }
-    KerberosServiceDescriptor serviceDescriptor = kerberosHelper.getKerberosDescriptor(cluster).getService(event.getServiceName());
+    KerberosServiceDescriptor serviceDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false).getService(event.getServiceName());
     if (serviceDescriptor == null) {
       return RemovableIdentities.none();
     }

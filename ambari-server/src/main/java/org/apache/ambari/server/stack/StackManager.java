@@ -35,7 +35,6 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -564,12 +563,12 @@ public class StackManager {
     Map<String, ServiceModule> commonServiceModules = new HashMap<>();
 
     if(commonServicesRoot != null) {
-      File[] commonServiceFiles = commonServicesRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+      File[] commonServiceFiles = commonServicesRoot.listFiles(StackDirectory.FILENAME_FILTER);
       for (File commonService : commonServiceFiles) {
         if (commonService.isFile()) {
           continue;
         }
-        for (File serviceFolder : commonService.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+        for (File serviceFolder : commonService.listFiles(StackDirectory.FILENAME_FILTER)) {
           String serviceName = serviceFolder.getParentFile().getName();
           String serviceVersion = serviceFolder.getName();
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
@@ -606,12 +605,12 @@ public class StackManager {
   private Map<String, StackModule> parseStackDirectory(File stackRoot) throws AmbariException {
     Map<String, StackModule> stackModules = new HashMap<>();
 
-    File[] stackFiles = stackRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+    File[] stackFiles = stackRoot.listFiles(StackDirectory.FILENAME_FILTER);
     for (File stack : stackFiles) {
       if (stack.isFile()) {
         continue;
       }
-      for (File stackFolder : stack.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+      for (File stackFolder : stack.listFiles(StackDirectory.FILENAME_FILTER)) {
         if (stackFolder.isFile()) {
           continue;
         }
@@ -652,12 +651,12 @@ public class StackManager {
     if (extensionRoot == null || !extensionRoot.exists())
       return extensionModules;
 
-    File[] extensionFiles = extensionRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+    File[] extensionFiles = extensionRoot.listFiles(StackDirectory.FILENAME_FILTER);
     for (File extensionNameFolder : extensionFiles) {
       if (extensionNameFolder.isFile()) {
         continue;
       }
-      for (File extensionVersionFolder : extensionNameFolder.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+      for (File extensionVersionFolder : extensionNameFolder.listFiles(StackDirectory.FILENAME_FILTER)) {
         if (extensionVersionFolder.isFile()) {
           continue;
         }

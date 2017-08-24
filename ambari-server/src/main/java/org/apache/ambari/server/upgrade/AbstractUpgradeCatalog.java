@@ -783,7 +783,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         comment = "can only take the first stack we find until we can support multiple with Kerberos")
     StackId stackId = getStackId(cluster);
 
-    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
+    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion(), false);
 
     // Get the User-set Kerberos Descriptor
     ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);

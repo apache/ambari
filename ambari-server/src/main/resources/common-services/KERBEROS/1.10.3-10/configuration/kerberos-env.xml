@@ -393,4 +393,31 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>preconfigure_services</name>
+    <display-name>Pre-configure services</display-name>
+    <description>
+      Indicates whether to pre-configure services or not. If pre-configuring services, indicates
+      whether to pre-configure all or those explicitly flagged to be pre-configured.  Possible values
+      are DEFAULT, NONE, or ALL
+    </description>
+    <value>DEFAULT</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <selection-cardinality>1</selection-cardinality>
+      <entries>
+        <entry>
+          <value>NONE</value>
+        </entry>
+        <entry>
+          <value>DEFAULT</value>
+        </entry>
+        <entry>
+          <value>ALL</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

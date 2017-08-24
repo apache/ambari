@@ -279,7 +279,7 @@ class DeleteIdentityHandler {
     }
 
     private KerberosDescriptor getKerberosDescriptor() throws AmbariException {
-      return getKerberosHelper().getKerberosDescriptor(getCluster());
+      return getKerberosHelper().getKerberosDescriptor(getCluster(), false);
     }
   }
 

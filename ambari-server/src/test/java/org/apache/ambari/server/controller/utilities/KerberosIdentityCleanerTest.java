@@ -278,7 +278,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
       "}");
     expect(clusters.getCluster(CLUSTER_ID)).andReturn(cluster).anyTimes();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
-    expect(kerberosHelper.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).anyTimes();
+    expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
     expect(cluster.getServices()).andReturn(installedServices).anyTimes();
   }
 }

@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * AbstractKerberosDescriptor is the base class for all Kerberos*Descriptor and associated classes.
  * <p/>
@@ -154,6 +156,38 @@ public abstract class AbstractKerberosDescriptor {
   }
 
   /**
+   * Safely retrieves the requested value (converted to a Boolean) from the supplied Map
+   * <p/>
+   * The found value will be converted to a Boolean using {@link Boolean#valueOf(String)}.
+   * If not found, <code>null</code> will be returned
+   *
+   * @param map a Map containing the relevant data
+   * @param key a String declaring the item to retrieve
+   * @return a Boolean representing the requested data; or null if not found
+   * @see Boolean#valueOf(String)
+   * @see #getBooleanValue(Map, String, Boolean)
+   */
+  protected static Boolean getBooleanValue(Map<?, ?> map, String key) {
+    return getBooleanValue(map, key, null);
+  }
+
+  /**
+   * Safely retrieves the requested value (converted to a Boolean) from the supplied Map
+   * <p/>
+   * The found value will be converted to a Boolean using {@link Boolean#valueOf(String)}.
+   *
+   * @param map          a Map containing the relevant data
+   * @param key          a String declaring the item to retrieve
+   * @param defaultValue a Boolean value to return if the data is not found
+   * @return a Boolean representing the requested data; or the specified default value if not found
+   * @see Boolean#valueOf(String)
+   */
+  protected static Boolean getBooleanValue(Map<?, ?> map, String key, Boolean defaultValue) {
+    String value = getStringValue(map, key);
+    return (StringUtils.isEmpty(value)) ? defaultValue : Boolean.valueOf(value);
+  }
+
+  /**
    * Gets the requested AbstractKerberosDescriptor implementation using a type name and a relevant
    * descriptor name.
    * <p/>
@@ -192,7 +226,7 @@ public abstract class AbstractKerberosDescriptor {
     return list == null ? Collections.emptyList() : list;
   }
 
-  public static <K,V> Map<K,V> nullToEmpty(Map<K,V> collection) {
+  public static <K, V> Map<K, V> nullToEmpty(Map<K, V> collection) {
     return collection == null ? Collections.emptyMap() : collection;
   }
 

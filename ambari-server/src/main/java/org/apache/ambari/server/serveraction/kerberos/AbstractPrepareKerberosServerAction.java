@@ -152,7 +152,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
               // Calculate the set of configurations to update and replace any variables
               // using the previously calculated Map of configurations for the host.
               kerberosHelper.mergeConfigurations(kerberosConfigurations,
-                  componentDescriptor.getConfigurations(true), currentConfigurations);
+                  componentDescriptor.getConfigurations(true), currentConfigurations, null);
 
               // Add component-level principals (and keytabs)
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
