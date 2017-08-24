@@ -167,6 +167,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR(128) NOT NULL,
   repositories VARCHAR(MAX) NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden SMALLINT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml VARCHAR(MAX),
   version_xsd VARCHAR(512),

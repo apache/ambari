@@ -144,12 +144,16 @@ public class RepositoryVersionEntity {
   @Column(name="version_xsd", insertable = true, updatable = true)
   private String versionXsd;
 
+  @Column(name = "hidden", nullable = false, insertable = true, updatable = true)
+  private short isHidden = 0;
+
   @ManyToOne
   @JoinColumn(name = "parent_id")
   private RepositoryVersionEntity parent;
 
   @OneToMany(mappedBy = "parent")
   private List<RepositoryVersionEntity> children;
+
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -385,7 +389,7 @@ public class RepositoryVersionEntity {
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("id", id).add("stack", stack).add("version",
-        version).add("type", type).toString();
+        version).add("type", type).add("hidden", isHidden == 1).toString();
   }
 
   /**
@@ -432,6 +436,27 @@ public class RepositoryVersionEntity {
    */
   public Long getParentId() {
     return null == parent ? null : parent.getId();
+  }
+
+  /**
+   * Gets whether this repository is hidden.
+   *
+   * @return
+   */
+  public boolean isHidden() {
+    return isHidden != 0;
+  }
+
+  /**
+   * Sets whether this repository is hidden. A repository can be hidden for
+   * several reasons, including if it has been removed (but needs to be kept
+   * around for foreign key relationships) or if it just is not longer desired
+   * to see it.
+   *
+   * @param isHidden
+   */
+  public void setHidden(boolean isHidden) {
+    this.isHidden = (short) (isHidden ? 1 : 0);
   }
 
 }

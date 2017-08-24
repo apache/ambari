@@ -56,6 +56,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
 
   public static final String REPO_VERSION_TABLE = "repo_version";
   public static final String REPO_VERSION_ID_COLUMN = "repo_version_id";
+  public static final String REPO_VERSION_HIDDEN_COLUMN = "hidden";
 
   public static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
   public static final String FK_HCDS_DESIRED_STACK_ID = "FK_hcds_desired_stack_id";
@@ -147,10 +148,11 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     updateUpgradeTable();
     createUpgradeHistoryTable();
     dropStaleTables();
+    updateRepositoryVersionTable();
   }
 
   private void createUpgradeHistoryTable() throws SQLException {
-    List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
 
     columns.add(new DBAccessor.DBColumnInfo(ID_COLUMN, Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo(UPGRADE_ID_COLUMN, Long.class, null, null, false));
@@ -300,6 +302,17 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   private void updateHostComponentStateTable() throws SQLException {
     dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, FK_HCS_CURRENT_STACK_ID);
     dbAccessor.dropColumn(HOST_COMPONENT_STATE_TABLE, CURRENT_STACK_ID_COLUMN);
+  }
+
+  /**
+   * Updates {@value #REPO_VERSION_TABLE} table. Adds
+   * {@value #REPO_VERSION_HIDDEN_COLUMN} column.
+   *
+   * @throws java.sql.SQLException
+   */
+  private void updateRepositoryVersionTable() throws SQLException {
+    dbAccessor.addColumn(REPO_VERSION_TABLE,
+        new DBAccessor.DBColumnInfo(REPO_VERSION_HIDDEN_COLUMN, Short.class, null, 0, false));
   }
 
   /**

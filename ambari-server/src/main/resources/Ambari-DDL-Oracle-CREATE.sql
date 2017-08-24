@@ -155,6 +155,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR2(128) NOT NULL,
   repositories CLOB NOT NULL,
   repo_type VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden NUMBER(1) DEFAULT 0 NOT NULL,
   version_url VARCHAR(1024),
   version_xml CLOB,
   version_xsd VARCHAR(512),

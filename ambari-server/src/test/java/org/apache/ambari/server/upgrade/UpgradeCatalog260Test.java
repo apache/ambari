@@ -138,7 +138,7 @@ public class UpgradeCatalog260Test {
   @Test
   public void testExecuteDDLUpdates() throws Exception {
 
-    List<Integer> current = new ArrayList<Integer>();
+    List<Integer> current = new ArrayList<>();
     current.add(1);
 
     expect(dbAccessor.getConnection()).andReturn(connection).anyTimes();
@@ -179,6 +179,9 @@ public class UpgradeCatalog260Test {
 
     expectDropStaleTables();
 
+    Capture<DBColumnInfo> repoVersionHiddenColumnCapture = newCapture();
+    expectUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture);
+
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Module module = new Module() {
@@ -203,7 +206,7 @@ public class UpgradeCatalog260Test {
     verifyAddSelectedCollumsToClusterconfigTable(selectedColumnInfo, selectedmappingColumnInfo, selectedTimestampColumnInfo, createTimestampColumnInfo);
     verifyUpdateUpgradeTable(rvid, orchestration);
     verifyCreateUpgradeHistoryTable(columns);
-
+    verifyUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture);
   }
 
   public void expectDropStaleTables() throws SQLException {
@@ -507,5 +510,22 @@ public class UpgradeCatalog260Test {
 
   }
 
+  /**
+   * Sets expectations for DDL work on the
+   * {@link UpgradeCatalog260#REPO_VERSION_TABLE}.
+   *
+   * @param hiddenColumnCapture
+   * @throws SQLException
+   */
+  public void expectUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture) throws SQLException {
+    dbAccessor.addColumn(eq(UpgradeCatalog260.REPO_VERSION_TABLE), capture(hiddenColumnCapture));
+    expectLastCall().once();
+  }
 
+  public void verifyUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture) {
+    DBColumnInfo hiddenColumn = hiddenColumnCapture.getValue();
+    Assert.assertEquals(0, hiddenColumn.getDefaultValue());
+    Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_HIDDEN_COLUMN, hiddenColumn.getName());
+    Assert.assertEquals(false, hiddenColumn.isNullable());
+  }
 }
