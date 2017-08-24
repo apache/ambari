@@ -25,13 +25,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -112,10 +111,10 @@ public class ServiceInfo implements Validable{
   private String parent;
 
   @XmlElement(name = "widgetsFileName")
-  private String widgetsFileName = AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME;
+  private String widgetsFileName = StackDirectory.WIDGETS_DESCRIPTOR_FILE_NAME;
 
   @XmlElement(name = "metricsFileName")
-  private String metricsFileName = AmbariMetaInfo.SERVICE_METRIC_FILE_NAME;
+  private String metricsFileName = StackDirectory.SERVICE_METRIC_FILE_NAME;
 
   @XmlTransient
   private volatile Map<String, PropertyInfo> requiredProperties;
@@ -212,11 +211,11 @@ public class ServiceInfo implements Validable{
 
   @JsonIgnore
   @XmlElement(name="configuration-dir")
-  private String configDir = AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME;
+  private String configDir = StackDirectory.SERVICE_CONFIG_FOLDER_NAME;
 
   @JsonIgnore
   @XmlElement(name = "themes-dir")
-  private String themesDir = AmbariMetaInfo.SERVICE_THEMES_FOLDER_NAME;
+  private String themesDir = StackDirectory.SERVICE_THEMES_FOLDER_NAME;
 
   @JsonIgnore
   @XmlElementWrapper(name = "themes")
@@ -228,7 +227,7 @@ public class ServiceInfo implements Validable{
 
   @JsonIgnore
   @XmlElement(name = "quickLinksConfigurations-dir")
-  private String quickLinksConfigurationsDir = AmbariMetaInfo.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME;
+  private String quickLinksConfigurationsDir = StackDirectory.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME;
 
   @JsonIgnore
   @XmlElementWrapper(name = "quickLinksConfigurations")

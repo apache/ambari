@@ -352,11 +352,11 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     compositeKerberosDescriptor.update(userKerberosDescriptor);
 
     KerberosHelper kerberosHelper = createMock(KerberosHelper.class);
-    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.STACK), eq(cluster), eq(false), anyObject(Collection.class)))
+    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.STACK), eq(cluster), eq(false), anyObject(Collection.class), eq(false)))
         .andReturn(stackKerberosDescriptor).atLeastOnce();
-    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.USER), eq(cluster), eq(false), anyObject(Collection.class)))
+    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.USER), eq(cluster), eq(false), anyObject(Collection.class), eq(false)))
         .andReturn(userKerberosDescriptor).atLeastOnce();
-    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.COMPOSITE), eq(cluster), eq(false), anyObject(Collection.class)))
+    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.COMPOSITE), eq(cluster), eq(false), anyObject(Collection.class), eq(false)))
         .andReturn(compositeKerberosDescriptor).atLeastOnce();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -466,11 +466,11 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     Capture<? extends Collection<String>> captureAdditionalServices = newCapture(CaptureType.ALL);
 
     KerberosHelper kerberosHelper = createMock(KerberosHelper.class);
-    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.STACK), eq(cluster), eq(true), capture(captureAdditionalServices)))
+    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.STACK), eq(cluster), eq(true), capture(captureAdditionalServices), eq(false)))
         .andReturn(stackKerberosDescriptor).atLeastOnce();
-    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.USER), eq(cluster), eq(true), capture(captureAdditionalServices)))
+    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.USER), eq(cluster), eq(true), capture(captureAdditionalServices), eq(false)))
         .andReturn(userKerberosDescriptor).atLeastOnce();
-    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.COMPOSITE), eq(cluster), eq(true), capture(captureAdditionalServices)))
+    expect(kerberosHelper.getKerberosDescriptor(eq(KerberosHelper.KerberosDescriptorType.COMPOSITE), eq(cluster), eq(true), capture(captureAdditionalServices), eq(false)))
         .andReturn(compositeKerberosDescriptor).atLeastOnce();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -599,7 +599,7 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     expect(kerberosDescriptor.toMap()).andReturn(STACK_MAP).atLeastOnce();
 
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
-    expect(metaInfo.getKerberosDescriptor("stackName", "stackVersion")).andReturn(kerberosDescriptor).atLeastOnce();
+    expect(metaInfo.getKerberosDescriptor("stackName", "stackVersion", false)).andReturn(kerberosDescriptor).atLeastOnce();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     expect(managementController.getClusters()).andReturn(clusters).atLeastOnce();

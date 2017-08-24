@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,7 +157,7 @@ public class ExtensionDirectory extends StackDefinitionDirectory {
     if (subDirs.contains(ServiceDirectory.SERVICES_FOLDER_NAME)) {
       String servicesDir = getAbsolutePath() + File.separator + ServiceDirectory.SERVICES_FOLDER_NAME;
       File baseServiceDir = new File(servicesDir);
-      File[] serviceFolders = baseServiceDir.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+      File[] serviceFolders = baseServiceDir.listFiles(StackDirectory.FILENAME_FILTER);
       if (serviceFolders != null) {
         for (File d : serviceFolders) {
           if (d.isDirectory()) {

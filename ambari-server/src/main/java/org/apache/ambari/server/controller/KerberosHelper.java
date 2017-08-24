@@ -75,6 +75,10 @@ public interface KerberosHelper {
    */
   String AMBARI_SERVER_KERBEROS_IDENTITY_NAME = "ambari-server";
   /**
+   * The name of the Kerberos environment configuration type
+   */
+  String KERBEROS_ENV = "kerberos-env";
+  /**
    * The kerberos-env property name declaring whether Ambari should manage its own required
    * identities or not
    */
@@ -84,6 +88,32 @@ public interface KerberosHelper {
    * identities or not
    */
   String MANAGE_IDENTITIES = "manage_identities";
+  /**
+   * The kerberos-env property name declaring the default realm
+   */
+  String DEFAULT_REALM = "realm";
+  /**
+   * The kerberos-env property name declaring the kdc_type
+   *
+   * @see org.apache.ambari.server.serveraction.kerberos.KDCType
+   */
+  String KDC_TYPE = "kdc_type";
+  /**
+   * The kerberos-env property name declaring whether to manage auth-to-local rules or not
+   */
+  String MANAGE_AUTH_TO_LOCAL_RULES = "manage_auth_to_local";
+  /**
+   * The kerberos-env property name declaring whether auth-to-local rules should be case-insensitive or not
+   */
+  String CASE_INSENSITIVE_USERNAME_RULES = "case_insensitive_username_rules";
+  /**
+   * The kerberos-env property name declaring how to preprocess services.
+   * <p>
+   * Expected values are <code>"ALL"</code>, <code>"DEFAULT"</code>, <code>"NONE"</code>
+   *
+   * @see org.apache.ambari.server.serveraction.kerberos.PreconfigureServiceType
+   */
+  String PRECONFIGURE_SERVICES = "preconfigure_services";
 
   /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
@@ -368,18 +398,23 @@ public interface KerberosHelper {
    * Sets the relevant auth-to-local rule configuration properties using the services installed on
    * the cluster and their relevant Kerberos descriptors to determine the rules to be created.
    *
-   * @param kerberosDescriptor     the current Kerberos descriptor
-   * @param realm                  the default realm
-   * @param installedServices      the map of services and relevant components to process
-   * @param existingConfigurations a map of the current configurations
-   * @param kerberosConfigurations a map of the configurations to update, this where the generated
-   *                               auth-to-local values will be stored
+   * @param cluster                 cluster instance
+   * @param kerberosDescriptor      the current Kerberos descriptor
+   * @param realm                   the default realm
+   * @param installedServices       the map of services and relevant components to process
+   * @param existingConfigurations  a map of the current configurations
+   * @param kerberosConfigurations  a map of the configurations to update, this where the generated
+   *                                auth-to-local values will be stored
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
    * @throws AmbariException
    */
-  void setAuthToLocalRules(KerberosDescriptor kerberosDescriptor, String realm,
+  void setAuthToLocalRules(Cluster cluster,
+                           KerberosDescriptor kerberosDescriptor,
+                           String realm,
                            Map<String, Set<String>> installedServices,
                            Map<String, Map<String, String>> existingConfigurations,
-                           Map<String, Map<String, String>> kerberosConfigurations)
+                           Map<String, Map<String, String>> kerberosConfigurations,
+                           boolean includePreconfigureData)
       throws AmbariException;
 
   /**
@@ -426,12 +461,13 @@ public interface KerberosHelper {
    * descriptor and the composite is returned.  If not, the default cluster descriptor is returned
    * as-is.
    *
-   * @param cluster cluster instance
+   * @param cluster                 cluster instance
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
    * @return the kerberos descriptor associated with the specified cluster
    * @throws AmbariException if unable to obtain the descriptor
-   * @see #getKerberosDescriptor(KerberosDescriptorType, Cluster, boolean, Collection)
+   * @see #getKerberosDescriptor(KerberosDescriptorType, Cluster, boolean, Collection, boolean)
    */
-  KerberosDescriptor getKerberosDescriptor(Cluster cluster) throws AmbariException;
+  KerberosDescriptor getKerberosDescriptor(Cluster cluster, boolean includePreconfigureData) throws AmbariException;
 
   /**
    * Gets the requested Kerberos descriptor.
@@ -445,39 +481,63 @@ public interface KerberosHelper {
    * <dd>A Kerberos descriptor built using user-specified data stored as an artifact of the cluster, only</dd>
    * <dt>{@link KerberosDescriptorType#COMPOSITE}</dt>
    * <dd>A Kerberos descriptor built using data from the current stack definition with user-specified data stored as an artifact of the cluster applied
-   * - see {@link #getKerberosDescriptor(Cluster)}</dd>
+   * - see {@link #getKerberosDescriptor(Cluster, boolean)}</dd>
    * </dl>
    *
-   * @param kerberosDescriptorType the type of Kerberos descriptor to retrieve - see {@link KerberosDescriptorType}
-   * @param cluster                the relevant Cluster
-   * @param evaluateWhenClauses    true to evaluate Kerberos identity <code>when</code> clauses and
-   *                               prune if necessary; false otherwise.
-   * @param additionalServices     an optional collection of service names declaring additional
-   *                               services to add to the set of currently installed services to use
-   *                               while evaluating <code>when</code> clauses
+   * @param kerberosDescriptorType  the type of Kerberos descriptor to retrieve - see {@link KerberosDescriptorType}
+   * @param cluster                 the relevant Cluster
+   * @param evaluateWhenClauses     true to evaluate Kerberos identity <code>when</code> clauses and
+   *                                prune if necessary; false otherwise.
+   * @param additionalServices      an optional collection of service names declaring additional
+   *                                services to add to the set of currently installed services to use
+   *                                while evaluating <code>when</code> clauses
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
    * @return a Kerberos descriptor
    * @throws AmbariException
    */
   KerberosDescriptor getKerberosDescriptor(KerberosDescriptorType kerberosDescriptorType, Cluster cluster,
-                                           boolean evaluateWhenClauses, Collection<String> additionalServices)
+                                           boolean evaluateWhenClauses, Collection<String> additionalServices,
+                                           boolean includePreconfigureData)
       throws AmbariException;
 
   /**
-   * Merges configuration from a Map of configuration updates into a main configurations Map.  Each
-   * property in the updates Map is processed to replace variables using the replacement Map.
+   * Merges configurations from a Map of configuration updates into a main configurations Map.
+   * <p>
+   * Each property in the updates Map is processed to replace variables using the replacement Map,
+   * unless it has been filtered out using an optionally supplied configuration type filter
+   * (configurationTypeFilter).
    * <p/>
    * See {@link org.apache.ambari.server.state.kerberos.VariableReplacementHelper#replaceVariables(String, java.util.Map)}
    * for information on variable replacement.
    *
-   * @param configurations a Map of configurations
-   * @param updates        a Map of configuration updates
-   * @param replacements   a Map of (grouped) replacement values
-   * @return the merged Map
-   * @throws AmbariException
+   * @param configurations          a Map of existing configurations (updated in-place)
+   * @param updates                 a Map of configuration updates
+   * @param replacements            a Map of (grouped) replacement values
+   * @param configurationTypeFilter a Set of config types to filter from the map of updates;
+   *                                <code>null</code> indicate no filter
+   * @return the updated configurations map
+   * @throws AmbariException if an issue occurs
    */
   Map<String, Map<String, String>> mergeConfigurations(Map<String, Map<String, String>> configurations,
                                                        Map<String, KerberosConfigurationDescriptor> updates,
-                                                       Map<String, Map<String, String>> replacements)
+                                                       Map<String, Map<String, String>> replacements,
+                                                       Set<String> configurationTypeFilter)
+      throws AmbariException;
+
+  /**
+   * Determines which services, not currently installed, should be preconfigured to aid in reducing
+   * the number of service restarts when new services are added to a cluster where Kerberos is enabled.
+   *
+   * @param configurations     a Map of existing configurations (updated in-place)
+   * @param replacements       a Map of (grouped) replacement values
+   * @param cluster            the cluster
+   * @param kerberosDescriptor the Kerberos Descriptor
+   * @return the updated configurations map
+   * @throws AmbariException if an issue occurs
+   */
+  Map<String, Map<String, String>> processPreconfiguredServiceConfigurations(Map<String, Map<String, String>> configurations,
+                                                                             Map<String, Map<String, String>> replacements, Cluster cluster,
+                                                                             KerberosDescriptor kerberosDescriptor)
       throws AmbariException;
 
   /**

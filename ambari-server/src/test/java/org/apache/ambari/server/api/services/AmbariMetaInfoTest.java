@@ -1831,8 +1831,30 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void testReadKerberosDescriptorFromFile() throws AmbariException {
+    StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.8");
+    String path = stackInfo.getKerberosDescriptorFileLocation();
+    KerberosDescriptor descriptor = metaInfo.readKerberosDescriptorFromFile(path);
+
+    Assert.assertNotNull(descriptor);
+    Assert.assertNotNull(descriptor.getProperties());
+    Assert.assertEquals(3, descriptor.getProperties().size());
+
+    Assert.assertNotNull(descriptor.getIdentities());
+    Assert.assertEquals(1, descriptor.getIdentities().size());
+    Assert.assertEquals("spnego", descriptor.getIdentities().get(0).getName());
+
+    Assert.assertNotNull(descriptor.getConfigurations());
+    Assert.assertEquals(1, descriptor.getConfigurations().size());
+    Assert.assertNotNull(descriptor.getConfigurations().get("core-site"));
+    Assert.assertNotNull(descriptor.getConfiguration("core-site"));
+
+    Assert.assertNull(descriptor.getServices());
+  }
+
+  @Test
   public void testGetKerberosDescriptor() throws AmbariException {
-    KerberosDescriptor descriptor = metaInfo.getKerberosDescriptor(STACK_NAME_HDP, "2.0.8");
+    KerberosDescriptor descriptor = metaInfo.getKerberosDescriptor(STACK_NAME_HDP, "2.0.8", false);
 
     Assert.assertNotNull(descriptor);
     Assert.assertNotNull(descriptor.getProperties());
@@ -1851,6 +1873,37 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals(1, descriptor.getServices().size());
     Assert.assertNotNull(descriptor.getServices().get("HDFS"));
     Assert.assertNotNull(descriptor.getService("HDFS"));
+    Assert.assertFalse(descriptor.getService("HDFS").shouldPreconfigure());
+  }
+
+  @Test
+  public void testGetKerberosDescriptorWithPreconfigure() throws AmbariException {
+    KerberosDescriptor descriptor = metaInfo.getKerberosDescriptor(STACK_NAME_HDP, "2.0.8", true);
+
+    Assert.assertNotNull(descriptor);
+    Assert.assertNotNull(descriptor.getProperties());
+    Assert.assertEquals(3, descriptor.getProperties().size());
+
+    Assert.assertNotNull(descriptor.getIdentities());
+    Assert.assertEquals(1, descriptor.getIdentities().size());
+    Assert.assertEquals("spnego", descriptor.getIdentities().get(0).getName());
+
+    Assert.assertNotNull(descriptor.getConfigurations());
+    Assert.assertEquals(1, descriptor.getConfigurations().size());
+    Assert.assertNotNull(descriptor.getConfigurations().get("core-site"));
+    Assert.assertNotNull(descriptor.getConfiguration("core-site"));
+
+    Assert.assertNotNull(descriptor.getServices());
+    Assert.assertEquals(2, descriptor.getServices().size());
+    Assert.assertNotNull(descriptor.getServices().get("HDFS"));
+    Assert.assertNotNull(descriptor.getService("HDFS"));
+    Assert.assertTrue(descriptor.getService("HDFS").shouldPreconfigure());
+    Assert.assertNotNull(descriptor.getServices().get("HDFS"));
+    Assert.assertNotNull(descriptor.getService("HDFS"));
+    Assert.assertTrue(descriptor.getService("HDFS").shouldPreconfigure());
+    Assert.assertNotNull(descriptor.getServices().get("NEW_SERVICE"));
+    Assert.assertNotNull(descriptor.getService("NEW_SERVICE"));
+    Assert.assertTrue(descriptor.getService("NEW_SERVICE").shouldPreconfigure());
   }
 
   private File getStackRootTmp(String buildDir) {

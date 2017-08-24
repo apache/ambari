@@ -40,6 +40,7 @@ public class KerberosServiceDescriptorTest {
   public static final String JSON_VALUE =
       "{" +
           "  \"name\": \"SERVICE_NAME\"," +
+          "  \"preconfigure\": \"true\"," +
           "  \"identities\": [" +
           KerberosIdentityDescriptorTest.JSON_VALUE +
           "]," +
@@ -64,6 +65,7 @@ public class KerberosServiceDescriptorTest {
           "\"services\" : [" +
           "{" +
           "  \"name\": \"SERVICE_NAME\"," +
+          "  \"preconfigure\": \"true\"," +
           "  \"identities\": [" +
           KerberosIdentityDescriptorTest.JSON_VALUE +
           "]," +

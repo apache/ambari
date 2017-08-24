@@ -62,7 +62,7 @@ public class FixAuthToLocalMappingActionTest {
     KerberosHelper kerberosHelper = createNiceMock(KerberosHelper.class);
     KerberosDescriptor descriptor = createNiceMock(KerberosDescriptor.class);
 
-    expect(kerberosHelper.getKerberosDescriptor(cluster)).andReturn(descriptor).anyTimes();
+    expect(kerberosHelper.getKerberosDescriptor(cluster, false )).andReturn(descriptor).anyTimes();
     Set<String> mappings = new HashSet<>();
     mappings.add("core-site/hadoop.security.auth_to_local");
 

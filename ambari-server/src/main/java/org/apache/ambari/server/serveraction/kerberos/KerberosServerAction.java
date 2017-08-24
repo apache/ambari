@@ -131,6 +131,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   */
   public static final String INCLUDE_AMBARI_IDENTITY = "include_ambari_identity";
 
+  /**
+   * Keys used in CommandParams from ExecutionCommand to declare how to pre-configure services.
+   * Expected values are, "ALL", "DEFAULT", and "NONE".
+   */
+  public static final String PRECONFIGURE_SERVICES = "preconfigure_services";
+
   private static final Logger LOG = LoggerFactory.getLogger(KerberosServerAction.class);
 
   /**

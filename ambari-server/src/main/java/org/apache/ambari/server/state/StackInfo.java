@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -51,6 +51,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private boolean active;
   private String rcoFileLocation;
   private String kerberosDescriptorFileLocation;
+  private String kerberosDescriptorPreConfigurationFileLocation;
   private String widgetsDescriptorFileLocation;
   private List<RepositoryInfo> repositories;
   private Collection<ServiceInfo> services;
@@ -383,6 +384,25 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    */
   public void setKerberosDescriptorFileLocation(String kerberosDescriptorFileLocation) {
     this.kerberosDescriptorFileLocation = kerberosDescriptorFileLocation;
+  }
+
+  /**
+   * Gets the path to the stack-level Kerberos descriptor pre-configuration file
+   *
+   * @return a String containing the path to the stack-level Kerberos descriptor pre-configuration file
+   */
+  public String getKerberosDescriptorPreConfigurationFileLocation() {
+    return kerberosDescriptorPreConfigurationFileLocation;
+  }
+
+  /**
+   * Sets the path to the stack-level Kerberos descriptor file
+   *
+   * @param kerberosDescriptorPreConfigurationFileLocation a String containing the path to the stack-level Kerberos
+   *                                                       descriptor file
+   */
+  public void setKerberosDescriptorPreConfigurationFileLocation(String kerberosDescriptorPreConfigurationFileLocation) {
+    this.kerberosDescriptorPreConfigurationFileLocation = kerberosDescriptorPreConfigurationFileLocation;
   }
 
   public String getWidgetsDescriptorFileLocation() {

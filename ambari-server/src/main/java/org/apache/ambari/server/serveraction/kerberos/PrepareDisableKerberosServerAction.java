@@ -78,7 +78,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
 
     KerberosHelper kerberosHelper = getKerberosHelper();
 
-    KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster);
+    KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false);
     Collection<String> identityFilter = getIdentityFilter();
     List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster,
         kerberosDescriptor,

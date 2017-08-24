@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
@@ -93,10 +92,10 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
    * Parse the configuration directory.
    */
   private void parsePath() {
-    File[] configFiles = directory.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+    File[] configFiles = directory.listFiles(StackDirectory.FILENAME_FILTER);
     if (configFiles != null) {
       for (File configFile : configFiles) {
-        if (configFile.getName().endsWith(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
+        if (configFile.getName().endsWith(StackDirectory.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
           String configType = ConfigHelper.fileNameToConfigType(configFile.getName());
           ConfigurationXml config = null;
           try {

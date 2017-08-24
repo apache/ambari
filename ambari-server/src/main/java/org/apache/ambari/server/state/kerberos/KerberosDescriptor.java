@@ -181,12 +181,13 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
   }
 
   /**
-   * Adds or replaces a KerberosServiceDescriptor
+   * Adds, replaces, or updates a KerberosServiceDescriptor
    * <p/>
-   * If a KerberosServiceDescriptor with the same name already exists in the services Map, it will
-   * be replaced; else a new entry will be made.
+   * If a KerberosServiceDescriptor with the same name does not exist in the services Map, a new
+   * entry will be added; else if it one already exists and <code>overwrite</code> is
+   * <code>true</code>, it will be replaced; else the exsting entry will be updated.
    *
-   * @param service the KerberosServiceDescriptor to put
+   * @param service   the KerberosServiceDescriptor to put
    */
   public void putService(KerberosServiceDescriptor service) {
     if (service != null) {
@@ -200,10 +201,14 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
         services = new TreeMap<String, KerberosServiceDescriptor>();
       }
 
-      services.put(name, service);
-
-      // Set the service's parent to this KerberosDescriptor
-      service.setParent(this);
+      KerberosServiceDescriptor existing = services.get(name);
+      if (existing == null) {
+        services.put(name, service);
+        // Set the service's parent to this KerberosDescriptor
+        service.setParent(this);
+      } else {
+        existing.update(service);
+      }
     }
   }
 
@@ -269,12 +274,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
       Map<String, KerberosServiceDescriptor> updatedServiceDescriptors = updates.getServices();
       if (updatedServiceDescriptors != null) {
         for (Map.Entry<String, KerberosServiceDescriptor> entry : updatedServiceDescriptors.entrySet()) {
-          KerberosServiceDescriptor existing = getService(entry.getKey());
-          if (existing == null) {
-            putService(entry.getValue());
-          } else {
-            existing.update(entry.getValue());
-          }
+          putService(entry.getValue());
         }
       }
 
@@ -425,17 +425,17 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
 
   /**
    * Get a map of principals, where the key is the principal path (SERVICE/COMPONENT/principal_name or SERVICE/principal_name) and the value is the principal.
-   *
+   * <p>
    * For example if the kerberos principal of the HISTORYSERVER is defined in the kerberos.json:
    * "name": "history_server_jhs",
-   *   "principal": {
-   *   "value": "jhs/_HOST@${realm}",
-   *   "type" : "service",
+   * "principal": {
+   * "value": "jhs/_HOST@${realm}",
+   * "type" : "service",
    * },
    * Then "jhs/_HOST@EXAMPLE.COM" will be put into the map under the "MAPREDUCE2/HISTORYSERVER/history_server_jhs" key.
    */
   public Map<String, String> principals() throws AmbariException {
-    Map<String,String> result = new HashMap<>();
+    Map<String, String> result = new HashMap<>();
     for (AbstractKerberosDescriptorContainer each : nullToEmpty(getChildContainers())) {
       if ((each instanceof KerberosServiceDescriptor)) {
         collectFromComponents(each.getName(), nullToEmpty(((KerberosServiceDescriptor) each).getComponents()).values(), result);
@@ -455,8 +455,8 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     for (KerberosIdentityDescriptor each : identities) {
       if (each.getPrincipalDescriptor() != null && !each.getReferencedServiceName().isPresent() && !each.getName().startsWith("/")) {
         String path = StringUtils.isBlank(component)
-          ? String.format("%s/%s", service, each.getName())
-          : String.format("%s/%s/%s", service, component, each.getName());
+            ? String.format("%s/%s", service, each.getName())
+            : String.format("%s/%s/%s", service, component, each.getName());
         result.put(path, each.getPrincipalDescriptor().getName());
       }
     }
@@ -466,7 +466,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     return collection == null ? Collections.<T>emptyList() : collection;
   }
 
-  private static <K,V> Map<K,V> nullToEmpty(Map<K,V> collection) {
-    return collection == null ? Collections.<K,V>emptyMap() : collection;
+  private static <K, V> Map<K, V> nullToEmpty(Map<K, V> collection) {
+    return collection == null ? Collections.<K, V>emptyMap() : collection;
   }
 }

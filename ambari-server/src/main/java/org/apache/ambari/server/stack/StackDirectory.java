@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,7 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +29,6 @@ import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
@@ -47,6 +47,36 @@ import org.slf4j.LoggerFactory;
 //todo: Currently some are relative and some are absolute.
 //todo: Current values were dictated by the StackInfo expectations.
 public class StackDirectory extends StackDefinitionDirectory {
+  public static final String RCO_FILE_NAME = "role_command_order.json";
+  public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
+  public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
+  public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
+
+  /**
+   * The filename for a Kerberos descriptor file at either the stack or service level
+   */
+  public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
+
+  /**
+   * The filename for a Kerberos descriptor preconfigure file at either the stack or service level
+   */
+  public static final String KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME = "kerberos_preconfigure.json";
+
+  /**
+   * The filename for a Widgets descriptor file at either the stack or service level
+   */
+  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
+
+  /**
+   * Filename for theme file at service layer
+   */
+  public static final String SERVICE_THEME_FILE_NAME = "theme.json";
+  public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
+  public static final String SERVICE_PROPERTIES_FOLDER_NAME = "properties";
+  public static final String SERVICE_THEMES_FOLDER_NAME = "themes";
+  public static final String SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME = "quicklinks";
+  public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
+
   /**
    * hooks directory path
    */
@@ -66,6 +96,11 @@ public class StackDirectory extends StackDefinitionDirectory {
    * kerberos descriptor file path
    */
   private String kerberosDescriptorFilePath;
+
+  /**
+   * kerberos descriptor file path
+   */
+  private String kerberosDescriptorPreconfigureFilePath;
 
   /**
    * kerberos descriptor file path
@@ -116,6 +151,14 @@ public class StackDirectory extends StackDefinitionDirectory {
    * name of the hooks directory
    */
   public static final String HOOKS_FOLDER_NAME = "hooks";
+
+  public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
+    @Override
+    public boolean accept(File dir, String s) {
+      return !(s.equals(".svn") || s.equals(".git") ||
+          s.equals(HOOKS_FOLDER_NAME));
+    }
+  };
 
   /**
    * repository directory name
@@ -205,6 +248,15 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
+   * Obtain the path to the (stack-level) Kerberos descriptor pre-configuration file
+   *
+   * @return the path to the (stack-level) Kerberos descriptor pre-configuration file
+   */
+  public String getKerberosDescriptorPreconfigureFilePath() {
+    return kerberosDescriptorPreconfigureFilePath;
+  }
+
+  /**
    * Obtain the path to the (stack-level) widgets descriptor file
    *
    * @return the path to the (stack-level) widgets descriptor file
@@ -290,19 +342,24 @@ public class StackDirectory extends StackDefinitionDirectory {
           HOOKS_FOLDER_NAME + " does not exist");
     }
 
-    if (subDirs.contains(AmbariMetaInfo.RCO_FILE_NAME)) {
+    if (subDirs.contains(RCO_FILE_NAME)) {
       // rcoFile is expected to be absolute
-      rcoFilePath = getAbsolutePath() + File.separator + AmbariMetaInfo.RCO_FILE_NAME;
+      rcoFilePath = getAbsolutePath() + File.separator + RCO_FILE_NAME;
     }
 
 
-    if (subDirs.contains(AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME)) {
+    if (subDirs.contains(KERBEROS_DESCRIPTOR_FILE_NAME)) {
       // kerberosDescriptorFilePath is expected to be absolute
-      kerberosDescriptorFilePath = getAbsolutePath() + File.separator + AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME;
+      kerberosDescriptorFilePath = getAbsolutePath() + File.separator + KERBEROS_DESCRIPTOR_FILE_NAME;
     }
 
-    if (subDirs.contains(AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME)) {
-      widgetsDescriptorFilePath = getAbsolutePath() + File.separator + AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME;
+    if (subDirs.contains(KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME)) {
+      // kerberosDescriptorPreconfigureFilePath is expected to be absolute
+      kerberosDescriptorPreconfigureFilePath = getAbsolutePath() + File.separator + KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME;
+    }
+
+    if (subDirs.contains(WIDGETS_DESCRIPTOR_FILE_NAME)) {
+      widgetsDescriptorFilePath = getAbsolutePath() + File.separator + WIDGETS_DESCRIPTOR_FILE_NAME;
     }
 
     parseUpgradePacks(subDirs);
@@ -371,7 +428,7 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (subDirs.contains(ServiceDirectory.SERVICES_FOLDER_NAME)) {
       String servicesDir = getAbsolutePath() + File.separator + ServiceDirectory.SERVICES_FOLDER_NAME;
       File baseServiceDir = new File(servicesDir);
-      File[] serviceFolders = baseServiceDir.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+      File[] serviceFolders = baseServiceDir.listFiles(FILENAME_FILTER);
       if (serviceFolders != null) {
         for (File d : serviceFolders) {
           if (d.isDirectory()) {
