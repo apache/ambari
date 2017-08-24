@@ -86,6 +86,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID      = PropertyHelper.getPropertyId("RepositoryVersions", "stack_version");
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("RepositoryVersions", "repository_version");
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
+  public static final String REPOSITORY_VERSION_HIDDEN_PROPERTY_ID             = PropertyHelper.getPropertyId("RepositoryVersions", "hidden");
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
@@ -108,6 +109,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_ID_PROPERTY_ID,
       REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
       REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+      REPOSITORY_VERSION_HIDDEN_PROPERTY_ID,
       REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
       REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
       SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
@@ -252,6 +254,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       setResourceProperty(resource, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, entity.getStackName(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, entity.getStackVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_HIDDEN_PROPERTY_ID, entity.isHidden(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_TYPE_PROPERTY_ID, entity.getType(), requestedIds);
 
@@ -324,8 +327,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             throw new ObjectNotFoundException("There is no repository version with id " + id);
           }
 
-          List<OperatingSystemEntity> operatingSystemEntities = null;
-
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID)))) {
             if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_EDIT_STACK_REPOS)) {
               throw new AuthorizationException("The authenticated user does not have authorization to modify stack repositories");
@@ -334,7 +335,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
             final String operatingSystemsJson = gson.toJson(operatingSystems);
             try {
-              operatingSystemEntities = repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+              repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
             } catch (Exception ex) {
               throw new AmbariException("Json structure for operating systems is incorrect", ex);
             }
@@ -343,6 +344,11 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID)))) {
             entity.setDisplayName(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
+          }
+
+          if(StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_HIDDEN_PROPERTY_ID)))){
+            boolean isHidden = Boolean.valueOf(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_HIDDEN_PROPERTY_ID)));
+            entity.setHidden(isHidden);
           }
 
           validateRepositoryVersion(repositoryVersionDAO, ambariMetaInfo, entity);
