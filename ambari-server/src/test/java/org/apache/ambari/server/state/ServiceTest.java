@@ -22,11 +22,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -34,6 +36,9 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.commons.collections.MapUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +58,8 @@ public class ServiceTest {
   private ServiceComponentFactory serviceComponentFactory;
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private OrmTestHelper ormTestHelper;
+  private ConfigGroupFactory configGroupFactory;
+  private ConfigFactory configFactory;
 
   private final String STACK_VERSION = "0.1";
   private final String REPO_VERSION = "0.1-1234";
@@ -74,6 +81,8 @@ public class ServiceTest {
     clusterName = "foo";
     clusters.addCluster(clusterName, STACK_ID);
     cluster = clusters.getCluster(clusterName);
+    configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
+    configFactory = injector.getInstance(ConfigFactory.class);
     Assert.assertNotNull(cluster);
   }
 
@@ -331,7 +340,39 @@ public class ServiceTest {
     }
   }
 
-  private void addHostToCluster(String hostname,
+  @Test
+  public void testConfigGroupDeleteWithServiceDelete() throws Exception {
+    String serviceName = "HDFS";
+    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    cluster.addService(s);
+
+    Host h = addHostToCluster("h1", clusterName);
+
+    ConfigGroup cg = configGroupFactory.createNew(cluster, "test1", "HDFS", "HDFS",
+      "Test", Collections.singletonMap("aKey", configFactory.createNew(cluster,
+        "hdfs-site", "versionX", Collections.singletonMap("a", "b"),
+        Collections.<String, Map<String,String>>emptyMap())), Collections.singletonMap(1L, h));
+
+    cluster.addConfigGroup(cg);
+
+    Assert.assertNotNull(cluster.getConfigGroups());
+    Assert.assertEquals(1, cluster.getConfigGroups().size());
+    Assert.assertEquals("test1", cluster.getConfigGroups().values().iterator().next().getName());
+
+    Assert.assertTrue(s.canBeRemoved());
+
+    cluster.deleteService(serviceName);
+
+    Assert.assertTrue(MapUtils.isEmpty(cluster.getConfigGroups()));
+    try {
+      cluster.getService(serviceName);
+      Assert.fail("Service should have been deleted.");
+    } catch (ServiceNotFoundException se) {
+      // expected
+    }
+  }
+
+  private Host addHostToCluster(String hostname,
                                 String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     Host h = clusters.getHost(hostname);
@@ -344,5 +385,6 @@ public class ServiceTest {
     h.setHostAttributes(hostAttributes);
 
     clusters.mapHostToCluster(hostname, clusterName);
+    return h;
   }
 }

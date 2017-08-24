@@ -40,7 +40,8 @@ public interface ConfigGroupFactory {
    * @return
    */
   ConfigGroup createNew(@Assisted("cluster") Cluster cluster, @Assisted("name") String name,
-      @Assisted("tag") String tag, @Assisted("description") String description,
+      @Assisted("tag") String tag, @Assisted("serviceName") String serviceName,
+      @Assisted("description") String description,
       @Assisted("configs") Map<String, Config> configs, @Assisted("hosts") Map<Long, Host> hosts);
 
   /**

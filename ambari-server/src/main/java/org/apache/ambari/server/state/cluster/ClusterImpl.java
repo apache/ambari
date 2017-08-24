@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.Nullable;
@@ -133,6 +134,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1280,7 +1282,7 @@ public class ClusterImpl implements Cluster {
    * @throws AmbariException
    * @see   ServiceComponentHost
    */
-  private void deleteService(Service service) throws AmbariException {
+  void deleteService(Service service) throws AmbariException {
     final String serviceName = service.getName();
 
     service.delete();
@@ -1294,6 +1296,18 @@ public class ClusterImpl implements Cluster {
           return serviceComponentHost.getServiceName().equals(serviceName);
         }
       });
+    }
+
+    // Delete config groups that belong to the service
+    Map<Long, ConfigGroup> configGroups = service.getCluster().getConfigGroups();
+    if (!MapUtils.isEmpty(configGroups)) {
+      for (ConfigGroup configGroup : configGroups.values()) {
+        if (configGroup.getServiceName().equalsIgnoreCase(serviceName)) {
+          LOG.info("Deleting ConfigGroup {} for service {}", configGroup.getName(), serviceName);
+          configGroup.delete();
+          clusterConfigGroups.remove(configGroup.getId());
+        }
+      }
     }
   }
 
@@ -1428,15 +1442,13 @@ public class ClusterImpl implements Cluster {
           desiredConfig.setTag(configEntity.getTag());
 
           if (!allConfigs.containsKey(configEntity.getType())) {
-            LOG.error("An inconsistency exists for configuration {}", configEntity.getType());
             continue;
           }
 
           Map<String, Config> configMap = allConfigs.get(configEntity.getType());
-          if(!configMap.containsKey(configEntity.getTag())) {
-            LOG.error("An inconsistency exists for the configuration {} with tag {}",
-                configEntity.getType(), configEntity.getTag());
-
+          if (!configMap.containsKey(configEntity.getTag())) {
+            LOG.warn("An inconsistency exists for the configuration {} with " +
+                "tag {}", configEntity.getType(), configEntity.getTag());
             continue;
           }
 

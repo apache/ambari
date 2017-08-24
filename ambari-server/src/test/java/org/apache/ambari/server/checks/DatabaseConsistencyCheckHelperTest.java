@@ -22,8 +22,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
-
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -47,9 +47,11 @@ import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.commons.collections.MapUtils;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -583,7 +585,6 @@ public class DatabaseConsistencyCheckHelperTest {
         DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
   }
 
-
   @Test
   public void testCheckForLargeTables() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
@@ -664,7 +665,6 @@ public class DatabaseConsistencyCheckHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-
         bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
@@ -722,5 +722,69 @@ public class DatabaseConsistencyCheckHelperTest {
     Assert.assertEquals(1, hostIds.size());
     Assert.assertEquals(1L, hostIds.keySet().iterator().next().longValue());
     Assert.assertEquals(2L, hostIds.get(1L).iterator().next().longValue());
+  }
+
+  @Test
+  public void testConfigGroupForDeletedServices() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+    Map<String, Cluster> clusters = new HashMap<>();
+    Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    clusters.put("c1", cluster);
+    expect(mockClusters.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+    ConfigGroup cg1 = easyMockSupport.createNiceMock(ConfigGroup.class);
+    ConfigGroup cg2 = easyMockSupport.createNiceMock(ConfigGroup.class);
+    configGroupMap.put(1L, cg1);
+    configGroupMap.put(2L, cg2);
+
+    expect(cluster.getConfigGroups()).andReturn(configGroupMap).anyTimes();
+    expect(cg1.getName()).andReturn("cg1").anyTimes();
+    expect(cg1.getId()).andReturn(1L).anyTimes();
+    expect(cg1.getServiceName()).andReturn("YARN").anyTimes();
+    expect(cg2.getServiceName()).andReturn("HDFS").anyTimes();
+
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+
+    Service service = easyMockSupport.createNiceMock(Service.class);
+    Map<String, Service> services = new HashMap<>();
+    services.put("HDFS", service);
+    expect(cluster.getServices()).andReturn(services).anyTimes();
+
+    expect(cg1.getClusterName()).andReturn("c1");
+    expect(mockClusters.getCluster("c1")).andReturn(cluster);
+    cluster.deleteConfigGroup(1L);
+    expectLastCall();
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    Map<Long, ConfigGroup> configGroups = DatabaseConsistencyCheckHelper.checkConfigGroupsForDeletedServices(true);
+    DatabaseConsistencyCheckHelper.fixConfigGroupsForDeletedServices();
+
+    easyMockSupport.verifyAll();
+
+    Assert.assertFalse(MapUtils.isEmpty(configGroups));
+    Assert.assertEquals(1, configGroups.size());
+    Assert.assertEquals(1L, configGroups.values().iterator().next().getId().longValue());
   }
 }

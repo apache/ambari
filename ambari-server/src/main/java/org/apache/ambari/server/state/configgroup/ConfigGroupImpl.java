@@ -92,7 +92,8 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @AssistedInject
   public ConfigGroupImpl(@Assisted("cluster") Cluster cluster, @Assisted("name") String name,
-      @Assisted("tag") String tag, @Assisted("description") String description,
+      @Assisted("tag") String tag, @Assisted("serviceName") String serviceName,
+      @Assisted("description") String description,
       @Assisted("configs") Map<String, Config> configurations,
       @Assisted("hosts") Map<Long, Host> hosts, Clusters clusters, ConfigFactory configFactory,
       ClusterDAO clusterDAO, HostDAO hostDAO, ConfigGroupDAO configGroupDAO,
@@ -115,6 +116,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setClusterId(cluster.getClusterId());
     configGroupEntity.setGroupName(name);
     configGroupEntity.setTag(tag);
+    configGroupEntity.setServiceName(serviceName);
     configGroupEntity.setDescription(description);
 
     m_hosts = hosts == null ? new ConcurrentHashMap<Long, Host>()

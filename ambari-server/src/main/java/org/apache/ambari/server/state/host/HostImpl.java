@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -1079,10 +1080,7 @@ public class HostImpl implements Host {
             hostConfigMap.put(configType, hostConfig);
             if (cluster != null) {
               Config conf = cluster.getDesiredConfigByType(configType);
-              if(conf == null) {
-                LOG.error("Config inconsistency exists:"+
-                    " unknown configType="+configType);
-              } else {
+              if (conf != null) {
                 hostConfig.setDefaultVersionTag(conf.getTag());
               }
             }

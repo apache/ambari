@@ -447,7 +447,7 @@ public class AmbariManagementControllerTest {
     }
 
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, name,
-      tag, "", configMap, hostMap);
+      tag, serviceName,"", configMap, hostMap);
 
     configGroup.setServiceName(serviceName);
 

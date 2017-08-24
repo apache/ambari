@@ -171,12 +171,13 @@ public class ConfigGroupResourceProviderTest {
     Capture<String> captureName = newCapture();
     Capture<String> captureDesc = newCapture();
     Capture<String> captureTag = newCapture();
+    Capture<String> captureServiceName = newCapture();
     Capture<Map<String, Config>> captureConfigs = newCapture();
     Capture<Map<Long, Host>> captureHosts = newCapture();
 
     expect(configGroupFactory.createNew(capture(clusterCapture),
-        capture(captureName), capture(captureTag), capture(captureDesc),
-        capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
+        capture(captureName), capture(captureTag), capture(captureServiceName),
+        capture(captureDesc), capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
 
     replay(managementController, clusters, cluster, configGroupFactory,
         configGroup, response, hostDAO, hostEntity1, hostEntity2);
@@ -280,8 +281,8 @@ public class ConfigGroupResourceProviderTest {
     expect(cluster.getConfigGroups()).andReturn(configGroupMap);
 
     expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject(), (HashMap) anyObject(),
-        (HashMap) anyObject())).andReturn(configGroup).anyTimes();
+        (String) anyObject(), (String) anyObject(), (String) anyObject(),
+        (HashMap) anyObject(), (HashMap) anyObject())).andReturn(configGroup).anyTimes();
 
     expect(configGroup.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(configGroup.getName()).andReturn("test-1").anyTimes();

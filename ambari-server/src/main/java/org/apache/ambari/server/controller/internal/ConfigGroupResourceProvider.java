@@ -579,10 +579,10 @@ public class ConfigGroupResourceProvider extends
 
       ConfigGroup configGroup = configGroupFactory.createNew(cluster,
         request.getGroupName(),
-        request.getTag(), request.getDescription(),
+        request.getTag(),
+        serviceName,
+        request.getDescription(),
         request.getConfigs(), hosts);
-
-      configGroup.setServiceName(serviceName);
 
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {

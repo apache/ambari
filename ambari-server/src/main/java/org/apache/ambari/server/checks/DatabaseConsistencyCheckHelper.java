@@ -55,12 +55,16 @@ import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
@@ -178,6 +182,7 @@ public class DatabaseConsistencyCheckHelper {
         fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
         fixClusterConfigsNotMappedToAnyService();
         fixConfigGroupHostMappings();
+        fixConfigGroupsForDeletedServices();
       }
       checkSchemaName();
       checkMySQLEngine();
@@ -190,6 +195,7 @@ public class DatabaseConsistencyCheckHelper {
       checkTopologyTables();
       checkForLargeTables();
       checkConfigGroupHostMapping(true);
+      checkConfigGroupsForDeletedServices(true);
       LOG.info("******************************* Check database completed *******************************");
       return checkResult;
     }
@@ -1144,7 +1150,7 @@ public class DatabaseConsistencyCheckHelper {
     Map<Long, Set<Long>> nonMappedHostIds = new HashMap<>();
     Clusters clusters = injector.getInstance(Clusters.class);
     Map<String, Cluster> clusterMap = clusters.getClusters();
-    StringBuilder output = new StringBuilder("[( ConfigGroup, Service, HostCount) => ");
+    StringBuilder output = new StringBuilder("[(ConfigGroup, Service, HostCount) => ");
 
     if (!MapUtils.isEmpty(clusterMap)) {
       for (Cluster cluster : clusterMap.values()) {
@@ -1202,6 +1208,65 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     return nonMappedHostIds;
+  }
+
+  static Map<Long, ConfigGroup> checkConfigGroupsForDeletedServices(boolean warnIfFound) {
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+    StringBuilder output = new StringBuilder("[(ConfigGroup, Service) => ");
+
+    if (!MapUtils.isEmpty(clusterMap)) {
+      for (Cluster cluster : clusterMap.values()) {
+        Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
+        Map<String, Service> services = cluster.getServices();
+
+        if (!MapUtils.isEmpty(configGroups)) {
+          for (ConfigGroup configGroup : configGroups.values()) {
+            if (!services.containsKey(configGroup.getServiceName())) {
+              configGroupMap.put(configGroup.getId(), configGroup);
+              output.append("( ");
+              output.append(configGroup.getName());
+              output.append(", ");
+              output.append(configGroup.getServiceName());
+              output.append(" ), ");
+            }
+          }
+        }
+      }
+    }
+
+    if (warnIfFound) {
+      output.replace(output.lastIndexOf(","), output.length(), "]");
+      warning("You have config groups present in the database with no " +
+        "corresponding service found, {}. Run --auto-fix-database to fix " +
+          "this automatically.", output.toString());
+    }
+
+    return configGroupMap;
+  }
+
+  @Transactional
+  static void fixConfigGroupsForDeletedServices() {
+    Map<Long, ConfigGroup> configGroupMap = checkConfigGroupsForDeletedServices(false);
+    Clusters clusters = injector.getInstance(Clusters.class);
+
+    if (!MapUtils.isEmpty(configGroupMap)) {
+      for (Map.Entry<Long, ConfigGroup> configGroupEntry : configGroupMap.entrySet()) {
+        Long id = configGroupEntry.getKey();
+        ConfigGroup configGroup = configGroupEntry.getValue();
+        LOG.info("Deleting config group {} with id {} for deleted service {}",
+          configGroup.getName(), id, configGroup.getServiceName());
+        try {
+          Cluster cluster = clusters.getCluster(configGroup.getClusterName());
+          cluster.deleteConfigGroup(id);
+        } catch (AuthorizationException e) {
+          // This call does not thrown Authorization Exception
+        } catch (AmbariException e) {
+          // Ignore if cluster not found
+        }
+      }
+    }
   }
 
   /**

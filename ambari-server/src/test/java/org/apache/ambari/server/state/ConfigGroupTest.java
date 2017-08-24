@@ -101,7 +101,7 @@ public class ConfigGroupTest {
     hosts.put(host.getHostId(), host);
 
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "cg-test",
-      "HDFS", "New HDFS configs for h1", configs, hosts);
+      "HDFS", "HDFS", "New HDFS configs for h1", configs, hosts);
 
     cluster.addConfigGroup(configGroup);
     return configGroup;

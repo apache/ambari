@@ -258,7 +258,7 @@ public class ConfigHelperTest {
       }
 
       ConfigGroup configGroup = configGroupFactory.createNew(cluster, name,
-          tag, "", configMap, hostMap);
+          tag, tag, "", configMap, hostMap);
       LOG.info("Config group created with tag " + tag);
       configGroup.setTag(tag);
 
