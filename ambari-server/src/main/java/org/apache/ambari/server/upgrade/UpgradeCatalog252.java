@@ -44,9 +44,12 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;
@@ -352,15 +355,52 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
         final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
 
         if (kerberosDescriptor != null) {
+          boolean updated = false;
+
           // Find and remove configuration specifications for <code>livy-conf/livy.superusers</code>
           // in SPARK since this logic has been moved to the relevant stack/service advisors
-          boolean updatedSpark = removeConfigurationSpecification(kerberosDescriptor.getService("SPARK"), "livy-conf", "livy.superusers");
+          if(removeConfigurationSpecifications(kerberosDescriptor.getService("SPARK"),
+              Collections.<String, Collection<String>>singletonMap("livy-conf", Collections.singleton("livy.superusers")))) {
+            updated = true;
+          }
 
           // Find and remove configuration specifications for <code>livy-conf2/livy.superusers</code>
           // in SPARK2 since this logic has been moved to the relevant stack/service advisors
-          boolean updatedSpark2 = removeConfigurationSpecification(kerberosDescriptor.getService("SPARK2"), "livy2-conf", "livy.superusers");
+          if(removeConfigurationSpecifications(kerberosDescriptor.getService("SPARK2"),
+              Collections.<String, Collection<String>>singletonMap("livy2-conf", Collections.singleton("livy.superusers")))) {
+            updated = true;
+          }
 
-          if (updatedSpark || updatedSpark2) {
+          // Find and remove configuration specifications for the following configurations in KNOX/KNOX_GATEWAY
+          // since they are invalid due to static "knox" embedded in the property name:
+          // * oozie-site/oozie.service.ProxyUserService.proxyuser.knox.groups
+          // * oozie-site/oozie.service.ProxyUserService.proxyuser.knox.hosts
+          // * webhcat-site/webhcat.proxyuser.knox.groups
+          // * webhcat-site/webhcat.proxyuser.knox.hosts
+          // * core-site/hadoop.proxyuser.knox.groups
+          // * core-site/hadoop.proxyuser.knox.hosts
+          // * falcon-runtime.properties/*.falcon.service.ProxyUserService.proxyuser.knox.groups
+          // * falcon-runtime.properties/*.falcon.service.ProxyUserService.proxyuser.knox.hosts
+          KerberosServiceDescriptor knoxKerberosDescriptor = kerberosDescriptor.getService("KNOX");
+          if(knoxKerberosDescriptor != null) {
+            KerberosComponentDescriptor knoxGatewayKerberosDescriptor = knoxKerberosDescriptor.getComponent("KNOX_GATEWAY");
+            if (knoxGatewayKerberosDescriptor != null) {
+              Map<String, Collection<String>> configsToRemove = new HashMap<>();
+              configsToRemove.put("oozie-site",
+                  Arrays.asList("oozie.service.ProxyUserService.proxyuser.knox.groups", "oozie.service.ProxyUserService.proxyuser.knox.hosts"));
+              configsToRemove.put("webhcat-site",
+                  Arrays.asList("webhcat.proxyuser.knox.groups", "webhcat.proxyuser.knox.hosts"));
+              configsToRemove.put("core-site",
+                  Arrays.asList("hadoop.proxyuser.knox.groups", "hadoop.proxyuser.knox.hosts"));
+              configsToRemove.put("falcon-runtime.properties",
+                  Arrays.asList("*.falcon.service.ProxyUserService.proxyuser.knox.groups", "*.falcon.service.ProxyUserService.proxyuser.knox.hosts"));
+              if (removeConfigurationSpecifications(knoxGatewayKerberosDescriptor, configsToRemove)) {
+                updated = true;
+              }
+            }
+          }
+
+          if (updated) {
             artifactEntity.setArtifactData(kerberosDescriptor.toMap());
             artifactDAO.merge(artifactEntity);
           }
@@ -470,24 +510,40 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Given an {@link AbstractKerberosDescriptorContainer}, attempts to remove the specified property
-   * (<code>configType/propertyName</code> from it.
+   * Given an {@link AbstractKerberosDescriptorContainer}, attempts to remove the specified
+   * configurations (<code>configType/propertyName</code> from it.
    *
    * @param kerberosDescriptorContainer the container to update
-   * @param configType                  the configuration type
-   * @param propertyName                the property name
+   * @param configurations              a map of configuration types to sets of property names.
    * @return true if changes where made to the container; false otherwise
    */
-  private boolean removeConfigurationSpecification(AbstractKerberosDescriptorContainer kerberosDescriptorContainer, String configType, String propertyName) {
+  private boolean removeConfigurationSpecifications(AbstractKerberosDescriptorContainer kerberosDescriptorContainer, Map<String, Collection<String>> configurations) {
     boolean updated = false;
     if (kerberosDescriptorContainer != null) {
-      KerberosConfigurationDescriptor configurationDescriptor = kerberosDescriptorContainer.getConfiguration(configType);
-      if (configurationDescriptor != null) {
-        Map<String, String> properties = configurationDescriptor.getProperties();
-        if ((properties != null) && properties.containsKey(propertyName)) {
-          properties.remove(propertyName);
-          LOG.info("Removed {}/{} from the descriptor named {}", configType, propertyName, kerberosDescriptorContainer.getName());
-          updated = true;
+      if (!MapUtils.isEmpty(configurations)) {
+        for (Map.Entry<String, Collection<String>> entry : configurations.entrySet()) {
+          String configType = entry.getKey();
+
+          for (String propertyName : entry.getValue()) {
+            Map<String, KerberosConfigurationDescriptor> configurationDescriptors = kerberosDescriptorContainer.getConfigurations(false);
+            KerberosConfigurationDescriptor configurationDescriptor = (configurationDescriptors == null)
+                ? null
+                : configurationDescriptors.get(configType);
+            if (configurationDescriptor != null) {
+              Map<String, String> properties = configurationDescriptor.getProperties();
+              if ((properties != null) && properties.containsKey(propertyName)) {
+                properties.remove(propertyName);
+                LOG.info("Removed {}/{} from the descriptor named {}", configType, propertyName, kerberosDescriptorContainer.getName());
+                updated = true;
+
+                // If there are no more properties in the configurationDescriptor, remove it from the container.
+                if(properties.isEmpty()) {
+                  configurationDescriptors.remove(configType);
+                  kerberosDescriptorContainer.setConfigurations(configurationDescriptors);
+                }
+              }
+            }
+          }
         }
       }
     }
