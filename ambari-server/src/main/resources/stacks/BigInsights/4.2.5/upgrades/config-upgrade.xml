@@ -58,7 +58,7 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hdfs_audit_db">
-            <type>ranger-knox-audit</type>
+            <type>ranger-hdfs-audit</type>
             <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
