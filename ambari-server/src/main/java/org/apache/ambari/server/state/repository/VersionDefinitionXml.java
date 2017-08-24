@@ -150,7 +150,7 @@ public class VersionDefinitionXml {
    * Gets the set of services that are included in this XML
    * @return an empty set for STANDARD repositories, or a non-empty set for PATCH type.
    */
-  public Set<String> getAvailableServiceNames() {
+  private Set<String> getAvailableServiceNames() {
     if (availableServices.isEmpty()) {
       return Collections.emptySet();
     } else {

@@ -128,6 +128,7 @@ import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
@@ -993,12 +994,13 @@ public class ClusterImpl implements Cluster {
             // does the host gets a different repo state based on VDF and repo
             // type
             boolean hostRequiresRepository = false;
-            Set<String> servicesInRepository = versionDefinitionXml.getAvailableServiceNames();
+            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this);
+            Set<String> servicesInUpgrade = clusterSummary.getAvailableServiceNames();
 
             List<ServiceComponentHost> schs = getServiceComponentHosts(hostEntity.getHostName());
             for (ServiceComponentHost serviceComponentHost : schs) {
               String serviceName = serviceComponentHost.getServiceName();
-              if (servicesInRepository.contains(serviceName)) {
+              if (servicesInUpgrade.contains(serviceName)) {
                 hostRequiresRepository = true;
                 break;
               }
