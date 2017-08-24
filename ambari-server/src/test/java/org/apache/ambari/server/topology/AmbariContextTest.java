@@ -718,6 +718,7 @@ public class AmbariContextTest {
     RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
     expect(repositoryVersion.getId()).andReturn(1L).atLeastOnce();
     expect(repositoryVersion.getVersion()).andReturn("1.1.1.1").atLeastOnce();
+    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
     expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
         Collections.<RepositoryVersionEntity>emptyList()).atLeastOnce();
@@ -752,10 +753,12 @@ public class AmbariContextTest {
     RepositoryVersionEntity repositoryVersion1 = createNiceMock(RepositoryVersionEntity.class);
     expect(repositoryVersion1.getId()).andReturn(1L).atLeastOnce();
     expect(repositoryVersion1.getVersion()).andReturn("1.1.1.1").atLeastOnce();
+    expect(repositoryVersion1.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
     RepositoryVersionEntity repositoryVersion2 = createNiceMock(RepositoryVersionEntity.class);
     expect(repositoryVersion2.getId()).andReturn(2L).atLeastOnce();
     expect(repositoryVersion2.getVersion()).andReturn("1.1.2.2").atLeastOnce();
+    expect(repositoryVersion2.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
     expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
         Arrays.asList(repositoryVersion1, repositoryVersion2)).atLeastOnce();
