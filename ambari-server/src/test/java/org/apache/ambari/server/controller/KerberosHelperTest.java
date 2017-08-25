@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.apache.ambari.server.controller.KerberosHelper.DIRECTIVE_COMPONENTS;
+import static org.apache.ambari.server.controller.KerberosHelper.DIRECTIVE_HOSTS;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -2925,6 +2927,34 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     List<? extends String> capturedPrincipalsForKeytab = capturePrincipalForKeytab.getValues();
     assertEquals(0, capturedPrincipalsForKeytab.size());
+  }
+
+  @Test
+  public void testFiltersParsing(){
+    Map<String, String> requestProperties = new HashMap<String, String>() {{
+      put(DIRECTIVE_HOSTS, "host1,host2,host3");
+      put(DIRECTIVE_COMPONENTS, "SERVICE1:COMPONENT1;COMPONENT2,SERVICE2:COMPONENT1;COMPONENT2;COMPONENT3");
+    }};
+
+    Set<String> expectedHosts = new HashSet<String>(Arrays.asList("host1", "host2", "host3"));
+    Set<String> hosts = KerberosHelperImpl.parseHostFilter(requestProperties);
+
+    assertEquals(expectedHosts, hosts);
+
+    Map<String, Set<String>> expectedComponents = new HashMap<String, Set<String>>(){{
+      put("SERVICE1", new HashSet<String>(){{
+        add("COMPONENT1");
+        add("COMPONENT2");
+      }});
+      put("SERVICE2", new HashSet<String>(){{
+        add("COMPONENT1");
+        add("COMPONENT2");
+        add("COMPONENT3");
+      }});
+    }};
+    Map<String, Set<String>> components = KerberosHelperImpl.parseComponentFilter(requestProperties);
+
+    assertEquals(expectedComponents, components);
   }
 
   private void setupKerberosDescriptor(KerberosDescriptor kerberosDescriptor) throws Exception {

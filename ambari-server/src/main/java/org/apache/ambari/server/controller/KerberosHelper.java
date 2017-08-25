@@ -49,6 +49,14 @@ public interface KerberosHelper {
    */
   String DIRECTIVE_REGENERATE_KEYTABS = "regenerate_keytabs";
   /**
+   * directive used to pass host list to regenerate keytabs on
+   */
+  String DIRECTIVE_HOSTS = "regenerate_hosts";
+  /**
+   * directive used to pass list of services and their components to regenerate keytabs for
+   */
+  String DIRECTIVE_COMPONENTS = "regenerate_components";
+  /**
    * directive used to indicate that the enable Kerberos operation should proceed even if the
    * cluster's security type is not changing
    */

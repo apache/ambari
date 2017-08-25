@@ -126,6 +126,8 @@ import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -255,6 +257,9 @@ public class KerberosHelperImpl implements KerberosHelper {
 
               CreatePrincipalsAndKeytabsHandler handler = null;
 
+              Set<String> hostFilter = parseHostFilter(requestProperties);
+              Map<String, Set<String>> serviceComponentFilter = parseComponentFilter(requestProperties);
+
               if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
                 handler = new CreatePrincipalsAndKeytabsHandler(true, true, true);
               } else if ("missing".equalsIgnoreCase(value)) {
@@ -263,7 +268,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
               if (handler != null) {
                 requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities),
-                    null, null, null, null, requestStageContainer, handler);
+                    serviceComponentFilter, hostFilter, null, null, requestStageContainer, handler);
               } else {
                 throw new AmbariException(String.format("Unexpected directive value: %s", value));
               }
@@ -280,6 +285,46 @@ public class KerberosHelperImpl implements KerberosHelper {
     return requestStageContainer;
   }
 
+  /**
+   * Parsing 'Kerberos/hosts' property to get list of hosts for 'regenerate_keytabs' request.
+   * Must be a string with coma separated list of hosts. Absent or miss-spelled hosts must be silently ignored
+   * by caller code.
+   *
+   * @param requestProperties
+   * @return
+   */
+  public static Set<String> parseHostFilter(final Map<String, String> requestProperties) {
+    if (requestProperties.containsKey(DIRECTIVE_HOSTS)) {
+      return ImmutableSet.copyOf(requestProperties.get(DIRECTIVE_HOSTS).split(","));
+    }
+    return null;
+  }
+
+  /**
+   * Parsing 'Kerberos/components' property to get list of components for 'regenerate_keytabs' request.
+   * Must be a comma separated list of strings that follow pattern 'SERVICENAME:COMPONENTNAME;ANOTHERCOMPONENTNAME'.
+   * For example: HDFS:NAMENODE;DATANODE,YARN:RESOURCEMANAGER,ZOOKEEPER:ZOOKEEPER_SERVER;ZOOKEEPER_CLIENT.
+   * Absent or miss-spelled components and services must be silently ignored by caller code.
+   *
+   * @param requestProperties
+   * @return
+   */
+  public static Map<String, Set<String>> parseComponentFilter(final Map<String, String> requestProperties) {
+    if (requestProperties.containsKey(DIRECTIVE_COMPONENTS)) {
+      ImmutableMap.Builder<String, Set<String>> serviceComponentFilter = ImmutableMap.builder();
+      for (String serviceString : requestProperties.get(DIRECTIVE_COMPONENTS).split(",")) {
+        String[] serviceComponentsArray = serviceString.split(":");
+        String serviceName = serviceComponentsArray[0];
+        if (serviceComponentsArray.length == 2) {
+          serviceComponentFilter.put(serviceName, ImmutableSet.copyOf(serviceComponentsArray[1].split(";")));
+        } else {
+          serviceComponentFilter.put(serviceName, null);
+        }
+      }
+      return serviceComponentFilter.build();
+    }
+    return null;
+  }
 
   @Override
   public RequestStageContainer ensureIdentities(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter,
