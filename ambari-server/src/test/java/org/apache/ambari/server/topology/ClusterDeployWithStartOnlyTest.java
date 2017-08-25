@@ -338,7 +338,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), eq("1"));
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), eq("1"), anyLong());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();

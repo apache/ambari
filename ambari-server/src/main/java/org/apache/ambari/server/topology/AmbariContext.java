@@ -200,12 +200,13 @@ public class AmbariContext {
     return getController().getActionManager().getTasks(ids);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersionString) {
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
+                                    String repoVersionString, Long repoVersionId) {
     Stack stack = topology.getBlueprint().getStack();
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
     RepositoryVersionEntity repoVersion = null;
-    if (null == repoVersionString) {
+    if (null == repoVersionString && null == repoVersionId) {
       List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
 
       if (stackRepoVersions.isEmpty()) {
@@ -218,13 +219,13 @@ public class AmbariContext {
         Request request = new RequestImpl(Collections.<String>emptySet(),
             Collections.singleton(properties), Collections.<String, String>emptyMap(), null);
 
-        Long repoVersionId = null;
+        Long defaultRepoVersionId = null;
 
         try {
           RequestStatus requestStatus = vdfProvider.createResources(request);
           if (!requestStatus.getAssociatedResources().isEmpty()) {
             Resource resource = requestStatus.getAssociatedResources().iterator().next();
-            repoVersionId = (Long) resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
+            defaultRepoVersionId = (Long) resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
           }
         } catch (Exception e) {
           throw new IllegalArgumentException(String.format(
@@ -234,7 +235,7 @@ public class AmbariContext {
               + " and try again.", stackId), e);
         }
 
-        repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
+        repoVersion = repositoryVersionDAO.findByPK(defaultRepoVersionId);
         // !!! better not!
         if (null == repoVersion) {
           throw new IllegalArgumentException(String.format(
@@ -259,14 +260,23 @@ public class AmbariContext {
         repoVersion = stackRepoVersions.get(0);
         LOG.warn("Cluster is being provisioned using the single matching repository version {}", repoVersion.getVersion());
       }
+    } else if (null != repoVersionId){
+      repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
+
+      if (null == repoVersion) {
+        throw new IllegalArgumentException(String.format(
+          "Could not identify repository version with repository version id %s for installing services. "
+            + "Specify a valid repository version id with '%s'",
+          repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY));
+      }
     } else {
       repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
 
       if (null == repoVersion) {
         throw new IllegalArgumentException(String.format(
-            "Could not identify repository version with stack %s and version %s for installing services. "
+          "Could not identify repository version with stack %s and version %s for installing services. "
             + "Specify a valid version with '%s'",
-            stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+          stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
       }
     }
 

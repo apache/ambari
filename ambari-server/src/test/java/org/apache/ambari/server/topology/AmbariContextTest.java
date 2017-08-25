@@ -315,7 +315,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();
@@ -744,7 +744,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
   }
 
   @Test
@@ -769,7 +769,7 @@ public class AmbariContextTest {
 
     // test
     try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null, null);
+      context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
       fail("Expected failure when several versions are found");
     } catch (IllegalArgumentException e) {
       assertEquals(
@@ -792,7 +792,7 @@ public class AmbariContextTest {
 
     // test
     try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null, "xyz");
+      context.createAmbariResources(topology, CLUSTER_NAME, null, "xyz", null);
       fail("Expected failure when a bad version is provided");
     } catch (IllegalArgumentException e) {
       assertEquals(
