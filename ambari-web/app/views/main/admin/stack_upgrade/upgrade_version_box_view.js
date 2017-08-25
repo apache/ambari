@@ -176,13 +176,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
     });
     var isSuspended = App.get('upgradeSuspended');
 
-    if (status === 'CURRENT' && (this.get('content.isPatch') || this.get('content.isMaint')) && !this.get('isUpgrading')) {
+    if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
       element.setProperties(statePropertiesMap['CURRENT_PATCH']);
     }
     else if (['INSTALLING'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
     }
-    else if (['CURRENT'].contains(status) && (!this.get('content.isPatch') && !this.get('content.isMaint'))) {
+    else if (['CURRENT'].contains(status) && !this.get('content.isPatch')) {
       element.setProperties(statePropertiesMap[status]);
     }
     else if (status === 'NOT_REQUIRED') {
