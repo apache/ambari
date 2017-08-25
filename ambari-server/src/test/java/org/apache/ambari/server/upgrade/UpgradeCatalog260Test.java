@@ -145,6 +145,7 @@ public class UpgradeCatalog260Test {
     expect(connection.createStatement()).andReturn(statement).anyTimes();
     expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).anyTimes();
     expect(configuration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).anyTimes();
+    expect(dbAccessor.tableHasColumn(UpgradeCatalog260.CLUSTER_CONFIG_TABLE, UpgradeCatalog260.SERVICE_DELETED_COLUMN)).andReturn(true).anyTimes();
 
 
     Capture<String[]> scdcaptureKey = newCapture();
@@ -182,6 +183,9 @@ public class UpgradeCatalog260Test {
     Capture<DBColumnInfo> repoVersionHiddenColumnCapture = newCapture();
     expectUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture);
 
+    Capture<DBColumnInfo> unapped = newCapture();
+    expectRenameServiceDeletedColumn(unapped);
+
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Module module = new Module() {
@@ -215,6 +219,11 @@ public class UpgradeCatalog260Test {
     dbAccessor.dropTable(eq(UpgradeCatalog260.CLUSTER_VERSION_TABLE));
     expectLastCall().once();
     dbAccessor.dropTable(eq(UpgradeCatalog260.SERVICE_COMPONENT_HISTORY_TABLE));
+    expectLastCall().once();
+  }
+
+  public  void expectRenameServiceDeletedColumn(Capture<DBColumnInfo> unmapped) throws SQLException {
+    dbAccessor.renameColumn(eq(UpgradeCatalog260.CLUSTER_CONFIG_TABLE), eq(UpgradeCatalog260.SERVICE_DELETED_COLUMN), capture(unmapped));
     expectLastCall().once();
   }
 

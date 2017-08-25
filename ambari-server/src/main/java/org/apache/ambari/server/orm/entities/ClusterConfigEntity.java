@@ -132,8 +132,8 @@ public class ClusterConfigEntity {
   @ManyToMany(mappedBy = "clusterConfigEntities")
   private Collection<ServiceConfigEntity> serviceConfigEntities;
 
-  @Column(name = "service_deleted", nullable = false, insertable = true, updatable = true)
-  private short serviceDeleted = 0;
+  @Column(name = "unmapped", nullable = false, insertable = true, updatable = true)
+  private short unmapped = 0;
 
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
@@ -142,12 +142,12 @@ public class ClusterConfigEntity {
   @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = true)
   private StackEntity stack;
 
-  public boolean isServiceDeleted() {
-    return serviceDeleted != 0;
+  public boolean isUnmapped() {
+    return unmapped != 0;
   }
 
-  public void setServiceDeleted(boolean serviceDeleted) {
-    this.serviceDeleted = (short)(serviceDeleted ? 1 : 0);
+  public void setUnmapped(boolean unmapped) {
+    this.unmapped  = (short)(unmapped ? 1 : 0);
   }
 
   public Long getConfigId() {
