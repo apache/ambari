@@ -1175,7 +1175,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.installRepoVersion.restore();
     });
     it("show popup", function () {
-      var repo = Em.Object.create({'displayName': 'HDP-2.2'});
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', stackServices: []});
       var popup = controller.installRepoVersionConfirmation(repo);
       popup.onPrimary();
       expect(controller.installRepoVersion.calledWith(repo)).to.be.true;

@@ -1474,11 +1474,27 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   installRepoVersionConfirmation: function (repo) {
     var self = this;
-    return App.showConfirmationPopup(function () {
+    var bodyContent = repo.get('isPatch')
+      ? Em.I18n.t('admin.stackVersions.version.install.patch.confirm')
+      : Em.I18n.t('admin.stackVersions.version.install.confirm');
+    var availableServices = repo.get('stackServices').filter(function(service) {
+      return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable');
+    }, this);
+    return App.ModalPopup.show({
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      popupBody: bodyContent.format(repo.get('displayName')),
+      skipDependencyCheck: false,
+      bodyClass: Em.View.extend({
+        classNames: ['install-repo-confirmation'],
+        content: availableServices,
+        isPatch: repo.get('isPatch'),
+        templateName: require('templates/common/modal_popups/install_repo_confirmation')
+      }),
+      onPrimary: function () {
         self.installRepoVersion(repo);
-      },
-      Em.I18n.t('admin.stackVersions.version.install.confirm').format(repo.get('displayName'))
-    );
+        this._super();
+      }
+    });
   },
 
   /**
