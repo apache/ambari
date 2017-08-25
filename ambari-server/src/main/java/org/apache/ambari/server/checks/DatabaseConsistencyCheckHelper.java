@@ -667,7 +667,7 @@ public class DatabaseConsistencyCheckHelper {
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
     for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
-      if (!clusterConfigEntity.isServiceDeleted()){
+      if (!clusterConfigEntity.isUnmapped()){
         continue; // skip clusterConfigs that did not leave after service deletion
       }
       LOG.info("Removing config that is not mapped to any service {}", clusterConfigEntity);
@@ -698,7 +698,7 @@ public class DatabaseConsistencyCheckHelper {
 
     Set<String> nonMappedConfigs = new HashSet<>();
     for (ClusterConfigEntity clusterConfigEntity : notMappedClasterConfigs) {
-      if (!clusterConfigEntity.isServiceDeleted()){
+      if (!clusterConfigEntity.isUnmapped()){
         nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
       }
     }

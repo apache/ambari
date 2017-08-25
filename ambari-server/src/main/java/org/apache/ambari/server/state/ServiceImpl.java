@@ -524,7 +524,7 @@ public class ServiceImpl implements Service {
       for (ClusterConfigEntity serviceConfigEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
         LOG.info("Disabling configuration {}", serviceConfigEntity);
         serviceConfigEntity.setSelected(false);
-        serviceConfigEntity.setServiceDeleted(true);
+        serviceConfigEntity.setUnmapped(true);
         clusterDAO.merge(serviceConfigEntity);
       }
     }

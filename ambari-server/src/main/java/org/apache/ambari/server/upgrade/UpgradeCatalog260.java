@@ -20,9 +20,11 @@ package org.apache.ambari.server.upgrade;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,8 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
 
   public static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
   public static final String SELECTED_COLUMN = "selected";
+  public static final String SERVICE_DELETED_COLUMN = "service_deleted";
+  public static final String UNMAPPED_COLUMN = "unmapped";
   public static final String SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
 
   public static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
@@ -150,6 +154,37 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     createUpgradeHistoryTable();
     dropStaleTables();
     updateRepositoryVersionTable();
+    renameServiceDeletedColumn();
+  }
+
+  private void renameServiceDeletedColumn() throws AmbariException, SQLException {
+    if (dbAccessor.tableHasColumn(CLUSTER_CONFIG_TABLE, SERVICE_DELETED_COLUMN)) {
+      dbAccessor.renameColumn(CLUSTER_CONFIG_TABLE, SERVICE_DELETED_COLUMN, new DBAccessor.DBColumnInfo(UNMAPPED_COLUMN, Short.class, null, 0, false));
+    }
+  }
+
+  /*
+  * This method, search for configs which are not linked with any service
+  * and set "unmapped" to true. We need that because in case when
+  * config is not mapped and "unmapped" flag = false, db consistency check
+  * will show warning about not mapped config. (AMBARI-21795)
+  * */
+  private void setUnmappedForOrphanedConfigs() {
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        EntityManager entityManager = getEntityManagerProvider().get();
+        Query query = entityManager.createNamedQuery("ClusterConfigEntity.findNotMappedClusterConfigsToService",ClusterConfigEntity.class);
+
+        List<ClusterConfigEntity> notMappedConfigs =  (List<ClusterConfigEntity>) query.getResultList();
+        if (notMappedConfigs != null) {
+          for (ClusterConfigEntity clusterConfigEntity : notMappedConfigs) {
+            clusterConfigEntity.setUnmapped(true);
+            entityManager.merge(clusterConfigEntity);
+          }
+        }
+      }
+    });
   }
 
   private void createUpgradeHistoryTable() throws SQLException {
@@ -330,6 +365,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
+    setUnmappedForOrphanedConfigs();
     removeSupersetFromDruid();
   }
 
