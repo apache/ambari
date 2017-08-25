@@ -266,12 +266,17 @@ public class TopologyManager {
     final String clusterName = request.getClusterName();
     final Stack stack = topology.getBlueprint().getStack();
     final String repoVersion = request.getRepositoryVersion();
+    final Long repoVersionID = request.getRepositoryVersionId();
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
 
     SecurityType securityType = null;
     Credential credential = null;
+
+    if (null == repoVersion && null == repoVersionID) {
+      throw new AmbariException("Repository should be created and the version passed in the request.");
+    }
 
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
@@ -291,7 +296,7 @@ public class TopologyManager {
     topologyValidatorService.validateTopologyConfiguration(topology);
 
     // create resources
-    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
+    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);
 
     if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());

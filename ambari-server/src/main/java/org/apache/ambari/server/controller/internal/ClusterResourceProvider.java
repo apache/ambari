@@ -196,7 +196,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("config_recommendation_strategy");
     baseUnsupported.remove("provision_action");
     baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_PROPERTY);
-
+    baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY);
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 
