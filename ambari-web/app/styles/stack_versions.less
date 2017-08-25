@@ -314,18 +314,25 @@
         padding: 0;
         line-height: 30px;
         position: relative;
-      }
-      .top-label::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 100%;
-        width: 0;
-        height: 0;
-        border-left: 95px solid transparent;
-        border-right: 95px solid transparent;
-        border-top: 10px solid @current-green;
-        clear: both;
+        z-index: 2;
+        &:after,&:before{
+          content: '';
+          position: absolute;
+          top: 100%;
+          width: 100%;
+          height: 100%;
+          background-color: @current-green;
+          z-index: -1;
+        }
+        &:after{
+          left: -49%;
+          transform: rotate(5deg) translate(0,-94%);
+        }
+        &:before {
+          left: 51%;
+          transform: rotate(175deg) translate(0,94%);
+        }
+
       }
       .btn-group {
         display: inline-block;
@@ -357,9 +364,11 @@
       margin: 5px 0 15px 0;
     }
     .state.attach-top {
-      margin: 0 0 25px 0;
+      margin: 0;
       line-height: 20px;
       padding-top: 0;
+      padding-bottom: 25px;
+      overflow: hidden;
     }
     .services-section {
       width: 100%;
