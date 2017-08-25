@@ -63,7 +63,8 @@ securityManager.cacheManager = $cacheManager
 
 cookie = org.apache.shiro.web.servlet.SimpleCookie
 cookie.name = JSESSIONID
-cookie.secure = true
+#Uncomment the line below when running Zeppelin-Server in HTTPS mode
+#cookie.secure = true
 cookie.httpOnly = true
 sessionManager.sessionIdCookie = $cookie
 
