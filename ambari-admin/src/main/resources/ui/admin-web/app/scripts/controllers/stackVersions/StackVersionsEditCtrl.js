@@ -36,9 +36,10 @@ angular.module('ambariAdminConsole')
 
   $scope.loadStackVersionInfo = function () {
     return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
+      var stackVersion = response.updateObj.RepositoryVersions || response.updateObj.VersionDefinition;
       $scope.activeStackVersion = response;
       $scope.id = response.id;
-      $scope.isPatch = response.type == 'PATCH';
+      $scope.isPatch = stackVersion.type === 'PATCH';
       $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
       $scope.displayName = response.displayName || $t('common.NA');
       $scope.version = response.version || $t('common.NA');
@@ -50,10 +51,7 @@ angular.module('ambariAdminConsole')
         stack_version: response.stackVersion,
         display_name: response.displayName
       };
-      $scope.services = response.services.filter(function (service) {
-            var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
-            return skipServices.indexOf(service.name) === -1;
-          }) || [];
+      $scope.activeStackVersion.services = Stack.filterAvailableServices(response);
       response.updateObj.operating_systems.forEach(function(os) {
         $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {};
         os.repositories.forEach(function(repo) {

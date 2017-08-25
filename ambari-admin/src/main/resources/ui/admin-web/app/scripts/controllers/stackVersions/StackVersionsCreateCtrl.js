@@ -451,8 +451,9 @@ angular.module('ambariAdminConsole')
 
   $scope.setVersionSelected = function (version) {
     var response = version;
+    var stackVersion = response.updateObj.RepositoryVersions || response.updateObj.VersionDefinition;
     $scope.id = response.id;
-    $scope.isPatch = response.type == 'PATCH';
+    $scope.isPatch = stackVersion.type === 'PATCH';
     $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
     $scope.displayName = response.displayName || $t('common.NA');
     $scope.actualVersion = response.repositoryVersion || response.actualVersion || $t('common.NA');
@@ -463,10 +464,7 @@ angular.module('ambariAdminConsole')
       stack_version: response.stackVersion,
       display_name: response.displayName || $t('common.NA')
     };
-    $scope.services = response.services.filter(function (service) {
-          var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
-          return skipServices.indexOf(service.name) === -1;
-        }) || [];
+    $scope.activeStackVersion.services = Stack.filterAvailableServices(response);
     $scope.repoVersionFullName = response.repoVersionFullName;
     $scope.osList = response.osList;
 
