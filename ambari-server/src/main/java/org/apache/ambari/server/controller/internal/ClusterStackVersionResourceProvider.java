@@ -478,11 +478,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
     Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
-
       if (operatingSystem.isAmbariManagedRepos()) {
         perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
       } else {
-        perOsRepos.put(operatingSystem.getOsType(), Collections.emptyList());
+        perOsRepos.put(operatingSystem.getOsType(), Collections.<RepositoryEntity> emptyList());
       }
     }
 
@@ -723,7 +722,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     return (compare == 0) ? 0 : (compare < 0) ? -1 : 1;
   }
-
 
   /**
    * Ensures that the stack tools and stack features are set on
