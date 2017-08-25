@@ -90,6 +90,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   * */
   private List<String> servicesWithNoConfigs = new ArrayList<>();
 
+  private RefreshCommandConfiguration refreshCommandConfiguration = new RefreshCommandConfiguration();
+
   public String getMinJdk() {
     return minJdk;
   }
@@ -603,5 +605,13 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    */
   public VersionDefinitionXml getLatestVersionDefinition() {
     return latestVersion;
+  }
+
+  public RefreshCommandConfiguration getRefreshCommandConfiguration() {
+    return refreshCommandConfiguration;
+  }
+
+  public void setRefreshCommandConfiguration(RefreshCommandConfiguration refreshCommandConfiguration) {
+    this.refreshCommandConfiguration = refreshCommandConfiguration;
   }
 }

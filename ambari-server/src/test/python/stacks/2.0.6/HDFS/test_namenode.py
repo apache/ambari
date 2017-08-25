@@ -1745,6 +1745,39 @@ class TestNamenode(RMFTestCase):
     get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
     self.assertFalse(is_this_namenode_active())
 
+  def test_reloadproxyusers(self):
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                         classname = "NameNode",
+                         command = "reloadproxyusers",
+                         config_file = "default.json",
+                         stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
+                         )
+
+      self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshSuperUserGroupsConfiguration',
+                                user = 'hdfs',
+                                conf_dir = '/etc/hadoop/conf',
+                                bin_dir = '/usr/bin')
+      self.assertNoMoreResources()
+
+  def test_reload_configs(self):
+      with self.assertRaises(Fail):
+          self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                             classname = "NameNode",
+                             command = "reload_configs",
+                             config_file = "default.json",
+                             stack_version = self.STACK_VERSION,
+                             target = RMFTestCase.TARGET_COMMON_SERVICES
+                             )
+
+      # self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -reconfig namenode c6401.ambari.apache.org:8020 start",
+      #                       tries=115,
+      #                       try_sleep=10,
+      #                       user="hdfs",
+      #                       logoutput=True
+      #                       )
+
+
 
 class Popen_Mock:
   return_value = 1

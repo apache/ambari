@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RefreshCommand;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
@@ -579,6 +580,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       }
       // Read the service and available configs for this stack
       populateServices();
+
       if (!stackInfo.isValid()) {
         setValid(false);
         addErrors(stackInfo.getErrors());
@@ -627,7 +629,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     for (ServiceInfo serviceInfo : serviceInfos) {
       ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory);
       serviceModules.add(serviceModule);
-      if (!serviceModule.isValid()){
+      if (!serviceModule.isValid()) {
         stackInfo.setValid(false);
         setValid(false);
         stackInfo.addErrors(serviceModule.getErrors());
@@ -769,7 +771,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     // relationship into map. Since we do not have the reverse {@link PropertyInfo},
     // we have to loop through service-configs again later.
     for (ServiceModule serviceModule : serviceModules.values()) {
+
+      Map<String, Map<String, String>> componentRefreshCommandsMap = new HashMap();
+
       for (PropertyInfo pi : serviceModule.getModuleInfo().getProperties()) {
+
         for (PropertyDependencyInfo pdi : pi.getDependsOnProperties()) {
           String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
           String name = pi.getName();
@@ -784,7 +790,28 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
             dependedByMap.put(pdi, newDependenciesSet);
           }
         }
+
+        // set refresh commands
+        if (pi.getSupportedRefreshCommands() != null && pi.getSupportedRefreshCommands().size() > 0) {
+          String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
+          String propertyName = type + "/" + pi.getName();
+
+          Map<String, String> refreshCommandPropertyMap = componentRefreshCommandsMap.get(propertyName);
+
+          for (RefreshCommand refreshCommand : pi.getSupportedRefreshCommands()) {
+            String componentName = refreshCommand.getComponentName();
+            if (refreshCommandPropertyMap == null) {
+              refreshCommandPropertyMap = new HashMap<>();
+              componentRefreshCommandsMap.put(propertyName, refreshCommandPropertyMap);
+            }
+            refreshCommandPropertyMap.put(componentName, refreshCommand.getCommand());
+          }
+
+        }
+
       }
+
+      stackInfo.getRefreshCommandConfiguration().addRefreshCommands(componentRefreshCommandsMap);
     }
 
     // Go through all service-configs again and set their 'depended-by' if necessary.

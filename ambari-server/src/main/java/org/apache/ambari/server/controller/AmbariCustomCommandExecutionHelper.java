@@ -89,6 +89,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.RefreshCommandConfiguration;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -506,6 +507,15 @@ public class AmbariCustomCommandExecutionHelper {
       }
       StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
+
+      // set reconfigureAction in case of a RECONFIGURE command if there are any
+      if (commandName.equals("RECONFIGURE")) {
+        String refreshConfigsCommand = configHelper.getRefreshConfigsCommand(cluster, hostName, serviceName, componentName);
+        if (refreshConfigsCommand != null && !refreshConfigsCommand.equals(RefreshCommandConfiguration.REFRESH_CONFIGS)) {
+              LOG.info("Refreshing configs for {}/{} with command: ", componentName, hostName, refreshConfigsCommand);
+          commandParams.put("reconfigureAction", refreshConfigsCommand);
+        }
+      }
 
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);

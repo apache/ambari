@@ -1006,11 +1006,32 @@ class Script(object):
 
   def configure(self, env, upgrade_type=None, config_dir=None):
     """
-    To be overridden by subclasses
+    To be overridden by subclasses (may invoke save_configs)
     :param upgrade_type: only valid during RU/EU, otherwise will be None
     :param config_dir: for some clients during RU, the location to save configs to, otherwise None
     """
     self.fail_with_error('configure method isn\'t implemented')
+
+  def save_configs(self, env):
+    """
+    To be overridden by subclasses
+    Creates / updates configuration files
+    """
+    self.fail_with_error('save_configs method isn\'t implemented')
+
+  def reconfigure(self, env):
+    """
+    Default implementation of RECONFIGURE action which may be overridden by subclasses
+    """
+    Logger.info("Refresh config files ...")
+    self.save_configs(env)
+
+    config = self.get_config()
+    if "reconfigureAction" in config["commandParams"] and config["commandParams"]["reconfigureAction"] is not None:
+      reconfigure_action = config["commandParams"]["reconfigureAction"]
+      Logger.info("Call %s" % reconfigure_action)
+      method = self.choose_method_to_execute(reconfigure_action)
+      method(env)
 
   def generate_configs_get_template_file_content(self, filename, dicts):
     config = self.get_config()

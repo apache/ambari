@@ -4795,7 +4795,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       properties = ambariMetaInfo.getServiceProperties(stackName, stackVersion, serviceName);
     }
     for (PropertyInfo property: properties) {
-      response.add(property.convertToResponse());
+      if (property.shouldBeConfigured()) {
+        response.add(property.convertToResponse());
+      }
     }
 
     return response;

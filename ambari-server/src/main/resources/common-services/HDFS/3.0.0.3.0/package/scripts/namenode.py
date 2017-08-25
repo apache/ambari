@@ -46,8 +46,8 @@ from ambari_commons import OSConst
 
 
 import namenode_upgrade
-from hdfs_namenode import namenode, wait_for_safemode_off
-from hdfs import hdfs
+from hdfs_namenode import namenode, wait_for_safemode_off, refreshProxyUsers
+from hdfs import hdfs, reconfig
 import hdfs_rebalance
 from utils import initiate_safe_zkfc_failover, get_hdfs_binary, get_dfsadmin_base_command
 
@@ -85,6 +85,23 @@ class NameNode(Script):
     hdfs("namenode")
     hdfs_binary = self.get_hdfs_binary()
     namenode(action="configure", hdfs_binary=hdfs_binary, env=env)
+
+  def save_configs(self, env):
+    import params
+    env.set_params(params)
+    hdfs()
+
+  def reload_configs(self, env):
+    import params
+    env.set_params(params)
+    Logger.info("RELOAD CONFIGS")
+    reconfig("namenode", params.namenode_address)
+
+  def reloadproxyusers(self, env):
+    import params
+    env.set_params(params)
+    Logger.info("RELOAD HDFS PROXY USERS")
+    refreshProxyUsers()
 
   def start(self, env, upgrade_type=None):
     import params
