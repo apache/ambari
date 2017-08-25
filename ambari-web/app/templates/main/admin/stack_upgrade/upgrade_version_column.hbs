@@ -21,7 +21,11 @@
 {{/if}}
 
 <p class="version-column-display-name">
-  <span>{{view.content.displayNameSimple}}</span>
+  {{#if view.content.isPatch}}
+    <span>{{view.content.displayName}}</span>
+  {{else}}
+    <span>{{view.content.displayNameSimple}}</span>
+  {{/if}}
 </p>
 
 <p class="version-column-show-details">
@@ -80,7 +84,9 @@
 <div class="services-section">
   {{#each service in view.services}}
     <p class="service-version-info">
-       <span {{bindAttr class="service.isVersionInvisible:invisible :label"}}>{{service.latestVersion}}</span>
+       <span {{bindAttr class="service.isVersionInvisible:invisible service.isAvailable:available :label"}}>
+           {{service.latestVersion}}
+       </span>
     </p>
   {{/each}}
 </div>

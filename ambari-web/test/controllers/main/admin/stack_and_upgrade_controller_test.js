@@ -408,6 +408,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         value: '1',
         label: 'HDP-2.2',
         type: 'ROLLING',
+        targetStack: "HDP-2.2",
         skipComponentFailures: 'false',
         skipSCFailures: 'false'
       });
