@@ -164,11 +164,12 @@
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
             <type>yarn-site</type>
-            <!-- adjust the spark shuffle values for spark1 based on whether spark is installed -->
-            <set key="yarn.nodemanager.aux-services" value="mapreduce_shuffle,spark_shuffle" if-type="spark-env" if-key="content" if-key-state="present"/>
+            <!-- adjust the spark shuffle values for spark1 and spark2 -->
+            <set key="yarn.nodemanager.aux-services" value="mapreduce_shuffle,spark_shuffle,spark2_shuffle" if-type="spark-env" if-key="content" if-key-state="present"/>
             <set key="yarn.nodemanager.aux-services.spark_shuffle.class" value="org.apache.spark.network.yarn.YarnShuffleService" if-type="spark-env" if-key="content" if-key-state="present"/>
             <set key="yarn.nodemanager.aux-services.spark_shuffle.classpath" value="{{stack_root}}/${hdp.version}/spark/aux/*" if-type="spark-env" if-key="content" if-key-state="present"/>
-
+            <set key="yarn.nodemanager.aux-services.spark2_shuffle.class" value="org.apache.spark.network.yarn.YarnShuffleService" if-type="spark-env" if-key="content" if-key-state="present"/>
+            <set key="yarn.nodemanager.aux-services.spark2_shuffle.classpath" value="{{stack_root}}/${hdp.version}/spark2/aux/*" if-type="spark-env" if-key="content" if-key-state="present"/>
             <insert key="yarn.application.classpath" insert-type="append" newline-after="false" newline-before="false" value=",/usr/hdp/current/ext/hadoop/*"/>
           </definition>
           <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
@@ -201,7 +202,7 @@
         </changes>
       </component>
     </service>
-    
+
     <service name="PIG">
       <component name="PIG">
         <changes>
@@ -287,7 +288,7 @@
             <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
             <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
           </definition>
-          
+
           <definition xsi:type="configure" id="biginsights_4_2_hive_env_configure" summary="Configuring hive-env for MariaDB/RedHat7 support">
             <type>hive-env</type>
             <set key="mariadb_redhat_support" value="true"/>
@@ -322,14 +323,14 @@
           </definition>
         </changes>
       </component>
-      
+
       <component name="WEBHCAT_SERVER">
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" summary="Update Hadoop home">
             <type>webhcat-env</type>
             <replace key="content" find="export HADOOP_HOME={{hadoop_home}}" replace-with="export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}" />
           </definition>
-          
+
           <definition xsi:type="configure" id="biginsights_4_2_webhcat_server_update_configurations" summary="Updating Configuration Paths">
             <type>webhcat-site</type>
             <replace key="templeton.jar" find="/usr/iop/current/hive-webhcat" replace-with="/usr/hdp/${hdp.version}/hive"/>
@@ -340,7 +341,7 @@
         </changes>
       </component>
     </service>
-    
+
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <changes>
@@ -350,7 +351,7 @@
           </definition>
           <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_configurations" summary="Update oozie env">
             <type>oozie-env</type>
-            <replace key="content" find="export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}" replace-with="export CATALINA_BASE={{oozie_server_dir}}" />            
+            <replace key="content" find="export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}" replace-with="export CATALINA_BASE={{oozie_server_dir}}" />
             <replace key="content" find="export CATALINA_OPTS=&quot;$CATALINA_OPTS -Xms{{oozie_initial_heapsize}}" replace-with="export CATALINA_OPTS=&quot;$CATALINA_OPTS"/>
           </definition>
           <definition xsi:type="configure" id="biginsights_4_2_oozie_server_update_environment_tomcat" summary="Update oozie env">
