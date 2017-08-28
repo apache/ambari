@@ -2461,6 +2461,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
 
+    Map<String, String> roleParams = new TreeMap<>();
+
     // use the effective cluster version here since this command might happen
     // in the context of an upgrade and we should send the repo ID which matches
     // the version being send down
@@ -2479,14 +2481,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       try {
         VersionDefinitionXml xml = repoVersion.getRepositoryXml();
         if (null != xml && !StringUtils.isBlank(xml.getPackageVersion(osFamily))) {
-          hostParams.put(PACKAGE_VERSION, xml.getPackageVersion(osFamily));
+          roleParams.put(PACKAGE_VERSION, xml.getPackageVersion(osFamily));
         }
       } catch (Exception e) {
         throw new AmbariException(String.format("Could not load version xml from repo version %s",
             repoVersion.getVersion()), e);
       }
 
-      hostParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
+      roleParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
     }
 
     if (roleCommand.equals(RoleCommand.INSTALL)) {
@@ -2535,8 +2537,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParams.put(UNLIMITED_KEY_JCE_REQUIRED, (getUnlimitedKeyJCERequirement(componentInfo, cluster.getSecurityType())) ? "true" : "false");
 
     execCmd.setHostLevelParams(hostParams);
-
-    Map<String, String> roleParams = new TreeMap<>();
 
     // !!! consistent with where custom commands put variables
     // !!! after-INSTALL hook checks this such that the stack selection tool won't

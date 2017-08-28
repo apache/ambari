@@ -228,7 +228,7 @@ class Script(object):
 
         # if repository_version_id is passed, pass it back with the version
         from resource_management.libraries.functions.default import default
-        repo_version_id = default("/hostLevelParams/repository_version_id", None)
+        repo_version_id = default("/roleParams/repository_version_id", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
 
@@ -241,7 +241,7 @@ class Script(object):
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
+    stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
@@ -532,7 +532,7 @@ class Script(object):
   @staticmethod
   def get_stack_name():
     """
-    Gets the name of the stack from hostLevelParams/stack_name.
+    Gets the name of the stack from clusterLevelParams/stack_name.
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
