@@ -17,32 +17,32 @@
 }}
 <p>{{{popupBody}}}</p>
 <div>
-  <div class="row-fluid">
-    <div class="span3 offset3">
-        <strong>{{view.stackToVersion}}</strong>
-    </div>
-    <div class="span3">
-        <strong>{{view.stackFromVersion}}</strong>
-    </div>
-  </div>
-  {{#each service in view.servicesToBeReverted}}
-    <div class="row-fluid service-version-info">
-      <div class="span3">
-          {{service.displayName}}
-      </div>
-      <div class="span2">
-        <span class="label available">
-          {{service.toVersion}}
-        </span>
-      </div>
-      <div class="span1">
-        <i class="icon-arrow-left"></i>
-      </div>
-      <div class="span2">
-        <span class="label available">
-          {{service.fromVersion}}
-        </span>
-      </div>
-    </div>
-  {{/each}}
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th><strong>{{view.stackToVersion}}</strong></th>
+        <th></th>
+        <th><strong>{{view.stackFromVersion}}</strong></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each service in view.servicesToBeReverted}}
+        <tr>
+          <td>{{service.displayName}}</td>
+          <td class="service-version-info">
+            <span class="label available">
+              {{service.toVersion}}
+            </span>
+          </td>
+          <td><i class="icon-arrow-left"></i></td>
+          <td class="service-version-info">
+            <span class="label available">
+              {{service.fromVersion}}
+            </span>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
 </div>
