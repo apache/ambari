@@ -36,6 +36,8 @@ App.RepositoryVersion = DS.Model.extend({
 
   isPatch: Em.computed.equal('type', 'PATCH'),
 
+  isStandard: Em.computed.equal('type', 'STANDARD'),
+
   /**
    * status used until corresponding stack version get created
    * @type {string}

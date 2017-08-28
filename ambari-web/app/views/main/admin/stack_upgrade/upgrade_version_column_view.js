@@ -54,9 +54,9 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
         name: service.get('serviceName'),
         latestVersion: stackService ? stackService.get('latestVersion') : '',
         isVersionInvisible: !stackService,
-        isAvailable: stackService ? stackService.get('isAvailable') : false
+        isAvailable: this.isStackServiceAvailable(stackService)
       });
-    });
+    }, this);
   }.property(),
 
   /**
@@ -95,6 +95,26 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
       text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
       action: 'resumeUpgrade'
     }
+  },
+
+  /**
+   * @param {Em.Object} stackService
+   * @returns {boolean}
+   */
+  isStackServiceAvailable: function(stackService) {
+    var appliedPatchVersions = App.RepositoryVersion.find().filterProperty('isPatch').filterProperty('status', 'CURRENT');
+    var appliedPatchServices = [];
+    appliedPatchVersions.forEach(function(version) {
+      var availableServices = version.get('stackServices').toArray().filterProperty('isAvailable').mapProperty('name');
+      appliedPatchServices = appliedPatchServices.concat(availableServices).uniq();
+    });
+    if (stackService) {
+      if (this.get('content.isStandard') && appliedPatchServices.contains(stackService.get('name'))) {
+        return false;
+      }
+      return stackService.get('isAvailable');
+    }
+    return false;
   },
 
   /**
