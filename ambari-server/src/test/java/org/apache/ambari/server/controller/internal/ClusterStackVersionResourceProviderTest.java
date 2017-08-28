@@ -31,6 +31,7 @@ import static org.easymock.EasyMock.verify;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,10 +62,12 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -110,12 +113,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.util.Modules;
 
 
@@ -1692,6 +1697,115 @@ public class ClusterStackVersionResourceProviderTest {
     // check that the success factor was populated in the stage
     Float successFactor = successFactors.get(Role.INSTALL_PACKAGES);
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
+  }
+
+  @Test
+  public void testGetSorted() throws Exception {
+
+    Resource.Type type = Resource.Type.ClusterStackVersion;
+
+    final Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    StackId stackId = new StackId("HDP", "2.2.0");
+
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName(stackId.getStackName());
+    stackEntity.setStackVersion(stackId.getStackVersion());
+
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider csvResourceProvider = createNiceMock(
+        ClusterStackVersionResourceProvider.class);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+
+    String[] versionStrings = new String[] {
+      "2.1.0.0-15",  // idx 0, sorted to 0
+      "2.1.0.5-17",  // idx 1, sorted to 2
+      "2.1.1.5-19",  // idx 2, sorted to 3
+      "2.1.0.3-14",  // idx 3, sorted to 1
+      "2.1.1.5-74"   // idx 4, sorted to 4
+    };
+
+    List<RepositoryVersionEntity> repoVersionList = new ArrayList<>();
+    for (int i = 0; i < versionStrings.length; i++) {
+      Long id = new Long(i);
+
+      RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
+      expect(repoVersion.getVersion()).andReturn(versionStrings[i]).anyTimes();
+      expect(repoVersion.getStack()).andReturn(stackEntity).anyTimes();
+      expect(repoVersion.getId()).andReturn(id).anyTimes();
+      expect(repositoryVersionDAOMock.findByPK(id)).andReturn(repoVersion).anyTimes();
+
+      repoVersionList.add(repoVersion);
+
+      replay(repoVersion);
+    }
+
+    expect(repositoryVersionDAOMock.findAll()).andReturn(repoVersionList).atLeastOnce();
+
+    expect(hostVersionDAO.findHostVersionByClusterAndRepository(
+        anyLong(), anyObject(RepositoryVersionEntity.class))).andReturn(Collections.<HostVersionEntity>emptyList()).anyTimes();
+
+    // replay
+    replay(response, clusters, resourceProviderFactory,
+        csvResourceProvider, cluster, repositoryVersionDAOMock, configHelper,
+        stageFactory, hostVersionDAO);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
+        PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
+        /*managementController*/null);
+    injector.injectMembers(provider);
+
+    Field field = ClusterStackVersionResourceProvider.class.getDeclaredField("clusters");
+    field.setAccessible(true);
+    field.set(null, new Provider<Clusters>() {
+      @Override
+      public Clusters get() {
+        return clusters;
+      }
+    });
+
+    // set the security auth
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createAdministrator());
+
+    Set<String> ids = Sets.newHashSet(
+        ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STATE_PROPERTY_ID,
+        ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
+        ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
+
+    // get cluster named Cluster100
+    Predicate predicate = new PredicateBuilder()
+        .property(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100")
+        .toPredicate();
+
+    // create the request
+    Request request = PropertyHelper.getReadRequest(ids);
+
+    Set<Resource> responses = provider.getResources(request, predicate);
+    Assert.assertNotNull(responses);
+
+    // verify
+    verify(response, clusters, cluster, hostVersionDAO);
+
+    Assert.assertEquals(5, responses.size());
+
+    int i = 0;
+    // see the string array above.  this is the order matching the sorted strings
+    long[] orders = new long[] { 0, 3, 1, 2, 4 };
+    for (Resource res : responses) {
+      Assert.assertEquals(orders[i], res.getPropertyValue(
+          ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID));
+
+      i++;
+    }
+
+
   }
 
 
