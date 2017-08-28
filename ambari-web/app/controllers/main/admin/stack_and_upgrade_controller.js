@@ -1501,7 +1501,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       ? Em.I18n.t('admin.stackVersions.version.install.patch.confirm')
       : Em.I18n.t('admin.stackVersions.version.install.confirm');
     var availableServices = repo.get('stackServices').filter(function(service) {
-      return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable');
+      return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable') && service.get('isUpgradable');
     }, this);
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
