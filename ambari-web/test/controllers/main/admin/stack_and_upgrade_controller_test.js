@@ -405,7 +405,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
         id: '1',
-        value: '1',
+        value: '2.2',
         label: 'HDP-2.2',
         type: 'ROLLING',
         targetStack: "HDP-2.2",
@@ -1148,7 +1148,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(this.callArgs.data).to.eql({
         id: '1',
         value: '2.2',
-        label: 'HDP-2.2',
+        label: 'HDP-2.3',
         isDowngrade: true,
         upgradeType: "NON_ROLLING"
       });
@@ -1728,11 +1728,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     it("Rolling method allowed", function () {
       controller.get('upgradeMethods').setEach('allowed', true);
       controller.runUpgradeMethodChecks(Em.Object.create({
-        id: '1',
+        id: 1,
+        repositoryVersion: '1.2',
         displayName: 'V1'
       }));
       expect(controller.runPreUpgradeCheckOnly.calledWith({
-        value: '1',
+        id: 1,
+        value: '1.2',
         label: 'V1',
         type: 'ROLLING'
       })).to.be.true;
@@ -1783,7 +1785,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('proper data is saved to the localDB', function () {
       expect(controller.setDBProperties.getCall(0).args[0]).to.eql({
-        fromVersion: null,
+        toVersion: '1.1',
         upgradeId: 1,
         isDowngrade: false,
         upgradeState: 'PENDING',
@@ -3500,15 +3502,32 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0]).to.exists;
       expect(args[0].data).to.be.eql({
         upgradeId: 1,
+        isDowngrade: true,
         id: 2,
-        value: 2,
-        label: '1.2',
-        type: 'EXPRESS',
-        skipComponentFailures: 'false',
-        skipSCFailures: 'false'
+        value: '1.1',
+        label: '1.2'
       });
       args[0].callback();
       expect(controller.get('requestInProgress')).to.be.false;
+    });
+  });
+
+  describe('#getUpgradeDowngradeHeader', function() {
+
+    it('should return downgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', true)).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format('v1')
+      );
+    });
+    it('should return patch upgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, true)).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.upgrade.patch.header').format('t1', 'v1')
+      );
+    });
+    it('should return upgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, false)).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.upgrade.header').format('t1', 'v1')
+      );
     });
   });
 
