@@ -144,6 +144,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
       isButton: true,
       text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
       action: 'resumeUpgrade'
+    },
+    'CURRENT_PATCH': {
+      isButton: true,
+      text: Em.I18n.t('common.revert'),
+      action: 'confirmRevertPatchUpgrade'
     }
   },
 
@@ -168,7 +173,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var isSuspended = App.get('upgradeSuspended');
 
     if (['INSTALLING', 'CURRENT'].contains(status)) {
-      element.setProperties(statePropertiesMap[status]);
+      if (this.get('content.isPatch') && status === 'CURRENT') {
+        element.setProperties(statePropertiesMap['CURRENT_PATCH']);
+      } else {
+        element.setProperties(statePropertiesMap[status]);
+      }
     }
     else if (status === 'NOT_REQUIRED') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);

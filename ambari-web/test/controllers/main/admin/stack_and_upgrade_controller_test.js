@@ -3412,5 +3412,104 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(mock.mapProperty('isCompatible')).to.be.eql([false, true])
     });
   });
+  
+   describe('#confirmRevertPatchUpgrade', function() {
+    beforeEach(function() {
+      sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create());
+      sinon.stub(App.ModalPopup, 'show');
+      sinon.stub(controller, 'getServicesToBeReverted');
+    });
+    afterEach(function() {
+      App.RepositoryVersion.find.restore();
+      App.ModalPopup.show.restore();
+      controller.getServicesToBeReverted.restore();
+    });
+
+    it('App.ModalPopup.show should be called', function() {
+      controller.confirmRevertPatchUpgrade(Em.Object.create());
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#getServicesToBeReverted', function() {
+    beforeEach(function() {
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({isLoaded: true}));
+    });
+    afterEach(function() {
+      App.Service.find.restore();
+    });
+
+    it('should return services which will be reverted', function() {
+      var version = Em.Object.create({
+        stackServices: [
+          Em.Object.create({
+            name: 'S1',
+            isAvailable: false,
+            displayName: 's1',
+            latestVersion: '1.0'
+          }),
+          Em.Object.create({
+            name: 'S2',
+            isAvailable: true,
+            displayName: 's2',
+            latestVersion: '2.0'
+          })
+        ]
+      });
+      var currentStack = Em.Object.create({
+        stackServices: [
+          Em.Object.create({
+            name: 'S2',
+            latestVersion: '2.1'
+          })
+        ]
+      });
+      expect(controller.getServicesToBeReverted(version, currentStack)).to.be.eql([
+        {
+          displayName: 's2',
+          fromVersion: '2.0',
+          toVersion: '2.1'
+        }
+      ]);
+    });
+  });
+
+  describe('#revertPatchUpgrade', function() {
+    beforeEach(function() {
+      sinon.stub(App.StackUpgradeHistory, 'find').returns([
+        Em.Object.create({
+          associatedVersion: '1.1',
+          upgradeId: 1
+        })
+      ]);
+    });
+    afterEach(function() {
+      App.StackUpgradeHistory.find.restore();
+    });
+
+    it('App.ajax.send should be called', function() {
+      var version = Em.Object.create({
+        repositoryVersion: '1.1',
+        id: 2,
+        displayName: '1.2',
+        upgradeType: 'EXPRESS'
+      });
+      controller.revertPatchUpgrade(version);
+      expect(controller.get('requestInProgress')).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.revert');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
+        upgradeId: 1,
+        id: 2,
+        value: 2,
+        label: '1.2',
+        type: 'EXPRESS',
+        skipComponentFailures: 'false',
+        skipSCFailures: 'false'
+      });
+      args[0].callback();
+      expect(controller.get('requestInProgress')).to.be.false;
+    });
+  });
 
 });

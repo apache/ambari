@@ -1357,7 +1357,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
-    'real': `/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/versions,Upgrade/associated_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures`,
+    'real': '/clusters/{clusterName}/upgrades',
     'mock': '/data/stack_versions/upgrades.json'
   },
   'cluster.update_upgrade_version': {
@@ -1776,6 +1776,21 @@ var urls = {
         data: JSON.stringify({
           "Upgrade": {
             "request_status": "PENDING"
+          }
+        })
+      }
+    }
+  },
+  'admin.upgrade.revert': {
+    'real': '/clusters/{clusterName}/upgrades',
+    'mock': '/data/stack_versions/start_upgrade.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        timeout : 600000,
+        data: JSON.stringify({
+          "Upgrade": {
+            "revert_upgrade_id": data.upgradeId
           }
         })
       }

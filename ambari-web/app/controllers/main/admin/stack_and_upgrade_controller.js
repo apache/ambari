@@ -1978,6 +1978,77 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
+   *
+   * @param {Em.Object} version
+   */
+  confirmRevertPatchUpgrade: function(version) {
+    var self = this;
+    var currentStack = App.RepositoryVersion.find(this.get('currentVersion.id'));
+
+    App.ModalPopup.show({
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      popupBody: Em.I18n.t('admin.stackVersions.upgrade.patch.revert.confirmation'),
+      bodyClass: Em.View.extend({
+        classNames: ['revert-patch-upgrade-confirmation'],
+        servicesToBeReverted: this.getServicesToBeReverted(version, currentStack),
+        stackFromVersion: version.get('displayName'),
+        stackToVersion: currentStack.get('displayNameSimple'),
+        templateName: require('templates/common/modal_popups/revert_patch_upgrade_confirmation')
+      }),
+      onPrimary: function () {
+        self.revertPatchUpgrade(version);
+        this._super();
+      }
+    });
+  },
+
+  /**
+   *
+   * @param {Em.Object} version
+   * @param {Em.Object} currentStack
+   * @returns {Array}
+   */
+  getServicesToBeReverted: function(version, currentStack) {
+    return version.get('stackServices').filter(function(_service) {
+      return (App.Service.find(_service.get('name')).get('isLoaded') && _service.get('isAvailable'));
+    }).map(function(_service) {
+      return {
+        displayName: _service.get('displayName'),
+        fromVersion: _service.get('latestVersion'),
+        toVersion: currentStack.get('stackServices').findProperty('name', _service.get('name')).get('latestVersion')
+      }
+    });
+  },
+
+  /**
+   *
+   * @param {Em.Object} version
+   * @returns {$.ajax}
+   */
+  revertPatchUpgrade: function (version) {
+    this.set('requestInProgress', true);
+    var upgrade = App.StackUpgradeHistory.find().findProperty('associatedVersion', version.get('repositoryVersion'));
+    return App.ajax.send({
+      name: 'admin.upgrade.revert',
+      sender: this,
+      success: 'upgradeSuccessCallback',
+      error: 'upgradeErrorCallback',
+      callback: function () {
+        this.sender.set('requestInProgress', false);
+      },
+      data: {
+        upgradeId: upgrade && upgrade.get('upgradeId'),
+        id: version.get('id'),
+        value: version.get('id'),
+        label: version.get('displayName'),
+        type: version.get('upgradeType'),
+        skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
+        skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
+      }
+    });
+  },
+
+  /**
    * restore last Upgrade data
    * @param {object} lastUpgradeData
    */

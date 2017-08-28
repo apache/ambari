@@ -22,6 +22,7 @@ var stringUtils = require('utils/string_utils');
 
 App.StackUpgradeHistory = DS.Model.extend({
   requestId: DS.attr('number'),
+  upgradeId: DS.attr('number'),
   clusterName: DS.attr('string'),
   direction: DS.attr('string'),
   associatedVersion: DS.attr('string'),
