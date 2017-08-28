@@ -289,6 +289,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
     expect(request.getProvisionAction()).andReturn(INSTALL_AND_START).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
 
 
     expect(group1.getBlueprintName()).andReturn(BLUEPRINT_NAME).anyTimes();
