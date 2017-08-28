@@ -34,7 +34,7 @@ def get_component_version(stack_name, component_name):
   For any stack name, returns the version currently installed for a given component.
   Because each stack name may have different logic, the input is a generic dictionary.
   :param stack_name: one of HDP, HDPWIN, BIGTOP, PHD, etc. usually retrieved from
-  the command-#.json file's ["hostLevelParams"]["stack_name"]
+  the command-#.json file's ["clusterLevelParams"]["stack_name"]
   :param component_name: Component name as a string necessary to get the version
   :return: Returns a string if found, e.g., 2.2.1.0-2175, otherwise, returns None
   """

@@ -83,7 +83,7 @@ def get_stack_feature_version(config):
   """
   from resource_management.libraries.functions.default import default
 
-  if "hostLevelParams" not in config or "commandParams" not in config:
+  if "clusterLevelParams" not in config or "commandParams" not in config:
     raise Fail("Unable to determine the correct version since hostLevelParams and commandParams were not present in the configuration dictionary")
 
   # should always be there
@@ -167,7 +167,7 @@ def _is_stop_command(config):
   if role_command == _ROLE_COMMAND_STOP:
     return True
 
-  custom_command = default("/hostLevelParams/custom_command", None)
+  custom_command = default("/commandParams/custom_command", None)
   if role_command == _ROLE_COMMAND_CUSTOM and custom_command == _ROLE_COMMAND_STOP:
     return True
 

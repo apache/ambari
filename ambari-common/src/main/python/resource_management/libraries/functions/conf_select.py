@@ -404,7 +404,7 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
 
     if stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version):
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
-      stack_name = default("/hostLevelParams/stack_name", None)
+      stack_name = default("/clusterLevelParams/stack_name", None)
       version = default("/commandParams/version", None)
 
       if not os.path.islink(hadoop_conf_dir) and stack_name and version:

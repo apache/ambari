@@ -29,7 +29,7 @@ from resource_management.libraries.functions.default import default
 def get_not_managed_resources():
   """
   Returns a list of not managed hdfs paths.
-  The result contains all paths from hostLevelParams/not_managed_hdfs_path_list
+  The result contains all paths from clusterLevelParams/not_managed_hdfs_path_list
   except config values from cluster-env/managed_hdfs_resource_property_names
   """
   config = Script.get_config()
