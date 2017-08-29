@@ -386,9 +386,6 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   }
 
   private void removeComponent(String componentName, String configPrefix) throws SQLException {
-    String supersetConfigMappingRemoveSQL = String.format(
-        "DELETE FROM %s WHERE type_name like '%s%%'",
-        CLUSTER_CONFIG_MAPPING_TABLE, configPrefix);
 
     String serviceConfigMappingRemoveSQL = String.format(
         "DELETE FROM %s WHERE config_id IN (SELECT config_id from %s where type_name like '%s%%')",
@@ -410,7 +407,6 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
         "DELETE FROM %s WHERE component_name = '%s'",
         SERVICE_COMPONENT_DESIRED_STATE, componentName);
 
-    dbAccessor.executeQuery(supersetConfigMappingRemoveSQL);
     dbAccessor.executeQuery(serviceConfigMappingRemoveSQL);
     dbAccessor.executeQuery(supersetConfigRemoveSQL);
     dbAccessor.executeQuery(hostComponentDesiredStateRemoveSQL);
