@@ -3542,4 +3542,44 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
+  describe('#confirmDiscardRepoVersion', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'showConfirmationPopup', Em.clb);
+      sinon.stub(controller, 'discardRepoVersion');
+    });
+    afterEach(function() {
+      App.showConfirmationPopup.restore();
+      controller.discardRepoVersion.restore();
+    });
+
+    it('discardRepoVersion should be called', function() {
+      controller.confirmDiscardRepoVersion(Em.Object.create());
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(controller.discardRepoVersion.calledWith(Em.Object.create())).to.be.true;
+    });
+  });
+
+
+  describe('#discardRepoVersion', function() {
+
+    it('App.ajax.send should be called', function() {
+      var version = Em.Object.create({
+        id: 2,
+        stackVersionType: 'HDP',
+        stackVersionNumber: '2.5'
+      });
+      controller.discardRepoVersion(version);
+      expect(controller.get('requestInProgress')).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.stack_versions.discard');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
+        id: 2,
+        stackName: 'HDP',
+        stackVersion: '2.5'
+      });
+      args[0].callback();
+      expect(controller.get('requestInProgress')).to.be.false;
+    });
+  });
+
 });

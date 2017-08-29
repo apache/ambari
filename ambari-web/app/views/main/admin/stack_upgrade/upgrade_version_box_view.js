@@ -186,12 +186,17 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.setProperties(statePropertiesMap[status]);
     }
     else if (status === 'NOT_REQUIRED') {
+      var isDisabledOnInit = this.isDisabledOnInit();
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
-      element.set('isDisabled', this.isDisabledOnInit());
-      if (this.addRemoveIopSelectButton(element, this.isDisabledOnInit())) {
-        element.set('isButtonGroup', true);
-        element.set('isButton', false);
-      }
+      element.set('isDisabled', isDisabledOnInit);
+      element.set('isButtonGroup', true);
+      element.set('isButton', false);
+      element.get('buttons').pushObject({
+        text: Em.I18n.t('common.discard'),
+        action: 'confirmDiscardRepoVersion',
+        isDisabled: isDisabledOnInit
+      });
+      this.addRemoveIopSelectButton(element, isDisabledOnInit);
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
@@ -214,6 +219,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
             action: 'installRepoVersionConfirmation',
             isDisabled: isDisabled
           });
+          if (this.get('content.isPatch')) {
+            element.get('buttons').pushObject({
+              text: Em.I18n.t('common.discard'),
+              action: 'confirmDiscardRepoVersion',
+              isDisabled: isDisabled
+            });
+          }
           this.addRemoveIopSelectButton(element, isDisabled);
         }
         element.set('isDisabled', isDisabled);

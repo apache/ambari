@@ -2051,6 +2051,37 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
+   * @param {App.RepositoryVersion} version
+   * @returns {Em.Object}
+   */
+  confirmDiscardRepoVersion: function(version) {
+    var self = this;
+    return App.showConfirmationPopup(function() {
+      self.discardRepoVersion(version);
+    });
+  },
+
+  /**
+   * @param {App.RepositoryVersion} version
+   * @returns {$.ajax}
+   */
+  discardRepoVersion: function(version) {
+    this.set('requestInProgress', true);
+    return App.ajax.send({
+      name: 'admin.stack_versions.discard',
+      sender: this,
+      callback: function () {
+        this.sender.set('requestInProgress', false);
+      },
+      data: {
+        id: version.get('id'),
+        stackName: version.get('stackVersionType'),
+        stackVersion: version.get('stackVersionNumber')
+      },
+    });
+  },
+
+  /**
    * restore last Upgrade data
    * @param {object} lastUpgradeData
    */

@@ -30,6 +30,7 @@ App.RepositoryVersion = DS.Model.extend({
   stackServices: DS.hasMany('App.ServiceSimple'),
   stackVersion: DS.belongsTo('App.StackVersion'),
   stack: Em.computed.concat(' ', 'stackVersionType', 'stackVersionNumber'),
+  hidden: DS.attr('boolean'),
   displayNameSimple: function() {
     return this.get('stackVersionType') + '-' + this.get('repositoryVersion').split('-')[0];
   }.property('stackVersionType', 'repositoryVersion'),

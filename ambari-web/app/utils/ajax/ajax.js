@@ -1873,6 +1873,21 @@ var urls = {
     }
   },
 
+  'admin.stack_versions.discard': {
+    'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "RepositoryVersions":{
+            "hidden": "true"
+          }
+        })
+      }
+    }
+  },
+
   'admin.upgrade.pre_upgrade_check': {
     'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id={id}&UpgradeChecks/upgrade_type={type}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
