@@ -64,45 +64,7 @@ import com.google.inject.Injector;
 
 public class DatabaseConsistencyCheckHelperTest {
 
-  @Test
-  public void testCheckForNotMappedConfigs() throws Exception {
-    EasyMockSupport easyMockSupport = new EasyMockSupport();
 
-    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
-    final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
-    final ResultSet mockResultSet = easyMockSupport.createNiceMock(ResultSet.class);
-    final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
-
-    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
-    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
-    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
-    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-
-        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
-        bind(EntityManager.class).toInstance(mockEntityManager);
-        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(OsFamily.class).toInstance(mockOSFamily);
-      }
-    });
-
-
-
-    expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
-    expect(mockStatement.executeQuery("select type_name from clusterconfig where type_name not in (select type_name from clusterconfigmapping)")).andReturn(mockResultSet);
-
-    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
-    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
-
-    easyMockSupport.replayAll();
-
-    DatabaseConsistencyCheckHelper.checkForNotMappedConfigsToCluster();
-
-    easyMockSupport.verifyAll();
-  }
 
   @Test
   public void testCheckForConfigsSelectedMoreThanOnce() throws Exception {
@@ -130,10 +92,10 @@ public class DatabaseConsistencyCheckHelperTest {
     });
 
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
-    expect(mockStatement.executeQuery("select c.cluster_name, ccm.type_name from clusterconfigmapping ccm " +
-            "join clusters c on ccm.cluster_id=c.cluster_id " +
-            "group by c.cluster_name, ccm.type_name " +
-            "having sum(selected) > 1")).andReturn(mockResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, cc.type_name from clusterconfig cc " +
+            "join clusters c on cc.cluster_id=c.cluster_id " +
+            "group by c.cluster_name, cc.type_name " +
+            "having sum(cc.selected) > 1")).andReturn(mockResultSet);
 
 
 
@@ -360,11 +322,10 @@ public class DatabaseConsistencyCheckHelperTest {
             "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
             "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
             "join clusterconfig cc on scm.config_id=cc.config_id and cc.cluster_id=sc.cluster_id " +
-            "join clusterconfigmapping ccm on cc.type_name=ccm.type_name and cc.version_tag=ccm.version_tag and cc.cluster_id=ccm.cluster_id " +
-            "join clusters c on ccm.cluster_id=c.cluster_id " +
+            "join clusters c on cc.cluster_id=c.cluster_id " +
             "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
             "group by c.cluster_name, cs.service_name, cc.type_name " +
-            "having sum(ccm.selected) < 1")).andReturn(mockResultSet);
+            "having sum(cc.selected) < 1")).andReturn(mockResultSet);
 
     DatabaseConsistencyCheckHelper.setInjector(mockInjector);
     DatabaseConsistencyCheckHelper.setConnection(mockConnection);
@@ -561,11 +522,10 @@ public class DatabaseConsistencyCheckHelperTest {
         "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
         "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
         "join clusterconfig cc on scm.config_id=cc.config_id and cc.cluster_id=sc.cluster_id " +
-        "join clusterconfigmapping ccm on cc.type_name=ccm.type_name and cc.version_tag=ccm.version_tag and cc.cluster_id=ccm.cluster_id " +
-        "join clusters c on ccm.cluster_id=c.cluster_id " +
+        "join clusters c on cc.cluster_id=c.cluster_id " +
         "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
         "group by c.cluster_name, cs.service_name, cc.type_name " +
-        "having sum(ccm.selected) < 1")).andReturn(mockResultSet);
+        "having sum(cc.selected) < 1")).andReturn(mockResultSet);
 
     DatabaseConsistencyCheckHelper.setInjector(mockInjector);
     DatabaseConsistencyCheckHelper.setConnection(mockConnection);
