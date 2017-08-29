@@ -89,8 +89,9 @@ angular.module('ambariAdminConsole')
 
     allPublicStackVersions: function() {
       var self = this;
-      var url = '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
-        '&VersionDefinition/show_available=true';
+      var url = '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/type,' +
+        'VersionDefinition/stack_repo_update_link_exists,operating_systems/repositories/Repositories/*,' +
+        'VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true';
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
         .success(function (data) {
