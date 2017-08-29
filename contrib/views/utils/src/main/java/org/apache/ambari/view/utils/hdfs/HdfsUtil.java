@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
-import java.security.PrivilegedExceptionAction;
 
 public class HdfsUtil {
   private final static Logger LOG =
@@ -39,29 +38,19 @@ public class HdfsUtil {
    * @param filePath path to file
    * @param content new content of file
    */
-  public static void putStringToFile(final HdfsApi hdfs,final String filePath, final String content) throws HdfsApiException {
+  public static void putStringToFile(HdfsApi hdfs, String filePath, String content) throws HdfsApiException {
     FSDataOutputStream stream;
-      try {
+    try {
       synchronized (hdfs) {
-        hdfs.execute(new PrivilegedExceptionAction<Void>() {
-          @Override
-          public Void run() throws Exception {
-            stream = hdfs.create(filePath, true);
-            stream.write(content.getBytes());
-            stream.close();
-            return null;
-          }
-        }, true);
+        stream = hdfs.create(filePath, true);
+        stream.write(content.getBytes());
+        stream.close();
       }
     } catch (IOException e) {
       throw new HdfsApiException("HDFS020 Could not write file " + filePath, e);
     } catch (InterruptedException e) {
       throw new HdfsApiException("HDFS021 Could not write file " + filePath, e);
-    } finally {
-      if(stream != null) {
-          stream.close()
-        }
-      }
+    }
   }
 
   /**
