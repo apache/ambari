@@ -62,17 +62,7 @@ class OozieServer(Script):
     if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and params.version is not None:
       Logger.info(format("Configuring Oozie during upgrade type: {upgrade_type}, direction: {params.upgrade_direction}, and version {params.version}"))
       if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-        # In order for the "<stack-root>/current/oozie-<client/server>" point to the new version of
-        # oozie, we need to create the symlinks both for server and client.
-        # This is required as both need to be pointing to new installed oozie version.
-
-        # Sets the symlink : eg: <stack-root>/current/oozie-client -> <stack-root>/a.b.c.d-<version>/oozie
-        stack_select.select("oozie-client", params.version)
-        # Sets the symlink : eg: <stack-root>/current/oozie-server -> <stack-root>/a.b.c.d-<version>/oozie
-        stack_select.select("oozie-server", params.version)
-
-      if params.version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
-        conf_select.select(params.stack_name, "oozie", params.version)
+        stack_select.select_packages(params.version)
 
     env.set_params(params)
     oozie(is_server=True, upgrade_type=upgrade_type)
@@ -126,8 +116,7 @@ class OozieServerDefault(OozieServer):
     Logger.info("Executing Oozie Server Stack Upgrade pre-restart")
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "oozie", params.version)
-      stack_select.select("oozie-server", params.version)
+      stack_select.select_packages(params.version)
 
     OozieUpgrade.prepare_libext_directory(upgrade_type=upgrade_type)
 

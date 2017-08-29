@@ -38,6 +38,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import upgrade_summary
 
 STACK_SELECT_PREFIX = 'ambari-python-wrap'
 
@@ -76,6 +77,8 @@ PACKAGE_SCOPE_PATCH = "PATCH"
 PACKAGE_SCOPE_STACK_SELECT = "STACK-SELECT-PACKAGE"
 _PACKAGE_SCOPES = (PACKAGE_SCOPE_INSTALL, PACKAGE_SCOPE_STANDARD, PACKAGE_SCOPE_PATCH, PACKAGE_SCOPE_STACK_SELECT)
 
+# the orchestration types which equal to a partial (non-STANDARD) upgrade
+_PARTIAL_ORCHESTRATION_SCOPES = ("PATCH", "MAINT")
 
 def get_package_name(default_package = None):
   """
@@ -197,12 +200,30 @@ def select_all(version_to_select):
 def select_packages(version):
   """
   Uses the command's service and role to determine the stack-select packages which need to be invoked.
+  If in an upgrade, then the upgrade summary's orchestration is used to determine which packages
+  to install.
   :param version: the version to select
   :return: None
   """
-  stack_select_packages = get_packages(PACKAGE_SCOPE_STANDARD)
+  package_scope = PACKAGE_SCOPE_STANDARD
+  orchestration = package_scope
+  summary = upgrade_summary.get_upgrade_summary()
+
+  if summary is not None:
+    orchestration = summary.orchestration
+    if orchestration is None:
+      raise Fail("The upgrade summary for does not contain an orchestration type")
+
+    # if the orchestration is patch or maint, use the "patch" key from the package JSON
+    if orchestration.upper() in _PARTIAL_ORCHESTRATION_SCOPES:
+      package_scope = PACKAGE_SCOPE_PATCH
+
+  stack_select_packages = get_packages(package_scope)
   if stack_select_packages is None:
     return
+
+  Logger.info("The following packages will be stack-selected to version {0} using a {1} orchestration and {2} scope: {3}".format(
+    version, orchestration.upper(), package_scope, ", ".join(stack_select_packages)))
 
   for stack_select_package_name in stack_select_packages:
     select(stack_select_package_name, version)

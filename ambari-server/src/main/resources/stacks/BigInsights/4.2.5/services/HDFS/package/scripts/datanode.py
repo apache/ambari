@@ -87,8 +87,7 @@ class DataNodeDefault(DataNode):
     import params
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-datanode", params.version)
+      stack_select.select_packages(params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing DataNode Stack Upgrade post-restart")

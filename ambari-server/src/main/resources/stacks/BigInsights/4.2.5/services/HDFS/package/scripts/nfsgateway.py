@@ -47,8 +47,7 @@ class NFSGateway(Script):
     env.set_params(params)
 
     if params.stack_version_formatted and check_stack_feature(StackFeature.NFS, params.stack_version_formatted):
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-nfs3", params.version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params
