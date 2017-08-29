@@ -478,8 +478,15 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         expected: {
           status: 'NOT_REQUIRED',
-          isButton: true,
-          buttons: [],
+          isButton: false,
+          isButtonGroup: true,
+          buttons: [
+            {
+              "action": "confirmDiscardRepoVersion",
+              "isDisabled": false,
+              "text": "Discard"
+            }
+          ],
           isDisabled: true
         },
         title: 'NOT_REQUIRED state, no admin access, no requests in progress'
@@ -500,8 +507,15 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         expected: {
           status: 'NOT_REQUIRED',
-          isButton: true,
-          buttons: [],
+          isButton: false,
+          isButtonGroup: true,
+          buttons: [
+            {
+              "action": "confirmDiscardRepoVersion",
+              "isDisabled": true,
+              "text": "Discard"
+            }
+          ],
           isDisabled: true
         },
         title: 'NOT_REQUIRED state, no admin access, request in progress, not installation'
@@ -671,6 +685,7 @@ describe('App.UpgradeVersionBoxView', function () {
         inputData: {
           'content.status': 'INSTALLED',
           'controller.requestInProgress': true,
+          'content.isPatch': true,
           'parentView.repoVersions': [
             Em.Object.create({
               status: 'INSTALLED'
@@ -698,6 +713,11 @@ describe('App.UpgradeVersionBoxView', function () {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
               action: 'installRepoVersionConfirmation',
               isDisabled: true
+            },
+            {
+              "action": "confirmDiscardRepoVersion",
+              "isDisabled": true,
+              "text": "Discard"
             }
           ],
           isDisabled: true

@@ -30,6 +30,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
       stack_version_id: repoVersionsKey + '.stackVersionId',
       display_name: repoVersionsKey + '.display_name',
       type: repoVersionsKey + '.type',
+      hidden: repoVersionsKey + '.hidden',
       repository_version: repoVersionsKey + '.repository_version',
       upgrade_pack: repoVersionsKey + '.upgrade_pack',
       stack_version_type: repoVersionsKey + '.stack_name',
