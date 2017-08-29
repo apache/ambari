@@ -16,7 +16,11 @@
 
 What's New with Ambari?
 
-  * The latest release of Ambari is Ambari 2.5.1.
+  * The latest release of Ambari is Ambari 2.5.2.
+
+  * Ambari 2.5.2 added the following features:
+  
+    * Cross Stack upgrade support.
 
   * Ambari 2.5.0 added the following features:
 
