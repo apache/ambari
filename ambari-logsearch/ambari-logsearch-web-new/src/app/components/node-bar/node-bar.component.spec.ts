@@ -16,14 +16,28 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/models/common-entry.model';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-export interface Node {
-  name: string;
-  type?: string;
-  value: string;
-  isParent: boolean;
-  isRoot: boolean;
-  childs?: Node[];
-  logLevelCount: CommonEntry[];
-}
+import {NodeBarComponent} from './node-bar.component';
+
+describe('NodeBarComponent', () => {
+  let component: NodeBarComponent;
+  let fixture: ComponentFixture<NodeBarComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [NodeBarComponent]
+    })
+      .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(NodeBarComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+});

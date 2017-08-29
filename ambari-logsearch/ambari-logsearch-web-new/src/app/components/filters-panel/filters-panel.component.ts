@@ -19,9 +19,6 @@
 import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {FilteringService} from '@app/services/filtering.service';
-import {HttpClientService} from '@app/services/http-client.service';
-import {ClustersService} from '@app/services/storage/clusters.service';
-import {ComponentsService} from '@app/services/storage/components.service';
 
 @Component({
   selector: 'filters-panel',
@@ -30,33 +27,14 @@ import {ComponentsService} from '@app/services/storage/components.service';
 })
 export class FiltersPanelComponent {
 
-  constructor(private filtering: FilteringService, private httpClient: HttpClientService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService) {
-    this.loadClusters();
-    this.loadComponents();
+  constructor(private filtering: FilteringService) {
+    this.filtering.loadClusters();
+    this.filtering.loadComponents();
+    this.filtering.loadHosts();
   }
 
   get filters(): any {
     return this.filtering.filters;
-  }
-
-  private loadClusters(): void {
-    this.httpClient.get('clusters').subscribe(response => {
-      const clusterNames = response.json();
-      if (clusterNames) {
-        this.clustersStorage.addInstances(clusterNames);
-      }
-    });
-  }
-
-  private loadComponents(): void {
-    this.httpClient.get('components').subscribe(response => {
-      const jsonResponse = response.json(),
-        components = jsonResponse && jsonResponse.groupList;
-      if (components) {
-        const componentNames = components.map(component => component.type);
-        this.componentsStorage.addInstances(componentNames);
-      }
-    });
   }
 
   get filtersForm(): FormGroup {

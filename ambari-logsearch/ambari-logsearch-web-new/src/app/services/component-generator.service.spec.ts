@@ -16,10 +16,7 @@
  * limitations under the License.
  */
 
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {TestBed, inject} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
@@ -30,22 +27,14 @@ import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/se
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
-import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 
-import {DropdownListComponent} from './dropdown-list.component';
+import {ComponentGeneratorService} from './component-generator.service';
 
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
-
-describe('DropdownListComponent', () => {
-  let component: DropdownListComponent;
-  let fixture: ComponentFixture<DropdownListComponent>;
-
-  beforeEach(async(() => {
+describe('ComponentGeneratorService', () => {
+  beforeEach(() => {
     const httpClient = {
       get: () => {
         return {
@@ -55,13 +44,7 @@ describe('DropdownListComponent', () => {
       }
     };
     TestBed.configureTestingModule({
-      declarations: [DropdownListComponent],
       imports: [
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        }),
         StoreModule.provideStore({
           hosts,
           auditLogs,
@@ -92,39 +75,10 @@ describe('DropdownListComponent', () => {
         ClustersService,
         ComponentsService
       ]
-    })
-    .compileComponents();
+    });
+  });
+
+  it('should create service', inject([ComponentGeneratorService], (service: ComponentGeneratorService) => {
+    expect(service).toBeTruthy();
   }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(DropdownListComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create component', () => {
-    expect(component).toBeTruthy();
-  });
-
-  describe('#changeSelectedItem()', () => {
-
-    const options = {
-      label: 'l',
-      value: 'v'
-    };
-
-    beforeEach(() => {
-      spyOn(component.selectedItemChange, 'emit').and.callFake(() => {});
-      component.changeSelectedItem(options);
-    });
-
-    it('event should be emitted', () => {
-      expect(component.selectedItemChange.emit).toHaveBeenCalled();
-    });
-
-    it('event emitter should be called with correct arguments', () => {
-      expect(component.selectedItemChange.emit).toHaveBeenCalledWith(options);
-    });
-
-  });
 });

@@ -23,5 +23,6 @@
   <a *ngIf="label" (mousedown)="onMouseDown($event)" [ngClass]="labelClass" (mouseup)="onMouseUp($event)"
      (click)="$event.stopPropagation()">{{label | translate}}</a>
   <ul data-component="dropdown-list" *ngIf="hasSubItems" [items]="subItems" (selectedItemChange)="updateValue($event)"
-      [isMultipleChoice]="isMultipleChoice" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"></ul>
+      [isMultipleChoice]="isMultipleChoice" [additionalLabelComponentSetter]="additionalLabelComponentSetter"
+      [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"></ul>
 </div>

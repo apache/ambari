@@ -21,18 +21,29 @@ import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {UtilsService} from '@app/services/utils.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 import {FilteringService} from './filtering.service';
 
 describe('FilteringService', () => {
   beforeEach(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       imports: [
         StoreModule.provideStore({
           appSettings,
           clusters,
-          components
+          components,
+          hosts
         })
       ],
       providers: [
@@ -40,7 +51,12 @@ describe('FilteringService', () => {
         AppSettingsService,
         ClustersService,
         ComponentsService,
-        UtilsService
+        HostsService,
+        UtilsService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        }
       ]
     });
   });

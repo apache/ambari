@@ -16,14 +16,20 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/models/common-entry.model';
+import {Component, Input} from '@angular/core';
 
-export interface Node {
-  name: string;
-  type?: string;
-  value: string;
-  isParent: boolean;
-  isRoot: boolean;
-  childs?: Node[];
-  logLevelCount: CommonEntry[];
+@Component({
+  selector: 'node-bar',
+  templateUrl: './node-bar.component.html',
+  styleUrls: ['./node-bar.component.less']
+})
+export class NodeBarComponent {
+
+  @Input()
+  data: any[] = [];
+
+  get totalCount(): number {
+    return this.data.reduce((currentValue, currentItem) => currentValue + Number(currentItem.value), 0);
+  }
+
 }

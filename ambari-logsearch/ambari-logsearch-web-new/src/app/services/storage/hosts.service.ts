@@ -20,13 +20,13 @@ import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
 
-export const modelName = 'nodes';
+export const modelName = 'hosts';
 
 @Injectable()
-export class NodesService extends CollectionModelService {
+export class HostsService extends CollectionModelService {
   constructor(store: Store<AppStore>) {
     super(modelName, store);
   }
 }
 
-export const nodes = getCollectionReducer(modelName);
+export const hosts = getCollectionReducer(modelName);

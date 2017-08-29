@@ -61,6 +61,9 @@ export class HttpClientService extends Http {
     },
     clusters: {
       url: 'service/logs/clusters'
+    },
+    hosts: {
+      url: 'service/logs/tree'
     }
   };
 

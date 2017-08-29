@@ -15,17 +15,5 @@
   limitations under the License.
 -->
 
-<li *ngFor="let item of items">
-  <label class="list-item-label" *ngIf="isMultipleChoice">
-    <input type="checkbox" [attr.id]="item.id || item.value" [attr.checked]="item.isChecked ? 'checked' : null"
-           (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked})">
-    <label [attr.for]="item.id || item.value" class="label-container">{{item.label | translate}}
-      <div #additionalComponent></div>
-    </label>
-  </label>
-  <span class="list-item-label label-container" *ngIf="!isMultipleChoice"
-        (click)="changeSelectedItem({value: item.value, label: item.label})">
-    {{item.label | translate}}
-    <div #additionalComponent></div>
-  </span>
-</li>
+<div *ngFor="let item of data" class="bar-sector"
+     [ngStyle]="{'background-color': item.color, 'width': (item.value / totalCount * 100) + '%'}"></div>

@@ -33,6 +33,8 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
+import {ComponentGeneratorService} from '@app/services/component-generator.service';
 
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -40,7 +42,7 @@ import {AuditLogsService} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {GraphsService} from '@app/services/storage/graphs.service';
-import {NodesService} from '@app/services/storage/nodes.service';
+import {HostsService} from '@app/services/storage/hosts.service';
 import {UserConfigsService} from '@app/services/storage/user-configs.service';
 import {FiltersService} from '@app/services/storage/filters.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
@@ -68,6 +70,7 @@ import {TimeHistogramComponent} from '@app/components/time-histogram/time-histog
 import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
 import {ModalComponent} from '@app/components/modal/modal.component';
 import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
+import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 
@@ -112,6 +115,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     LogsContainerComponent,
     ModalComponent,
     TimeZonePickerComponent,
+    NodeBarComponent,
     TimeZoneAbbrPipe
   ],
   imports: [
@@ -136,13 +140,15 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ComponentActionsService,
     FilteringService,
     UtilsService,
+    LogsContainerService,
+    ComponentGeneratorService,
     AppSettingsService,
     AppStateService,
     AuditLogsService,
     ServiceLogsService,
     ServiceLogsHistogramDataService,
     GraphsService,
-    NodesService,
+    HostsService,
     UserConfigsService,
     FiltersService,
     ClustersService,
@@ -156,6 +162,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     }
   ],
   bootstrap: [AppComponent],
+  entryComponents: [NodeBarComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {

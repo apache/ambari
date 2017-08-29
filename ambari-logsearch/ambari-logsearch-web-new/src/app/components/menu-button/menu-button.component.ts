@@ -49,13 +49,16 @@ export class MenuButtonComponent {
   subItems?: any[];
 
   @Input()
-  isMultipleChoice?: boolean = false;
+  isMultipleChoice: boolean = false;
 
   @Input()
-  hideCaret?: boolean = false;
+  hideCaret: boolean = false;
 
   @Input()
-  isRightAlign?: boolean = false;
+  isRightAlign: boolean = false;
+
+  @Input()
+  additionalLabelComponentSetter?: string;
 
   get hasSubItems(): boolean {
     return Boolean(this.subItems && this.subItems.length);

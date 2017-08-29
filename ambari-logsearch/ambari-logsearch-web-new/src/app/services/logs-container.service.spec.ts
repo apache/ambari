@@ -16,87 +16,67 @@
  * limitations under the License.
  */
 
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {TestBed, inject} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
-import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
-import {AppStateService, appState} from '@app/services/storage/app-state.service';
-import {ClustersService, clusters} from '@app/services/storage/clusters.service';
-import {ComponentsService, components} from '@app/services/storage/components.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
-import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
-import {UtilsService} from '@app/services/utils.service';
-import {LogsContainerService} from '@app/services/logs-container.service';
 
-import {LogsContainerComponent} from './logs-container.component';
+import {LogsContainerService} from './logs-container.service';
 
-describe('LogsContainerComponent', () => {
-  const httpClient = {
-    get: () => {
-      return {
-        subscribe: () => {
+describe('LogsContainerService', () => {
+  beforeEach(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
         }
-      };
-    }
-  };
-  let component: LogsContainerComponent;
-  let fixture: ComponentFixture<LogsContainerComponent>;
-
-  beforeEach(async(() => {
+      }
+    };
     TestBed.configureTestingModule({
-      declarations: [LogsContainerComponent],
       imports: [
         StoreModule.provideStore({
-          appSettings,
-          appState,
-          clusters,
-          components,
           auditLogs,
-          auditLogsFields,
           serviceLogs,
+          auditLogsFields,
           serviceLogsFields,
           serviceLogsHistogramData,
+          appSettings,
+          clusters,
+          components,
           hosts
         })
       ],
       providers: [
+        AuditLogsService,
+        ServiceLogsService,
+        AuditLogsFieldsService,
+        ServiceLogsFieldsService,
+        ServiceLogsHistogramDataService,
+        AppSettingsService,
+        ClustersService,
+        ComponentsService,
+        HostsService,
+        LogsContainerService,
         {
           provide: HttpClientService,
           useValue: httpClient
         },
-        AppSettingsService,
-        AppStateService,
-        ClustersService,
-        ComponentsService,
-        AuditLogsService,
-        AuditLogsFieldsService,
-        ServiceLogsService,
-        ServiceLogsFieldsService,
-        ServiceLogsHistogramDataService,
-        HostsService,
-        FilteringService,
-        UtilsService,
-        LogsContainerService
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
-    .compileComponents();
+        FilteringService
+      ]
+    });
+  });
+
+  it('should create service', inject([LogsContainerService], (service: LogsContainerService) => {
+    expect(service).toBeTruthy();
   }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(LogsContainerComponent);
-    component = fixture.componentInstance;
-    component.logsType = 'serviceLogs';
-    fixture.detectChanges();
-  });
-
-  it('should create component', () => {
-    expect(component).toBeTruthy();
-  });
 });

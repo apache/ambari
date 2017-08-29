@@ -662,6 +662,14 @@ export const mockData = {
             ]
           },
           hosts: {
+            groupList: [
+              {
+                host: 'h0'
+              },
+              {
+                host: 'h1'
+              }
+            ],
             components: {
               vNodeList: [
                 {
@@ -790,70 +798,127 @@ export const mockData = {
           tree: {
             vNodeList: [
               {
-                name: 'ambari',
-                type: 0,
-                logLevelCount: [
-                  {
-                    name: 'ERROR',
-                    value: '1000'
-                  },
-                  {
-                    name: 'WARN',
-                    value: '5000'
-                  }
-                ],
+                name: 'h0',
+                type: 'H',
+                value: '1',
                 childs: [
                   {
-                    name: 'yarn',
-                    type: 2,
+                    name: 'ams_collector',
+                    type: 'C',
+                    value: '1',
                     logLevelCount: [
                       {
-                        name: 'ERROR',
-                        value: '1000'
-                      },
-                      {
                         name: 'WARN',
-                        value: '2000'
+                        value: '1'
                       }
                     ],
                     isParent: false,
                     isRoot: false
-                  },
+                  }
+                ],
+                logLevelCount: [
                   {
-                    name: 'hive',
-                    type: 3,
-                    logLevelCount: [
-                      {
-                        name: 'ERROR',
-                        value: '2000'
-                      },
-                      {
-                        name: 'WARN',
-                        value: '4000'
-                      }
-                    ],
-                    isParent: false,
-                    isRoot: false
+                    name: 'WARN',
+                    value: '1'
                   }
                 ],
                 isParent: true,
-                isRoot: false
+                isRoot: true
               },
               {
-                name: 'ambari_server',
-                type: 1,
+                name: 'h1',
+                type: 'H',
+                value: '6',
+                childs: [
+                  {
+                    name: 'ams_collector',
+                    type: 'C',
+                    value: '1',
+                    logLevelCount: [
+                      {
+                        name: 'ERROR',
+                        value: '1'
+                      }
+                    ],
+                    isParent: false,
+                    isRoot: false
+                  },
+                  {
+                    name: 'ambari_agent',
+                    type: 'C',
+                    value: '1',
+                    logLevelCount: [
+                      {
+                        name: 'FATAL',
+                        value: '1'
+                      }
+                    ],
+                    isParent: false,
+                    isRoot: false
+                  },
+                  {
+                    name: 'zookeeper_server',
+                    type: 'C',
+                    value: '2',
+                    logLevelCount: [
+                      {
+                        name: 'INFO',
+                        value: '1'
+                      },
+                      {
+                        name: 'DEBUG',
+                        value: '1'
+                      }
+                    ],
+                    isParent: false,
+                    isRoot: false
+                  },
+                  {
+                    name: 'zookeeper_client',
+                    type: 'C',
+                    value: '2',
+                    logLevelCount: [
+                      {
+                        name: 'TRACE',
+                        value: '1'
+                      },
+                      {
+                        name: 'UNKNOWN',
+                        value: '1'
+                      }
+                    ],
+                    isParent: false,
+                    isRoot: false
+                  }
+                ],
                 logLevelCount: [
                   {
                     name: 'ERROR',
-                    value: '10000'
+                    value: '1'
                   },
                   {
-                    name: 'WARN',
-                    value: '50000'
+                    name: 'FATAL',
+                    value: '1'
+                  },
+                  {
+                    name: 'INFO',
+                    value: '1'
+                  },
+                  {
+                    name: 'DEBUG',
+                    value: '1'
+                  },
+                  {
+                    name: 'TRACE',
+                    value: '1'
+                  },
+                  {
+                    name: 'UNKNOWN',
+                    value: '1'
                   }
                 ],
-                isParent: false,
-                isRoot: false
+                isParent: true,
+                isRoot: true
               }
             ]
           },

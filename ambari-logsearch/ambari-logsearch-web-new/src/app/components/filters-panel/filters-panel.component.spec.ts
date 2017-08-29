@@ -25,6 +25,7 @@ import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
@@ -54,7 +55,8 @@ describe('FiltersPanelComponent', () => {
         StoreModule.provideStore({
           appSettings,
           clusters,
-          components
+          components,
+          hosts
         }),
         TranslateModule.forRoot({
           provide: TranslateLoader,
@@ -66,6 +68,7 @@ describe('FiltersPanelComponent', () => {
         AppSettingsService,
         ClustersService,
         ComponentsService,
+        HostsService,
         FilteringService,
         {
           provide: HttpClientService,

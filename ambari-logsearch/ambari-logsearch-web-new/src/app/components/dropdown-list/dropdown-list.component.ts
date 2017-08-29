@@ -16,14 +16,25 @@
  * limitations under the License.
  */
 
-import {Component, Input, Output, EventEmitter} from '@angular/core';
+import {Component, AfterViewInit, Input, Output, EventEmitter, ViewChildren, ViewContainerRef, QueryList} from '@angular/core';
+import {ComponentGeneratorService} from '@app/services/component-generator.service';
 
 @Component({
   selector: 'ul[data-component="dropdown-list"]',
   templateUrl: './dropdown-list.component.html',
   styleUrls: ['./dropdown-list.component.less']
 })
-export class DropdownListComponent {
+export class DropdownListComponent implements AfterViewInit {
+
+  constructor(private componentGenerator: ComponentGeneratorService) {
+  }
+
+  ngAfterViewInit() {
+    const setter = this.additionalLabelComponentSetter;
+    if (setter) {
+      this.containers.forEach((container, index) => this.componentGenerator[setter](this.items[index].value, container));
+    }
+  }
 
   @Input()
   items: any[];
@@ -34,8 +45,16 @@ export class DropdownListComponent {
   @Input()
   isMultipleChoice?: boolean = false;
 
+  @Input()
+  additionalLabelComponentSetter?: string;
+
   @Output()
   selectedItemChange: EventEmitter<any> = new EventEmitter();
+
+  @ViewChildren('additionalComponent', {
+    read: ViewContainerRef
+  })
+  containers: QueryList<ViewContainerRef>;
 
   changeSelectedItem(options: any): void {
     this.selectedItemChange.emit(options);

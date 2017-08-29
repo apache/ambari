@@ -47,7 +47,7 @@ export interface AppStore {
   serviceLogs: ServiceLog[];
   serviceLogsHistogramData: BarGraph[];
   graphs: Graph[];
-  nodes: Node[];
+  hosts: Node[];
   userConfigs: UserConfig[];
   filters: Filter[];
   clusters: string[];

@@ -16,14 +16,24 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/models/common-entry.model';
+@bar-height: 8px;
 
-export interface Node {
-  name: string;
-  type?: string;
-  value: string;
-  isParent: boolean;
-  isRoot: boolean;
-  childs?: Node[];
-  logLevelCount: CommonEntry[];
+:host {
+  display: block;
+  width: 100%;
+
+  .bar-sector {
+    display: inline-block;
+    height: @bar-height;
+
+    &:first-child {
+      border-top-left-radius: @bar-height / 2;
+      border-bottom-left-radius: @bar-height / 2;
+    }
+
+    &:last-child {
+      border-top-right-radius: @bar-height / 2;
+      border-bottom-right-radius: @bar-height / 2;
+    }
+  }
 }

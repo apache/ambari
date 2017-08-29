@@ -17,7 +17,7 @@
 
 <form *ngIf="logs && logs.length" [formGroup]="filtersForm" class="pull-right">
   <filter-dropdown [label]="filters.sorting.label" formControlName="sorting" [options]="filters.sorting.options"
-                   [defaultLabel]="filters.sorting.defaultLabel" isRightAlign="true"></filter-dropdown>
+                   [defaultLabel]="filters.sorting.defaultLabel" [isRightAlign]="true"></filter-dropdown>
 </form>
 <div class="col-md-12 text-center" *ngIf="logs && logs.length">
   <div class="logs-header">

@@ -50,16 +50,16 @@ export class DropdownButtonComponent implements OnInit {
   action?: string;
 
   @Input()
-  additionalArgs?: any[] = [];
+  additionalArgs: any[] = [];
 
   @Input()
-  isMultipleChoice?: boolean = false;
+  isMultipleChoice: boolean = false;
 
   @Input()
-  isRightAlign?: boolean = false;
+  isRightAlign: boolean = false;
 
   @Input()
-  isDropup?: boolean = false;
+  isDropup: boolean = false;
 
   protected selectedValue?: any;
 

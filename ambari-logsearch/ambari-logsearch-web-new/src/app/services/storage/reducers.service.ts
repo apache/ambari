@@ -24,7 +24,7 @@ import {clusters} from '@app/services/storage/clusters.service';
 import {components} from '@app/services/storage/components.service';
 import {filters} from '@app/services/storage/filters.service';
 import {graphs} from '@app/services/storage/graphs.service';
-import {nodes} from '@app/services/storage/nodes.service';
+import {hosts} from '@app/services/storage/hosts.service';
 import {serviceLogs} from '@app/services/storage/service-logs.service';
 import {serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
@@ -38,7 +38,7 @@ export const reducers = {
   serviceLogs,
   serviceLogsHistogramData,
   graphs,
-  nodes,
+  hosts,
   userConfigs,
   filters,
   clusters,

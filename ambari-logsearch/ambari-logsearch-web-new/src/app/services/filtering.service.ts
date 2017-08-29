@@ -22,17 +22,27 @@ import * as moment from 'moment-timezone';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
+import {HostsService} from '@app/services/storage/hosts.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 @Injectable()
 export class FilteringService {
 
-  constructor(private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService) {
+  constructor(private httpClient: HttpClientService, private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private hostsStorage: HostsService) {
     appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
     clustersStorage.getAll().subscribe(clusters => {
       this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)];
     });
     componentsStorage.getAll().subscribe(components => {
       this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)];
+    });
+    hostsStorage.getAll().subscribe(hosts => {
+      this.filters.hosts.options = [...this.filters.hosts.options, ...hosts.map(host => {
+        return {
+          label: `${host.name} (${host.value})`,
+          value: host.name
+        };
+      })];
     });
   }
 
@@ -176,6 +186,12 @@ export class FilteringService {
       ],
       defaultValue: ''
     },
+    hosts: {
+      label: 'filter.hosts',
+      iconClass: 'fa fa-server',
+      options: [],
+      defaultValue: ''
+    },
     sorting: {
       label: 'sorting.title',
       options: [
@@ -251,6 +267,36 @@ export class FilteringService {
   }, {});
 
   filtersForm = new FormGroup(this.filtersFormItems);
+
+  loadClusters(): void {
+    this.httpClient.get('clusters').subscribe(response => {
+      const clusterNames = response.json();
+      if (clusterNames) {
+        this.clustersStorage.addInstances(clusterNames);
+      }
+    });
+  }
+
+  loadComponents(): void {
+    this.httpClient.get('components').subscribe(response => {
+      const jsonResponse = response.json(),
+        components = jsonResponse && jsonResponse.groupList;
+      if (components) {
+        const componentNames = components.map(component => component.type);
+        this.componentsStorage.addInstances(componentNames);
+      }
+    });
+  }
+
+  loadHosts(): void {
+    this.httpClient.get('hosts').subscribe(response => {
+      const jsonResponse = response.json(),
+        hosts = jsonResponse && jsonResponse.vNodeList;
+      if (hosts) {
+        this.hostsStorage.addInstances(hosts);
+      }
+    });
+  }
 
   private getStartTime(value: any, current: string): string {
     let time;
