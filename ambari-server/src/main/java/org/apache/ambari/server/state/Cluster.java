@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -44,7 +45,7 @@ public interface Cluster {
   /**
    * Get the cluster ID
    */
-  long getClusterId();
+  Long getClusterId();
 
   /**
    * Get the Cluster Name
@@ -67,6 +68,9 @@ public interface Cluster {
    * @param service
    */
   void addService(Service service);
+
+  Service addService(ServiceGroup serviceGroup, String serviceName, String serviceDisplayName,
+                     RepositoryVersionEntity repositoryVersion) throws AmbariException;
 
   /**
    * Add service group to the cluster
@@ -94,6 +98,8 @@ public interface Cluster {
    */
   Service getService(String serviceName) throws AmbariException;
 
+  Service getService(Long serviceId) throws AmbariException;
+
   /**
    * Gets a service from the given component name.
    *
@@ -110,6 +116,8 @@ public interface Cluster {
    */
   Map<String, Service> getServices();
 
+  Map<Long, Service> getServicesById();
+
   /**
    * Get a service group
    *
@@ -117,6 +125,14 @@ public interface Cluster {
    * @return
    */
   ServiceGroup getServiceGroup(String serviceGroupName) throws ServiceGroupNotFoundException;
+
+  /**
+   * Get a service group
+   * @param serviceGroupId
+   * @return
+   */
+  ServiceGroup getServiceGroup(Long serviceGroupId) throws ServiceGroupNotFoundException;
+
 
   /**
    * Get all service groups
@@ -189,7 +205,7 @@ public interface Cluster {
    * @param serviceComponentHosts
    * @throws AmbariException
    */
-  void addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException;
+  Set<ServiceComponentHostResponse> addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException;
 
   /**
    * Remove ServiceComponentHost from cluster
@@ -502,18 +518,6 @@ public interface Cluster {
    * @throws AmbariException
    */
   void delete() throws AmbariException;
-
-  /**
-   * Add service to the cluster
-   *
-   * @param serviceName       the name of the service to add (not {@code null}).
-   * @param repositoryVersion the repository from which the service should be installed (not
-   *                          {@code null}).
-   * @return
-   * @throws AmbariException
-   */
-  Service addService(String serviceName, RepositoryVersionEntity repositoryVersion)
-    throws AmbariException;
 
   /**
    * Fetch desired configs for list of hosts in cluster

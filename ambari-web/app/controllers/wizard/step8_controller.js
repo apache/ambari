@@ -933,6 +933,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   _startDeploy: function () {
     this.createCluster();
+    this.createServiceGroup();
     this.createSelectedServices();
     if (!this.get('isAddHost')) {
       if (this.get('isAddService')) {
@@ -991,6 +992,21 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
+   * Creates the servcegroup
+   * Queued request
+   * @method createServiceGroup
+   */
+  createServiceGroup: function () {
+    if (!this.get('isInstaller')) return;
+    this.addRequestToAjaxQueue({
+      name: 'wizard.step8.create_service_group',
+      data: {
+        data: JSON.stringify({ "ServiceGroupInfo": { "cluster_name": App.get('clusterName') || App.clusterStatus.get('clusterName'), "service_group_name": App.get('defaultServiceGroupName') }})
+      }
+    });
+  },
+
+  /**
    * Create selected to install services
    * Queued request
    * Skipped if no services where selected!
@@ -1018,8 +1034,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       selectedStack = App.Stack.find().findProperty('isSelected', true);
     }
     return this.get('selectedServices').map(service => selectedStack ?
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
-      {"ServiceInfo": { "service_name": service.get('serviceName') }});
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_display_name": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_display_name": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), }});
   },
 
   /**
@@ -1076,7 +1092,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_components',
       data: {
-        data: JSON.stringify({"components": componentsData}),
+        data: JSON.stringify(componentsData),
         serviceName: serviceName
       }
     });

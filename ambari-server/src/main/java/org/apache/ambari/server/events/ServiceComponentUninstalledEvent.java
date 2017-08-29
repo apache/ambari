@@ -38,12 +38,11 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
    * @param componentName
    * @param hostName
    */
-  public ServiceComponentUninstalledEvent(long clusterId, String stackName,
-      String stackVersion, String serviceName, String componentName,
-      String hostName, boolean recoveryEnabled) {
+  public ServiceComponentUninstalledEvent(long clusterId, String stackName, String stackVersion, String serviceName,
+                                          String serviceDisplayName, String serviceGroupName, String componentName,
+                                          String hostName, boolean recoveryEnabled) {
     super(AmbariEventType.SERVICE_COMPONENT_UNINSTALLED_SUCCESS, clusterId,
-        stackName,
-        stackVersion, serviceName);
+      stackName, stackVersion, serviceName, serviceDisplayName, serviceGroupName);
 
     m_componentName = componentName;
     m_hostName = hostName;
@@ -81,6 +80,8 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);
     buffer.append(", serviceName=").append(m_serviceName);
+    buffer.append(", serviceDisplayName=").append(m_serviceDisplayName);
+    buffer.append(", serviceGroupName=").append(m_serviceGroupName);
     buffer.append(", componentName=").append(m_componentName);
     buffer.append(", hostName=").append(m_hostName);
     buffer.append(", recoveryEnabled=").append(m_recoveryEnabled);

@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -93,7 +94,8 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     if (hosts.isEmpty()) {
       List<HostComponentStateEntity> allHostComponents = hostComponentStateDao.findAll();
       for(HostComponentStateEntity hc : allHostComponents) {
-        if (hc.getServiceName().equalsIgnoreCase(HDFS_SERVICE_NAME) && hc.getComponentName().equalsIgnoreCase(SECONDARY_NAMENODE)) {
+        Service s = cluster.getService(hc.getServiceId());
+        if (s.getName().equalsIgnoreCase(HDFS_SERVICE_NAME) && hc.getComponentName().equalsIgnoreCase(SECONDARY_NAMENODE)) {
           hosts.add(hc.getHostName());
         }
       }

@@ -26,11 +26,17 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {
 
+  Long getClusterId();
+
+  Long getServiceGroupId();
+
+  String getServiceGroupName();
+
+  Long getServiceId();
+
   String getName();
 
-  String getDisplayName();
-
-  long getClusterId();
+  String getServiceDisplayName();
 
   Cluster getCluster();
 

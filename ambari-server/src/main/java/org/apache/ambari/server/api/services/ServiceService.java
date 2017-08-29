@@ -61,26 +61,33 @@ public class ServiceService extends BaseService {
    */
   private String m_clusterName;
 
+  /*
+   * Parent service group name.
+   */
+  private String m_serviceGroupName;
+
   /**
    * Constructor.
    *
-   * @param clusterName cluster id
+   * @param clusterName       cluster name
+   * @param serviceGroupName  servicegroup name
    */
-  public ServiceService(String clusterName) {
+  public ServiceService(String clusterName, String serviceGroupName) {
     m_clusterName = clusterName;
+    m_serviceGroupName = serviceGroupName;
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/services/{serviceID}
+   * Handles URL: /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}
    * Get a specific service.
    *
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param serviceName service id
+   * @param headers             http headers
+   * @param ui                  uri info
+   * @param serviceDisplayName  service display name
    * @return service resource representation
    */
   @GET
-  @Path("{serviceName}")
+  @Path("{serviceDisplayName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get the details of a service",
       nickname = "ServiceService#getService",
@@ -97,14 +104,14 @@ public class ServiceService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
   public Response getService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @ApiParam @PathParam("serviceName") String serviceName) {
+                             @ApiParam @PathParam("serviceDisplayName") String serviceDisplayName) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createServiceResource(m_clusterName, serviceName));
+        createServiceResource(m_clusterName, m_serviceGroupName, serviceDisplayName));
   }
 
   /**
-   * Handles URL: /clusters/{clusterId}/services
+   * Handles URL: /clusters/{clusterName}/servicegroups/{serviceGroupName}/services
    * Get all services for a cluster.
    *
    * @param headers http headers
@@ -136,21 +143,21 @@ public class ServiceService extends BaseService {
   })
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createServiceResource(m_clusterName, null));
+        createServiceResource(m_clusterName, m_serviceGroupName, null));
   }
 
   /**
-   * Handles: POST /clusters/{clusterId}/services/{serviceId}
+   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}
    * Create a specific service.
    *
-   * @param body        http body
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param serviceName service id
+   * @param body                http body
+   * @param headers             http headers
+   * @param ui                  uri info
+   * @param serviceDisplayName  service display name
    * @return information regarding the created service
    */
   @POST
-  @Path("{serviceName}")
+  @Path("{serviceDisplayName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Creates a service",
       nickname = "ServiceService#createServices"
@@ -169,13 +176,13 @@ public class ServiceService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @ApiParam @PathParam("serviceName") String serviceName) {
+                                @ApiParam @PathParam("serviceDisplayName") String serviceDisplayName) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createServiceResource(m_clusterName, serviceName));
+        createServiceResource(m_clusterName, m_serviceGroupName, serviceDisplayName));
   }
 
   /**
-   * Handles: POST /clusters/{clusterId}/services
+   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/services
    * Create multiple services.
    *
    * @param body        http body
@@ -204,21 +211,21 @@ public class ServiceService extends BaseService {
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createServiceResource(m_clusterName, null));
+        createServiceResource(m_clusterName, m_serviceGroupName, null));
   }
 
   /**
-   * Handles: PUT /clusters/{clusterId}/services/{serviceId}
+   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}
    * Update a specific service.
    *
-   * @param body        http body
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param serviceName service id
+   * @param body                http body
+   * @param headers             http headers
+   * @param ui                  uri info
+   * @param serviceDisplayName service display name
    * @return information regarding the updated service
    */
   @PUT
-  @Path("{serviceName}")
+  @Path("{serviceDisplayName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Updates a service",
       nickname = "ServiceService#updateService"
@@ -236,12 +243,12 @@ public class ServiceService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @ApiParam @PathParam("serviceName") String serviceName) {
-    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_clusterName, serviceName));
+                                @ApiParam @PathParam("serviceDisplayName") String serviceDisplayName) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_clusterName, m_serviceGroupName, serviceDisplayName));
   }
 
   /**
-   * Handles: PUT /clusters/{clusterId}/services
+   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services
    * Update multiple services.
    *
    * @param body        http body
@@ -268,20 +275,20 @@ public class ServiceService extends BaseService {
   })
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_clusterName, null));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_clusterName, m_serviceGroupName, null));
   }
 
   /**
-   * Handles: DELETE /clusters/{clusterId}/services/{serviceId}
+   * Handles: DELETE /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}
    * Delete a specific service.
    *
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param serviceName service id
+   * @param headers             http headers
+   * @param ui                  uri info
+   * @param serviceDisplayName  service display name
    * @return information regarding the deleted service
    */
   @DELETE
-  @Path("{serviceName}")
+  @Path("{serviceDisplayName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Deletes a service",
       nickname = "ServiceService#deleteService"
@@ -294,47 +301,47 @@ public class ServiceService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
-                                @ApiParam(required = true) @PathParam("serviceName") String serviceName) {
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceResource(m_clusterName, serviceName));
+                                @ApiParam(required = true) @PathParam("serviceDisplayName") String serviceDisplayName) {
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceResource(m_clusterName, m_serviceGroupName, serviceDisplayName));
   }
 
   /**
    * Get the components sub-resource.
    *
-   * @param serviceName service id
+   * @param serviceDisplayName service display name
    * @return the components service
    */
-  @Path("{serviceName}/components")
+  @Path("{serviceDisplayName}/components")
   // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
-  public ComponentService getComponentHandler(@PathParam("serviceName") String serviceName) {
+  public ComponentService getComponentHandler(@PathParam("serviceDisplayName") String serviceDisplayName) {
 
-    return new ComponentService(m_clusterName, serviceName);
+    return new ComponentService(m_clusterName, m_serviceGroupName, serviceDisplayName);
   }
 
   /**
    * Gets the alerts sub-resource.
    */
-  @Path("{serviceName}/alerts")
+  @Path("{serviceDisplayName}/alerts")
   // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
   public AlertService getAlertHandler(
-      @PathParam("serviceName") String serviceName) {
-    return new AlertService(m_clusterName, serviceName, null);
+      @PathParam("serviceDisplayName") String serviceDisplayName) {
+    return new AlertService(m_clusterName, serviceDisplayName, null);
   }
 
   /**
-   * Handles: POST /clusters/{clusterId}/services/{serviceId}/artifacts/{artifactName}
+   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/artifacts/{artifactName}
    * Create a service artifact instance.
    *
-   * @param body          http body
-   * @param headers       http headers
-   * @param ui            uri info
-   * @param serviceName   service name
+   * @param body                http body
+   * @param headers             http headers
+   * @param ui                  uri info
+   * @param serviceDisplayName  service display name
    * @param artifactName  artifact name
    *
    * @return information regarding the created artifact
    */
   @POST
-  @Path("{serviceName}/artifacts/{artifactName}")
+  @Path("{serviceDisplayName}/artifacts/{artifactName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Creates a service artifact",
       nickname = "ServiceService#createArtifact"
@@ -355,26 +362,26 @@ public class ServiceService extends BaseService {
   public Response createArtifact(String body,
                                  @Context HttpHeaders headers,
                                  @Context UriInfo ui,
-                                 @ApiParam @PathParam("serviceName") String serviceName,
+                                 @ApiParam @PathParam("serviceDisplayName") String serviceDisplayName,
                                  @ApiParam @PathParam("artifactName") String artifactName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createArtifactResource(m_clusterName, serviceName, artifactName));
+        createArtifactResource(m_clusterName, m_serviceGroupName, serviceDisplayName, artifactName));
   }
 
   /**
-   * Handles: GET /clusters/{clusterId}/services/{serviceId}/artifacts
+   * Handles: GET /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/artifacts
    * Get all service artifacts.
    *
-   * @param body          http body
-   * @param headers       http headers
-   * @param ui            uri info
-   * @param serviceName   service name
+   * @param body                    http body
+   * @param headers                 http headers
+   * @param ui                      uri info
+   * @param serviceDisplayName      service display name
    *
    * @return artifact collection resource representation
    */
   @GET
-  @Path("{serviceName}/artifacts")
+  @Path("{serviceDisplayName}/artifacts")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get all service artifacts",
       nickname = "ServiceService#getArtifacts",
@@ -399,26 +406,26 @@ public class ServiceService extends BaseService {
   public Response getArtifacts(String body,
                               @Context HttpHeaders headers,
                               @Context UriInfo ui,
-                              @PathParam("serviceName") String serviceName) {
+                              @PathParam("serviceDisplayName") String serviceDisplayName) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createArtifactResource(m_clusterName, serviceName, null));
+        createArtifactResource(m_clusterName, m_serviceGroupName, serviceDisplayName, null));
   }
 
   /**
-   * Handles: GET /clusters/{clusterId}/services/{serviceId}/artifacts/{artifactName}
+   * Handles: GET /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/artifacts/{artifactName}
    * Gat a service artifact instance.
    *
-   * @param body          http body
-   * @param headers       http headers
-   * @param ui            uri info
-   * @param serviceName   service name
+   * @param body                    http body
+   * @param headers                 http headers
+   * @param ui                      uri info
+   * @param serviceDisplayName      service display name
    * @param artifactName  artifact name
    *
    * @return artifact instance resource representation
    */
   @GET
-  @Path("{serviceName}/artifacts/{artifactName}")
+  @Path("{serviceDisplayName}/artifacts/{artifactName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get the details of a service artifact",
       nickname = "ServiceService#getArtifact",
@@ -443,24 +450,24 @@ public class ServiceService extends BaseService {
   public Response getArtifact(String body,
                                  @Context HttpHeaders headers,
                                  @Context UriInfo ui,
-                                 @ApiParam @PathParam("serviceName") String serviceName,
+                                 @ApiParam @PathParam("serviceDisplayName") String serviceDisplayName,
                                  @ApiParam @PathParam("artifactName") String artifactName) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createArtifactResource(m_clusterName, serviceName, artifactName));
+        createArtifactResource(m_clusterName, m_serviceGroupName, serviceDisplayName, artifactName));
   }
 
   /**
-   * Handles: PUT /clusters/{clusterID}/services/{serviceName}/artifacts
+   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/artifacts
    * Update all artifacts matching the provided predicate.
    *
-   * @param headers      http headers
-   * @param ui           uri info
-   * @param serviceName  service name
+   * @param headers             http headers
+   * @param ui                  uri info
+   * @param serviceDisplayName  service display name
    *
    * @return information regarding the updated artifacts
    */
   @PUT
-  @Path("{serviceName}/artifacts")
+  @Path("{serviceDisplayName}/artifacts")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Updates multiple artifacts",
       nickname = "ServiceService#updateArtifacts"
@@ -480,25 +487,25 @@ public class ServiceService extends BaseService {
   public Response updateArtifacts(String body,
                                   @Context HttpHeaders headers,
                                   @Context UriInfo ui,
-                                  @ApiParam @PathParam("serviceName") String serviceName) {
+                                  @ApiParam @PathParam("serviceDisplayName") String serviceDisplayName) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createArtifactResource(m_clusterName, serviceName, null));
+        createArtifactResource(m_clusterName, m_serviceGroupName, serviceDisplayName, null));
   }
 
   /**
-   * Handles: PUT /clusters/{clusterID}/services/{serviceName}/artifacts/{artifactName}
+   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/artifacts/{artifactName}
    * Update a specific artifact.
    *
-   * @param headers       http headers
-   * @param ui            uri info
-   * @param serviceName   service name
-   * @param artifactName  artifact name
+   * @param headers                 http headers
+   * @param ui                      uri info
+   * @param serviceDisplayName      service display name
+   * @param artifactName            artifact name
    *
    * @return information regarding the updated artifact
    */
   @PUT
-  @Path("{serviceName}/artifacts/{artifactName}")
+  @Path("{serviceDisplayName}/artifacts/{artifactName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Updates a single artifact",
       nickname = "ServiceService#updateArtifact"
@@ -518,25 +525,25 @@ public class ServiceService extends BaseService {
   public Response updateArtifact(String body,
                                  @Context HttpHeaders headers,
                                  @Context UriInfo ui,
-                                 @ApiParam(required = true) @PathParam("serviceName") String serviceName,
+                                 @ApiParam(required = true) @PathParam("serviceDisplayName") String serviceDisplayName,
                                  @ApiParam(required = true) @PathParam("artifactName") String artifactName) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createArtifactResource(m_clusterName, serviceName, artifactName));
+        createArtifactResource(m_clusterName, m_serviceGroupName, serviceDisplayName, artifactName));
   }
 
   /**
-   * Handles: DELETE /clusters/{clusterID}/services/{serviceName}/artifacts
+   * Handles: DELETE /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/artifacts
    * Delete all artifacts matching the provided predicate.
    *
-   * @param headers      http headers
-   * @param ui           uri info
-   * @param serviceName  service name
+   * @param headers             http headers
+   * @param ui                  uri info
+   * @param serviceDisplayName  service display name
    *
    * @return information regarding the deleted artifacts
    */
   @DELETE
-  @Path("{serviceName}/artifacts")
+  @Path("{serviceDisplayName}/artifacts")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Deletes all artifacts of a service that match the provided predicate",
     nickname = "ServiceService#deleteArtifacts"
@@ -551,25 +558,25 @@ public class ServiceService extends BaseService {
   public Response deleteArtifacts(String body,
                                   @Context HttpHeaders headers,
                                   @Context UriInfo ui,
-                                  @ApiParam(required = true) @PathParam("serviceName") String serviceName) {
+                                  @ApiParam(required = true) @PathParam("serviceDisplayName") String serviceDisplayName) {
 
     return handleRequest(headers, body, ui, Request.Type.DELETE,
-        createArtifactResource(m_clusterName, serviceName, null));
+        createArtifactResource(m_clusterName, m_serviceGroupName, serviceDisplayName, null));
   }
 
   /**
-   * Handles: DELETE /clusters/{clusterID}/services/{serviceName}/artifacts/{artifactName}
+   * Handles: DELETE /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/artifacts/{artifactName}
    * Delete a specific artifact.
    *
-   * @param headers       http headers
-   * @param ui            uri info
-   * @param serviceName   service name
-   * @param artifactName  artifact name
+   * @param headers                 http headers
+   * @param ui                      uri info
+   * @param serviceDisplayName      service display name
+   * @param artifactName            artifact name
    *
    * @return information regarding the deleted artifact
    */
   @DELETE
-  @Path("{serviceName}/artifacts/{artifactName}")
+  @Path("{serviceDisplayName}/artifacts/{artifactName}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Deletes a single service artifact",
       nickname = "ServiceService#deleteArtifact"
@@ -584,11 +591,11 @@ public class ServiceService extends BaseService {
   public Response deleteArtifact(String body,
                                  @Context HttpHeaders headers,
                                  @Context UriInfo ui,
-                                 @ApiParam(required = true) @PathParam("serviceName") String serviceName,
+                                 @ApiParam(required = true) @PathParam("serviceDisplayName") String serviceDisplayName,
                                  @ApiParam(required = true) @PathParam("artifactName") String artifactName) {
 
     return handleRequest(headers, body, ui, Request.Type.DELETE,
-        createArtifactResource(m_clusterName, serviceName, artifactName));
+        createArtifactResource(m_clusterName, m_serviceGroupName, serviceDisplayName, artifactName));
   }
 
   /**
@@ -596,32 +603,33 @@ public class ServiceService extends BaseService {
    *
    * @param request
    *          the request
-   * @param serviceName
-   *          the service name
+   * @param serviceDisplayName
+   *          the service display name
    *
    * @return the alert history service
    */
-  @Path("{serviceName}/alert_history")
+  @Path("{serviceDisplayName}/alert_history")
   // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
   public AlertHistoryService getAlertHistoryService(
       @Context javax.ws.rs.core.Request request,
-      @PathParam("serviceName") String serviceName) {
+      @PathParam("serviceDisplayName") String serviceDisplayName) {
 
-    return new AlertHistoryService(m_clusterName, serviceName, null);
+    return new AlertHistoryService(m_clusterName, serviceDisplayName, null);
   }
 
   /**
    * Create a service resource instance.
    *
-   * @param clusterName  cluster name
-   * @param serviceName  service name
+   * @param clusterName         cluster name
+   * @param serviceDisplayName  service display name
    *
    * @return a service resource instance
    */
-  ResourceInstance createServiceResource(String clusterName, String serviceName) {
+  ResourceInstance createServiceResource(String clusterName, String serviceGroupName, String serviceDisplayName) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
-    mapIds.put(Resource.Type.Service, serviceName);
+    mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
+    mapIds.put(Resource.Type.Service, serviceDisplayName);
 
     return createResource(Resource.Type.Service, mapIds);
   }
@@ -629,16 +637,17 @@ public class ServiceService extends BaseService {
   /**
    * Create an artifact resource instance.
    *
-   * @param clusterName   cluster name
-   * @param serviceName   service name
-   * @param artifactName  artifact name
+   * @param clusterName           cluster name
+   * @param serviceDisplayName    service display name
+   * @param artifactName          artifact name
    *
    * @return an artifact resource instance
    */
-  ResourceInstance createArtifactResource(String clusterName, String serviceName, String artifactName) {
+  ResourceInstance createArtifactResource(String clusterName, String serviceGroupName, String serviceDisplayName, String artifactName) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
-    mapIds.put(Resource.Type.Service, serviceName);
+    mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
+    mapIds.put(Resource.Type.Service, serviceDisplayName);
     mapIds.put(Resource.Type.Artifact, artifactName);
 
     return createResource(Resource.Type.Artifact, mapIds);

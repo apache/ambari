@@ -41,6 +41,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
@@ -50,9 +51,9 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.kerberos.Component;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +72,7 @@ public class ServiceImpl implements Service {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceImpl.class);
 
   private final Cluster cluster;
+  private final ServiceGroup serviceGroup;
   private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
@@ -83,6 +85,7 @@ public class ServiceImpl implements Service {
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
   private final ClusterDAO clusterDAO;
+  private final ServiceGroupDAO serviceGroupDAO;
   private final ServiceComponentFactory serviceComponentFactory;
 
   /**
@@ -91,32 +94,50 @@ public class ServiceImpl implements Service {
   private final AmbariEventPublisher eventPublisher;
 
   /**
+   * The id of the service.
+   */
+  private Long serviceId;
+
+  /**
    * The name of the service.
    */
   private final String serviceName;
   private final String displayName;
 
+  /**
+   * The stack service name.
+   */
+  private final String serviceDisplayName;
+
   @AssistedInject
-  ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
-      @Assisted RepositoryVersionEntity desiredRepositoryVersion, ClusterDAO clusterDAO,
-      ClusterServiceDAO clusterServiceDAO, ServiceDesiredStateDAO serviceDesiredStateDAO,
-      ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
-      AmbariEventPublisher eventPublisher) throws AmbariException {
+  ServiceImpl(@Assisted Cluster cluster, @Assisted ServiceGroup serviceGroup,
+              @Assisted("serviceName") String serviceName, @Assisted("serviceDisplayName") String serviceDisplayName,
+              @Assisted RepositoryVersionEntity desiredRepositoryVersion,
+              ClusterDAO clusterDAO, ServiceGroupDAO serviceGroupDAO,
+              ClusterServiceDAO clusterServiceDAO, ServiceDesiredStateDAO serviceDesiredStateDAO,
+              ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
+              AmbariEventPublisher eventPublisher) throws AmbariException {
     this.cluster = cluster;
+    this.serviceGroup = serviceGroup;
     this.clusterDAO = clusterDAO;
+    this.serviceGroupDAO = serviceGroupDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceDesiredStateDAO = serviceDesiredStateDAO;
     this.serviceComponentFactory = serviceComponentFactory;
     this.eventPublisher = eventPublisher;
     this.serviceName = serviceName;
+    this.serviceDisplayName = serviceDisplayName;
     this.ambariMetaInfo = ambariMetaInfo;
 
     ClusterServiceEntity serviceEntity = new ClusterServiceEntity();
     serviceEntity.setClusterId(cluster.getClusterId());
+    serviceEntity.setServiceGroupId(serviceGroup.getServiceGroupId());
     serviceEntity.setServiceName(serviceName);
+    serviceEntity.setServiceDisplayName(serviceDisplayName);
+
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setServiceName(serviceName);
     serviceDesiredStateEntity.setClusterId(cluster.getClusterId());
+    serviceDesiredStateEntity.setServiceGroupId(serviceGroup.getServiceGroupId());
     serviceDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
     serviceEntityPK = getServiceEntityPK(serviceEntity);
@@ -127,7 +148,7 @@ public class ServiceImpl implements Service {
     StackId stackId = desiredRepositoryVersion.getStackId();
 
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName);
+        stackId.getStackVersion(), serviceDisplayName);
 
     displayName = sInfo.getDisplayName();
     isClientOnlyService = sInfo.isClientOnlyService();
@@ -138,18 +159,23 @@ public class ServiceImpl implements Service {
   }
 
   @AssistedInject
-  ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity serviceEntity,
-      ClusterDAO clusterDAO, ClusterServiceDAO clusterServiceDAO,
-      ServiceDesiredStateDAO serviceDesiredStateDAO,
-      ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
-      AmbariEventPublisher eventPublisher) throws AmbariException {
+  ServiceImpl(@Assisted Cluster cluster, @Assisted ServiceGroup serviceGroup,
+              @Assisted ClusterServiceEntity serviceEntity,
+              ClusterDAO clusterDAO, ServiceGroupDAO serviceGroupDAO,
+              ClusterServiceDAO clusterServiceDAO, ServiceDesiredStateDAO serviceDesiredStateDAO,
+              ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
+              AmbariEventPublisher eventPublisher) throws AmbariException {
     this.cluster = cluster;
+    this.serviceGroup = serviceGroup;
     this.clusterDAO = clusterDAO;
+    this.serviceGroupDAO = serviceGroupDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceDesiredStateDAO = serviceDesiredStateDAO;
     this.serviceComponentFactory = serviceComponentFactory;
     this.eventPublisher = eventPublisher;
-    serviceName = serviceEntity.getServiceName();
+    this.serviceId = serviceEntity.getServiceId();
+    this.serviceName = serviceEntity.getServiceName();
+    this.serviceDisplayName = serviceEntity.getServiceDisplayName();
     this.ambariMetaInfo = ambariMetaInfo;
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
@@ -166,8 +192,8 @@ public class ServiceImpl implements Service {
           } catch(ProvisionException ex) {
             StackId stackId = new StackId(serviceComponentDesiredStateEntity.getDesiredStack());
             LOG.error(String.format("Can not get component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s",
-                stackId.getStackName(), stackId.getStackVersion(),
-                serviceEntity.getServiceName(),serviceComponentDesiredStateEntity.getComponentName()));
+              stackId.getStackName(), stackId.getStackVersion(),
+              serviceEntity.getServiceDisplayName(), serviceComponentDesiredStateEntity.getComponentName()));
             ex.printStackTrace();
           }
       }
@@ -206,19 +232,30 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public String getName() {
-    return serviceName;
+  public String getName() { return serviceName; }
+
+  @Override
+  public String getServiceDisplayName() {
+    return serviceDisplayName;
   }
 
   @Override
-  public String getDisplayName() {
-    return StringUtils.isBlank(displayName) ? serviceName : displayName;
-  }
-
-  @Override
-  public long getClusterId() {
+  public Long getClusterId() {
     return cluster.getClusterId();
   }
+
+  @Override
+  public Long getServiceGroupId() {
+    return serviceGroup.getServiceGroupId();
+  }
+
+  @Override
+  public String getServiceGroupName() {
+    return serviceGroup.getServiceGroupName();
+  }
+
+  @Override
+  public Long getServiceId() { return serviceId; }
 
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
@@ -239,7 +276,7 @@ public class ServiceImpl implements Service {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + getName()
+          + ", serviceName=" + getServiceDisplayName()
           + ", serviceComponentName=" + component.getName());
     }
 
@@ -260,7 +297,7 @@ public class ServiceImpl implements Service {
     ServiceComponent serviceComponent = components.get(componentName);
     if (null == serviceComponent) {
       throw new ServiceComponentNotFoundException(cluster.getClusterName(),
-          getName(), componentName);
+          getName(), getServiceDisplayName(), serviceGroup.getServiceGroupName(), componentName);
     }
 
     return serviceComponent;
@@ -276,7 +313,7 @@ public class ServiceImpl implements Service {
   public void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting DesiredState of Service, clusterName={}, clusterId={}, serviceName={}, oldDesiredState={}, newDesiredState={}",
-        cluster.getClusterName(), cluster.getClusterId(), getName(), getDesiredState(), state);
+        cluster.getClusterName(), cluster.getClusterId(), getServiceDisplayName(), getDesiredState(), state);
     }
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
@@ -347,8 +384,9 @@ public class ServiceImpl implements Service {
     StackId desiredStackId = desiredRespositoryVersion.getStackId();
 
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
-        getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
-        getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
+        serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
+        getServiceId(), getName(), getServiceDisplayName(), desiredStackId, desiredRespositoryVersion.getVersion(),
+        getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -414,7 +452,7 @@ public class ServiceImpl implements Service {
   public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting CredentialStoreEnabled of Service, clusterName={}, clusterId={}, serviceName={}, oldCredentialStoreEnabled={}, newCredentialStoreEnabled={}",
-        cluster.getClusterName(), cluster.getClusterId(), getName(), isCredentialStoreEnabled(), credentialStoreEnabled);
+        cluster.getClusterName(), cluster.getClusterId(), getServiceDisplayName(), isCredentialStoreEnabled(), credentialStoreEnabled);
     }
 
     ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
@@ -431,6 +469,7 @@ public class ServiceImpl implements Service {
   @Override
   public void debugDump(StringBuilder sb) {
     sb.append("Service={ serviceName=").append(getName())
+      .append(", serviceDisplayName=").append(getServiceDisplayName())
       .append(", clusterName=").append(cluster.getClusterName())
       .append(", clusterId=").append(cluster.getClusterId())
       .append(", desiredStackVersion=").append(getDesiredStackId())
@@ -460,7 +499,7 @@ public class ServiceImpl implements Service {
     cluster.addService(this);
 
     ServiceInstalledEvent event = new ServiceInstalledEvent(getClusterId(), stackId.getStackName(),
-        stackId.getStackVersion(), getName());
+        stackId.getStackVersion(), getName(), serviceDisplayName, serviceGroup.getServiceGroupName());
 
     eventPublisher.publish(event);
   }
@@ -469,10 +508,17 @@ public class ServiceImpl implements Service {
   void persistEntities(ClusterServiceEntity serviceEntity) {
     long clusterId = cluster.getClusterId();
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByClusterAndServiceGroupIds(
+      clusterId, serviceGroup.getServiceGroupId());
+    serviceEntity.setServiceGroupEntity(serviceGroupEntity);
     serviceEntity.setClusterEntity(clusterEntity);
     clusterServiceDAO.create(serviceEntity);
+    serviceId = serviceEntity.getServiceId();
+    serviceEntityPK.setServiceId(serviceId);
+    serviceDesiredStateEntityPK.setServiceId(serviceId);
     clusterEntity.getClusterServiceEntities().add(serviceEntity);
     clusterDAO.merge(clusterEntity);
+    serviceGroupDAO.merge(serviceGroupEntity);
     clusterServiceDAO.merge(serviceEntity);
   }
 
@@ -486,9 +532,9 @@ public class ServiceImpl implements Service {
     //
     for (ServiceComponent sc : components.values()) {
       if (!sc.canBeRemoved()) {
-        LOG.warn("Found non removable component when trying to delete service" + ", clusterName="
-            + cluster.getClusterName() + ", serviceName=" + getName() + ", componentName="
-            + sc.getName());
+        LOG.warn("Found non-removable component when trying to delete service" + ", clusterName="
+            + cluster.getClusterName() + ", serviceName=" + getName() + ", serviceDisplayName="
+            + getServiceDisplayName() + ", componentName=" + sc.getName());
         return false;
       }
     }
@@ -509,7 +555,7 @@ public class ServiceImpl implements Service {
       }
     }
 
-    LOG.info("Deleting all configuration associations for {} on cluster {}", getName(), cluster.getClusterName());
+    LOG.info("Deleting all configuration associations for {} on cluster {}", getServiceDisplayName(), cluster.getClusterName());
 
     List<ServiceConfigEntity> serviceConfigEntities =
       serviceConfigDAO.findByService(cluster.getClusterId(), getName());
@@ -527,13 +573,13 @@ public class ServiceImpl implements Service {
     lock.lock();
     try {
       LOG.info("Deleting all components for service" + ", clusterName=" + cluster.getClusterName()
-          + ", serviceName=" + getName());
+          + ", serviceDisplayName=" + getServiceDisplayName());
       // FIXME check dependencies from meta layer
       for (ServiceComponent component : components.values()) {
         if (!component.canBeRemoved()) {
           throw new AmbariException("Found non removable component when trying to"
               + " delete all components from service" + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName() + ", componentName=" + component.getName());
+              + ", getServiceDisplayName=" + getServiceDisplayName() + ", componentName=" + component.getName());
         }
       }
 
@@ -554,12 +600,12 @@ public class ServiceImpl implements Service {
     try {
       ServiceComponent component = getServiceComponent(componentName);
       LOG.info("Deleting servicecomponent for cluster" + ", clusterName=" + cluster.getClusterName()
-          + ", serviceName=" + getName() + ", componentName=" + componentName);
+          + ", getServiceDisplayName=" + getServiceDisplayName() + ", componentName=" + componentName);
       // FIXME check dependencies from meta layer
       if (!component.canBeRemoved()) {
         throw new AmbariException("Could not delete component from cluster"
             + ", clusterName=" + cluster.getClusterName()
-            + ", serviceName=" + getName()
+            + ", getServiceDisplayName=" + getServiceDisplayName()
             + ", componentName=" + componentName);
       }
 
@@ -591,8 +637,9 @@ public class ServiceImpl implements Service {
       return;
     }
 
-    ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(), stackId.getStackName(),
-        stackId.getStackVersion(), getName(), components);
+    ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(), stackId.getStackName(), stackId.getStackVersion(),
+                                                        getName(), getServiceDisplayName(),
+                                                        serviceGroup.getServiceGroupName(), components);
 
     eventPublisher.publish(event);
   }
@@ -632,14 +679,16 @@ public class ServiceImpl implements Service {
   private ClusterServiceEntityPK getServiceEntityPK(ClusterServiceEntity serviceEntity) {
     ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
     pk.setClusterId(serviceEntity.getClusterId());
-    pk.setServiceName(serviceEntity.getServiceName());
+    pk.setServiceGroupId(serviceEntity.getServiceGroupId());
+    pk.setServiceId(serviceEntity.getServiceId());
     return pk;
   }
 
   private ServiceDesiredStateEntityPK getServiceDesiredStateEntityPK(ServiceDesiredStateEntity serviceDesiredStateEntity) {
     ServiceDesiredStateEntityPK pk = new ServiceDesiredStateEntityPK();
     pk.setClusterId(serviceDesiredStateEntity.getClusterId());
-    pk.setServiceName(serviceDesiredStateEntity.getServiceName());
+    pk.setServiceGroupId(serviceDesiredStateEntity.getServiceGroupId());
+    pk.setServiceId(serviceDesiredStateEntity.getServiceId());
     return pk;
   }
 

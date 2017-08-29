@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -27,7 +30,6 @@ public class ServiceGroupResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
-   *
    */
   public ServiceGroupResourceDefinition() {
     super(Resource.Type.ServiceGroup);
@@ -43,12 +45,10 @@ public class ServiceGroupResourceDefinition extends BaseResourceDefinition {
     return "servicegroup";
   }
 
-  /* TODO: To be called when Services become sub-resource of ServiceGroup.
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
     Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
     subs.add(new SubResourceDefinition(Resource.Type.Service));
     return subs;
   }
-  */
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -74,13 +74,17 @@ public class HostComponentStateDAO {
   /**
    * Retrieve all of the Host Component States for the given service.
    *
-   * @param serviceName Service Name
+   * @param clusterId Cluster ID
+   * @param serviceGroupId Service Group ID
+   * @param serviceId Service ID
    * @return Return all of the Host Component States that match the criteria.
    */
   @RequiresSession
-  public List<HostComponentStateEntity> findByService(String serviceName) {
+  public List<HostComponentStateEntity> findByService( Long clusterId, Long serviceGroupId, Long serviceId) {
     final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByService", HostComponentStateEntity.class);
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
 
     return daoUtils.selectList(query);
   }
@@ -88,35 +92,22 @@ public class HostComponentStateDAO {
   /**
    * Retrieve all of the Host Component States for the given service and component.
    *
-   * @param serviceName Service Name
+   * @param clusterId Cluster ID
+   * @param serviceGroupId Service Group ID
+   * @param serviceId Service ID
    * @param componentName Component Name
    * @return Return all of the Host Component States that match the criteria.
    */
   @RequiresSession
-  public List<HostComponentStateEntity> findByServiceAndComponent(String serviceName, String componentName) {
+  public List<HostComponentStateEntity> findByServiceAndComponent(
+    Long clusterId, Long serviceGroupId, Long serviceId, String componentName) {
     final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByServiceAndComponent", HostComponentStateEntity.class);
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
 
     return daoUtils.selectList(query);
-  }
-
-  /**
-   * Retrieve the single Host Component State for the given unique service, component, and host.
-   *
-   * @param serviceName Service Name
-   * @param componentName Component Name
-   * @param hostName Host Name
-   * @return Return all of the Host Component States that match the criteria.
-   */
-  @RequiresSession
-  public HostComponentStateEntity findByServiceComponentAndHost(String serviceName, String componentName, String hostName) {
-    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByServiceComponentAndHost", HostComponentStateEntity.class);
-    query.setParameter("serviceName", serviceName);
-    query.setParameter("componentName", componentName);
-    query.setParameter("hostName", hostName);
-
-    return daoUtils.selectSingle(query);
   }
 
   /**
@@ -125,8 +116,10 @@ public class HostComponentStateDAO {
    *
    * @param clusterId
    *          Cluster ID
-   * @param serviceName
-   *          Service Name
+   * @param serviceGroupId
+   *          Service Group ID
+   * @param serviceId
+   *          Service ID
    * @param componentName
    *          Component Name
    * @param hostId
@@ -134,12 +127,13 @@ public class HostComponentStateDAO {
    * @return Return all of the Host Component States that match the criteria.
    */
   @RequiresSession
-  public HostComponentStateEntity findByIndex(Long clusterId, String serviceName,
-      String componentName, Long hostId) {
+  public HostComponentStateEntity findByIndex(Long clusterId, Long serviceGroupId, Long serviceId,
+                                              String componentName, Long hostId) {
     final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery(
         "HostComponentStateEntity.findByIndex", HostComponentStateEntity.class);
     query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
     query.setParameter("hostId", hostId);
 
@@ -178,19 +172,24 @@ public class HostComponentStateDAO {
   }
 
   /**
-   * @param serviceName
+   * @param clusterId
+   * @param serviceGroupId
+   * @param serviceId
    * @param componentName
    * @param version
    * @return a list of host components whose version that does NOT match the give version
    */
   @RequiresSession
-  public List<HostComponentStateEntity> findByServiceAndComponentAndNotVersion(String serviceName,
-      String componentName, String version) {
+  public List<HostComponentStateEntity> findByServiceAndComponentAndNotVersion(Long clusterId, Long serviceGroupId,
+                                                                               Long serviceId, String componentName,
+                                                                               String version) {
 
     final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery(
-        "HostComponentStateEntity.findByServiceAndComponentAndNotVersion", HostComponentStateEntity.class);
+      "HostComponentStateEntity.findByServiceAndComponentAndNotVersion", HostComponentStateEntity.class);
 
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
     query.setParameter("version", version);
 

@@ -506,7 +506,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/services")
   public ServiceService getServiceHandler(@Context javax.ws.rs.core.Request request, @ApiParam @PathParam("clusterName") String clusterName) {
-    return new ServiceService(clusterName);
+    return new ServiceService(clusterName, null);
   }
 
   /**
@@ -586,7 +586,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/components")
   public ComponentService getComponentHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new ComponentService(clusterName, null);
+    return new ComponentService(clusterName, null, null);
   }
 
   /**

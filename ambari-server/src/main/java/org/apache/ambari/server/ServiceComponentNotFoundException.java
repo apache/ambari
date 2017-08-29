@@ -23,9 +23,11 @@ public class ServiceComponentNotFoundException
     extends ObjectNotFoundException {
 
   public ServiceComponentNotFoundException (String clusterName,
-      String serviceName, String serviceComponentName) {
+      String serviceName, String serviceDisplayName, String serviceGroupName, String serviceComponentName) {
     super("ServiceComponent not found"
         + ", clusterName=" + clusterName
+        + ", serviceDisplayName=" + serviceDisplayName
+        + ", serviceGroupName=" + serviceGroupName
         + ", serviceName=" + serviceName
         + ", serviceComponentName=" + serviceComponentName);
   }

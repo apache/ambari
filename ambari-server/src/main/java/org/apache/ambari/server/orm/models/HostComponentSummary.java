@@ -34,7 +34,9 @@ import com.google.inject.Inject;
 
 @StaticallyInject
 public class HostComponentSummary {
-  private String serviceName;
+  private Long clusterId;
+  private Long serviceGroupId;
+  private Long serviceId;
   private String componentName;
   private Long hostId;
   private String hostName;
@@ -50,8 +52,11 @@ public class HostComponentSummary {
   @Inject
   private static HostComponentDesiredStateDAO hostComponentDesiredStateDao;
 
-  public HostComponentSummary(String serviceName, String componentName, Long hostId, State desiredState, State currentState) {
-    this.serviceName = serviceName;
+  public HostComponentSummary(Long clusterId, Long serviceGroupId, Long serviceId, String componentName, Long hostId,
+                              State desiredState, State currentState) {
+    this.clusterId = clusterId;
+    this.serviceGroupId = serviceGroupId;
+    this.serviceId = serviceId;
     this.componentName = componentName;
     this.hostId = hostId;
 
@@ -80,16 +85,20 @@ public class HostComponentSummary {
     return currentState;
   }
 
-  public static List<HostComponentSummary> getHostComponentSummaries(String serviceName, String componentName) {
+  public static List<HostComponentSummary> getHostComponentSummaries(Long clusterId, Long serviceGroupId, Long serviceId,
+                                                                     String componentName) {
     List<HostComponentSummary> hostComponentSummaries = new ArrayList<>();
-    List<HostComponentStateEntity> hostComponentStates = hostComponentStateDao.findByServiceAndComponent(serviceName, componentName);
+    List<HostComponentStateEntity> hostComponentStates = hostComponentStateDao.findByServiceAndComponent(clusterId,
+      serviceGroupId, serviceId, componentName);
 
     if (hostComponentStates != null) {
       for (HostComponentStateEntity hcse : hostComponentStates) {
         // Find the corresponding record for HostComponentDesiredStateEntity
-        HostComponentDesiredStateEntity hcdse = hostComponentDesiredStateDao.findByServiceComponentAndHost(hcse.getServiceName(), hcse.getComponentName(), hcse.getHostName());
+        HostComponentDesiredStateEntity hcdse = hostComponentDesiredStateDao.findByServiceComponentAndHost(
+          clusterId, serviceGroupId, serviceId, hcse.getComponentName(), hcse.getHostName());
         if (hcdse != null) {
-          HostComponentSummary s = new HostComponentSummary(hcse.getServiceName(), hcse.getComponentName(), hcse.getHostId(), hcdse.getDesiredState(), hcse.getCurrentState());
+          HostComponentSummary s = new HostComponentSummary(
+            clusterId, serviceGroupId, serviceId, hcse.getComponentName(), hcse.getHostId(), hcdse.getDesiredState(), hcse.getCurrentState());
 
           hostComponentSummaries.add(s);
         }
@@ -101,7 +110,9 @@ public class HostComponentSummary {
   @Override
   public int hashCode() {
     int result = 1;
-    result = 31 + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 31 + (clusterId != null ? clusterId.hashCode() : 0);
+    result = 31 + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 31 + (serviceId != null ? serviceId.hashCode() : 0);
     result = result + (componentName != null ? componentName.hashCode() : 0);
     result = result + (hostId != null ? hostId.hashCode() : 0);
     return result;

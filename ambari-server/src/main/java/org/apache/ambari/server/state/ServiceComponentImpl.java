@@ -30,6 +30,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
@@ -116,7 +117,8 @@ public class ServiceComponentImpl implements ServiceComponent {
     ServiceComponentDesiredStateEntity desiredStateEntity = new ServiceComponentDesiredStateEntity();
     desiredStateEntity.setComponentName(componentName);
     desiredStateEntity.setDesiredState(State.INIT);
-    desiredStateEntity.setServiceName(service.getName());
+    desiredStateEntity.setServiceGroupId(service.getServiceGroupId());
+    desiredStateEntity.setServiceId(service.getServiceId());
     desiredStateEntity.setClusterId(service.getClusterId());
     desiredStateEntity.setRecoveryEnabled(false);
     desiredStateEntity.setDesiredRepositoryVersion(service.getDesiredRepositoryVersion());
@@ -173,7 +175,8 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByIndex(
         hostComponentStateEntity.getClusterId(),
-        hostComponentStateEntity.getServiceName(),
+        hostComponentStateEntity.getServiceGroupId(),
+        hostComponentStateEntity.getServiceId(),
         hostComponentStateEntity.getComponentName(),
         hostComponentStateEntity.getHostId()
       );
@@ -253,9 +256,13 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public long getClusterId() {
-    return service.getClusterId();
-  }
+  public String getServiceDisplayName() { return service.getServiceDisplayName(); }
+
+  @Override
+  public Long getClusterId() { return service.getClusterId(); }
+
+  @Override
+  public Long getServiceGroupId() { return service.getServiceGroupId(); }
 
   @Override
   public Map<String, ServiceComponentHost> getServiceComponentHosts() {
@@ -342,6 +349,11 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
+  public Long getServiceId() {
+    return service.getServiceId();
+  }
+
+  @Override
   public void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting DesiredState of Service, clusterName={}, clusterId={}, serviceName={}, serviceComponentName={}, oldDesiredState={}, newDesiredState={}",
@@ -412,14 +424,20 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public ServiceComponentResponse convertToResponse() {
     Cluster cluster = service.getCluster();
+    ServiceGroup sg = null;
     RepositoryVersionEntity repositoryVersionEntity = getDesiredRepositoryVersion();
     StackId desiredStackId = repositoryVersionEntity.getStackId();
 
+    try {
+      sg = cluster.getServiceGroup(service.getServiceGroupId());
+    } catch (ServiceGroupNotFoundException e) {
+      LOG.warn("Service Group " + service.getServiceGroupId() + " not found");
+    }
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
-        cluster.getClusterName(), service.getName(), getName(),
-        desiredStackId, getDesiredState().toString(),
-        getServiceComponentStateCount(), isRecoveryEnabled(), displayName,
-        repositoryVersionEntity.getVersion(), getRepositoryState());
+        cluster.getClusterName(), sg.getServiceGroupId(), sg.getServiceGroupName(), service.getServiceId(),
+        service.getName(), service.getServiceDisplayName(), getName(), desiredStackId, getDesiredState().toString(),
+        getServiceComponentStateCount(), isRecoveryEnabled(), displayName, repositoryVersionEntity.getVersion(),
+        getRepositoryState());
 
     return r;
   }
@@ -457,7 +475,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   protected void persistEntities(ServiceComponentDesiredStateEntity desiredStateEntity) {
     ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
     pk.setClusterId(service.getClusterId());
-    pk.setServiceName(service.getName());
+    pk.setServiceGroupId(service.getServiceGroupId());
+    pk.setServiceId(service.getServiceId());
     ClusterServiceEntity serviceEntity = clusterServiceDAO.findByPK(pk);
 
     desiredStateEntity.setClusterServiceEntity(serviceEntity);
@@ -623,7 +642,7 @@ public class ServiceComponentImpl implements ServiceComponent {
         desiredStateEntityId);
 
     List<ServiceComponentVersionEntity> componentVersions = serviceComponentDesiredStateDAO.findVersions(
-        getClusterId(), getServiceName(), getName());
+      getClusterId(), getServiceGroupId(), getServiceId(), getName());
 
     // per component, this list should be small, so iterating here isn't a big deal
     Map<String, ServiceComponentVersionEntity> map = new HashMap<>(Maps.uniqueIndex(componentVersions,
@@ -669,11 +688,12 @@ public class ServiceComponentImpl implements ServiceComponent {
       String desiredVersion = component.getDesiredVersion();
       RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
 
+      // TODO : is this function call rally required. check ?
       List<HostComponentStateEntity> hostComponents = hostComponentDAO.findByServiceAndComponentAndNotVersion(
-          component.getServiceName(), component.getComponentName(), reportedVersion);
+        getClusterId(), getServiceGroupId(), getServiceId(), component.getComponentName(), reportedVersion);
 
       LOG.debug("{}/{} reportedVersion={}, desiredVersion={}, non-matching desired count={}, repo_state={}",
-          component.getServiceName(), component.getComponentName(), reportedVersion,
+          component.getServiceId(), component.getComponentName(), reportedVersion,
           desiredVersion, hostComponents.size(), component.getRepositoryState());
 
       // !!! if we are unknown, that means it's never been set.  Try to determine it.

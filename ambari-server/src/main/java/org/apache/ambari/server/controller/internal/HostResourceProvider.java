@@ -920,6 +920,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostname);
         for (ServiceComponentHost sch : list) {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(cluster.getClusterName(),
+                                                                             sch.getServiceGroupName(),
                                                                              sch.getServiceName(),
                                                                              sch.getServiceComponentName(),
                                                                              sch.getHostName(),

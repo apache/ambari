@@ -27,7 +27,11 @@ public class ServiceResponse {
 
   private Long clusterId;
   private String clusterName;
+  private Long serviceGroupId;
+  private String serviceGroupName;
+  private Long serviceId;
   private String serviceName;
+  private String serviceDisplayName;
   private StackId desiredStackId;
   private String desiredRepositoryVersion;
   private Long desiredRepositoryVersionId;
@@ -37,13 +41,17 @@ public class ServiceResponse {
   private boolean credentialStoreSupported;
   private boolean credentialStoreEnabled;
 
-  public ServiceResponse(Long clusterId, String clusterName, String serviceName,
-      StackId desiredStackId, String desiredRepositoryVersion,
-      RepositoryVersionState repositoryVersionState, String desiredState,
-      boolean credentialStoreSupported, boolean credentialStoreEnabled) {
+  public ServiceResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
+                         Long serviceId, String serviceName, String serviceDisplayName, StackId desiredStackId,
+                         String desiredRepositoryVersion, RepositoryVersionState repositoryVersionState, String desiredState,
+                         boolean credentialStoreSupported, boolean credentialStoreEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
+    this.serviceGroupId = serviceGroupId;
+    this.serviceGroupName = serviceGroupName;
+    this.serviceId = serviceId;
     this.serviceName = serviceName;
+    this.serviceDisplayName = serviceDisplayName;
     this.desiredStackId = desiredStackId;
     this.repositoryVersionState = repositoryVersionState;
     setDesiredState(desiredState);
@@ -51,8 +59,6 @@ public class ServiceResponse {
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
   }
-
-
 
   /**
    * @return the serviceName
@@ -99,6 +105,47 @@ public class ServiceResponse {
     this.clusterName = clusterName;
   }
 
+
+  /**
+   * @return the serviceGroupId
+   */
+  public Long getServiceGroupId() { return serviceGroupId; }
+
+  /**
+   * @param serviceGroupId the serviceGroupId to set
+   */
+  public void setServiceGroupId(Long serviceGroupId) { this.serviceGroupId = serviceGroupId; }
+
+  /**
+   * @return the service group name
+   */
+  public String getServiceGroupName() { return serviceGroupName; }
+
+  /**
+   * @param  serviceGroupName the service group name
+   */
+  public void setServiceGroupName(String serviceGroupName) { this.serviceGroupName = serviceGroupName; }
+
+  /**
+   * @return the serviceId
+   */
+  public Long getServiceId() { return serviceId; }
+
+  /**
+   * @param serviceId the serviceId to set
+   */
+  public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+
+  /**
+   * @return the real serviceName
+   */
+  public String getServiceDisplayName() { return serviceDisplayName; }
+
+  /**
+   * @param serviceDisplayName the real serviceName to set
+   */
+  public void setserviceDisplayName(String serviceDisplayName) { this.serviceDisplayName = serviceDisplayName; }
+
   /**
    * @return the desiredState
    */
@@ -144,25 +191,37 @@ public class ServiceResponse {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
     ServiceResponse that = (ServiceResponse) o;
 
     if (clusterId != null ?
-        !clusterId.equals(that.clusterId) : that.clusterId != null) {
+            !clusterId.equals(that.clusterId) : that.clusterId != null) {
       return false;
     }
     if (clusterName != null ?
-        !clusterName.equals(that.clusterName) : that.clusterName != null) {
+            !clusterName.equals(that.clusterName) : that.clusterName != null) {
+      return false;
+    }
+    if (serviceGroupId != null ?
+            !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) {
+      return false;
+    }
+    if (serviceGroupName != null ?
+            !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null) {
+      return false;
+    }
+    if (serviceId != null ?
+            !serviceId.equals(that.serviceId) : that.serviceId != null) {
       return false;
     }
     if (serviceName != null ?
-        !serviceName.equals(that.serviceName) : that.serviceName != null) {
+            !serviceName.equals(that.serviceName) : that.serviceName != null) {
+      return false;
+    }
+    if (serviceDisplayName != null ?
+            !serviceDisplayName.equals(that.serviceDisplayName) : that.serviceDisplayName != null) {
       return false;
     }
 
@@ -224,7 +283,11 @@ public class ServiceResponse {
   public int hashCode() {
     int result = clusterId != null? clusterId.intValue() : 0;
     result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
+    result = 71 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 71 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
+    result = 71 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 71 * result + (serviceDisplayName != null ? serviceDisplayName.hashCode() : 0);
     return result;
   }
 
@@ -244,7 +307,6 @@ public class ServiceResponse {
   }
 
   /**
-   * @param id
    */
   public Long getDesiredRepositoryVersionId() {
     return desiredRepositoryVersionId;

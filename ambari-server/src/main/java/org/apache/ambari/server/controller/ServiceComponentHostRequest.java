@@ -23,7 +23,8 @@ package org.apache.ambari.server.controller;
 public class ServiceComponentHostRequest {
 
   private String clusterName; // REF
-  private String serviceName;
+  private String serviceGroupName;
+  private String serviceDisplayName;
   private String componentName;
   private String hostname;
   private String publicHostname;
@@ -33,32 +34,44 @@ public class ServiceComponentHostRequest {
   private String staleConfig; // GET - predicate
   private String adminState; // GET - predicate
   private String maintenanceState; // UPDATE
-  
+
   public ServiceComponentHostRequest(String clusterName,
-                                     String serviceName,
+                                     String serviceGroupName,
+                                     String serviceDisplayName,
                                      String componentName,
                                      String hostname,
                                      String desiredState) {
     super();
     this.clusterName = clusterName;
-    this.serviceName = serviceName;
+    this.serviceGroupName = serviceGroupName;
+    this.serviceDisplayName = serviceDisplayName;
     this.componentName = componentName;
     this.hostname = hostname;
     this.desiredState = desiredState;
   }
 
   /**
+   * @return the service group Name
+   */
+  public String getServiceGroupName() { return serviceGroupName; }
+
+  /**
+   * @param serviceGroupName the service group Name to set
+   */
+  public void setServiceGroupName(String serviceGroupName) { this.serviceGroupName = serviceGroupName; }
+
+  /**
    * @return the serviceName
    */
-  public String getServiceName() {
-    return serviceName;
+  public String getServiceDisplayName() {
+    return serviceDisplayName;
   }
 
   /**
-   * @param serviceName the serviceName to set
+   * @param serviceDisplayName the serviceName to set
    */
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public void setServiceDisplayName(String serviceDisplayName) {
+    this.serviceDisplayName = serviceDisplayName;
   }
 
   /**
@@ -106,64 +119,49 @@ public class ServiceComponentHostRequest {
   /**
    * @return the state
    */
-  public String getState() {
-    return state;
-  }
+  public String getState() { return state; }
 
   /**
    * @param state the State to set
    */
-  public void setState(String state) {
-    this.state = state;
-  }
+  public void setState(String state) { this.state = state; }
 
   /**
    * @return the clusterName
    */
-  public String getClusterName() {
-    return clusterName;
-  }
+  public String getClusterName() { return clusterName; }
 
   /**
    * @param clusterName the clusterName to set
    */
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
+  public void setClusterName(String clusterName) { this.clusterName = clusterName; }
 
   /**
    * @param staleConfig whether the config is stale
    */
-  public void setStaleConfig(String staleConfig) {
-    this.staleConfig = staleConfig;
-  }
+  public void setStaleConfig(String staleConfig) { this.staleConfig = staleConfig; }
 
   /**
    * @return Stale config indicator
    */
-  public String getStaleConfig() {
-    return staleConfig;
-  }
+  public String getStaleConfig() { return staleConfig; }
 
   /**
    * @param adminState the adminState to use as predicate
    */
-  public void setAdminState(String adminState) {
-    this.adminState = adminState;
-  }
+  public void setAdminState(String adminState) { this.adminState = adminState; }
 
   /**
    * @return the admin state of the component
    */
-  public String getAdminState() {
-    return adminState;
-  }
+  public String getAdminState() { return adminState; }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{" + " clusterName=").append(clusterName)
-      .append(", serviceName=").append(serviceName)
+      .append(", serviceGroupName=").append(serviceGroupName)
+      .append(", serviceDisplayName=").append(serviceDisplayName)
       .append(", componentName=").append(componentName)
       .append(", hostname=").append(hostname)
       .append(", publicHostname=").append(publicHostname)
@@ -180,22 +178,14 @@ public class ServiceComponentHostRequest {
   /**
    * @param state the maintenance state
    */
-  public void setMaintenanceState(String state) {
-    maintenanceState = state;
-  }
+  public void setMaintenanceState(String state) { maintenanceState = state; }
   
   /**
    * @return the maintenance state
    */
-  public String getMaintenanceState() {
-    return maintenanceState;
-  }
+  public String getMaintenanceState() { return maintenanceState; }
 
-  public String getPublicHostname() {
-    return publicHostname;
-  }
+  public String getPublicHostname() { return publicHostname; }
 
-  public void setPublicHostname(String publicHostname) {
-    this.publicHostname = publicHostname;
-  }
+  public void setPublicHostname(String publicHostname) { this.publicHostname = publicHostname; }
 }

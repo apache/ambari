@@ -71,6 +71,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -86,34 +87,24 @@ import com.google.inject.assistedinject.AssistedInject;
  * Resource provider for service resources.
  */
 public class ServiceResourceProvider extends AbstractControllerResourceProvider {
-  public static final String SERVICE_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "cluster_name");
+  public static final String RESPONSE_KEY = "ServiceInfo";
+  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
 
-  public static final String SERVICE_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "service_name");
-
-  public static final String SERVICE_SERVICE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "state");
-
-  public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "maintenance_state");
-
-  public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "credential_store_supported");
-
-  public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "credential_store_enabled");
-
-  public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "Services", "attributes");
-
-  public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "desired_stack");
-
-  public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "ServiceInfo", "desired_repository_version_id");
-
-  protected static final String SERVICE_REPOSITORY_STATE = "ServiceInfo/repository_state";
+  public static final String SERVICE_CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_id";
+  public static final String SERVICE_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
+  public static final String SERVICE_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
+  public static final String SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
+  public static final String SERVICE_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
+  public static final String SERVICE_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
+  public static final String SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_display_name";
+  public static final String SERVICE_SERVICE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
+  public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "maintenance_state";
+  public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_supported";
+  public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_enabled";
+  public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "attributes";
+  public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
+  public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_repository_version_id";
+  protected static final String SERVICE_REPOSITORY_STATE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_state";
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
@@ -123,7 +114,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       SERVICE_CLUSTER_NAME_PROPERTY_ID,
-      SERVICE_SERVICE_NAME_PROPERTY_ID}));
+      SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID,
+      SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID}));
 
   /**
    * The property ids for an service resource.
@@ -137,8 +129,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
   static {
     // properties
+    PROPERTY_IDS.add(SERVICE_CLUSTER_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_SERVICE_GROUP_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_SERVICE_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_SERVICE_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_SERVICE_STATE_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
@@ -153,7 +150,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(QUERY_PARAMETERS_START_DEPENDENCIES);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_CLUSTER_NAME_PROPERTY_ID);
   }
 
@@ -204,15 +202,39 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
-    createResources(new Command<Void>() {
+    Set<ServiceResponse> createServices = null;
+    createServices = createResources(new Command<Set<ServiceResponse>>() {
       @Override
-      public Void invoke() throws AmbariException, AuthorizationException {
-        createServices(requests);
-        return null;
+      public Set<ServiceResponse> invoke() throws AmbariException, AuthorizationException {
+        return createServices(requests);
       }
     });
-    notifyCreate(Resource.Type.Service, request);
+    Set<Resource> associatedResources = new HashSet<>();
+    if (createServices != null) {
+      Iterator<ServiceResponse> itr = createServices.iterator();
+      while (itr.hasNext()) {
+        ServiceResponse response = itr.next();
+        notifyCreate(Resource.Type.Service, request);
+        Resource resource = new ResourceImpl(Resource.Type.Service);
+        resource.setProperty(SERVICE_CLUSTER_ID_PROPERTY_ID, response.getClusterId());
+        resource.setProperty(SERVICE_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
+        resource.setProperty(SERVICE_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId());
+        resource.setProperty(SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
+        resource.setProperty(SERVICE_SERVICE_ID_PROPERTY_ID, response.getServiceId());
+        resource.setProperty(SERVICE_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
+        resource.setProperty(SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID, response.getServiceDisplayName());
+        resource.setProperty(SERVICE_SERVICE_STATE_PROPERTY_ID, response.getDesiredState());
+        resource.setProperty(SERVICE_MAINTENANCE_STATE_PROPERTY_ID, response.getMaintenanceState());
+        resource.setProperty(SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, response.getDesiredRepositoryVersion());
+        resource.setProperty(SERVICE_DESIRED_STACK_PROPERTY_ID, response.getDesiredStackId());
+        resource.setProperty(SERVICE_REPOSITORY_STATE, response.getRepositoryVersionState());
+        resource.setProperty(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID, response.isCredentialStoreSupported());
+        resource.setProperty(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID, response.isCredentialStoreEnabled());
 
+        associatedResources.add(resource);
+      }
+      return getRequestStatus(null, associatedResources);
+    }
     return getRequestStatus(null);
   }
 
@@ -238,10 +260,20 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     for (ServiceResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Service);
+      setResourceProperty(resource, SERVICE_CLUSTER_ID_PROPERTY_ID,
+          response.getClusterId(), requestedIds);
       setResourceProperty(resource, SERVICE_CLUSTER_NAME_PROPERTY_ID,
-          response.getClusterName(), requestedIds);
+        response.getClusterName(), requestedIds);
+      setResourceProperty(resource, SERVICE_SERVICE_GROUP_ID_PROPERTY_ID,
+        response.getServiceGroupId(), requestedIds);
+      setResourceProperty(resource, SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID,
+        response.getServiceGroupName(), requestedIds);
+      setResourceProperty(resource, SERVICE_SERVICE_ID_PROPERTY_ID,
+        response.getServiceId(), requestedIds);
       setResourceProperty(resource, SERVICE_SERVICE_NAME_PROPERTY_ID,
           response.getServiceName(), requestedIds);
+      setResourceProperty(resource, SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID,
+        response.getServiceDisplayName(), requestedIds);
       setResourceProperty(resource, SERVICE_SERVICE_STATE_PROPERTY_ID,
           calculateServiceState(response.getClusterName(), response.getServiceName()),
           requestedIds);
@@ -302,18 +334,24 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ServiceRequest> requests = new HashSet<>();
+    DeleteStatusMetaData deleteStatusMetaData = null;
+
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
-    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
+    deleteStatusMetaData = modifyResources(new Command<DeleteStatusMetaData>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
-        return deleteServices(requests);
+      public DeleteStatusMetaData invoke() throws AmbariException, AuthorizationException {
+        deleteServices(requests);
+        return new DeleteStatusMetaData();
       }
     });
 
     notifyDelete(Resource.Type.Service, predicate);
-    return getRequestStatus(response);
+    for(ServiceRequest serviceReq : requests) {
+      deleteStatusMetaData.addDeletedKey("service_name: "+serviceReq.getServiceDisplayName());
+    }
+    return getRequestStatus(null, null, deleteStatusMetaData);
   }
 
   @Override
@@ -391,7 +429,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     ServiceRequest svcRequest = new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
+        (String) properties.get(SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
+        (String) properties.get(SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID),
         null == desiredRepoId ? null : Long.valueOf(desiredRepoId),
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID),
         (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID));
@@ -410,19 +450,25 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // Create services from the given request.
-  public void createServices(Set<ServiceRequest> requests)
+  public Set<ServiceResponse> createServices(Set<ServiceRequest> requests)
       throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
-      return;
+      return null;
     }
     Clusters clusters = getManagementController().getClusters();
     // do all validation checks
     validateCreateRequests(requests, clusters);
 
+    Set<ServiceResponse> createdServices = new HashSet<>();
     for (ServiceRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
+      ServiceGroup sg = cluster.getServiceGroup(request.getServiceGroupName());
+
+      if(StringUtils.isBlank(request.getServiceDisplayName())) {
+        request.setServiceDisplayName(request.getServiceName());
+      }
 
       RepositoryVersionEntity repositoryVersion = request.getResolvedRepository();
 
@@ -430,8 +476,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         throw new AmbariException("Could not find any repository on the request.");
       }
 
-      Service s = cluster.addService(request.getServiceName(), repositoryVersion);
-
+      Service s = cluster.addService(sg, request.getServiceName(), request.getServiceDisplayName(), repositoryVersion);
       /*
        * Get the credential_store_supported field only from the stack definition.
        * Not possible to update the value through a request.
@@ -439,13 +484,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       StackId stackId = repositoryVersion.getStackId();
       AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), request.getServiceName());
+          stackId.getStackVersion(), request.getServiceDisplayName());
 
       boolean credentialStoreSupported = serviceInfo.isCredentialStoreSupported();
       boolean credentialStoreRequired = serviceInfo.isCredentialStoreRequired();
 
       LOG.info("Service: {}, credential_store_supported = {} and credential_store_required = {} from stack definition",
-               request.getServiceName(), credentialStoreSupported, credentialStoreRequired);
+               request.getServiceDisplayName(), credentialStoreSupported, credentialStoreRequired);
       /*
        * If request does not have credential_store_enabled field,
        * then get the default from the stack definition.
@@ -456,19 +501,21 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         s.setCredentialStoreEnabled(enableCredStore);
         LOG.info("Service: {}, credential_store_enabled = {} from request and resulting" +
                  " credential store enabled status is = {}",
-                 request.getServiceName(), credentialStoreEnabled, enableCredStore);
+                 request.getServiceDisplayName(), credentialStoreEnabled, enableCredStore);
       } else {
         boolean enableCredStore = credentialStoreSupported &&
                                   (credentialStoreRequired || serviceInfo.isCredentialStoreEnabled());
         s.setCredentialStoreEnabled(enableCredStore);
         LOG.info("Service: {}, credential_store_enabled = {} from stack definition and resulting" +
                  " credential store enabled status is = {}",
-                 s.getName(), serviceInfo.isCredentialStoreEnabled(), enableCredStore);
+                 s.getServiceDisplayName(), serviceInfo.isCredentialStoreEnabled(), enableCredStore);
       }
 
       // Initialize service widgets
       getManagementController().initializeWidgetsAndLayouts(cluster, s);
+      createdServices.add(s.convertToResponse());
     }
+    return createdServices;
   }
 
   // Get services from the given set of requests.
@@ -492,24 +539,23 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   // Get services from the given request.
   private Set<ServiceResponse> getServices(ServiceRequest request)
       throws AmbariException {
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()) {
+    if (request.getClusterName() == null) {
       throw new AmbariException("Invalid arguments, cluster name"
           + " cannot be null");
     }
     Clusters clusters    = getManagementController().getClusters();
-    String   clusterName = request.getClusterName();
+    String clusterId = request.getClusterName();
 
     final Cluster cluster;
     try {
-      cluster = clusters.getCluster(clusterName);
+      cluster = clusters.getCluster(clusterId);
     } catch (ObjectNotFoundException e) {
       throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
     }
 
     Set<ServiceResponse> response = new HashSet<>();
-    if (request.getServiceName() != null) {
-      Service s = cluster.getService(request.getServiceName());
+    if (request.getServiceDisplayName() != null) {
+      Service s = cluster.getService(request.getServiceDisplayName());
       response.add(s.convertToResponse());
       return response;
     }
@@ -519,11 +565,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     boolean checkDesiredState = false;
     State desiredStateToCheck = null;
     if (request.getDesiredState() != null
-        && !request.getDesiredState().isEmpty()) {
+            && !request.getDesiredState().isEmpty()) {
       desiredStateToCheck = State.valueOf(request.getDesiredState());
       if (!desiredStateToCheck.isValidDesiredState()) {
         throw new IllegalArgumentException("Invalid arguments, invalid desired"
-            + " state, desiredState=" + desiredStateToCheck);
+                + " state, desiredState=" + desiredStateToCheck);
       }
       checkDesiredState = true;
     }
@@ -534,7 +580,21 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         // skip non matching state
         continue;
       }
-      response.add(s.convertToResponse());
+      ServiceResponse serviceResponse = s.convertToResponse();
+      // TODO: Open it when we dont want to support queries for servies and components at cluster level.
+      // UI as of now makes that calls for optimizations purposes.
+      /*
+      // Check if the received response for service's servicegroup is same as passed-in servicegroup name.
+      String retrivedSvcGrp = serviceResponse.getServiceGroupName();
+      if (retrivedSvcGrp == null) {
+        throw new NullPointerException("'ServiceGroupName' : null in cluster : " + cluster.getClusterName() +
+                " for retrieved Service : "+s.getServiceDisplayName());
+      }
+      if (!retrivedSvcGrp.equals(request.getServiceGroupName())) {
+        throw new ServiceNotFoundException(cluster.getClusterName(), s.getServiceDisplayName());
+      }
+      */
+      response.add(serviceResponse);
     }
     return response;
   }
@@ -560,7 +620,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     Collection<ServiceComponentHost> ignoredScHosts =
       new ArrayList<>();
 
-    Set<String> clusterNames = new HashSet<>();
+    Set<String> clusterIds = new HashSet<>();
     Map<String, Set<String>> serviceNames = new HashMap<>();
     Set<State> seenNewStates = new HashSet<>();
     Map<Service, Boolean> serviceCredentialStoreEnabledMap = new HashMap<>();
@@ -585,20 +645,20 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     for (ServiceRequest request : requests) {
       if (request.getClusterName() == null
           || request.getClusterName().isEmpty()
-          || request.getServiceName() == null
-          || request.getServiceName().isEmpty()) {
+          || request.getServiceDisplayName() == null
+          || request.getServiceDisplayName().isEmpty()) {
         throw new IllegalArgumentException("Invalid arguments, cluster name"
-            + " and service name should be provided to update services");
+            + " and/or service display name should be provided to update services");
       }
 
       LOG.info("Received a updateService request"
           + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
+          + ", serviceName=" + request.getServiceDisplayName()
           + ", request=" + request);
 
-      clusterNames.add(request.getClusterName());
+      clusterIds.add(request.getClusterName());
 
-      if (clusterNames.size() > 1) {
+      if (clusterIds.size() > 1) {
         throw new IllegalArgumentException("Updates to multiple clusters is not"
             + " supported");
       }
@@ -608,15 +668,15 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       if (serviceNames.get(request.getClusterName())
-          .contains(request.getServiceName())) {
+          .contains(request.getServiceDisplayName())) {
         // TODO throw single exception
         throw new IllegalArgumentException("Invalid request contains duplicate"
             + " service names");
       }
-      serviceNames.get(request.getClusterName()).add(request.getServiceName());
+      serviceNames.get(request.getClusterName()).add(request.getServiceDisplayName());
 
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceDisplayName());
       State oldState = s.getDesiredState();
       State newState = null;
       if (request.getDesiredState() != null) {
@@ -664,7 +724,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                                              "as it is required by the service. Service=" + s.getName());
         }
         serviceCredentialStoreEnabledMap.put(s, credentialStoreEnabled);
-        LOG.info("Service: {}, credential_store_enabled from request: {}", request.getServiceName(),
+        LOG.info("Service: {}, credential_store_enabled from request: {}", request.getServiceDisplayName(),
             credentialStoreEnabled);
       }
 
@@ -675,8 +735,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Nothing to do for new updateService request, clusterName={}, serviceName={}, newDesiredState=null",
-            request.getClusterName(), request.getServiceName());
+          LOG.debug("Nothing to do for new updateService request, clusterId={}, serviceName={}, newDesiredState=null",
+            request.getClusterName(), request.getServiceDisplayName());
         }
         continue;
       }
@@ -753,7 +813,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
 
 
-    Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
+    Cluster cluster = clusters.getCluster(clusterIds.iterator().next());
 
     return controller.addStages(requestStages, cluster, requestProperties,
       null, changedServices, changedComps, changedScHosts,
@@ -883,7 +943,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     Set<Service> removable = new HashSet<>();
 
     for (ServiceRequest serviceRequest : request) {
-      if (StringUtils.isEmpty(serviceRequest.getClusterName()) || StringUtils.isEmpty(serviceRequest.getServiceName())) {
+      if (StringUtils.isEmpty(serviceRequest.getClusterName()) || StringUtils.isEmpty(serviceRequest.getServiceDisplayName())) {
         // FIXME throw correct error
         throw new AmbariException("invalid arguments");
       } else {
@@ -894,7 +954,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
         Service service = clusters.getCluster(
             serviceRequest.getClusterName()).getService(
-                serviceRequest.getServiceName());
+          serviceRequest.getServiceDisplayName());
 
         //
         // Run through the list of service component hosts. If all host components are in removable state,
@@ -908,7 +968,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           for (Map.Entry<String, ServiceComponentHost> entry : schHostMap.entrySet()) {
             ServiceComponentHost sch = entry.getValue();
             if (!sch.canBeRemoved()) {
-              String msg = "Cannot remove " + serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
+              String msg = "Cannot remove " + serviceRequest.getClusterName() + "/" + serviceRequest.getServiceDisplayName() +
                       ". " + sch.getServiceComponentName() + "on " + sch.getHost() + " is in " +
                       String.valueOf(sch.getDesiredState()) + " state.";
               LOG.error(msg);
@@ -919,7 +979,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
         if (!isServiceRemovable) {
           throw new AmbariException ("Cannot remove " +
-                  serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
+                  serviceRequest.getClusterName() + "/" + serviceRequest.getServiceDisplayName() +
                     ". " + "One or more host components are in a non-removable state.");
         }
 
@@ -1012,33 +1072,37 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           throws AuthorizationException, AmbariException {
 
     AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
-    Map<String, Set<String>> serviceNames = new HashMap<>();
+    Map<String, Set<String>> serviceDisplayNames = new HashMap<>();
     Set<String> duplicates = new HashSet<>();
 
     for (ServiceRequest request : requests) {
       final String clusterName = request.getClusterName();
+      final String serviceGroupName = request.getServiceGroupName();
       final String serviceName = request.getServiceName();
-      Validate.notEmpty(clusterName, "Cluster name should be provided when creating a service");
+      final String serviceDisplayName = request.getServiceDisplayName();
+      Validate.notNull(clusterName, "Cluster name should be provided when creating a service");
+      Validate.notNull(serviceGroupName, "Service group name should be provided when creating a service");
       Validate.notEmpty(serviceName, "Service name should be provided when creating a service");
+      Validate.notEmpty(serviceDisplayName, "Service display name should be provided when creating a service");
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createService request, clusterName={}, serviceName={}, request={}", clusterName, serviceName, request);
+        LOG.debug("Received a createService request, clusterId={}, serviceName={}, request={}", clusterName, serviceName, request);
       }
 
       if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
         throw new AuthorizationException("The user is not authorized to create services");
       }
 
-      if (!serviceNames.containsKey(clusterName)) {
-        serviceNames.put(clusterName, new HashSet<String>());
+      if (!serviceDisplayNames.containsKey(clusterName)) {
+        serviceDisplayNames.put(clusterName, new HashSet<String>());
       }
 
-      if (serviceNames.get(clusterName).contains(serviceName)) {
+      if (serviceDisplayNames.get(clusterName).contains(serviceDisplayName)) {
         // throw error later for dup
-        duplicates.add(serviceName);
+        duplicates.add(serviceDisplayName);
         continue;
       }
-      serviceNames.get(clusterName).add(serviceName);
+      serviceDisplayNames.get(clusterName).add(serviceDisplayName);
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
@@ -1056,10 +1120,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         throw new ParentObjectNotFoundException("Attempted to add a service to a cluster which doesn't exist", e);
       }
       try {
-        Service s = cluster.getService(serviceName);
+        Service s = cluster.getService(serviceDisplayName);
         if (s != null) {
           // throw error later for dup
-          duplicates.add(serviceName);
+          duplicates.add(serviceDisplayName);
           continue;
         }
       } catch (ServiceNotFoundException e) {
@@ -1108,25 +1172,25 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       request.setResolvedRepository(repositoryVersion);
 
       if (!ambariMetaInfo.isValidService(stackId.getStackName(),
-              stackId.getStackVersion(), request.getServiceName())) {
-        throw new IllegalArgumentException("Unsupported or invalid service in stack, clusterName=" + clusterName
-                + ", serviceName=" + serviceName + ", stackInfo=" + stackId.getStackId());
+              stackId.getStackVersion(), request.getServiceDisplayName())) {
+        throw new IllegalArgumentException("Unsupported or invalid service in stack, clusterId=" + clusterName
+                + ", serviceDisplayName=" + serviceDisplayName + ", stackInfo=" + stackId.getStackId());
       }
 
       // validate the credential store input provided
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), request.getServiceName());
+          stackId.getStackVersion(), request.getServiceDisplayName());
 
       if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
         boolean credentialStoreEnabled = Boolean.parseBoolean(request.getCredentialStoreEnabled());
         if (!serviceInfo.isCredentialStoreSupported() && credentialStoreEnabled) {
           throw new IllegalArgumentException("Invalid arguments, cannot enable credential store " +
-              "as it is not supported by the service. Service=" + request.getServiceName());
+              "as it is not supported by the service. Service=" + request.getServiceDisplayName());
         }
       }
     }
     // ensure only a single cluster update
-    if (serviceNames.size() != 1) {
+    if (serviceDisplayNames.size() != 1) {
       throw new IllegalArgumentException("Invalid arguments, updates allowed"
               + "on only one cluster at a time");
     }
@@ -1135,7 +1199,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     if (!duplicates.isEmpty()) {
       String clusterName = requests.iterator().next().getClusterName();
       String msg = "Attempted to create a service which already exists: "
-              + ", clusterName=" + clusterName  + " serviceName=" + StringUtils.join(duplicates, ",");
+              + ", clusterName=" + clusterName  + " serviceDisplayName=" + StringUtils.join(duplicates, ",");
 
       throw new DuplicateResourceException(msg);
     }

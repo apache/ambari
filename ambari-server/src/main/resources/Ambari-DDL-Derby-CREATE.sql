@@ -160,11 +160,14 @@ CREATE TABLE servicegroups (
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE clusterservices (
+  id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
+  service_display_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
   service_enabled INTEGER NOT NULL,
-  CONSTRAINT PK_clusterservices PRIMARY KEY (service_name, cluster_id),
-  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+  CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
+  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterstate (
   cluster_id BIGINT NOT NULL,
@@ -195,15 +198,16 @@ CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
   desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
   repo_state VARCHAR(255) NOT NULL DEFAULT 'NOT_REQUIRED',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
-  CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
+  CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_id, service_group_id, cluster_id),
   CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
+  CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE hostcomponentdesiredstate (
   id BIGINT NOT NULL,
@@ -211,14 +215,15 @@ CREATE TABLE hostcomponentdesiredstate (
   component_name VARCHAR(255) NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
   admin_state VARCHAR(32),
   maintenance_state VARCHAR(32) NOT NULL,
   restart_required SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
-  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
+  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
+  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 
 CREATE TABLE hostcomponentstate (
@@ -228,13 +233,14 @@ CREATE TABLE hostcomponentstate (
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
+  CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
-CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
+CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_id, cluster_id);
 
 CREATE TABLE hoststate (
   agent_version VARCHAR(255) NOT NULL,
@@ -259,15 +265,16 @@ CREATE TABLE host_version (
 
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
   desired_host_role_mapping INTEGER NOT NULL,
   desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL,
   credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
-  CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
+  CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_group_id, service_id),
   CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
+  CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE adminprincipaltype (
   principal_type_id INTEGER NOT NULL,
@@ -1068,6 +1075,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   SELECT 'cluster_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'service_group_id_seq', 1 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 'service_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'host_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   UNION ALL

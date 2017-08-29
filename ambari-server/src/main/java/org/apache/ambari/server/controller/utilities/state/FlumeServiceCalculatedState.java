@@ -26,6 +26,7 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
 
 /**
@@ -45,8 +46,8 @@ public final class FlumeServiceCalculatedState extends DefaultServiceCalculatedS
     try {
       Cluster cluster = getCluster(clusterName);
       if (cluster != null && managementControllerProvider != null) {
-
-        ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+        Service service = cluster.getService(serviceName);
+        ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName, service.getServiceGroupName(),
           serviceName, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =

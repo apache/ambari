@@ -62,15 +62,21 @@ public class HostComponentDesiredStateDAO {
   /**
    * Retrieve the single Host Component Desired State for the given unique service, component, and host.
    *
-   * @param serviceName Service Name
+   * @param clusterId Cluster ID
+   * @param serviceGroupId Service Group ID
+   * @param serviceId Service ID
    * @param componentName Component Name
    * @param hostName Host Name
    * @return Return all of the Host Component States that match the criteria.
    */
   @RequiresSession
-  public HostComponentDesiredStateEntity findByServiceComponentAndHost(String serviceName, String componentName, String hostName) {
-    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentDesiredStateEntity.findByServiceComponentAndHost", HostComponentDesiredStateEntity.class);
-    query.setParameter("serviceName", serviceName);
+  public HostComponentDesiredStateEntity findByServiceComponentAndHost(
+    Long clusterId, Long serviceGroupId, Long serviceId, String componentName, String hostName) {
+    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get().createNamedQuery(
+      "HostComponentDesiredStateEntity.findByServiceComponentAndHost", HostComponentDesiredStateEntity.class);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
     query.setParameter("hostName", hostName);
 
@@ -81,19 +87,21 @@ public class HostComponentDesiredStateDAO {
    * Retrieve the single Host Component Desired State for the given unique cluster, service, component, and host.
    *
    * @param clusterId Cluster ID
-   * @param serviceName Service Name
+   * @param serviceGroupId Service Group ID
+   * @param serviceId Service ID
    * @param componentName Component Name
    * @param hostId Host ID
    * @return Return the Host Component Desired State entity that match the criteria.
    */
   @RequiresSession
-  public HostComponentDesiredStateEntity findByIndex(Long clusterId, String serviceName,
+  public HostComponentDesiredStateEntity findByIndex(Long clusterId, Long serviceGroupId, Long serviceId,
                                                      String componentName, Long hostId) {
     final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
       .createNamedQuery("HostComponentDesiredStateEntity.findByIndex", HostComponentDesiredStateEntity.class);
 
     query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
     query.setParameter("hostId", hostId);
 

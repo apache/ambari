@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -43,14 +42,13 @@ import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
-import org.apache.commons.lang.builder.EqualsBuilder;
 
 @Entity
 @Table(
     name = "servicecomponentdesiredstate",
     uniqueConstraints = @UniqueConstraint(
         name = "unq_scdesiredstate_name",
-        columnNames = { "component_name", "service_name", "cluster_id" }) )
+        columnNames = { "component_name", "service_id" , "service_group_id", "cluster_id" }) )
 @TableGenerator(
     name = "servicecomponentdesiredstate_id_generator",
     table = "ambari_sequences",
@@ -59,9 +57,12 @@ import org.apache.commons.lang.builder.EqualsBuilder;
     pkColumnValue = "servicecomponentdesiredstate_id_seq",
     initialValue = 0)
 @NamedQueries({
- @NamedQuery(
+  @NamedQuery(
     name = "ServiceComponentDesiredStateEntity.findByName",
-    query = "SELECT scds FROM ServiceComponentDesiredStateEntity scds WHERE scds.clusterId = :clusterId AND scds.serviceName = :serviceName AND scds.componentName = :componentName") })
+    query = "SELECT scds FROM ServiceComponentDesiredStateEntity scds WHERE scds.clusterId = :clusterId " +
+      "AND scds.serviceGroupId = :serviceGroupId " +
+      "AND scds.serviceId = :serviceId " +
+      "AND scds.componentName = :componentName") })
 public class ServiceComponentDesiredStateEntity {
 
   @Id
@@ -71,14 +72,17 @@ public class ServiceComponentDesiredStateEntity {
       generator = "servicecomponentdesiredstate_id_generator")
   private Long id;
 
+  @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
+  private String componentName;
+
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 
-  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
-  private String serviceName;
+  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long serviceGroupId;
 
-  @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
-  private String componentName;
+  @Column(name = "service_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long serviceId;
 
   @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(EnumType.STRING)
@@ -104,7 +108,12 @@ public class ServiceComponentDesiredStateEntity {
   private RepositoryVersionEntity desiredRepositoryVersion;
 
   @ManyToOne
-  @JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
+  @JoinColumns(
+    {
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+      @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
+      @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+    })
   private ClusterServiceEntity clusterServiceEntity;
 
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
@@ -113,7 +122,9 @@ public class ServiceComponentDesiredStateEntity {
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
-  @OneToMany(mappedBy = "m_serviceComponentDesiredStateEntity", cascade = { CascadeType.ALL })
+  @OneToMany(
+    mappedBy = "m_serviceComponentDesiredStateEntity",
+    cascade = {CascadeType.ALL})
   private Collection<ServiceComponentVersionEntity> serviceComponentVersions;
 
   public Long getId() {
@@ -128,13 +139,13 @@ public class ServiceComponentDesiredStateEntity {
     this.clusterId = clusterId;
   }
 
-  public String getServiceName() {
-    return serviceName;
-  }
+  public Long getServiceGroupId() { return serviceGroupId; }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
+  public void setServiceGroupId(Long serviceGroupId) { this.serviceGroupId = serviceGroupId; }
+
+  public Long getServiceId() { return serviceId; }
+
+  public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
 
   public String getComponentName() {
     return componentName;
@@ -210,21 +221,43 @@ public class ServiceComponentDesiredStateEntity {
     }
 
     ServiceComponentDesiredStateEntity that = (ServiceComponentDesiredStateEntity) o;
-    EqualsBuilder equalsBuilder = new EqualsBuilder();
-    equalsBuilder.append(id, that.id);
-    equalsBuilder.append(clusterId, that.clusterId);
-    equalsBuilder.append(componentName, that.componentName);
-    equalsBuilder.append(desiredState, that.desiredState);
-    equalsBuilder.append(serviceName, that.serviceName);
-    equalsBuilder.append(desiredRepositoryVersion, that.desiredRepositoryVersion);
 
-    return equalsBuilder.isEquals();
+    if (id != null ? !id.equals(that.id) : that.id != null) {
+      return false;
+    }
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
+      return false;
+    }
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) {
+      return false;
+    }
+    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) {
+      return false;
+    }
+    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) {
+      return false;
+    }
+    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
+      return false;
+    }
+    if (desiredRepositoryVersion != null ? !desiredRepositoryVersion.equals(that.desiredRepositoryVersion)
+      : that.desiredRepositoryVersion != null) {
+      return false;
+    }
+    return true;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, clusterId, serviceName, componentName, desiredState,
-        desiredRepositoryVersion);
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
+    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
+    result = 31 * result + (desiredRepositoryVersion != null ? desiredRepositoryVersion.hashCode() : 0);
+
+    return result;
   }
 
   public ClusterServiceEntity getClusterServiceEntity() {

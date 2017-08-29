@@ -48,6 +48,12 @@ module.exports = Em.Application.create({
   }.property('auth'),
 
   /**
+   * default/base service group name ('core')
+   * @type {String}
+   */
+  defaultServiceGroupName: 'core',
+
+  /**
    * @type {boolean}
    * @default false
    */

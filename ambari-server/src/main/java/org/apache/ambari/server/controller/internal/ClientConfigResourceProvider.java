@@ -116,6 +116,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   // ----- Property ID constants ---------------------------------------------
 
   protected static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID = "ServiceComponentInfo/cluster_name";
+  protected static final String COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID = "ServiceComponentInfo/service_group_name";
   protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = "ServiceComponentInfo/service_name";
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = "ServiceComponentInfo/component_name";
   protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID =
@@ -126,6 +127,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       COMPONENT_CLUSTER_NAME_PROPERTY_ID,
+      COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID,
       COMPONENT_SERVICE_NAME_PROPERTY_ID,
       COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
 
@@ -198,7 +200,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
     ServiceComponentHostRequest schRequest =  requests.iterator().next();
     String requestComponentName = schRequest.getComponentName();
-    String requestServiceName = schRequest.getServiceName();
+    String requestServiceName = schRequest.getServiceDisplayName();
     String requestHostName =  schRequest.getHostname();
 
     Map<String,List<ServiceComponentHostResponse>> serviceToComponentMap = new HashMap<>();
@@ -904,6 +906,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   private ServiceComponentHostRequest getRequest(Map<String, Object> properties) {
     return new ServiceComponentHostRequest(
             (String) properties.get(COMPONENT_CLUSTER_NAME_PROPERTY_ID),
+            (String) properties.get(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
             (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
             (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
             (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),

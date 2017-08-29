@@ -75,7 +75,7 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
           ServiceComponent serviceComponent = component.getValue();
           if (serviceComponent.isVersionAdvertised()) {
             List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
-                service.getName(), serviceComponent.getName());
+              service.getClusterId(), service.getServiceGroupId(), service.getServiceId(), serviceComponent.getName());
 
             for (HostComponentSummary hcs : hostComponentSummaries) {
               // Skip host if it is in maintenance mode

@@ -470,7 +470,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     Set<String> hosts = null;
     try {
       Cluster cluster = managementController.getClusters().getCluster(clusterName);
-      String serviceName = managementController.findServiceName(cluster, componentName);
+      String serviceName = managementController.findService(cluster, componentName);
       hosts = cluster.getService(serviceName).getServiceComponent(componentName).getServiceComponentHosts().keySet();
     } catch (Exception e) {
       LOG.warn("Exception in getting host names for jmx metrics: ", e);

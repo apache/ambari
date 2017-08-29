@@ -21,8 +21,8 @@ var misc = require('utils/misc');
 App.serviceMapper = App.QuickDataMapper.create({
   model: App.Service,
   config: {
-    id: 'ServiceInfo.service_name',
-    service_name: 'ServiceInfo.service_name',
+    id: 'ServiceInfo.service_display_name',
+    service_name: 'ServiceInfo.service_display_name',
     work_status: 'ServiceInfo.state'
   },
   initialAppLoad: false,
@@ -32,15 +32,15 @@ App.serviceMapper = App.QuickDataMapper.create({
     var self = this;
     var passiveStateMap = this.get('passiveStateMap');
     json.items.forEach(function (service) {
-      var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
+      var cachedService = App.cache['services'].findProperty('ServiceInfo.service_display_name', service.ServiceInfo.service_display_name);
       if (cachedService) {
         // restore service workStatus
-        App.Service.find(cachedService.ServiceInfo.service_name).set('workStatus', service.ServiceInfo.state);
+        App.Service.find(cachedService.ServiceInfo.service_display_name).set('workStatus', service.ServiceInfo.state);
         cachedService.ServiceInfo.state = service.ServiceInfo.state;
       } else {
         var serviceData = {
           ServiceInfo: {
-            service_name: service.ServiceInfo.service_name,
+            service_display_name: service.ServiceInfo.service_display_name,
             state: service.ServiceInfo.state
           },
           host_components: [],
@@ -48,7 +48,7 @@ App.serviceMapper = App.QuickDataMapper.create({
         };
         App.cache['services'].push(serviceData);
       }
-      passiveStateMap[service.ServiceInfo.service_name] = service.ServiceInfo.maintenance_state;
+      passiveStateMap[service.ServiceInfo.service_display_name] = service.ServiceInfo.maintenance_state;
     });
 
     if (!this.get('initialAppLoad')) {

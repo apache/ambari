@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -46,11 +46,12 @@ public class ClusterServiceDAO {
   }
 
   @RequiresSession
-  public ClusterServiceEntity findByClusterAndServiceNames(String  clusterName, String serviceName) {
+  public ClusterServiceEntity findById(Long clusterId, Long serviceGroupId, Long serviceId) {
     TypedQuery<ClusterServiceEntity> query = entityManagerProvider.get()
-            .createNamedQuery("clusterServiceByClusterAndServiceNames", ClusterServiceEntity.class);
-    query.setParameter("clusterName", clusterName);
-    query.setParameter("serviceName", serviceName);
+      .createNamedQuery("clusterServiceById", ClusterServiceEntity.class);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
 
     try {
       return query.getSingleResult();

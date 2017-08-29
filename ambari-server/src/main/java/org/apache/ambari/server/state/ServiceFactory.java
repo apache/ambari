@@ -21,6 +21,8 @@ package org.apache.ambari.server.state;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
+import com.google.inject.assistedinject.Assisted;
+
 public interface ServiceFactory {
 
   /**
@@ -28,14 +30,20 @@ public interface ServiceFactory {
    *
    * @param cluster
    *          the cluster the service is for (not {@code null).
+   * @param serviceGroup
+   *          the ServiceGroup for the service
    * @param serviceName
    *          the name of the service (not {@code null).
+   * @param serviceDisplayName
+   *          the display name of the service (not {@code null).
    * @param desiredRepositoryVersion
    *          the repository version of the service (not {@code null).
    * @return
    */
-  Service createNew(Cluster cluster, String serviceName,
-      RepositoryVersionEntity desiredRepositoryVersion);
+  Service createNew(Cluster cluster, ServiceGroup serviceGroup,
+                    @Assisted("serviceName") String serviceName,
+                    @Assisted("serviceDisplayName") String serviceDisplayName,
+                    RepositoryVersionEntity desiredRepositoryVersion);
 
   /**
    * Creates an in-memory representation of a service from an existing database
@@ -43,9 +51,11 @@ public interface ServiceFactory {
    *
    * @param cluster
    *          the cluster the service is installed in (not {@code null).
+   * @param serviceGroup
+   *          the ServiceGroup for the service
    * @param serviceEntity
    *          the entity the existing database entry (not {@code null).
    * @return
    */
-  Service createExisting(Cluster cluster, ClusterServiceEntity serviceEntity);
+  Service createExisting(Cluster cluster, ServiceGroup serviceGroup, ClusterServiceEntity serviceEntity);
 }

@@ -87,8 +87,9 @@ public class DatabaseChecker {
         if (serviceDesiredStateEntity == null) {
           checkPassed = false;
           LOG.error(String.format("ServiceDesiredStateEntity is null for " +
-              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s ",
-            clusterEntity.getClusterName(), clusterServiceEntity.getServiceName()));
+              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceDisplayName=%s, serviceName=%s ",
+            clusterEntity.getClusterName(), clusterServiceEntity.getServiceDisplayName(),
+            clusterServiceEntity.getServiceName()));
         }
         Collection<ServiceComponentDesiredStateEntity> scDesiredStateEntities =
           clusterServiceEntity.getServiceComponentDesiredStateEntities();
@@ -96,8 +97,9 @@ public class DatabaseChecker {
           scDesiredStateEntities.isEmpty()) {
           checkPassed = false;
           LOG.error(String.format("serviceComponentDesiredStateEntities is null or empty for " +
-              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s ",
-            clusterEntity.getClusterName(), clusterServiceEntity.getServiceName()));
+              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceDisplayName=%s, serviceName=%s ",
+              clusterEntity.getClusterName(), clusterServiceEntity.getServiceDisplayName(),
+              clusterServiceEntity.getServiceName()));
         } else {
           for (ServiceComponentDesiredStateEntity scDesiredStateEnity : scDesiredStateEntities) {
 
@@ -108,7 +110,7 @@ public class DatabaseChecker {
 
             ComponentInfo componentInfo = ambariMetaInfo.getComponent(
               stackId.getStackName(), stackId.getStackVersion(),
-              scDesiredStateEnity.getServiceName(), scDesiredStateEnity.getComponentName());
+              clusterServiceEntity.getServiceName(), scDesiredStateEnity.getComponentName());
 
             boolean zeroCardinality = componentInfo.getCardinality() == null
               || componentInfo.getCardinality().startsWith("0")
@@ -119,25 +121,29 @@ public class DatabaseChecker {
             if (schDesiredStateEntities == null) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentDesiredStateEntities is null for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), scDesiredStateEnity.getServiceName(), scDesiredStateEnity.getComponentName()));
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                scDesiredStateEnity.getComponentName()));
             } else if (!zeroCardinality && schDesiredStateEntities.isEmpty()) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentDesiredStateEntities is empty for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), scDesiredStateEnity.getServiceName(), scDesiredStateEnity.getComponentName()));
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                scDesiredStateEnity.getComponentName()));
             }
 
             if (schStateEntities == null) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentStateEntities is null for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), scDesiredStateEnity.getServiceName(), scDesiredStateEnity.getComponentName()));
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                scDesiredStateEnity.getComponentName()));
             } else if (!zeroCardinality && schStateEntities.isEmpty()) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentStateEntities is empty for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), scDesiredStateEnity.getServiceName(), scDesiredStateEnity.getComponentName()));
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                scDesiredStateEnity.getComponentName()));
             }
 
             if (!componentCheckFailed &&
@@ -145,8 +151,8 @@ public class DatabaseChecker {
               checkPassed = false;
               LOG.error(String.format("HostComponentStateEntities and HostComponentDesiredStateEntities " +
                   "tables must contain equal number of rows mapped to ServiceComponentDesiredStateEntity, " +
-                  "(clusterName=%s, serviceName=%s, componentName=%s) ", clusterEntity.getClusterName(),
-                scDesiredStateEnity.getServiceName(), scDesiredStateEnity.getComponentName()));
+                  "(clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s) ", clusterEntity.getClusterName(),
+                clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(), scDesiredStateEnity.getComponentName()));
             }
             checkPassed = checkPassed && !componentCheckFailed;
           }
@@ -225,25 +231,26 @@ public class DatabaseChecker {
           for (ClusterServiceEntity clusterServiceEntity : clusterServiceEntities) {
             if (!State.INIT.equals(
                 clusterServiceEntity.getServiceDesiredStateEntity().getDesiredState())) {
-              String serviceName = clusterServiceEntity.getServiceName();
+              String serviceDisplayName = clusterServiceEntity.getServiceDisplayName();
+              Long serviceGroupId = clusterServiceEntity.getServiceGroupId();
               ServiceInfo serviceInfo = ambariMetaInfo.getService(stack.getName(),
-                  stack.getVersion(), serviceName);
+                  stack.getVersion(), serviceDisplayName);
 
               for (String configTypeName : serviceInfo.getConfigTypeAttributes().keySet()) {
                 if (selectedCountForType.get(configTypeName) == null) {
                   checkPassed = false;
                   LOG.error("Configuration {} is missing for service {}", configTypeName,
-                      serviceName);
+                    serviceDisplayName);
                 } else {
                   // Check that for each config type exactly one is selected
                   if (selectedCountForType.get(configTypeName) == 0) {
                     checkPassed = false;
                     LOG.error("Configuration {} has no enabled entries for service {}",
-                        configTypeName, serviceName);
+                        configTypeName, serviceDisplayName);
                   } else if (selectedCountForType.get(configTypeName) > 1) {
                     checkPassed = false;
                     LOG.error("Configuration {} has more than 1 enabled entry for service {}",
-                        configTypeName, serviceName);
+                        configTypeName, serviceDisplayName);
                   }
                 }
               }

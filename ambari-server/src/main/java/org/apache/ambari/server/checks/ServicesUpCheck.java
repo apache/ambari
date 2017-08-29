@@ -121,7 +121,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
         // Generally, if it advertises a version => in the upgrade pack.
         // So it can be in the Upgrade Pack but not advertise a version.
         List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
-            service.getName(), serviceComponent.getName());
+          service.getClusterId(), service.getServiceGroupId(), service.getServiceId(), serviceComponent.getName());
 
         // not installed, nothing to do
         if (hostComponentSummaries.isEmpty()) {

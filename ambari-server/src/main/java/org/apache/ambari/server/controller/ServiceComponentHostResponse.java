@@ -26,8 +26,14 @@ import org.apache.ambari.server.state.UpgradeState;
 
 public class ServiceComponentHostResponse {
 
+  private Long clusterId; // REF
   private String clusterName; // REF
+  private Long serviceGroupId;
+  private String serviceGroupName;
+  private Long serviceId;
   private String serviceName;
+  private String serviceDisplayName;
+  private Long hostComponentId;
   private String componentName;
   private String displayName;
   private String publicHostname;
@@ -44,12 +50,19 @@ public class ServiceComponentHostResponse {
   private String maintenanceState = null;
   private UpgradeState upgradeState = UpgradeState.NONE;
 
-  public ServiceComponentHostResponse(String clusterName, String serviceName, String componentName,
-      String displayName, String hostname, String publicHostname, String liveState, String version,
-      String desiredState, String desiredStackVersion, String desiredRepositoryVersion,
-      HostComponentAdminState adminState) {
+  public ServiceComponentHostResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
+                                      Long serviceId, String serviceName, String serviceDisplayName, Long hostComponentId,
+                                      String componentName, String displayName, String hostname, String publicHostname,
+                                      String liveState, String version, String desiredState, String desiredStackVersion,
+                                      String desiredRepositoryVersion, HostComponentAdminState adminState) {
+    this.clusterId = clusterId;
+    this.serviceGroupId = serviceGroupId;
+    this.serviceGroupName = serviceGroupName;
+    this.serviceId = serviceId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
+    this.serviceDisplayName = serviceDisplayName;
+    this.hostComponentId = hostComponentId;
     this.componentName = componentName;
     this.displayName = displayName;
     this.hostname = hostname;
@@ -65,6 +78,46 @@ public class ServiceComponentHostResponse {
   }
 
   /**
+   * @return the serviceGroupId
+   */
+  public Long getServiceGroupId() { return serviceGroupId; }
+
+  /**
+   * @param serviceGroupId the serviceGroupId to set
+   */
+  public void setServiceGroupId(Long serviceGroupId) { this.serviceGroupId = serviceGroupId; }
+
+  /**
+   * @return the serviceGroupName
+   */
+  public String getServiceGroupName() { return serviceGroupName; }
+
+  /**
+   * @param serviceGroupName the serviceGroupName to set
+   */
+  public void setServiceGroupName(String serviceGroupName) { this.serviceGroupName = serviceGroupName; }
+
+  /**
+   * @return the serviceId
+   */
+  public Long getServiceId() { return serviceId; }
+
+  /**
+   * @param serviceId the serviceId to set
+   */
+  public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+
+  /**
+   * @return the hostComponentId
+   */
+  public Long getHostComponentId() { return hostComponentId; }
+
+  /**
+   * @param hostComponentId the hostComponentId to set
+   */
+  public void sethostComponentId(Long hostComponentId) { this.hostComponentId = hostComponentId; }
+
+  /**
    * @return the serviceName
    */
   public String getServiceName() {
@@ -77,6 +130,16 @@ public class ServiceComponentHostResponse {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
+
+  /**
+   * @return the serviceName
+   */
+  public String getServiceDisplayName() { return serviceDisplayName; }
+
+  /**
+   * @param serviceDisplayName the serviceDisplayName to set
+   */
+  public void setServiceDisplayName(String serviceDisplayName) { this.serviceDisplayName = serviceDisplayName; }
 
   /**
    * @return the componentName
@@ -186,6 +249,16 @@ public class ServiceComponentHostResponse {
   }
 
   /**
+   * @return the clusterId
+   */
+  public Long getClusterId() { return clusterId; }
+
+  /**
+   * @param clusterId the clusterId to set
+   */
+  public void setClusterId(Long clusterId) { this.clusterId = clusterId; }
+
+  /**
    * @return the clusterName
    */
   public String getClusterName() {
@@ -225,18 +298,51 @@ public class ServiceComponentHostResponse {
     ServiceComponentHostResponse that =
         (ServiceComponentHostResponse) o;
 
+    if (clusterId != null ?
+            !clusterId.equals(that.clusterId) : that.clusterId != null) {
+      return false;
+    }
+
     if (clusterName != null ?
         !clusterName.equals(that.clusterName) : that.clusterName != null) {
       return false;
     }
+
+    if (serviceGroupId != null ?
+            !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) {
+      return false;
+    }
+
+    if (serviceGroupName != null ?
+            !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null) {
+      return false;
+    }
+
+    if (serviceId != null ?
+            !serviceId.equals(that.serviceId) : that.serviceId != null) {
+      return false;
+    }
+
     if (serviceName != null ?
         !serviceName.equals(that.serviceName) : that.serviceName != null) {
       return false;
     }
+
+    if (serviceDisplayName != null ?
+            !serviceDisplayName.equals(that.serviceDisplayName) : that.serviceDisplayName != null) {
+      return false;
+    }
+
     if (componentName != null ?
         !componentName.equals(that.componentName) : that.componentName != null) {
       return false;
     }
+
+    if (displayName != null ?
+            !displayName.equals(that.displayName) : that.displayName != null) {
+      return false;
+    }
+
     if (hostname != null ?
         !hostname.equals(that.hostname) : that.hostname != null) {
       return false;
@@ -247,9 +353,15 @@ public class ServiceComponentHostResponse {
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId != null? clusterId.intValue() : 0;
+    result = clusterName != null ? clusterName.hashCode() : 0;
+    result = 71 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 71 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
+    result = 71 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 71 * result + (serviceDisplayName != null ? serviceDisplayName.hashCode() : 0);
     result = 71 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 71 * result + (displayName != null ? displayName.hashCode() : 0);
     result = 71 * result + (hostname != null ? hostname.hashCode() : 0);
     return result;
   }

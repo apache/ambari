@@ -27,7 +27,10 @@ import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +50,12 @@ public class HostStatusHelper {
     ServiceComponentHostResponse componentHostResponse;
 
     try {
+      Clusters clusters = managementController.getClusters();
+      Cluster cluster = clusters.getCluster(clusterName);
+      Service s = cluster.getService(serviceName);
       ServiceComponentHostRequest componentRequest =
-        new ServiceComponentHostRequest(clusterName, serviceName,
-          componentName, hostName, null);
+        new ServiceComponentHostRequest(clusterName, s.getServiceGroupName(), serviceName, componentName, hostName,
+                null);
 
       Set<ServiceComponentHostResponse> hostComponents =
         managementController.getHostComponents(Collections.singleton(componentRequest));

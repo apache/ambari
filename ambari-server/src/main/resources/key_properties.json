@@ -8,7 +8,9 @@
   },
   "HostComponent": {
     "Cluster": "HostRoles/cluster_name",
+    "ServiceGroup": "HostRoles/service_group_name",
     "Host": "HostRoles/host_name",
+    "Service": "HostRoles/service_display_name",
     "HostComponent": "HostRoles/component_name",
     "Component": "HostRoles/component_name"
   },

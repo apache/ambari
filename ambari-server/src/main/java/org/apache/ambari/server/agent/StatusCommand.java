@@ -39,6 +39,9 @@ public class StatusCommand extends AgentCommand {
   @SerializedName("serviceName")
   private String serviceName;
 
+  @SerializedName("serviceDisplayName")
+  private String serviceDisplayName;
+
   @SerializedName("componentName")
   private String componentName;
 
@@ -115,6 +118,12 @@ public class StatusCommand extends AgentCommand {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public String getServiceDisplayName() { return serviceDisplayName; }
+
+  public void setServiceDisplayName(String serviceDisplayName) {
+    this.serviceDisplayName = serviceDisplayName;
   }
 
   public String getComponentName() {

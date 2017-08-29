@@ -386,8 +386,7 @@ public class ControllerModule extends AbstractModule {
     bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES)).
         to(configuration.getHostRoleCommandStatusSummaryCacheExpiryDuration());
 
-    bind(AmbariManagementController.class).to(
-        AmbariManagementControllerImpl.class);
+    bind(AmbariManagementController.class).to(AmbariManagementControllerImpl.class);
     bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
     bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
     bind(DBAccessor.class).to(DBAccessorImpl.class);

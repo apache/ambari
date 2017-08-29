@@ -41,9 +41,13 @@
     "HostComponent":[
         "HostRoles/role_id",
         "HostRoles/cluster_name",
+        "HostRoles/cluster_id",
+        "HostRoles/service_group_id",
+        "HostRoles/service_group_name",
         "HostRoles/host_name",
         "HostRoles/public_host_name",
         "HostRoles/component_name",
+        "HostRoles/id",
         "HostRoles/display_name",
         "HostRoles/state",
         "HostRoles/desired_state",
@@ -55,7 +59,9 @@
         "HostRoles/stale_configs",
         "HostRoles/desired_admin_state",
         "HostRoles/maintenance_state",
+        "HostRoles/service_id",
         "HostRoles/service_name",
+        "HostRoles/service_display_name",
         "HostRoles/upgrade_state",
         "_"
     ],

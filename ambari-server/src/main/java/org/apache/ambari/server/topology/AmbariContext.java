@@ -243,7 +243,8 @@ public class AmbariContext {
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
-      serviceRequests.add(new ServiceRequest(clusterName, service, repositoryVersionId, null, credentialStoreEnabled));
+      serviceRequests.add(new ServiceRequest(clusterName, null, service, service,
+              repositoryVersionId, null, credentialStoreEnabled));
 
       for (String component : topology.getBlueprint().getComponents(service)) {
         String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
@@ -318,7 +319,7 @@ public class AmbariContext {
         //todo: handle this in a generic manner.  These checks are all over the code
         try {
           if (cluster.getService(service) != null && !component.equals("AMBARI_SERVER")) {
-            requests.add(new ServiceComponentHostRequest(clusterName, service, component, hostName, null));
+            requests.add(new ServiceComponentHostRequest(clusterName, null, service, component, hostName, null));
           }
         } catch(AmbariException se) {
           LOG.warn("Service already deleted from cluster: {}", service);

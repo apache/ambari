@@ -54,15 +54,17 @@ import org.apache.ambari.server.state.RepositoryVersionState;
     name = "ServiceComponentVersionEntity.findByComponent",
     query = "SELECT version FROM ServiceComponentVersionEntity version WHERE " +
       "version.m_serviceComponentDesiredStateEntity.clusterId = :clusterId AND " +
-      "version.m_serviceComponentDesiredStateEntity.serviceName = :serviceName AND " +
+      "version.m_serviceComponentDesiredStateEntity.serviceGroupId = :serviceGroupId AND " +
+      "version.m_serviceComponentDesiredStateEntity.serviceId = :serviceId AND " +
       "version.m_serviceComponentDesiredStateEntity.componentName = :componentName"),
   @NamedQuery(
     name = "ServiceComponentVersionEntity.findByComponentAndVersion",
     query = "SELECT version FROM ServiceComponentVersionEntity version WHERE " +
-        "version.m_serviceComponentDesiredStateEntity.clusterId = :clusterId AND " +
-        "version.m_serviceComponentDesiredStateEntity.serviceName = :serviceName AND " +
-        "version.m_serviceComponentDesiredStateEntity.componentName = :componentName AND " +
-        "version.m_repositoryVersion.version = :repoVersion")
+      "version.m_serviceComponentDesiredStateEntity.clusterId = :clusterId AND " +
+      "version.m_serviceComponentDesiredStateEntity.serviceGroupId = :serviceGroupId AND " +
+      "version.m_serviceComponentDesiredStateEntity.serviceId = :serviceId AND " +
+      "version.m_serviceComponentDesiredStateEntity.componentName = :componentName AND " +
+      "version.m_repositoryVersion.version = :repoVersion")
 })
 
 public class ServiceComponentVersionEntity {

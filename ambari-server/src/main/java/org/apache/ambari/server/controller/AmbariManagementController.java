@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
@@ -105,7 +106,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the host component cannot be created
    */
-  void createHostComponents(
+  Set<ServiceComponentHostResponse> createHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
@@ -543,7 +544,7 @@ public interface AmbariManagementController {
    *
    * @throws  AmbariException if service name is null or empty
    */
-  String findServiceName(Cluster cluster, String componentName) throws AmbariException;
+  String findService(Cluster cluster, String componentName) throws AmbariException;
 
   /**
    * Get the clusters for this management controller.
@@ -565,6 +566,13 @@ public interface AmbariManagementController {
    * @return the meta info
    */
   AmbariMetaInfo getAmbariMetaInfo();
+
+  /**
+   * Get the service factory for this management controller.
+   *
+   * @return the service factory
+   */
+  ServiceFactory getServiceFactory();
 
   /**
    * Get the service groups factory for this management controller.

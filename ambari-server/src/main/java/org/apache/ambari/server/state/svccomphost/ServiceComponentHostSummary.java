@@ -67,9 +67,10 @@ public class ServiceComponentHostSummary {
     String stackVersion = repositoryVersion.getStackVersion();
 
     for (HostComponentStateEntity hostComponentStateEntity : allHostComponents) {
-      ComponentInfo compInfo = ambariMetaInfo.getComponent(
-          stackName, stackVersion, hostComponentStateEntity.getServiceName(),
-          hostComponentStateEntity.getComponentName());
+      String serviceDisplayName  = hostComponentStateEntity.getServiceComponentDesiredStateEntity().
+        getClusterServiceEntity().getServiceDisplayName();
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(stackName, stackVersion, serviceDisplayName,
+                                                           hostComponentStateEntity.getComponentName());
 
       if (!compInfo.isVersionAdvertised()) {
         // Some Components cannot advertise a version. E.g., ZKF, AMBARI_METRICS, Kerberos

@@ -49,7 +49,7 @@ public final class HDFSServiceCalculatedState extends DefaultServiceCalculatedSt
         Service service = cluster.getService(serviceName);
         StackId stackId = service.getDesiredStackId();
 
-        ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+        ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName, service.getServiceGroupName(),
           serviceName, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =

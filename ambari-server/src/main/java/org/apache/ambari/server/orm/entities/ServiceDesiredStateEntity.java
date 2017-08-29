@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Objects;
-
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -27,12 +25,12 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
-import org.apache.commons.lang.builder.EqualsBuilder;
 
 @javax.persistence.IdClass(ServiceDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "servicedesiredstate")
@@ -43,9 +41,13 @@ public class ServiceDesiredStateEntity {
   @Id
   private Long clusterId;
 
-  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
+  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
-  private String serviceName;
+  private Long serviceGroupId;
+
+  @Column(name = "service_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Id
+  private Long serviceId;
 
   @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
@@ -63,11 +65,12 @@ public class ServiceDesiredStateEntity {
   private short credentialStoreEnabled = 0;
 
   @OneToOne
-  @javax.persistence.JoinColumns(
-      {
-          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-          @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)
-      })
+  @JoinColumns(
+    {
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+      @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
+      @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+    })
   private ClusterServiceEntity clusterServiceEntity;
 
   /**
@@ -81,16 +84,24 @@ public class ServiceDesiredStateEntity {
     return clusterId;
   }
 
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
   }
 
-  public String getServiceName() {
-    return serviceName;
+  public Long getServiceId() {
+    return serviceId;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   public State getDesiredState() {
@@ -153,23 +164,42 @@ public class ServiceDesiredStateEntity {
     }
 
     ServiceDesiredStateEntity that = (ServiceDesiredStateEntity) o;
-    EqualsBuilder equalsBuilder = new EqualsBuilder();
-    equalsBuilder.append(clusterId, that.clusterId);
-    equalsBuilder.append(desiredState, that.desiredState);
-    equalsBuilder.append(desiredHostRoleMapping, that.desiredHostRoleMapping);
-    equalsBuilder.append(serviceName, that.serviceName);
-    equalsBuilder.append(desiredRepositoryVersion, that.desiredRepositoryVersion);
 
-    return equalsBuilder.isEquals();
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
+      return false;
+    }
+
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) {
+      return false;
+    }
+
+    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) {
+      return false;
+    }
+
+    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
+      return false;
+    }
+
+    if (desiredHostRoleMapping != that.desiredHostRoleMapping) {
+      return false;
+    }
+
+    if (desiredRepositoryVersion != null ? !desiredRepositoryVersion.equals(that.desiredRepositoryVersion) : that.desiredRepositoryVersion != null) {
+      return false;
+    }
+    return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public int hashCode() {
-    return Objects.hash(clusterId, serviceName, desiredState, desiredHostRoleMapping,
-        desiredRepositoryVersion);
+    int result = clusterId != null ? clusterId.intValue() : 0;
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
+    result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
+    result = 31 * result + desiredHostRoleMapping;
+    result = 31 * result + (desiredRepositoryVersion != null ? desiredRepositoryVersion.hashCode() : 0);
+    return result;
   }
 
   public ClusterServiceEntity getClusterServiceEntity() {

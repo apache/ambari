@@ -74,20 +74,23 @@ public class ServiceComponentDesiredStateDAO {
    *
    * @param clusterId
    *          the cluster ID
-   * @param serviceName
-   *          the service name (not {@code null})
+   * @param serviceGroupId
+   *          the service group ID
+   * @param serviceId
+   *          the service ID
    * @param componentName
    *          the component name (not {@code null})
    */
   @RequiresSession
-  public ServiceComponentDesiredStateEntity findByName(long clusterId, String serviceName,
-      String componentName) {
+  public ServiceComponentDesiredStateEntity findByName(long clusterId, long serviceGroupId, long serviceId,
+       String componentName) {
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<ServiceComponentDesiredStateEntity> query = entityManager.createNamedQuery(
         "ServiceComponentDesiredStateEntity.findByName", ServiceComponentDesiredStateEntity.class);
 
     query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
 
     ServiceComponentDesiredStateEntity entity = null;
@@ -120,8 +123,8 @@ public class ServiceComponentDesiredStateDAO {
   }
 
   @Transactional
-  public void removeByName(long clusterId, String serviceName, String componentName) {
-    ServiceComponentDesiredStateEntity entity = findByName(clusterId, serviceName, componentName);
+  public void removeByName(long clusterId, long serviceGroupId, long serviceId, String componentName) {
+    ServiceComponentDesiredStateEntity entity = findByName(clusterId, serviceGroupId, serviceId, componentName);
     if (null != entity) {
       entityManagerProvider.get().remove(entity);
     }
@@ -129,19 +132,21 @@ public class ServiceComponentDesiredStateDAO {
 
   /**
    * @param clusterId     the cluster id
-   * @param serviceName   the service name
+   * @param serviceGroupId   the service group id
+   * @param serviceId   the service id
    * @param componentName the component name
    * @return the list of repository versions for a component
    */
   @RequiresSession
-  public List<ServiceComponentVersionEntity> findVersions(long clusterId, String serviceName,
+  public List<ServiceComponentVersionEntity> findVersions(long clusterId, long serviceGroupId, long serviceId,
       String componentName) {
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<ServiceComponentVersionEntity> query = entityManager.createNamedQuery(
         "ServiceComponentVersionEntity.findByComponent", ServiceComponentVersionEntity.class);
 
     query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
 
     return daoUtils.selectList(query);
@@ -150,13 +155,14 @@ public class ServiceComponentDesiredStateDAO {
   /**
    * Gets a specific version for a component
    * @param clusterId     the cluster id
-   * @param serviceName   the service name
+   * @param serviceGroupId   the service group id
+   * @param serviceId   the service id
    * @param componentName the component name
    * @param version       the component version to find
    * @return the version entity, or {@code null} if not found
    */
   @RequiresSession
-  public ServiceComponentVersionEntity findVersion(long clusterId, String serviceName,
+  public ServiceComponentVersionEntity findVersion(long clusterId, long serviceGroupId, long serviceId,
       String componentName, String version) {
 
     EntityManager entityManager = entityManagerProvider.get();
@@ -164,7 +170,8 @@ public class ServiceComponentDesiredStateDAO {
         "ServiceComponentVersionEntity.findByComponentAndVersion", ServiceComponentVersionEntity.class);
 
     query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceName", serviceName);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
     query.setParameter("repoVersion", version);
 

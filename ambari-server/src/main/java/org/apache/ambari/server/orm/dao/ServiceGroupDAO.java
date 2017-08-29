@@ -46,11 +46,11 @@ public class ServiceGroupDAO {
   }
 
   @RequiresSession
-  public ServiceGroupEntity findByClusterAndServiceGroupNames(String clusterName, String serviceGroupName) {
+  public ServiceGroupEntity findByClusterAndServiceGroupIds(Long clusterId, Long serviceGroupId) {
     TypedQuery<ServiceGroupEntity> query = entityManagerProvider.get()
-      .createNamedQuery("serviceGroupByClusterAndServiceGroupNames", ServiceGroupEntity.class);
-    query.setParameter("clusterName", clusterName);
-    query.setParameter("serviceGroupName", serviceGroupName);
+      .createNamedQuery("serviceGroupByClusterAndServiceGroupIds", ServiceGroupEntity.class);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
 
     try {
       return query.getSingleResult();

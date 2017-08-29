@@ -64,10 +64,12 @@ import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -785,8 +787,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     HostComponentStateEntity stateEntity = new HostComponentStateEntity();
     stateEntity.setClusterId(serviceComponent.getClusterId());
+    stateEntity.setServiceGroupId(serviceComponent.getServiceGroupId());
+    stateEntity.setServiceId(serviceComponent.getServiceId());
     stateEntity.setComponentName(serviceComponent.getName());
-    stateEntity.setServiceName(serviceComponent.getServiceName());
     stateEntity.setVersion(State.UNKNOWN.toString());
     stateEntity.setHostEntity(hostEntity);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
@@ -795,7 +798,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
     desiredStateEntity.setClusterId(serviceComponent.getClusterId());
     desiredStateEntity.setComponentName(serviceComponent.getName());
-    desiredStateEntity.setServiceName(serviceComponent.getServiceName());
+    desiredStateEntity.setServiceId(serviceComponent.getServiceId());
     desiredStateEntity.setHostEntity(hostEntity);
     desiredStateEntity.setDesiredState(State.INIT);
 
@@ -809,8 +812,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     // publish the service component installed event
     ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(getClusterId(),
-        stackId.getStackName(), stackId.getStackVersion(), getServiceName(),
-        getServiceComponentName(), getHostName(), isRecoveryEnabled());
+        stackId.getStackName(), stackId.getStackVersion(), getServiceName(), getServiceDisplayName(),
+        getServiceGroupName(), getServiceComponentName(), getHostName(), isRecoveryEnabled());
 
     eventPublisher.publish(event);
 
@@ -1055,7 +1058,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public long getClusterId() {
+  public Long getClusterId() {
     return serviceComponent.getClusterId();
   }
 
@@ -1065,8 +1068,37 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public String getServiceDisplayName() {
+    return serviceComponent.getServiceDisplayName();
+  }
+
+  @Override
+  public Long getServiceId() {
+    return serviceComponent.getServiceId();
+  }
+
+  @Override
+  public Long getHostComponentId() {
+    return hostComponentStateId;
+  }
+
+  @Override
   public boolean isClientComponent() {
     return serviceComponent.isClientComponent();
+  }
+
+  @Override
+  public Long getServiceGroupId() { return serviceComponent.getServiceGroupId(); }
+
+  @Override
+  public String getServiceGroupName() {
+    try {
+      Cluster cluster = clusters.getCluster(getClusterId());
+      ServiceGroup sg = cluster.getServiceGroup(getServiceGroupId());
+      return sg.getServiceGroupName();
+    } catch (AmbariException e) {
+      return null;
+    }
   }
 
   @Override
@@ -1142,8 +1174,18 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentDesiredStateEntity hostComponentDesiredStateEntity = getDesiredStateEntity();
 
     String clusterName = serviceComponent.getClusterName();
-    String serviceName = serviceComponent.getServiceName();
+    Long clusterId = serviceComponent.getClusterId();
+    String serviceName = serviceComponent.getServiceDisplayName();
+    Cluster cluster = null;
+    Service service = null;
+    try {
+      cluster = clusters.getCluster(clusterName);
+      service = cluster.getService(serviceName);
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
     String serviceComponentName = serviceComponent.getName();
+    Long hostComponentId = getHostComponentId();
     String hostName = getHostName();
     String publicHostName = hostEntity.getPublicHostName();
     String state = getState().toString();
@@ -1168,9 +1210,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       desiredRepositoryVersion = repositoryVersion.getVersion();
     }
 
-    ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterName, serviceName,
-        serviceComponentName, displayName, hostName, publicHostName, state, getVersion(),
-        desiredState, desiredStackId, desiredRepositoryVersion, componentAdminState);
+    ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterId, clusterName, service.getServiceGroupId(),
+            service.getServiceGroupName(), service.getServiceId(), service.getName(), service.getServiceDisplayName(),
+            hostComponentId, serviceComponentName, displayName, hostName, publicHostName, state, getVersion(),
+            desiredState, desiredStackId, desiredRepositoryVersion, componentAdminState);
 
     r.setActualConfigs(actualConfigs);
     r.setUpgradeState(upgradeState);
@@ -1213,7 +1256,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   void persistEntities(HostEntity hostEntity, HostComponentStateEntity stateEntity,
       HostComponentDesiredStateEntity desiredStateEntity) {
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        serviceComponent.getClusterId(), serviceComponent.getServiceName(),
+        serviceComponent.getClusterId(), serviceComponent.getServiceGroupId(), serviceComponent.getServiceId(),
         serviceComponent.getName());
 
     desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
@@ -1264,12 +1307,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       String stackVersion = stackId.getStackVersion();
       String stackName = stackId.getStackName();
       String serviceName = getServiceName();
+      String serviceDisplayName = getServiceDisplayName();
+      String serviceGroupName  = getServiceGroupName();
       String componentName = getServiceComponentName();
       String hostName = getHostName();
       boolean recoveryEnabled = isRecoveryEnabled();
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
-          clusterId, stackName, stackVersion, serviceName, componentName,
+          clusterId, stackName, stackVersion, serviceName, serviceDisplayName, serviceGroupName, componentName,
           hostName, recoveryEnabled);
 
       eventPublisher.publish(event);

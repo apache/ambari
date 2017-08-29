@@ -22,34 +22,30 @@ package org.apache.ambari.server.controller;
 public class ServiceComponentRequest {
 
   private String clusterName; // REF
-
-  private String serviceName; // GET/CREATE/UPDATE/DELETE
-
+  private String serviceGroupName;
+  private String serviceDisplayName; // GET/CREATE/UPDATE/DELETE
   private String componentName; // GET/CREATE/UPDATE/DELETE
-
   private String desiredState; // CREATE/UPDATE
-
   private String componentCategory;
-
   private String recoveryEnabled; // CREATE/UPDATE
 
-  public ServiceComponentRequest(String clusterName, String serviceName,
+  public ServiceComponentRequest(String clusterName, String serviceGroupName, String serviceDisplayName,
                                  String componentName, String desiredState) {
-    this(clusterName, serviceName, componentName, desiredState, null, null);
+    this(clusterName, serviceGroupName, serviceDisplayName, componentName, desiredState, null, null);
   }
 
-  public ServiceComponentRequest(String clusterName, String serviceName,
-                                 String componentName, String desiredState,
-                                 String recoveryEnabled) {
-    this(clusterName, serviceName, componentName, desiredState, recoveryEnabled, null);
+  public ServiceComponentRequest(String clusterName, String serviceGroupName, String serviceDisplayName, String componentName,
+                                 String desiredState, String recoveryEnabled) {
+    this(clusterName, serviceGroupName, serviceDisplayName, componentName, desiredState, recoveryEnabled, null);
   }
 
-  public ServiceComponentRequest(String clusterName,
-                                 String serviceName, String componentName,
+  public ServiceComponentRequest(String clusterName, String serviceGroupName,
+                                 String serviceDisplayName, String componentName,
                                  String desiredState, String recoveryEnabled,
                                  String componentCategory) {
     this.clusterName = clusterName;
-    this.serviceName = serviceName;
+    this.serviceGroupName = serviceGroupName;
+    this.serviceDisplayName = serviceDisplayName;
     this.componentName = componentName;
     this.desiredState = desiredState;
     this.recoveryEnabled = recoveryEnabled;
@@ -57,25 +53,34 @@ public class ServiceComponentRequest {
   }
 
   /**
+   * @return the service group Name
+   */
+  public String getServiceGroupName() { return serviceGroupName; }
+
+  /**
+   * @param serviceGroupName the service group Name to set
+   */
+  public void setServiceGroupName(String serviceGroupName) { this.serviceGroupName = serviceGroupName; }
+
+  /**
    * @return the serviceName
    */
-  public String getServiceName() {
-    return serviceName;
+  public String getServiceDisplayName() {
+    return serviceDisplayName;
   }
 
   /**
-   * @param serviceName the serviceName to set
+   * @param serviceDisplayName the serviceDisplayName to set
    */
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public void setServiceDisplayName(String serviceDisplayName) {
+    this.serviceDisplayName = serviceDisplayName;
   }
+
 
   /**
    * @return the componentName
    */
-  public String getComponentName() {
-    return componentName;
-  }
+  public String getComponentName() { return componentName; }
 
   /**
    * @param componentName the componentName to set
@@ -136,7 +141,8 @@ public class ServiceComponentRequest {
 
   @Override
   public String toString() {
-    return String.format("[clusterName=%s, serviceName=%s, componentName=%s, desiredState=%s, recoveryEnabled=%s, componentCategory=%s]",
-        clusterName, serviceName, clusterName, desiredState, recoveryEnabled, componentCategory);
+    return String.format("[clusterName=%s, serviceGroupName=%s, serviceDisplayName=%s, componentName=%s, " +
+                         "desiredState=%s, recoveryEnabled=%s, componentCategory=%s]", clusterName, serviceGroupName,
+                          serviceDisplayName, clusterName, desiredState, recoveryEnabled, componentCategory);
   }
 }

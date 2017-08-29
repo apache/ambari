@@ -134,7 +134,8 @@ public class UpgradeCatalogHelper {
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
     serviceDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
     serviceDesiredStateEntity.setClusterId(1L);
-    serviceDesiredStateEntity.setServiceName(serviceName);
+    serviceDesiredStateEntity.setServiceGroupId(1L);
+    serviceDesiredStateEntity.setServiceId(1L);
     serviceDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
 
     clusterServiceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
@@ -179,7 +180,8 @@ public class UpgradeCatalogHelper {
     ServiceComponentDesiredStateEntity componentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setComponentName(componentName);
-    componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
+    componentDesiredStateEntity.setServiceGroupId(clusterServiceEntity.getServiceGroupId());
+    componentDesiredStateEntity.setServiceId(clusterServiceEntity.getServiceId());
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setClusterId(clusterServiceEntity.getClusterId());
     componentDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
@@ -190,7 +192,8 @@ public class UpgradeCatalogHelper {
     HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
     hostComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
     hostComponentDesiredStateEntity.setComponentName(componentName);
-    hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
+    hostComponentDesiredStateEntity.setServiceGroupId(clusterServiceEntity.getServiceGroupId());
+    hostComponentDesiredStateEntity.setServiceId(clusterServiceEntity.getServiceId());
     hostComponentDesiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
     hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     hostComponentDesiredStateEntity.setHostEntity(hostEntity);
@@ -199,7 +202,8 @@ public class UpgradeCatalogHelper {
     HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
     hostComponentStateEntity.setHostEntity(hostEntity);
     hostComponentStateEntity.setComponentName(componentName);
-    hostComponentStateEntity.setServiceName(clusterServiceEntity.getServiceName());
+    hostComponentStateEntity.setServiceGroupId(clusterServiceEntity.getServiceGroupId());
+    hostComponentStateEntity.setServiceId(clusterServiceEntity.getServiceId());
     hostComponentStateEntity.setClusterId(clusterEntity.getClusterId());
     hostComponentStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
 

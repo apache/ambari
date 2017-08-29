@@ -162,7 +162,7 @@ public class HeartbeatMonitor implements Runnable {
         // mark all components that are not clients with unknown status
         for (Cluster cluster : clusters.getClustersForHost(hostObj.getHostName())) {
           for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostObj.getHostName())) {
-            Service s = cluster.getService(sch.getServiceName());
+            Service s = cluster.getService(sch.getServiceDisplayName());
             ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
             if (!sc.isClientComponent() &&
               !sch.getState().equals(State.INIT) &&
@@ -237,15 +237,16 @@ public class HeartbeatMonitor implements Runnable {
   private StatusCommand createStatusCommand(String hostname, Cluster cluster,
       ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
     String serviceName = sch.getServiceName();
+    String serviceDisplayName = sch.getServiceDisplayName();
     String componentName = sch.getServiceComponentName();
 
     StackId stackId = sch.getDesiredStackId();
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName);
+        stackId.getStackVersion(), serviceDisplayName);
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
             stackId.getStackName(), stackId.getStackVersion(),
-            serviceName, componentName);
+            serviceDisplayName, componentName);
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
@@ -306,6 +307,7 @@ public class HeartbeatMonitor implements Runnable {
     StatusCommand statusCmd = new StatusCommand();
     statusCmd.setClusterName(cluster.getClusterName());
     statusCmd.setServiceName(serviceName);
+    statusCmd.setServiceDisplayName(serviceDisplayName);
     statusCmd.setComponentName(componentName);
     statusCmd.setConfigurations(configurations);
     statusCmd.setConfigurationAttributes(configurationAttributes);

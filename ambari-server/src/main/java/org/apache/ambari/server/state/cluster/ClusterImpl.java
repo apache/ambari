@@ -59,6 +59,7 @@ import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
@@ -171,8 +172,10 @@ public class ClusterImpl implements Cluster {
   private StackId desiredStackVersion;
 
   private final ConcurrentSkipListMap<String, Service> services = new ConcurrentSkipListMap<>();
+  private final ConcurrentSkipListMap<Long, Service> servicesById = new ConcurrentSkipListMap<>();
 
   private Map<String, ServiceGroup> serviceGroups = new ConcurrentSkipListMap<>();
+  private final Map<Long, ServiceGroup> serviceGroupsById = new ConcurrentSkipListMap<>();
 
   /**
    * [ Config Type -> [ Config Version Tag -> Config ] ]
@@ -435,7 +438,7 @@ public class ClusterImpl implements Cluster {
         if (ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), serviceEntity.getServiceName()) != null) {
           services.put(serviceEntity.getServiceName(),
-            serviceFactory.createExisting(this, serviceEntity));
+            serviceFactory.createExisting(this, getServiceGroup(serviceEntity.getServiceGroupId()), serviceEntity));
         }
       } catch (AmbariException e) {
         LOG.error(String.format(
@@ -452,6 +455,7 @@ public class ClusterImpl implements Cluster {
       for (ServiceGroupEntity serviceGroupEntity : clusterEntity.getServiceGroupEntities()) {
         ServiceGroup sg = serviceGroupFactory.createExisting(this, serviceGroupEntity);
         serviceGroups.put(serviceGroupEntity.getServiceGroupName(), sg);
+        serviceGroupsById.put(serviceGroupEntity.getServiceGroupId(), sg);
       }
     }
   }
@@ -622,12 +626,17 @@ public class ClusterImpl implements Cluster {
 
   @Override
   @Transactional
-  public void addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
+  public Set<ServiceComponentHostResponse> addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
+    Set<ServiceComponentHostResponse> createdSvcHostCmpnt = new HashSet<>();
+    Cluster cluster = null;
     for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
       Service service = getService(serviceComponentHost.getServiceName());
+      cluster = service.getCluster();
       ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentHost.getServiceComponentName());
       serviceComponent.addServiceComponentHost(serviceComponentHost);
+      createdSvcHostCmpnt.add(serviceComponentHost.convertToResponse(cluster.getDesiredConfigs()));
     }
+    return createdSvcHostCmpnt;
   }
 
   public void addServiceComponentHost(ServiceComponentHost svcCompHost)
@@ -768,7 +777,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public long getClusterId() {
+  public Long getClusterId() {
     // Add cluster creates the managed entity before creating the Cluster
     // instance so id would not be null.
     return clusterId;
@@ -843,7 +852,8 @@ public class ClusterImpl implements Cluster {
   @Override
   public void addService(Service service) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a new Service, clusterName={}, clusterId={}, serviceName={}", getClusterName(), getClusterId(), service.getName());
+      LOG.debug("Adding a new Service, clusterName={}, clusterId={}, serviceName={} serviceDisplayName={}",
+                 getClusterName(), getClusterId(), service.getName(), service.getServiceDisplayName());
     }
     services.put(service.getName(), service);
   }
@@ -852,16 +862,17 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public Service addService(String serviceName, RepositoryVersionEntity repositoryVersion) throws AmbariException {
+  public Service addService(ServiceGroup serviceGroup, String serviceName, String serviceDisplayName,
+                            RepositoryVersionEntity repositoryVersion) throws AmbariException {
     if (services.containsKey(serviceName)) {
-      String message = MessageFormat.format("The {0} service already exists in {1}", serviceName,
+      String message = MessageFormat.format("The {0} service already exists in {1}", serviceDisplayName,
         getClusterName());
 
       throw new AmbariException(message);
     }
 
     @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-    Service service = serviceFactory.createNew(this, serviceName, repositoryVersion);
+    Service service = serviceFactory.createNew(this, serviceGroup, serviceName, serviceDisplayName, repositoryVersion);
     addService(service);
 
     return service;
@@ -875,6 +886,7 @@ public class ClusterImpl implements Cluster {
         + serviceGroup.getServiceGroupName());
     }
     serviceGroups.put(serviceGroup.getServiceGroupName(), serviceGroup);
+    serviceGroupsById.put(serviceGroup.getServiceGroupId(), serviceGroup);
   }
 
   @Override
@@ -900,8 +912,23 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public Service getService(Long serviceId) throws AmbariException {
+    Service service = servicesById.get(serviceId);
+    if (null == service) {
+      throw new ServiceNotFoundException(getClusterName(), serviceId);
+    }
+
+    return service;
+  }
+
+  @Override
   public Map<String, Service> getServices() {
     return new HashMap<>(services);
+  }
+
+  @Override
+  public Map<Long, Service> getServicesById() {
+    return new HashMap<Long, Service>(servicesById);
   }
 
   @Override
@@ -924,6 +951,16 @@ public class ClusterImpl implements Cluster {
     ServiceGroup serviceGroup = serviceGroups.get(serviceGroupName);
     if (null == serviceGroup) {
       throw new ServiceGroupNotFoundException(getClusterName(), serviceGroupName);
+    }
+    return serviceGroup;
+  }
+
+
+  @Override
+  public ServiceGroup getServiceGroup(Long serviceGroupId) throws ServiceGroupNotFoundException {
+    ServiceGroup serviceGroup = serviceGroupsById.get(serviceGroupId);
+    if(null == serviceGroup) {
+      throw new ServiceGroupNotFoundException(getClusterName(), serviceGroupId);
     }
     return serviceGroup;
   }
@@ -1356,6 +1393,7 @@ public class ClusterImpl implements Cluster {
       Long serviceGroupId = serviceGroup.getServiceGroupId();
       deleteServiceGroup(serviceGroup);
       serviceGroups.remove(serviceGroupName);
+      serviceGroupsById.remove(serviceGroupId);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }

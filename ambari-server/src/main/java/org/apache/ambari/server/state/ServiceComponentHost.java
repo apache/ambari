@@ -33,7 +33,7 @@ public interface ServiceComponentHost {
   /**
    * Get the Cluster that this object maps to
    */
-  long getClusterId();
+  Long getClusterId();
 
   /**
    * Get the Cluster that this object maps to
@@ -41,12 +41,34 @@ public interface ServiceComponentHost {
   String getClusterName();
 
   /**
+   * Get the service group name this object maps to
+   * @return Name of the service group
+   */
+  Long getServiceGroupId();
+
+  /**
    * Get the Service this object maps to
    * @return Name of the Service
    */
   String getServiceName();
 
+  Long getServiceId();
+
+  Long getHostComponentId();
+
   boolean isClientComponent();
+
+  /**
+   * Get the service group name this object maps to
+   * @return Name of the service group
+   */
+  String getServiceGroupName();
+
+  /**
+   * Get the Real Service this object maps to
+   * @return Name of the Real Service
+   */
+  String getServiceDisplayName();
 
   /**
    * Get the ServiceComponent this object maps to

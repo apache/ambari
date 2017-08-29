@@ -457,6 +457,7 @@ App.UpdateController = Em.Controller.extend({
       realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam + haComponents +
         'ServiceComponentInfo/category=MASTER&fields=' +
         'ServiceComponentInfo/service_name,' +
+        'ServiceComponentInfo/service_display_name,' +
         'host_components/HostRoles/display_name,' +
         'host_components/HostRoles/host_name,' +
         'host_components/HostRoles/public_host_name,' +
@@ -536,7 +537,7 @@ App.UpdateController = Em.Controller.extend({
 
   updateComponentsState: function (callback) {
     var testUrl = '/data/services/HDP2/components_state.json';
-    var realUrl = '/components/?fields=ServiceComponentInfo/service_name,' +
+    var realUrl = '/components/?fields=ServiceComponentInfo/service_name,ServiceComponentInfo/service_display_name,' +
       'ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true';
     var url = this.getUrl(testUrl, realUrl);
 

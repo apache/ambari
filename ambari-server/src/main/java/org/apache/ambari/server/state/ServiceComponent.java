@@ -44,11 +44,17 @@ public interface ServiceComponent {
 
   String getServiceName();
 
-  long getClusterId();
+  String getServiceDisplayName();
+
+  Long getServiceGroupId();
+
+  Long getClusterId();
 
   String getClusterName();
 
   State getDesiredState();
+
+  Long getServiceId();
 
   void setDesiredState(State state);
 

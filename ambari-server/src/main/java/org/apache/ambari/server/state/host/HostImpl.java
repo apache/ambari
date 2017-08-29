@@ -1157,9 +1157,9 @@ public class HostImpl implements Host {
     HostEntity hostEntity = getHostEntity();
 
     for (HostComponentStateEntity componentState : hostEntity.getHostComponentStateEntities()) {
-      ComponentInfo component = ambariMetaInfo.getComponent(stackId.getStackName(),
-          stackId.getStackVersion(), componentState.getServiceName(),
-          componentState.getComponentName());
+      String serviceDisplayName = componentState.getServiceComponentDesiredStateEntity().getClusterServiceEntity().getServiceName();
+      ComponentInfo component = ambariMetaInfo.getComponent(stackId.getStackName(), stackId.getStackVersion(),
+                                                            serviceDisplayName, componentState.getComponentName());
 
       if (component.isVersionAdvertised()) {
         return true;

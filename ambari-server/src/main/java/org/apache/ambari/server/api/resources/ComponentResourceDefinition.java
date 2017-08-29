@@ -75,14 +75,16 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
     public void process(Request request, TreeNode<Resource> resultNode, String href) {
       TreeNode<Resource> parent = resultNode.getParent();
 
-      if (parent.getParent() != null && parent.getParent().getObject().getType() == Resource.Type.HostComponent) {
+      if (parent.getParent() != null && parent.getParent().getObject() != null
+              && parent.getParent().getObject().getType() == Resource.Type.HostComponent) {
         Resource r = resultNode.getObject();
         Schema schema = ClusterControllerHelper.getClusterController().getSchema(r.getType());
+        Object serviceGroupId = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.ServiceGroup));
         Object serviceId = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Service));
         Object componentId = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
         href = href.substring(0, href.indexOf("/hosts/") + 1) +
-            "services/" + serviceId + "/components/" + componentId;
+                "servicegroups/" + serviceGroupId + "/services/" + serviceId + "/components/" + componentId;
 
         resultNode.setProperty("href", href);
       } else {

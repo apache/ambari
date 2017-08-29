@@ -169,10 +169,10 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     return services;
   }
 
-  public ServiceInfo getService(String name) {
+  public ServiceInfo getService(String serviceDisplayName) {
     Collection<ServiceInfo> services = getServices();
     for (ServiceInfo service : services) {
-      if (service.getName().equals(name)) {
+      if (service.getName().equals(serviceDisplayName)) {
         return service;
       }
     }

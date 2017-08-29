@@ -188,7 +188,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
     try {
       AmbariMetaInfo metaInfo = controller.getAmbariMetaInfo();
       Cluster cluster = controller.getClusters().getCluster(clusterName);
-      String serviceName = controller.findServiceName(cluster, componentName);
+      String serviceName = controller.findService(cluster, componentName);
       Service service = cluster.getService(serviceName);
       StackId stackId = service.getDesiredStackId();
 

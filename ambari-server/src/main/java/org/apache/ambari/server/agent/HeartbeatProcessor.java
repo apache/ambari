@@ -306,7 +306,7 @@ public class HeartbeatProcessor extends AbstractService{
 
           ComponentInfo componentInfo =
               ambariMetaInfo.getComponent(stackId.getStackName(),
-                  stackId.getStackVersion(), scHost.getServiceName(),
+                  stackId.getStackVersion(), scHost.getServiceDisplayName(),
                   scHost.getServiceComponentName());
 
           String status = scHost.getState().name();
@@ -509,7 +509,8 @@ public class HeartbeatProcessor extends AbstractService{
                         "RESTART".equals(report.getCustomCommand()))))
                 && null != report.getConfigurationTags()
                 && !report.getConfigurationTags().isEmpty()) {
-              LOG.info("Updating applied config on service " + scHost.getServiceName() +
+              LOG.info("Updating applied config on serviceDisplayName " + scHost.getServiceDisplayName() +
+                  ", serviceName " + scHost.getServiceName() +
                   ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
               scHost.updateActualConfigs(report.getConfigurationTags());
               scHost.setRestartRequired(false);

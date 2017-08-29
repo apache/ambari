@@ -702,7 +702,7 @@ public class DatabaseConsistencyCheckHelper {
       for (Iterator<HostComponentDesiredStateEntity> desiredStateIterator = missedHostComponentDesiredStates.iterator(); desiredStateIterator.hasNext();) {
         HostComponentDesiredStateEntity hostComponentDesiredStateEntity = desiredStateIterator.next();
         if (hostComponentStateEntity.getComponentName().equals(hostComponentDesiredStateEntity.getComponentName()) &&
-            hostComponentStateEntity.getServiceName().equals(hostComponentDesiredStateEntity.getServiceName()) &&
+          hostComponentStateEntity.getServiceId().equals(hostComponentDesiredStateEntity.getServiceId()) &&
             hostComponentStateEntity.getHostId().equals(hostComponentDesiredStateEntity.getHostId())){
           desiredStateIterator.remove();
           stateIterator.remove();
@@ -717,7 +717,7 @@ public class DatabaseConsistencyCheckHelper {
       HostComponentStateEntity stateEntity = new HostComponentStateEntity();
       stateEntity.setClusterId(hostComponentDesiredStateEntity.getClusterId());
       stateEntity.setComponentName(hostComponentDesiredStateEntity.getComponentName());
-      stateEntity.setServiceName(hostComponentDesiredStateEntity.getServiceName());
+      stateEntity.setServiceId(hostComponentDesiredStateEntity.getServiceId());
       stateEntity.setVersion(State.UNKNOWN.toString());
       stateEntity.setHostEntity(hostComponentDesiredStateEntity.getHostEntity());
       stateEntity.setCurrentState(State.UNKNOWN);
@@ -733,7 +733,7 @@ public class DatabaseConsistencyCheckHelper {
       HostComponentDesiredStateEntity stateEntity = new HostComponentDesiredStateEntity();
       stateEntity.setClusterId(missedHostComponentState.getClusterId());
       stateEntity.setComponentName(missedHostComponentState.getComponentName());
-      stateEntity.setServiceName(missedHostComponentState.getServiceName());
+      stateEntity.setServiceId(missedHostComponentState.getServiceId());
       stateEntity.setHostEntity(missedHostComponentState.getHostEntity());
       stateEntity.setDesiredState(State.UNKNOWN);
       stateEntity.setServiceComponentDesiredStateEntity(missedHostComponentState.getServiceComponentDesiredStateEntity());

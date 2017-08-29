@@ -37,16 +37,28 @@ public class ClusterServiceEntityPK implements Serializable {
     this.clusterId = clusterId;
   }
 
-  private String serviceName;
+  private Long serviceGroupId;
 
   @Id
-  @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
-  public String getServiceName() {
-    return serviceName;
+  @Column(name = "service_group_id", nullable = false, insertable = true, updatable = true, length = 10)
+  public Long getServiceGroupId() {
+    return serviceGroupId;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
+  private Long serviceId;
+
+  @Id
+  @Column(name = "id", nullable = false, insertable = true, updatable = true, length = 10)
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   @Override
@@ -57,7 +69,8 @@ public class ClusterServiceEntityPK implements Serializable {
     ClusterServiceEntityPK that = (ClusterServiceEntityPK) o;
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) return false;
+    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) return false;
 
     return true;
   }
@@ -65,7 +78,8 @@ public class ClusterServiceEntityPK implements Serializable {
   @Override
   public int hashCode() {
     int result = clusterId !=null ? clusterId.intValue() : 0;
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
     return result;
   }
 }

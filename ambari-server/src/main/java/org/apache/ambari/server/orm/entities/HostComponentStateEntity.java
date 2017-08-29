@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -56,20 +56,28 @@ import com.google.common.base.Objects;
         query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.hostEntity.hostName=:hostName"),
     @NamedQuery(
         name = "HostComponentStateEntity.findByService",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName"),
+        query = "SELECT hcs from HostComponentStateEntity  hcs WHERE hcs.clusterId=:clusterId " +
+                "AND hcs.serviceGroupId=:serviceGroupId AND hcs.serviceId=:serviceId " ),
     @NamedQuery(
         name = "HostComponentStateEntity.findByServiceAndComponent",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName"),
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId " +
+                "AND hcs.serviceGroupId=:serviceGroupId AND hcs.serviceId=:serviceId " +
+                "AND hcs.componentName=:componentName"),
     @NamedQuery(
         name = "HostComponentStateEntity.findByServiceComponentAndHost",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostEntity.hostName=:hostName"),
-    @NamedQuery(
-        name = "HostComponentStateEntity.findByIndex",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId AND hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostId=:hostId"),
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId " +
+                "AND hcs.serviceGroupId=:serviceGroupId AND hcs.serviceId=:serviceId " +
+                "AND hcs.componentName=:componentName AND hcs.hostEntity.hostName=:hostName"),
     @NamedQuery(
         name = "HostComponentStateEntity.findByServiceAndComponentAndNotVersion",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.version != :version")
-})
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId " +
+                "AND hcs.serviceGroupId=:serviceGroupId AND hcs.serviceId=:serviceId " +
+                "AND hcs.componentName=:componentName AND hcs.hostEntity.hostName=:hostName " +
+                "AND hcs.version != :version"),
+    @NamedQuery(
+        name = "HostComponentStateEntity.findByIndex",
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId " +
+                "AND hcs.serviceGroupId=:serviceGroupId AND hcs.serviceId=:serviceId AND hcs.componentName=:componentName AND hcs.hostId=:hostId") })
 
 public class HostComponentStateEntity {
 
@@ -81,8 +89,11 @@ public class HostComponentStateEntity {
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 
-  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
-  private String serviceName;
+  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long serviceGroupId;
+
+  @Column(name = "service_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long serviceId;
 
   @Column(name = "host_id", nullable = false, insertable = false, updatable = false)
   private Long hostId;
@@ -106,9 +117,10 @@ public class HostComponentStateEntity {
 
   @ManyToOne
   @JoinColumns({
-      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-      @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),
-      @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false) })
+    @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+    @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
+    @JoinColumn(name = "service_id", referencedColumnName = "service_id", nullable = false),
+    @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false) })
   private ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity;
 
   @ManyToOne
@@ -123,16 +135,24 @@ public class HostComponentStateEntity {
     return clusterId;
   }
 
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
   }
 
-  public String getServiceName() {
-    return serviceName;
+  public Long getServiceId() {
+    return this.serviceId;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   public String getHostName() {
@@ -195,6 +215,14 @@ public class HostComponentStateEntity {
       return false;
     }
 
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) {
+      return false;
+    }
+
+    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) {
+      return false;
+    }
+
     if (componentName != null ? !componentName.equals(that.componentName)
         : that.componentName != null) {
       return false;
@@ -214,10 +242,6 @@ public class HostComponentStateEntity {
       return false;
     }
 
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) {
-      return false;
-    }
-
     if (version != null ? !version.equals(that.version) : that.version != null) {
       return false;
     }
@@ -229,11 +253,12 @@ public class HostComponentStateEntity {
   public int hashCode() {
     int result = id != null ? id.intValue() : 0;
     result = 31 * result + (clusterId != null ? clusterId.intValue() : 0);
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.intValue() : 0);
+    result = 31 * result + (serviceId != null ? serviceId.intValue() : 0);
     result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
     return result;
   }
@@ -260,8 +285,9 @@ public class HostComponentStateEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("serviceName", serviceName).add("componentName",
-        componentName).add("hostId", hostId).add("state", currentState).toString();
+    return Objects.toStringHelper(this).add("clusterId", clusterId).add("serviceGroupId", serviceGroupId).add(
+      "serviceId", serviceId).add("componentName", componentName).add(
+      "hostId", hostId).add("state", currentState).toString();
   }
 
 }

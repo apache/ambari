@@ -30,10 +30,10 @@ import org.apache.ambari.server.serveraction.kerberos.Component;
 public class ServiceRemovedEvent extends ServiceEvent {
   private final List<Component> components;
 
-  public ServiceRemovedEvent(long clusterId, String stackName,
-                             String stackVersion, String serviceName, List<Component> components) {
+  public ServiceRemovedEvent(long clusterId, String stackName, String stackVersion, String serviceName,
+                             String serviceDisplayName, String serviceGroupName, List<Component> components) {
     super(AmbariEventType.SERVICE_REMOVED_SUCCESS, clusterId, stackName,
-      stackVersion, serviceName);
+      stackVersion, serviceName, serviceDisplayName, serviceGroupName);
     this.components = components;
   }
 
@@ -47,6 +47,8 @@ public class ServiceRemovedEvent extends ServiceEvent {
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);
     buffer.append(", serviceName=").append(m_serviceName);
+    buffer.append(", serviceDisplayName=").append(m_serviceDisplayName);
+    buffer.append(", serviceGroupName=").append(m_serviceGroupName);
     buffer.append("}");
     return buffer.toString();
   }

@@ -36,11 +36,11 @@ import javax.persistence.TableGenerator;
 @IdClass(ServiceGroupEntityPK.class)
 @Table(name = "servicegroups")
 @NamedQueries({
-  @NamedQuery(name = "serviceGroupByClusterAndServiceGroupNames", query =
+  @NamedQuery(name = "serviceGroupByClusterAndServiceGroupIds", query =
     "SELECT serviceGroup " +
       "FROM ServiceGroupEntity serviceGroup " +
       "JOIN serviceGroup.clusterEntity cluster " +
-      "WHERE serviceGroup.serviceGroupName=:serviceGroupName AND cluster.clusterName=:clusterName")
+      "WHERE serviceGroup.serviceGroupId=:serviceGroupId AND cluster.clusterId=:clusterId")
 })
 @Entity
 @TableGenerator(name = "service_group_id_generator",

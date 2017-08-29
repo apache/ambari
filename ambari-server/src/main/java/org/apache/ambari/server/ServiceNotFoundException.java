@@ -21,9 +21,15 @@ package org.apache.ambari.server;
 @SuppressWarnings("serial")
 public class ServiceNotFoundException extends ObjectNotFoundException {
 
-  public ServiceNotFoundException(String clusterName, String serviceName) {
+  public ServiceNotFoundException(String clusterName, String serviceDisplayName) {
     super("Service not found"
         + ", clusterName=" + clusterName
-        + ", serviceName=" + serviceName);
+        + ", serviceDisplayName=" + serviceDisplayName);
+  }
+
+  public ServiceNotFoundException(String clusterName, Long serviceId) {
+    super("Service not found"
+      + ", clusterName=" + clusterName
+      + ", serviceId=" + serviceId);
   }
 }

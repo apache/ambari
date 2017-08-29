@@ -161,11 +161,14 @@ CREATE TABLE servicegroups (
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE clusterservices (
+  id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
+  service_display_name VARCHAR(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
   service_enabled NUMBER(10) NOT NULL,
-  CONSTRAINT PK_clusterservices PRIMARY KEY (service_name, cluster_id),
-  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+  CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
+  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterstate (
   cluster_id NUMBER(19) NOT NULL,
@@ -196,15 +199,16 @@ CREATE TABLE servicecomponentdesiredstate (
   id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_id NUMBER(19) NOT NULL,
   desired_repo_version_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
-  service_name VARCHAR2(255) NOT NULL,
   recovery_enabled SMALLINT DEFAULT 0 NOT NULL,
   repo_state VARCHAR2(255) DEFAULT 'NOT_REQUIRED' NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
-  CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
+  CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_id, service_group_id, cluster_id),
   CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
+  CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE hostcomponentdesiredstate (
   id NUMBER(19) NOT NULL,
@@ -212,14 +216,15 @@ CREATE TABLE hostcomponentdesiredstate (
   component_name VARCHAR2(255) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
-  service_name VARCHAR2(255) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_id NUMBER(19) NOT NULL,
   admin_state VARCHAR2(32) NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
   restart_required NUMBER(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
-  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
+  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_id, host_id, service_group_id, host_id, cluster_id),
   CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
+  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE TABLE hostcomponentstate (
   id NUMBER(19) NOT NULL,
@@ -228,11 +233,12 @@ CREATE TABLE hostcomponentstate (
   version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
   current_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
-  service_name VARCHAR2(255) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_id NUMBER(19) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
+  CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
 
@@ -259,15 +265,16 @@ CREATE TABLE host_version (
 
 CREATE TABLE servicedesiredstate (
   cluster_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_id NUMBER(19) NOT NULL,
   desired_host_role_mapping NUMBER(10) NOT NULL,
   desired_repo_version_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
-  service_name VARCHAR2(255) NOT NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
   credential_store_enabled SMALLINT DEFAULT 0 NOT NULL,
-  CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
+  CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_group_id, service_id),
   CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
+  CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_group_id, service_id, cluster_id) REFERENCES clusterservices (service_group_id, id, cluster_id));
 
 CREATE TABLE adminprincipaltype (
   principal_type_id NUMBER(10) NOT NULL,
@@ -1063,6 +1070,7 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('member_id_seq', 0);

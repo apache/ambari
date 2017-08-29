@@ -24,24 +24,35 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.TableGenerator;
 
 @javax.persistence.IdClass(ClusterServiceEntityPK.class)
 @javax.persistence.Table(name = "clusterservices")
 @NamedQueries({
-        @NamedQuery(name = "clusterServiceByClusterAndServiceNames", query =
-                "SELECT clusterService " +
-                        "FROM ClusterServiceEntity clusterService " +
-                        "JOIN clusterService.clusterEntity cluster " +
-                        "WHERE clusterService.serviceName=:serviceName AND cluster.clusterName=:clusterName")
+  @NamedQuery(name = "clusterServiceById", query =
+    "SELECT clusterService " +
+      "FROM ClusterServiceEntity clusterService " +
+      "JOIN clusterService.serviceGroupEntity serviceGroup " +
+      "WHERE clusterService.serviceId=:serviceId " +
+      "AND  serviceGroup.serviceGroupId=:serviceGroupId " +
+      "AND serviceGroup.clusterId=:clusterId")
 })
 @Entity
+@TableGenerator(name = "service_id_generator",
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
+  , pkColumnValue = "service_id_seq"
+  , initialValue = 1
+)
 public class ClusterServiceEntity {
 
   @Id
@@ -49,16 +60,33 @@ public class ClusterServiceEntity {
   private Long clusterId;
 
   @Id
+  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long serviceGroupId;
+
+  @Id
+  @Column(name = "id", nullable = false, insertable = true, updatable = true)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "service_id_generator")
+  private Long serviceId;
+
   @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
   private String serviceName;
+
+  @Column(name = "service_display_name", nullable = false, insertable = true, updatable = true)
+  private String serviceDisplayName;
 
   @Basic
   @Column(name = "service_enabled", nullable = false, insertable = true, updatable = true, length = 10)
   private Integer serviceEnabled = 0;
 
+
   @ManyToOne
-  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false)
   private ClusterEntity clusterEntity;
+
+  @ManyToOne
+  @JoinColumns({@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+    @JoinColumn(name = "service_group_id", referencedColumnName = "id", nullable = false)})
+  private ServiceGroupEntity serviceGroupEntity;
 
   @OneToOne(mappedBy = "clusterServiceEntity", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
   private ServiceDesiredStateEntity serviceDesiredStateEntity;
@@ -74,12 +102,36 @@ public class ClusterServiceEntity {
     this.clusterId = clusterId;
   }
 
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
+  }
+
   public String getServiceName() {
     return serviceName;
   }
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public String getServiceDisplayName() {
+    return serviceDisplayName;
+  }
+
+  public void setServiceDisplayName(String serviceDisplayName) {
+    this.serviceDisplayName = serviceDisplayName;
   }
 
   public int getServiceEnabled() {
@@ -98,9 +150,11 @@ public class ClusterServiceEntity {
     ClusterServiceEntity that = (ClusterServiceEntity) o;
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) return false;
+    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) return false;
     if (serviceEnabled != null ? !serviceEnabled.equals(that.serviceEnabled) : that.serviceEnabled != null)
       return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+    if (serviceDisplayName != null ? !serviceDisplayName.equals(that.serviceDisplayName) : that.serviceDisplayName != null) return false;
 
     return true;
   }
@@ -108,7 +162,9 @@ public class ClusterServiceEntity {
   @Override
   public int hashCode() {
     int result = clusterId !=null ? clusterId.intValue() : 0;
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
+    result = 31 * result + (serviceDisplayName != null ? serviceDisplayName.hashCode() : 0);
     result = 31 * result + serviceEnabled;
     return result;
   }
@@ -119,6 +175,14 @@ public class ClusterServiceEntity {
 
   public void setClusterEntity(ClusterEntity clusterEntity) {
     this.clusterEntity = clusterEntity;
+  }
+
+  public ServiceGroupEntity getClusterServiceGroupEntity() {
+    return serviceGroupEntity;
+  }
+
+  public void setServiceGroupEntity(ServiceGroupEntity serviceGroupEntity) {
+    this.serviceGroupEntity = serviceGroupEntity;
   }
 
   public ServiceDesiredStateEntity getServiceDesiredStateEntity() {

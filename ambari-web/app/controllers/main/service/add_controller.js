@@ -428,7 +428,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     return {
       "context": Em.I18n.t('requestInfo.installServices'),
       "ServiceInfo": {"state": "INSTALLED"},
-      "urlParams": "ServiceInfo/service_name.in(" + selectedServices.join(',') + ")"
+      "urlParams": "ServiceInfo/service_display_name.in(" + selectedServices.join(',') + ")"
     };
   },
 

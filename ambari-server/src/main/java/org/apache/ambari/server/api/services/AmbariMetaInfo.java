@@ -339,15 +339,15 @@ public class AmbariMetaInfo {
     return service.getComponents();
   }
 
-  public ComponentInfo getComponent(String stackName, String version, String serviceName,
+  public ComponentInfo getComponent(String stackName, String version, String serviceDisplayName,
                                     String componentName) throws AmbariException {
 
-    ComponentInfo component = getService(stackName, version, serviceName).getComponentByName(componentName);
+    ComponentInfo component = getService(stackName, version, serviceDisplayName).getComponentByName(componentName);
 
     if (component == null) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
-          + ", serviceName=" + serviceName
+          + ", serviceDisplayName=" + serviceDisplayName
           + ", componentName=" + componentName);
     }
     return component;
@@ -586,12 +586,12 @@ public class AmbariMetaInfo {
     return getService(stackId.getStackName(), stackId.getStackVersion(), service.getName());
   }
 
-  public ServiceInfo getService(String stackName, String version, String serviceName) throws AmbariException {
-    ServiceInfo service = getStack(stackName, version).getService(serviceName);
+  public ServiceInfo getService(String stackName, String version, String serviceDisplayName) throws AmbariException {
+    ServiceInfo service = getStack(stackName, version).getService(serviceDisplayName);
 
     if (service == null) {
       throw new StackAccessException("stackName=" + stackName + ", stackVersion=" +
-                                     version + ", serviceName=" + serviceName);
+                                     version + ", serviceDisplayName=" + serviceDisplayName);
     }
 
     return service;

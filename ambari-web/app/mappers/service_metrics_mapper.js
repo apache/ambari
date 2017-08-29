@@ -25,8 +25,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
   model: App.Service,
   config: {
-    id: 'ServiceInfo.service_name',
-    service_name: 'ServiceInfo.service_name',
+    id: 'ServiceInfo.service_display_name',
+    service_name: 'ServiceInfo.service_display_name',
     work_status: 'ServiceInfo.state',
     passive_state: 'ServiceInfo.passive_state',
     $rand: Math.random(),
@@ -194,7 +194,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
       json.items.forEach(function (component) {
         var serviceName = component.ServiceComponentInfo.service_name;
-        var service = services.findProperty('ServiceInfo.service_name', serviceName);
+        var service = services.findProperty('ServiceInfo.service_display_name', serviceName);
         if (service) {
           service.components.push(component);
         }
@@ -223,7 +223,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           if (hostComponent.get('isLoaded')) {
             this.deleteRecord(hostComponent);
           }
-          var serviceCache = services.findProperty('ServiceInfo.service_name', hostComponent.get('service.serviceName'));
+          var serviceCache = services.findProperty('ServiceInfo.service_display_name', hostComponent.get('service.serviceName'));
           if (serviceCache) {
             serviceCache.host_components = serviceCache.host_components.without(hostComponent.get('id'));
           }
@@ -235,7 +235,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
       //parse service metrics from components
       services.forEach(function (item) {
-        hostComponents.filterProperty('service_id', item.ServiceInfo.service_name).mapProperty('id').forEach(function (hostComponent) {
+        hostComponents.filterProperty('service_id', item.ServiceInfo.service_display_name).mapProperty('id').forEach(function (hostComponent) {
           if (!item.host_components.contains(hostComponent)) {
             item.host_components.push(hostComponent);
           }
@@ -244,7 +244,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
         var extendedModelInfo = this.mapExtendedModel(item);
         if (extendedModelInfo) {
-          extendedModelInfo.passive_state = App.Service.find(item.ServiceInfo.service_name).get('passiveState');
+          extendedModelInfo.passive_state = App.Service.find(item.ServiceInfo.service_display_name).get('passiveState');
           result.push(extendedModelInfo);
         }
       }, this);
@@ -287,33 +287,33 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    */
   mapExtendedModel: function(item) {
     var finalJson = false;
-    if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HDFS") {
+    if (item && item.ServiceInfo && item.ServiceInfo.service_display_name == "HDFS") {
       finalJson = this.hdfsMapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoad(App.HDFSService, finalJson);
-    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_display_name == "HBASE") {
       finalJson = this.hbaseMapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoad(App.HBaseService, finalJson);
-    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "FLUME") {
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_display_name == "FLUME") {
       finalJson = this.flumeMapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoadMany(App.FlumeAgent, finalJson.agentJsons);
       App.store.safeLoad(App.FlumeService, finalJson);
-    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_display_name == "YARN") {
       finalJson = this.yarnMapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoad(App.YARNService, finalJson);
-    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE2") {
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_display_name == "MAPREDUCE2") {
       finalJson = this.mapreduce2Mapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoad(App.MapReduce2Service, finalJson);
-    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "STORM") {
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_display_name == "STORM") {
       finalJson = this.stormMapper(item);
       finalJson.rand = Math.random();
       this.mapQuickLinks(finalJson, item);
       App.store.safeLoad(App.StormService, finalJson);
-    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "RANGER") {
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_display_name == "RANGER") {
       finalJson = this.rangerMapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoad(App.RangerService, finalJson);
@@ -338,13 +338,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     // set tooltip for client-only services
     var clientOnlyServiceNames = App.get('services.clientOnly');
     clientOnlyServiceNames.forEach(function (serviceName) {
-      var service = services.findProperty('ServiceInfo.service_name', serviceName);
+      var service = services.findProperty('ServiceInfo.service_display_name', serviceName);
       if (service) {
         service.tool_tip_content = Em.I18n.t('services.service.summary.clientOnlyService.ToolTip');
       }
     });
     hostComponents.forEach(function (hostComponent) {
-      var service = services.findProperty('ServiceInfo.service_name', hostComponent.service_id);
+      var service = services.findProperty('ServiceInfo.service_display_name', hostComponent.service_id);
       if (hostComponent) {
         // set advanced nameNode display name for HA, Active NameNode or Standby NameNode
         // this is useful on three places: 1) HDFS health status hover tooltip, 2) HDFS service summary 3) NameNode component on host detail page
@@ -410,8 +410,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       AMBARI_METRICS: [37],
       LOGSEARCH: [38]
     };
-    if (quickLinks[item.ServiceInfo.service_name])
-      finalJson.quick_links = quickLinks[item.ServiceInfo.service_name];
+    if (quickLinks[item.ServiceInfo.service_display_name])
+      finalJson.quick_links = quickLinks[item.ServiceInfo.service_display_name];
   },
 
   hdfsMapper: function (item) {

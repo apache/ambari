@@ -43,7 +43,7 @@ var urls = {
   },
 
   'common.services.update' : {
-    'real': '/clusters/{clusterName}/services?{urlParams}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
       return {
@@ -65,7 +65,7 @@ var urls = {
   },
 
   'common.service.update' : {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
       return {
@@ -88,12 +88,12 @@ var urls = {
   },
 
   'common.service_component.info' : {
-    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{urlParams}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}/components/{componentName}?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json'
   },
 
   'common.service.hdfs.getNnCheckPointTime': {
-    'real': '/clusters/{clusterName}/services/HDFS/components/NAMENODE?fields=host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/LastCheckpointTime',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HDFS/components/NAMENODE?fields=host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/LastCheckpointTime',
     'mock': ''
   },
 
@@ -312,7 +312,7 @@ var urls = {
   },
 
   'common.service.passive': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}',
     'mock': '',
     'format': function (data) {
       return {
@@ -399,7 +399,7 @@ var urls = {
     'type': 'DELETE'
   },
   'common.delete.service': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}',
     'mock': '/data/services/ambari.json',
     'type': 'DELETE'
   },
@@ -953,7 +953,7 @@ var urls = {
     'mock': '/data/hosts/HDP2/decommission_state.json'
   },
   'host.host_component.decommission_status': {
-    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo,host_components/HostRoles/state',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo,host_components/HostRoles/state',
     'mock': ''
   },
   'host_components.hbase_regionserver.active': {
@@ -1017,143 +1017,143 @@ var urls = {
     'mock': '/data/cluster_metrics/cpu_1hr.json'
   },
   'hosts.metrics.host_component': {
-    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields=host_components/{metricName}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}/components/{componentName}?fields=host_components/{metricName}',
     'mock': '/data/cluster_metrics/cpu_1hr.json'
   },
   'service.metrics.flume.channel_fill_percent': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/channelFillPct.json',
     'testInProduction': true
   },
   'service.metrics.flume.channel_size': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelSize[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelSize[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/channelSize.json',
     'testInProduction': true
   },
   'service.metrics.flume.sink_drain_success': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/EventDrainSuccessCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/EventDrainSuccessCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/sinkDrainSuccessCount.json',
     'testInProduction': true
   },
   'service.metrics.flume.sink_connection_failed': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/ConnectionFailedCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/ConnectionFailedCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/sinkConnectionFailedCount.json',
     'testInProduction': true
   },
   'service.metrics.flume.source_accepted': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SOURCE/EventAcceptedCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SOURCE/EventAcceptedCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/sourceEventAccepted.json',
     'testInProduction': true
   },
   'service.metrics.flume.channel_size_for_all': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.channel_size_for_all.mma': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.channel_size_for_all.sum': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.gc': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/jvmGcTime.json',
     'testInProduction': true
   },
   'service.metrics.flume.jvm_heap_used': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/jvmMemHeapUsedM.json',
     'testInProduction': true
   },
   'service.metrics.flume.jvm_threads_runnable': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/jvmThreadsRunnable.json',
     'testInProduction': true
   },
   'service.metrics.flume.cpu_user': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '',
     'testInProduction': true
   },
   'service.metrics.flume.incoming_event_put_successCount': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.incoming_event_put_successCount.mma': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.incoming_event_put_successCount.sum': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.outgoing_event_take_success_count': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.outgoing_event_take_success_count.mma': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.outgoing_event_take_success_count.sum': {
-    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.hbase.cluster_requests': {
-    'real': '/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/cluster_requests[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/cluster_requests[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hbase/cluster_requests.json',
     'testInProduction': true
   },
   'service.metrics.hbase.hlog_split_size': {
-    'real': '/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hbase/hlog_split_size.json',
     'testInProduction': true
   },
   'service.metrics.hbase.hlog_split_time': {
-    'real': '/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hbase/hlog_split_time.json',
     'testInProduction': true
   },
   'service.metrics.hbase.regionserver_queuesize': {
-    'real': '/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hbase/regionserver_queuesize.json',
     'testInProduction': true
   },
   'service.metrics.hbase.regionserver_regions': {
-    'real': '/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hbase/regionserver_regions.json',
     'testInProduction': true
   },
   'service.metrics.hbase.regionserver_rw_requests': {
-    'real': '/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hbase/regionserver_rw_requests.json',
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.master.average_load': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/master/AverageLoad[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/master/AverageLoad[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/ambari_metrics/master_average_load.json',
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.region_server.store_files': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/storefiles[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/storefiles[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/ambari_metrics/regionserver_store_files.json',
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.region_server.regions': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/ambari_metrics/regionserver_regions.json',
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.region_server.request': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/requests._rate[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/requests._rate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/ambari_metrics/regionserver_requests.json',
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.region_server.block_cache_hit_percent': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/blockCacheHitPercent[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/blockCacheHitPercent[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/ambari_metrics/regionserver_blockcache_hitpercent.json',
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.region_server.compaction_queue_size': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/ambari_metrics/regionserver_compaction_queue_size.json',
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.aggregated': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields={fields}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields={fields}',
     'mock': '/data/services/metrics/ambari_metrics/master_average_load.json',
     'testInProduction': true
   },
@@ -1173,7 +1173,7 @@ var urls = {
     'testInProduction': true
   },
   'service.metrics.hdfs.io': {
-    'real': '/clusters/{clusterName}/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hdfs/io.json',
     'testInProduction': true
   },
@@ -1262,31 +1262,31 @@ var urls = {
     'testInProduction': true
   },
   'service.metrics.kafka.broker.topic': {
-    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesOutPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsMessagesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesOutPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsMessagesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
   'service.metrics.kafka.controller.KafkaController': {
-    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/KafkaController/ActiveControllerCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/KafkaController/ActiveControllerCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
   'service.metrics.kafka.controller.ControllerStats': {
-    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/controller/ControllerStats/UncleanLeaderElectionsPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/controller/ControllerStats/UncleanLeaderElectionsPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
   'service.metrics.kafka.log.LogFlushStats': {
-    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
   'service.metrics.kafka.server.ReplicaManager': {
-    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaManager/PartitionCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/ReplicaManager/UnderReplicatedPartitions[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/ReplicaManager/LeaderCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaManager/PartitionCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/ReplicaManager/UnderReplicatedPartitions[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/ReplicaManager/LeaderCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
   'service.metrics.kafka.server.ReplicaFetcherManager': {
-    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaFetcherManager/Replica-MaxLag[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaFetcherManager/Replica-MaxLag[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
   'service.metrics.storm.nimbus': {
-    'real': '/clusters/{clusterName}/services/STORM/components/NIMBUS?fields={metricsTemplate}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/STORM/components/NIMBUS?fields={metricsTemplate}',
     'mock': ''
   },
   'dashboard.cluster_metrics.cpu': {
@@ -1425,7 +1425,7 @@ var urls = {
     'mock': ''
   },
   'common.create_component': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name={serviceName}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?ServiceInfo/service_display_name={serviceName}',
     'mock': '',
     'type': 'POST',
     'format': function (data) {
@@ -1506,7 +1506,7 @@ var urls = {
   },
 
   'kerberos.session.state': {
-    'real': '/clusters/{clusterName}/services/KERBEROS?fields=Services/attributes/kdc_validation_result,Services/attributes/kdc_validation_failure_details',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/KERBEROS?fields=Services/attributes/kdc_validation_result,Services/attributes/kdc_validation_failure_details',
     'mock': ''
   },
 
@@ -1995,9 +1995,21 @@ var urls = {
     }
   },
 
+  'wizard.step8.create_service_group': {
+    'real': '/clusters/{cluster}/servicegroups',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        dataType: 'text',
+        data: data.data
+      }
+    }
+  },
+
   'wizard.step8.create_selected_services': {
     'type': 'POST',
-    'real': '/clusters/{cluster}/services',
+    'real': '/clusters/{cluster}/servicegroups/{defaultServiceGroupName}/services',
     'mock': '/data/stacks/HDP-2.1/recommendations.json',
     'format': function (data) {
       return {
@@ -2008,7 +2020,7 @@ var urls = {
   },
 
   'wizard.step8.create_components': {
-    'real': '/clusters/{cluster}/services?ServiceInfo/service_name={serviceName}',
+    'real': '/clusters/{cluster}/servicegroups/{defaultServiceGroupName}/services/{serviceName}/components',
     'mock': '',
     'format': function (data) {
       return {
@@ -2554,7 +2566,7 @@ var urls = {
     'mock': ''
   },
   'components.get_category': {
-    'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true',
+    'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/service_display_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true',
     'mock': ''
   },
   'components.update': {
@@ -2624,7 +2636,7 @@ var urls = {
     'mock': ''
   },
   'host_components.with_services_names': {
-    'real': '/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,HostRoles/host_name&minimal_response=true',
+    'real': '/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,ServiceComponentInfo/service_display_name,HostRoles/host_name&minimal_response=true',
     'mock': ''
   },
   'components.get_installed': {
@@ -2978,7 +2990,7 @@ var urls = {
   },
 
   'widgets.serviceComponent.metrics.get': {
-    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={metricPaths}&format=null_padding',
+    real: '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}/components/{componentName}?fields={metricPaths}&format=null_padding',
     mock: '/data/metrics/{serviceName}/Append_num_ops_&_Delete_num_ops.json'
   },
 
@@ -3020,7 +3032,7 @@ var urls = {
   },
 
   'service.components.load': {
-    real: '/clusters/{clusterName}/services?fields=components&minimal_response=true',
+    real: '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?fields=components&minimal_response=true',
     mock: '/data/services/components.json'
   }
 };
@@ -3166,7 +3178,8 @@ var ajax = Em.Object.extend({
 
     // default parameters
     var params = {
-      clusterName: (App.get('clusterName') || App.clusterStatus.get('clusterName'))
+      clusterName: (App.get('clusterName') || App.clusterStatus.get('clusterName')),
+      defaultServiceGroupName: (App.get('defaultServiceGroupName'))
     };
 
     // extend default parameters with provided

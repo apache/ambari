@@ -265,6 +265,20 @@ public class ServiceGroupService extends BaseService {
   }
 
   /**
+   * Get the services sub-resource
+   *
+   * @param request           the request
+   * @param serviceGroupName  service group Name
+   *
+   * @return the services service
+   */
+  @Path("{serviceGroupName}/services")
+  // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
+  public ServiceService getServiceHandler(@Context javax.ws.rs.core.Request request, @PathParam("serviceGroupName") String serviceGroupName) {
+    return new ServiceService(m_clusterName, serviceGroupName);
+  }
+
+  /**
    * Create a service resource instance.
    *
    * @param clusterName  cluster Name

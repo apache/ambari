@@ -74,7 +74,7 @@ public class ClusterResponse {
    * @return the clusterId
    */
   @ApiModelProperty(name = ClusterResourceProvider.CLUSTER_ID)
-  public long getClusterId() {
+  public Long getClusterId() {
     return clusterId;
   }
 

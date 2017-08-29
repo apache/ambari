@@ -72,7 +72,7 @@ public class StateRecoveryManager {
         String msg = String.format(
             "Recovered state of cluster %s of component %s/%s for version %s from %s to %s",
             component.getClusterId(),
-            component.getServiceName(),
+            component.getServiceId(),
             component.getComponentName(),
             component.getDesiredRepositoryVersion().getDisplayName(),
             RepositoryVersionState.INSTALLING,

@@ -24,7 +24,9 @@ import io.swagger.annotations.ApiModelProperty;
 public class ServiceRequest {
 
   private String clusterName; // REF
-  private String serviceName; // GET/CREATE/UPDATE/DELETE
+  private String serviceName; // GET/CREATE/DELETE
+  private String serviceDisplayName; // GET/CREATE/UPDATE/DELETE
+  private String serviceGroupName;
   private String desiredState; // CREATE/UPDATE
   private String maintenanceState; // UPDATE
   private String credentialStoreEnabled; // CREATE/UPDATE/GET
@@ -36,19 +38,27 @@ public class ServiceRequest {
    */
   private RepositoryVersionEntity resolvedRepository;
 
-  public ServiceRequest(String clusterName, String serviceName,
+  public ServiceRequest(String clusterName, String serviceGroupName, String serviceName,
       Long desiredRepositoryVersionId, String desiredState) {
-    this(clusterName, serviceName, desiredRepositoryVersionId, desiredState, null);
+    this(clusterName, serviceGroupName, serviceName, serviceName, desiredRepositoryVersionId, desiredState, null);
   }
 
-  public ServiceRequest(String clusterName, String serviceName,
-      Long desiredRepositoryVersionId, String desiredState, String credentialStoreEnabled) {
+  public ServiceRequest(String clusterName,
+                        String serviceGroupName,
+                        String serviceName,
+                        String serviceDisplayName,
+                        Long desiredRepositoryVersionId,
+                        String desiredState,
+                        String credentialStoreEnabled) {
     this.clusterName = clusterName;
+    this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
     this.desiredState = desiredState;
 
     this.desiredRepositoryVersionId = desiredRepositoryVersionId;
 
+    this.serviceDisplayName = serviceDisplayName;
+    this.desiredState = desiredState;
     this.credentialStoreEnabled = credentialStoreEnabled;
     // Credential store supported cannot be changed after
     // creation since it comes from the stack definition.
@@ -56,119 +66,112 @@ public class ServiceRequest {
   }
 
   /**
-   * @return the serviceName
+   * @return the service name
    */
   @ApiModelProperty(name = "service_name")
-  public String getServiceName() {
-    return serviceName;
-  }
+  public String getServiceName() { return serviceName; }
 
   /**
-   * @param serviceName the serviceName to set
+   * @param serviceName the Service Display Name to set
    */
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
+  public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+
+  /**
+   * @return the service display name
+   */
+  @ApiModelProperty(name = "service_display_name")
+  public String getServiceDisplayName() { return serviceDisplayName; }
+
+  /**
+   * @param serviceDisplayName the Service Display Name to set
+   */
+  public void setServiceDisplayName(String serviceDisplayName) { this.serviceDisplayName = serviceDisplayName; }
+
+  /**
+   * @return the service group Name
+   */
+  public String getServiceGroupName() { return serviceGroupName; }
+
+  /**
+   * @param serviceGroupName the service group Name to set
+   */
+  public void setServiceGroupName(String serviceGroupName) { this.serviceGroupName = serviceGroupName; }
 
   /**
    * @return the desiredState
    */
   @ApiModelProperty(name = "state")
-  public String getDesiredState() {
-    return desiredState;
-  }
+  public String getDesiredState() { return desiredState; }
 
   /**
    * @param desiredState the desiredState to set
    */
-  public void setDesiredState(String desiredState) {
-    this.desiredState = desiredState;
-  }
+  public void setDesiredState(String desiredState) { this.desiredState = desiredState; }
 
-  public Long getDesiredRepositoryVersionId() {
-    return desiredRepositoryVersionId;
-  }
+  public Long getDesiredRepositoryVersionId() { return desiredRepositoryVersionId; }
 
   /**
    * @return the clusterName
    */
   @ApiModelProperty(name = "cluster_name")
-  public String getClusterName() {
-    return clusterName;
-  }
+  public String getClusterName() { return clusterName; }
 
   /**
    * @param clusterName the clusterName to set
    */
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
+  public void setClusterName(String clusterName) { this.clusterName = clusterName; }
 
   /**
    * @param state the new maintenance state
    */
-  public void setMaintenanceState(String state) {
-    maintenanceState = state;
-  }
+  public void setMaintenanceState(String state) { maintenanceState = state; }
 
   /**
    * @return the maintenance state
    */
   @ApiModelProperty(name = "maintenance_state")
-  public String getMaintenanceState() {
-    return maintenanceState;
-  }
+  public String getMaintenanceState() { return maintenanceState; }
 
   /**
    * @return credential store enabled
    */
   @ApiModelProperty(name = "credential_store_enabled")
-  public String getCredentialStoreEnabled() {
-    return credentialStoreEnabled;
-  }
+  public String getCredentialStoreEnabled() { return credentialStoreEnabled; }
 
 
   /**
    * @return credential store supported
    */
-  public String getCredentialStoreSupported() {
-    return credentialStoreSupported;
-  }
+  public String getCredentialStoreSupported() { return credentialStoreSupported; }
 
   /**
    * @param credentialStoreEnabled the new credential store enabled
    */
-  public void setCredentialStoreEnabled(String credentialStoreEnabled) {
-    this.credentialStoreEnabled = credentialStoreEnabled;
-  }
+  public void setCredentialStoreEnabled(String credentialStoreEnabled) { this.credentialStoreEnabled = credentialStoreEnabled; }
 
   /**
    * @param credentialStoreSupported the new credential store supported
    */
   @ApiModelProperty(name = "credential_store_supporteds")
-  public void setCredentialStoreSupported(String credentialStoreSupported) {
-    this.credentialStoreSupported = credentialStoreSupported;
-  }
+  public void setCredentialStoreSupported(String credentialStoreSupported) { this.credentialStoreSupported = credentialStoreSupported; }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("clusterName=").append(clusterName)
-      .append(", serviceName=").append(serviceName)
-      .append(", desiredState=").append(desiredState)
-      .append(", credentialStoreEnabled=").append(credentialStoreEnabled)
-      .append(", credentialStoreSupported=").append(credentialStoreSupported);
+    sb.append("clusterName=" + clusterName
+      + ", serviceGroupName=" + serviceGroupName
+      + ", serviceDisplayName=" + serviceDisplayName
+      + ", desiredState=" + desiredState
+      + ", maintenanceState=" + maintenanceState
+      + ", credentialStoreEnabled=" + credentialStoreEnabled
+      + ", credentialStoreSupported=" + credentialStoreSupported);
     return sb.toString();
   }
 
   /**
    * @param repositoryVersion
    */
-  public void setResolvedRepository(RepositoryVersionEntity repositoryVersion) {
-    resolvedRepository = repositoryVersion;
-  }
+  public void setResolvedRepository(RepositoryVersionEntity repositoryVersion) { resolvedRepository = repositoryVersion; }
 
-  public RepositoryVersionEntity getResolvedRepository() {
-    return resolvedRepository;
-  }
+  public RepositoryVersionEntity getResolvedRepository() { return resolvedRepository; }
 }
