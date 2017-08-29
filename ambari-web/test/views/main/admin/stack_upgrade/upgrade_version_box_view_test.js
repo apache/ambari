@@ -1217,4 +1217,248 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(element.get('buttons')).to.be.empty;
     });
   });
+
+  describe('#processSuspendedState', function() {
+
+    it('should process suspended state', function() {
+      view.set('controller.requestInProgress', false);
+      var element = Em.Object.create();
+      view.processSuspendedState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "resumeUpgrade",
+        "isButton": true,
+        "isDisabled": false,
+        "text": Em.I18n.t('admin.stackUpgrade.dialog.resume')
+      }));
+    });
+  });
+
+  describe('#processUpgradingState', function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it('downgrade in HOLDING state', function() {
+      this.mock.returns('HOLDING');
+      view.set('controller.isDowngrade', true);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "icon-pause",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.downgrade.pause')
+      }));
+    });
+
+    it('upgrade in HOLDING state', function() {
+      this.mock.returns('HOLDING');
+      view.set('controller.isDowngrade', false);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "icon-pause",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.upgrade.pause')
+      }));
+    });
+
+    it('upgrade in running state', function() {
+      this.mock.returns('UPGRADING');
+      view.set('controller.isDowngrade', false);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "icon-cog",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.upgrade.running')
+      }));
+    });
+
+    it('downgrade in running state', function() {
+      this.mock.returns('UPGRADING');
+      view.set('controller.isDowngrade', true);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "icon-cog",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.downgrade.running')
+      }));
+    });
+  });
+
+  describe('#processPreUpgradeState', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'isDisabledOnInstalled').returns(false);
+      sinon.stub(view, 'addRemoveIopSelectButton');
+    });
+    afterEach(function() {
+      view.isDisabledOnInstalled.restore();
+      view.addRemoveIopSelectButton.restore();
+    });
+
+    it('version lower than current and in INSTALLED state', function() {
+      view.set('controller', Em.Object.create({
+        currentVersion: Em.Object.create({
+          repository_version: '2.0',
+          stack_name: 'HDP'
+        })
+      }));
+      view.set('content', Em.Object.create({
+        status: 'INSTALLED',
+        repositoryVersion: '2.0',
+        stackVersionType: 'HDP'
+      }));
+      var element = Em.Object.create();
+      view.processPreUpgradeState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": null,
+        "iconClass": "icon-ok",
+        "isLink": true,
+        "text": "Installed"
+      }));
+    });
+
+    it('version higher than current and in OUT_OF_SYNC state', function() {
+      view.set('controller', Em.Object.create({
+        currentVersion: Em.Object.create({
+          repository_version: '2.0',
+          stack_name: 'HDP'
+        })
+      }));
+      view.set('content', Em.Object.create({
+        status: 'OUT_OF_SYNC',
+        repositoryVersion: '2.1',
+        stackVersionType: 'HDP'
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processPreUpgradeState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+            "action": "confirmUpgrade",
+            "isDisabled": false
+          }
+        ],
+        "isButtonGroup": true,
+        "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
+        "action": 'installRepoVersionConfirmation',
+        "isDisabled": false
+      })));
+    });
+
+    it('version higher than current and in INSTALLED state', function() {
+      view.set('controller', Em.Object.create({
+        currentVersion: Em.Object.create({
+          repository_version: '2.0',
+          stack_name: 'HDP'
+        })
+      }));
+      view.set('content', Em.Object.create({
+        status: 'INSTALLED',
+        repositoryVersion: '2.1',
+        stackVersionType: 'HDP',
+        isPatch: true
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processPreUpgradeState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
+            "action": "installRepoVersionConfirmation",
+            "isDisabled": false
+          },
+          {
+            "text": Em.I18n.t('common.discard'),
+            "action": "confirmDiscardRepoVersion",
+            "isDisabled": false
+          }
+        ],
+        "isButtonGroup": true,
+        "text": Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+        "action": 'confirmUpgrade',
+        "isDisabled": false
+      })));
+      expect(view.addRemoveIopSelectButton.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#processNotRequiredState', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'isDisabledOnInit').returns(false);
+    });
+    afterEach(function() {
+      view.isDisabledOnInit.restore();
+    });
+
+    it('version in LOADING state', function() {
+      view.set('controller', Em.Object.create({
+        requestInProgressRepoId: 1
+      }));
+      view.set('content', Em.Object.create({
+        status: 'NOT_REQUIRED',
+        id: 1
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processNotRequiredState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('common.discard'),
+            "action": "confirmDiscardRepoVersion",
+            "isDisabled": false
+          }
+        ],
+        "isSpinner": true,
+        "class": "spinner",
+        "isDisabled": false,
+        "isButtonGroup": true,
+        "isButton": false
+      })));
+    });
+
+    it('version in NOT_REQUIRED state', function() {
+      view.set('controller', Em.Object.create({
+        requestInProgressRepoId: 1
+      }));
+      view.set('content', Em.Object.create({
+        status: 'NOT_REQUIRED',
+        id: 2
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processNotRequiredState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('common.discard'),
+            "action": "confirmDiscardRepoVersion",
+            "isDisabled": false
+          }
+        ],
+        "isButton": false,
+        "text": Em.I18n.t('common.install'),
+        "action": 'installRepoVersionConfirmation',
+        "isDisabled": false,
+        "isButtonGroup": true
+      })));
+    });
+  });
 });
