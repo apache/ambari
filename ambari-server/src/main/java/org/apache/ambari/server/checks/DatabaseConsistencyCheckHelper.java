@@ -317,7 +317,7 @@ public class DatabaseConsistencyCheckHelper {
             throw new SQLException();
           }
         } catch (SQLException ex) {
-          LOG.error(String.format("Failed to get %s row count: ", tableName), e);
+          error(String.format("Failed to get %s row count: ", tableName), e);
         }
       } finally {
         if (rs != null) {
@@ -376,7 +376,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during check for config selected more than ones procedure: ", e);
+      error("Exception occurred during check for config selected more than once procedure: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -425,7 +425,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during check for host without state procedure: ", e);
+      error("Exception occurred during check for host without state procedure: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -458,7 +458,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during topology request tables check: ", e);
+      error("Exception occurred during topology request tables check: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -539,7 +539,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during check for same count of host component states and host component desired states: ", e);
+      error("Exception occurred during check for same count of host component states and host component desired states: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -775,7 +775,7 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
     } catch (SQLException e) {
-      LOG.error("Exception occurred during checking MySQL engine to be innodb: ", e);
+      error("Exception occurred during checking MySQL engine to be innodb: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -1025,7 +1025,7 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
     } catch (SQLException | AmbariException e) {
-      LOG.error("Exception occurred during complex service check procedure: ", e);
+      error("Exception occurred during complex service check procedure: ", e);
     } finally {
       if (rs != null) {
         try {
