@@ -487,8 +487,6 @@ public class UpgradeCatalog260Test {
     expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).anyTimes();
     expect(configuration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).anyTimes();
 
-    dbAccessor.executeQuery("DELETE FROM clusterconfigmapping WHERE type_name like 'druid-superset%'");
-    expectLastCall().once();
     dbAccessor.executeQuery("DELETE FROM serviceconfigmapping WHERE config_id IN (SELECT config_id from clusterconfig where type_name like 'druid-superset%')");
     expectLastCall().once();
     dbAccessor.executeQuery("DELETE FROM clusterconfig WHERE type_name like 'druid-superset%'");
