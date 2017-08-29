@@ -21,10 +21,12 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCAT
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -208,7 +210,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     comment = "this is a fake response until the UI no longer uses the endpoint")
   public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<Resource> resources = new HashSet<>();
+    final Set<Resource> resources = new LinkedHashSet<>();
 
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
@@ -227,13 +229,20 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       throw new SystemException(e.getMessage(), e);
     }
 
-    Set<Long> requestedEntities = new HashSet<>();
+    Set<Long> requestedEntities = new LinkedHashSet<>();
 
     if (propertyMap.containsKey(CLUSTER_STACK_VERSION_ID_PROPERTY_ID)) {
       Long id = Long.parseLong(propertyMap.get(CLUSTER_STACK_VERSION_ID_PROPERTY_ID).toString());
       requestedEntities.add(id);
     } else {
       List<RepositoryVersionEntity> entities = repositoryVersionDAO.findAll();
+
+      Collections.sort(entities, new Comparator<RepositoryVersionEntity>() {
+        @Override
+        public int compare(RepositoryVersionEntity o1, RepositoryVersionEntity o2) {
+          return compareVersions(o1.getVersion(), o2.getVersion());
+        }
+      });
 
       for (RepositoryVersionEntity entity : entities) {
         requestedEntities.add(entity.getId());
@@ -243,7 +252,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     if (requestedEntities.isEmpty()) {
       throw new SystemException("Could not find any repositories to show");
     }
-
 
     for (Long repositoryVersionId : requestedEntities) {
       final Resource resource = new ResourceImpl(Resource.Type.ClusterStackVersion);
@@ -271,8 +279,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       ClusterVersionSummary versionSummary = null;
       try {
         VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
-
-        versionSummary = vdf.getClusterSummary(cluster);
+        if (null != vdf) {
+          versionSummary = vdf.getClusterSummary(cluster);
+        }
       } catch (Exception e) {
         throw new IllegalArgumentException(
             String.format("Version %s is backed by a version definition, but it could not be parsed", repositoryVersion.getVersion()), e);
@@ -819,4 +828,5 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           null, amc.getAuthName(), serviceNote);
     }
   }
+
 }
