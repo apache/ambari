@@ -118,7 +118,12 @@ App.RepositoryVersion = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  isVisible: true
+  isVisible: true,
+
+  /**
+   * @type {boolean}
+   */
+  isCurrent: Em.computed.equal('status', 'CURRENT')
 });
 
 App.RepositoryVersion.FIXTURES = [];
