@@ -149,7 +149,6 @@ class TestInstallPackages(RMFTestCase):
       self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("resource_management.core.providers.get_provider")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
@@ -161,7 +160,7 @@ class TestInstallPackages(RMFTestCase):
                             write_actual_version_to_history_file_mock,
                             read_actual_version_from_history_file_mock,
                             stack_versions_mock,
-                            put_structured_out_mock, get_provider, list_ambari_managed_repos_mock):
+                            put_structured_out_mock, get_provider):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
@@ -176,9 +175,8 @@ class TestInstallPackages(RMFTestCase):
     from resource_management.core.providers.package.yumrpm import YumProvider
     provider = YumProvider(None)
     with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
-      list_ambari_managed_repos_mock.return_value=[]
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -580,7 +578,7 @@ class TestInstallPackages(RMFTestCase):
     from resource_management.core.providers.package.yumrpm import YumProvider
     provider = YumProvider(None)
     with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
@@ -615,7 +613,7 @@ class TestInstallPackages(RMFTestCase):
 
       command_json['repositoryFile']['repoVersion'] = VERSION_STUB
 
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
@@ -664,7 +662,7 @@ class TestInstallPackages(RMFTestCase):
     from resource_management.core.providers.package.yumrpm import YumProvider
     provider = YumProvider(None)
     with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value = []
 
@@ -766,7 +764,7 @@ class TestInstallPackages(RMFTestCase):
 
       command_json['repositoryFile']['repoVersion'] = VERSION_STUB
 
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
@@ -816,7 +814,7 @@ class TestInstallPackages(RMFTestCase):
     from resource_management.core.providers.package.yumrpm import YumProvider
     provider = YumProvider(None)
     with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
@@ -851,7 +849,7 @@ class TestInstallPackages(RMFTestCase):
 
       command_json['repositoryFile']['repoVersion'] = VERSION_STUB_WITHOUT_BUILD_NUMBER
 
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
@@ -896,7 +894,7 @@ class TestInstallPackages(RMFTestCase):
     from resource_management.core.providers.package.yumrpm import YumProvider
     provider = YumProvider(None)
     with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
@@ -931,7 +929,7 @@ class TestInstallPackages(RMFTestCase):
 
       command_json['roleParams']['repository_version'] = '2.2.0.1-500'  # User specified wrong build number
 
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
@@ -980,7 +978,7 @@ class TestInstallPackages(RMFTestCase):
     from resource_management.core.providers.package.yumrpm import YumProvider
     provider = YumProvider(None)
     with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value = []
       try:
@@ -1020,7 +1018,7 @@ class TestInstallPackages(RMFTestCase):
 
       command_json['roleParams']['repository_version'] = VERSION_STUB
 
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       list_ambari_managed_repos_mock.return_value = []
       try:
         self.executeScript("scripts/install_packages.py",
@@ -1070,7 +1068,7 @@ class TestInstallPackages(RMFTestCase):
     from resource_management.core.providers.package.yumrpm import YumProvider
     provider = YumProvider(None)
     with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
@@ -1106,7 +1104,7 @@ class TestInstallPackages(RMFTestCase):
       command_json['roleParams']['repository_version'] = VERSION_STUB
       command_json['roleParams']['repository_version_id'] = '2'
 
-      lookup_packages.side_effect = TestInstallPackages._add_packages
+      lookup_packages.side_effect = TestInstallPackages._add_packages_available
       list_ambari_managed_repos_mock.return_value = []
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
