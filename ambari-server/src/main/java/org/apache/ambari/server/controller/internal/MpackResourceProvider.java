@@ -18,8 +18,12 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.io.IOException;
+
 import java.util.HashSet;
 import java.util.Set;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
@@ -47,10 +51,15 @@ import org.apache.ambari.server.controller.MpackRequest;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.MpackDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Packlet;
+
+import org.apache.ambari.server.state.StackId;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.Validate;
 
 /**
  * ResourceProvider for Mpack instances
@@ -88,6 +97,9 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   @Inject
   protected static StackDAO stackDAO;
 
+  @Inject
+  protected static RepositoryVersionDAO repositoryVersionDAO;
+
   static {
     // properties
     PROPERTY_IDS.add(MPACK_ID);
@@ -122,8 +134,10 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     Set<Resource> associatedResources = new HashSet<>();
     try {
       MpackRequest mpackRequest = getRequest(request);
-      if (mpackRequest == null)
+      if (mpackRequest == null) {
         throw new BodyParseException("Please provide " + MPACK_NAME + " ," + MPACK_VERSION + " ," + MPACK_URI);
+      }
+      validateCreateRequest(mpackRequest);
       MpackResponse response = getManagementController().registerMpack(mpackRequest);
       if (response != null) {
         notifyCreate(Resource.Type.Mpack, request);
@@ -145,8 +159,39 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     return null;
   }
 
-  public MpackRequest getRequest(Request request) {
-    MpackRequest mpackRequest = new MpackRequest();
+  /***
+   * Validates the request body for the required properties in order to create an Mpack resource.
+   * @param mpackRequest
+   */
+  private void validateCreateRequest(MpackRequest mpackRequest) {
+    final String mpackName = mpackRequest.getMpackName();
+    final String mpackUrl = mpackRequest.getMpackUri();
+    final Long registryId = mpackRequest.getRegistryId();
+    final String mpackVersion = mpackRequest.getMpackVersion();
+
+    if(registryId == null) {
+      Validate.isTrue(mpackUrl != null);
+      LOG.info("Received a createMpack request"
+              + ", mpackUrl=" + mpackUrl);
+    } else {
+      Validate.notNull(mpackName, "MpackName should not be null");
+      Validate.notNull(mpackVersion, "MpackVersion should not be null");
+      LOG.info("Received a createMpack request"
+              + ", mpackName=" + mpackName
+              + ", mpackVersion=" + mpackVersion
+              + ", registryId=" + registryId);
+    }
+    try {
+      URI uri = new URI(mpackUrl);
+      URL url = uri.toURL();
+      String jsonString = IOUtils.toString(url);
+    }catch(Exception e){
+      Validate.isTrue(e == null, e.getMessage() + " is an invalid mpack uri. Please check the download link for the mpack again.");
+    }
+  }
+
+  public MpackRequest getRequest(Request request) throws AmbariException {
+     MpackRequest mpackRequest = new MpackRequest();
     Set<Map<String, Object>> properties = request.getProperties();
     for (Map propertyMap : properties) {
       //Mpack Download url is either given in the request body or is fetched using the registry id
@@ -260,6 +305,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
           MpackEntity mpackEntity = mpackDAO.findById(mpackId);
           StackEntity stackEntity = stackDAO.findByMpack(mpackId);
+
           try {
             getManagementController().removeMpack(mpackEntity, stackEntity);
             if (mpackEntity != null) {
@@ -267,6 +313,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
                 @Override
                 public DeleteStatusMetaData invoke() throws AmbariException {
                   if (stackEntity != null) {
+                    repositoryVersionDAO.removeByStack(new StackId(stackEntity.getStackName() + "-" + stackEntity.getStackVersion()));
                     stackDAO.removeByMpack(mpackId);
                     notifyDelete(Resource.Type.Stack, predicate);
                   }

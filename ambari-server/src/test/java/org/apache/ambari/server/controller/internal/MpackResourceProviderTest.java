@@ -17,6 +17,20 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.commons.io.IOUtils;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 import com.google.inject.Injector;
@@ -110,10 +124,8 @@ public class MpackResourceProviderTest {
     replay(m_dao);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            type,
-            PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type),
-            m_amc);
+            type
+    );
 
     // create the request
     Request request = PropertyHelper.getReadRequest();
@@ -183,10 +195,7 @@ public class MpackResourceProviderTest {
     replay(m_dao,m_amc);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            type,
-            PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type),
-            m_amc);
+            type);
 
     // create the request
     Request request = PropertyHelper.getReadRequest();
@@ -210,12 +219,13 @@ public class MpackResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
     MpackRequest mpackRequest = new MpackRequest();
-    mpackRequest.setMpackUri("abc.tar.gz");
+    String mpackUri = Paths.get("src/test/resources/mpacks-v2/abc.tar.gz").toUri().toURL().toString();
+    mpackRequest.setMpackUri(mpackUri);
     Request request = createMock(Request.class);
-    MpackResponse response = new MpackResponse(setupMpacks());
+    MpackResponse response = new MpackResponse(setupMpack());
     Set<Map<String, Object>> properties = new HashSet<>();
     Map propertyMap = new HashMap();
-    propertyMap.put(MpackResourceProvider.MPACK_URI,"abc.tar.gz");
+    propertyMap.put(MpackResourceProvider.MPACK_URI,mpackUri);
     properties.add(propertyMap);
 
     // set expectations
@@ -225,10 +235,8 @@ public class MpackResourceProviderTest {
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Mpack,
-            PropertyHelper.getPropertyIds(Resource.Type.Mpack),
-            PropertyHelper.getKeyPropertyIds(Resource.Type.Mpack),
-            m_amc);
+            Resource.Type.Mpack 
+            );
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
@@ -241,7 +249,7 @@ public class MpackResourceProviderTest {
       Assert.assertEquals((long)100,r.getPropertyValue(MpackResourceProvider.MPACK_ID));
       Assert.assertEquals("testMpack",r.getPropertyValue(MpackResourceProvider.MPACK_NAME));
       Assert.assertEquals("3.0",r.getPropertyValue(MpackResourceProvider.MPACK_VERSION));
-      Assert.assertEquals("abc.tar.gz",r.getPropertyValue(MpackResourceProvider.MPACK_URI));
+      Assert.assertEquals("../../../../../../../resources/mpacks-v2/abc.tar.gz",r.getPropertyValue(MpackResourceProvider.MPACK_URI));
     }
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     Assert.assertNotNull(lastEvent);
@@ -253,18 +261,19 @@ public class MpackResourceProviderTest {
     verify(m_amc,request);
   }
 
-  public Mpacks setupMpacks(){
-    Mpacks mpacks = new Mpacks();
-    mpacks.setMpackId((long)100);
-    mpacks.setPacklets(new ArrayList<Packlet>());
-    mpacks.setPrerequisites(new HashMap<String, String>());
-    mpacks.setRegistryId(new Long(100));
-    mpacks.setVersion("3.0");
-    mpacks.setMpacksUri("abc.tar.gz");
-    mpacks.setDescription("Test mpacks");
-    mpacks.setName("testMpack");
 
-    return mpacks;
+  public Mpacks setupMpack() {
+    Mpacks mpack = new Mpacks();
+    mpack.setMpackId((long)100);
+    mpack.setPacklets(new ArrayList<Packlet>());
+    mpack.setPrerequisites(new HashMap<String, String>());
+    mpack.setRegistryId(new Long(100));
+    mpack.setVersion("3.0");
+    mpack.setMpacksUri("../../../../../../../resources/mpacks-v2/abc.tar.gz");
+    mpack.setDescription("Test mpack");
+    mpack.setName("testMpack");
+
+    return mpack;
   }
 
   /**
