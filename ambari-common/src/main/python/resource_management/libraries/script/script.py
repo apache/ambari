@@ -472,10 +472,11 @@ class Script(object):
     if STACK_VERSION_PLACEHOLDER not in name:
       return name
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
-    package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter))
+    package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter)) + "$"
     for package in available_packages_in_repos:
       if re.match(package_regex, package):
         return package
+    Logger.warning("No package found for {0}({1})".format(name, package_regex))
 
 
   def format_package_name(self, name, repo_version=None):
