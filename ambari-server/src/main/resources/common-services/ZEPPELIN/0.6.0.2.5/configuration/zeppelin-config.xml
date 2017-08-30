@@ -183,8 +183,14 @@
   </property>
   <property>
     <name>zeppelin.anonymous.allowed</name>
-    <value>true</value>
+    <value>false</value>
     <description>Anonymous user allowed by default</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zeppelin.notebook.public</name>
+    <value>false</value>
+    <description>Make notebook public by default when created, private otherwise</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
