@@ -17,13 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.commons.io.IOUtils;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;

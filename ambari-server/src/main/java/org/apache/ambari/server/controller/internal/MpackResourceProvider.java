@@ -56,10 +56,12 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Packlet;
-
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
+
+import com.google.inject.Inject;
+
 
 /**
  * ResourceProvider for Mpack instances
