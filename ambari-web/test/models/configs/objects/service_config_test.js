@@ -86,6 +86,18 @@ var serviceConfig,
         'isValid': true,
         'isRequired': true,
         'isValidOverride': false
+      }),
+      App.ServiceConfigProperty.create({
+        'name': 'p8',
+        'isVisible': false,
+        'hiddenBySection': false,
+        'hiddenBySubSection': false,
+        'isRequiredByAgent': false,
+        'isValid': true,
+        'isRequired': true,
+        'isValidOverride': true,
+        'value': 'Undefined',
+        'displayType': 'label'
       })
   ];
 
@@ -100,7 +112,7 @@ describe('App.ServiceConfig', function () {
   describe('#activeProperties', function() {
     it('returns collection of properties that should be shown', function() {
       serviceConfig.setActivePropertiesOnce();
-      expect(serviceConfig.get('activeProperties').mapProperty('name')).to.be.eql(['p1','p4','p5','p7']);
+      expect(serviceConfig.get('activeProperties').mapProperty('name')).to.be.eql(['p1','p4','p5','p7', 'p8']);
     });
   });
 

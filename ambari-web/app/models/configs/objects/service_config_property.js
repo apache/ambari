@@ -167,6 +167,14 @@ App.ServiceConfigProperty = Em.Object.extend({
    */
   isCustomGroupConfig: false,
 
+  /**
+   * Determines if config is Undefined label, used for overrides, that do not have original property in default group
+   * @type {boolean}
+   */
+  isUndefinedLabel: function () {
+    return this.get('displayType') === 'label' && this.get('value') === 'Undefined';
+  }.property('displayType', 'value'),
+
   error: Em.computed.bool('errorMessage.length'),
   warn: Em.computed.bool('warnMessage.length'),
   hasValidationErrors: Em.computed.bool('validationErrors.length'),
