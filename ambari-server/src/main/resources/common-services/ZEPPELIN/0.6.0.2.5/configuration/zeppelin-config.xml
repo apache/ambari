@@ -199,4 +199,10 @@
     <description>Size in characters of the maximum text message to be received by websocket. Defaults to 1024000</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>zeppelin.interpreter.config.upgrade</name>
+    <value>true</value>
+    <description>If this is set to true, on every restart of Zeppelin server default interpreter parameters will be reset</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
