@@ -17,10 +17,14 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.commons.io.IOUtils;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -212,12 +216,13 @@ public class MpackResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
     MpackRequest mpackRequest = new MpackRequest();
-    mpackRequest.setMpackUri("abc.tar.gz");
+    String mpackUri = Paths.get("src/test/resources/mpacks-v2/abc.tar.gz").toUri().toURL().toString();
+    mpackRequest.setMpackUri(mpackUri);
     Request request = createMock(Request.class);
     MpackResponse response = new MpackResponse(setupMpack());
     Set<Map<String, Object>> properties = new HashSet<>();
     Map propertyMap = new HashMap();
-    propertyMap.put(MpackResourceProvider.MPACK_URI,"abc.tar.gz");
+    propertyMap.put(MpackResourceProvider.MPACK_URI,mpackUri);
     properties.add(propertyMap);
 
     // set expectations
@@ -243,7 +248,7 @@ public class MpackResourceProviderTest {
       Assert.assertEquals((long)100,r.getPropertyValue(MpackResourceProvider.MPACK_ID));
       Assert.assertEquals("testMpack",r.getPropertyValue(MpackResourceProvider.MPACK_NAME));
       Assert.assertEquals("3.0",r.getPropertyValue(MpackResourceProvider.MPACK_VERSION));
-      Assert.assertEquals("abc.tar.gz",r.getPropertyValue(MpackResourceProvider.MPACK_URI));
+      Assert.assertEquals("../../../../../../../resources/mpacks-v2/abc.tar.gz",r.getPropertyValue(MpackResourceProvider.MPACK_URI));
     }
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     Assert.assertNotNull(lastEvent);
@@ -262,7 +267,7 @@ public class MpackResourceProviderTest {
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(new Long(100));
     mpack.setVersion("3.0");
-    mpack.setMpackUri("abc.tar.gz");
+    mpack.setMpackUri("../../../../../../../resources/mpacks-v2/abc.tar.gz");
     mpack.setDescription("Test mpack");
     mpack.setName("testMpack");
 

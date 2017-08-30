@@ -225,4 +225,18 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
 
     return daoUtils.selectOne(query);
   }
+
+  /**
+   * Removes the specified repoversion entry based on stackid.
+   *
+   * @param stackId
+   *
+   */
+  @Transactional
+  public void removeByStack(StackId stackId) {
+    List<RepositoryVersionEntity> repoVersionDeleteCandidates = findByStack(stackId);
+    for(RepositoryVersionEntity repositoryVersionEntity : repoVersionDeleteCandidates) {
+      entityManagerProvider.get().remove(repositoryVersionEntity);
+    }
+  }
 }

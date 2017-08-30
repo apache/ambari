@@ -1492,7 +1492,9 @@ public class AmbariMetaInfo {
    * @throws IOException
    */
   public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException {
-    versionDefinitions.clear();
+    if(versionDefinitions != null) {
+      versionDefinitions.clear();
+    }
     boolean stackDelete = mpackManager.removeMpack(mpackEntity, stackEntity);
 
     if(stackDelete) {
