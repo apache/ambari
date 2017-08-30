@@ -33,6 +33,13 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>zeppelin.server.ssl.port</name>
+    <value>9995</value>
+    <description>Server ssl port. (used when ssl property is set to true)
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>zeppelin.notebook.dir</name>
     <value>notebook</value>
     <description>notebook persist</description>
@@ -190,6 +197,12 @@
     <name>zeppelin.websocket.max.text.message.size</name>
     <value>1024000</value>
     <description>Size in characters of the maximum text message to be received by websocket. Defaults to 1024000</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>zeppelin.interpreter.config.upgrade</name>
+    <value>true</value>
+    <description>If this is set to true, on every restart of Zeppelin server default interpreter parameters will be reset</description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
