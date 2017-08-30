@@ -56,7 +56,7 @@
         create 660 druid users
         dateext
         dateformat -%Y-%m-%d-%s
-        size {{druid_log_maxfilesize}}MB
+        size {{druid_log_maxfilesize}}M
         }
       ]]></value>
     <value-attributes>
