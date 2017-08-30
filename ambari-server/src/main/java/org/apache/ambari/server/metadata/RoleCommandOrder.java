@@ -133,13 +133,15 @@ public class RoleCommandOrder implements Cloneable {
     this.sectionKeys = sectionKeys;
     dependencies.clear();
 
-    StackId stackId = cluster.getCurrentStackVersion();
+    StackId stackId = cluster.getDesiredStackVersion();
     StackInfo stack = null;
     try {
       stack = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
     } catch (AmbariException e) {
     }
+
+    LOG.info("Generating RCO graph for cluster {} and stack {}", cluster.getClusterName(), stackId);
 
     Map<String,Object> userData = stack.getRoleCommandOrder().getContent();
     Map<String,Object> generalSection =
@@ -266,10 +268,9 @@ public class RoleCommandOrder implements Cloneable {
             roleCommandDeps.add(new RoleCommandPair(rco.getRole(), RoleCommand.RESTART));
           }
 
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Adding dependency for " + restartPair + ", " +
-              "dependencies => " + roleCommandDeps);
-          }
+          LOG.info("Adding dependency for " + restartPair + ", " +
+            "dependencies => " + roleCommandDeps);
+
           missingDependencies.put(restartPair, roleCommandDeps);
         }
       }
