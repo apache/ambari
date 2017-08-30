@@ -71,10 +71,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return this.get('content.status') === 'CURRENT' ? 'current-version-box' : '';
   }.property('content.status'),
 
-  isPatch: Em.computed.equal('content.type', 'PATCH'),
-
-  isService: Em.computed.equal('content.type', 'SERVICE'),
-
   /**
    * @type {boolean}
    */

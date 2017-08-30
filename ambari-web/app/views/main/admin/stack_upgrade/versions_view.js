@@ -171,8 +171,8 @@ App.MainAdminStackVersionsView = Em.View.extend({
     } else {
       return versions.filterProperty('hidden', false).filter(function(v) {
         if (v.get('stackVersionType') === Em.get(currentVersion, 'stack_name')) {
-          // PATCH version should be visible even if patch number lower than current
-          return v.get('isPatch') || stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
+          // PATCH or MAINT version should be visible even if patch number lower than current
+          return v.get('isPatch') || v.get('isMaint') || stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
         }
         return v.get('isCompatible');
       }).toArray();

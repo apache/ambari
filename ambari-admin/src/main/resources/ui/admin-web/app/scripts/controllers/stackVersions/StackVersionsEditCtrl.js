@@ -40,6 +40,7 @@ angular.module('ambariAdminConsole')
       $scope.activeStackVersion = response;
       $scope.id = response.id;
       $scope.isPatch = stackVersion.type === 'PATCH';
+      $scope.isMaint = stackVersion.type === 'MAINT';
       $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
       $scope.displayName = response.displayName || $t('common.NA');
       $scope.version = response.version || $t('common.NA');

@@ -156,7 +156,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       this.get('upgradeTypeDisplayName'),
       this.get('upgradeVersion'),
       this.get('isDowngrade'),
-      repoVersion && repoVersion.get('isPatch')
+      repoVersion
     );
   }.property('upgradeTypeDisplayName', 'upgradeVersion', 'isDowngrade'),
 
@@ -168,12 +168,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {boolean} isPatch
    * @returns {string}
    */
-  getUpgradeDowngradeHeader: function(upgradeType, upgradeVersion, isDowngrade, isPatch) {
+  getUpgradeDowngradeHeader: function(upgradeType, upgradeVersion, isDowngrade, repoVersion) {
     if (isDowngrade) {
       return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(upgradeVersion);
     }
-    if (isPatch) {
+    if (repoVersion && repoVersion.get('isPatch')) {
       return Em.I18n.t('admin.stackUpgrade.dialog.upgrade.patch.header').format(upgradeType, upgradeVersion);
+    }
+    if (repoVersion && repoVersion.get('isMaint')) {
+      return Em.I18n.t('admin.stackUpgrade.dialog.upgrade.maint.header').format(upgradeType, upgradeVersion);
     }
     return Em.I18n.t('admin.stackUpgrade.dialog.upgrade.header').format(upgradeType, upgradeVersion);
   },
@@ -1510,7 +1513,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       bodyClass: Em.View.extend({
         classNames: ['install-repo-confirmation'],
         content: availableServices,
-        isPatch: repo.get('isPatch'),
+        showAvailableServices: repo.get('isPatch') || repo.get('isMaint'),
         templateName: require('templates/common/modal_popups/install_repo_confirmation')
       }),
       onPrimary: function () {

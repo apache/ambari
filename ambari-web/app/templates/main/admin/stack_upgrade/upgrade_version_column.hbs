@@ -21,10 +21,10 @@
 {{/if}}
 
 <p class="version-column-display-name">
-  {{#if view.content.isPatch}}
-    <span>{{view.content.displayName}}</span>
-  {{else}}
+  {{#if view.content.isStandard}}
     <span>{{view.content.displayNameSimple}}</span>
+  {{else}}
+    <span>{{view.content.displayName}}</span>
   {{/if}}
 </p>
 
