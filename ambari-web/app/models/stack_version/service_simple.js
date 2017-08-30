@@ -24,6 +24,7 @@ App.ServiceSimple = DS.Model.extend({
   displayName: DS.attr('string'),
   latestVersion: DS.attr('string'),
   isAvailable: DS.attr('boolean'),
+  isUpgradable: DS.attr('boolean'),
   isHidden: function () {
     var hiddenServices = ['MAPREDUCE2'];
     return hiddenServices.contains(this.get('name')) || this.get('doNotShowAndInstall');

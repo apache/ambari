@@ -122,7 +122,8 @@ App.repoVersionMapper = App.QuickDataMapper.create({
                 name: service.name,
                 display_name: service.display_name,
                 latest_version: service.versions[0] ? service.versions[0] : '',
-                is_available: item[repoVersionsKey].services.someProperty('name', service.name)
+                is_available: item[repoVersionsKey].services.someProperty('name', service.name),
+                is_upgradable: json.stackServices[service.name] && json.stackServices[service.name].upgrade
               };
               resultService.push(serviceObj);
             }, this);

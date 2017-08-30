@@ -77,7 +77,10 @@ App.stackVersionMapper = App.QuickDataMapper.create({
 
         if (item.repository_versions && item.repository_versions[0]) {
           item.repository_versions[0].RepositoryVersions.stackVersionId = item.ClusterStackVersions.id;
-          App.repoVersionMapper.map({"items": item.repository_versions }, true, true);
+          App.repoVersionMapper.map({
+            "items": item.repository_versions,
+            "stackServices": item.ClusterStackVersions.repository_summary.services
+          }, true, true);
         }
         resultStack.push(this.parseIt(stack, this.get('modelStack')));
       }, this);

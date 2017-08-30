@@ -87,6 +87,9 @@
        <span {{bindAttr class="service.isVersionInvisible:invisible service.isAvailable:available :label"}}>
            {{service.latestVersion}}
        </span>
+        {{#if service.notUpgradable}}
+          <i class="icon-info-sign not-upgradable"></i>
+        {{/if}}
     </p>
   {{/each}}
 </div>
