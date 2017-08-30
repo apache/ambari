@@ -57,11 +57,12 @@ import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.registry.RegistryMpack;
 import org.apache.ambari.server.registry.RegistryMpackVersion;
 import org.apache.ambari.server.state.Packlet;
-
-import com.google.inject.Inject;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
+
+import com.google.inject.Inject;
+
 
 /**
  * ResourceProvider for Mpack instances

@@ -678,7 +678,9 @@ public class AmbariMetaInfo {
    * @throws ResourceAlreadyExistsException
    */
   public MpackResponse registerMpack(MpackRequest mpackRequest) throws IOException, ResourceAlreadyExistsException {
-    versionDefinitions.clear();
+    if (versionDefinitions != null) {
+      versionDefinitions.clear();
+    }
     return mpackManager.registerMpack(mpackRequest);
   }
 
