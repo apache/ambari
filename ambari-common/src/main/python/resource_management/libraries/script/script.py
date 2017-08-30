@@ -745,6 +745,7 @@ class Script(object):
       try:
         available_packages_in_repos = pkg_provider.get_available_packages_in_repos(config['repositoryFile']['repositories'])
       except Exception as err:
+        Logger.exception("Unable to load available packages")
         available_packages_in_repos = []
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
