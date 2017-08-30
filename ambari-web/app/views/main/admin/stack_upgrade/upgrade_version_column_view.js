@@ -49,6 +49,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     var isStandard = this.get('content.isStandard');
     // sort the services in the order the same as service menu
     return App.Service.find().map(function (service) {
+
       var stackService = originalServices.findProperty('name', service.get('serviceName'));
       var isAvailable = this.isStackServiceAvailable(stackService);
       return Em.Object.create({
@@ -76,19 +77,24 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
    * @returns {boolean}
    */
   isStackServiceAvailable: function(stackService) {
-    var appliedPatchVersions = App.RepositoryVersion.find().filterProperty('isPatch').filterProperty('status', 'CURRENT');
-    var appliedPatchServices = [];
-    appliedPatchVersions.forEach(function(version) {
-      var availableServices = version.get('stackServices').toArray().filterProperty('isAvailable').mapProperty('name');
-      appliedPatchServices = appliedPatchServices.concat(availableServices).uniq();
-    });
-    if (stackService) {
-      if (this.get('content.isStandard') && appliedPatchServices.contains(stackService.get('name'))) {
-        return false;
-      }
-      return stackService.get('isAvailable');
+    if (!stackService) {
+      return false;
     }
-    return false;
+    if ( this.get('content.isCurrent') ){
+      // if version is current, check whether this service is available and the version itself is the newest version of all versions that contain the same service
+      var serviceWithHigherVersion =  App.RepositoryVersion.find().filterProperty('isCurrent').find(function ( version ) {
+        var service = version.get('stackServices').toArray().find( function (service) {
+          return service.get('name') === stackService.get('name') && service.get('isAvailable')
+        });
+        return Boolean(service && stringUtils.compareVersions(version.get('repositoryVersion'), this.get('content.repositoryVersion')) === 1);
+      }, this);
+      return stackService.get('isAvailable') && !serviceWithHigherVersion;
+    }
+    else{
+      return stackService.get('isAvailable')
+    }
+
+
   },
 
   /**
