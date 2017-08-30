@@ -37,7 +37,7 @@
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_namenode_update_hadoop_env" summary="Update Hadoop env">
             <type>hadoop-env</type>
-            <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/hdp/current/hadoop-client/lib/native" />
+            <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64" />
             <replace key="content" find="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}" replace-with="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}&#10;if [ -d &quot;/usr/lib/hadoop-lzo&quot; ]; then&#10;  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/hadoop-lzo/lib/*&#10;  export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop-lzo/lib/native&#10;fi"/>
             <insert key="content" value="{% if hadoop_custom_extensions_enabled %} export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:{{stack_root}}/current/ext/hadoop/* {% endif %}" insert-type="append" newline-after="true" newline-before="true"/>
           </definition>
@@ -108,6 +108,7 @@
           <definition xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" summary="Update MapReduce2 configurations">
             <type>mapred-site</type>
             <set key="mapreduce.application.framework.path" value="/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework"/>
+            <set key="yarn.app.mapreduce.am.env" value="LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
           </definition>
         </changes>
       </component>
