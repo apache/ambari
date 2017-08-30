@@ -216,7 +216,9 @@ class Master(Script):
       self.create_interpreter_json()
       self.update_zeppelin_interpreter()
 
-    self.update_kerberos_properties()
+    if params.zeppelin_interpreter_config_upgrade == True:
+      self.reset_interpreter_settings()
+      self.update_zeppelin_interpreter()
 
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
@@ -234,6 +236,20 @@ class Master(Script):
     except IndexError:
         pid_file = ''
     check_process_status(pid_file)
+
+  def reset_interpreter_settings(self):
+    import json
+    import interpreter_json_template
+    interpreter_json_template = json.loads(interpreter_json_template.template)['interpreterSettings']
+    config_data = self.get_interpreter_settings()
+    interpreter_settings = config_data['interpreterSettings']
+
+    for setting_key in interpreter_json_template.keys():
+      if setting_key not in interpreter_settings:
+        interpreter_settings[setting_key] = interpreter_json_template[
+          setting_key]
+
+    self.set_interpreter_settings(config_data)
 
   def get_interpreter_settings(self):
     import params
@@ -433,6 +449,7 @@ class Master(Script):
           del interpreter_settings[setting_key]
 
     self.set_interpreter_settings(config_data)
+    self.update_kerberos_properties()
 
   def create_interpreter_json(self):
     import interpreter_json_template
