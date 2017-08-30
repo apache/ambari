@@ -194,10 +194,6 @@ else:
 
 zeppelin_kerberos_keytab = config['configurations']['zeppelin-env']['zeppelin.server.kerberos.keytab']
 zeppelin_kerberos_principal = config['configurations']['zeppelin-env']['zeppelin.server.kerberos.principal']
-if 'zeppelin.interpreter.config.upgrade' in config['configurations']['zeppelin-config']:
-  zeppelin_interpreter_config_upgrade = config['configurations']['zeppelin-config']['zeppelin.interpreter.config.upgrade']
-else:
-  zeppelin_interpreter_config_upgrade = False
 
 # e.g. 2.3
 stack_version_unformatted = config['hostLevelParams']['stack_version']
