@@ -27,8 +27,11 @@ from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 
+import glob
 import re
 import os
+
+import ConfigParser
 
 INSTALL_CMD = {
   True: ['/usr/bin/yum', '-y', 'install'],
@@ -58,6 +61,7 @@ VERIFY_DEPENDENCY_CMD = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'depende
 LIST_ALL_SELECT_TOOL_PACKAGES_CMD = "yum list all --showduplicates|grep -v '@' |grep '^{pkg_name}'|awk '{print $2}'"
 SELECT_TOOL_VERSION_PATTERN = re.compile("(\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,2}-*\d*).*")  # xx.xx.xx.xx(-xxxx)
 
+YUM_REPO_LOCATION = "/etc/yum.repos.d"
 
 class YumProvider(RPMBasedPackageProvider):
 
@@ -70,7 +74,9 @@ class YumProvider(RPMBasedPackageProvider):
     available_packages = []
     installed_packages = []
     available_packages_in_repos = []
-    repo_ids = [repository['repoId'] for repository in repositories]
+
+    repo_ids = self._build_repos_ids(repositories)
+    Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
 
     for repo in repo_ids:
       available_packages.extend(self._lookup_packages(
@@ -282,3 +288,37 @@ class YumProvider(RPMBasedPackageProvider):
         return True
 
     return False
+
+
+  @staticmethod
+  def _build_repos_ids(repositories):
+    """
+    Gets a set of repository identifiers based on the supplied repository JSON structure as
+    well as any matching repos defined in /etc/yum.repos.d.
+    :param repositories:  the repositories defined on the command
+    :return:  the list of repo IDs from both the command and any matches found on the system
+    with the same URLs.
+    """
+    repo_ids = [repository['repoId'] for repository in repositories]
+    base_urls = [repository['baseUrl'] for repository in repositories if 'baseUrl' in repository]
+    mirrors = [repository['mirrorsList'] for repository in repositories if 'mirrorsList' in repository]
+
+    # for every repo file, find any which match the base URLs we're trying to write out
+    # if there are any matches, it means the repo already exists and we should use it to search
+    # for packages to install
+    for repo_file in glob.glob(os.path.join(YUM_REPO_LOCATION, "*.repo")):
+      config_parser = ConfigParser.ConfigParser()
+      config_parser.read(repo_file)
+      sections = config_parser.sections()
+      for section in sections:
+        if config_parser.has_option(section, "baseurl"):
+          base_url = config_parser.get(section, "baseurl")
+          if base_url in base_urls:
+            repo_ids.append(section)
+
+        if config_parser.has_option(section, "mirrorlist"):
+          mirror = config_parser.get(section, "mirrorlist")
+          if mirror in mirrors:
+            repo_ids.append(section)
+
+    return set(repo_ids)
