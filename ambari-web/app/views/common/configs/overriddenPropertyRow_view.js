@@ -85,5 +85,8 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
         this.get('parentView.categoryConfigsAll').removeObject(scpToBeRemoved);
       }
     }
+    if (scp.get('isUndefinedLabel')) {
+      scp.set('isVisible', false);
+    }
   }
 });
