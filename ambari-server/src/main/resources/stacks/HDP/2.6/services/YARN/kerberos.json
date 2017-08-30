@@ -103,6 +103,29 @@
               }
             },
             {
+              "name": "llap_task_hive",
+              "principal": {
+                "value": "hive/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hive-interactive-site/hive.llap.task.principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hive.llap.task.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": "r"
+                },
+                "configuration": "hive-interactive-site/hive.llap.task.keytab.file"
+              },
+              "when" : {
+                "contains" : ["services", "HIVE"]
+              }
+            },
+            {
               "name": "llap_zk_hive",
               "principal": {
                 "value": "hive/_HOST@${realm}",
