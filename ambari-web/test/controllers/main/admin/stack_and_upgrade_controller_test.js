@@ -1759,7 +1759,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       }));
       expect(controller.runPreUpgradeCheckOnly.calledWith({
         id: 1,
-        value: '1.2',
         label: 'V1',
         type: 'ROLLING'
       })).to.be.true;
@@ -3581,5 +3580,19 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.get('requestInProgress')).to.be.false;
     });
   });
+
+  describe('#showUpgradeOptions', function () {
+    before(function () {
+      sinon.stub(controller, 'upgradeOptions', Em.K);
+    });
+    after(function () {
+      controller.upgradeOptions.restore();
+    });
+    it("show upgrade options popup window", function() {
+      var version = Em.Object.create({displayName: 'HDP-2.2'});
+      controller.showUpgradeOptions(version);
+      expect(controller.upgradeOptions.calledWith(false, version, true)).to.be.true;
+    });
+  })
 
 });

@@ -964,7 +964,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       if (method.get('allowed')) {
         this.runPreUpgradeCheckOnly({
           id: version.get('id'),
-          value: version.get('repositoryVersion'),
           label: version.get('displayName'),
           type: method.get('type')
         });
@@ -1004,13 +1003,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     return configs;
   },
 
+  showUpgradeOptions: function ( version ) {
+    this.upgradeOptions(false, version, true);
+  },
+
   /**
    * Open upgrade options window: upgrade type and failures tolerance
    * @param {boolean} isInUpgradeWizard
    * @param {object} version
    * @return App.ModalPopup
    */
-  upgradeOptions: function (isInUpgradeWizard, version) {
+  upgradeOptions: function (isInUpgradeWizard, version, preUpgradeShow) {
     var self = this,
       upgradeMethods = this.get('upgradeMethods'),
       runningCheckRequests = this.get('runningCheckRequests');
@@ -1036,10 +1039,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
     return App.ModalPopup.show({
       encodeBody: false,
+      showFooter: !preUpgradeShow,
       primary: isInUpgradeWizard ? Em.I18n.t('ok') : Em.I18n.t('common.proceed'),
       primaryClass: 'btn-success',
       classNames: ['upgrade-options-popup'],
-      header: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.header'),
+      header: preUpgradeShow ? Em.I18n.t('admin.stackVersions.version.preUpgrade.header') : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.header'),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/admin/stack_upgrade/upgrade_options'),
         didInsertElement: function () {
@@ -1064,7 +1068,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }.property().volatile(),
         isInUpgradeWizard: isInUpgradeWizard,
         showPreUpgradeChecks: App.get('supports.preUpgradeCheck') && !isInUpgradeWizard,
-        versionText: isInUpgradeWizard ? '' : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName')),
+        versionText: preUpgradeShow ? Em.I18n.t('admin.stackVersions.version.preUpgrade.bodyMsg.version').format(version.get('displayName')) : isInUpgradeWizard ? '' : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName')),
         selectMethod: function (event) {
           if (isInUpgradeWizard || !event.context.get('allowed') || event.context.get('isPrecheckFailed')) return;
           var selectedMethod = event.context;
@@ -1084,7 +1088,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         },
         rerunCheck: function (event) {
           self.runPreUpgradeCheckOnly({
-            value: version.get('id'),
+            id: version.get('id'),
             label: version.get('displayName'),
             type: event.context.get('type')
           });
@@ -1120,13 +1124,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             bypassedFailures: bypassedFailures,
             callback: function () {
               self.runPreUpgradeCheckOnly.call(self, {
-                value: version.get('id'),
+                id: version.get('id'),
                 label: version.get('displayName'),
                 type: event.context.get('type')
               });
             }
           }, configs);
-        }
+        },
+        upgradeShow: !preUpgradeShow
       }),
 
       /**

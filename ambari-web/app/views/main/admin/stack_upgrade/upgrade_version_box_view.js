@@ -266,13 +266,21 @@ App.UpgradeVersionBoxView = Em.View.extend({
           isDisabled: isDisabled
         });
       } else {
-        element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
+        var isVersionColumnView = this.get('isVersionColumnView');
+        element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
         element.set('action', 'confirmUpgrade');
         element.get('buttons').pushObject({
-          text: this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
+          text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
           action: 'installRepoVersionConfirmation',
           isDisabled: isDisabled
         });
+
+        element.get('buttons').pushObject({
+          text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+          action: 'showUpgradeOptions',
+          isDisabled: isDisabled
+        });
+
         if (this.get('content.isPatch')) {
           element.get('buttons').pushObject({
             text: Em.I18n.t('common.discard'),

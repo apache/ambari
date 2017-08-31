@@ -467,6 +467,11 @@ describe('App.UpgradeVersionBoxView', function () {
             text: Em.I18n.t('admin.stackVersions.version.reinstall'),
             action: 'installRepoVersionConfirmation',
             isDisabled: true
+          },
+          {
+            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+            action: 'showUpgradeOptions',
+            isDisabled: true
           }],
           text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
           action: 'confirmUpgrade',
@@ -503,6 +508,11 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [{
             text: Em.I18n.t('admin.stackVersions.version.reinstall'),
             action: 'installRepoVersionConfirmation',
+            isDisabled: true
+          },
+          {
+            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+            action: 'showUpgradeOptions',
             isDisabled: true
           }],
           text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
@@ -632,6 +642,11 @@ describe('App.UpgradeVersionBoxView', function () {
               isDisabled: true
             },
             {
+              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+              action: 'showUpgradeOptions',
+              isDisabled: true
+            },
+            {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": true,
               "text": "Discard"
@@ -670,6 +685,11 @@ describe('App.UpgradeVersionBoxView', function () {
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
               action: 'installRepoVersionConfirmation',
+              isDisabled: true
+            },
+            {
+              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+              action: 'showUpgradeOptions',
               isDisabled: true
             }
           ],
@@ -1381,6 +1401,11 @@ describe('App.UpgradeVersionBoxView', function () {
             "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
             "action": "installRepoVersionConfirmation",
             "isDisabled": false
+          },
+          {
+            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+            action: 'showUpgradeOptions',
+            isDisabled: false
           },
           {
             "text": Em.I18n.t('common.discard'),
