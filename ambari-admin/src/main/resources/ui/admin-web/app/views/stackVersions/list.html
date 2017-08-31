@@ -59,6 +59,7 @@
           ></select>
       </th>
       <th class="col-small"></th>
+      <th class="col-small text-center vertical-top">{{'common.hidden' | translate}}</th>
     </tr>
     </thead>
     <tbody>
@@ -106,6 +107,7 @@
           </div>
         </div>
       </td>
+      <td class="text-center"><input type="checkbox" data-ng-model="repo.hidden" data-ng-change="toggleVisibility(repo)" data-ng-disabled="!isHideCheckBoxEnabled(repo)"/></td>
     </tr>
     </tbody>
   </table>
