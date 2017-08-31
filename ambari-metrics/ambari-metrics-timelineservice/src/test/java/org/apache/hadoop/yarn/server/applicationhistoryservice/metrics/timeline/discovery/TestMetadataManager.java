@@ -120,10 +120,10 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     Map<String, TimelineMetricHostMetadata> cachedHostData = metadataManager.getHostedAppsCache();
     Map<String, TimelineMetricHostMetadata> savedHostData = metadataManager.getHostedAppsFromStore();
     Assert.assertEquals(cachedData.size(), savedData.size());
-    Assert.assertEquals("dummy_app1", cachedHostData.get("dummy_host1").getHostedApps().iterator().next());
-    Assert.assertEquals("dummy_app2", cachedHostData.get("dummy_host2").getHostedApps().iterator().next());
-    Assert.assertEquals("dummy_app1", savedHostData.get("dummy_host1").getHostedApps().iterator().next());
-    Assert.assertEquals("dummy_app2", savedHostData.get("dummy_host2").getHostedApps().iterator().next());
+    Assert.assertEquals("dummy_app1", cachedHostData.get("dummy_host1").getHostedApps().keySet().iterator().next());
+    Assert.assertEquals("dummy_app2", cachedHostData.get("dummy_host2").getHostedApps().keySet().iterator().next());
+    Assert.assertEquals("dummy_app1", savedHostData.get("dummy_host1").getHostedApps().keySet().iterator().next());
+    Assert.assertEquals("dummy_app2", savedHostData.get("dummy_host2").getHostedApps().keySet().iterator().next());
 
     Map<String, Set<String>> cachedHostInstanceData = metadataManager.getHostedInstanceCache();
     Map<String, Set<String>> savedHostInstanceData = metadataManager.getHostedInstancesFromStore();

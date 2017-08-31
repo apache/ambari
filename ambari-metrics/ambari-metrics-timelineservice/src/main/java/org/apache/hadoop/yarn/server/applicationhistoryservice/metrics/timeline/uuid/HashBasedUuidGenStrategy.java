@@ -192,6 +192,10 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
       }
     }
 
+    if (numericValue != 0) {
+      seed+=numericValue;
+    }
+
     String seedStr = String.valueOf(seed);
     if (seedStr.length() < maxLength) {
       return null;
