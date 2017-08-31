@@ -2638,7 +2638,7 @@ var urls = {
     'mock': ''
   },
   'hosts.confirmed': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/os_type,Hosts/os_arch,Hosts/ip,Hosts/maintenance_state,host_components/HostRoles/state&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?fields=host_components/HostRoles/state&minimal_response=true',
     'mock': '/data/hosts/HDP2/hosts.json'
   },
   'hosts.with_searchTerm': {

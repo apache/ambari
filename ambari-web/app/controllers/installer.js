@@ -83,7 +83,9 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
     'recommendations',
     'recommendationsHostGroups',
     'recommendationsConfigs',
-    'componentsFromConfigs'
+    'componentsFromConfigs',
+    'operatingSystems',
+    'repositories'
   ],
 
   init: function () {
@@ -124,14 +126,6 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       delete dbHosts[host];
     });
     this.setDBProperty('hosts', dbHosts);
-  },
-
-  /**
-   * Load confirmed hosts.
-   * Will be used at <code>Assign Masters(step5)</code> step
-   */
-  loadConfirmedHosts: function () {
-    this.set('content.hosts', this.getDBProperty('hosts') || {});
   },
 
   /**

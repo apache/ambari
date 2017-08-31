@@ -85,7 +85,7 @@ App.ReassignMasterView = Em.View.extend(App.WizardMenuMixin, {
         isInstalled: true
       };
     });
-    App.db.setHosts(hosts);
+    this.get('controller').setDBProperty('hosts', hosts);
     this.set('controller.content.hosts', hosts);
     this.set('isLoaded', true);
   },
