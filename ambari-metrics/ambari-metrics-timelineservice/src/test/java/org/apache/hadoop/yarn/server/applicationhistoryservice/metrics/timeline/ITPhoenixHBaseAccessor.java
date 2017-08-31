@@ -202,7 +202,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator agg =
       TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(
-        hdb, new Configuration(), new TimelineMetricMetadataManager(new Configuration(), hdb), null);
+        hdb, new Configuration(), new TimelineMetricMetadataManager(new Configuration(), hdb), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
@@ -242,7 +242,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator agg =
       TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb,
-        new Configuration(), new TimelineMetricMetadataManager(new Configuration(), hdb), null);
+        new Configuration(), new TimelineMetricMetadataManager(new Configuration(), hdb), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
