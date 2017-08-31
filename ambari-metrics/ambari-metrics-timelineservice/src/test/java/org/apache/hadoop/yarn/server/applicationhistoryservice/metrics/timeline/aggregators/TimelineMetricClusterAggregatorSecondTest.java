@@ -18,12 +18,14 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedAggregateTimeMillis;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedCheckPointTimeMillis;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getTimeSlices;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND;
-import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 
 import java.sql.ResultSet;
@@ -51,23 +53,16 @@ public class TimelineMetricClusterAggregatorSecondTest {
     long sliceInterval = 30000l;
     long metricInterval = 10000l;
 
-    Configuration configuration = new Configuration();
     TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
     expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class))).andReturn(new byte[16]).once();
     replay(metricMetadataManagerMock);
 
-    TimelineMetricClusterAggregatorSecond secondAggregator = new TimelineMetricClusterAggregatorSecond(
-      METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null,
-      configuration, null, aggregatorInterval, 2, "false", "", "",
-      aggregatorInterval, sliceInterval, null);
-
-    secondAggregator.timeSliceIntervalMillis = sliceInterval;
-    long roundedEndTime = AbstractTimelineAggregator.getRoundedAggregateTimeMillis(aggregatorInterval);
+    long roundedEndTime = getRoundedAggregateTimeMillis(aggregatorInterval);
     long roundedStartTime = roundedEndTime - aggregatorInterval;
-    List<Long[]> timeSlices = secondAggregator.getTimeSlices(roundedStartTime ,
-      roundedEndTime);
+    List<Long[]> timeSlices = getTimeSlices(roundedStartTime ,
+      roundedEndTime, sliceInterval);
 
-    TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double> metricValues = new TreeMap<>();
 
     long startTime = roundedEndTime - aggregatorInterval;
 
@@ -85,7 +80,7 @@ public class TimelineMetricClusterAggregatorSecondTest {
     counterMetric.setMetricValues(metricValues);
     counterMetric.setType("COUNTER");
 
-    Map<TimelineClusterMetric, Double> timelineClusterMetricMap = secondAggregator.sliceFromTimelineMetric(counterMetric, timeSlices);
+    Map<TimelineClusterMetric, Double> timelineClusterMetricMap = sliceFromTimelineMetric(counterMetric, timeSlices, true);
 
     TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric(counterMetric.getMetricName(), counterMetric.getAppId(),
       counterMetric.getInstanceId(), 0l);
@@ -104,7 +99,7 @@ public class TimelineMetricClusterAggregatorSecondTest {
     metric.setAppId("TestAppId");
     metric.setMetricValues(metricValues);
 
-    timelineClusterMetricMap = secondAggregator.sliceFromTimelineMetric(metric, timeSlices);
+    timelineClusterMetricMap = sliceFromTimelineMetric(metric, timeSlices, true);
 
     timelineClusterMetric = new TimelineClusterMetric(metric.getMetricName(), metric.getAppId(),
       metric.getInstanceId(), 0l);
@@ -116,7 +111,6 @@ public class TimelineMetricClusterAggregatorSecondTest {
     timelineClusterMetric.setTimestamp(roundedStartTime + 4*sliceInterval);
     Assert.assertTrue(timelineClusterMetricMap.containsKey(timelineClusterMetric));
     Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 7.5);
-
   }
 
   @Test
@@ -137,8 +131,8 @@ public class TimelineMetricClusterAggregatorSecondTest {
       aggregatorInterval, 2, "false", "", "", aggregatorInterval, sliceInterval, null
     );
 
-    long startTime = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(System.currentTimeMillis(),aggregatorInterval);
-    List<Long[]> timeslices = secondAggregator.getTimeSlices(startTime, startTime + aggregatorInterval);
+    long startTime = getRoundedCheckPointTimeMillis(System.currentTimeMillis(),aggregatorInterval);
+    List<Long[]> timeslices = getTimeSlices(startTime, startTime + aggregatorInterval, sliceInterval);
 
     Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics = new HashMap<>();
     long seconds = 1000;
@@ -367,7 +361,7 @@ public class TimelineMetricClusterAggregatorSecondTest {
     long now = System.currentTimeMillis();
     long startTime = now - 120000;
     long seconds = 1000;
-    List<Long[]> slices = secondAggregator.getTimeSlices(startTime, now);
+    List<Long[]> slices = getTimeSlices(startTime, now, sliceInterval);
     ResultSet rs = createNiceMock(ResultSet.class);
 
     TreeMap<Long, Double> metricValues = new TreeMap<>();

@@ -1570,7 +1570,7 @@ public class PhoenixHBaseAccessor {
         stmt.clearParameters();
         stmt.setString(1, hostedAppsEntry.getKey());
         stmt.setBytes(2, timelineMetricHostMetadata.getUuid());
-        stmt.setString(3, StringUtils.join(timelineMetricHostMetadata.getHostedApps(), ","));
+        stmt.setString(3, StringUtils.join(timelineMetricHostMetadata.getHostedApps().keySet(), ","));
         try {
           stmt.executeUpdate();
           rowCount++;

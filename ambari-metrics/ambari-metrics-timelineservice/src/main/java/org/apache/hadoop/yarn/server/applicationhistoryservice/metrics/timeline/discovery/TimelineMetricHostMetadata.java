@@ -18,26 +18,35 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TimelineMetricHostMetadata {
-  private Set<String> hostedApps = new HashSet<>();
+  //need concurrent data structure, only keys are used.
+  private ConcurrentHashMap<String, String> hostedApps = new ConcurrentHashMap<>();
   private byte[] uuid;
 
   // Default constructor
   public TimelineMetricHostMetadata() {
   }
 
-  public TimelineMetricHostMetadata(Set<String> hostedApps) {
+  public TimelineMetricHostMetadata(ConcurrentHashMap<String, String> hostedApps) {
     this.hostedApps = hostedApps;
   }
 
-  public Set<String> getHostedApps() {
+  public TimelineMetricHostMetadata(Set<String> hostedApps) {
+    ConcurrentHashMap<String, String> appIdsMap = new ConcurrentHashMap<>();
+    for (String appId : hostedApps) {
+      appIdsMap.put(appId, appId);
+    }
+    this.hostedApps = appIdsMap;
+  }
+
+  public ConcurrentHashMap<String, String> getHostedApps() {
     return hostedApps;
   }
 
-  public void setHostedApps(Set<String> hostedApps) {
+  public void setHostedApps(ConcurrentHashMap<String, String> hostedApps) {
     this.hostedApps = hostedApps;
   }
 

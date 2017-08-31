@@ -134,7 +134,7 @@ public class TimelineMetricMetadataSync implements Runnable {
           // No persistence / stale data in store
           if (persistedData == null || persistedData.isEmpty() ||
             !persistedData.containsKey(cacheEntry.getKey()) ||
-            !persistedData.get(cacheEntry.getKey()).getHostedApps().containsAll(cacheEntry.getValue().getHostedApps())) {
+            !persistedData.get(cacheEntry.getKey()).getHostedApps().keySet().containsAll(cacheEntry.getValue().getHostedApps().keySet())) {
             dataToSync.put(cacheEntry.getKey(), cacheEntry.getValue());
           }
         }
