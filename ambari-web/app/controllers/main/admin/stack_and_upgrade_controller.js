@@ -1100,7 +1100,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }.property().volatile(),
         isInUpgradeWizard: isInUpgradeWizard,
         showPreUpgradeChecks: App.get('supports.preUpgradeCheck') && !isInUpgradeWizard,
-        versionText: preUpgradeShow ? Em.I18n.t('admin.stackVersions.version.preUpgrade.bodyMsg.version').format(version.get('displayName')) : isInUpgradeWizard ? '' : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName')),
+        versionText: self.getVersionText( preUpgradeShow, isInUpgradeWizard, version ),
         selectMethod: function (event) {
           if (isInUpgradeWizard || !event.context.get('allowed') || event.context.get('isPrecheckFailed')) return;
           var selectedMethod = event.context;
@@ -1219,6 +1219,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }
       }
     });
+  },
+
+  getVersionText: function (preUpgradeShow, isInUpgradeWizard, version) {
+    if ( preUpgradeShow ){
+      return Em.I18n.t('admin.stackVersions.version.preUpgrade.bodyMsg.version').format(version.get('displayName'));
+    }
+    else{
+      if ( isInUpgradeWizard ){
+        return '';
+      }
+      return Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName'));
+    }
   },
 
   /**

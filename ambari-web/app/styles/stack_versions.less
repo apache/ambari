@@ -751,3 +751,40 @@
     }
   }
 }
+
+#upgrade-summary-table {
+  .wide-column {
+    width: 14%;
+  }
+  .accordion-group {
+    border-right: none;
+    padding-left:20px;
+  }
+  .accordion-heading {
+    background-color: transparent;
+  }
+  .accordion-toggle {
+    padding: 5px;
+    display: inline-block;
+    float: left;
+    line-height: 10px;
+    margin-left: -20px;
+    cursor: pointer;
+  }
+  .accordion-body {
+    min-width: 350px;
+    .accordion-inner{
+      padding-top:10px;
+      .label{
+        padding: 5px 15px;
+        &.available{
+          background-color: #468847;
+        }
+      }
+    }
+    .service-name {
+      text-align: left;
+      min-width: 70px;
+    }
+  }
+}

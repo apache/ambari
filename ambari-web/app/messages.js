@@ -351,6 +351,8 @@ Em.I18n.translations = {
   'common.rolling': 'Rolling',
   'common.express': 'Express',
   'common.hostOrdered': 'Host Ordered',
+  'common.repository': 'Repository',
+  'common.repositoryType': 'Repository Type',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
 
