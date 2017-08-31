@@ -93,6 +93,7 @@ angular.module('ambariAdminConsole')
       'important': 'Important',
       'undo': 'Undo',
       'fromGroupMark': '(from group)',
+      'hidden' : 'Hidden',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
