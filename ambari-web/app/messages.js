@@ -1744,6 +1744,7 @@ Em.I18n.translations = {
   'admin.stackVersions.version.installNow': "Install Packages",
   'admin.stackVersions.version.reinstall': "Reinstall Packages",
   'admin.stackVersions.version.performUpgrade': "Perform Upgrade",
+  'admin.stackVersions.version.preUpgradeCheck': 'Pre-Upgrade Check',
   'admin.stackVersions.version.upgrade.pause': "Upgrade: Action Required",
   'admin.stackVersions.version.upgrade.notFinalized.warning': "The upgrade has not been finalized yet. After the cluster is verified to be functional, do not forget to finalize the upgrade as soon as possible (within a couple of days is highly recommended) as running the cluster in unfinalized state causes extra resource requirements on HDFS.",
   'admin.stackVersions.version.upgrade.running': "Upgrade: In Process",
@@ -1788,6 +1789,9 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.loading': 'Checking for supported upgrade types...',
 
   'admin.stackVersions.version.upgrade.alertsWarning': 'Cluster alerts will still be visible and recorded in Ambari but notifications (such as Email and SNMP) will be suppressed during the upgrade.',
+
+  'admin.stackVersions.version.preUpgrade.header' : 'Pre-Upgrade Check',
+  'admin.stackVersions.version.preUpgrade.bodyMsg.version': 'The following checks have been run to test your ability to upgrade to <b>{0}</b>.',
 
   'admin.stackVersions.version.column.showDetails': "Show Details",
   'admin.stackVersions.version.column.showDetails.title': "Version Details",

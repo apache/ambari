@@ -529,6 +529,9 @@
   .method-options.disabled {
     .img-thumbnail {
       cursor: not-allowed;
+      &.default-cursor{
+        cursor: default;
+      }
       .method-name,.method-icon,.method-description {
         color: #a9a9a9;
       }
@@ -593,6 +596,9 @@
   }
   .text {
     margin-left: 10px;
+    &.big-text{
+      font-size: 20px;
+    }
   }
   .glyphicon-question-sign {
     color: @blue;
