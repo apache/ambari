@@ -126,28 +126,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @type {Em.Array}
    */
   repoVersions: App.RepositoryVersion.find(),
-
-  /**
-   * PATCH version should be displayed right after parent STANDARD version
-   */
-  sortedRepoVersions: function () {
-    var allVersions = this.get('repoVersions').filterProperty('isPatch', false).toArray().sort(function (a, b) {
-      return stringUtils.compareVersions(a.get('repositoryVersion'), b.get('repositoryVersion'));
-    });
-    this.get('repoVersions').filterProperty('isPatch').toArray().sort(function (a, b) {
-      return stringUtils.compareVersions(b.get('repositoryVersion'), a.get('repositoryVersion'));
-    }).forEach(function(patchVersion) {
-      var displayNames = allVersions.mapProperty('displayNameSimple');
-      var index = displayNames.indexOf(patchVersion.get('displayNameSimple'));
-      if (index !== -1) {
-        allVersions.splice(index + 1, 0, patchVersion);
-      } else {
-        allVersions.push(patchVersion);
-      }
-    });
-    return allVersions;
-  }.property('repoVersions'),
-
+  
   /**
    * @type {Em.Array}
    */
