@@ -503,6 +503,13 @@
   </property>
 
   <property>
+    <name>yarn.timeline-service.store-class</name>
+    <value>org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore</value>
+    <description>Main storage class for YARN timeline server.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
     <name>yarn.timeline-service.generic-application-history.store-class</name>
     <value>org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore</value>
     <description>
