@@ -19,8 +19,6 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.ambari.metrics.alertservice.spark.AmsKafkaProducer;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -66,17 +64,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.*;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
 public class HBaseTimelineMetricsService extends AbstractService implements TimelineMetricStore {
 
   static final Log LOG = LogFactory.getLog(HBaseTimelineMetricsService.class);
   private final TimelineMetricConfiguration configuration;
+  private TimelineMetricDistributedCache cache;
   private PhoenixHBaseAccessor hBaseAccessor;
   private static volatile boolean isInitialized = false;
   private final ScheduledExecutorService watchdogExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -100,6 +101,12 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     super.serviceInit(conf);
     initializeSubsystem();
   }
+
+  private TimelineMetricDistributedCache startCacheNode() throws MalformedURLException, URISyntaxException {
+    //TODO make configurable
+    return new TimelineMetricsIgniteCache();
+  }
+
 
   private synchronized void initializeSubsystem() {
     if (!isInitialized) {
@@ -140,6 +147,15 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
         throw new ExceptionInInitializerError("Cannot initialize configuration.");
       }
 
+      if (configuration.isCollectorInMemoryAggregationEnabled()) {
+        try {
+          cache = startCacheNode();
+        } catch (Exception e) {
+          throw new MetricsSystemInitializationException("Unable to " +
+              "start cache node", e);
+        }
+      }
+
       defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
@@ -148,7 +164,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       // Start the cluster aggregator second
       TimelineMetricAggregator secondClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(
-          hBaseAccessor, metricsConf, metricMetadataManager, haController);
+          hBaseAccessor, metricsConf, metricMetadataManager, haController, cache);
       scheduleAggregatorThread(secondClusterAggregator);
 
       // Start the minute cluster aggregator
@@ -170,7 +186,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       scheduleAggregatorThread(dailyClusterAggregator);
 
       // Start the minute host aggregator
-      if (Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION, "true"))) {
+      if (configuration.isHostInMemoryAggregationEnabled()) {
         LOG.info("timeline.metrics.host.inmemory.aggregation is set to True, switching to filtering host minute aggregation on collector");
         TimelineMetricAggregator minuteHostAggregator =
           TimelineMetricAggregatorFactory.createFilteringTimelineMetricAggregatorMinute(
@@ -377,6 +393,10 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
 
     hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics, false);
 
+    if (configuration.isCollectorInMemoryAggregationEnabled()) {
+      cache.putMetrics(metrics.getMetrics(), metricMetadataManager);
+    }
+
     return response;
   }
 
@@ -448,7 +468,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     Map<String, TimelineMetricHostMetadata> hostsMetadata = metricMetadataManager.getHostedAppsCache();
     Map<String, Set<String>> hostAppMap = new HashMap<>();
     for (String hostname : hostsMetadata.keySet()) {
-      hostAppMap.put(hostname, hostsMetadata.get(hostname).getHostedApps());
+      hostAppMap.put(hostname, hostsMetadata.get(hostname).getHostedApps().keySet());
     }
     return hostAppMap;
   }

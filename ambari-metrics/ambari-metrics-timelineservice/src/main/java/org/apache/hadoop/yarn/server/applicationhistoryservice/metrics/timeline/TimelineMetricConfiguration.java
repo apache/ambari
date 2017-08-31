@@ -26,8 +26,10 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -57,6 +59,7 @@ public class TimelineMetricConfiguration {
   public static final String HBASE_SITE_CONFIGURATION_FILE = "hbase-site.xml";
   public static final String METRICS_SITE_CONFIGURATION_FILE = "ams-site.xml";
   public static final String METRICS_ENV_CONFIGURATION_FILE = "ams-env.xml";
+  public static final String METRICS_SSL_SERVER_CONFIGURATION_FILE = "ssl-server.xml";
 
   public static final String TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR =
     "timeline.metrics.aggregator.checkpoint.dir";
@@ -117,6 +120,9 @@ public class TimelineMetricConfiguration {
 
   public static final String CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL =
     "timeline.metrics.cluster.aggregator.second.timeslice.interval";
+
+  public static final String CLUSTER_CACHE_AGGREGATOR_TIMESLICE_INTERVAL =
+    "timeline.metrics.cluster.cache.aggregator.second.timeslice.interval";
 
   public static final String AGGREGATOR_CHECKPOINT_DELAY =
     "timeline.metrics.service.checkpointDelay";
@@ -259,6 +265,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED =
     "timeline.metrics.cluster.aggregator.interpolation.enabled";
 
+  public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD =
+    "timeline.metrics.sink.collection.period";
+
   public static final String TIMELINE_METRICS_PRECISION_TABLE_DURABILITY =
     "timeline.metrics.precision.table.durability";
 
@@ -314,6 +323,13 @@ public class TimelineMetricConfiguration {
   public static final String AMSHBASE_METRICS_WHITESLIST_FILE = "amshbase_metrics_whitelist";
 
   public static final String TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION = "timeline.metrics.host.inmemory.aggregation";
+
+  public static final String TIMELINE_METRICS_COLLECTOR_INMEMORY_AGGREGATION = "timeline.metrics.collector.inmemory.aggregation";
+
+  public static final String TIMELINE_METRICS_COLLECTOR_IGNITE_NODES = "timeline.metrics.collector.ignite.nodes.list";
+
+  public static final String TIMELINE_METRICS_COLLECTOR_IGNITE_BACKUPS = "timeline.metrics.collector.ignite.nodes.backups";
+
   public static final String INTERNAL_CACHE_HEAP_PERCENT =
     "timeline.metrics.service.cache.%s.heap.percent";
 
@@ -325,6 +341,7 @@ public class TimelineMetricConfiguration {
 
   private Configuration hbaseConf;
   private Configuration metricsConf;
+  private Configuration metricsSslConf;
   private Configuration amsEnvConf;
   private volatile boolean isInitialized = false;
 
@@ -369,6 +386,17 @@ public class TimelineMetricConfiguration {
       metricsConf = new Configuration(true);
       metricsConf.addResource(amsResUrl.toURI().toURL());
 
+      if (metricsConf.get("timeline.metrics.service.http.policy", "HTTP_ONLY").equalsIgnoreCase("HTTPS_ONLY")) {
+        URL amsSllResUrl = classLoader.getResource(METRICS_SSL_SERVER_CONFIGURATION_FILE);
+        LOG.info("Found metric ssl service configuration: " + amsResUrl);
+        if (amsSllResUrl == null) {
+          throw new IllegalStateException("Unable to initialize the metrics " +
+            "subsystem. No ams-ssl-server present in the classpath.");
+        }
+        metricsSslConf = new Configuration(true);
+        metricsSslConf.addResource(amsSllResUrl.toURI().toURL());
+      }
+
       isInitialized = true;
     }
   }
@@ -385,6 +413,13 @@ public class TimelineMetricConfiguration {
       initialize();
     }
     return metricsConf;
+  }
+
+  public Configuration getMetricsSslConf() throws URISyntaxException, MalformedURLException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return metricsSslConf;
   }
 
   public String getZKClientPort() throws MalformedURLException, URISyntaxException {
@@ -569,5 +604,46 @@ public class TimelineMetricConfiguration {
     }
 
     return dirPath;
+  }
+
+  public boolean isHostInMemoryAggregationEnabled() {
+    if (metricsConf != null) {
+      return Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION, "false"));
+    } else {
+      return false;
+    }
+  }
+
+  public boolean isCollectorInMemoryAggregationEnabled() {
+    if (metricsConf != null) {
+      return Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_COLLECTOR_INMEMORY_AGGREGATION, "false"));
+    } else {
+      return false;
+    }
+  }
+
+  public List<String> getAppIdsForHostAggregation() {
+    String appIds = metricsConf.get(CLUSTER_AGGREGATOR_APP_IDS);
+    if (!StringUtils.isEmpty(appIds)) {
+      return Arrays.asList(StringUtils.stripAll(appIds.split(",")));
+    }
+    return Collections.emptyList();
+  }
+
+  public String getZkConnectionUrl(String zkClientPort, String zkQuorum) {
+    StringBuilder sb = new StringBuilder();
+    String[] quorumParts = zkQuorum.split(",");
+    String prefix = "";
+    for (String part : quorumParts) {
+      sb.append(prefix);
+      sb.append(part.trim());
+      if (!part.contains(":")) {
+        sb.append(":");
+        sb.append(zkClientPort);
+      }
+      prefix = ",";
+    }
+
+    return sb.toString();
   }
 }

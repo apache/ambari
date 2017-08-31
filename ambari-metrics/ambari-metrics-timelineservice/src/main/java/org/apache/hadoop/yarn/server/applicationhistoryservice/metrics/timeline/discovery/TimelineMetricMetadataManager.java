@@ -213,9 +213,9 @@ public class TimelineMetricMetadataManager {
    */
   public void putIfModifiedHostedAppsMetadata(String hostname, String appId) {
     TimelineMetricHostMetadata timelineMetricHostMetadata = HOSTED_APPS_MAP.get(hostname);
-    Set<String> apps = (timelineMetricHostMetadata != null) ? timelineMetricHostMetadata.getHostedApps() : null;
+    ConcurrentHashMap<String, String> apps = (timelineMetricHostMetadata != null) ? timelineMetricHostMetadata.getHostedApps() : null;
     if (apps == null) {
-      apps = new HashSet<>();
+      apps = new ConcurrentHashMap<>();
       if (timelineMetricHostMetadata == null) {
         HOSTED_APPS_MAP.put(hostname, new TimelineMetricHostMetadata(apps));
       } else {
@@ -223,8 +223,8 @@ public class TimelineMetricMetadataManager {
       }
     }
 
-    if (!apps.contains(appId)) {
-      apps.add(appId);
+    if (!apps.containsKey(appId)) {
+      apps.put(appId, appId);
       SYNC_HOSTED_APPS_METADATA.set(true);
     }
   }
@@ -362,8 +362,9 @@ public class TimelineMetricMetadataManager {
 
     String uuidStr = new String(uuid);
     if (uuidHostMap.containsKey(uuidStr)) {
+      //TODO fix the collisions
       LOG.error("Duplicate key computed for " + hostname +", Collides with  " + uuidHostMap.get(uuidStr));
-      return null;
+      return uuid;
     }
 
     if (timelineMetricHostMetadata == null) {
@@ -398,8 +399,15 @@ public class TimelineMetricMetadataManager {
     String uuidStr = new String(uuid);
     if (uuidKeyMap.containsKey(uuidStr) && !uuidKeyMap.get(uuidStr).equals(key)) {
       TimelineMetricMetadataKey collidingKey = (TimelineMetricMetadataKey)uuidKeyMap.get(uuidStr);
+      //TODO fix the collisions
+      /**
+       * 2017-08-23 14:12:35,922 ERROR org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager:
+       * Duplicate key [52, 50, 51, 53, 50, 53, 53, 53, 49, 54, 57, 50, 50, 54, 0, 0]([B@278a93f9) computed for
+       * TimelineClusterMetric{metricName='sdisk_dm-11_write_count', appId='hbase', instanceId='', timestamp=1503497400000}, Collides with
+       * TimelineMetricMetadataKey{metricName='sdisk_dm-20_write_count', appId='hbase', instanceId=''}
+       */
       LOG.error("Duplicate key " + Arrays.toString(uuid) + "(" + uuid +  ") computed for " + timelineClusterMetric.toString() + ", Collides with  " + collidingKey.toString());
-      return null;
+      return uuid;
     }
 
     if (timelineMetricMetadata == null) {

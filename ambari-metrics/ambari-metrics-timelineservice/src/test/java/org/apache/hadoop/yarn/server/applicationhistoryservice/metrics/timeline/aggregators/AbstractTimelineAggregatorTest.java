@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import static junit.framework.Assert.assertEquals;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedAggregateTimeMillis;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedCheckPointTimeMillis;
 
 public class AbstractTimelineAggregatorTest {
 
@@ -114,7 +116,7 @@ public class AbstractTimelineAggregatorTest {
   public void testDoWorkOnZeroDelay() throws Exception {
 
     long currentTime = System.currentTimeMillis();
-    long roundedOffAggregatorTime = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(currentTime,
+    long roundedOffAggregatorTime = getRoundedCheckPointTimeMillis(currentTime,
       sleepIntervalMillis);
 
     //Test first run of aggregator with no checkpoint
@@ -138,7 +140,7 @@ public class AbstractTimelineAggregatorTest {
     currentTime = System.currentTimeMillis();
     checkPoint.set(currentTime - 16*60*1000); //Old checkpoint
     agg.runOnce(sleepIntervalMillis);
-    long checkPointTime = AbstractTimelineAggregator.getRoundedAggregateTimeMillis(sleepIntervalMillis);
+    long checkPointTime = getRoundedAggregateTimeMillis(sleepIntervalMillis);
     assertEquals("startTime should be zero", checkPointTime - sleepIntervalMillis, startTimeInDoWork.get());
     assertEquals("endTime  should be zero", checkPointTime, endTimeInDoWork.get());
     assertEquals(roundedOffAggregatorTime, checkPoint.get());
@@ -147,10 +149,10 @@ public class AbstractTimelineAggregatorTest {
 
 //    //Test first run with perfect checkpoint (sleepIntervalMillis back)
     currentTime = System.currentTimeMillis();
-    roundedOffAggregatorTime = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(currentTime,
+    roundedOffAggregatorTime = getRoundedCheckPointTimeMillis(currentTime,
       sleepIntervalMillis);
     checkPointTime = roundedOffAggregatorTime - sleepIntervalMillis;
-    long expectedCheckPoint = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(checkPointTime, sleepIntervalMillis);
+    long expectedCheckPoint = getRoundedCheckPointTimeMillis(checkPointTime, sleepIntervalMillis);
     checkPoint.set(checkPointTime);
     agg.runOnce(sleepIntervalMillis);
     assertEquals("startTime should the lower rounded time of the checkpoint time",
@@ -165,7 +167,7 @@ public class AbstractTimelineAggregatorTest {
     currentTime = System.currentTimeMillis();
     checkPoint.set(currentTime - 2*sleepIntervalMillis + 5000);
     agg.runOnce(sleepIntervalMillis);
-    long expectedStartTime = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(currentTime - 2*sleepIntervalMillis + 5000, sleepIntervalMillis);
+    long expectedStartTime = getRoundedCheckPointTimeMillis(currentTime - 2*sleepIntervalMillis + 5000, sleepIntervalMillis);
     assertEquals("startTime should the lower rounded time of the checkpoint time",
       expectedStartTime, startTimeInDoWork.get());
     assertEquals("startTime should the lower rounded time of the checkpoint time + sleepIntervalMillis",

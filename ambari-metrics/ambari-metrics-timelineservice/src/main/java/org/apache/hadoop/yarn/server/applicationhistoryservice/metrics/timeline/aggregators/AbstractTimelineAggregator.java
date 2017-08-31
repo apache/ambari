@@ -43,6 +43,8 @@ import java.util.List;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedAggregateTimeMillis;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedCheckPointTimeMillis;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
 /**
@@ -387,15 +389,6 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
   protected String getCheckpointLocation() {
     return checkpointLocation;
-  }
-
-  public static long getRoundedCheckPointTimeMillis(long referenceTime, long aggregatorPeriod) {
-    return referenceTime - (referenceTime % aggregatorPeriod);
-  }
-
-  public static long getRoundedAggregateTimeMillis(long aggregatorPeriod) {
-    long currentTime = System.currentTimeMillis();
-    return currentTime - (currentTime % aggregatorPeriod);
   }
 
   /**

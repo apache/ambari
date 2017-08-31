@@ -93,7 +93,7 @@ public class MetricCollectorHAController {
           + zkClientPort +", quorum = " + zkQuorum);
       }
 
-      zkConnectUrl = getZkConnectionUrl(zkClientPort, zkQuorum);
+      zkConnectUrl = configuration.getZkConnectionUrl(zkClientPort, zkQuorum);
 
     } catch (Exception e) {
       LOG.error("Unable to load hbase-site from classpath.", e);
@@ -204,23 +204,6 @@ public class MetricCollectorHAController {
     manager.connect();
     HelixController controller = new HelixController();
     manager.addLiveInstanceChangeListener(controller);
-  }
-
-  private String getZkConnectionUrl(String zkClientPort, String zkQuorum) {
-    StringBuilder sb = new StringBuilder();
-    String[] quorumParts = zkQuorum.split(",");
-    String prefix = "";
-    for (String part : quorumParts) {
-      sb.append(prefix);
-      sb.append(part.trim());
-      if (!part.contains(":")) {
-        sb.append(":");
-        sb.append(zkClientPort);
-      }
-      prefix = ",";
-    }
-
-    return sb.toString();
   }
 
   public AggregationTaskRunner getAggregationTaskRunner() {

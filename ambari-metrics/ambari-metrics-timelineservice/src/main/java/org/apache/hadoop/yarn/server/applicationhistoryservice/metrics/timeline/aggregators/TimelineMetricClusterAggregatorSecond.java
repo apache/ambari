@@ -21,6 +21,8 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.SERVER_SIDE_TIMESIFT_ADJUSTMENT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getTimeSlices;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 
@@ -29,17 +31,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
-import org.apache.hadoop.metrics2.sink.timeline.PostProcessingUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
@@ -60,8 +59,8 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   // Aggregator to perform app-level aggregates for host metrics
   private final TimelineMetricAppAggregator appAggregator;
   // 1 minute client side buffering adjustment
-  private final Long serverTimeShiftAdjustment;
-  private final boolean interpolationEnabled;
+  protected final Long serverTimeShiftAdjustment;
+  protected final boolean interpolationEnabled;
   private TimelineMetricMetadataManager metadataManagerInstance;
   private String skipAggrPatternStrings;
   private final static String liveHostsMetricName = "live_hosts";
@@ -98,7 +97,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     // timestamps with the difference between server time and series start time
     // Also, we do not want to look at the shift time period from the end as well since we can interpolate those points
     // that come earlier than the expected, during the next run.
-    List<Long[]> timeSlices = getTimeSlices(startTime - serverTimeShiftAdjustment, endTime - serverTimeShiftAdjustment);
+    List<Long[]> timeSlices = getTimeSlices(startTime - serverTimeShiftAdjustment, endTime - serverTimeShiftAdjustment, timeSliceIntervalMillis);
     // Initialize app aggregates for host metrics
     appAggregator.init();
     Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics =
@@ -132,19 +131,6 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
     return condition;
-  }
-
-  /**
-   * Return time slices to normalize the timeseries data.
-   */
-  List<Long[]> getTimeSlices(long startTime, long endTime) {
-    List<Long[]> timeSlices = new ArrayList<Long[]>();
-    long sliceStartTime = startTime;
-    while (sliceStartTime < endTime) {
-      timeSlices.add(new Long[] { sliceStartTime, sliceStartTime + timeSliceIntervalMillis });
-      sliceStartTime += timeSliceIntervalMillis;
-    }
-    return timeSlices;
   }
 
   Map<TimelineClusterMetric, MetricClusterAggregate> aggregateMetricsFromResultSet(ResultSet rs, List<Long[]> timeSlices)
@@ -219,9 +205,16 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
       return 0;
     }
 
-    Map<TimelineClusterMetric, Double> clusterMetrics = sliceFromTimelineMetric(metric, timeSlices);
-    int numHosts = 0;
+    Map<TimelineClusterMetric, Double> clusterMetrics = sliceFromTimelineMetric(metric, timeSlices, interpolationEnabled);
 
+    return aggregateClusterMetricsFromSlices(clusterMetrics, aggregateClusterMetrics, metric.getHostName());
+  }
+
+  protected int aggregateClusterMetricsFromSlices(Map<TimelineClusterMetric, Double> clusterMetrics,
+                                                  Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics,
+                                                  String hostname) {
+
+    int numHosts = 0;
     if (clusterMetrics != null && !clusterMetrics.isEmpty()) {
       for (Map.Entry<TimelineClusterMetric, Double> clusterMetricEntry : clusterMetrics.entrySet()) {
 
@@ -242,184 +235,14 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
 
         numHosts = aggregate.getNumberOfHosts();
         // Update app level aggregates
-        appAggregator.processTimelineClusterMetric(clusterMetric, metric.getHostName(), avgValue);
+        appAggregator.processTimelineClusterMetric(clusterMetric, hostname, avgValue);
       }
     }
     return numHosts;
   }
 
-  protected Map<TimelineClusterMetric, Double> sliceFromTimelineMetric(
-    TimelineMetric timelineMetric, List<Long[]> timeSlices) {
-
-    if (timelineMetric.getMetricValues().isEmpty()) {
-      return null;
-    }
-
-    Map<TimelineClusterMetric, Double> timelineClusterMetricMap =
-      new HashMap<TimelineClusterMetric, Double>();
-
-    Long prevTimestamp = -1l;
-    TimelineClusterMetric prevMetric = null;
-    int count = 0;
-    double sum = 0.0;
-
-    Map<Long,Double> timeSliceValueMap = new HashMap<>();
-    for (Map.Entry<Long, Double> metric : timelineMetric.getMetricValues().entrySet()) {
-      // TODO: investigate null values - pre filter
-      if (metric.getValue() == null) {
-        continue;
-      }
-
-      Long timestamp = getSliceTimeForMetric(timeSlices, Long.parseLong(metric.getKey().toString()));
-      if (timestamp != -1) {
-        // Metric is within desired time range
-        TimelineClusterMetric clusterMetric = new TimelineClusterMetric(
-          timelineMetric.getMetricName(),
-          timelineMetric.getAppId(),
-          timelineMetric.getInstanceId(),
-          timestamp);
-
-        if (prevTimestamp < 0 || timestamp.equals(prevTimestamp)) {
-          Double newValue = metric.getValue();
-          if (newValue > 0.0) {
-            sum += newValue;
-            count++;
-          }
-        } else {
-          double metricValue = (count > 0) ? (sum / count) : 0.0;
-            timelineClusterMetricMap.put(prevMetric, metricValue);
-          timeSliceValueMap.put(prevMetric.getTimestamp(), metricValue);
-          sum = metric.getValue();
-          count = sum > 0.0 ? 1 : 0;
-        }
-
-        prevTimestamp = timestamp;
-        prevMetric = clusterMetric;
-      }
-    }
-
-    if (prevTimestamp > 0) {
-      double metricValue = (count > 0) ? (sum / count) : 0.0;
-      timelineClusterMetricMap.put(prevMetric, metricValue);
-      timeSliceValueMap.put(prevTimestamp, metricValue);
-    }
-
-    if (interpolationEnabled) {
-      interpolateMissingPeriods(timelineClusterMetricMap, timelineMetric, timeSlices, timeSliceValueMap);
-    }
-
-    return timelineClusterMetricMap;
-  }
-
-  private void interpolateMissingPeriods(Map<TimelineClusterMetric, Double> timelineClusterMetricMap,
-                                         TimelineMetric timelineMetric,
-                                         List<Long[]> timeSlices,
-                                         Map<Long, Double> timeSliceValueMap) {
-
-
-    if (StringUtils.isNotEmpty(timelineMetric.getType()) && "COUNTER".equalsIgnoreCase(timelineMetric.getType())) {
-      //For Counter Based metrics, ok to do interpolation and extrapolation
-
-      List<Long> requiredTimestamps = new ArrayList<>();
-      for (Long[] timeSlice : timeSlices) {
-        if (!timeSliceValueMap.containsKey(timeSlice[1])) {
-          requiredTimestamps.add(timeSlice[1]);
-        }
-      }
-      Map<Long, Double> interpolatedValuesMap = PostProcessingUtil.interpolate(timelineMetric.getMetricValues(), requiredTimestamps);
-
-      if (interpolatedValuesMap != null) {
-        for (Map.Entry<Long, Double> entry : interpolatedValuesMap.entrySet()) {
-          Double interpolatedValue = entry.getValue();
-
-          if (interpolatedValue != null) {
-            TimelineClusterMetric clusterMetric = new TimelineClusterMetric(
-              timelineMetric.getMetricName(),
-              timelineMetric.getAppId(),
-              timelineMetric.getInstanceId(),
-              entry.getKey());
-
-            timelineClusterMetricMap.put(clusterMetric, interpolatedValue);
-          } else {
-            LOG.debug("Cannot compute interpolated value, hence skipping.");
-          }
-        }
-      }
-    } else {
-      //For other metrics, ok to do only interpolation
-
-      Double defaultNextSeenValue = null;
-      if (MapUtils.isEmpty(timeSliceValueMap) && MapUtils.isNotEmpty(timelineMetric.getMetricValues())) {
-        //If no value was found within the start_time based slices, but the metric has value in the server_time range,
-        // use that.
-
-        LOG.debug("No value found within range for metric : " + timelineMetric.getMetricName());
-        Map.Entry<Long,Double> firstEntry  = timelineMetric.getMetricValues().firstEntry();
-        defaultNextSeenValue = firstEntry.getValue();
-        LOG.debug("Found a data point outside timeslice range: " + new Date(firstEntry.getKey()) + ": " + defaultNextSeenValue);
-      }
-
-      for (int sliceNum = 0; sliceNum < timeSlices.size(); sliceNum++) {
-        Long[] timeSlice = timeSlices.get(sliceNum);
-
-        if (!timeSliceValueMap.containsKey(timeSlice[1])) {
-          LOG.debug("Found an empty slice : " + new Date(timeSlice[0]) + ", " + new Date(timeSlice[1]));
-
-          Double lastSeenValue = null;
-          int index = sliceNum - 1;
-          Long[] prevTimeSlice = null;
-          while (lastSeenValue == null && index >= 0) {
-            prevTimeSlice = timeSlices.get(index--);
-            lastSeenValue = timeSliceValueMap.get(prevTimeSlice[1]);
-          }
-
-          Double nextSeenValue = null;
-          index = sliceNum + 1;
-          Long[] nextTimeSlice = null;
-          while (nextSeenValue == null && index < timeSlices.size()) {
-            nextTimeSlice = timeSlices.get(index++);
-            nextSeenValue = timeSliceValueMap.get(nextTimeSlice[1]);
-          }
-
-          if (nextSeenValue == null) {
-            nextSeenValue = defaultNextSeenValue;
-          }
-
-          Double interpolatedValue = PostProcessingUtil.interpolate(timeSlice[1],
-            (prevTimeSlice != null ? prevTimeSlice[1] : null), lastSeenValue,
-            (nextTimeSlice != null ? nextTimeSlice[1] : null), nextSeenValue);
-
-          if (interpolatedValue != null) {
-            TimelineClusterMetric clusterMetric = new TimelineClusterMetric(
-              timelineMetric.getMetricName(),
-              timelineMetric.getAppId(),
-              timelineMetric.getInstanceId(),
-              timeSlice[1]);
-
-            LOG.debug("Interpolated value : " + interpolatedValue);
-            timelineClusterMetricMap.put(clusterMetric, interpolatedValue);
-          } else {
-            LOG.debug("Cannot compute interpolated value, hence skipping.");
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Return end of the time slice into which the metric fits.
-   */
-  private Long getSliceTimeForMetric(List<Long[]> timeSlices, Long timestamp) {
-    for (Long[] timeSlice : timeSlices) {
-      if (timestamp > timeSlice[0] && timestamp <= timeSlice[1]) {
-        return timeSlice[1];
-      }
-    }
-    return -1l;
-  }
-
   /* Add cluster metric for number of hosts that are hosting an appId */
-  private void processLiveAppCountMetrics(Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics,
+  protected void processLiveAppCountMetrics(Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics,
       Map<String, MutableInt> appHostsCount, long timestamp) {
 
     for (Map.Entry<String, MutableInt> appHostsEntry : appHostsCount.entrySet()) {

@@ -31,10 +31,9 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_APP_ID;
@@ -104,15 +103,15 @@ public class TimelineMetricAppAggregator {
       // Check app candidacy for host aggregation
       if (appIdsToAggregate.contains(appId)) {
         TimelineMetricHostMetadata timelineMetricHostMetadata = hostMetadata.get(hostname);
-        Set<String> appIds;
+        ConcurrentHashMap<String, String> appIds;
         if (timelineMetricHostMetadata == null) {
-          appIds = new HashSet<>();
+          appIds = new ConcurrentHashMap<>();
           hostMetadata.put(hostname, new TimelineMetricHostMetadata(appIds));
         } else {
           appIds = timelineMetricHostMetadata.getHostedApps();
         }
-        if (!appIds.contains(appId)) {
-          appIds.add(appId);
+        if (!appIds.containsKey(appId)) {
+          appIds.put(appId, appId);
           LOG.info("Adding appId to hosted apps: appId = " +
             clusterMetric.getAppId() + ", hostname = " + hostname);
         }
@@ -132,8 +131,8 @@ public class TimelineMetricAppAggregator {
     }
 
     TimelineMetricMetadataKey appKey =  new TimelineMetricMetadataKey(clusterMetric.getMetricName(), HOST_APP_ID, clusterMetric.getInstanceId());
-    Set<String> apps = hostMetadata.get(hostname).getHostedApps();
-    for (String appId : apps) {
+    ConcurrentHashMap<String, String> apps = hostMetadata.get(hostname).getHostedApps();
+    for (String appId : apps.keySet()) {
       if (appIdsToAggregate.contains(appId)) {
 
         appKey.setAppId(appId);
