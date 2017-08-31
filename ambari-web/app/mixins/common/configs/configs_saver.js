@@ -135,7 +135,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       if (configGroup && !configGroup.get('isDefault')) {
         var overriddenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
 
-        if (Em.isArray(overriddenConfigs) && this.isOverriddenConfigsModified(overriddenConfigs)) {
+        if (Em.isArray(overriddenConfigs) && this.isOverriddenConfigsModified(overriddenConfigs, configGroup)) {
           var successCallback = this.get('content.serviceName') === serviceName ? 'putConfigGroupChangesSuccess' : null;
           this.saveGroup(overriddenConfigs, configGroup, this.get('serviceConfigVersionNote'), successCallback);
         }
@@ -147,10 +147,14 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @param {Array} overriddenConfigs
    * @returns {boolean}
    */
-  isOverriddenConfigsModified: function(overriddenConfigs) {
-    return overriddenConfigs.some(function(config) {
-      return config.get('savedValue') !== config.get('value');
+  isOverriddenConfigsModified: function(overriddenConfigs, group) {
+    var hasChangedConfigs = overriddenConfigs.some(function(config) {
+      return config.get('savedValue') !== config.get('value') || config.get('savedIsFinal') !== config.get('isFinal');
     });
+    var overriddenConfigsNames = overriddenConfigs.mapProperty('name');
+    return hasChangedConfigs || group.get('properties').some(function (property) {
+        return !overriddenConfigsNames.contains(Em.get(property, 'name'));
+      });
   },
 
   saveConfigsForDefaultGroup: function() {
