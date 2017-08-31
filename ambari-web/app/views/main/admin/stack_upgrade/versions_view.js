@@ -126,13 +126,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @type {Em.Array}
    */
   repoVersions: App.RepositoryVersion.find(),
-
-  repoVersionsDisplay: function () {
-    return this.get('repoVersions').toArray().sort(function (a, b) {
-      return (a.get('repositoryVersion') > b.get('repositoryVersion')) ? 1 : ((b.get('repositoryVersion') > a.get('repositoryVersion')) ? -1 : 0);
-    });
-  }.property('repoVersions'),
-
+  
   /**
    * @type {Em.Array}
    */
