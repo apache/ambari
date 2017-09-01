@@ -41,7 +41,7 @@ from ambari_server.serverConfiguration import configDefaults, get_resources_loca
   update_database_name_property, get_admin_views_dir, get_views_dir, get_views_jars, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
-  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY
+  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
@@ -263,6 +263,12 @@ def upgrade(args):
     args.warnings.append("*.py files were not moved from custom_actions to custom_actions/scripts.")
   elif compare_versions(ambari_version, "2.0.0") == 0:
     move_user_custom_actions()
+
+  # Move files installed by package to default views directory to a custom one
+  for views_dir in get_views_dir(properties):
+    root_views_dir = views_dir + "/../"
+    for file in glob.glob(get_default_views_dir()+'/*'):
+      shutil.move(file, root_views_dir)
 
   # Remove ADMIN_VIEW directory for upgrading Admin View on Ambari upgrade from 1.7.0 to 2.0.0
   admin_views_dirs = get_admin_views_dir(properties)

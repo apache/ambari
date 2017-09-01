@@ -215,6 +215,9 @@ SETUP_DONE_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, JDK_NAME_PROPERTY
                          NR_USER_PROPERTY, PERSISTENCE_TYPE_PROPERTY
 ]
 
+def get_default_views_dir():
+  return AmbariPath.get("/var/lib/ambari-server/resources/views")
+
 def get_conf_dir():
   try:
     conf_dir = os.environ[AMBARI_CONF_VAR]
