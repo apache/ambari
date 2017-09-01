@@ -246,7 +246,7 @@ class DeleteIdentityHandler {
      * The service configuration is needed because principal names may contain placeholder variables which are replaced based on the service configuration.
      */
     private Map<String, Map<String, String>> calculateConfig(KerberosDescriptor kerberosDescriptor, Set<String> serviceNames) throws AmbariException {
-      Map<String, Map<String, String>> actualConfig = getKerberosHelper().calculateConfigurations(getCluster(), null, kerberosDescriptor.getProperties());
+      Map<String, Map<String, String>> actualConfig = getKerberosHelper().calculateConfigurations(getCluster(), null, kerberosDescriptor, false, false);
       extendWithDeletedConfigOfService(actualConfig, serviceNames);
       return actualConfig;
     }

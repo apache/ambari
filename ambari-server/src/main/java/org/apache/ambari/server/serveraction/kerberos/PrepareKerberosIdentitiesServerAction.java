@@ -84,7 +84,6 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
     }
 
     KerberosHelper kerberosHelper = getKerberosHelper();
-    Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
     Set<String> services = cluster.getServices().keySet();
     Map<String, Set<String>> propertiesToRemove = new HashMap<>();
     Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
@@ -92,7 +91,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
 
     // Calculate the current host-specific configurations. These will be used to replace
     // variables within the Kerberos descriptor data
-    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptorProperties);
+    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
         configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
@@ -101,7 +100,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
         propertiesToIgnore, propertiesToRemove, true);
 
     if ("true".equalsIgnoreCase(getCommandParameterValue(commandParameters, UPDATE_CONFIGURATIONS))) {
-      Map<String, Map<String, String>> calculatedConfigurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor.getProperties());
+      Map<String, Map<String, String>> calculatedConfigurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
       processAuthToLocalRules(cluster, calculatedConfigurations, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters), false);
       processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToRemove);
     }

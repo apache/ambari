@@ -669,6 +669,18 @@
     </group>
 
     <!--
+    After processing this group, items declared to be preconfigured will be applied to the existing
+    configurations.
+    -->
+    <group xsi:type="cluster" name="PRECONFIGURE_COMMON_KERBEROS_PROPERTIES" title="Preconfigure Kerberos-related properties">
+      <condition xsi:type="security" type="kerberos"/>
+      <direction>UPGRADE</direction>
+      <execute-stage title="Preconfigure Kerberos-related properties">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.PreconfigureKerberosAction"/>
+      </execute-stage>
+    </group>
+
+    <!--
     Invoke "hdp-select set all" to change any components we may have missed
     that are installed on the hosts but not known by Ambari.
     -->
