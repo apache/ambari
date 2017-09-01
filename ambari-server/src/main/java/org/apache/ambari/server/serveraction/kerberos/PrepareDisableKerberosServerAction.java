@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-import java.util.regex.Matcher;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -38,6 +37,7 @@ import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,36 +104,31 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
     Set<String> services = cluster.getServices().keySet();
     boolean includeAmbariIdentity = "true".equalsIgnoreCase(getCommandParameterValue(commandParameters, KerberosServerAction.INCLUDE_AMBARI_IDENTITY));
     Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
 
     // Calculate the current host-specific configurations. These will be used to replace
     // variables within the Kerberos descriptor data
-    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptorProperties);
+    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
         configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
 
     // Add auth-to-local configurations to the set of changes
-    Set<String> authToLocalProperties = kerberosDescriptor.getAllAuthToLocalProperties();
+    Map<String, Set<String>> authToLocalProperties = kerberosHelper.translateConfigurationSpecifications(kerberosDescriptor.getAllAuthToLocalProperties());
     if (authToLocalProperties != null) {
-      for (String authToLocalProperty : authToLocalProperties) {
-        Matcher m = KerberosDescriptor.AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
+      for (Map.Entry<String, Set<String>> entry : authToLocalProperties.entrySet()) {
+        String configType = entry.getKey();
+        Set<String> propertyNames = entry.getValue();
 
-        if (m.matches()) {
-          String configType = m.group(1);
-          String propertyName = m.group(2);
-
-          if (configType == null) {
-            configType = "";
-          }
-
-          // Add existing auth_to_local configuration, if set
-          Map<String, String> configuration = kerberosConfigurations.get(configType);
-          if (configuration != null) {
-            configuration.put(propertyName, "DEFAULT");
+        if (!CollectionUtils.isEmpty(propertyNames)) {
+          for (String propertyName : propertyNames) {
+            // Add existing auth_to_local configuration, if set
+            Map<String, String> configuration = kerberosConfigurations.get(configType);
+            if (configuration != null) {
+              configuration.put(propertyName, "DEFAULT");
+            }
           }
         }
       }

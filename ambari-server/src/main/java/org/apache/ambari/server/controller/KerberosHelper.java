@@ -35,6 +35,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
@@ -509,6 +510,30 @@ public interface KerberosHelper {
       throws AmbariException;
 
   /**
+   * Gets the Kerberos descriptor for the requested stack.
+   * <p>
+   * One of the following Kerberos descriptors will be returned:
+   * <dl>
+   * <dt>{@link KerberosDescriptorType#STACK}</dt>
+   * <dd>A Kerberos descriptor built using data from the current stack definition, only</dd>
+   * <dt>{@link KerberosDescriptorType#USER}</dt>
+   * <dd>A Kerberos descriptor built using user-specified data stored as an artifact of the cluster, only</dd>
+   * <dt>{@link KerberosDescriptorType#COMPOSITE}</dt>
+   * <dd>A Kerberos descriptor built using data from the current stack definition with user-specified data stored as an artifact of the cluster applied
+   * - see {@link #getKerberosDescriptor(Cluster, boolean)}</dd>
+   * </dl>
+   *
+   * @param kerberosDescriptorType  the type of Kerberos descriptor to retrieve - see {@link KerberosDescriptorType}
+   * @param cluster                 the relevant Cluster
+   * @param stackId                 the relevant stack id, used for <code>COMPOSITE</code> or <code>STACK</code> Kerberos descriptor requests
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
+   * @return a Kerberos descriptor
+   * @throws AmbariException
+   */
+  KerberosDescriptor getKerberosDescriptor(KerberosDescriptorType kerberosDescriptorType, Cluster cluster, StackId stackId, boolean includePreconfigureData)
+      throws AmbariException;
+
+  /**
    * Merges configurations from a Map of configuration updates into a main configurations Map.
    * <p>
    * Each property in the updates Map is processed to replace variables using the replacement Map,
@@ -582,12 +607,16 @@ public interface KerberosHelper {
    *
    * @param cluster                      the relevant Cluster
    * @param hostname                     the relevant hostname
-   * @param kerberosDescriptorProperties a map of general Kerberos descriptor properties
+   * @param kerberosDescriptor a map of general Kerberos descriptor properties
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; otherwise false
+   * @param calculateClusterHostInfo
    * @return a Map of calculated configuration types
    * @throws AmbariException
    */
   Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
-                                                           Map<String, String> kerberosDescriptorProperties)
+                                                           KerberosDescriptor kerberosDescriptor,
+                                                           boolean includePreconfigureData,
+                                                           boolean calculateClusterHostInfo)
       throws AmbariException;
 
   /**
@@ -706,6 +735,38 @@ public interface KerberosHelper {
    * @throws AmbariException if an error occurs while retrieving the credentials
    */
   PrincipalKeyCredential getKDCAdministratorCredentials(String clusterName) throws AmbariException;
+
+  /**
+   * Translates a collection of configuration specifications (<code>config-type/property-name</code>)
+   * to a map of configuration types to a set of property names.
+   * <p>
+   * For example:
+   * <ul>
+   * <li>config-type1/property-name1</li>
+   * <li>config-type1/property-name2</li>
+   * <li>config-type2/property-name3</li>
+   * </ul>
+   * Becomes
+   * <ul>
+   * <li>
+   * config-type
+   * <ul>
+   * <li>property-name1</li>
+   * <li>property-name2</li>
+   * </ul>
+   * </li>
+   * <li>
+   * config-type2
+   * <ul>
+   * <li>property-name3</li>
+   * </ul>
+   * </li>
+   * </ul>
+   *
+   * @param configurationSpecifications a collection of configuration specifications (<code>config-type/property-name</code>)
+   * @return a map of configuration types to sets of property names
+   */
+  Map<String, Set<String>> translateConfigurationSpecifications(Collection<String> configurationSpecifications);
 
   /**
    * Types of Kerberos descriptors related to where the data is stored.
