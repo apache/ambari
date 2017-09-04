@@ -1063,18 +1063,21 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     return App.ModalPopup.show({
       encodeBody: false,
       primary: function() {
-        return isInUpgradeWizard || this.get('controller.getSupportedUpgradeError')
-               ? Em.I18n.t('ok')
-               : Em.I18n.t('common.proceed')
+        if ( preUpgradeShow ) return false;
+        if ( isInUpgradeWizard || this.get('controller.getSupportedUpgradeError') ) return Em.I18n.t('ok');
+        return Em.I18n.t('common.proceed');
       }.property('controller.getSupportedUpgradeError'),
       secondary: function() {
-        return this.get('controller.getSupportedUpgradeError') ? null : Em.I18n.t('common.cancel');
+        if (preUpgradeShow) return Em.I18n.t('common.dismiss');
+        if (this.get('controller.getSupportedUpgradeError')) return null;
+        return Em.I18n.t('common.cancel');
       }.property('controller.getSupportedUpgradeError'),
+      secondaryClass: preUpgradeShow ? 'btn-success' : '',
       classNames: ['upgrade-options-popup'],
       header: preUpgradeShow ? Em.I18n.t('admin.stackVersions.version.preUpgrade.header') : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.header'),
       controller: this,
       showFooter: function() {
-        return this.get('controller.isUpgradeTypesLoaded') && !preUpgradeShow;
+        return this.get('controller.isUpgradeTypesLoaded') || preUpgradeShow;
       }.property('controller.isUpgradeTypesLoaded'),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/admin/stack_upgrade/upgrade_options'),
@@ -1100,7 +1103,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }.property().volatile(),
         isInUpgradeWizard: isInUpgradeWizard,
         showPreUpgradeChecks: App.get('supports.preUpgradeCheck') && !isInUpgradeWizard,
-        versionText: self.getVersionText( preUpgradeShow, isInUpgradeWizard, version ),
+        versionText: (function () {
+          if ( preUpgradeShow ) return Em.I18n.t('admin.stackVersions.version.preUpgrade.bodyMsg.version').format(version.get('displayName'));
+          if ( isInUpgradeWizard ) return '';
+          return Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName'));
+        })(),
         selectMethod: function (event) {
           if (isInUpgradeWizard || !event.context.get('allowed') || event.context.get('isPrecheckFailed')) return;
           var selectedMethod = event.context;
@@ -1219,18 +1226,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }
       }
     });
-  },
-
-  getVersionText: function (preUpgradeShow, isInUpgradeWizard, version) {
-    if ( preUpgradeShow ){
-      return Em.I18n.t('admin.stackVersions.version.preUpgrade.bodyMsg.version').format(version.get('displayName'));
-    }
-    else{
-      if ( isInUpgradeWizard ){
-        return '';
-      }
-      return Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName'));
-    }
   },
 
   /**
