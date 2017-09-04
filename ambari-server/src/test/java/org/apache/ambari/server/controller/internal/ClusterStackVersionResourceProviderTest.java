@@ -35,6 +35,7 @@ import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -91,11 +92,14 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
+ import org.apache.ambari.server.state.ServiceImpl;
+ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.cluster.ClusterImpl;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+ import org.apache.ambari.server.state.StackInfo;
+ import org.apache.ambari.server.state.cluster.ClusterImpl;
+ import org.apache.ambari.server.state.repository.AvailableService;
+ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -111,8 +115,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+ import org.springframework.test.annotation.ExpectedException;
 
-import com.google.common.collect.ImmutableMap;
+ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -1524,7 +1529,7 @@ public class ClusterStackVersionResourceProviderTest {
         "   }\n" +
         "]";
     expect(repoVersion.getOperatingSystems()).andReturn(rvh.parseOperatingSystems(os_json)).anyTimes();
-    expect(repoVersion.getType()).andReturn(RepositoryType.STANDARD);
+    expect(repoVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
 
     Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 2;
@@ -1808,6 +1813,94 @@ public class ClusterStackVersionResourceProviderTest {
 
   }
 
+  @Test
+  public void testCheckPatchVDFAvailableServices() throws Exception {
+    Cluster cluster = createNiceMock(Cluster.class);
+    RepositoryVersionEntity repoVersionEnt = createNiceMock(RepositoryVersionEntity.class);
+    VersionDefinitionXml desiredVersionDefinition = createNiceMock(VersionDefinitionXml.class);
+
+    expect(repoVersionEnt.getType()).andReturn(RepositoryType.PATCH).once();
+
+    Service service1 = createNiceMock(Service.class);
+    expect(service1.getName()).andReturn("SERVICE1").anyTimes();
+    expect(service1.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+
+    Service service2 = createNiceMock(Service.class);
+    expect(service2.getName()).andReturn("SERVICE2").anyTimes();
+    expect(service2.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+
+    Map<String, Service> clusterServices = new HashMap<>();
+    clusterServices.put("SERVICE1",service1);
+    clusterServices.put("SERVICE2",service2);
+
+    expect(cluster.getServices()).andReturn(clusterServices).once();
+    expect(repoVersionEnt.getStackName()).andReturn("HDP").once();
+    expect(repoVersionEnt.getStackVersion()).andReturn("2.5.0").once();
+
+    AvailableService availableService1 = createNiceMock(AvailableService.class);
+    expect(availableService1.getName()).andReturn("SERVICE1").anyTimes();
+
+    AvailableService availableService2 = createNiceMock(AvailableService.class);
+    expect(availableService2.getName()).andReturn("SERVICE2").anyTimes();
+
+    Collection<AvailableService> availableServices = new ArrayList<>();
+    availableServices.add(availableService1);
+    availableServices.add(availableService2);
+
+    expect(desiredVersionDefinition.getAvailableServices((StackInfo)EasyMock.anyObject())).andReturn(availableServices).once();
+
+
+    replay(cluster, repoVersionEnt, desiredVersionDefinition, service1, service2, availableService1, availableService2);
+
+    ClusterStackVersionResourceProvider provider = new ClusterStackVersionResourceProvider(null);
+    injector.injectMembers(provider);
+    provider.checkPatchVDFAvailableServices(cluster, repoVersionEnt, desiredVersionDefinition);
+  }
+
+   @Test
+   public void testCheckPatchVDFAvailableServicesFail() throws Exception {
+     Cluster cluster = createNiceMock(Cluster.class);
+     RepositoryVersionEntity repoVersionEnt = createNiceMock(RepositoryVersionEntity.class);
+     VersionDefinitionXml desiredVersionDefinition = createNiceMock(VersionDefinitionXml.class);
+
+     expect(repoVersionEnt.getType()).andReturn(RepositoryType.PATCH).once();
+
+     Service service1 = createNiceMock(Service.class);
+     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
+     expect(service1.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+
+     Map<String, Service> clusterServices = new HashMap<>();
+     clusterServices.put("SERVICE1",service1);
+
+     expect(cluster.getServices()).andReturn(clusterServices).once();
+     expect(repoVersionEnt.getStackName()).andReturn("HDP").once();
+     expect(repoVersionEnt.getStackVersion()).andReturn("2.5.0").once();
+
+     AvailableService availableService1 = createNiceMock(AvailableService.class);
+     expect(availableService1.getName()).andReturn("SERVICE1").anyTimes();
+
+     AvailableService availableService2 = createNiceMock(AvailableService.class);
+     expect(availableService2.getName()).andReturn("SERVICE2").anyTimes();
+
+     Collection<AvailableService> availableServices = new ArrayList<>();
+     availableServices.add(availableService1);
+     availableServices.add(availableService2);
+
+     expect(desiredVersionDefinition.getAvailableServices((StackInfo)EasyMock.anyObject())).andReturn(availableServices).once();
+
+
+     replay(cluster, repoVersionEnt, desiredVersionDefinition, service1, availableService1, availableService2);
+
+     ClusterStackVersionResourceProvider provider = new ClusterStackVersionResourceProvider(null);
+     injector.injectMembers(provider);
+     try {
+       provider.checkPatchVDFAvailableServices(cluster, repoVersionEnt, desiredVersionDefinition);
+       Assert.fail("Expected an exception when PATCH VDF includes services that are not installed");
+     } catch (IllegalArgumentException expected) {
+       // !!! expected
+       Assert.assertEquals(expected.getMessage(),"PATCH VDF includes services that are not installed: SERVICE2");
+     }
+   }
 
    private void testCreateResourcesExistingUpgrade(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
