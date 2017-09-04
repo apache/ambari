@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -77,6 +78,8 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.repository.AvailableService;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -182,6 +185,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static Gson gson;
+
+  @Inject
+  private static Provider<AmbariMetaInfo> metaInfo;
 
   @Inject
   private static Provider<Clusters> clusters;
@@ -558,6 +564,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // determine services for the repo
       Set<String> serviceNames = new HashSet<>();
 
+
+      checkPatchVDFAvailableServices(cluster, repoVersionEnt, desiredVersionDefinition);
+
       // !!! limit the serviceNames to those that are detailed for the repository.
       // TODO packages don't have component granularity
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
@@ -594,6 +603,38 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     req.persist();
 
     return req;
+  }
+
+  /**
+   * Reject PATCH VDFs with Services that are not included in the Cluster
+   * @param cluster cluster instance
+   * @param repoVersionEnt repo version entity
+   * @param desiredVersionDefinition VDF
+   * @throws IllegalArgumentException thrown if VDF includes services that are not installed
+   * @throws AmbariException thrown if could not load stack for repo repoVersionEnt
+   */
+  protected void checkPatchVDFAvailableServices(Cluster cluster, RepositoryVersionEntity repoVersionEnt,
+                                              VersionDefinitionXml desiredVersionDefinition) throws SystemException, AmbariException {
+    if (repoVersionEnt.getType() == RepositoryType.PATCH) {
+
+      Collection<String> notPresentServices = new ArrayList<>();
+      Collection<String> presentServices = new ArrayList<>();
+
+      presentServices.addAll(cluster.getServices().keySet());
+      final StackInfo stack;
+      stack = metaInfo.get().getStack(repoVersionEnt.getStackName(), repoVersionEnt.getStackVersion());
+
+      for (AvailableService availableService : desiredVersionDefinition.getAvailableServices(stack)) {
+        String name = availableService.getName();
+        if (!presentServices.contains(name)) {
+          notPresentServices.add(name);
+        }
+      }
+      if (!notPresentServices.isEmpty()) {
+        throw new IllegalArgumentException(String.format("%s VDF includes services that are not installed: %s",
+            RepositoryType.PATCH, StringUtils.join(notPresentServices, ",")));
+      }
+    }
   }
 
   private ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,
@@ -685,7 +726,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     RequestStageContainer requestStages = new RequestStageContainer(
             actionManager.getNextRequestId(), null, requestFactory, actionManager);
-    requestStages.setRequestContext(String.format(INSTALL_PACKAGES_FULL_NAME));
+    requestStages.setRequestContext(INSTALL_PACKAGES_FULL_NAME);
 
     return requestStages;
   }
@@ -729,7 +770,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     compare = v2 - v1;
 
-    return (compare == 0) ? 0 : (compare < 0) ? -1 : 1;
+    return Integer.compare(compare, 0);
   }
 
   /**
