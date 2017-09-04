@@ -46,6 +46,11 @@
         <button type="button" class="close clearfilter" ng-show="filter.name" ng-click="filter.name=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
       </th>
       <th class="col-medium text-search-container">
+        <label>{{'common.type' | translate}}</label>
+        <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.type" placeholder="{{'common.any' | translate}}">
+        <button type="button" class="close clearfilter" ng-show="filter.type" ng-click="filter.type=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
+      </th>
+      <th class="col-medium text-search-container">
         <label>{{'common.version' | translate}}</label>
         <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.version" placeholder="{{'common.any' | translate}}">
         <button type="button" class="close clearfilter" ng-show="filter.version" ng-click="filter.version=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
@@ -70,9 +75,10 @@
       <td class="col-medium">
         <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">
           {{repo.display_name}}
-          <span ng-if="repo.isPatch" class="badge btn-warning">{{'versions.patch' | translate}}</span>
-          <span ng-if="repo.isMaint" class="badge btn-warning">{{'versions.maint' | translate}}</span>
         </a>
+      </td>
+      <td>
+        <span>{{repo.type}}</span>
       </td>
       <td class="col-medium">
         <span>{{repo.repository_version}}</span>
