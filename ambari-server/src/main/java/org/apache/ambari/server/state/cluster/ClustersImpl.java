@@ -386,10 +386,10 @@ public class ClustersImpl implements Clusters {
    * {@inheritDoc}
    */
   @Override
-  public boolean isHostMappedToCluster(String clusterName, String hostName) {
+  public boolean isHostMappedToCluster(long clusterId, String hostName) {
     Set<Cluster> clusters = hostClusterMap.get(hostName);
     for (Cluster cluster : clusters) {
-      if (clusterName.equals(cluster.getClusterName())) {
+      if (clusterId == cluster.getClusterId()) {
         return true;
       }
     }

@@ -165,13 +165,13 @@ public class AlertDataManagerTest {
     alert1.setLabel(ALERT_LABEL);
     alert1.setText("Component component1 is OK");
     alert1.setTimestamp(1L);
-    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setClusterId(m_cluster.getClusterId());
 
     Alert alert2 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST2,
         AlertState.CRITICAL);
     alert2.setLabel(ALERT_LABEL);
     alert2.setText("Component component2 is not OK");
-    alert2.setCluster(m_cluster.getClusterName());
+    alert2.setClusterId(m_cluster.getClusterId());
 
 
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
@@ -214,7 +214,7 @@ public class AlertDataManagerTest {
     alert3.setLabel(ALERT_LABEL);
     alert3.setText("Component component1 is OK");
     alert3.setTimestamp(2L);
-    alert3.setCluster(m_cluster.getClusterName());
+    alert3.setClusterId(m_cluster.getClusterId());
 
     AlertReceivedEvent event3 = new AlertReceivedEvent(
         m_cluster.getClusterId(),
@@ -247,7 +247,7 @@ public class AlertDataManagerTest {
     alert4.setLabel(ALERT_LABEL);
     alert4.setText("Component component1 is about to go down");
     alert4.setTimestamp(3L);
-    alert4.setCluster(m_cluster.getClusterName());
+    alert4.setClusterId(m_cluster.getClusterId());
 
 
     AlertReceivedEvent event4 = new AlertReceivedEvent(

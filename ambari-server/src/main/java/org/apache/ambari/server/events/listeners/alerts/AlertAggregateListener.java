@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -188,11 +187,7 @@ public class AlertAggregateListener {
 
     aggregateAlert.setLabel(aggregateDefinition.getLabel());
     aggregateAlert.setTimestamp(System.currentTimeMillis());
-    try {
-      aggregateAlert.setCluster(m_clusters.get().getClusterById(clusterId).getClusterName());
-    } catch (AmbariException exception) {
-      LOG.error("Unable to lookup cluster with ID {}", clusterId, exception);
-    }
+    aggregateAlert.setClusterId(clusterId);
 
     if (0 == totalCount) {
       aggregateAlert.setText("There are no instances of the aggregated alert.");

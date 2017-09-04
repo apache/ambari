@@ -152,7 +152,7 @@ public class AlertReceivedListenerTest {
     Alert alert1 = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setClusterId(m_cluster.getClusterId());
     alert1.setLabel(ALERT_LABEL);
     alert1.setText("HDFS " + componentName + " is OK");
     alert1.setTimestamp(1L);
@@ -194,7 +194,7 @@ public class AlertReceivedListenerTest {
     Alert alert = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText("HDFS " + componentName + " is OK");
     alert.setTimestamp(1L);
@@ -256,7 +256,7 @@ public class AlertReceivedListenerTest {
     Alert alert = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText("HDFS " + componentName + " is OK");
     alert.setTimestamp(1L);
@@ -295,7 +295,7 @@ public class AlertReceivedListenerTest {
     Alert alert1 = new Alert(definitionName, null, "HDFS", componentName, HOST1,
         AlertState.CRITICAL);
 
-    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setClusterId(m_cluster.getClusterId());
     alert1.setLabel(ALERT_LABEL);
     alert1.setText("HDFS " + componentName + " is OK");
     alert1.setTimestamp(1L);
@@ -342,7 +342,7 @@ public class AlertReceivedListenerTest {
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(serviceName + " " + componentName + " is OK");
     alert.setTimestamp(1L);
@@ -381,7 +381,7 @@ public class AlertReceivedListenerTest {
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(serviceName + " " + componentName + " is OK");
     alert.setTimestamp(1L);
@@ -396,7 +396,7 @@ public class AlertReceivedListenerTest {
 
     // invalid host, invalid cluster
     alert.setHostName("INVALID");
-    alert.setCluster("INVALID");
+    alert.setClusterId(null);
 
     // remove all
     m_dao.removeCurrentByHost(HOST1);
@@ -422,7 +422,7 @@ public class AlertReceivedListenerTest {
     Alert alert1 = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);
 
-    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setClusterId(m_cluster.getClusterId());
     alert1.setLabel(ALERT_LABEL);
     alert1.setText(serviceName + " " + componentName + " is OK");
     alert1.setTimestamp(1L);
@@ -436,7 +436,7 @@ public class AlertReceivedListenerTest {
     assertEquals(1, allCurrent.size());
 
     // missing cluster, invalid host
-    alert1.setCluster(null);
+    alert1.setClusterId(null);
     alert1.setHostName("INVALID");
 
     // remove all
@@ -462,7 +462,7 @@ public class AlertReceivedListenerTest {
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.SKIPPED);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(serviceName + " " + componentName + " is OK");
     alert.setTimestamp(1L);
@@ -489,7 +489,7 @@ public class AlertReceivedListenerTest {
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(text);
     alert.setTimestamp(1L);
@@ -546,7 +546,7 @@ public class AlertReceivedListenerTest {
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(text);
     alert.setTimestamp(1L);
@@ -603,7 +603,7 @@ public class AlertReceivedListenerTest {
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.CRITICAL);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(text);
     alert.setTimestamp(1L);
@@ -667,7 +667,7 @@ public class AlertReceivedListenerTest {
     String text = serviceName + " " + componentName + " is OK";
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(text);
     alert.setTimestamp(1L);
@@ -751,7 +751,7 @@ public class AlertReceivedListenerTest {
     Alert alert = new Alert(definition.getDefinitionName(), null, definition.getServiceName(),
         definition.getComponentName(), HOST1, AlertState.OK);
 
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText("Aggregate alerts are always HARD");
     alert.setTimestamp(1L);
@@ -798,7 +798,7 @@ public class AlertReceivedListenerTest {
     String text = serviceName + " " + componentName + " is OK";
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(text);
     alert.setTimestamp(1L);
@@ -854,7 +854,7 @@ public class AlertReceivedListenerTest {
     String text = serviceName + " " + componentName + " is OK";
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
-    alert.setCluster(m_cluster.getClusterName());
+    alert.setClusterId(m_cluster.getClusterId());
     alert.setLabel(ALERT_LABEL);
     alert.setText(text);
     alert.setTimestamp(1L);
@@ -913,7 +913,7 @@ public class AlertReceivedListenerTest {
         @Override
         public void run() {
           Alert alert = new Alert(definitionName, null, "HDFS", null, HOST1, AlertState.OK);
-          alert.setCluster(m_cluster.getClusterName());
+          alert.setClusterId(m_cluster.getClusterId());
           alert.setLabel(ALERT_LABEL);
           alert.setText("HDFS is OK ");
           alert.setTimestamp(System.currentTimeMillis());

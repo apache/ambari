@@ -124,7 +124,7 @@ public class AgentHeartbeatAlertRunnable extends AlertRunnable {
       alert.setLabel(definition.getLabel());
       alert.setText(alertText);
       alert.setTimestamp(alertTimestamp);
-      alert.setCluster(cluster.getClusterName());
+      alert.setClusterId(cluster.getClusterId());
 
       alerts.add(alert);
     }

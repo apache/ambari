@@ -239,7 +239,7 @@ public class StaleAlertRunnable extends AlertRunnable {
     alert.setLabel(myDefinition.getLabel());
     alert.setText(alertText);
     alert.setTimestamp(now);
-    alert.setCluster(cluster.getClusterName());
+    alert.setClusterId(cluster.getClusterId());
 
     return Collections.singletonList(alert);
   }

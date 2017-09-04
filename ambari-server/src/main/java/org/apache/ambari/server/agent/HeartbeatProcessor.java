@@ -227,19 +227,19 @@ public class HeartbeatProcessor extends AbstractService{
    *          the heartbeat to process.
    */
   protected void processAlerts(HeartBeat heartbeat) {
-    if (heartbeat == null) {
-      return;
+    if (heartbeat != null) {
+      processAlerts(heartbeat.getHostname(), heartbeat.getAlerts());
     }
+  }
 
-    String hostname = heartbeat.getHostname();
-
-    if (null != heartbeat.getAlerts()) {
-      AlertEvent event = new AlertReceivedEvent(heartbeat.getAlerts());
-      for (Alert alert : event.getAlerts()) {
+  public void processAlerts(String hostname, List<Alert> alerts) {
+    if (alerts != null && !alerts.isEmpty()) {
+      for (Alert alert : alerts) {
         if (alert.getHostName() == null) {
           alert.setHostName(hostname);
         }
       }
+      AlertEvent event = new AlertReceivedEvent(alerts);
       alertEventPublisher.publish(event);
 
     }

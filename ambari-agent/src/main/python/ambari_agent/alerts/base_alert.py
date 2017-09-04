@@ -146,7 +146,7 @@ class BaseAlert(object):
     data['name'] = self._get_alert_meta_value_safely('name')
     data['label'] = self._get_alert_meta_value_safely('label')
     data['uuid'] = self._get_alert_meta_value_safely('uuid')
-    data['cluster'] = self.cluster_name
+    data['clusterId'] = self.cluster_id
     data['service'] = self._get_alert_meta_value_safely('serviceName')
     data['component'] = self._get_alert_meta_value_safely('componentName')
     data['timestamp'] = long(time.time() * 1000)

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -91,7 +91,7 @@ public class AlertReceivedListener {
    * Used for looking up whether an alert has a valid service/component/host
    */
   @Inject
-  Provider<Clusters> m_clusters;
+  private Provider<Clusters> m_clusters;
 
   @Inject
   private StateUpdateEventPublisher stateUpdateEventPublisher;
@@ -119,8 +119,6 @@ public class AlertReceivedListener {
 
   /**
    * Constructor.
-   *
-   * @param publisher
    */
   @Inject
   public AlertReceivedListener(AlertEventPublisher publisher) {
@@ -160,8 +158,7 @@ public class AlertReceivedListener {
         continue;
       }
 
-      String clusterName = alert.getCluster();
-      Long clusterId = getClusterIdByName(clusterName);
+      Long clusterId = alert.getClusterId();
       if (clusterId == null) {
         // check event
         clusterId = event.getClusterId();
@@ -172,8 +169,8 @@ public class AlertReceivedListener {
 
       if (null == definition) {
         LOG.warn(
-          "Received an alert for {} which is a definition that does not exist anymore",
-          alert.getName());
+          "Received an alert for {} which is a definition that does not exist in cluster id={}",
+          alert.getName(), clusterId);
 
         continue;
       }
@@ -261,7 +258,7 @@ public class AlertReceivedListener {
           // still SOFT, then we transition it to HARD - we also need to fire an
           // event
           AlertFirmness firmness = current.getFirmness();
-          int repeatTolerance = getRepeatTolerance(definition, clusterName);
+          int repeatTolerance = getRepeatTolerance(definition, clusterId);
           if (firmness == AlertFirmness.SOFT && occurrences >= repeatTolerance) {
             current.setFirmness(AlertFirmness.HARD);
 
@@ -332,7 +329,7 @@ public class AlertReceivedListener {
 
         // set the firmness of the new alert state based on the state, type,
         // occurrences, and repeat tolerance
-        AlertFirmness firmness = calculateFirmnessForStateChange(clusterName, definition,
+        AlertFirmness firmness = calculateFirmnessForStateChange(clusterId, definition,
             alertState, current.getOccurrences());
 
         current.setFirmness(firmness);
@@ -378,21 +375,6 @@ public class AlertReceivedListener {
           alert, exception);
     }
     return maintenanceState;
-  }
-
-  /**
-   * Gets the cluster ID given a name.
-   *
-   * @param clusterName
-   * @return
-   */
-  private Long getClusterIdByName(String clusterName) {
-    try {
-      return m_clusters.get().getCluster(clusterName).getClusterId();
-    } catch (AmbariException e) {
-      LOG.warn("Cluster lookup failed for cluster named {}", clusterName);
-      return null;
-    }
   }
 
   /**
@@ -456,7 +438,7 @@ public class AlertReceivedListener {
    *         cluster/service/component/host.
    */
   private boolean isValid(Alert alert) {
-    String clusterName = alert.getCluster();
+    Long clusterId = alert.getClusterId();
     String serviceName = alert.getService();
     String componentName = alert.getComponent();
     String hostName = alert.getHostName();
@@ -471,14 +453,15 @@ public class AlertReceivedListener {
 
     // if the alert is not bound to a cluster, then it's most likely a
     // host alert and is always valid as long as the host exists
-    if (StringUtils.isBlank(clusterName)) {
+    Clusters clusters = m_clusters.get();
+    if (clusterId == null) {
       // no cluster, no host; return true out of respect for the unknown alert
       if (StringUtils.isBlank(hostName)) {
         return true;
       }
 
       // if a host is reported, it must be registered to some cluster somewhere
-      if (!m_clusters.get().hostExists(hostName)) {
+      if (!clusters.hostExists(hostName)) {
         LOG.error("Unable to process alert {} for an invalid host named {}",
             alert.getName(), hostName);
         return false;
@@ -493,22 +476,14 @@ public class AlertReceivedListener {
     // - this is not for AMBARI_SERVER component
     final Cluster cluster;
     try {
-      cluster = m_clusters.get().getCluster(clusterName);
+      cluster = clusters.getCluster(clusterId);
       if (null == cluster) {
-        LOG.error("Unable to process alert {} for an invalid cluster named {}",
-            alert.getName(), clusterName);
-
+        LOG.error("Unable to process alert {} for cluster id={}", alert.getName(), clusterId);
         return false;
       }
     } catch (AmbariException ambariException) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Unable to process alert {} for an invalid cluster named {}",
-            alert.getName(), clusterName, ambariException);
-      } else {
-        LOG.error("Unable to process alert {} for an invalid cluster named {}",
-            alert.getName(), clusterName);
-      }
-
+      String msg = String.format("Unable to process alert %s for cluster id=%s", alert.getName(), clusterId);
+      LOG.error(msg, ambariException);
       return false;
     }
 
@@ -520,11 +495,11 @@ public class AlertReceivedListener {
     // the agent's host is still a part of the reported cluster
     if (ambariServiceName.equals(serviceName) && ambariAgentComponentName.equals(componentName)) {
       // agents MUST report a hostname
-      if (StringUtils.isBlank(hostName) || !m_clusters.get().hostExists(hostName)
-          || !m_clusters.get().isHostMappedToCluster(clusterName, hostName)) {
+      if (StringUtils.isBlank(hostName) || !clusters.hostExists(hostName)
+          || !clusters.isHostMappedToCluster(clusterId, hostName)) {
         LOG.warn(
             "Unable to process alert {} for cluster {} and host {} because the host is not a part of the cluster.",
-            alert.getName(), clusterName, hostName);
+            alert.getName(), hostName);
 
         return false;
       }
@@ -538,7 +513,7 @@ public class AlertReceivedListener {
     // - not for the AMBARI service
     if (StringUtils.isNotBlank(hostName)) {
       // if valid hostname
-      if (!m_clusters.get().hostExists(hostName)) {
+      if (!clusters.hostExists(hostName)) {
         LOG.warn("Unable to process alert {} for an invalid host named {}",
             alert.getName(), hostName);
         return false;
@@ -585,8 +560,8 @@ public class AlertReceivedListener {
     history.setAlertInstance(alert.getInstance());
     history.setAlertState(alert.getState());
     history.setAlertText(alert.getText());
-    history.setAlertTimestamp(Long.valueOf(alert.getTimestamp()));
-    history.setClusterId(Long.valueOf(clusterId));
+    history.setAlertTimestamp(alert.getTimestamp());
+    history.setClusterId(clusterId);
     history.setComponentName(alert.getComponent());
     history.setServiceName(alert.getService());
 
@@ -616,12 +591,12 @@ public class AlertReceivedListener {
    *          the definition to read any repeat tolerance overrides from.
    * @param state
    *          the state of the {@link AlertCurrentEntity}.
-   * @param the
+   * @param occurrences the
    *          occurrences of the alert in the current state (used for
    *          calculation firmness when moving between non-OK states)
    * @return
    */
-  private AlertFirmness calculateFirmnessForStateChange(String clusterName, AlertDefinitionEntity definition,
+  private AlertFirmness calculateFirmnessForStateChange(Long clusterId, AlertDefinitionEntity definition,
       AlertState state, long occurrences) {
     // OK is always HARD since the alert has fulfilled the conditions
     if (state == AlertState.OK) {
@@ -633,7 +608,7 @@ public class AlertReceivedListener {
       return AlertFirmness.HARD;
     }
 
-    int tolerance = getRepeatTolerance(definition, clusterName);
+    int tolerance = getRepeatTolerance(definition, clusterId);
     if (tolerance <= 1) {
       return AlertFirmness.HARD;
     }
@@ -652,13 +627,11 @@ public class AlertReceivedListener {
    * Otherwise, it uses {@link ConfigHelper#CLUSTER_ENV_ALERT_REPEAT_TOLERANCE},
    * defaulting to {@code 1} if not found.
    *
-   * @param definition
-   *          the definition (not {@code null}).
-   * @param clusterName
-   *          the name of the cluster (not {@code null}).
+   * @param definition the definition (not {@code null}).
+   * @param clusterId the ID of the cluster (not {@code null}).
    * @return the repeat tolerance for the alert
    */
-  private int getRepeatTolerance(AlertDefinitionEntity definition, String clusterName) {
+  private int getRepeatTolerance(AlertDefinitionEntity definition, Long clusterId) {
 
     // if the definition overrides the global value, then use that
     if (definition.isRepeatToleranceEnabled()) {
@@ -667,12 +640,14 @@ public class AlertReceivedListener {
 
     int repeatTolerance = 1;
     try {
-      Cluster cluster = m_clusters.get().getCluster(clusterName);
+      Cluster cluster = m_clusters.get().getCluster(clusterId);
       String value = cluster.getClusterProperty(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1");
       repeatTolerance = NumberUtils.toInt(value, 1);
     } catch (AmbariException ambariException) {
-      LOG.warn("Unable to read {}/{} from cluster {}, defaulting to 1", ConfigHelper.CLUSTER_ENV,
-          ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, clusterName, ambariException);
+      String msg = String.format("Unable to read %s/%s from cluster %s, defaulting to 1",
+        ConfigHelper.CLUSTER_ENV, ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, clusterId
+      );
+      LOG.warn(msg, ambariException);
     }
 
     return repeatTolerance;

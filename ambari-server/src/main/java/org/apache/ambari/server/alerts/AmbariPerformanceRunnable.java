@@ -343,7 +343,7 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
     alert.setLabel(entity.getLabel());
     alert.setText(overview);
     alert.setTimestamp(System.currentTimeMillis());
-    alert.setCluster(cluster.getClusterName());
+    alert.setClusterId(cluster.getClusterId());
 
     return Collections.singletonList(alert);
   }

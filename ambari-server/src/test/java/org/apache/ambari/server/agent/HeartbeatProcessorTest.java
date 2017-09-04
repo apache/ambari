@@ -1193,7 +1193,7 @@ public class HeartbeatProcessorTest {
     Alert alert = new Alert("foo", "bar", "baz", "foobar", "foobarbaz",
         AlertState.OK);
 
-    alert.setCluster("BADCLUSTER");
+    alert.setClusterId(-1L);
 
     List<Alert> alerts = Collections.singletonList(alert);
     hb.setAlerts(alerts);

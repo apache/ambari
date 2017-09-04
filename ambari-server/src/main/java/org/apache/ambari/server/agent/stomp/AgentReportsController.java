@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,7 @@
 package org.apache.ambari.server.agent.stomp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -32,10 +33,10 @@ import org.apache.ambari.server.agent.stomp.dto.CommandStatusReports;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReport;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReports;
 import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -48,14 +49,12 @@ import com.google.inject.Injector;
 @SendToUser("/")
 @MessageMapping("/reports")
 public class AgentReportsController {
-  private static Log LOG = LogFactory.getLog(AgentReportsController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AgentReportsController.class);
   private final HeartBeatHandler hh;
-  private final ClustersImpl clusters;
   private final AgentSessionManager agentSessionManager;
 
   public AgentReportsController(Injector injector) {
     hh = injector.getInstance(HeartBeatHandler.class);
-    clusters = injector.getInstance(ClustersImpl.class);
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
   }
 
@@ -70,9 +69,9 @@ public class AgentReportsController {
         componentStatus.setComponentName(report.getComponentName());
         componentStatus.setServiceName(report.getServiceName());
         if (report.getCommand().equals(ComponentStatusReport.CommandStatusCommand.STATUS)) {
-          componentStatus.setStatus(report.getStatus().toString());
+          componentStatus.setStatus(report.getStatus());
         } else {
-          componentStatus.setSecurityState(report.getStatus().toString());
+          componentStatus.setSecurityState(report.getStatus());
         }
         statuses.add(componentStatus);
       }
@@ -97,6 +96,14 @@ public class AgentReportsController {
   @SubscribeMapping("/host_status")
   public void handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
     hh.handleHostReportStatus(message, agentSessionManager.getHost(simpSessionId).getHostName());
+  }
+
+  @SubscribeMapping("/alerts_status")
+  public void handleAlertsStatus(@Header String simpSessionId, Alert[] message) throws AmbariException {
+    String hostName = agentSessionManager.getHost(simpSessionId).getHostName();
+    List<Alert> alerts = Arrays.asList(message);
+    LOG.info("Handling {} alerts status for host {}", alerts.size(), hostName);
+    hh.getHeartbeatProcessor().processAlerts(hostName, alerts);
   }
 
 }
