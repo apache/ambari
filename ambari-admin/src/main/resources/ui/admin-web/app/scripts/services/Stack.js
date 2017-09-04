@@ -147,6 +147,7 @@ angular.module('ambariAdminConsole')
     allRepos: function (filter, pagination) {
       var versionFilter = filter.version;
       var nameFilter = filter.name;
+      var typeFilter = filter.type;
       var stackFilter = filter.stack && filter.stack.current && filter.stack.current.value;
       var url = '/stacks?fields=versions/repository_versions/RepositoryVersions';
       if (versionFilter) {
@@ -154,6 +155,9 @@ angular.module('ambariAdminConsole')
       }
       if (nameFilter) {
         url += '&versions/repository_versions/RepositoryVersions/display_name.matches(.*' + nameFilter + '.*)';
+      }
+      if (typeFilter){
+        url += '&versions/repository_versions/RepositoryVersions/type.matches(.*' + typeFilter.toUpperCase() + '.*)';
       }
       if (stackFilter) {
         var stack = filter.stack.current.value.split('-'),

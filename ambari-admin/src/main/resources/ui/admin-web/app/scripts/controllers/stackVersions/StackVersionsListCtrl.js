@@ -27,6 +27,7 @@ angular.module('ambariAdminConsole')
     $scope.filter = {
       name: '',
       version: '',
+      type: '',
       cluster: {
         options: [],
         current: null
@@ -168,6 +169,7 @@ angular.module('ambariAdminConsole')
     $scope.$watch('filter', function (filter) {
       $scope.isNotEmptyFilter = Boolean(filter.name
         || filter.version
+        || filter.type
         || (filter.cluster.current && filter.cluster.current.value)
         || (filter.stack.current && filter.stack.current.value));
     }, true);
