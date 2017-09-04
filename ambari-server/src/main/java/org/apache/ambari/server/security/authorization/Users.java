@@ -61,6 +61,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -190,7 +192,7 @@ public class Users {
       currentUserEntity = userDAO.findLdapUserByName(currentUserName);
       try {
         ldapAuthenticationProvider.authenticate(
-            new UsernamePasswordAuthenticationToken(currentUserName, currentUserPassword));
+          new UsernamePasswordAuthenticationToken(currentUserName, currentUserPassword));
         isLdapUser = true;
       } catch (InvalidUsernamePasswordCombinationException ex) {
         throw new AmbariException(ex.getMessage());
@@ -213,7 +215,7 @@ public class Users {
       }
 
       if ((isLdapUser && isCurrentUserAdmin) || (StringUtils.isNotEmpty(currentUserPassword) &&
-          passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword()))) {
+        passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword()))) {
         userEntity.setUserPassword(passwordEncoder.encode(newPassword));
         userDAO.merge(userEntity);
       } else {
@@ -300,7 +302,7 @@ public class Users {
    * @throws AmbariException if user already exists
    */
   public synchronized void createUser(String userName, String password, UserType userType, Boolean active, Boolean
-      admin) throws AmbariException {
+    admin) throws AmbariException {
     // if user type is not provided, assume LOCAL since the default
     // value of user_type in the users table is LOCAL
     if (userType == null) {
@@ -310,7 +312,7 @@ public class Users {
     User existingUser = getAnyUser(userName);
     if (existingUser != null) {
       throw new AmbariException("User " + existingUser.getUserName() + " already exists with type "
-          + existingUser.getUserType());
+        + existingUser.getUserType());
     }
 
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
@@ -355,7 +357,7 @@ public class Users {
     if (userEntity != null) {
       if (!isUserCanBeRemoved(userEntity)) {
         throw new AmbariException("Could not remove user " + userEntity.getUserName() +
-            ". System should have at least one administrator.");
+          ". System should have at least one administrator.");
       }
       userDAO.remove(userEntity);
     } else {
@@ -403,7 +405,7 @@ public class Users {
           users.add(new User(memberEntity.getUser()));
         } else {
           LOG.error("Wrong state, not found user for member '{}' (group: '{}')",
-              memberEntity.getMemberId(), memberEntity.getGroup().getGroupName());
+            memberEntity.getMemberId(), memberEntity.getGroup().getGroupName());
         }
       }
       return users;
@@ -512,7 +514,7 @@ public class Users {
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
     resourceTypeEntity.setId(resourceType.getId());
     resourceTypeEntity.setName(resourceType.name());
-    privilege.setPermission(permissionDAO.findPermissionByNameAndType(permissionName,resourceTypeEntity));
+    privilege.setPermission(permissionDAO.findPermissionByNameAndType(permissionName, resourceTypeEntity));
     privilege.setPrincipal(group.getPrincipal());
     privilege.setResource(resourceDAO.findById(resourceId));
     if (!group.getPrincipal().getPrivileges().contains(privilege)) {
@@ -544,7 +546,7 @@ public class Users {
 
   @Transactional
   public synchronized void addMemberToGroup(String groupName, String userName)
-      throws AmbariException {
+    throws AmbariException {
 
     final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
     if (groupEntity == null) {
@@ -572,7 +574,7 @@ public class Users {
 
   @Transactional
   public synchronized void removeMemberFromGroup(String groupName, String userName)
-      throws AmbariException {
+    throws AmbariException {
 
     final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
     if (groupEntity == null) {
@@ -651,9 +653,9 @@ public class Users {
     }
 
     final PrincipalTypeEntity userPrincipalType = principalTypeDAO
-        .ensurePrincipalTypeCreated(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+      .ensurePrincipalTypeCreated(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
     final PrincipalTypeEntity groupPrincipalType = principalTypeDAO
-        .ensurePrincipalTypeCreated(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
+      .ensurePrincipalTypeCreated(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
 
     // remove users
     final Set<UserEntity> usersToRemove = new HashSet<UserEntity>();
@@ -755,6 +757,10 @@ public class Users {
       groupsToUpdate.add(groupEntity);
       membersToCreate.add(memberEntity);
     }
+
+    // handle adminGroupMappingRules
+    processLdapAdminGroupMappingRules(membersToCreate);
+
     memberDAO.create(membersToCreate);
     groupDAO.merge(groupsToUpdate); // needed for Derby DB as it doesn't fetch newly added members automatically
 
@@ -778,11 +784,43 @@ public class Users {
 
   }
 
+  private void processLdapAdminGroupMappingRules(Set<MemberEntity> membershipsToCreate) {
+
+    String adminGroupMappings = configuration.getProperty(Configuration.LDAP_ADMIN_GROUP_MAPPING_RULES);
+    if (Strings.isNullOrEmpty(adminGroupMappings) || membershipsToCreate.isEmpty()) {
+      LOG.info("Nothing to do. LDAP admin group mappings: {}, Memberships to handle: {}", adminGroupMappings, membershipsToCreate.size());
+      return;
+    }
+
+    LOG.info("Processing admin group mapping rules [{}]. Membership entry count: [{}]", adminGroupMappings, membershipsToCreate.size());
+
+    // parse the comma separated list of mapping rules
+    Set<String> ldapAdminGroups = Sets.newHashSet(adminGroupMappings.split(","));
+
+    // LDAP users to become ambari administrators
+    Set<UserEntity> ambariAdminProspects = Sets.newHashSet();
+
+    // gathering all the users that need to be ambari admins
+    for (MemberEntity memberEntity : membershipsToCreate) {
+      if (ldapAdminGroups.contains(memberEntity.getGroup().getGroupName())) {
+        LOG.debug("Ambari admin user prospect: [{}] ", memberEntity.getUser().getUserName());
+        ambariAdminProspects.add(memberEntity.getUser());
+      }
+    }
+
+    // granting admin privileges to the admin prospects
+    for (UserEntity userEntity : ambariAdminProspects) {
+      LOG.info("Granting ambari admin roles to the user: {}", userEntity.getUserName());
+      grantAdminPrivilege(userEntity.getUserId());
+    }
+
+  }
+
   /**
    * Assembles a map where the keys are usernames and values are Lists with groups associated with users.
    *
    * @param usersToCreate a list with user entities
-   * @return the a populated map instance
+   * @return the populated map instance
    */
   private Map<String, Set<String>> getUsersToGroupMap(Set<UserEntity> usersToCreate) {
     Map<String, Set<String>> usersToGroups = new HashMap<>();
