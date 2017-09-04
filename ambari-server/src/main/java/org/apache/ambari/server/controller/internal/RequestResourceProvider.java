@@ -249,7 +249,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
                 ? null
                 : actionDefinition.getPermissions();
 
-            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, permissions)) {
+            // here goes ResourceType handling for some specific custom actions
+            ResourceType customActionResourceType = resourceType;
+            if (actionName.contains("check_host")) { // check_host custom action
+              customActionResourceType = ResourceType.CLUSTER;
+            }
+
+            if (!AuthorizationHelper.isAuthorized(customActionResourceType, resourceId, permissions)) {
               throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the action %s.", actionName));
             }
           }

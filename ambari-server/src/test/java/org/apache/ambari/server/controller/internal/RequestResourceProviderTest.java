@@ -1358,13 +1358,11 @@ public class RequestResourceProviderTest {
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
-  @Test(expected = AuthorizationException.class)
   public void testCreateResourcesCheckHostForNonClusterAsClusterAdministrator() throws Exception {
     testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
-  @Test(expected = AuthorizationException.class)
   public void testCreateResourcesCheckHostForNonClusterAsClusterOperator() throws Exception {
     testCreateResources(TestAuthenticationFactory.createClusterOperator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
