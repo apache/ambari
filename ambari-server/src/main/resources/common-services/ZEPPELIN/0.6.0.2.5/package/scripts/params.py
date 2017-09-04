@@ -62,6 +62,8 @@ executor_mem = config['configurations']['zeppelin-env']['zeppelin.executor.mem']
 executor_instances = config['configurations']['zeppelin-env'][
   'zeppelin.executor.instances']
 
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+
 spark_jar_dir = config['configurations']['zeppelin-env']['zeppelin.spark.jar.dir']
 spark_jar = format("{spark_jar_dir}/zeppelin-spark-0.5.5-SNAPSHOT.jar")
 setup_view = True
