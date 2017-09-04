@@ -3593,6 +3593,12 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.showUpgradeOptions(version);
       expect(controller.upgradeOptions.calledWith(false, version, true)).to.be.true;
     });
+
+    it("runningCheckRequests has 1 item" + Em.I18n.t('common.dismiss'), function () {
+      var version = Em.Object.create({displayName: 'HDP-2.2'});
+      var popup = controller.upgradeOptions(false, version, true);
+      expect( controller.get('runningCheckRequests')).to.have.length(1);
+    })
   })
 
 });

@@ -1039,9 +1039,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
     return App.ModalPopup.show({
       encodeBody: false,
-      showFooter: !preUpgradeShow,
-      primary: isInUpgradeWizard ? Em.I18n.t('ok') : Em.I18n.t('common.proceed'),
+      primary: (function(){
+        if (preUpgradeShow) return false;
+        if (isInUpgradeWizard) return Em.I18n.t('ok');
+        return Em.I18n.t('common.proceed')
+      })(),
       primaryClass: 'btn-success',
+      secondaryClass: preUpgradeShow ? 'btn-success' : '',
+      secondary: preUpgradeShow ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.cancel'),
       classNames: ['upgrade-options-popup'],
       header: preUpgradeShow ? Em.I18n.t('admin.stackVersions.version.preUpgrade.header') : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.header'),
       bodyClass: Em.View.extend({
