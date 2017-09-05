@@ -256,39 +256,47 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
     if (Em.get(currentVersion, 'stack_name') !== this.get('content.stackVersionType') || isVersionHigherThanCurrent) {
       var isDisabled = this.isDisabledOnInstalled();
-      element.set('isButtonGroup', true);
-      if (status === 'OUT_OF_SYNC') {
-        element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
-        element.set('action', 'installRepoVersionConfirmation');
-        element.get('buttons').pushObject({
-          text: this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-          action: 'confirmUpgrade',
-          isDisabled: isDisabled
-        });
-      } else {
-        var isVersionColumnView = this.get('isVersionColumnView');
-        element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
-        element.set('action', 'confirmUpgrade');
-        element.get('buttons').pushObject({
-          text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
-          isDisabled: isDisabled
-        });
-
-        element.get('buttons').pushObject({
-          text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
-          action: 'showUpgradeOptions',
-          isDisabled: isDisabled
-        });
-
-        if (this.get('content.isPatch')) {
+      switch (status){
+        case 'OUT_OF_SYNC':
+          element.set('isButtonGroup', true);
+          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
+          element.set('action', 'installRepoVersionConfirmation');
           element.get('buttons').pushObject({
-            text: Em.I18n.t('common.discard'),
-            action: 'confirmDiscardRepoVersion',
+            text: this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+            action: 'confirmUpgrade',
             isDisabled: isDisabled
           });
-        }
-        this.addRemoveIopSelectButton(element, isDisabled);
+          break;
+        case 'INSTALL_FAILED':
+          element.set('isButton', true);
+          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
+          element.set('action', 'installRepoVersionConfirmation');
+          break;
+        default:
+          var isVersionColumnView = this.get('isVersionColumnView');
+          element.set('isButtonGroup', true);
+          element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
+          element.set('action', 'confirmUpgrade');
+          element.get('buttons').pushObject({
+            text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
+            action: 'installRepoVersionConfirmation',
+            isDisabled: isDisabled
+          });
+
+          element.get('buttons').pushObject({
+            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+            action: 'showUpgradeOptions',
+            isDisabled: isDisabled
+          });
+
+          if (this.get('content.isPatch')) {
+            element.get('buttons').pushObject({
+              text: Em.I18n.t('common.discard'),
+              action: 'confirmDiscardRepoVersion',
+              isDisabled: isDisabled
+            });
+          }
+          this.addRemoveIopSelectButton(element, isDisabled);
       }
       element.set('isDisabled', isDisabled);
     }
