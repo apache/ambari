@@ -19,12 +19,18 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +109,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String HOST_COMPONENT_DESIRED_STATE = "hostcomponentdesiredstate";
   public static final String HOST_COMPONENT_STATE = "hostcomponentstate";
 
+  private static final String CORE_SITE = "core-site";
   /**
    * Logger.
    */
@@ -367,6 +374,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     setUnmappedForOrphanedConfigs();
     removeSupersetFromDruid();
+    ensureZeppelinProxyUserConfigs();
   }
 
   /**
@@ -422,5 +430,68 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery(hostComponentDesiredStateRemoveSQL);
     dbAccessor.executeQuery(hostComponentStateRemoveSQL);
     dbAccessor.executeQuery(serviceComponentDesiredStateRemoveSQL);
+  }
+
+  /**
+   * If Zeppelin is installed, ensure that the proxyuser configurations are set in <code>core-site</code>.
+   * <p>
+   * The following configurations will be added, if core-site exists and the properties are not in the
+   * set of core-site properties:
+   * <ul>
+   * <li><code>"hadoop.proxyuser.{zeppelin-env/zeppelin_user}.groups": "*"</code></li>
+   * <li><code>"hadoop.proxyuser.{zeppelin-env/zeppelin_user}.hosts": "*"</code></li>
+   * </ul>
+   */
+  void ensureZeppelinProxyUserConfigs() throws AmbariException {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+    if ((clusterMap != null) && !clusterMap.isEmpty()) {
+      for (final Cluster cluster : clusterMap.values()) {
+        Config zeppelinEnvConfig = cluster.getDesiredConfigByType("zeppelin-env");
+
+        if (zeppelinEnvConfig != null) {
+          // If zeppelin-env exists, than it is assumed that Zeppelin is installed
+          Map<String, String> zeppelinEnvProperties = zeppelinEnvConfig.getProperties();
+
+          String zeppelinUser = null;
+          if (zeppelinEnvProperties != null) {
+            zeppelinUser = zeppelinEnvProperties.get("zeppelin_user");
+          }
+
+          if (!StringUtils.isEmpty(zeppelinUser)) {
+            // If the zeppelin user is set, see if the proxyuser configs need to be set
+
+            Config coreSiteConfig = cluster.getDesiredConfigByType(CORE_SITE);
+            if (coreSiteConfig != null) {
+              // If core-site exists, ensure the proxyuser configurations for Zeppelin are set.
+              // If they are not already set, set them to their default value.
+              String proxyUserHostsName = String.format("hadoop.proxyuser.%s.hosts", zeppelinUser);
+              String proxyUserGroupsName = String.format("hadoop.proxyuser.%s.groups", zeppelinUser);
+
+              Map<String, String> proxyUserProperties = new HashMap<>();
+              proxyUserProperties.put(proxyUserHostsName, "*");
+              proxyUserProperties.put(proxyUserGroupsName, "*");
+
+              Map<String, String> coreSiteConfigProperties = coreSiteConfig.getProperties();
+
+              if (coreSiteConfigProperties != null) {
+                if (coreSiteConfigProperties.containsKey(proxyUserHostsName)) {
+                  proxyUserProperties.remove(proxyUserHostsName);
+                }
+
+                if (coreSiteConfigProperties.containsKey(proxyUserGroupsName)) {
+                  proxyUserProperties.remove(proxyUserGroupsName);
+                }
+              }
+
+              if (!proxyUserProperties.isEmpty()) {
+                updateConfigurationPropertiesForCluster(cluster, CORE_SITE, proxyUserProperties, true, false);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

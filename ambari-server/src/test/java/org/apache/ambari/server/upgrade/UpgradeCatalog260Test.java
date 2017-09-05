@@ -19,7 +19,9 @@
 package org.apache.ambari.server.upgrade;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -34,12 +36,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -534,5 +541,61 @@ public class UpgradeCatalog260Test {
     Assert.assertEquals(0, hiddenColumn.getDefaultValue());
     Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_HIDDEN_COLUMN, hiddenColumn.getName());
     Assert.assertEquals(false, hiddenColumn.isNullable());
+  }
+
+  @Test
+  public void testEnsureZeppelinProxyUserConfigs() throws AmbariException {
+
+    final Clusters clusters = createMock(Clusters.class);
+    final Cluster cluster = createMock(Cluster.class);
+    final Config zeppelinEnvConf = createMock(Config.class);
+    final Config coreSiteConf = createMock(Config.class);
+    final Config coreSiteConfNew = createMock(Config.class);
+    final AmbariManagementController controller = createMock(AmbariManagementController.class);
+
+    Capture<? extends Map<String, String>> captureCoreSiteConfProperties = newCapture();
+
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(osFamily);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(Configuration.class).toInstance(configuration);
+        binder.bind(Clusters.class).toInstance(clusters);
+        binder.bind(AmbariManagementController.class).toInstance(controller);
+      }
+    };
+
+    expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
+
+    expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster.getDesiredConfigByType("zeppelin-env")).andReturn(zeppelinEnvConf).atLeastOnce();
+    expect(cluster.getDesiredConfigByType("core-site")).andReturn(coreSiteConf).atLeastOnce();
+    expect(cluster.getConfigsByType("core-site")).andReturn(Collections.singletonMap("tag1", coreSiteConf)).atLeastOnce();
+    expect(cluster.getConfig(eq("core-site"), anyString())).andReturn(coreSiteConfNew).atLeastOnce();
+    expect(cluster.getServiceByConfigType("core-site")).andReturn("HDFS").atLeastOnce();
+    expect(cluster.addDesiredConfig(eq("ambari-upgrade"), anyObject(Set.class))).andReturn(null).atLeastOnce();
+
+    expect(zeppelinEnvConf.getProperties()).andReturn(Collections.singletonMap("zeppelin_user", "zeppelin_user")).once();
+
+    expect(coreSiteConf.getProperties()).andReturn(Collections.singletonMap("hadoop.proxyuser.zeppelin_user.hosts", "existing_value")).atLeastOnce();
+    expect(coreSiteConf.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).atLeastOnce();
+
+    expect(controller.createConfig(eq(cluster), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class)))
+        .andReturn(coreSiteConfNew)
+        .once();
+
+    replay(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller);
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
+    upgradeCatalog260.ensureZeppelinProxyUserConfigs();
+
+    verify(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller);
+
+    Assert.assertTrue(captureCoreSiteConfProperties.hasCaptured());
+    Assert.assertEquals("existing_value", captureCoreSiteConfProperties.getValue().get("hadoop.proxyuser.zeppelin_user.hosts"));
+    Assert.assertEquals("*", captureCoreSiteConfProperties.getValue().get("hadoop.proxyuser.zeppelin_user.groups"));
   }
 }
