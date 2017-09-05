@@ -108,6 +108,17 @@ public class CommandRepository {
   }
 
   /**
+   * Sets fields for non-managed
+   */
+  public void setNonManaged() {
+    for (Repository repo : m_repositories) {
+      repo.m_baseUrl = null;
+      repo.m_mirrorsList = null;
+      repo.m_ambariManaged = false;
+    }
+  }
+
+  /**
    * Minimal information required to generate repo files on the agent.  These are copies
    * of the repository objects from repo versions that can be changed for URL overrides, etc.
    */
@@ -118,6 +129,9 @@ public class CommandRepository {
 
     @SerializedName("repoId")
     private String m_repoId;
+
+    @SerializedName("ambariManaged")
+    private boolean m_ambariManaged = true;
 
     /**
      * The name should not change.  Ubuntu requires that it match exactly as the repo was built.
@@ -167,6 +181,10 @@ public class CommandRepository {
       return m_baseUrl;
     }
 
+    public boolean isAmbariManaged() {
+      return m_ambariManaged;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -179,6 +197,6 @@ public class CommandRepository {
           .append("baseUrl", m_baseUrl)
           .toString();
     }
-  }
 
+  }
 }

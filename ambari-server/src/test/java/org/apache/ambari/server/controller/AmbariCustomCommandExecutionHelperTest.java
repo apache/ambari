@@ -581,9 +581,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     CommandRepository commandRepo = helper.getCommandRepository(cluster, componentRM, host);
 
-    Assert.assertEquals(1, commandRepo.getRepositories().size());
-    CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
-    Assert.assertEquals("http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0", repo.getBaseUrl());
+    Assert.assertEquals(0, commandRepo.getRepositories().size());
 
     RepositoryInfo ri = new RepositoryInfo();
     ri.setBaseUrl("http://foo");
@@ -591,7 +589,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     ri.setRepoId("new-id");
     ri.setOsType("redhat6");
     String operatingSystems = repoVersionHelper.serializeOperatingSystems(Collections.singletonList(ri));
-
 
     StackEntity stackEntity = stackDAO.find(cluster.getDesiredStackVersion().getStackName(),
         cluster.getDesiredStackVersion().getStackVersion());
@@ -616,15 +613,12 @@ public class AmbariCustomCommandExecutionHelperTest {
     commandRepo = helper.getCommandRepository(cluster, componentRM, host);
 
     Assert.assertEquals(1, commandRepo.getRepositories().size());
-    repo = commandRepo.getRepositories().iterator().next();
+    CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
     Assert.assertEquals("http://foo", repo.getBaseUrl());
 
-    // verify that ZK is NOT overwritten
+    // verify that ZK has no repositories, since we haven't defined a repo version for ZKC
     commandRepo = helper.getCommandRepository(cluster, componentZKC, host);
-
-    Assert.assertEquals(1, commandRepo.getRepositories().size());
-    repo = commandRepo.getRepositories().iterator().next();
-    Assert.assertEquals("http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0", repo.getBaseUrl());
+    Assert.assertEquals(0, commandRepo.getRepositories().size());
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,

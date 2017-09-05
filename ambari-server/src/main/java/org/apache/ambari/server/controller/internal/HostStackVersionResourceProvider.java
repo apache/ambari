@@ -53,7 +53,6 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
@@ -62,6 +61,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -379,23 +379,25 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       }
     }
 
-    List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
-    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
-    for (OperatingSystemEntity operatingSystem : operatingSystems) {
-      perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
-    }
-
     // Determine repositories for host
     String osFamily = host.getOsFamily();
-    final List<RepositoryEntity> repoInfo = perOsRepos.get(osFamily);
-    if (repoInfo == null) {
+    OperatingSystemEntity osEntity = null;
+    for (OperatingSystemEntity operatingSystem : repoVersionEnt.getOperatingSystems()) {
+      if (osFamily.equals(operatingSystem.getOsType())) {
+        osEntity = operatingSystem;
+        break;
+      }
+    }
+
+    if (null == osEntity) {
+      throw new SystemException(String.format("Operating System matching %s could not be found",
+          osFamily));
+    }
+
+    if (CollectionUtils.isEmpty(osEntity.getRepositories())) {
       throw new SystemException(String.format("Repositories for os type %s are " +
                       "not defined. Repo version=%s, stackId=%s",
         osFamily, desiredRepoVersion, stackId));
-    }
-
-    if (repoInfo.isEmpty()){
-      LOG.error(String.format("Repository list is empty. Ambari may not be managing the repositories for %s", osFamily));
     }
 
     Set<String> servicesOnHost = new HashSet<>();
@@ -441,7 +443,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, osFamily, repoVersionEnt, repoInfo);
+    repoVersionHelper.addCommandRepository(actionContext, repoVersionEnt, osEntity);
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);

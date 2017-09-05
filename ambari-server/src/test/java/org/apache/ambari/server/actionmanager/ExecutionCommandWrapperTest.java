@@ -342,6 +342,70 @@ public class ExecutionCommandWrapperTest {
     Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
   }
 
+  /**
+   * Test that the execution command wrapper ignores repository file when there are none to use.
+   */
+  @Test
+  public void testExecutionCommandNoRepositoryFile() throws Exception {
+    Cluster cluster = clusters.getCluster(CLUSTER1);
+
+    StackId stackId = cluster.getDesiredStackVersion();
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+    Service service = cluster.getService("HDFS");
+    service.setDesiredRepositoryVersion(repositoryVersion);
+
+    repositoryVersion.setOperatingSystems("[]");
+
+    ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
+
+    // first try with an INSTALL command - this should not populate version info
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    Map<String, String> commandParams = new HashMap<>();
+
+    executionCommand.setClusterName(CLUSTER1);
+    executionCommand.setTaskId(1);
+    executionCommand.setRequestAndStage(1, 1);
+    executionCommand.setHostname(HOST1);
+    executionCommand.setRole("NAMENODE");
+    executionCommand.setRoleParams(Collections.<String, String>emptyMap());
+    executionCommand.setRoleCommand(RoleCommand.INSTALL);
+    executionCommand.setServiceName("HDFS");
+    executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
+    executionCommand.setCommandParams(commandParams);
+
+    String json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
+    ExecutionCommandWrapper execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    ExecutionCommand processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
+
+    // now try with a START command which should populate the version even
+    // though the state is INSTALLING
+    executionCommand = new ExecutionCommand();
+    commandParams = new HashMap<>();
+
+    executionCommand.setClusterName(CLUSTER1);
+    executionCommand.setTaskId(1);
+    executionCommand.setRequestAndStage(1, 1);
+    executionCommand.setHostname(HOST1);
+    executionCommand.setRole("NAMENODE");
+    executionCommand.setRoleParams(Collections.<String, String> emptyMap());
+    executionCommand.setRoleCommand(RoleCommand.START);
+    executionCommand.setServiceName("HDFS");
+    executionCommand.setCommandType(AgentCommandType.EXECUTION_COMMAND);
+    executionCommand.setCommandParams(commandParams);
+
+    json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
+    execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
+  }
+
   @AfterClass
   public static void tearDown() throws AmbariException, SQLException {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);

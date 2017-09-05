@@ -84,6 +84,7 @@ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
@@ -575,7 +576,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         Host host = hostIterator.next();
         if (hostHasVersionableComponents(cluster, serviceNames, ami, stackId, host)) {
           ActionExecutionContext actionContext = getHostVersionInstallCommand(repoVersionEnt,
-                  cluster, managementController, ami, stackId, serviceNames, perOsRepos, stage, host);
+                  cluster, managementController, ami, stackId, serviceNames, stage, host);
           if (null != actionContext) {
             actionContext.getParameters().put(KeyNames.IGNORE_PACKAGE_DEPENDENCIES, ignorePackageDependencies);
             try {
@@ -636,20 +637,24 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   private ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,
       Cluster cluster, AmbariManagementController managementController, AmbariMetaInfo ami,
-      final StackId stackId, Set<String> repoServices, Map<String, List<RepositoryEntity>> perOsRepos, Stage stage1, Host host)
+      final StackId stackId, Set<String> repoServices, Stage stage1, Host host)
           throws SystemException {
+
     // Determine repositories for host
     String osFamily = host.getOsFamily();
 
-    final List<RepositoryEntity> repoInfo = perOsRepos.get(osFamily);
-    if (repoInfo == null) {
-      throw new SystemException(String.format("Repositories for os type %s are " +
-                      "not defined. Repo version=%s, stackId=%s",
-        osFamily, repoVersion.getVersion(), stackId));
+    OperatingSystemEntity osEntity = null;
+    for (OperatingSystemEntity os : repoVersion.getOperatingSystems()) {
+      if (os.getOsType().equals(osFamily)) {
+        osEntity = os;
+        break;
+      }
     }
 
-    if (repoInfo.isEmpty()){
-      LOG.error(String.format("Repository list is empty. Ambari may not be managing the repositories for %s", osFamily));
+    if (null == osEntity || CollectionUtils.isEmpty(osEntity.getRepositories())) {
+      throw new SystemException(String.format("Repositories for os type %s are " +
+          "not defined. Repo version=%s, stackId=%s",
+            osFamily, repoVersion.getVersion(), stackId));
     }
 
     // determine packages for all services that are installed on host
@@ -681,10 +686,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, osFamily, repoVersion, repoInfo);
+    repoVersionHelper.addCommandRepository(actionContext, repoVersion, osEntity);
 
     return actionContext;
-
   }
 
 
@@ -747,6 +751,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    * compares build numbers
    */
   private static int compareVersions(String version1, String version2) {
+    version1 = (null == version1) ? "0" : version1;
+    version2 = (null == version2) ? "0" : version2;
+
     // check _exact_ equality
     if (StringUtils.equals(version1, version2)) {
       return 0;

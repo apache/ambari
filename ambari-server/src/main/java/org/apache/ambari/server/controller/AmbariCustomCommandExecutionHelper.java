@@ -1272,49 +1272,31 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException
    */
   @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
-
-    Function<List<RepositoryInfo>, List<RepositoryInfo>> function = new Function<List<RepositoryInfo>, List<RepositoryInfo>>() {
-      @Override
-      public List<RepositoryInfo> apply(List<RepositoryInfo> input) {
-        // !!! just return what is given
-        return input;
-      }
-    };
-
-    final List<RepositoryInfo> repoInfos = getBaseUrls(cluster, component, host, function);
-
-    if (null == repoInfos) {
-      return null;
-    }
+  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, final Host host) throws AmbariException {
 
     final CommandRepository command = new CommandRepository();
     StackId stackId = component.getDesiredStackId();
-    command.setRepositories(repoInfos);
+    command.setRepositories(Collections.<RepositoryInfo>emptyList());
     command.setStackName(stackId.getStackName());
 
     final BaseUrlUpdater<Void> updater = new BaseUrlUpdater<Void>(null) {
       @Override
       public Void apply(RepositoryVersionEntity rve) {
-
         command.setRepositoryVersionId(rve.getId());
         command.setRepositoryVersion(rve.getVersion());
         command.setStackName(rve.getStackName());
-        command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
 
-        for (CommandRepository.Repository commandRepo : command.getRepositories()) {
-          String osType = commandRepo.getOsType();
-          String repoName = commandRepo.getRepoName();
-          String baseUrl = commandRepo.getBaseUrl();
+        // !!! a repository version entity has all the repos worked out.  We shouldn't use
+        // the stack at all.
+        for (OperatingSystemEntity osEntity : rve.getOperatingSystems()) {
+          String osEntityFamily = os_family.find(osEntity.getOsType());
+          if (osEntityFamily.equals(host.getOsFamily())) {
+            command.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
 
-          for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
-            if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
-              for (RepositoryEntity re : ose.getRepositories()) {
-                if (re.getName().equals(repoName) &&
-                    !re.getBaseUrl().equals(baseUrl)) {
-                  commandRepo.setBaseUrl(re.getBaseUrl());
-                }
-              }
+            if (!osEntity.isAmbariManagedRepos()) {
+              command.setNonManaged();
+            } else {
+              command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
             }
           }
         }

@@ -55,6 +55,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -92,14 +93,13 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
- import org.apache.ambari.server.state.ServiceImpl;
- import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
- import org.apache.ambari.server.state.StackInfo;
- import org.apache.ambari.server.state.cluster.ClusterImpl;
- import org.apache.ambari.server.state.repository.AvailableService;
- import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.repository.AvailableService;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -115,9 +115,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
- import org.springframework.test.annotation.ExpectedException;
 
- import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -1071,7 +1070,12 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
 
     Assert.assertNotNull(executionCommand.getRepositoryFile());
-    Assert.assertEquals(0, executionCommand.getRepositoryFile().getRepositories().size());
+    Assert.assertEquals(2, executionCommand.getRepositoryFile().getRepositories().size());
+
+    for (CommandRepository.Repository repo : executionCommand.getRepositoryFile().getRepositories()) {
+      Assert.assertFalse(repo.isAmbariManaged());
+    }
+
   }
 
    @Test
