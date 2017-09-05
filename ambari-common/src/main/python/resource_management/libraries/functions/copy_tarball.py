@@ -63,17 +63,17 @@ TARBALL_MAP = {
              "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN))
 }
 
-SERVICE_MAP = {
-  "slider": "SLIDER",
-  "tez": "TEZ_CLIENT",
-  "pig": "PIG",
-  "sqoop": "SQOOP",
-  "hive": "HIVE_CLIENT",
-  "mapreduce": "HDFS_CLIENT",
-  "hadoop_streaming": "MAPREDUCE2_CLIENT",
-  "tez_hive2": "HIVE_CLIENT",
-  "spark": "SPARK_CLIENT",
-  "spark2": "SPARK2_CLIENT"
+SERVICE_TO_CONFIG_MAP = {
+  "slider": "slider-env",
+  "tez": "tez-env",
+  "pig": "pig-env",
+  "sqoop": "sqoop-env",
+  "hive": "hive-env",
+  "mapreduce": "hadoop-env",
+  "hadoop_streaming": "mapred-env",
+  "tez_hive2": "hive-env",
+  "spark": "spark-env",
+  "spark2": "spark2-env"
 }
 
 def get_sysprep_skip_copy_tarballs_hdfs():
@@ -231,11 +231,11 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
     return True
 
   if not skip_component_check:
-    #Use components installed on the node to check if a file can be copied into HDFS
-    local_components = default("/localComponents", [])
-    component = SERVICE_MAP.get(name)
-    if component not in local_components:
-      Logger.info("{0} is not installed on the host. Skip copying {1}".format(component, source_file))
+    # Check if service is installed on the cluster to check if a file can be copied into HDFS
+    config_name = SERVICE_TO_CONFIG_MAP.get(name)
+    config = default("/configurations/"+config_name, None)
+    if config is None:
+      Logger.info("{0} is not present on the cluster. Skip copying {1}".format(config_name, source_file))
       return False
 
   Logger.info("Source file: {0} , Dest file in HDFS: {1}".format(source_file, dest_file))
