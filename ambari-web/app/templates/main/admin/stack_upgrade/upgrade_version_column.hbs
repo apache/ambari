@@ -74,6 +74,17 @@
     {{/if}}
 </div>
 
+{{#if view.stateElement.canBeReverted}}
+  <div class="revert-dropdown">
+    <button class="btn dropdown-toggle" data-toggle="dropdown">
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a {{action confirmRevertPatchUpgrade view.content target="controller"}}>{{t common.revert}}</a></li>
+    </ul>
+  </div>
+{{/if}}
+
 <p class="version-column-display-name">
   {{#if view.content.isStandard}}
     <span>{{view.content.displayNameSimple}}</span>
@@ -85,9 +96,6 @@
       <i class="icon-medkit" aria-hidden="true"></i>
     {{/if}}
     <span>{{view.content.displayName}}</span>
-    {{#if view.stateElement.canBeReverted}}
-      <i class="icon-undo" {{action confirmRevertPatchUpgrade view.content target="controller"}}></i>
-    {{/if}}
   {{/if}}
 </p>
 

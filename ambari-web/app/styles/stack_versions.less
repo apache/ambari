@@ -97,10 +97,6 @@
               a {
                 cursor: pointer;
               }
-              .icon-undo {
-                color: rgb(243, 178, 11);
-                margin-right: 2px;
-              }
             }
           }
         }
@@ -266,6 +262,28 @@
     .hosts-section .host-link {
       font-size: 12px;
     }
+    .revert-dropdown{
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      .btn {
+        position: relative;
+        top: 3px;
+        float: right;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        outline: none;
+        .caret{
+          border-top-color: #fff;
+        }
+      }
+      .dropdown-menu{
+        right: 0;
+        cursor: pointer;
+      }
+    }
   }
   .version-column {
     min-height: 500px;
@@ -312,7 +330,8 @@
         width: 100%;
         display: inline-block;
         padding: 0;
-        line-height: 30px;
+        line-height: 35px;
+        height: 30px;
         position: relative;
         z-index: 2;
         &:after,&:before{
