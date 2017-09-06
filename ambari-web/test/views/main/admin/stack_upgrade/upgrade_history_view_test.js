@@ -294,15 +294,17 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       var versions = {
         S1: {
           from_repository_id: 1,
-          to_repository_id: 2
+          to_repository_id: 2,
+          from_repository_version: '1.123.123-1',
+          to_repository_version: '1.123.123-2'
         }
       };
       expect(view.getRepoServicesForDisplay(versions)).to.be.eql([
         {
           name: 'S1',
           displayName: 's1',
-          fromVersion: '1.1',
-          toVersion: '1.1'
+          fromVersion: '1.123.123-1',
+          toVersion: '1.123.123-2'
         }
       ]);
     });

@@ -147,13 +147,12 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
 
   getRepoServicesForDisplay: function(versions) {
     return Object.keys(versions).map(function(serviceName) {
-      var fromVersion = App.RepositoryVersion.find(versions[serviceName].from_repository_id);
-      var toVersion = App.RepositoryVersion.find(versions[serviceName].to_repository_id);
+      var displayName = App.RepositoryVersion.find(versions[serviceName].from_repository_id).get('stackServices').findProperty('name', serviceName).get('displayName');
       return {
         name: serviceName,
-        displayName: fromVersion.get('stackServices').findProperty('name', serviceName).get('displayName'),
-        fromVersion: fromVersion.get('stackServices').findProperty('name', serviceName).get('latestVersion'),
-        toVersion: toVersion.get('stackServices').findProperty('name', serviceName).get('latestVersion')
+        displayName: displayName,
+        fromVersion: versions[serviceName].from_repository_version,
+        toVersion: versions[serviceName].to_repository_version
       }
     });
   },
