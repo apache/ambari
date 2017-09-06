@@ -326,7 +326,7 @@ public class DatabaseConsistencyCheckHelper {
           } else if (tableRowCount != -1 && tableRowCount < TABLE_ROW_COUNT_LIMIT) {
             LOG.info(String.format("The database table %s currently has %d rows and is within normal limits (%d)", tableName, tableRowCount, TABLE_ROW_COUNT_LIMIT));
           } else {
-            throw new SQLException();
+            warning("Unable to get size for table {}!", tableName);
           }
         } catch (SQLException ex) {
           error(String.format("Failed to get %s row count: ", tableName), e);
