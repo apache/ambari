@@ -33,12 +33,4 @@ limitations under the License.
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <property>
-    <name>hive.custom-extensions.root</name>
-    <value>/hdp/ext/{{major_stack_version}}/hive</value>
-    <description>
-        Root directory for hive extensions in HDFS
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
 </configuration>

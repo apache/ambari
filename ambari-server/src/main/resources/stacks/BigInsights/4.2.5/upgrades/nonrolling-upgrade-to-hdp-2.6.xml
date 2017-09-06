@@ -344,9 +344,7 @@
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication"/>
       </execute-stage>
-      <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
-        <task xsi:type="configure" id="biginsights_4_2_hive_site_custom_extensions"/>
-      </execute-stage>
+
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_env_custom_extensions"/>
       </execute-stage>

@@ -300,11 +300,6 @@
             <set key="custom.hive.warehouse.mode" value="0770" if-type="hive-site" if-key="custom.hive.warehouse.mode" if-key-state="absent"/>
           </definition>
 
-          <definition xsi:type="configure" id="biginsights_4_2_hive_site_custom_extensions" summary="Enable custom extensions in hive-site">
-            <type>hive-site</type>
-            <set key="hive.custom-extensions.root" value="/hdp/ext/{{major_stack_version}}/hive" if-key-state="absent" if-type="hive-site" if-key="hive.custom-extensions.root"/>
-          </definition>
-
           <definition xsi:type="configure" id="biginsights_4_2_hive_env_custom_extensions" summary="Enable custom extensions in hive-env">
             <type>hive-env</type>
             <replace key="content" find="if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then" replace-with="export HIVE_AUX_JARS_PATH={{stack_root}}/current/ext/hive&#10;if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then"/>
