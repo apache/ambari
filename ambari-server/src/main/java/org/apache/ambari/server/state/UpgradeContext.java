@@ -252,6 +252,11 @@ public class UpgradeContext {
   private final boolean m_isRevert;
 
   /**
+   * The ID of the upgrade being reverted if this is a reversion.
+   */
+  private long m_revertUpgradeId;
+
+  /**
    * Defines orchestration type.  This is not the repository type when reverting a patch.
    */
   private RepositoryType m_orchestration = RepositoryType.STANDARD;
@@ -286,11 +291,19 @@ public class UpgradeContext {
     m_isRevert = upgradeRequestMap.containsKey(UPGRADE_REVERT_UPGRADE_ID);
 
     if (m_isRevert) {
-      Long revertUpgradeId = Long.valueOf(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
-      UpgradeEntity revertUpgrade = m_upgradeDAO.findUpgrade(revertUpgradeId);
+      m_revertUpgradeId = Long.valueOf(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
+      UpgradeEntity revertUpgrade = m_upgradeDAO.findUpgrade(m_revertUpgradeId);
+      UpgradeEntity revertableUpgrade = m_upgradeDAO.findRevertable(cluster.getClusterId());
 
       if (null == revertUpgrade) {
-          throw new AmbariException(String.format("Could not find Upgrade with id %s to revert.", revertUpgradeId));
+        throw new AmbariException(
+            String.format("Could not find Upgrade with id %s to revert.", m_revertUpgradeId));
+      }
+
+      if (null == revertableUpgrade) {
+        throw new AmbariException(
+            String.format("There are no upgrades for cluster %s which are marked as revertable",
+                cluster.getClusterName()));
       }
 
       if (!revertUpgrade.getOrchestration().isRevertable()) {
@@ -299,7 +312,15 @@ public class UpgradeContext {
       }
 
       if (revertUpgrade.getDirection() != Direction.UPGRADE) {
-        throw new AmbariException("Can only revert successful upgrades, not downgrades.");
+        throw new AmbariException(
+            "Only successfully completed upgrades can be reverted. Downgrades cannot be reverted.");
+      }
+
+      if (revertableUpgrade.getId() != revertUpgrade.getId()) {
+        throw new AmbariException(String.format(
+            "The only upgrade which is currently allowed to be reverted for cluster %s is upgrade ID %s which was an upgrade to %s",
+            cluster.getClusterName(), revertableUpgrade.getId(),
+            revertableUpgrade.getRepositoryVersion().getVersion()));
       }
 
       for (UpgradeHistoryEntity history : revertUpgrade.getHistory()) {
@@ -847,6 +868,10 @@ public class UpgradeContext {
    */
   public boolean isPatchRevert() {
     return m_isRevert;
+  }
+
+  public long getPatchRevertUpgradeId() {
+    return m_revertUpgradeId;
   }
 
   /**

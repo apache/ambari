@@ -761,7 +761,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgrade.setUpgradeGroups(groupEntities);
 
     req.getRequestStatusResponse();
-    return createUpgradeInsideTransaction(cluster, req, upgrade);
+    return createUpgradeInsideTransaction(cluster, req, upgrade, upgradeContext);
   }
 
   /**
@@ -778,6 +778,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param upgradeEntity
    *          the upgrade to create and associate with the newly created request
    *          (not {@code null}).
+   * @param upgradeContext
+   *          the upgrade context associated with the upgrade being created.
    * @return the persisted {@link UpgradeEntity} encapsulating all
    *         {@link UpgradeGroupEntity} and {@link UpgradeItemEntity}.
    * @throws AmbariException
@@ -785,7 +787,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Transactional
   UpgradeEntity createUpgradeInsideTransaction(Cluster cluster,
       RequestStageContainer request,
-      UpgradeEntity upgradeEntity) throws AmbariException {
+      UpgradeEntity upgradeEntity, UpgradeContext upgradeContext) throws AmbariException {
+
+    // if this is a patch reversion, then we must unset the revertable flag of
+    // the upgrade being reverted
+    if (upgradeContext.isPatchRevert()) {
+      UpgradeEntity upgradeBeingReverted = s_upgradeDAO.findUpgrade(
+          upgradeContext.getPatchRevertUpgradeId());
+
+      upgradeBeingReverted.setRevertAllowed(false);
+      upgradeBeingReverted = s_upgradeDAO.merge(upgradeBeingReverted);
+    }
 
     request.persist();
     RequestEntity requestEntity = s_requestDAO.findByPK(request.getId());

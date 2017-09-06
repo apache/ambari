@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
@@ -138,6 +139,7 @@ public class UpgradeContextTest extends EasyMockSupport {
         m_upgradeDAO.findLastUpgradeForCluster(EasyMock.anyLong(),
             eq(Direction.UPGRADE))).andReturn(m_completedRevertableUpgrade).anyTimes();
 
+    expect(m_completedRevertableUpgrade.getId()).andReturn(1L).anyTimes();
     expect(m_completedRevertableUpgrade.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
     expect(m_completedRevertableUpgrade.getRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
     expect(m_completedRevertableUpgrade.getOrchestration()).andReturn(RepositoryType.PATCH).anyTimes();
@@ -309,9 +311,57 @@ public class UpgradeContextTest extends EasyMockSupport {
         EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
 
 
+    expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
+
     Map<String, Object> requestMap = new HashMap<>();
     requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.name());
     requestMap.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, "1");
+
+    replayAll();
+
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+
+    assertEquals(Direction.DOWNGRADE, context.getDirection());
+    assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
+    assertEquals(1, context.getSupportedServices().size());
+    assertTrue(context.isPatchRevert());
+
+    verifyAll();
+  }
+
+  /**
+   * Tests that if a different {@link UpgradeEntity} is returned instead of the one
+   * specified by the
+   *
+   * @throws Exception
+   */
+  @Test(expected = AmbariException.class)
+  public void testWrongUpgradeBeingReverted() throws Exception {
+    Long upgradeIdBeingReverted = 1L;
+    Long upgradeIdWhichCanBeReverted = 99L;
+
+    UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+
+    UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+
+    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
+        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+
+    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersionEntity.getVersion()).andReturn("1.2.3.4").anyTimes();
+
+    UpgradeEntity wrongRevertableUpgrade = createNiceMock(UpgradeEntity.class);
+    expect(wrongRevertableUpgrade.getId()).andReturn(upgradeIdWhichCanBeReverted).atLeastOnce();
+    expect(wrongRevertableUpgrade.getRepositoryVersion()).andReturn(repositoryVersionEntity).atLeastOnce();
+
+    expect(m_upgradeDAO.findRevertable(1L)).andReturn(wrongRevertableUpgrade).once();
+
+    Map<String, Object> requestMap = new HashMap<>();
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, upgradeIdBeingReverted.toString());
 
     replayAll();
 

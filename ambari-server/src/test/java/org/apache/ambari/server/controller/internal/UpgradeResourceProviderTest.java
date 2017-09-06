@@ -1608,6 +1608,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     sch.setVersion("2.1.1.0");
 
     File f = new File("src/test/resources/hbase_version_test.xml");
+    repoVersionEntity2112.setType(RepositoryType.PATCH);
     repoVersionEntity2112.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersionEntity2112.setVersionXsd("version_definition.xsd");
     repoVersionDao.merge(repoVersionEntity2112);
@@ -1629,8 +1630,16 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
+
     UpgradeEntity upgradeEntity = upgrades.get(0);
     assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    // should be false since only finalization actually sets this bit
+    assertEquals(false, upgradeEntity.isRevertAllowed());
+
+    // fake it now so the rest of the test passes
+    upgradeEntity.setRevertAllowed(true);
+    upgradeEntity = upgradeDao.merge(upgradeEntity);
 
     // !!! make it look like the cluster is done
     cluster.setUpgradeEntity(null);
@@ -1669,6 +1678,59 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     }
 
     assertTrue(found);
+  }
+
+  /**
+   * Tests that when there is no revertable upgrade, a reversion of a specific
+   * ugprade ID is not allowed.
+   */
+  @Test(expected = SystemException.class)
+  public void testRevertFailsWhenNoRevertableUpgradeIsFound() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    // add a single ZK server and client on 2.1.1.0
+    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.1.1.0");
+
+    File f = new File("src/test/resources/hbase_version_test.xml");
+    repoVersionEntity2112.setType(RepositoryType.PATCH);
+    repoVersionEntity2112.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersionEntity2112.setVersionXsd("version_definition.xsd");
+    repoVersionDao.merge(repoVersionEntity2112);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID,String.valueOf(repoVersionEntity2112.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity upgradeEntity = upgrades.get(0);
+    assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    // !!! make it look like the cluster is done
+    cluster.setUpgradeEntity(null);
+
+    requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, upgradeEntity.getId());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
   }
 
   private String parseSingleMessage(String msgStr){

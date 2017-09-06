@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
@@ -41,6 +40,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryType;
@@ -100,6 +100,9 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
    */
   private CommandReport finalizeUpgrade(UpgradeContext upgradeContext)
     throws AmbariException, InterruptedException {
+
+    Direction direction = upgradeContext.getDirection();
+    RepositoryType repositoryType = upgradeContext.getOrchestrationType();
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();
@@ -194,6 +197,13 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // move host versions from CURRENT to INSTALLED if their repos are no
       // longer used
       finalizeHostRepositoryVersions(cluster);
+
+      // mark revertable
+      if (repositoryType.isRevertable() && direction == Direction.UPGRADE) {
+        UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+        upgrade.setRevertAllowed(true);
+        upgrade = m_upgradeDAO.merge(upgrade);
+      }
 
       // Reset upgrade state
       cluster.setUpgradeEntity(null);

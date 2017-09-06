@@ -180,7 +180,8 @@ public class UpgradeCatalog260Test {
 
     Capture<DBColumnInfo> rvid = newCapture();
     Capture<DBColumnInfo> orchestration = newCapture();
-    expectUpdateUpgradeTable(rvid, orchestration);
+    Capture<DBColumnInfo> revertAllowed = newCapture();
+    expectUpdateUpgradeTable(rvid, orchestration, revertAllowed);
 
     Capture<List<DBAccessor.DBColumnInfo>> columns = newCapture();
     expectCreateUpgradeHistoryTable(columns);
@@ -215,7 +216,7 @@ public class UpgradeCatalog260Test {
     verifyUpdateServiceComponentDesiredStateTable(scdstadd1, scdstalter1, scdstadd2, scdstalter2);
     verifyUpdateServiceDesiredStateTable(sdstadd, sdstalter);
     verifyAddSelectedCollumsToClusterconfigTable(selectedColumnInfo, selectedmappingColumnInfo, selectedTimestampColumnInfo, createTimestampColumnInfo);
-    verifyUpdateUpgradeTable(rvid, orchestration);
+    verifyUpdateUpgradeTable(rvid, orchestration, revertAllowed);
     verifyCreateUpgradeHistoryTable(columns);
     verifyUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture);
   }
@@ -298,7 +299,8 @@ public class UpgradeCatalog260Test {
     expectLastCall().once();
   }
 
-  public void verifyUpdateUpgradeTable(Capture<DBColumnInfo> rvid, Capture<DBColumnInfo> orchestration) {
+  public void verifyUpdateUpgradeTable(Capture<DBColumnInfo> rvid,
+      Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed) {
     DBColumnInfo rvidValue = rvid.getValue();
     Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_ID_COLUMN, rvidValue.getName());
     Assert.assertEquals(Long.class, rvidValue.getType());
@@ -312,23 +314,41 @@ public class UpgradeCatalog260Test {
     Assert.assertEquals(Integer.valueOf(255), orchestrationValue.getLength());
     Assert.assertEquals(UpgradeCatalog260.STANDARD, orchestrationValue.getDefaultValue());
     Assert.assertEquals(false, orchestrationValue.isNullable());
+
+    DBColumnInfo revertAllowedValue = revertAllowed.getValue();
+    Assert.assertEquals(UpgradeCatalog260.ALLOW_REVERT_COLUMN, revertAllowedValue.getName());
+    Assert.assertEquals(Short.class, revertAllowedValue.getType());
+    Assert.assertEquals(null, revertAllowedValue.getLength());
+    Assert.assertEquals(0, revertAllowedValue.getDefaultValue());
+    Assert.assertEquals(false, revertAllowedValue.isNullable());
   }
 
-  public void expectUpdateUpgradeTable(Capture<DBColumnInfo> rvid, Capture<DBColumnInfo> orchestration) throws SQLException {
+  public void expectUpdateUpgradeTable(Capture<DBColumnInfo> rvid,
+      Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed)
+      throws SQLException {
+
     dbAccessor.clearTable(eq(UpgradeCatalog260.UPGRADE_TABLE));
     expectLastCall().once();
+
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog260.UPGRADE_TABLE), eq(UpgradeCatalog260.FK_UPGRADE_FROM_REPO_ID));
     expectLastCall().once();
+
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog260.UPGRADE_TABLE), eq(UpgradeCatalog260.FK_UPGRADE_TO_REPO_ID));
     expectLastCall().once();
+
     dbAccessor.dropColumn(eq(UpgradeCatalog260.UPGRADE_TABLE), eq(UpgradeCatalog260.FROM_REPO_VERSION_ID_COLUMN));
     expectLastCall().once();
+
     dbAccessor.dropColumn(eq(UpgradeCatalog260.UPGRADE_TABLE), eq(UpgradeCatalog260.TO_REPO_VERSION_ID_COLUMN));
     expectLastCall().once();
 
     dbAccessor.addColumn(eq(UpgradeCatalog260.UPGRADE_TABLE), capture(rvid));
     expectLastCall().once();
+
     dbAccessor.addColumn(eq(UpgradeCatalog260.UPGRADE_TABLE), capture(orchestration));
+    expectLastCall().once();
+
+    dbAccessor.addColumn(eq(UpgradeCatalog260.UPGRADE_TABLE), capture(revertAllowed));
     expectLastCall().once();
 
     dbAccessor.addFKConstraint(eq(UpgradeCatalog260.UPGRADE_TABLE), eq(UpgradeCatalog260.FK_UPGRADE_REPO_VERSION_ID), eq(UpgradeCatalog260.REPO_VERSION_ID_COLUMN), eq(UpgradeCatalog260.REPO_VERSION_TABLE), eq(UpgradeCatalog260.REPO_VERSION_ID_COLUMN), eq(false));
@@ -486,7 +506,7 @@ public class UpgradeCatalog260Test {
   @Test
   public void testRemoveDruidSuperset() throws Exception {
 
-    List<Integer> current = new ArrayList<Integer>();
+    List<Integer> current = new ArrayList<>();
     current.add(1);
 
     expect(dbAccessor.getConnection()).andReturn(connection).anyTimes();

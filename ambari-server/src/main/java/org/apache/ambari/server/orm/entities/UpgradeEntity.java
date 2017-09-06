@@ -34,6 +34,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.QueryHint;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -58,21 +59,42 @@ import com.google.common.base.Objects;
     pkColumnValue = "upgrade_id_seq",
     initialValue = 0)
 @NamedQueries({
-  @NamedQuery(name = "UpgradeEntity.findAll",
-      query = "SELECT u FROM UpgradeEntity u"),
-  @NamedQuery(name = "UpgradeEntity.findAllForCluster",
-      query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId"),
-  @NamedQuery(name = "UpgradeEntity.findUpgrade",
-      query = "SELECT u FROM UpgradeEntity u WHERE u.upgradeId = :upgradeId"),
-  @NamedQuery(name = "UpgradeEntity.findUpgradeByRequestId",
-      query = "SELECT u FROM UpgradeEntity u WHERE u.requestId = :requestId"),
-  @NamedQuery(name = "UpgradeEntity.findLatestForClusterInDirection",
-      query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY r.startTime DESC, u.upgradeId DESC"),
-  @NamedQuery(name = "UpgradeEntity.findLatestForCluster",
-      query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId ORDER BY r.startTime DESC"),
-  @NamedQuery(name = "UpgradeEntity.findAllRequestIds",
-      query = "SELECT upgrade.requestId FROM UpgradeEntity upgrade")
-})
+    @NamedQuery(name = "UpgradeEntity.findAll", query = "SELECT u FROM UpgradeEntity u"),
+    @NamedQuery(
+        name = "UpgradeEntity.findAllForCluster",
+        query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId"),
+    @NamedQuery(
+        name = "UpgradeEntity.findUpgrade",
+        query = "SELECT u FROM UpgradeEntity u WHERE u.upgradeId = :upgradeId"),
+    @NamedQuery(
+        name = "UpgradeEntity.findUpgradeByRequestId",
+        query = "SELECT u FROM UpgradeEntity u WHERE u.requestId = :requestId"),
+    @NamedQuery(
+        name = "UpgradeEntity.findLatestForClusterInDirection",
+        query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY r.startTime DESC, u.upgradeId DESC"),
+    @NamedQuery(
+        name = "UpgradeEntity.findLatestForCluster",
+        query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId ORDER BY r.startTime DESC"),
+    @NamedQuery(
+        name = "UpgradeEntity.findAllRequestIds",
+        query = "SELECT upgrade.requestId FROM UpgradeEntity upgrade"),
+    @NamedQuery(
+        name = "UpgradeEntity.findRevertable",
+        query = "SELECT upgrade FROM UpgradeEntity upgrade WHERE upgrade.revertAllowed = 1 AND upgrade.clusterId = :clusterId ORDER BY upgrade.upgradeId DESC",
+        hints = {
+            @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+            @QueryHint(name = "eclipselink.query-results-cache.ignore-null", value = "false"),
+            @QueryHint(name = "eclipselink.query-results-cache.size", value = "1")
+          }),
+    @NamedQuery(
+        name = "UpgradeEntity.findRevertableUsingJPQL",
+        query = "SELECT upgrade FROM UpgradeEntity upgrade WHERE upgrade.repoVersionId IN (SELECT upgrade.repoVersionId FROM UpgradeEntity upgrade WHERE upgrade.clusterId = :clusterId AND upgrade.orchestration IN :revertableTypes GROUP BY upgrade.repoVersionId HAVING MOD(COUNT(upgrade.repoVersionId), 2) != 0) ORDER BY upgrade.upgradeId DESC",
+        hints = {
+            @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+            @QueryHint(name = "eclipselink.query-results-cache.ignore-null", value = "false"),
+            @QueryHint(name = "eclipselink.query-results-cache.size", value = "1")
+          })
+        })
 public class UpgradeEntity {
 
   @Id
@@ -107,6 +129,9 @@ public class UpgradeEntity {
   @Enumerated(value = EnumType.STRING)
   private UpgradeType upgradeType;
 
+  @Column(name = "repo_version_id", insertable = false, updatable = false)
+  private Long repoVersionId;
+
   @JoinColumn(name = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
   private RepositoryVersionEntity repositoryVersion;
 
@@ -117,7 +142,26 @@ public class UpgradeEntity {
   private Integer skipServiceCheckFailures = 0;
 
   @Column(name="downgrade_allowed", nullable = false)
-  private Short downgrade_allowed = 1;
+  private Short downgradeAllowed = 1;
+
+  /**
+   * Whether this upgrade is a candidate to be reverted. The current restriction
+   * on this behavior is that only the most recent
+   * {@link RepositoryType#PATCH}/{@link RepositoryType#MAINT} for a given
+   * cluster can be reverted at a time.
+   * <p/>
+   * All upgrades are created with this value defaulted to {@code false}. Upon
+   * successful finalization of the upgrade, if the upgrade was the correct type
+   * and direction, then it becomes a candidate for reversion and this value is
+   * set to {@code true}. If an upgrade is reverted after being finalized, then
+   * this value to should set to {@code false} explicitely.
+   * <p/>
+   * There can exist <i>n</i> number of upgrades with this value set to
+   * {@code true}. The idea is that only the most recent upgrade with this value
+   * set to {@code true} will be able to be reverted.
+   */
+  @Column(name = "revert_allowed", nullable = false)
+  private Short revertAllowed = 0;
 
   @Column(name="orchestration", nullable = false)
   @Enumerated(value = EnumType.STRING)
@@ -222,18 +266,45 @@ public class UpgradeEntity {
    * @return possibility to process downgrade
    */
   public Boolean isDowngradeAllowed() {
-    return downgrade_allowed != null ? (downgrade_allowed != 0) : null;
+    return downgradeAllowed != null ? (downgradeAllowed != 0) : null;
   }
 
   /**
    * @param canDowngrade {@code true} to allow downgrade, {@code false} to disallow downgrade
    */
   public void setDowngradeAllowed(boolean canDowngrade) {
-    downgrade_allowed = (!canDowngrade ? (short)0 : (short)1);
+    downgradeAllowed = (!canDowngrade ? (short) 0 : (short) 1);
   }
 
   /**
-   * @param upgradeType the upgrade type to set
+   * Gets whether this upgrade supports being reverted. Upgrades can be reverted
+   * (downgraded after finalization) if they are either
+   * {@link RepositoryType#MAINT} or {@link RepositoryType#PATCH} and have never
+   * been previously downgraded.
+   *
+   * @return {@code true} if this upgrade can potentially be revereted.
+   */
+  public Boolean isRevertAllowed() {
+    return revertAllowed != null ? (revertAllowed != 0) : null;
+  }
+
+  /**
+   * Sets whether this upgrade supports being reverted. This should only ever be
+   * called from the finalization of an upgrade. {@link RepositoryType#MAINT} or
+   * {@link RepositoryType#PATCH} upgrades can be revereted only if they have
+   * not previously been downgraded.
+   *
+   * @param revertable
+   *          {@code true} to mark this as being revertable, {@code false}
+   *          otherwise.
+   */
+  public void setRevertAllowed(boolean revertable) {
+    revertAllowed = (!revertable ? (short) 0 : (short) 1);
+  }
+
+  /**
+   * @param upgradeType
+   *          the upgrade type to set
    */
   public void setUpgradeType(UpgradeType upgradeType) {
     this.upgradeType = upgradeType;
