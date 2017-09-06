@@ -47,19 +47,22 @@ public class StartHostTask extends TopologyHostTask {
   @Override
   public void runTask() {
     LOG.info("HostRequest: Executing START task for host: {}", hostRequest.getHostName());
-    RequestStatusResponse response = clusterTopology.startHost(hostRequest.getHostName(), skipFailure);
-    // map logical install tasks to physical install tasks
-    List<ShortTaskStatus> underlyingTasks = response.getTasks();
-    for (ShortTaskStatus task : underlyingTasks) {
 
-      String component = task.getRole();
-      Long logicalStartTaskId = hostRequest.getLogicalTasksForTopologyTask(this).get(component);
-      if(logicalStartTaskId == null) {
-        LOG.info("Skipping physical start task registering, because component {} cannot be found", task.getRole());
-        continue;
+    RequestStatusResponse response = clusterTopology.startHost(hostRequest.getHostName(), skipFailure);
+    if (response != null) {
+      // map logical install tasks to physical install tasks
+      List<ShortTaskStatus> underlyingTasks = response.getTasks();
+      for (ShortTaskStatus task : underlyingTasks) {
+
+        String component = task.getRole();
+        Long logicalStartTaskId = hostRequest.getLogicalTasksForTopologyTask(this).get(component);
+        if (logicalStartTaskId == null) {
+          LOG.info("Skipping physical start task registering, because component {} cannot be found", task.getRole());
+          continue;
+        }
+        // for now just set on outer map
+        hostRequest.registerPhysicalTaskId(logicalStartTaskId, task.getTaskId());
       }
-      // for now just set on outer map
-      hostRequest.registerPhysicalTaskId(logicalStartTaskId, task.getTaskId());
     }
 
     LOG.info("HostRequest: Exiting START task for host: {}", hostRequest.getHostName());
