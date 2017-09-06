@@ -49,6 +49,7 @@ from resource_management.libraries.functions.get_architecture import get_archite
 from resource_management.libraries.functions.version import get_major_version
 
 from resource_management.core.utils import PasswordString
+from resource_management.core.exceptions import Fail
 from resource_management.core.shell import checked_call
 from ambari_commons.credential_store_helper import get_password_from_credential_store
 
@@ -288,6 +289,7 @@ elif hive_jdbc_driver == "sap.jdbc4.sqlanywhere.IDriver":
   jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
   hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
+else: raise Fail(format("JDBC driver '{hive_jdbc_driver}' not supported."))
 
 default_mysql_jar_name = "mysql-connector-java.jar"
 default_mysql_target = format("{hive_lib}/{default_mysql_jar_name}")

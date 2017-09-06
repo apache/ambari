@@ -319,6 +319,7 @@ class CheckHost(Script):
         jdbc_url = jdk_location + jdbc_driver_sqla_name
         jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
         jdbc_name = jdbc_driver_sqla_name
+    else: no_jdbc_error_message = format("'{db_name}' database type not supported.")
 
     if no_jdbc_error_message:
       Logger.warning(no_jdbc_error_message)

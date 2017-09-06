@@ -413,4 +413,37 @@ class TestCheckHost(TestCase):
     self.assertEquals(structured_out_mock.call_args[0][0], {'transparentHugePage' : {'message': '', 'exit_code': 0}})
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("tempfile.mkdtemp", new = MagicMock(return_value='/tmp/jdk_tmp_dir'))
+  @patch.object(Script, 'get_config')
+  @patch.object(Script, 'get_tmp_dir')
+  @patch("check_host.download_file")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  @patch("os.path.isfile")
+  @patch("resource_management.core.shell.call")
+  def testUnsupportedDatabaseType(self, isfile_mock, format_mock, structured_out_mock, download_file_mock, get_tmp_dir_mock, mock_config):
+    mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
+                                                   "java_home" : "test_java_home",
+                                                   "ambari_server_host" : "test_host",
+                                                   "jdk_location" : "test_jdk_location",
+                                                   "db_name" : "unsupported_db",
+                                                   "db_connection_url" : "test_db_connection_url",
+                                                   "user_name" : "test_user_name",
+                                                   "user_passwd" : "test_user_passwd",
+                                                   "jdk_name" : "test_jdk_name"},
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp",
+                                                     "custom_mysql_jdbc_name" : "mysql-connector-java.jar"}
+                                }
+    get_tmp_dir_mock.return_value = "/tmp"
+    download_file_mock.side_effect = Exception("test exception")
+    isfile_mock.return_value = True
+    checkHost = CheckHost()
+
+    try:
+      checkHost.actionexecute(None)
+      self.fail("DB Check should be failed")
+    except Fail:
+      pass
+
+    self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': '\'unsupported_db\' database type not supported.', 'exit_code': 1}})
 
