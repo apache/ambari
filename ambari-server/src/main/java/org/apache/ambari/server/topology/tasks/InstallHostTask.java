@@ -50,19 +50,21 @@ public class InstallHostTask extends TopologyHostTask {
     LOG.info("HostRequest: Executing INSTALL task for host: {}", hostRequest.getHostName());
     boolean skipInstallTaskCreate = clusterTopology.getProvisionAction().equals(ProvisionAction.START_ONLY);
     RequestStatusResponse response = clusterTopology.installHost(hostRequest.getHostName(), skipInstallTaskCreate, skipFailure);
-    // map logical install tasks to physical install tasks
-    List<ShortTaskStatus> underlyingTasks = response.getTasks();
-    for (ShortTaskStatus task : underlyingTasks) {
+    if(response != null) {
+      // map logical install tasks to physical install tasks
+      List<ShortTaskStatus> underlyingTasks = response.getTasks();
+      for (ShortTaskStatus task : underlyingTasks) {
 
-      String component = task.getRole();
-      Long logicalInstallTaskId = hostRequest.getLogicalTasksForTopologyTask(this).get(component);
-      if(logicalInstallTaskId == null) {
-        LOG.info("Skipping physical install task registering, because component {} cannot be found", task.getRole());
-        continue;
+        String component = task.getRole();
+        Long logicalInstallTaskId = hostRequest.getLogicalTasksForTopologyTask(this).get(component);
+        if (logicalInstallTaskId == null) {
+          LOG.info("Skipping physical install task registering, because component {} cannot be found", task.getRole());
+          continue;
+        }
+        //todo: for now only one physical task per component
+        long taskId = task.getTaskId();
+        hostRequest.registerPhysicalTaskId(logicalInstallTaskId, taskId);
       }
-      //todo: for now only one physical task per component
-      long taskId = task.getTaskId();
-      hostRequest.registerPhysicalTaskId(logicalInstallTaskId, taskId);
     }
 
     LOG.info("HostRequest: Exiting INSTALL task for host: {}", hostRequest.getHostName());
