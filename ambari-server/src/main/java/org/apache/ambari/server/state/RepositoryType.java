@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.EnumSet;
+
 /**
  * Identifies the type of repository
  */
@@ -45,6 +47,11 @@ public enum RepositoryType {
    */
   SERVICE;
 
+  /**
+   * The types of repositories which are revertable.
+   */
+  public static final EnumSet<RepositoryType> REVERTABLE = EnumSet.of(RepositoryType.MAINT,
+      RepositoryType.PATCH);
 
   /**
    * Gets whether applications of this repository are revertable after they have

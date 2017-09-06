@@ -93,6 +93,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String FROM_REPO_VERSION_ID_COLUMN = "from_repo_version_id";
   public static final String TO_REPO_VERSION_ID_COLUMN = "to_repo_version_id";
   public static final String ORCHESTRATION_COLUMN = "orchestration";
+  public static final String ALLOW_REVERT_COLUMN = "revert_allowed";
   public static final String FK_UPGRADE_FROM_REPO_ID = "FK_upgrade_from_repo_id";
   public static final String FK_UPGRADE_TO_REPO_ID = "FK_upgrade_to_repo_id";
   public static final String FK_UPGRADE_REPO_VERSION_ID = "FK_upgrade_repo_version_id";
@@ -146,6 +147,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getTargetVersion() {
     return "2.6.0";
   }
@@ -187,7 +189,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
         EntityManager entityManager = getEntityManagerProvider().get();
         Query query = entityManager.createNamedQuery("ClusterConfigEntity.findNotMappedClusterConfigsToService",ClusterConfigEntity.class);
 
-        List<ClusterConfigEntity> notMappedConfigs =  (List<ClusterConfigEntity>) query.getResultList();
+        List<ClusterConfigEntity> notMappedConfigs =  query.getResultList();
         if (notMappedConfigs != null) {
           for (ClusterConfigEntity clusterConfigEntity : notMappedConfigs) {
             clusterConfigEntity.setUnmapped(true);
@@ -243,8 +245,12 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn(UPGRADE_TABLE,
         new DBAccessor.DBColumnInfo(REPO_VERSION_ID_COLUMN, Long.class, null, null, false));
+
     dbAccessor.addColumn(UPGRADE_TABLE,
         new DBAccessor.DBColumnInfo(ORCHESTRATION_COLUMN, String.class, 255, STANDARD, false));
+
+    dbAccessor.addColumn(UPGRADE_TABLE,
+        new DBAccessor.DBColumnInfo(ALLOW_REVERT_COLUMN, Short.class, null, 0, false));
 
     dbAccessor.addFKConstraint(UPGRADE_TABLE, FK_UPGRADE_REPO_VERSION_ID, REPO_VERSION_ID_COLUMN, REPO_VERSION_TABLE, REPO_VERSION_ID_COLUMN, false);
   }

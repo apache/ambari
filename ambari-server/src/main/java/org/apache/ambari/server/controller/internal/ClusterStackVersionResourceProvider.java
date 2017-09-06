@@ -60,6 +60,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
@@ -112,6 +113,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
   protected static final String CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_summary");
+  protected static final String CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT= PropertyHelper.getPropertyId("ClusterStackVersions", "supports_revert");
+  protected static final String CLUSTER_STACK_VERSION_REPO_REVERT_UPGRADE_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "revert_upgrade_id");
 
   protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID  = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
   protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
@@ -153,7 +156,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
       CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR,
-      CLUSTER_STACK_VERSION_FORCE, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID);
+      CLUSTER_STACK_VERSION_FORCE, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, CLUSTER_STACK_VERSION_REPO_REVERT_UPGRADE_ID);
 
   private static Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
       .put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)
@@ -165,6 +169,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static HostVersionDAO hostVersionDAO;
+
+  /**
+   * Used for looking up revertable upgrades.
+   */
+  @Inject
+  private static UpgradeDAO upgradeDAO;
 
   @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
@@ -260,6 +270,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       throw new SystemException("Could not find any repositories to show");
     }
 
+    // find the 1 repository version which is revertable, if any
+    UpgradeEntity revertableUpgrade = null;
+    if (null == cluster.getUpgradeInProgress()) {
+      revertableUpgrade = upgradeDAO.findRevertable(cluster.getClusterId());
+    }
+
     for (Long repositoryVersionId : requestedEntities) {
       final Resource resource = new ResourceImpl(Resource.Type.ClusterStackVersion);
 
@@ -298,7 +314,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       setResourceProperty(resource, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID, hostStates, requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID, versionSummary, requestedIds);
 
-
       setResourceProperty(resource, CLUSTER_STACK_VERSION_ID_PROPERTY_ID, repositoryVersion.getId(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, repoVersionStackId.getStackName(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, repoVersionStackId.getStackVersion(), requestedIds);
@@ -308,6 +323,21 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           comment = "this is a fake status until the UI can handle services that are on their own")
       RepositoryVersionState aggregateState = RepositoryVersionState.getAggregateState(allStates);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, aggregateState, requestedIds);
+
+      // mark whether this repo is revertable for this cluster
+      boolean revertable = false;
+      if (null != revertableUpgrade) {
+        RepositoryVersionEntity revertableRepositoryVersion = revertableUpgrade.getRepositoryVersion();
+        revertable = revertableRepositoryVersion.getId() == repositoryVersionId;
+      }
+
+      setResourceProperty(resource, CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, revertable, requestedIds);
+
+      // if the repo is revertable, indicate which upgrade to revert if necessary
+      if (revertable) {
+        setResourceProperty(resource, CLUSTER_STACK_VERSION_REPO_REVERT_UPGRADE_ID,
+            revertableUpgrade.getId(), requestedIds);
+      }
 
       if (predicate == null || predicate.evaluate(resource)) {
         resources.add(resource);
