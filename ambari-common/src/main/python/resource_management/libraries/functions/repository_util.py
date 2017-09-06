@@ -40,7 +40,10 @@ def create_repo_files(template, command_repository):
     raise Fail("The command repository was not parsed correctly")
 
   if 0 == len(command_repository.repositories):
-    raise Fail("Cannot create repository files when no repositories are defined")
+    Logger.warning(
+      "Repository for {0}/{1} has no repositories.  Ambari may not be managing this version.".format(
+        command_repository.stack_name, command_repository.version_string))
+    return
 
   # add the stack name to the file name just to make it a little easier to debug
   # version_id is the primary id of the repo_version table in the database
@@ -54,15 +57,20 @@ def create_repo_files(template, command_repository):
     if repository.repo_id is None:
       raise Fail("Repository with url {0} has no id".format(repository.base_url))
 
-    Repository(repository.repo_id,
-               action = "create",
-               base_url = repository.base_url,
-               mirror_list = repository.mirrors_list,
-               repo_file_name = file_name,
-               repo_template = template,
-               components = repository.ubuntu_components,
-               append_to_file = append_to_file)
-    append_to_file = True
+    if not repository.ambari_managed:
+      Logger.warning(
+        "Repository for {0}/{1}/{2} is not managed by Ambari".format(
+          command_repository.stack_name, command_repository.version_string, repository.repo_id))
+    else:
+      Repository(repository.repo_id,
+                 action = "create",
+                 base_url = repository.base_url,
+                 mirror_list = repository.mirrors_list,
+                 repo_file_name = file_name,
+                 repo_template = template,
+                 components = repository.ubuntu_components,
+                 append_to_file = append_to_file)
+      append_to_file = True
 
 
 def _find_value(dictionary, key):
@@ -116,6 +124,10 @@ class _CommandRepositoryEntry(object):
     self.repo_name = _find_value(json_dict, 'repoName')
     self.base_url = _find_value(json_dict, 'baseUrl')
     self.mirrors_list = _find_value(json_dict, 'mirrorsList')
+    self.ambari_managed = _find_value(json_dict, 'ambariManaged')
+
+    if self.ambari_managed is None:
+      self.ambari_managed = True
 
     # if repoName is changed on the java side, this will fail for ubuntu since we rely on the
     # name being the same as how the repository was built

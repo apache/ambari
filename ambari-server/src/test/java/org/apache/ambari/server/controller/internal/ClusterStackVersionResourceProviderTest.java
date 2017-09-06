@@ -55,6 +55,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -1069,7 +1070,12 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
 
     Assert.assertNotNull(executionCommand.getRepositoryFile());
-    Assert.assertEquals(0, executionCommand.getRepositoryFile().getRepositories().size());
+    Assert.assertEquals(2, executionCommand.getRepositoryFile().getRepositories().size());
+
+    for (CommandRepository.Repository repo : executionCommand.getRepositoryFile().getRepositories()) {
+      Assert.assertFalse(repo.isAmbariManaged());
+    }
+
   }
 
    @Test

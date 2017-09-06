@@ -303,16 +303,20 @@ public class RepositoryVersionHelper {
    * @param repoVersion   the repository version entity
    * @param repos         the repository entities
    */
-  public void addCommandRepository(ActionExecutionContext context, String osFamily,
-      RepositoryVersionEntity repoVersion, List<RepositoryEntity> repos) {
-    StackId stackId = repoVersion.getStackId();
+  public void addCommandRepository(ActionExecutionContext context,
+      RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) {
 
     final CommandRepository commandRepo = new CommandRepository();
-    commandRepo.setRepositories(osFamily, repos);
+    commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
-    commandRepo.setStackName(stackId.getStackName());
-    commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+    commandRepo.setStackName(repoVersion.getStackId().getStackName());
+
+    if (!osEntity.isAmbariManagedRepos()) {
+      commandRepo.setNonManaged();
+    } else {
+      commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+    }
 
     context.addVisitor(new ExecutionCommandVisitor() {
       @Override
