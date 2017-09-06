@@ -289,7 +289,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
     var isStacksExistInDb = stacks && stacks.length;
     if (isStacksExistInDb) {
       stacks.forEach(function (_stack) {
-        var stack = data.items.findProperty('VersionDefinition.repository_version', _stack.repository_version);
+        var stack = data.items.findProperty('VersionDefinition.id', _stack.id);
         if (stack) {
           stack.VersionDefinition.is_selected = _stack.is_selected;
         }
