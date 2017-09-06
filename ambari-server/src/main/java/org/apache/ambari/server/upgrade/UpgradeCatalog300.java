@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +44,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,21 +238,15 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
 
+      ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
           Collection<Config> configs = cluster.getAllConfigs();
           for (Config config : configs) {
             String configType = config.getType();
-            if (!configType.endsWith("-logsearch-conf")) {
-              continue;
+            if (configType.endsWith("-logsearch-conf")) {
+              configHelper.removeConfigsByType(cluster, configType);
             }
-
-            Set<String> removeProperties = new HashSet<>();
-            removeProperties.add("service_name");
-            removeProperties.add("component_mappings");
-            removeProperties.add("content");
-
-            removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
           }
 
           Config logSearchEnv = cluster.getDesiredConfigByType("logsearch-env");
@@ -267,6 +261,11 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
           Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
           if (logSearchProperties != null && logFeederProperties != null) {
+            configHelper.createConfigType(cluster, cluster.getDesiredStackVersion(), ambariManagementController,
+                "logsearch-common-properties", Collections.emptyMap(), "ambari-upgrade",
+                String.format("Updated logsearch-common-properties during Ambari Upgrade from %s to %s",
+                    getSourceVersion(), getTargetVersion()));
+            
             String defaultLogLevels = logSearchProperties.getProperties().get("logsearch.logfeeder.include.default.level");
 
             Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
@@ -341,7 +340,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
                 "      \"splits_interval_mins\": \"{{logsearch_audit_logs_split_interval_mins}}\",\n",
                 "      \"type\": \"audit\",\n");
 
-            updateConfigurationPropertiesForCluster(cluster, "logsearch-output-config", Collections.singletonMap("content", content), true, true);
+            updateConfigurationPropertiesForCluster(cluster, "logfeeder-output-config", Collections.singletonMap("content", content), true, true);
           }
         }
       }

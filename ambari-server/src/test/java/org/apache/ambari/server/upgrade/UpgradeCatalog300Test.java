@@ -32,14 +32,12 @@ import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -53,10 +51,10 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
-import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
@@ -200,10 +198,15 @@ public class UpgradeCatalog300Test {
         .addMockedMethod("createConfiguration")
         .addMockedMethod("getClusters", new Class[]{})
         .addMockedMethod("createConfig")
-        .withConstructor(actionManager, clusters, injector)
         .createNiceMock();
+    ConfigHelper configHelper = createMockBuilder(ConfigHelper.class)
+        .addMockedMethod("removeConfigsByType")
+        .addMockedMethod("createConfigType", Cluster.class, StackId.class, AmbariManagementController.class,
+            String.class, Map.class, String.class, String.class)
+        .createMock();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(injector2.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
 
     Config confSomethingElse1 = easyMockSupport.createNiceMock(Config.class);
@@ -215,21 +218,17 @@ public class UpgradeCatalog300Test {
     Config confLogSearchConf2 = easyMockSupport.createNiceMock(Config.class);
     expect(confLogSearchConf2.getType()).andReturn("service-2-logsearch-conf");
 
-    Map<String, String> oldLogSearchConf = ImmutableMap.of(
-        "service_name", "Service",
-        "component_mappings", "Component Mappings",
-        "content", "Content");
-
     Collection<Config> configs = Arrays.asList(confSomethingElse1, confLogSearchConf1, confSomethingElse2, confLogSearchConf2);
 
     expect(cluster.getAllConfigs()).andReturn(configs).atLeastOnce();
-    expect(cluster.getDesiredConfigByType("service-1-logsearch-conf")).andReturn(confLogSearchConf1).once();
-    expect(cluster.getDesiredConfigByType("service-2-logsearch-conf")).andReturn(confLogSearchConf2).once();
-    expect(confLogSearchConf1.getProperties()).andReturn(oldLogSearchConf).once();
-    expect(confLogSearchConf2.getProperties()).andReturn(oldLogSearchConf).once();
-    Capture<Map<String, String>> logSearchConfCapture = EasyMock.newCapture(CaptureType.ALL);
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchConfCapture), anyString(),
-        EasyMock.anyObject())).andReturn(config).times(2);
+    configHelper.removeConfigsByType(cluster,"service-1-logsearch-conf");
+    expectLastCall().once();
+    configHelper.removeConfigsByType(cluster,"service-2-logsearch-conf");
+    expectLastCall().once();
+    configHelper.createConfigType(anyObject(Cluster.class), anyObject(StackId.class), eq(controller),
+        eq("logsearch-common-properties"), eq(Collections.emptyMap()), eq("ambari-upgrade"),
+        eq("Updated logsearch-common-properties during Ambari Upgrade from 2.6.0 to 3.0.0"));
+    expectLastCall().once();
 
     Map<String, String> oldLogSearchProperties = ImmutableMap.of(
         "logsearch.logfeeder.include.default.level", "FATAL,ERROR,WARN"
@@ -343,12 +342,6 @@ public class UpgradeCatalog300Test {
     replay(logFeederOutputConf);
     new UpgradeCatalog300(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
-
-    List<Map<String, String>> updatedLogSearchConfs = logSearchConfCapture.getValues();
-    assertEquals(updatedLogSearchConfs.size(), 2);
-    for (Map<String, String> updatedLogSearchConf : updatedLogSearchConfs) {
-      assertTrue(Maps.difference(Collections.emptyMap(), updatedLogSearchConf).areEqual());
-    }
 
     Map<String,String> newLogFeederProperties = logFeederPropertiesCapture.getValue();
     assertTrue(Maps.difference(expectedLogFeederProperties, newLogFeederProperties).areEqual());
