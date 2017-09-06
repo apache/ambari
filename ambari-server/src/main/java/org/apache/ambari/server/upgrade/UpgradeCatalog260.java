@@ -85,6 +85,8 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String FK_REPO_VERSION_ID = "FK_repo_version_id";
 
   public static final String UPGRADE_TABLE = "upgrade";
+  public static final String UPGRADE_GROUP_TABLE = "upgrade_group";
+  public static final String UPGRADE_ITEM_TABLE = "upgrade_item";
   public static final String FROM_REPO_VERSION_ID_COLUMN = "from_repo_version_id";
   public static final String TO_REPO_VERSION_ID_COLUMN = "to_repo_version_id";
   public static final String ORCHESTRATION_COLUMN = "orchestration";
@@ -157,9 +159,9 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     addSelectedCollumsToClusterconfigTable();
     updateHostComponentDesiredStateTable();
     updateHostComponentStateTable();
+    dropStaleTables();
     updateUpgradeTable();
     createUpgradeHistoryTable();
-    dropStaleTables();
     updateRepositoryVersionTable();
     renameServiceDeletedColumn();
   }
@@ -229,6 +231,8 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * @throws java.sql.SQLException
    */
   private void updateUpgradeTable() throws SQLException {
+    dbAccessor.clearTable(UPGRADE_ITEM_TABLE);
+    dbAccessor.clearTable(UPGRADE_GROUP_TABLE);
     dbAccessor.clearTable(UPGRADE_TABLE);
     dbAccessor.dropFKConstraint(UPGRADE_TABLE, FK_UPGRADE_FROM_REPO_ID);
     dbAccessor.dropFKConstraint(UPGRADE_TABLE, FK_UPGRADE_TO_REPO_ID);

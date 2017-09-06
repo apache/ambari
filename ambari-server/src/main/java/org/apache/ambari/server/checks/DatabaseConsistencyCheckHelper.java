@@ -654,7 +654,7 @@ public class DatabaseConsistencyCheckHelper {
 
     Set<String> nonMappedConfigs = new HashSet<>();
     for (ClusterConfigEntity clusterConfigEntity : notMappedClasterConfigs) {
-      if (!clusterConfigEntity.isUnmapped()){
+      if (!clusterConfigEntity.isUnmapped()){ //this check does not report warning for configs from deleted services
         nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
       }
     }
@@ -668,6 +668,7 @@ public class DatabaseConsistencyCheckHelper {
   * of desired host component states. According to ambari logic these
   * two tables should have the same count of rows. If not then we are
   * adding missed host components.
+  * hard to predict root couse of inconsistency, so it can be dangerous
   */
   @Transactional
   static void fixHostComponentStatesCountEqualsHostComponentsDesiredStates() {
@@ -740,6 +741,7 @@ public class DatabaseConsistencyCheckHelper {
    * The purpose of these checks is to avoid that tables and constraints in ambari's schema get confused with tables
    * and constraints in other schemas on the DB user's search path. This can happen after an improperly made DB restore
    * operation and can cause issues during upgrade.
+   * we may have no permissions (e.g. external DB) to auto fix this problem
   **/
   static void checkSchemaName () {
     Configuration conf = injector.getInstance(Configuration.class);
@@ -795,6 +797,7 @@ public class DatabaseConsistencyCheckHelper {
 
   /**
   * This method checks tables engine type to be innodb for MySQL.
+  * it's too risky to autofix by migrating DB to innodb
   * */
   static void checkMySQLEngine () {
     Configuration conf = injector.getInstance(Configuration.class);
