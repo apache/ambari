@@ -92,8 +92,7 @@ def setup_extensions_hive():
 
   hive_custom_extensions_enabled = default("/configurations/hive-site/hive.custom-extensions.enabled", False)
   hive_custom_extensions_owner = default("/configurations/hive-site/hive.custom-extensions.owner", params.hdfs_user)
-  hive_custom_extensions_hdfs_dir = get_config_formatted_value(default("/configurations/hive-site/hive.custom-extensions.root",
-                                               DEFAULT_HADOOP_HIVE_EXTENSION_DIR.format(params.major_stack_version)))
+  hive_custom_extensions_hdfs_dir = DEFAULT_HADOOP_HIVE_EXTENSION_DIR.format(params.major_stack_version)
 
   hive_custom_extensions_local_dir = "{0}/current/ext/hive".format(Script.get_stack_root())
 
