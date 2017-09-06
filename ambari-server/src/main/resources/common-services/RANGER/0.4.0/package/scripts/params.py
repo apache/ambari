@@ -287,6 +287,17 @@ has_namenode = len(namenode_hosts) > 0
 ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.alias"]
 ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.keystore"]
 
+# get comma separated list of zookeeper hosts
+zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
+zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
+index = 0
+zookeeper_quorum = ""
+for host in zookeeper_hosts:
+  zookeeper_quorum += host + ":" + str(zookeeper_port)
+  index += 1
+  if index < len(zookeeper_hosts):
+    zookeeper_quorum += ","
+
 # ranger solr
 audit_solr_enabled = default('/configurations/ranger-env/xasecure.audit.destination.solr', False)
 ranger_solr_config_set = config['configurations']['ranger-env']['ranger_solr_config_set']
@@ -300,12 +311,11 @@ is_solrCloud_enabled = default('/configurations/ranger-env/is_solrCloud_enabled'
 is_external_solrCloud_enabled = default('/configurations/ranger-env/is_external_solrCloud_enabled', False)
 solr_znode = '/ranger_audits'
 if stack_supports_infra_client and is_solrCloud_enabled:
-  solr_znode = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', 'NONE')
-  if solr_znode != '' and solr_znode.upper() != 'NONE':
-    solr_znode = solr_znode.split('/')
-    if len(solr_znode) > 1 and len(solr_znode) == 2:
-      solr_znode = solr_znode[1]
-      solr_znode = format('/{solr_znode}')
+  solr_zookeeper_connect_string = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', 'NONE')
+  if solr_zookeeper_connect_string != '' and solr_zookeeper_connect_string.upper() != 'NONE':
+    pos = solr_zookeeper_connect_string.index("/")
+    solr_znode = solr_zookeeper_connect_string[pos:]
+    zookeeper_quorum = solr_zookeeper_connect_string[:pos]
   if has_infra_solr and not is_external_solrCloud_enabled:
     solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']
 solr_user = unix_user
@@ -319,17 +329,6 @@ custom_log4j = has_infra_solr and not is_external_solrCloud_enabled
 ranger_audit_max_retention_days = config['configurations']['ranger-solr-configuration']['ranger_audit_max_retention_days']
 ranger_audit_logs_merge_factor = config['configurations']['ranger-solr-configuration']['ranger_audit_logs_merge_factor']
 ranger_solr_config_content = config['configurations']['ranger-solr-configuration']['content']
-
-# get comma separated list of zookeeper hosts
-zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
-index = 0
-zookeeper_quorum = ""
-for host in zookeeper_hosts:
-  zookeeper_quorum += host + ":" + str(zookeeper_port)
-  index += 1
-  if index < len(zookeeper_hosts):
-    zookeeper_quorum += ","
 
 # solr kerberised
 solr_jaas_file = None
