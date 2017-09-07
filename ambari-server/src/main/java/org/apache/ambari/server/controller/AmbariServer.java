@@ -126,9 +126,13 @@ import org.apache.ambari.server.view.ViewThrottleFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -160,7 +164,6 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
-
 
 @Singleton
 public class AmbariServer {
@@ -452,6 +455,9 @@ public class AmbariServer {
       viewRegistry.readViewArchives();
 
       enableLog4jMonitor(configsMap);
+
+      //Check and load requestlog handler.
+      loadRequestlogHandler(handlerList, serverForAgent, configsMap);
 
       handlerList.addHandler(root);
       server.setHandler(handlerList);
@@ -985,6 +991,48 @@ public class AmbariServer {
       PropertyConfigurator.configureAndWatch(log4jpath,  monitorDelayLong);
     }catch(Exception e){
       LOG.error("Exception in setting log4j monitor delay of {} for {}", monitorDelay, log4jpath, e);
+    }
+  }
+
+  /**
+   * For loading requestlog handlers
+   */
+  private static void loadRequestlogHandler(AmbariHandlerList handlerList, Server serverForAgent , Map<String, String> configsMap) {
+
+    //Example:  /var/log/ambari-server/ambari-server-access-yyyy_mm_dd.log
+    String requestlogpath =  configsMap.get(Configuration.REQUEST_LOGPATH.getKey());
+
+    //Request logs can be disable by removing the property from ambari.properties file
+    if(!StringUtils.isBlank(requestlogpath)) {
+      String logfullpath = requestlogpath + "//" + Configuration.REQUEST_LOGNAMEPATTERN.getDefaultValue();
+      LOG.info("********* Initializing request access log: " + logfullpath);
+      RequestLogHandler requestLogHandler = new RequestLogHandler();
+
+      NCSARequestLog requestLog = new NCSARequestLog(requestlogpath);
+
+      String retaindays = configsMap.get(Configuration.REQUEST_LOG_RETAINDAYS.getKey());
+      int retaindaysInt = Configuration.REQUEST_LOG_RETAINDAYS.getDefaultValue();
+      if(retaindays != null && !StringUtils.isBlank(retaindays)) {
+        retaindaysInt = Integer.parseInt(retaindays.trim());
+      }
+
+      requestLog.setRetainDays(retaindaysInt);
+      requestLog.setAppend(true);
+      requestLog.setLogLatency(true);
+      requestLog.setExtended(true);
+      requestLogHandler.setRequestLog(requestLog);
+      //Add requestloghandler to existing handlerlist.
+      handlerList.addHandler(requestLogHandler);
+
+      //For agent communication.
+      HandlerCollection handlers = new HandlerCollection();
+      Handler[] handler = serverForAgent.getHandlers();
+      if(handler != null ) {
+        handlers.setHandlers((Handler[])handler);
+        handlers.addHandler(requestLogHandler);
+        serverForAgent.setHandler(handlers);
+      }
+
     }
   }
 

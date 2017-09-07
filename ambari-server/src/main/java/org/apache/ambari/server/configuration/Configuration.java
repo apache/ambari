@@ -1779,6 +1779,27 @@ public class Configuration {
       "server.tmp.dir", AmbariPath.getPath("/var/lib/ambari-server/tmp"));
 
   /**
+   * Request logs path .
+   */
+  @Markdown(description = "The location on the Ambari Server where request logs can be created.")
+  public static final ConfigurationProperty<String> REQUEST_LOGPATH = new ConfigurationProperty<>(
+      "server.requestlogs.path", null);
+
+  /**
+   * The pattern of request  logs .
+   */
+  @Markdown(description = "The pattern of request log file name")
+  public static final ConfigurationProperty<String> REQUEST_LOGNAMEPATTERN = new ConfigurationProperty<>(
+          "server.requestlogs.namepattern", "ambari-access-yyyy_mm_dd.log");
+
+  /**
+   * The number of days request logs can be retained.
+   */
+  @Markdown(description = "The number of days that request log would be retained.")
+  public static final ConfigurationProperty<Integer> REQUEST_LOG_RETAINDAYS = new ConfigurationProperty<>(
+          "server.requestlogs.retaindays", 15);
+
+  /**
    * The time, in {@link TimeUnit#MILLISECONDS}, until an external script is killed.
    */
   @Markdown(description = "The time, in milliseconds, until an external script is killed.")
@@ -2997,6 +3018,8 @@ public class Configuration {
     configsMap.put(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT.getKey(), getProperty(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT));
     configsMap.put(PROXY_ALLOWED_HOST_PORTS.getKey(), getProperty(PROXY_ALLOWED_HOST_PORTS));
     configsMap.put(TLS_EPHEMERAL_DH_KEY_SIZE.getKey(), getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
+    configsMap.put(REQUEST_LOGPATH.getKey(), getProperty(REQUEST_LOGPATH));
+    configsMap.put(REQUEST_LOG_RETAINDAYS.getKey(), getProperty(REQUEST_LOG_RETAINDAYS));
 
     File passFile = new File(
         configsMap.get(SRVR_KSTR_DIR.getKey()) + File.separator
