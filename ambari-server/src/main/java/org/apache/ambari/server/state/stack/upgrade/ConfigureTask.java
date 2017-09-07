@@ -110,6 +110,9 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlAttribute(name = "id")
   public String id;
 
+  @XmlAttribute(name="supports-patch")
+  public boolean supportsPatch = false;
+
   /**
    * {@inheritDoc}
    */
@@ -217,7 +220,7 @@ public class ConfigureTask extends ServerSideActionTask {
 
     // replacements
 
-    List<Replace> replacements = new ArrayList<Replace>();
+    List<Replace> replacements = new ArrayList<>();
     replacements.addAll(definition.getReplacements());
     //Fetch the replacements that used regex to find a string
     replacements.addAll(definition.getRegexReplacements(cluster));

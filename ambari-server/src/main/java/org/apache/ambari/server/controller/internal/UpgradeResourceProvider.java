@@ -727,11 +727,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntity.setText(wrapper.getText());
               itemEntity.setTasks(wrapper.getTasksJson());
               itemEntity.setHosts(wrapper.getHostsJson());
-              itemEntities.add(itemEntity);
 
               injectVariables(configHelper, cluster, itemEntity);
-              makeServerSideStage(group, upgradeContext, effectiveRepositoryVersion, req,
-                  itemEntity, (ServerSideActionTask) task, configUpgradePack);
+              if (makeServerSideStage(group, upgradeContext, effectiveRepositoryVersion, req,
+                  itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
+                itemEntities.add(itemEntity);
+              }
             }
           }
         } else {
@@ -1180,7 +1181,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * upgrade
    * @throws AmbariException
    */
-  private void makeServerSideStage(UpgradeGroupHolder group, UpgradeContext context,
+  private boolean makeServerSideStage(UpgradeGroupHolder group, UpgradeContext context,
       RepositoryVersionEntity effectiveRepositoryVersion, RequestStageContainer request,
       UpgradeItemEntity entity, ServerSideActionTask task, ConfigUpgradePack configUpgradePack)
       throws AmbariException {
@@ -1196,6 +1197,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
+
+    boolean process = true;
 
     switch (task.getType()) {
       case SERVER_ACTION:
@@ -1232,6 +1235,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
       case CONFIGURE: {
         ConfigureTask ct = (ConfigureTask) task;
+
+        // !!! would prefer to do this in the sequence generator, but there's too many
+        // places to miss
+        if (context.getOrchestrationType().isRevertable() && !ct.supportsPatch) {
+          process = false;
+        }
+
         Map<String, String> configurationChanges =
                 ct.getConfigurationChanges(cluster, configUpgradePack);
 
@@ -1260,6 +1270,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
       default:
         break;
+    }
+
+    if (!process) {
+      return false;
     }
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
@@ -1299,6 +1313,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         context.isComponentFailureAutoSkipped());
 
     request.addStages(Collections.singletonList(stage));
+
+    return true;
   }
 
   /**

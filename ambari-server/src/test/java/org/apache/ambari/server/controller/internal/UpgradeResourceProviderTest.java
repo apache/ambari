@@ -84,6 +84,7 @@ import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
+import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -1732,6 +1733,113 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     upgradeResourceProvider.createResources(request);
   }
+
+  @Test
+  public void testCreatePatchWithConfigChanges() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    File f = new File("src/test/resources/version_definition_test_patch_config.xml");
+    repoVersionEntity2112.setType(RepositoryType.PATCH);
+    repoVersionEntity2112.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersionEntity2112.setVersionXsd("version_definition.xsd");
+    repoVersionDao.merge(repoVersionEntity2112);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2112.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    // !!! test that a PATCH upgrade skips config changes
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+    Set<Resource> resources = status.getAssociatedResources();
+    assertEquals(1, resources.size());
+    Long requestId = (Long) resources.iterator().next().getPropertyValue("Upgrade/request_id");
+    assertNotNull(requestId);
+
+    UpgradeEntity upgradeEntity = upgradeDao.findUpgradeByRequestId(requestId);
+    assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    HostRoleCommandDAO hrcDAO = injector.getInstance(HostRoleCommandDAO.class);
+    List<HostRoleCommandEntity> commands = hrcDAO.findByRequest(upgradeEntity.getRequestId());
+
+    boolean foundConfigTask = false;
+    for (HostRoleCommandEntity command : commands) {
+      if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
+          command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
+        foundConfigTask = true;
+        break;
+      }
+    }
+    assertFalse(foundConfigTask);
+
+    // !!! test that a patch with a supported patch change gets picked up
+    cluster.setUpgradeEntity(null);
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_force_config_change");
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    status = upgradeResourceProvider.createResources(request);
+    resources = status.getAssociatedResources();
+    assertEquals(1, resources.size());
+    requestId = (Long) resources.iterator().next().getPropertyValue("Upgrade/request_id");
+    assertNotNull(requestId);
+
+    upgradeEntity = upgradeDao.findUpgradeByRequestId(requestId);
+    assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    commands = hrcDAO.findByRequest(upgradeEntity.getRequestId());
+
+    foundConfigTask = false;
+    for (HostRoleCommandEntity command : commands) {
+      if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
+          command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
+        foundConfigTask = true;
+        break;
+      }
+    }
+    assertTrue(foundConfigTask);
+
+
+
+    // !!! test that a regular upgrade will pick up the config change
+    cluster.setUpgradeEntity(null);
+    repoVersionEntity2112.setType(RepositoryType.STANDARD);
+    repoVersionDao.merge(repoVersionEntity2112);
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    status = upgradeResourceProvider.createResources(request);
+    resources = status.getAssociatedResources();
+    assertEquals(1, resources.size());
+    requestId = (Long) resources.iterator().next().getPropertyValue("Upgrade/request_id");
+    assertNotNull(requestId);
+
+    upgradeEntity = upgradeDao.findUpgradeByRequestId(requestId);
+    assertEquals(RepositoryType.STANDARD, upgradeEntity.getOrchestration());
+
+    commands = hrcDAO.findByRequest(upgradeEntity.getRequestId());
+
+    foundConfigTask = false;
+    for (HostRoleCommandEntity command : commands) {
+      if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
+          command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
+        foundConfigTask = true;
+        break;
+      }
+    }
+    assertTrue(foundConfigTask);
+
+  }
+
+
 
   private String parseSingleMessage(String msgStr){
     JsonParser parser = new JsonParser();
