@@ -27,7 +27,10 @@ import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
+import {Ng2AutoCompleteModule} from 'ng2-auto-complete';
+
 import {environment} from '@envs/environment';
+
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
@@ -59,7 +62,6 @@ import {MainContainerComponent} from '@app/components/main-container/main-contai
 import {FiltersPanelComponent} from '@app/components/filters-panel/filters-panel.component';
 import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dropdown.component';
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
-import {FilterTextFieldComponent} from '@app/components/filter-text-field/filter-text-field.component';
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
@@ -71,6 +73,7 @@ import {LogsContainerComponent} from '@app/components/logs-container/logs-contai
 import {ModalComponent} from '@app/components/modal/modal.component';
 import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
+import {SearchBoxComponent} from '@app/components/search-box/search-box.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 
@@ -104,7 +107,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FiltersPanelComponent,
     DropdownListComponent,
     FilterDropdownComponent,
-    FilterTextFieldComponent,
     FilterButtonComponent,
     AccordionPanelComponent,
     LogsListComponent,
@@ -116,6 +118,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ModalComponent,
     TimeZonePickerComponent,
     NodeBarComponent,
+    SearchBoxComponent,
     TimeZoneAbbrPipe
   ],
   imports: [
@@ -133,7 +136,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     }),
     StoreModule.provideStore(reducer),
     MomentModule,
-    MomentTimezoneModule
+    MomentTimezoneModule,
+    Ng2AutoCompleteModule
   ],
   providers: [
     HttpClientService,

@@ -1,0 +1,31 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<label class="parameter-label" *ngFor="let parameter of parameters">
+  {{parameter.label | translate}}:
+  <span class="parameter-value">{{parameter.value}}</span>
+  <span class="remove-parameter" (click)="removeParameter($event, parameter.id)">&times;</span>
+</label>
+<span class="active-parameter-label" *ngIf="isActive && activeItem">{{activeItem.name | translate}}:</span>
+<div [ngClass]="{'search-item-container': true, 'active': isActive, 'value': isValueInput}">
+  <input #parameterInput auto-complete [(ngModel)]="currentValue" [source]="items" [list-formatter]="itemsListFormatter"
+         display-property-name="name" (valueChanged)="onParameterNameChange($event)"
+         class="search-item-input parameter-input form-control">
+  <input #valueInput type="text" [(ngModel)]="currentValue" class="search-item-input value-input form-control"
+         (keyup)="onParameterValueChange($event)">
+  <div class="search-item-text" [innerHTML]="currentValue"></div>
+</div>

@@ -43,4 +43,8 @@ export class UtilsService {
     return valuesArray.join(',');
   }
 
+  isEnterPressed(event: KeyboardEvent): boolean {
+    return event.keyCode === 13;
+  }
+
 }

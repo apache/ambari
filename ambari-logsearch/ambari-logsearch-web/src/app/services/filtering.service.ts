@@ -254,7 +254,8 @@ export class FilteringService {
     },
     page: {
       defaultValue: 0
-    }
+    },
+    query: {}
   };
 
   private filtersFormItems = Object.keys(this.filters).reduce((currentObject, key) => {
@@ -298,7 +299,7 @@ export class FilteringService {
     });
   }
 
-  private getStartTime(value: any, current: string): string {
+  private getStartTime = (value: any, current: string): string => {
     let time;
     if (value) {
       const endTime = moment(moment(current).valueOf());
@@ -317,9 +318,9 @@ export class FilteringService {
       }
     }
     return time ? time.toISOString() : '';
-  }
+  };
 
-  private getEndTime(value: any): string {
+  private getEndTime = (value: any): string => {
     let time;
     if (value) {
       switch (value.type) {
@@ -337,16 +338,32 @@ export class FilteringService {
       }
     }
     return time ? time.toISOString() : '';
+  };
+
+  private getQuery(isExclude: boolean): (value: any[]) => string {
+    return (value: any[]): string => {
+      let parameters;
+      if (value && value.length) {
+        parameters = value.filter(item => item.isExclude === isExclude).map(parameter => {
+          return {
+            [parameter.name]: parameter.value.replace(/\s/g, '+')
+          };
+        });
+      }
+      return parameters && parameters.length ? JSON.stringify(parameters) : '';
+    }
   }
 
   readonly valueGetters = {
-    end_time: this.getEndTime.bind(this),
-    start_time: this.getStartTime.bind(this),
-    to: this.getEndTime.bind(this),
-    from: this.getStartTime.bind(this),
+    end_time: this.getEndTime,
+    start_time: this.getStartTime,
+    to: this.getEndTime,
+    from: this.getStartTime,
     sortType: value => value && value.type,
     sortBy: value => value && value.key,
-    page: value => value == null ? value : value.toString()
+    page: value => value == null ? value : value.toString(),
+    includeQuery: this.getQuery(false),
+    excludeQuery: this.getQuery(true)
   };
 
 }

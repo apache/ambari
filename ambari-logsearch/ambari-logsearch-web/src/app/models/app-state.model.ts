@@ -22,6 +22,7 @@ export interface AppState {
   isLoginInProgress: boolean;
   isAuditLogsSet: boolean;
   isServiceLogsSet: boolean;
+  activeLogsType?: string;
 }
 
 export const initialState: AppState = {
@@ -29,5 +30,6 @@ export const initialState: AppState = {
   isInitialLoading: false,
   isLoginInProgress: false,
   isAuditLogsSet: false,
-  isServiceLogsSet: false
+  isServiceLogsSet: false,
+  activeLogsType: 'serviceLogs' // TODO implement setting the parameter depending on user's navigation
 }

@@ -24,7 +24,8 @@
   background-color: @filters-panel-background-color;
 
   .filter-input-container {
-    .flex-vertical-align;
+    display: flex;
+    align-items: flex-start;
     justify-content: flex-start;
 
     .btn-success {
@@ -32,7 +33,7 @@
       border-bottom-left-radius: 0;
     }
 
-    filter-dropdown, dropdown-button, timezone-picker {
+    .filter-input {
       border: @input-border;
 
       &:not(:last-child) {
@@ -40,12 +41,19 @@
       }
 
       &:first-child {
-        border-radius: @button-border-radius 0 0 @button-border-radius;
+        border-top-left-radius: @button-border-radius;
+        border-bottom-left-radius: @button-border-radius;
       }
 
       &:last-child {
-        border-radius: 0 @button-border-radius @button-border-radius 0;
+        border-top-right-radius: @button-border-radius;
+        border-bottom-right-radius: @button-border-radius;
       }
+    }
+
+    search-box.filter-input:not(:last-child) {
+      border-right-width: @input-border-width;
+      margin-right: -1 * (@input-border-width);
     }
   }
 }

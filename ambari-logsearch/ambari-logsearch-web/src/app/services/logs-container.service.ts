@@ -50,7 +50,8 @@ export class LogsContainerService {
     hosts: ['host_name'],
     sorting: ['sortType', 'sortBy'],
     pageSize: ['pageSize'],
-    page: ['page']
+    page: ['page'],
+    query: ['includeQuery', 'excludeQuery']
   };
 
   private readonly histogramFilters = {
@@ -58,7 +59,8 @@ export class LogsContainerService {
     text: ['iMessage'],
     timeRange: ['to', 'from'],
     components: ['mustBe'],
-    levels: ['level']
+    levels: ['level'],
+    query: ['includeQuery', 'excludeQuery']
   };
 
   readonly logsTypeMap = {

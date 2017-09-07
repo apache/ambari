@@ -18,12 +18,12 @@
 <form class="col-md-12" [formGroup]="filtersForm">
   <div class="form-inline filter-input-container col-md-8">
     <filter-dropdown [label]="filters.clusters.label" formControlName="clusters" [options]="filters.clusters.options"
-                     [defaultLabel]="filters.clusters.defaultLabel" [isMultipleChoice]="true"></filter-dropdown>
-    <filter-text-field [label]="filters.text.label"
-                       formControlName="text"></filter-text-field>
+                     [defaultLabel]="filters.clusters.defaultLabel" [isMultipleChoice]="true"
+                     class="filter-input"></filter-dropdown>
+    <search-box formControlName="query" [items]="searchBoxItems" class="filter-input"></search-box>
     <filter-dropdown formControlName="timeRange" [options]="filters.timeRange.options"
-                     [defaultLabel]="filters.timeRange.defaultLabel"></filter-dropdown>
-    <timezone-picker></timezone-picker>
+                     [defaultLabel]="filters.timeRange.defaultLabel" class="filter-input"></filter-dropdown>
+    <timezone-picker class="filter-input"></timezone-picker>
     <!--button class="btn btn-success" type="button">
       <span class="fa fa-search"></span>
     </button-->

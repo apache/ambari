@@ -20,7 +20,8 @@
 @navbar-background-color: #323544;
 @h1-vertical-margin: 20px;
 @button-border-radius: 4px;
-@input-border: 1px solid #CFD3D7;
+@input-border-width: 1px;
+@input-border: @input-border-width solid #CFD3D7;
 @button-border-radius: 4px;
 @input-group-addon-padding: 6px 0 6px 12px;
 @block-margin-top: 20px;
@@ -33,6 +34,10 @@
 @filters-panel-padding: 10px 0;
 @list-header-background-color: #F2F2F2;
 @checkbox-top: 4px;
+@dropdown-min-width: 200px;
+@dropdown-max-height: 500px; // TODO get rid of magic number, base on actual design
+@input-height: 34px;
+@input-padding: 10px;
 
 @fatal-color: #830A0A;
 @error-color: #E81D1D;
@@ -100,6 +105,21 @@
   left: 0;
 }
 
+.dropdown-list-default {
+  line-height: 1;
+  border-radius: 2px;
+  font-size: 14px;
+  min-width: @dropdown-min-width;
+  background: #FFF;
+  color: #666;
+  border: 1px solid #CFD3D7;
+  padding: 5px 0;
+  margin: 2px 0 0;
+  text-align: left;
+  list-style: none;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+}
+
 .dropdown-item-default {
   display: block;
   padding: 3px 20px;
@@ -113,6 +133,6 @@
   &:hover {
     color: #262626;
     text-decoration: none;
-    background-color: #f5f5f5;
+    background-color: #F5F5F5;
   }
 }
