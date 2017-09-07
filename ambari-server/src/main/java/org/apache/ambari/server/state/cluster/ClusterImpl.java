@@ -558,8 +558,17 @@ public class ClusterImpl implements Cluster {
       throw new ServiceComponentHostNotFoundException(getClusterName(),
           serviceName, serviceComponentName, hostname);
     }
-    return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(
-      hostname);
+    return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
+  }
+
+  public List<ServiceComponentHost> getServiceComponentHosts() {
+    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
+    if (!serviceComponentHostsByHost.isEmpty()) {
+      for (List<ServiceComponentHost> schList : serviceComponentHostsByHost.values()) {
+        serviceComponentHosts.addAll(schList);
+      }
+    }
+    return Collections.unmodifiableList(serviceComponentHosts);
   }
 
   @Override
