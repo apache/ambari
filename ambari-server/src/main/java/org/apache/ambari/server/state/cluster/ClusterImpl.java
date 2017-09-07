@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.Nullable;
@@ -558,8 +557,17 @@ public class ClusterImpl implements Cluster {
       throw new ServiceComponentHostNotFoundException(getClusterName(),
           serviceName, serviceComponentName, hostname);
     }
-    return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(
-      hostname);
+    return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
+  }
+
+  public List<ServiceComponentHost> getServiceComponentHosts() {
+    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
+    if (!serviceComponentHostsByHost.isEmpty()) {
+      for (List<ServiceComponentHost> schList : serviceComponentHostsByHost.values()) {
+        serviceComponentHosts.addAll(schList);
+      }
+    }
+    return Collections.unmodifiableList(serviceComponentHosts);
   }
 
   @Override
