@@ -46,7 +46,7 @@
       <tr>
         <th>{{t common.direction}}</th>
         <th>{{t common.type}}</th>
-        <th class="wide-column">{{t common.repository}}</th>
+        <th class="widest-column">{{t common.repository}}</th>
         <th class="wide-column">{{t common.repositoryType}}</th>
         <th>{{t common.start.time}}</th>
         <th>{{t common.duration}}</th>
@@ -96,8 +96,8 @@
               <td>
                 <span>{{item.upgradeTypeLabel}}</span>
               </td>
-              <td class="wide-column">
-                <span>{{item.repositoryName}}</span>
+              <td class="widest-column">
+                <span {{bindAttr data-original-title="item.repositoryName" }}>{{item.repositoryName}}</span>
               </td>
               <td class="wide-column">
                 <span>{{item.repositoryType}}</span>

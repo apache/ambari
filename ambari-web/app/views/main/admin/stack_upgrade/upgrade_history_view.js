@@ -207,6 +207,10 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
     this.$(".accordion").on("show hide", function (e) {
       $(e.target).siblings(".accordion-heading").find("i.accordion-toggle").toggleClass('icon-caret-right icon-caret-down');
     });
+
+    Em.run.later(this, function(){
+      App.tooltip( $('.widest-column span') );
+    }, 1000)
   },
 
   observesCategories: function () {
