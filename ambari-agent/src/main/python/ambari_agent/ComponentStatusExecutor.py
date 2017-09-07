@@ -65,6 +65,11 @@ class ComponentStatusExecutor(threading.Thread):
           if not 'components' in topology_cache:
             continue
 
+          current_host_id =  self.topology_cache.get_current_host_id(cluster_id)
+
+          if current_host_id is None:
+            continue
+
           cluster_components = topology_cache.components
           for component_dict in cluster_components:
             for command_name in status_commands_to_run:
@@ -74,6 +79,10 @@ class ComponentStatusExecutor(threading.Thread):
 
               # cluster was already removed
               if not cluster_id in self.topology_cache.get_cluster_ids():
+                break
+
+              # check if component is installed on current host
+              if not current_host_id in component_dict.hostIds:
                 break
 
               service_name = component_dict.serviceName

@@ -113,6 +113,12 @@ class ClusterTopologyCache(ClusterCache):
     current_host_id = self.current_host_ids_to_cluster[cluster_id]
     return self.get_host_info_by_id(cluster_id, current_host_id)
 
+  def get_current_host_id(self, cluster_id):
+    try:
+      return self.current_host_ids_to_cluster[cluster_id]
+    except KeyError:
+      return None
+
   @staticmethod
   def _find_host_by_id_in_dict(host_dicts, host_id):
     for host_dict in host_dicts:
