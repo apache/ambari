@@ -28,18 +28,20 @@ public class ConfigGroupRequest {
   private String clusterName;
   private String groupName;
   private String tag;
+  private String serviceName;
   private String description;
   private String serviceConfigVersionNote;
   private Set<String> hosts;
   private Map<String, Config> configs;
 
   public ConfigGroupRequest(Long id, String clusterName, String groupName,
-                            String tag, String description, Set<String> hosts,
-                            Map<String, Config> configs) {
+                            String tag, String serviceName, String description,
+                            Set<String> hosts, Map<String, Config> configs) {
     this.id = id;
     this.clusterName = clusterName;
     this.groupName = groupName;
     this.tag = tag;
+    this.serviceName = serviceName;
     this.description = description;
     this.hosts = hosts;
     this.configs = configs;
@@ -67,6 +69,14 @@ public class ConfigGroupRequest {
 
   public void setTag(String tag) {
     this.tag = tag;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   public String getDescription() {

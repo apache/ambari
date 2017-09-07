@@ -97,6 +97,7 @@
         "ConfigGroup/id",
         "ConfigGroup/cluster_name",
         "ConfigGroup/group_name",
+        "ConfigGroup/service_name",
         "ConfigGroup/tag",
         "ConfigGroup/description",
         "ConfigGroup/hosts",
