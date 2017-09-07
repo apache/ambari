@@ -756,6 +756,12 @@
   .wide-column {
     width: 14%;
   }
+  .widest-column{
+    width: 20%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
   .accordion-group {
     border-right: none;
     padding-left:20px;
@@ -774,7 +780,7 @@
   .accordion-body {
     min-width: 400px;
     .accordion-inner{
-      padding-top:10px;
+      padding-top:20px;
       .label{
         padding: 5px 15px;
         &.available{
