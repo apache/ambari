@@ -212,6 +212,7 @@ class WebSocketBaseClient(WebSocket):
             self.sock = ssl.wrap_socket(self.sock, **self.ssl_options)
             self._is_secure = True
             
+        self.sock.settimeout(10.0)
         self.sock.connect(self.bind_addr)
 
         self._write(self.handshake_request)
