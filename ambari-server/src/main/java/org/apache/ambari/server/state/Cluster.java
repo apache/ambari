@@ -119,11 +119,6 @@ public interface Cluster {
   List<ServiceComponentHost> getServiceComponentHosts(String serviceName, String componentName);
 
   /**
-   * Get all ServiceComponentHosts for this cluster.
-   */
-  List<ServiceComponentHost> getServiceComponentHosts();
-
-  /**
    * Get all hosts associated with this cluster.
    *
    * @return collection of hosts that are associated with this cluster
