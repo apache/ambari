@@ -618,6 +618,10 @@
       "sqoop_user": "sqoop",
       "jdbc_drivers" : "com.microsoft.sqlserver.jdbc.SQLServerDriver,com.mysql.jdbc.Driver"
     },
+    "sqoop-site": {
+      "atlas.cluster.name": "c1",
+      "sqoop.job.data.publish.class": "org.apache.atlas.sqoop.hook.SqoopHook"
+    },
     "hdfs-log4j": {
       "content": "log4jproperties\nline2"
     },

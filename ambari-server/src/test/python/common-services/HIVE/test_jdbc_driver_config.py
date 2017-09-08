@@ -44,23 +44,6 @@ class TestJdbcDriverConfig(RMFTestCase):
                        stack_version=self.STACK_VERSION,
                        config_file=os.path.join(self.CONFIG_DIR, "hive_unsupported_jdbc_type.json"))
 
-  def test_jdbc_type_2_1_0_3_0(self):
-    self.executeScript("HIVE/2.1.0.3.0/package/scripts/hive_server.py",
-                       classname="HiveServer",
-                       command="configure",
-                       target=RMFTestCase.TARGET_COMMON_SERVICES,
-                       stack_version=self.STACK_VERSION,
-                       config_file=os.path.join(self.CONFIG_DIR, "hive_default.json"))
-
-  def test_unsupported_jdbc_type_throws_error_2_1_0_3_0(self):
-    with self.assertRaises(Fail):
-      self.executeScript("HIVE/2.1.0.3.0/package/scripts/hive_server.py",
-                         classname="HiveServer",
-                         command="configure",
-                         target=RMFTestCase.TARGET_COMMON_SERVICES,
-                         stack_version=self.STACK_VERSION,
-                         config_file=os.path.join(self.CONFIG_DIR, "hive_unsupported_jdbc_type.json"))
-
 
 
 

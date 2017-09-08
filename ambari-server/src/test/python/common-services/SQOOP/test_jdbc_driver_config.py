@@ -44,20 +44,3 @@ class TestJdbcDriverConfig(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        stack_version=self.STACK_VERSION,
                        config_file=os.path.join(self.CONFIG_DIR, "sqoop_unsupported_jdbc_driver.json"))
-
-  def test_jdbc_driver_1_4_4_3_0(self):
-    self.executeScript("SQOOP/1.4.4.3.0/package/scripts/sqoop_client.py",
-                       classname="SqoopClient",
-                       command="configure",
-                       target=RMFTestCase.TARGET_COMMON_SERVICES,
-                       stack_version=self.STACK_VERSION,
-                       config_file=os.path.join(self.CONFIG_DIR, "sqoop_default.json"))
-
-  def test_unsupported_jdbc_driver_1_4_4_3_0(self):
-    with self.assertRaises(Fail):
-      self.executeScript("SQOOP/1.4.4.3.0/package/scripts/sqoop_client.py",
-                         classname="SqoopClient",
-                         command="configure",
-                         target=RMFTestCase.TARGET_COMMON_SERVICES,
-                         stack_version=self.STACK_VERSION,
-                         config_file=os.path.join(self.CONFIG_DIR, "sqoop_unsupported_jdbc_driver.json"))

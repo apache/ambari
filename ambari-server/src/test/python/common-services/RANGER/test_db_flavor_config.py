@@ -44,20 +44,3 @@ class TestDbFlavorConfig(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        stack_version=self.STACK_VERSION,
                        config_file=os.path.join(self.CONFIG_DIR, "ranger_admin_unsupported_db_flavor.json"))
-
-  def test_db_flavor_1_0_0_3_0(self):
-    self.executeScript("RANGER/1.0.0.3.0/package/scripts/ranger_admin.py",
-                       classname="RangerAdmin",
-                       command="configure",
-                       target=RMFTestCase.TARGET_COMMON_SERVICES,
-                       stack_version=self.STACK_VERSION,
-                       config_file=os.path.join(self.CONFIG_DIR, "ranger_admin_default.json"))
-
-  def test_unsupported_db_flavor_1_0_0_3_0(self):
-    with self.assertRaises(Fail):
-      self.executeScript("RANGER/1.0.0.3.0/package/scripts/ranger_admin.py",
-                         classname="RangerAdmin",
-                         command="configure",
-                         target=RMFTestCase.TARGET_COMMON_SERVICES,
-                         stack_version=self.STACK_VERSION,
-                         config_file=os.path.join(self.CONFIG_DIR, "ranger_admin_unsupported_db_flavor.json"))

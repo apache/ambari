@@ -44,20 +44,3 @@ class TestDbFlavorConfig(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        stack_version=self.STACK_VERSION,
                        config_file=os.path.join(self.CONFIG_DIR, "ranger_kms_unsupported_db_flavor.json"))
-
-  def test_db_flavor_1_0_0_3_0(self):
-    self.executeScript("RANGER_KMS/1.0.0.3.0/package/scripts/kms_server.py",
-                       classname="KmsServer",
-                       command="configure",
-                       target=RMFTestCase.TARGET_COMMON_SERVICES,
-                       stack_version=self.STACK_VERSION,
-                       config_file=os.path.join(self.CONFIG_DIR, "ranger_kms_default.json"))
-
-  def test_unsupported_db_flavor_1_0_0_3_0(self):
-    with self.assertRaises(Fail):
-      self.executeScript("RANGER_KMS/1.0.0.3.0/package/scripts/kms_server.py",
-                         classname="KmsServer",
-                         command="configure",
-                         target=RMFTestCase.TARGET_COMMON_SERVICES,
-                         stack_version=self.STACK_VERSION,
-                         config_file=os.path.join(self.CONFIG_DIR, "ranger_kms_unsupported_db_flavor.json"))
