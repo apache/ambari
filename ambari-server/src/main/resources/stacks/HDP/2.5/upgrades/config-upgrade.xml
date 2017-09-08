@@ -317,7 +317,6 @@
             <set key="ranger_xa_log_maxfilesize" value="256"/>
             <set key="ranger_xa_log_maxbackupindex" value="20"/>
             <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxFileSize={{ranger_xa_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxBackupIndex={{ranger_xa_log_maxbackupindex}}"/>
           </definition>
         </changes>
       </component>
@@ -327,8 +326,7 @@
             <type>usersync-log4j</type>
             <set key="ranger_usersync_log_maxfilesize" value="256"/>
             <set key="ranger_usersync_log_maxbackupindex" value="20"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_usersync_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_usersync_log_maxbackupindex}}"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize={{ranger_usersync_log_maxfilesize}}MB"/>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade">
@@ -344,8 +342,7 @@
             <type>tagsync-log4j</type>
             <set key="ranger_tagsync_log_maxfilesize" value="256"/>
             <set key="ranger_tagsync_log_number_of_backup_files" value="20"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_tagsync_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_tagsync_log_number_of_backup_files}}"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize={{ranger_tagsync_log_maxfilesize}}MB"/>
           </definition>
         </changes>
       </component>
@@ -359,10 +356,8 @@
         <set key="ranger_kms_log_maxbackupindex" value="20"/>
         <set key="ranger_kms_audit_log_maxfilesize" value="256"/>
         <set key="ranger_kms_audit_log_maxbackupindex" value="20"/>
-        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize = {{ranger_kms_log_maxfilesize}}MB"/>
-        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxBackupIndex = {{ranger_kms_log_maxbackupindex}}"/>
-        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize = {{ranger_kms_audit_log_maxfilesize}}MB"/>
-        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxBackupIndex = {{ranger_kms_audit_log_maxbackupindex}}"/>
+        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize={{ranger_kms_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize={{ranger_kms_audit_log_maxfilesize}}MB"/>
       </definition>
       <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl">
         <type>ranger-kms-site</type>
