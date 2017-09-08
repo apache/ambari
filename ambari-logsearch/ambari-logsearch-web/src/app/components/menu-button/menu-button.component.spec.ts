@@ -18,19 +18,13 @@
 
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 
 import {MenuButtonComponent} from './menu-button.component';
-
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
 
 describe('MenuButtonComponent', () => {
   let component: MenuButtonComponent;
@@ -43,11 +37,7 @@ describe('MenuButtonComponent', () => {
         StoreModule.provideStore({
           appSettings
         }),
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        })
+        ...TranslationModules
       ],
       providers: [
         AppSettingsService,
@@ -100,11 +90,13 @@ describe('MenuButtonComponent', () => {
     const cases = [
       {
         subItems: null,
+        hideCaret: false,
         hasCaret: false,
         title: 'no sub-items'
       },
       {
         subItems: [],
+        hideCaret: false,
         hasCaret: false,
         title: 'empty sub-items array'
       },
@@ -125,7 +117,7 @@ describe('MenuButtonComponent', () => {
     cases.forEach((test) => {
       it(test.title, () => {
         component.subItems = test.subItems;
-        component.hideCaret = Boolean(test.hideCaret);
+        component.hideCaret = test.hideCaret;
         expect(component.hasSubItems).toEqual(test.hasCaret);
       });
     });

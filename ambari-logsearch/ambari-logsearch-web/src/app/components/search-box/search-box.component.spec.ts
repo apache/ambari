@@ -18,16 +18,10 @@
 
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {TranslationModules} from '@app/test-config.spec';
 import {UtilsService} from '@app/services/utils.service';
 
 import {SearchBoxComponent} from './search-box.component';
-
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
 
 describe('SearchBoxComponent', () => {
   let component: SearchBoxComponent;
@@ -36,13 +30,7 @@ describe('SearchBoxComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [SearchBoxComponent],
-      imports: [
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        })
-      ],
+      imports: TranslationModules,
       providers: [
         UtilsService
       ],

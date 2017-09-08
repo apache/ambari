@@ -16,30 +16,21 @@
  * limitations under the License.
  */
 
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
+import {HttpModule, Http} from '@angular/http';
+import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 
-import {ModalComponent} from './modal.component';
+function HttpLoaderFactory(http: Http) {
+  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+}
 
-describe('ModalComponent', () => {
-  let component: ModalComponent;
-  let fixture: ComponentFixture<ModalComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ModalComponent],
-      imports: TranslationModules
-    })
-    .compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ModalComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create component', () => {
-    expect(component).toBeTruthy();
-  });
-});
+export const TranslationModules = [
+  HttpModule,
+  TranslateModule.forRoot({
+    loader: {
+      provide: TranslateLoader,
+      useFactory: HttpLoaderFactory,
+      deps: [Http]
+    }
+  })
+];

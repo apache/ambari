@@ -18,9 +18,7 @@
 
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -30,10 +28,6 @@ import {UtilsService} from '@app/services/utils.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 
 import {DropdownButtonComponent} from './dropdown-button.component';
-
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
 
 describe('DropdownButtonComponent', () => {
   let component: DropdownButtonComponent;
@@ -48,11 +42,7 @@ describe('DropdownButtonComponent', () => {
           clusters,
           components
         }),
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        })
+        ...TranslationModules
       ],
       providers: [
         AppSettingsService,

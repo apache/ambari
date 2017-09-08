@@ -18,15 +18,10 @@
 
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {TranslationModules} from '@app/test-config.spec';
+import {FormControl, FormGroup} from '@angular/forms';
 
 import {PaginationComponent} from './pagination.component';
-
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
 
 describe('PaginationComponent', () => {
   let component: PaginationComponent;
@@ -34,13 +29,7 @@ describe('PaginationComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        })
-      ],
+      imports: TranslationModules,
       declarations: [PaginationComponent],
       schemas: [NO_ERRORS_SCHEMA]
     })
@@ -51,15 +40,9 @@ describe('PaginationComponent', () => {
     fixture = TestBed.createComponent(PaginationComponent);
     component = fixture.componentInstance;
     component.filterInstance = {};
-    component.filtersForm = {
-      controls: {
-        pageSize: {
-          valueChanges: {
-            subscribe: () => {}
-          }
-        }
-      }
-    };
+    component.filtersForm = new FormGroup({
+      pageSize: new FormControl()
+    });
     fixture.detectChanges();
   });
 

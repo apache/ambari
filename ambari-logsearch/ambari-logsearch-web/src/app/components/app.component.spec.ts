@@ -18,18 +18,12 @@
 
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {TestBed, async} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
+import {TranslationModules} from '@app/test-config.spec';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {HttpClientService} from '@app/services/http-client.service';
 
 import {AppComponent} from './app.component';
-
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -46,11 +40,7 @@ describe('AppComponent', () => {
         StoreModule.provideStore({
           appState
         }),
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        })
+        ...TranslationModules
       ],
       providers: [
         AppStateService,

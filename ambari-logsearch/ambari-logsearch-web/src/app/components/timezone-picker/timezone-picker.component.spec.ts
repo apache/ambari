@@ -17,9 +17,7 @@
  */
 
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
@@ -27,10 +25,6 @@ import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {ModalComponent} from '@app/components/modal/modal.component';
 
 import {TimeZonePickerComponent} from './timezone-picker.component';
-
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
 
 describe('TimeZonePickerComponent', () => {
   let component: TimeZonePickerComponent;
@@ -47,11 +41,7 @@ describe('TimeZonePickerComponent', () => {
         StoreModule.provideStore({
           appSettings
         }),
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        })
+        ...TranslationModules
       ],
       providers: [
         AppSettingsService,

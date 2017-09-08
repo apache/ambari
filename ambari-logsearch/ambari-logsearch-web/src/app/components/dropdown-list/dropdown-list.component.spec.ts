@@ -17,10 +17,8 @@
  */
 
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
+import {TranslationModules} from '@app/test-config.spec';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -36,10 +34,6 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 
 import {DropdownListComponent} from './dropdown-list.component';
-
-export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
-}
 
 describe('DropdownListComponent', () => {
   let component: DropdownListComponent;
@@ -57,11 +51,7 @@ describe('DropdownListComponent', () => {
     TestBed.configureTestingModule({
       declarations: [DropdownListComponent],
       imports: [
-        TranslateModule.forRoot({
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [Http]
-        }),
+        ...TranslationModules,
         StoreModule.provideStore({
           hosts,
           auditLogs,
