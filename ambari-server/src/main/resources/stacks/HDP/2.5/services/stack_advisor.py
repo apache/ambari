@@ -1295,6 +1295,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', long(llap_concurrency))
       putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", min_llap_concurrency)
 
+    # Check if 'max_llap_concurreny' < 'llap_concurrency'.
+    if max_llap_concurreny < llap_concurrency:
+      self.logger.info("DBG: Adjusting 'max_llap_concurreny' to : {0}, based on 'llap_concurrency' : {1} and "
+                       "earlier 'max_llap_concurreny' : {2}. ".format(llap_concurrency, llap_concurrency, max_llap_concurreny))
+      max_llap_concurreny = llap_concurrency
     putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", long(max_llap_concurreny))
 
     num_llap_nodes = long(num_llap_nodes)
