@@ -71,8 +71,7 @@ log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender
 log4j.appender.logFile.file=${logdir}/tagsync.log
 log4j.appender.logFile.datePattern='.'yyyy-MM-dd
 log4j.appender.logFile.layout=org.apache.log4j.PatternLayout
-log4j.appender.logFile.MaxFileSize = {{ranger_tagsync_log_maxfilesize}}MB
-log4j.appender.logFile.MaxBackupIndex = {{ranger_tagsync_log_number_of_backup_files}}
+log4j.appender.logFile.MaxFileSize={{ranger_tagsync_log_maxfilesize}}MB
 log4j.appender.logFile.layout.ConversionPattern=%d{dd MMM yyyy HH:mm:ss} %5p %c{1} [%t] - %L %m%n
 
 # console

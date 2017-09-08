@@ -75,7 +75,6 @@ log4j.appender.xa_log_appender.append=true
 log4j.appender.xa_log_appender.layout=org.apache.log4j.PatternLayout
 log4j.appender.xa_log_appender.layout.ConversionPattern=%d [%t] %-5p %C{6} (%F:%L) - %m%n
 log4j.appender.xa_log_appender.MaxFileSize={{ranger_xa_log_maxfilesize}}MB
-log4j.appender.xa_log_appender.MaxBackupIndex={{ranger_xa_log_maxbackupindex}}
 
 # xa_log_appender : category and additivity
 log4j.category.org.springframework=warn,xa_log_appender

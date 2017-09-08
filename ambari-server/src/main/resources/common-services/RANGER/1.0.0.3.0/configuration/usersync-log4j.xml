@@ -71,8 +71,7 @@ log4j.appender.logFile.file=${logdir}/usersync.log
 log4j.appender.logFile.datePattern='.'yyyy-MM-dd
 log4j.appender.logFile.layout=org.apache.log4j.PatternLayout
 log4j.appender.logFile.layout.ConversionPattern=%d{dd MMM yyyy HH:mm:ss} %5p %c{1} [%t] - %m%n
-log4j.appender.logFile.MaxFileSize = {{ranger_usersync_log_maxfilesize}}MB
-log4j.appender.logFile.MaxBackupIndex = {{ranger_usersync_log_maxbackupindex}}
+log4j.appender.logFile.MaxFileSize={{ranger_usersync_log_maxfilesize}}MB
 
 # console
 log4j.appender.console=org.apache.log4j.ConsoleAppender

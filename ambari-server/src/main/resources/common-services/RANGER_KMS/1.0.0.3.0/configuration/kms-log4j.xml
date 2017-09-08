@@ -89,8 +89,7 @@ log4j.appender.kms.File=${kms.log.dir}/kms.log
 log4j.appender.kms.Append=true
 log4j.appender.kms.layout=org.apache.log4j.PatternLayout
 log4j.appender.kms.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
-log4j.appender.kms.MaxFileSize = {{ranger_kms_log_maxfilesize}}MB
-log4j.appender.kms.MaxBackupIndex = {{ranger_kms_log_maxbackupindex}}
+log4j.appender.kms.MaxFileSize={{ranger_kms_log_maxfilesize}}MB
 
 log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender
 log4j.appender.kms-audit.DatePattern='.'yyyy-MM-dd
@@ -98,8 +97,7 @@ log4j.appender.kms-audit.File=${kms.log.dir}/kms-audit.log
 log4j.appender.kms-audit.Append=true
 log4j.appender.kms-audit.layout=org.apache.log4j.PatternLayout
 log4j.appender.kms-audit.layout.ConversionPattern=%d{ISO8601} %m%n
-log4j.appender.kms-audit.MaxFileSize = {{ranger_kms_audit_log_maxfilesize}}MB
-log4j.appender.kms-audit.MaxBackupIndex = {{ranger_kms_audit_log_maxbackupindex}}
+log4j.appender.kms-audit.MaxFileSize={{ranger_kms_audit_log_maxfilesize}}MB
 
 log4j.logger.kms-audit=INFO, kms-audit
 log4j.additivity.kms-audit=false
