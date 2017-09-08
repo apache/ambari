@@ -28,10 +28,17 @@ import javax.persistence.Query;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -386,6 +393,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     setUnmappedForOrphanedConfigs();
     removeSupersetFromDruid();
     ensureZeppelinProxyUserConfigs();
+    updateKerberosDescriptorArtifacts();
   }
 
   /**
@@ -501,6 +509,38 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
               }
             }
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity != null) {
+      Map<String, Object> data = artifactEntity.getArtifactData();
+      if (data != null) {
+        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+        if (kerberosDescriptor != null) {
+          KerberosServiceDescriptor rangerKmsServiceDescriptor = kerberosDescriptor.getService("RANGER_KMS");
+          if (rangerKmsServiceDescriptor != null) {
+
+            KerberosIdentityDescriptor rangerKmsServiceIdentity = rangerKmsServiceDescriptor.getIdentity("/smokeuser");
+            if (rangerKmsServiceIdentity != null) {
+              rangerKmsServiceDescriptor.removeIdentity("/smokeuser");
+            }
+            KerberosComponentDescriptor rangerKmscomponentDescriptor = rangerKmsServiceDescriptor.getComponent("RANGER_KMS_SERVER");
+            if (rangerKmscomponentDescriptor != null) {
+              KerberosIdentityDescriptor rangerKmsComponentIdentity = rangerKmscomponentDescriptor.getIdentity("/smokeuser");
+              if (rangerKmsComponentIdentity != null) {
+                rangerKmscomponentDescriptor.removeIdentity("/smokeuser");
+              }
+            }
+          }
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
         }
       }
     }

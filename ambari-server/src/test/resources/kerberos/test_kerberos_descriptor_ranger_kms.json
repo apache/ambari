@@ -1,4 +1,28 @@
 {
+  "properties": {
+    "realm": "${kerberos-env/realm}",
+    "keytab_dir": "/etc/security/keytabs"
+  },
+  "identities": [
+    {
+      "name": "spnego",
+      "principal": {
+        "value": "HTTP/_HOST@${realm}",
+        "type": "service"
+      },
+      "keytab": {
+        "file": "${keytab_dir}/spnego.service.keytab",
+        "owner": {
+          "name": "root",
+          "access": "r"
+        },
+        "group": {
+          "name": "${cluster-env/user_group}",
+          "access": "r"
+        }
+      }
+    }
+  ],
   "services": [
     {
       "name": "RANGER_KMS",
@@ -8,6 +32,9 @@
           "keytab": {
             "configuration": "kms-site/hadoop.kms.authentication.kerberos.keytab"
           }
+        },
+        {
+          "name": "/smokeuser"
         }
       ],
       "auth_to_local_properties" : [
@@ -43,6 +70,9 @@
               "keytab": {
                 "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab"
               }
+            },
+            {
+              "name": "/smokeuser"
             },
             {
               "name": "rangerkms",

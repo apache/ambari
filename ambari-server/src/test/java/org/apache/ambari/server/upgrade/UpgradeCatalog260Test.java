@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -30,6 +31,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
+import java.io.File;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -51,10 +54,16 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMockRunner;
@@ -617,5 +626,49 @@ public class UpgradeCatalog260Test {
     Assert.assertTrue(captureCoreSiteConfProperties.hasCaptured());
     Assert.assertEquals("existing_value", captureCoreSiteConfProperties.getValue().get("hadoop.proxyuser.zeppelin_user.hosts"));
     Assert.assertEquals("*", captureCoreSiteConfProperties.getValue().get("hadoop.proxyuser.zeppelin_user.groups"));
+  }
+
+  @Test
+  public void testUpdateKerberosDescriptorArtifact() throws Exception {
+
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_kerberos_descriptor_ranger_kms.json");
+    Assert.assertNotNull(systemResourceURL);
+
+    final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(new File(systemResourceURL.getFile()));
+    Assert.assertNotNull(kerberosDescriptor);
+
+    KerberosServiceDescriptor serviceDescriptor;
+    serviceDescriptor = kerberosDescriptor.getService("RANGER_KMS");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getIdentity("/smokeuser"));
+
+    KerberosComponentDescriptor componentDescriptor;
+    componentDescriptor = serviceDescriptor.getComponent("RANGER_KMS_SERVER");
+    Assert.assertNotNull(componentDescriptor);
+    Assert.assertNotNull(componentDescriptor.getIdentity("/smokeuser"));
+
+    ArtifactEntity artifactEntity = createMock(ArtifactEntity.class);
+
+    expect(artifactEntity.getArtifactData()).andReturn(kerberosDescriptor.toMap()).once();
+
+    Capture<Map<String, Object>> captureMap = newCapture();
+    artifactEntity.setArtifactData(capture(captureMap));
+    expectLastCall().once();
+
+    ArtifactDAO artifactDAO = createMock(ArtifactDAO.class);
+    expect(artifactDAO.merge(artifactEntity)).andReturn(artifactEntity).atLeastOnce();
+
+    replay(artifactDAO, artifactEntity);
+
+    UpgradeCatalog260 upgradeCatalog260 = createMockBuilder(UpgradeCatalog260.class).createMock();
+    upgradeCatalog260.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
+    verify(artifactDAO, artifactEntity);
+
+    KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(captureMap.getValue());
+    Assert.assertNotNull(kerberosDescriptorUpdated);
+
+    Assert.assertNull(kerberosDescriptorUpdated.getService("RANGER_KMS").getIdentity("/smokeuser"));
+    Assert.assertNull(kerberosDescriptorUpdated.getService("RANGER_KMS").getComponent("RANGER_KMS_SERVER").getIdentity("/smokeuser"));
+
   }
 }

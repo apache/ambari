@@ -8,9 +8,6 @@
           "keytab": {
             "configuration": "kms-site/hadoop.kms.authentication.kerberos.keytab"
           }
-        },
-        {
-          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -33,9 +30,6 @@
               "keytab": {
                 "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab"
               }
-            },
-            {
-              "name": "/smokeuser"
             }
           ]
         }
