@@ -310,7 +310,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
               // Add service-level principals (and keytabs)
               kerberosHelper.addIdentities(null, serviceIdentities,
-                  null, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations);
+                  null, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, false);
               propertiesToIgnore = gatherPropertiesToIgnore(serviceIdentities, propertiesToIgnore);
 
               KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
@@ -325,7 +325,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
                 // Add component-level principals (and keytabs)
                 kerberosHelper.addIdentities(null, componentIdentities,
-                    null, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations);
+                    null, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, false);
                 propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
               }
             }
@@ -346,7 +346,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
             List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
             kerberosHelper.addIdentities(null, componentIdentities,
-                null, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, currentConfigurations);
+                null, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, currentConfigurations, false);
             propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
           }
         }

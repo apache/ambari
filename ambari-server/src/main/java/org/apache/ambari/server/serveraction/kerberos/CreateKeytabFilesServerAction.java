@@ -216,9 +216,15 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 return commandReport;
               }
 
-              if (password == null) {
-                if (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
-                  .exists(evaluatedPrincipal, hostEntity.getHostId())) {
+              boolean canCache = "true".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_IS_CACHABLE));
+              boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
+              boolean onlyKeytabWrite = "true".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.ONLY_KEYTAB_WRITE));
+              boolean grabKeytabFromCache = regenerateKeytabs && onlyKeytabWrite;
+
+
+              if (password == null) { // if canCache=true we will try to get keytab from cache and send to agent.
+                if (!grabKeytabFromCache && (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
+                  .exists(evaluatedPrincipal, hostEntity.getHostId()))) {
                   // There is nothing to do for this since it must already exist and we don't want to
                   // regenerate the keytab
                   message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);
@@ -244,8 +250,6 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                     }
                   }
                 } else {
-                  boolean canCache = ("true".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_IS_CACHABLE)));
-
                   Keytab keytab = createKeytab(evaluatedPrincipal, password, keyNumber, operationHandler, visitedPrincipalKeys != null, canCache, actionLog);
 
                   if (keytab != null) {

@@ -113,7 +113,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
     Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
+        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore, false);
 
     // Add auth-to-local configurations to the set of changes
     Map<String, Set<String>> authToLocalProperties = kerberosHelper.translateConfigurationSpecifications(kerberosDescriptor.getAllAuthToLocalProperties());

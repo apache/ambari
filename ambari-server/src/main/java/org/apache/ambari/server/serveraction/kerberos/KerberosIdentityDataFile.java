@@ -36,6 +36,7 @@ public interface KerberosIdentityDataFile extends KerberosDataFile {
   public static final String KEYTAB_FILE_GROUP_NAME = "keytab_file_group_name";
   public static final String KEYTAB_FILE_GROUP_ACCESS = "keytab_file_group_access";
   public static final String KEYTAB_FILE_IS_CACHABLE = "keytab_file_is_cachable";
+  public static final String ONLY_KEYTAB_WRITE = "only_keytab_write";
 
 
 }

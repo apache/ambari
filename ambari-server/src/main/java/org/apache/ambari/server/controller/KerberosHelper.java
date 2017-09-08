@@ -58,6 +58,10 @@ public interface KerberosHelper {
    */
   String DIRECTIVE_COMPONENTS = "regenerate_components";
   /**
+   * directive used to pass host list to regenerate keytabs on
+   */
+  String DIRECTIVE_IGNORE_CONFIGS = "ignore_config_updates";
+  /**
    * directive used to indicate that the enable Kerberos operation should proceed even if the
    * cluster's security type is not changing
    */
@@ -590,6 +594,7 @@ public interface KerberosHelper {
    *                                       values
    * @param configurations                 a Map of configurations to use a replacements for variables
    *                                       in identity fields
+   * @param ignoreHeadless                 boolean value to specify if headless principals must not be processed
    * @return an integer indicating the number of identities added to the data file
    * @throws java.io.IOException if an error occurs while writing a record to the data file
    */
@@ -597,9 +602,8 @@ public interface KerberosHelper {
                     Collection<KerberosIdentityDescriptor> identities,
                     Collection<String> identityFilter, String hostname, String serviceName,
                     String componentName, Map<String, Map<String, String>> kerberosConfigurations,
-                    Map<String, Map<String, String>> configurations)
+                    Map<String, Map<String, String>> configurations, boolean ignoreHeadless)
       throws IOException;
-
   /**
    * Calculates the map of configurations relative to the cluster and host.
    * <p/>

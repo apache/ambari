@@ -53,7 +53,7 @@ public class KerberosIdentityDataFileTest {
           "principal" + i, "principal_type" + i, "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
-          "false");
+          "false", "false");
     }
 
     // Add some odd characters
@@ -61,7 +61,7 @@ public class KerberosIdentityDataFileTest {
         "principal", "principal_type", "keytabFilePath",
         "'keytabFileOwnerName'", "<keytabFileOwnerAccess>",
         "\"keytabFileGroupName\"", "keytab,File,Group,Access",
-        "false");
+        "false", "false");
 
     writer.close();
     Assert.assertTrue(writer.isClosed());
@@ -152,7 +152,7 @@ public class KerberosIdentityDataFileTest {
         "principal", "principal_type", "keytabFilePath",
         "keytabFileOwnerName", "keytabFileOwnerAccess",
         "keytabFileGroupName", "keytabFileGroupAccess",
-        "true");
+        "true", "false");
 
     writer.close();
     Assert.assertTrue(writer.isClosed());
@@ -178,7 +178,7 @@ public class KerberosIdentityDataFileTest {
         "principal", "principal_type", "keytabFilePath",
         "keytabFileOwnerName", "keytabFileOwnerAccess",
         "keytabFileGroupName", "keytabFileGroupAccess",
-        "true");
+        "true", "false");
 
     writer.close();
     Assert.assertTrue(writer.isClosed());

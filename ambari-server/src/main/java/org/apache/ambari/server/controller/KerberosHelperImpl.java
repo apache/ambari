@@ -260,10 +260,13 @@ public class KerberosHelperImpl implements KerberosHelper {
               Set<String> hostFilter = parseHostFilter(requestProperties);
               Map<String, Set<String>> serviceComponentFilter = parseComponentFilter(requestProperties);
 
+              boolean updateConfigurations = !requestProperties.containsKey(DIRECTIVE_IGNORE_CONFIGS)
+                  || !"true".equalsIgnoreCase(requestProperties.get(DIRECTIVE_IGNORE_CONFIGS));
+
               if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
-                handler = new CreatePrincipalsAndKeytabsHandler(true, true, true);
+                handler = new CreatePrincipalsAndKeytabsHandler(true, updateConfigurations, true);
               } else if ("missing".equalsIgnoreCase(value)) {
-                handler = new CreatePrincipalsAndKeytabsHandler(false, true, true);
+                handler = new CreatePrincipalsAndKeytabsHandler(false, updateConfigurations, true);
               }
 
               if (handler != null) {
@@ -1451,7 +1454,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                            Collection<KerberosIdentityDescriptor> identities,
                            Collection<String> identityFilter, String hostname, String serviceName,
                            String componentName, Map<String, Map<String, String>> kerberosConfigurations,
-                           Map<String, Map<String, String>> configurations)
+                           Map<String, Map<String, String>> configurations, boolean ignoreHeadless)
       throws IOException {
     int identitiesAdded = 0;
 
@@ -1503,7 +1506,8 @@ public class KerberosHelperImpl implements KerberosHelper {
                   keytabFileOwnerAccess,
                   keytabFileGroupName,
                   keytabFileGroupAccess,
-                  (keytabIsCachable) ? "true" : "false");
+                  (keytabIsCachable) ? "true" : "false",
+                  (ignoreHeadless && principalDescriptor.getType() == KerberosPrincipalType.USER) ? "true" : "false");
             }
 
             // Add the principal-related configuration to the map of configurations
@@ -2191,6 +2195,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                   keytabFileOwnerAccess,
                   keytabFileGroupName,
                   keytabFileGroupAccess,
+                  "false",
                   "false");
 
               hostsWithValidKerberosClient.add(hostname);

@@ -2938,15 +2938,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 }
                 break;
               case INIT:
-                throw new AmbariException("Unsupported transition to INIT for"
-                    + " servicecomponenthost"
-                    + ", clusterName=" + cluster.getClusterName()
-                    + ", clusterId=" + cluster.getClusterId()
-                    + ", serviceName=" + scHost.getServiceName()
-                    + ", componentName=" + scHost.getServiceComponentName()
-                    + ", hostname=" + scHost.getHostName()
-                    + ", currentState=" + oldSchState
-                    + ", newDesiredState=" + newState);
+                if (oldSchState == State.INSTALLED ||
+                    oldSchState == State.INSTALL_FAILED ||
+                    oldSchState == State.INIT) {
+                  scHost.setState(State.INIT);
+                  continue;
+                } else  {
+                  throw new AmbariException("Unsupported transition to INIT for"
+                      + " servicecomponenthost"
+                      + ", clusterName=" + cluster.getClusterName()
+                      + ", clusterId=" + cluster.getClusterId()
+                      + ", serviceName=" + scHost.getServiceName()
+                      + ", componentName=" + scHost.getServiceComponentName()
+                      + ", hostname=" + scHost.getHostName()
+                      + ", currentState=" + oldSchState
+                      + ", newDesiredState=" + newState);
+                }
               default:
                 throw new AmbariException("Unsupported state change operation"
                     + ", newState=" + newState.toString());
