@@ -1549,7 +1549,7 @@ public class TestHeartbeatHandler {
     kerberosIdentityDataFileWriter.writeRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
         "dn/_HOST@_REALM", "service",
         "/etc/security/keytabs/dn.service.keytab",
-        "hdfs", "r", "hadoop", "", "false");
+        "hdfs", "r", "hadoop", "", "false", "false");
 
     kerberosIdentityDataFileWriter.close();
 

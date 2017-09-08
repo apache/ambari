@@ -149,7 +149,7 @@ public class AbstractPrepareKerberosServerActionTest {
       identityFilter,
       "",
         configurations, kerberosConfigurations,
-        false, propertiesToIgnore);
+        false, propertiesToIgnore, false);
 
     verify(kerberosHelper);
   }
