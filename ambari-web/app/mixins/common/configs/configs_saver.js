@@ -574,6 +574,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
         "cluster_name": App.get('clusterName') || this.get('clusterName'),
         "group_name": group.name,
         "tag": group.service_id,
+        "service_name": group.service_id,
         "description": group.description,
         "hosts": groupHosts,
         "service_config_version_note": configVersionNote || "",

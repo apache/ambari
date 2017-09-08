@@ -239,6 +239,7 @@ App.ConfigOverridable = Em.Mixin.create({
         "group_name": newConfigGroupData.name,
         "tag": newConfigGroupData.service_id,
         "description": newConfigGroupData.description,
+        "service_name": newConfigGroupData.service_id,
         "desired_configs": newConfigGroupData.desired_configs.map(function (cst) {
           var type = Em.get(cst, 'site') || Em.get(cst, 'type');
           return {
@@ -300,6 +301,7 @@ App.ConfigOverridable = Em.Mixin.create({
         group_name: configGroup.get('name'),
         description: configGroup.get('description'),
         tag: configGroup.get('service.id'),
+        service_name: configGroup.get('service.id'),
         hosts: configGroup.get('hosts').map(function (h) {
           return {
             host_name: h
