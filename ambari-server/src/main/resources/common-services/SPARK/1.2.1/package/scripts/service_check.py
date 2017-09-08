@@ -39,7 +39,8 @@ class SparkServiceCheck(Script):
     Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{spark_history_server_host}:{spark_history_ui_port} | grep 200"),
       tries=5,
       try_sleep=3,
-      logoutput=True
+      logoutput=True,
+      user=params.spark_user
     )
     if params.has_livyserver:
       live_livyserver_host = "";
