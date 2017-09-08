@@ -531,6 +531,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
             }
           }
 
+          // if TIMEOUT and marked for holding then set status = HOLDING_TIMEOUT
+          if (status == HostRoleStatus.TIMEDOUT && commandEntity.isRetryAllowed()){
+            status = HostRoleStatus.HOLDING_TIMEDOUT;
+          }
+
           commandEntity.setStatus(status);
           statusChanged = true;
           break;
@@ -596,6 +601,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         if (command.isFailureAutoSkipped()) {
           status = HostRoleStatus.SKIPPED_FAILED;
         }
+      }
+
+      // if TIMEOUT and marked for holding then set status = HOLDING_TIMEOUT
+      if (status == HostRoleStatus.TIMEDOUT && command.isRetryAllowed()){
+        status = HostRoleStatus.HOLDING_TIMEDOUT;
       }
 
       command.setStatus(status);
