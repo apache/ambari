@@ -313,6 +313,8 @@ if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
   smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+  smoke_user_princ = config['configurations']['cluster-env']['smokeuser_principal_name']
+  smoke_user = config['configurations']['cluster-env']['smokeuser']
   hbase_user_keytab = config['configurations']['ams-hbase-env']['hbase_user_keytab']
 
   ams_collector_jaas_config_file = format("{hbase_conf_dir}/ams_collector_jaas.conf")
