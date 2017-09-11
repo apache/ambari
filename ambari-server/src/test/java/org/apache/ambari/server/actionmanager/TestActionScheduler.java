@@ -48,6 +48,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -74,6 +75,9 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -227,6 +231,106 @@ public class TestActionScheduler {
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 5, db, aq, fsm,
         10000, new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock, hostRoleCommandDAOMock, null);
+    scheduler.setTaskTimeoutAdjustment(false);
+
+    List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1, scheduler);
+    AgentCommand scheduledCommand = ac.get(0);
+    assertTrue(scheduledCommand instanceof ExecutionCommand);
+    assertEquals("1-977", ((ExecutionCommand) scheduledCommand).getCommandId());
+    assertEquals(clusterHostInfo, ((ExecutionCommand) scheduledCommand).getClusterHostInfo());
+
+    //The action status has not changed, it should be queued again.
+    ac = waitForQueueSize(hostname, aq, 2, scheduler);
+    // first command is cancel for previous
+    scheduledCommand = ac.get(1);
+    assertTrue(scheduledCommand instanceof ExecutionCommand);
+    assertEquals("1-977", ((ExecutionCommand) scheduledCommand).getCommandId());
+    assertEquals(clusterHostInfo, ((ExecutionCommand) scheduledCommand).getClusterHostInfo());
+
+    //Now change the action status
+    s.setHostRoleStatus(hostname, "NAMENODE", HostRoleStatus.COMPLETED);
+    ac = aq.dequeueAll(hostname);
+
+    //Wait for sometime, it shouldn't be scheduled this time.
+    ac = waitForQueueSize(hostname, aq, 0, scheduler);
+
+    EasyMock.verify(entityManagerProviderMock);
+  }
+
+
+  /**
+   * This test sends a new action to the action scheduler and verifies that the action
+   * shows up in the action queue in case of DEPENDENCY_ORDERED execution type, with RoleCommand
+   * having dependencies on himself.
+   */
+  @Test
+  public void testActionScheduleWithDependencyOrderedCommandExecution() throws Exception {
+    Type type = new TypeToken<Map<String, Set<String>>>() {}.getType();
+    Map<String, List<String>> clusterHostInfo = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO, type);
+
+    ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    properties.setProperty("server.stage.command.execution_type", "DEPENDENCY_ORDERED");
+    Configuration conf = new Configuration(properties);
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    UnitOfWork unitOfWork = mock(UnitOfWork.class);
+    RoleCommandOrderProvider rcoProvider = mock(RoleCommandOrderProvider.class);
+    RoleCommandOrder rco = mock(RoleCommandOrder.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(fsm.getClusterById(anyLong())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(oneClusterMock.getClusterId()).thenReturn(Long.valueOf(1L));
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    when(rcoProvider.getRoleCommandOrder(1L)).thenReturn(rco);
+    Map<RoleCommandPair, Set<RoleCommandPair>> roleCommandDependencies = new HashMap();
+    RoleCommandPair roleCommand = new
+            RoleCommandPair(Role.valueOf("NAMENODE"), RoleCommand.INSTALL);
+    Set<RoleCommandPair> namenodeInstallDependencies = new HashSet<>();
+    namenodeInstallDependencies.add(roleCommand);
+    roleCommandDependencies.put(roleCommand, namenodeInstallDependencies);
+    when(rco.getDependencies()).thenReturn(roleCommandDependencies);
+
+    Host host = mock(Host.class);
+    HashMap<String, ServiceComponentHost> hosts =
+            new HashMap<>();
+    hosts.put(hostname, sch);
+    HostEntity hostEntity = new HostEntity();
+    hostEntity.setHostName(hostname);
+    hostDAO.merge(hostEntity);
+    when(scomp.getServiceComponentHosts()).thenReturn(hosts);
+
+    when(fsm.getHost(anyString())).thenReturn(host);
+    when(host.getState()).thenReturn(HostState.HEALTHY);
+    when(host.getHostName()).thenReturn(hostname);
+
+    ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
+    HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
+    Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
+    Stage s = StageUtils.getATestStage(1, 977, hostname,
+            "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
+    s.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
+    List<Stage> stages = Collections.singletonList(s);
+    when(db.getCommandsInProgressCount()).thenReturn(stages.size());
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
+
+    RequestEntity request = mock(RequestEntity.class);
+    when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
+
+    //Keep large number of attempts so that the task is not expired finally
+    //Small action timeout to test rescheduling
+    ActionScheduler scheduler = new ActionScheduler(100, 5, db, aq, fsm,
+            10000, new HostsMap((String) null), unitOfWork, null, conf,
+            entityManagerProviderMock, hostRoleCommandDAOMock, null, rcoProvider);
     scheduler.setTaskTimeoutAdjustment(false);
 
     List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1, scheduler);

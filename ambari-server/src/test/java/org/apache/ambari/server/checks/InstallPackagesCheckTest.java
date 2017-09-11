@@ -72,7 +72,7 @@ public class InstallPackagesCheckTest {
    *
    */
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn(repositoryVersion);
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(targetStackId);
   }

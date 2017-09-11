@@ -115,7 +115,7 @@ CREATE TABLE clusterconfig (
   config_data LONGTEXT NOT NULL,
   config_attributes LONGTEXT,
   create_timestamp BIGINT NOT NULL,
-  service_deleted SMALLINT NOT NULL DEFAULT 0,
+  unmapped SMALLINT NOT NULL DEFAULT 0,
   selected_timestamp BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
@@ -203,6 +203,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR(128) NOT NULL,
   repositories MEDIUMTEXT NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden SMALLINT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml MEDIUMTEXT,
   version_xsd VARCHAR(512),
@@ -605,7 +606,7 @@ CREATE table viewurl(
   url_id BIGINT ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -868,6 +869,7 @@ CREATE TABLE upgrade (
   skip_failures TINYINT(1) NOT NULL DEFAULT 0,
   skip_sc_failures TINYINT(1) NOT NULL DEFAULT 0,
   downgrade_allowed TINYINT(1) NOT NULL DEFAULT 1,
+  revert_allowed TINYINT(1) NOT NULL DEFAULT 0,
   suspended TINYINT(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
@@ -1138,7 +1140,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('setting_id_seq', 0),
   ('hostcomponentstate_id_seq', 0),
   ('servicecomponentdesiredstate_id_seq', 0),
-  ('servicecomponent_history_id_seq', 0),
+  ('upgrade_history_id_seq', 0),
   ('blueprint_setting_id_seq', 0),
   ('ambari_operation_history_id_seq', 0),
   ('remote_cluster_id_seq', 0),

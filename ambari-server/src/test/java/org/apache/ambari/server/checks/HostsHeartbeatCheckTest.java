@@ -52,7 +52,7 @@ public class HostsHeartbeatCheckTest {
    *
    */
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
   }

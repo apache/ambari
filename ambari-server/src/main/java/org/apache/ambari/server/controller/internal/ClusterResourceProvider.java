@@ -207,7 +207,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("config_recommendation_strategy");
     baseUnsupported.remove("provision_action");
     baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_PROPERTY);
-
+    baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY);
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 
@@ -251,7 +251,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     final Set<ClusterRequest> requests = new HashSet<>();
 
     if (predicate == null) {
-      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+      requests.add(getRequest(Collections.emptyMap()));
     } else {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));

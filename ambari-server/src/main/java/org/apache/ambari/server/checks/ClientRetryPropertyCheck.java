@@ -18,9 +18,9 @@
 package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -31,6 +31,7 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -58,9 +59,10 @@ public class ClientRetryPropertyCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    return super.isApplicable(request, Arrays.asList("HDFS", "HIVE", "OOZIE"), false);
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet("HDFS", "HIVE", "OOZIE");
   }
+
 
   /**
    * {@inheritDoc}

@@ -26,6 +26,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
 
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
+    App.tooltip($('.not-upgradable'), {title: Em.I18n.t('admin.stackVersions.version.service.notUpgradable')});
     if (!this.get('content.isCompatible')) {
       App.tooltip(this.$(".repo-version-tooltip"), {
         title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')
@@ -45,22 +46,21 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   },
 
   services: function() {
-    var repoRecord = App.RepositoryVersion.find(this.get('content.id'));
-    var originalServices = repoRecord.get('stackServices');
+    var originalServices = this.get('content.stackServices');
     // sort the services in the order the same as service menu
-    var sorted = App.Service.find().map(function (service) {
-      var latestVersion = '';
-      if (originalServices.someProperty('name', service.get('serviceName'))){
-        latestVersion = originalServices.filterProperty('name', service.get('serviceName'))[0].get('latestVersion');
-      }
+    return App.Service.find().map(function (service) {
+
+      var stackService = originalServices.findProperty('name', service.get('serviceName'));
+      var isAvailable = this.isStackServiceAvailable(stackService);
       return Em.Object.create({
         displayName: service.get('displayName'),
         name: service.get('serviceName'),
-        latestVersion: latestVersion,
-        isVersionInvisible: latestVersion == false
+        latestVersion: stackService ? stackService.get('latestVersion') : '',
+        isVersionInvisible: !stackService,
+        notUpgradable: !this.get('content.isStandard')  && isAvailable && !stackService.get('isUpgradable'),
+        isAvailable: isAvailable
       });
-    });
-    return sorted;
+    }, this);
   }.property(),
 
   /**
@@ -99,6 +99,31 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
       text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
       action: 'resumeUpgrade'
     }
+  },
+
+  /**
+   * @param {Em.Object} stackService
+   * @returns {boolean}
+   */
+  isStackServiceAvailable: function(stackService) {
+    if (!stackService) {
+      return false;
+    }
+    if ( this.get('content.isCurrent') ){
+      // if version is current, check whether this service is available and the version itself is the newest version of all versions that contain the same service
+      var serviceWithHigherVersion =  App.RepositoryVersion.find().filterProperty('isCurrent').find(function ( version ) {
+        var service = version.get('stackServices').toArray().find( function (service) {
+          return service.get('name') === stackService.get('name') && service.get('isAvailable')
+        });
+        return Boolean(service && stringUtils.compareVersions(version.get('repositoryVersion'), this.get('content.repositoryVersion')) === 1);
+      }, this);
+      return stackService.get('isAvailable') && !serviceWithHigherVersion;
+    }
+    else{
+      return stackService.get('isAvailable')
+    }
+
+
   },
 
   /**

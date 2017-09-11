@@ -32,10 +32,12 @@ import platform
 import re
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  from resource_management.core.environment import Environment
-  from resource_management.libraries.script.config_dictionary import ConfigDictionary
-  from resource_management.libraries.script.script import Script
-  from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+  with patch("os.geteuid", return_value=45000):  # required to mock sudo and run tests with right scenario
+    from resource_management.core import sudo
+    from resource_management.core.environment import Environment
+    from resource_management.libraries.script.config_dictionary import ConfigDictionary
+    from resource_management.libraries.script.script import Script
+    from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
 PATH_TO_STACKS = "main/resources/stacks/HDP"
 PATH_TO_STACK_TESTS = "test/python/stacks/"
@@ -75,28 +77,17 @@ class RMFTestCase(TestCase):
                     try_install=False,
                     command_args=[],
                     log_out_files=False):
+
     norm_path = os.path.normpath(path)
-    src_dir = RMFTestCase.get_src_folder()
+
     if target == self.TARGET_STACKS:
       stack_version = norm_path.split(os.sep)[0]
-      base_path = os.path.join(src_dir, PATH_TO_STACKS)
-      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
-    elif target == self.TARGET_CUSTOM_ACTIONS:
-      base_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTIONS)
-      configs_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTION_TESTS, "configs")
-    elif target == self.TARGET_COMMON_SERVICES:
-      base_path = os.path.join(src_dir, PATH_TO_COMMON_SERVICES)
-      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
-    else:
-      raise RuntimeError("Wrong target value %s", target)
+
+    base_path, configs_path = self._get_test_paths(target, stack_version)
     script_path = os.path.join(base_path, norm_path)
+
     if config_file is not None and config_dict is None:
-      config_file_path = os.path.join(configs_path, config_file)
-      try:
-        with open(config_file_path, "r") as f:
-          self.config_dict = json.load(f)
-      except IOError:
-        raise RuntimeError("Can not read config file: "+ config_file_path)
+      self.config_dict = self.get_config_file(configs_path, config_file)
     elif config_dict is not None and config_file is None:
       self.config_dict = config_dict
     else:
@@ -164,7 +155,48 @@ class RMFTestCase(TestCase):
                         method(RMFTestCase.env, *command_args)
 
     sys.path.remove(scriptsdir)
-  
+
+  def get_config_file(self, configs_path, config_file):
+    """
+    Loads the specified JSON config file
+    :param configs_path:
+    :param config_file:
+    :return:
+    """
+    config_file_path = os.path.join(configs_path, config_file)
+
+    try:
+      with open(config_file_path, "r") as f:
+        return json.load(f)
+    except IOError:
+      raise RuntimeError("Can not read config file: " + config_file_path)
+
+
+  def _get_test_paths(self, target, stack_version):
+    """
+    Gets the base and configs path variables.
+    :param target:
+    :param stack_version:
+    :return:
+    """
+    src_dir = RMFTestCase.get_src_folder()
+
+    if target == self.TARGET_STACKS:
+      base_path = os.path.join(src_dir, PATH_TO_STACKS)
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+      return base_path, configs_path
+    elif target == self.TARGET_CUSTOM_ACTIONS:
+      base_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTIONS)
+      configs_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTION_TESTS, "configs")
+      return base_path, configs_path
+    elif target == self.TARGET_COMMON_SERVICES:
+      base_path = os.path.join(src_dir, PATH_TO_COMMON_SERVICES)
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+      return base_path, configs_path
+    else:
+      raise RuntimeError("Wrong target value %s", target)
+
+
   def getConfig(self):
     return self.config_dict
           

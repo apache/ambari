@@ -51,7 +51,7 @@ public class TestParallel {
     Assert.assertTrue(nullLoopResult.getResult().isEmpty());
 
     ParallelLoopResult<Integer> emptyLoopResult = Parallel.forLoop(
-        new ArrayList<Integer>(),
+      new ArrayList<>(),
         new LoopBody<Integer, Integer>() {
           @Override
           public Integer run(Integer integer) {

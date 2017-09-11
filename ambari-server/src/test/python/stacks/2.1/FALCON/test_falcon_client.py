@@ -34,6 +34,7 @@ class TestFalconClient(RMFTestCase):
                        classname="FalconClient",
                        command="configure",
                        config_file="default.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -49,11 +50,11 @@ class TestFalconClient(RMFTestCase):
                               mode = 0755,
                               cd_access = "a",
                               )
-    self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-client/webapp',
                               owner = 'falcon',
                               create_parents = True
                               )
-    self.assertResourceCalled('Directory', '/usr/lib/falcon',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-client',
                               owner = 'falcon',
                               create_parents = True
                               )

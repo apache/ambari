@@ -31,7 +31,12 @@ import java.io.IOException;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
 
 @Configuration
-@PropertySource(value = {"classpath:default.properties", "classpath:"+ LOGSEARCH_PROPERTIES_FILE})
+@PropertySource(value = {
+  "classpath:default.properties",
+  "classpath:info.properties",
+  "classpath:"+ LOGSEARCH_PROPERTIES_FILE
+  }
+)
 public class ApplicationConfig {
 
   @Bean

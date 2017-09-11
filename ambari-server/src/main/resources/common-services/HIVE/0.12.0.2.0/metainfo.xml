@@ -355,6 +355,7 @@
         <config-type>ranger-hive-security</config-type>
         <config-type>mapred-site</config-type>
         <config-type>application.properties</config-type>
+        <config-type>druid-common</config-type>
       </configuration-dependencies>
     </service>
   </services>

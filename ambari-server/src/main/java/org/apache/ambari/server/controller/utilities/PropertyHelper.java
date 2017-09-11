@@ -112,7 +112,7 @@ public class PropertyHelper {
 
   public static Set<String> getPropertyIds(Resource.Type resourceType) {
     Set<String> propertyIds = PROPERTY_IDS.get(resourceType.getInternalType());
-    return propertyIds == null ? Collections.<String>emptySet() : propertyIds;
+    return propertyIds == null ? Collections.emptySet() : propertyIds;
   }
 
   public static void setPropertyIds(Resource.Type resourceType, Set<String> propertyIds) {

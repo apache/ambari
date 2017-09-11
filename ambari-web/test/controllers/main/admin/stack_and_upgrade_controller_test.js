@@ -405,9 +405,10 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
         id: '1',
-        value: '1',
+        value: '2.2',
         label: 'HDP-2.2',
         type: 'ROLLING',
+        targetStack: "HDP-2.2",
         skipComponentFailures: 'false',
         skipSCFailures: 'false'
       });
@@ -1147,7 +1148,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(this.callArgs.data).to.eql({
         id: '1',
         value: '2.2',
-        label: 'HDP-2.2',
+        label: 'HDP-2.3',
         isDowngrade: true,
         upgradeType: "NON_ROLLING"
       });
@@ -1174,7 +1175,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.installRepoVersion.restore();
     });
     it("show popup", function () {
-      var repo = Em.Object.create({'displayName': 'HDP-2.2'});
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', stackServices: []});
       var popup = controller.installRepoVersionConfirmation(repo);
       popup.onPrimary();
       expect(controller.installRepoVersion.calledWith(repo)).to.be.true;
@@ -1727,11 +1728,12 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     it("Rolling method allowed", function () {
       controller.get('upgradeMethods').setEach('allowed', true);
       controller.runUpgradeMethodChecks(Em.Object.create({
-        id: '1',
+        id: 1,
+        repositoryVersion: '1.2',
         displayName: 'V1'
       }));
       expect(controller.runPreUpgradeCheckOnly.calledWith({
-        value: '1',
+        id: 1,
         label: 'V1',
         type: 'ROLLING'
       })).to.be.true;
@@ -1782,7 +1784,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('proper data is saved to the localDB', function () {
       expect(controller.setDBProperties.getCall(0).args[0]).to.eql({
-        fromVersion: null,
+        toVersion: '1.1',
         upgradeId: 1,
         isDowngrade: false,
         upgradeState: 'PENDING',
@@ -3411,5 +3413,184 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(mock.mapProperty('isCompatible')).to.be.eql([false, true])
     });
   });
+  
+   describe('#confirmRevertPatchUpgrade', function() {
+    beforeEach(function() {
+      sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create());
+      sinon.stub(App.ModalPopup, 'show');
+      sinon.stub(controller, 'getServicesToBeReverted');
+    });
+    afterEach(function() {
+      App.RepositoryVersion.find.restore();
+      App.ModalPopup.show.restore();
+      controller.getServicesToBeReverted.restore();
+    });
 
+    it('App.ModalPopup.show should be called', function() {
+      controller.confirmRevertPatchUpgrade(Em.Object.create());
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#getServicesToBeReverted', function() {
+    beforeEach(function() {
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({isLoaded: true}));
+    });
+    afterEach(function() {
+      App.Service.find.restore();
+    });
+
+    it('should return services which will be reverted', function() {
+      var version = Em.Object.create({
+        stackServices: [
+          Em.Object.create({
+            name: 'S1',
+            isAvailable: false,
+            displayName: 's1',
+            latestVersion: '1.0'
+          }),
+          Em.Object.create({
+            name: 'S2',
+            isAvailable: true,
+            displayName: 's2',
+            latestVersion: '2.0'
+          })
+        ]
+      });
+      var currentStack = Em.Object.create({
+        stackServices: [
+          Em.Object.create({
+            name: 'S2',
+            latestVersion: '2.1'
+          })
+        ]
+      });
+      expect(controller.getServicesToBeReverted(version, currentStack)).to.be.eql([
+        {
+          displayName: 's2',
+          fromVersion: '2.0',
+          toVersion: '2.1'
+        }
+      ]);
+    });
+  });
+
+  describe('#revertPatchUpgrade', function() {
+    beforeEach(function() {
+      sinon.stub(App.StackUpgradeHistory, 'find').returns([
+        Em.Object.create({
+          associatedVersion: '1.1',
+          upgradeId: 1
+        })
+      ]);
+    });
+    afterEach(function() {
+      App.StackUpgradeHistory.find.restore();
+    });
+
+    it('App.ajax.send should be called', function() {
+      var version = Em.Object.create({
+        repositoryVersion: '1.1',
+        id: 2,
+        displayName: '1.2',
+        upgradeType: 'EXPRESS'
+      });
+      controller.revertPatchUpgrade(version);
+      expect(controller.get('requestInProgress')).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.revert');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
+        upgradeId: 1,
+        isDowngrade: true,
+        id: 2,
+        value: '1.1',
+        label: '1.2'
+      });
+      args[0].callback();
+      expect(controller.get('requestInProgress')).to.be.false;
+    });
+  });
+
+  describe('#getUpgradeDowngradeHeader', function() {
+
+    it('should return downgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', true)).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format('v1')
+      );
+    });
+    it('should return patch upgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, Em.Object.create({isPatch: true}))).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.upgrade.patch.header').format('t1', 'v1')
+      );
+    });
+    it('should return maint upgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, Em.Object.create({isMaint: true}))).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.upgrade.maint.header').format('t1', 'v1')
+      );
+    });
+    it('should return upgrade header', function() {
+      expect(controller.getUpgradeDowngradeHeader('t1', 'v1', false, false)).to.be.equal(
+        Em.I18n.t('admin.stackUpgrade.dialog.upgrade.header').format('t1', 'v1')
+      );
+    });
+  });
+  
+  describe('#confirmDiscardRepoVersion', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'showConfirmationPopup', Em.clb);
+      sinon.stub(controller, 'discardRepoVersion');
+    });
+    afterEach(function() {
+      App.showConfirmationPopup.restore();
+      controller.discardRepoVersion.restore();
+    });
+
+    it('discardRepoVersion should be called', function() {
+      controller.confirmDiscardRepoVersion(Em.Object.create());
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(controller.discardRepoVersion.calledWith(Em.Object.create())).to.be.true;
+    });
+  });
+
+  describe('#discardRepoVersion', function() {
+
+    it('App.ajax.send should be called', function() {
+      var version = Em.Object.create({
+        id: 2,
+        stackVersionType: 'HDP',
+        stackVersionNumber: '2.5'
+      });
+      controller.discardRepoVersion(version);
+      expect(controller.get('requestInProgress')).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.stack_versions.discard');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
+        id: 2,
+        stackName: 'HDP',
+        stackVersion: '2.5'
+      });
+      args[0].callback();
+      expect(controller.get('requestInProgress')).to.be.false;
+    });
+  });
+
+  describe('#showUpgradeOptions', function () {
+    before(function () {
+      sinon.stub(controller, 'upgradeOptions', Em.K);
+    });
+    after(function () {
+      controller.upgradeOptions.restore();
+    });
+    it("show upgrade options popup window", function() {
+      var version = Em.Object.create({displayName: 'HDP-2.2'});
+      controller.showUpgradeOptions(version);
+      expect(controller.upgradeOptions.calledWith(false, version, true)).to.be.true;
+    });
+
+    it("runningCheckRequests has 1 item" + Em.I18n.t('common.dismiss'), function () {
+      var version = Em.Object.create({displayName: 'HDP-2.2'});
+      var popup = controller.upgradeOptions(false, version, true);
+      expect( controller.get('runningCheckRequests')).to.have.length(1);
+    })
+  });
 });

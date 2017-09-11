@@ -299,7 +299,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
               widgetLayoutUserWidgetEntity.getWidget().getListWidgetLayoutUserWidgetEntity()
                       .remove(widgetLayoutUserWidgetEntity);
             }
-            entity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
+            entity.setListWidgetLayoutUserWidgetEntity(new LinkedList<>());
 
             List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<>();
             int order = 0;

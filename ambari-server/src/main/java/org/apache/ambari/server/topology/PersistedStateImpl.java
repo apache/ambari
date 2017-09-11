@@ -208,7 +208,7 @@ public class PersistedStateImpl implements PersistedState {
             clusterTopology.setProvisionAction(entity.getProvisionAction());
           }
           topologyRequests.put(replayedRequest.getClusterId(), clusterTopology);
-          allRequests.put(clusterTopology, new ArrayList<LogicalRequest>());
+          allRequests.put(clusterTopology, new ArrayList<>());
         } catch (InvalidTopologyException e) {
           throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
         }
@@ -223,18 +223,21 @@ public class PersistedStateImpl implements PersistedState {
       }
 
       TopologyLogicalRequestEntity logicalRequestEntity = entity.getTopologyLogicalRequestEntity();
-      Long logicalId = logicalRequestEntity.getId();
+      if (logicalRequestEntity != null) {
+        try {
+          Long logicalId = logicalRequestEntity.getId();
 
-      try {
-        //todo: fix initialization of ActionManager.requestCounter to account for logical requests
-        //todo: until this is fixed, increment the counter for every recovered logical request
-        //todo: this will cause gaps in the request id's after recovery
-        ambariContext.getNextRequestId();
-        allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
-            logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
-      } catch (AmbariException e) {
-        throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+          //todo: fix initialization of ActionManager.requestCounter to account for logical requests
+          //todo: until this is fixed, increment the counter for every recovered logical request
+          //todo: this will cause gaps in the request id's after recovery
+          ambariContext.getNextRequestId();
+          allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
+                  logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
+        } catch (AmbariException e) {
+          throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+        }
       }
+
     }
 
     return allRequests;

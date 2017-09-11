@@ -144,7 +144,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
 
     // GIVEN
     // all the configuration comes from the bp, cct hg configs are empty
-    topologyConfigurationMap.put("kerberos-env", new HashMap<String, String>());
+    topologyConfigurationMap.put("kerberos-env", new HashMap<>());
     topologyConfigurationMap.get("kerberos-env").put("realm", "etwas");
     topologyConfigurationMap.get("kerberos-env").put("kdc_type", "mit-kdc");
 
@@ -173,12 +173,12 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     // GIVEN
 
     // configuration from the blueprint / cluster creation template
-    topologyConfigurationMap.put("kerberos-env", new HashMap<String, String>());
+    topologyConfigurationMap.put("kerberos-env", new HashMap<>());
     topologyConfigurationMap.get("kerberos-env").put("realm", "etwas");
 
     // note, that tehe kdc_type is mssing from the operational config
 
-    topologyConfigurationMap.put("krb5-conf", new HashMap<String, String>());
+    topologyConfigurationMap.put("krb5-conf", new HashMap<>());
     topologyConfigurationMap.get("krb5-conf").put("domains", "smthg");
 
     missingProps.put("master", Collections.singletonList("kdc_type"));
@@ -206,8 +206,8 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   public void testShouldValidationFailWhenHostGroupConfigurationProvidedAndRequiredConfigTypesAreMissingFromBothHostgroups() throws Exception {
     // GIVEN
     // configuration come in the host groups, there are missing config types in both hostgroups
-    missingProps.put("master", Sets.newTreeSet(Lists.<String>newArrayList("kdc_type", "domains", "realm")));
-    missingProps.put("slave", Sets.newTreeSet(Lists.<String>newArrayList("kdc_type", "domains", "realm")));
+    missingProps.put("master", Sets.newTreeSet(Lists.newArrayList("kdc_type", "domains", "realm")));
+    missingProps.put("slave", Sets.newTreeSet(Lists.newArrayList("kdc_type", "domains", "realm")));
 
     replayAll();
 
@@ -229,13 +229,13 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   public void testShouldValidationFailWhenHostGroupConfigurationProvidedAndRequiredConfigTypesAreMissingFromSlaveHostgroup() throws Exception {
     // GIVEN
     // configuration come in the host groups, there are missing config types in both hostgroups
-    masterHostGroupConfigurationMap.put("kerberos-env", new HashMap<String, String>());
+    masterHostGroupConfigurationMap.put("kerberos-env", new HashMap<>());
     masterHostGroupConfigurationMap.get("kerberos-env").put("realm", "etwas");
     masterHostGroupConfigurationMap.get("kerberos-env").put("kdc_type", "mit-kdc");
-    masterHostGroupConfigurationMap.put("krb5-conf", new HashMap<String, String>());
+    masterHostGroupConfigurationMap.put("krb5-conf", new HashMap<>());
     masterHostGroupConfigurationMap.get("krb5-conf").put("domains", "smthg");
 
-    missingProps.put("slave", Sets.<String>newTreeSet(Lists.<String>newArrayList("kdc_type", "domains", "realm")));
+    missingProps.put("slave", Sets.newTreeSet(Lists.newArrayList("kdc_type", "domains", "realm")));
 
     replayAll();
 
@@ -257,16 +257,16 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   public void testShouldValidationPassWhenAllRequiredPropertiesAreProvidedInHostGroupConfiguration() throws Exception {
     // GIVEN
 
-    masterHostGroupConfigurationMap.put("kerberos-env", new HashMap<String, String>());
+    masterHostGroupConfigurationMap.put("kerberos-env", new HashMap<>());
     masterHostGroupConfigurationMap.get("kerberos-env").put("realm", "etwas");
     masterHostGroupConfigurationMap.get("kerberos-env").put("kdc_type", "mit-kdc");
-    masterHostGroupConfigurationMap.put("krb5-conf", new HashMap<String, String>());
+    masterHostGroupConfigurationMap.put("krb5-conf", new HashMap<>());
     masterHostGroupConfigurationMap.get("krb5-conf").put("domains", "smthg");
 
-    slaveHostGroupConfigurationMap.put("kerberos-env", new HashMap<String, String>());
+    slaveHostGroupConfigurationMap.put("kerberos-env", new HashMap<>());
     slaveHostGroupConfigurationMap.get("kerberos-env").put("realm", "etwas");
     slaveHostGroupConfigurationMap.get("kerberos-env").put("kdc_type", "mit-kdc");
-    slaveHostGroupConfigurationMap.put("krb5-conf", new HashMap<String, String>());
+    slaveHostGroupConfigurationMap.put("krb5-conf", new HashMap<>());
     slaveHostGroupConfigurationMap.get("krb5-conf").put("domains", "smthg");
 
     replayAll();
@@ -285,11 +285,11 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   public void testShouldValidationPassWhenAllRequiredPropertiesAreProvidedInTopologyConfiguration() throws Exception {
     // GIVEN
     // configuration from the blueprint / cluster creation template
-    topologyConfigurationMap.put("kerberos-env", new HashMap<String, String>());
+    topologyConfigurationMap.put("kerberos-env", new HashMap<>());
     topologyConfigurationMap.get("kerberos-env").put("realm", "etwas");
     topologyConfigurationMap.get("kerberos-env").put("kdc_type", "value");
 
-    topologyConfigurationMap.put("krb5-conf", new HashMap<String, String>());
+    topologyConfigurationMap.put("krb5-conf", new HashMap<>());
     topologyConfigurationMap.get("krb5-conf").put("domains", "smthg");
 
     replayAll();

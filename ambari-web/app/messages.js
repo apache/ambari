@@ -229,6 +229,7 @@ Em.I18n.translations = {
   'common.resume': 'Resume',
   'common.path': 'Path',
   'common.patch': 'Patch',
+  'common.maint': 'Maint',
   'common.package': 'Package',
   'common.proceed': 'Proceed',
   'common.proceedAnyway': 'Proceed Anyway',
@@ -350,6 +351,8 @@ Em.I18n.translations = {
   'common.rolling': 'Rolling',
   'common.express': 'Express',
   'common.hostOrdered': 'Host Ordered',
+  'common.repository': 'Repository',
+  'common.repositoryType': 'Repository Type',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
 
@@ -1726,9 +1729,11 @@ Em.I18n.translations = {
   'admin.stackVersions.upgrade.installPackage.fail.title':'Packages could not be installed',
   'admin.stackVersions.upgrade.installPackage.fail.timeout':'Request timed out.',
 
+  'admin.stackVersions.upgrade.patch.revert.confirmation':'Are you sure you want to revert the following services:',
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring.',
   'admin.stackVersions.editRepositories.validation.warning': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
   'admin.stackVersions.version.install.confirm': 'You are about to install packages for version <strong>{0}</strong> on all hosts.',
+  'admin.stackVersions.version.install.patch.confirm': 'You are about to install packages for version <strong>{0}</strong> on hosts which contain the following services:',
   'admin.stackVersions.version.linkTooltip': 'Click to Edit Repositories',
   'admin.stackVersions.version.hostsTooltip': 'Click to List Hosts',
   'admin.stackVersions.version.emptyHostsTooltip': 'No Hosts to List',
@@ -1741,6 +1746,7 @@ Em.I18n.translations = {
   'admin.stackVersions.version.installNow': "Install Packages",
   'admin.stackVersions.version.reinstall': "Reinstall Packages",
   'admin.stackVersions.version.performUpgrade': "Perform Upgrade",
+  'admin.stackVersions.version.preUpgradeCheck': 'Pre-Upgrade Check',
   'admin.stackVersions.version.upgrade.pause': "Upgrade: Action Required",
   'admin.stackVersions.version.upgrade.notFinalized.warning': "The upgrade has not been finalized yet. After the cluster is verified to be functional, do not forget to finalize the upgrade as soon as possible (within a couple of days is highly recommended) as running the cluster in unfinalized state causes extra resource requirements on HDFS.",
   'admin.stackVersions.version.upgrade.running': "Upgrade: In Process",
@@ -1755,6 +1761,8 @@ Em.I18n.translations = {
   'admin.stackDowngrade.state.paused.fail.header': "Pause Downgrade failed",
   'admin.stackDowngrade.state.paused.fail.body': "Downgrade could not be paused. Try again later.",
 
+  'admin.stackVersions.version.service.notUpgradable': "Update available, but already installed.",
+
   'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.method': "Choose the upgrade method:",
@@ -1762,10 +1770,10 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1': "Skip all Slave Component failures",
   'admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2': "Skip all Service Check failures",
   'admin.stackVersions.version.upgrade.upgradeOptions.tolerance.tooltip': "These upgrade failure tolerance options are useful when performing an upgrade on a large cluster and you want to minimize user intervention.",
-  'admin.stackVersions.version.upgrade.upgradeOptions.RU.title': "Rolling Upgrade",
+  'admin.stackVersions.version.upgrade.upgradeOptions.RU.title': "Rolling",
   'admin.stackVersions.version.upgrade.upgradeOptions.RU.description': "Services remain running while the upgrade is performed. Minimized disruption but slower upgrade.",
-  'admin.stackVersions.version.upgrade.upgradeOptions.EU.title': "Express Upgrade",
-  'admin.stackVersions.version.upgrade.upgradeOptions.HOU.title': "Host Ordered Upgrade",
+  'admin.stackVersions.version.upgrade.upgradeOptions.EU.title': "Express",
+  'admin.stackVersions.version.upgrade.upgradeOptions.HOU.title': "Host Ordered",
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.description': "Services are stopped while the upgrade is performed. Incurs downtime, but faster upgrade.",
   'admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed': "Bypassed errors,<br/>proceed at your own risk.",
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun':'Rerun Checks',
@@ -1784,6 +1792,9 @@ Em.I18n.translations = {
 
   'admin.stackVersions.version.upgrade.alertsWarning': 'Cluster alerts will still be visible and recorded in Ambari but notifications (such as Email and SNMP) will be suppressed during the upgrade.',
 
+  'admin.stackVersions.version.preUpgrade.header' : 'Pre-Upgrade Check',
+  'admin.stackVersions.version.preUpgrade.bodyMsg.version': 'The following checks have been run to test your ability to upgrade to <b>{0}</b>.',
+
   'admin.stackVersions.version.column.showDetails': "Show Details",
   'admin.stackVersions.version.column.showDetails.title': "Version Details",
   'admin.stackVersions.version.noCompatible.tooltip': 'Directly upgrading to this version is not supported.',
@@ -1793,6 +1804,7 @@ Em.I18n.translations = {
   'admin.stackVersions.hosts.popup.header.not_installed': "Not installed",
   'admin.stackVersions.hosts.popup.header': "Version Status: {0}",
   'admin.stackVersions.hosts.popup.title': "{0} Version is {1} on {2} hosts:",
+  'admin.stackVersions.hosts.popup.current.title': "{0} is applied on {1} hosts:",
   'admin.stackVersions.hosts.popup.primary': "Go to Hosts",
 
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
@@ -1829,6 +1841,8 @@ Em.I18n.translations = {
     "Click on <b>Finalize</b> when you are ready to finalize the downgrade and commit to the new version." +
     " You are strongly encouraged to run tests on your cluster to ensure it is fully operational before finalizing." +
     " <b>You cannot go back to the original version once the downgrade is finalized.</b>",
+  'admin.stackUpgrade.finalize.message.revertible': "The <b>{0}</b> upgrade to <b>{1}</b> is ready to be completed." +
+  " After finalization, the patch can be reverted from the Stacks and Versions page if it is no longer required.",
   'admin.stackUpgrade.finalize.message.autoStart': "Please remember to re-enable Auto Start if you disabled it for upgrade.",
   'admin.stackUpgrade.finalize.message.skippedServiceChecks': "During the upgrade, checks for the following services failed and were skipped:",
   'admin.stackUpgrade.finalize.message.testServices': "You are strongly recommended to test these services before finalizing upgrade.",
@@ -1865,7 +1879,9 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.paused.downgrade': "Downgrade Paused",
   'admin.stackUpgrade.state.aborted.downgrade': "Downgrade Aborted",
   'admin.stackUpgrade.state.completed.downgrade': "Downgrade Finished",
-  'admin.stackUpgrade.dialog.header': "Upgrade to {0}",
+  'admin.stackUpgrade.dialog.upgrade.header': "{0} Upgrade to {1}",
+  'admin.stackUpgrade.dialog.upgrade.patch.header': "{0} Patch Upgrade to {1}",
+  'admin.stackUpgrade.dialog.upgrade.maint.header': "{0} Maint Upgrade to {1}",
   'admin.stackUpgrade.dialog.downgrade.header': "Downgrade from {0}",
   'admin.stackUpgrade.dialog.operationFailed': "This operation failed.",
   'admin.stackUpgrade.dialog.stop': "Stop Upgrade",
@@ -2761,11 +2777,13 @@ Em.I18n.translations = {
   'hosts.delete.popup.unknownComponents':'The following components have unknown status:',
   'hosts.cant.do.popup.title':'Unable to Delete Host',
   'hosts.cant.do.popup.masterList.body':'This host cannot be deleted since it has the following master components:',
-  'hosts.cant.do.popup.masterList.body.end':'To delete this host, you must first move or delete all the master components listed above.',
+  'hosts.cant.do.popup.masterList.body.end':'To delete this host, you must first move all the master components listed above.',
   'hosts.cant.do.popup.nonDeletableList.body':'Deletion of the following {0} components is not supported. ',
   'hosts.cant.do.popup.runningList.body':'This host cannot be deleted since the following components are running:',
   'hosts.cant.do.popup.runningList.body.end':'To delete this host, you must first stop all the running components listed above. ' +
     'If this host has a {0}, it should be decommissioned first to prevent data loss.',
+  'hosts.cant.do.popup.lastMasterList.body':'This host cannot be deleted since the following master components do not have any other instances:',
+  'hosts.cant.do.popup.lastMasterList.body.end':'To delete this host, you must first add all the components listed above to other hosts',
   'hosts.add.header':'Add Host Wizard',
   'hosts.add.exit.header':'Exit',
   'hosts.add.exit.body':'Do you really want to exit Add Host Wizard?',

@@ -286,7 +286,7 @@ public class ConfigImpl implements Config {
   public Map<String, String> getProperties() {
     propertyLock.readLock().lock();
     try {
-      return properties == null ? new HashMap<String, String>() : new HashMap<>(properties);
+      return properties == null ? new HashMap<>() : new HashMap<>(properties);
     } finally {
       propertyLock.readLock().unlock();
     }

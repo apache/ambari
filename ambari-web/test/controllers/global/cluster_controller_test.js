@@ -459,6 +459,7 @@ describe('App.clusterController', function () {
       sinon.spy(upgradeController, 'initDBProperties');
       sinon.spy(upgradeController, 'loadUpgradeData');
       sinon.spy(upgradeController, 'loadStackVersionsToModel');
+      sinon.stub(App.stackUpgradeHistoryMapper, 'map');
     });
 
     afterEach(function () {
@@ -470,6 +471,7 @@ describe('App.clusterController', function () {
       upgradeController.initDBProperties.restore();
       upgradeController.loadUpgradeData.restore();
       upgradeController.loadStackVersionsToModel.restore();
+      App.stackUpgradeHistoryMapper.map.restore();
     });
 
     describe("has upgrade request", function() {
@@ -509,6 +511,9 @@ describe('App.clusterController', function () {
         expect(upgradeController.loadUpgradeData.called).to.be.false;
       });
 
+      it('App.stackUpgradeHistoryMapper.map should be called', function () {
+        expect(App.stackUpgradeHistoryMapper.map.calledOnce).to.be.true;
+      });
     });
 
     describe("has completed upgrade request", function() {

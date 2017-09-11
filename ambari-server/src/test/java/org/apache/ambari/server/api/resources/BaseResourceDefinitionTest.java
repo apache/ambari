@@ -180,7 +180,7 @@ public class BaseResourceDefinitionTest {
 
   private BaseResourceDefinition getResourceDefinition(Map<BaseResourceDefinition.DirectiveType, ? extends Collection<String>> directives) {
     return new BaseResourceDefinition(Resource.Type.Service,
-        Collections.<Resource.Type>emptySet(), directives) {
+        Collections.emptySet(), directives) {
       @Override
       public String getPluralName() {
         return "pluralName";

@@ -118,14 +118,14 @@ public class ViewDataMigrationUtilityTest {
   }
 
   private static ViewDataMigrationContextImpl getViewDataMigrationContext(int currentVersion, int originVersion) {
-    Map<String, Class> entities = Collections.<String, Class>singletonMap("MyEntityClass", Object.class);
+    Map<String, Class> entities = Collections.singletonMap("MyEntityClass", Object.class);
     ViewDataMigrationContextImpl context = createNiceMock(ViewDataMigrationContextImpl.class);
     expect(context.getOriginDataVersion()).andReturn(originVersion).anyTimes();
     expect(context.getCurrentDataVersion()).andReturn(currentVersion).anyTimes();
     expect(context.getOriginEntityClasses()).andReturn(entities).anyTimes();
     expect(context.getCurrentEntityClasses()).andReturn(entities).anyTimes();
 
-    expect(context.getCurrentInstanceDataByUser()).andReturn(new HashMap<String, Map<String, String>>());
+    expect(context.getCurrentInstanceDataByUser()).andReturn(new HashMap<>());
     replay(context);
     return context;
   }

@@ -49,11 +49,11 @@ public class QuickLinkVisibilityControllerTest {
    */
   @Test
   public void testNullsAreAccepted() throws Exception {
-    QuickLinksProfile profile = QuickLinksProfile.create(ImmutableList.<Filter>of(Filter.acceptAllFilter(true)), null);
+    QuickLinksProfile profile = QuickLinksProfile.create(ImmutableList.of(Filter.acceptAllFilter(true)), null);
     DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     evaluator.isVisible(HDFS, namenodeUi); //should not throw NPE
 
-    Service service = Service.create(HDFS, ImmutableList.<Filter>of(Filter.acceptAllFilter(true)), null);
+    Service service = Service.create(HDFS, ImmutableList.of(Filter.acceptAllFilter(true)), null);
     profile = QuickLinksProfile.create(null, ImmutableList.of(service));
     evaluator = new DefaultQuickLinkVisibilityController(profile);
     evaluator.isVisible(HDFS, namenodeUi); //should not throw NPE
@@ -78,11 +78,11 @@ public class QuickLinkVisibilityControllerTest {
   @Test
   public void testLinkWithNoComponentField() throws Exception {
     Component component = Component.create(NAMENODE,
-        ImmutableList.<Filter>of(Filter.linkNameFilter(NAMENODE_UI, true)));
+        ImmutableList.of(Filter.linkNameFilter(NAMENODE_UI, true)));
 
-    Service service = Service.create(HDFS, ImmutableList.<Filter>of(), ImmutableList.of(component));
+    Service service = Service.create(HDFS, ImmutableList.of(), ImmutableList.of(component));
 
-    QuickLinksProfile profile = QuickLinksProfile.create(ImmutableList.<Filter>of(), ImmutableList.of(service));
+    QuickLinksProfile profile = QuickLinksProfile.create(ImmutableList.of(), ImmutableList.of(service));
     DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     namenodeUi.setComponentName(null);
     assertFalse("Link should be hidden as there are no applicable filters", evaluator.isVisible(HDFS, namenodeUi));
@@ -95,15 +95,15 @@ public class QuickLinkVisibilityControllerTest {
   public void testComponentLevelFiltersEvaluatedFirst() throws Exception {
     Component component = Component.create(
         NAMENODE,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(AUTHENTICATED, true)));
+        ImmutableList.of(Filter.linkAttributeFilter(AUTHENTICATED, true)));
 
     Service service = Service.create(
         HDFS,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(AUTHENTICATED, false)),
+        ImmutableList.of(Filter.linkAttributeFilter(AUTHENTICATED, false)),
         ImmutableList.of(component));
 
     QuickLinksProfile profile = QuickLinksProfile.create(
-        ImmutableList.<Filter>of(Filter.acceptAllFilter(false)),
+        ImmutableList.of(Filter.acceptAllFilter(false)),
         ImmutableList.of(service));
 
     DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
@@ -116,14 +116,14 @@ public class QuickLinkVisibilityControllerTest {
   @Test
   public void testServiceLevelFiltersEvaluatedSecondly() throws Exception {
     Component component = Component.create(NAMENODE,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(SSO, false)));
+        ImmutableList.of(Filter.linkAttributeFilter(SSO, false)));
 
     Service service = Service.create(HDFS,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(AUTHENTICATED, true)),
+        ImmutableList.of(Filter.linkAttributeFilter(AUTHENTICATED, true)),
         ImmutableList.of(component));
 
     QuickLinksProfile profile = QuickLinksProfile.create(
-        ImmutableList.<Filter>of(Filter.acceptAllFilter(false)),
+        ImmutableList.of(Filter.acceptAllFilter(false)),
         ImmutableList.of(service));
 
     DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
@@ -136,14 +136,14 @@ public class QuickLinkVisibilityControllerTest {
   @Test
   public void testGlobalFiltersEvaluatedLast() throws Exception {
     Component component = Component.create(NAMENODE,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(SSO, false)));
+        ImmutableList.of(Filter.linkAttributeFilter(SSO, false)));
 
     Service service = Service.create(HDFS,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(SSO, false)),
+        ImmutableList.of(Filter.linkAttributeFilter(SSO, false)),
         ImmutableList.of(component));
 
     QuickLinksProfile profile = QuickLinksProfile.create(
-        ImmutableList.<Filter>of(Filter.acceptAllFilter(true)),
+        ImmutableList.of(Filter.acceptAllFilter(true)),
         ImmutableList.of(service));
 
     DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
@@ -156,21 +156,21 @@ public class QuickLinkVisibilityControllerTest {
   @Test
   public void testNoMatchingRule() throws Exception {
     Component component1 = Component.create(NAMENODE,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(SSO, true)));
+        ImmutableList.of(Filter.linkAttributeFilter(SSO, true)));
 
     Component component2 = Component.create("DATANODE",
-        ImmutableList.<Filter>of(Filter.acceptAllFilter(true)));
+        ImmutableList.of(Filter.acceptAllFilter(true)));
 
     Service service1 = Service.create(HDFS,
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(SSO, true)),
+        ImmutableList.of(Filter.linkAttributeFilter(SSO, true)),
         ImmutableList.of(component1, component2));
 
     Service service2 = Service.create("YARN",
-        ImmutableList.<Filter>of(Filter.acceptAllFilter(true)),
-        ImmutableList.<Component>of());
+        ImmutableList.of(Filter.acceptAllFilter(true)),
+        ImmutableList.of());
 
     QuickLinksProfile profile = QuickLinksProfile.create(
-        ImmutableList.<Filter>of(Filter.linkAttributeFilter(SSO, true)),
+        ImmutableList.of(Filter.linkAttributeFilter(SSO, true)),
         ImmutableList.of(service1, service2));
 
     DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);

@@ -110,7 +110,7 @@ public class FilebrowserTest{
     FileOperationService.MkdirRequest request = new FileOperationService.MkdirRequest();
     request.path = "/tmp1";
     fileBrowserService.fileOps().mkdir(request);
-    Response response = fileBrowserService.fileOps().listdir("/");
+    Response response = fileBrowserService.fileOps().listdir("/", null);
     JSONObject responseObject = (JSONObject) response.getEntity();
     JSONArray statuses = (JSONArray) responseObject.get("files");
     System.out.println(response.getEntity());
@@ -140,7 +140,7 @@ public class FilebrowserTest{
   public void testUploadFile() throws Exception {
     Response response = uploadFile("/tmp/", "testUpload", ".tmp", "Hello world");
     Assert.assertEquals(200, response.getStatus());
-    Response listdir = fileBrowserService.fileOps().listdir("/tmp");
+    Response listdir = fileBrowserService.fileOps().listdir("/tmp", null);
     JSONObject responseObject = (JSONObject) listdir.getEntity();
     JSONArray statuses = (JSONArray) responseObject.get("files");
     System.out.println(statuses.size());

@@ -93,6 +93,21 @@ public class Grouping {
   public Condition condition;
 
   /**
+   * @return {@code true} when the grouping is used to upgrade services and that it is
+   * appropriate to run service checks after orchestration.
+   */
+  public final boolean isProcessingGroup() {
+    return serviceCheckAfterProcessing();
+  }
+
+  /**
+   * Overridable function to indicate if full service checks can be run
+   */
+  protected boolean serviceCheckAfterProcessing() {
+    return true;
+  }
+
+  /**
    * Gets the default builder.
    */
   public StageWrapperBuilder getBuilder() {
@@ -251,7 +266,7 @@ public class Grouping {
       List<String> displays = new ArrayList<>();
       for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
-            service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+            service, "", Collections.emptySet(), new ServiceCheckTask()));
 
         displays.add(upgradeContext.getServiceDisplay(service));
       }

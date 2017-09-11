@@ -45,6 +45,12 @@
       </activation>
       <build>
         <finalName>LogSearch</finalName>
+        <resources>
+          <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+          </resource>
+        </resources>
         <pluginManagement>
           <plugins>
             <plugin>
@@ -71,6 +77,9 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
             <version>${spring-boot.version}</version>
+            <configuration>
+              <classifier>exec</classifier>
+            </configuration>
             <executions>
               <execution>
                 <goals>
@@ -96,8 +105,8 @@
                       <groupId>org.apache.ambari</groupId>
                       <artifactId>ambari-logsearch-web</artifactId>
                       <version>${project.version}</version>
-                      <outputDirectory>${project.build.outputDirectory}/</outputDirectory>
-                      <includes>static/**</includes>
+                      <outputDirectory>${project.build.directory}/</outputDirectory>
+                      <includes>dist/**</includes>
                     </artifactItem>
                   </artifactItems>
                 </configuration>
@@ -247,6 +256,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
+      <version>${spring-boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
       <version>${spring-boot.version}</version>
     </dependency>
     <dependency>

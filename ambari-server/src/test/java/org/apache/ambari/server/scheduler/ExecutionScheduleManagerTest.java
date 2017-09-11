@@ -615,13 +615,13 @@ public class ExecutionScheduleManagerTest {
     expect(context.getJobDetail()).andReturn(jobDetail).anyTimes();
     expect(context.getMergedJobDataMap()).andReturn(jobDataMap).anyTimes();
     expect(jobDetail.getKey()).andReturn(new JobKey("TestJob"));
-    expect(jobDataMap.getWrappedMap()).andReturn(new HashMap<String,Object>());
+    expect(jobDataMap.getWrappedMap()).andReturn(new HashMap<>());
     expect(scheduleManagerMock.continueOnMisfire(context)).andReturn(true);
 
-    executionJob.doWork(EasyMock.<Map<String, Object>>anyObject());
+    executionJob.doWork(EasyMock.anyObject());
     expectLastCall().andThrow(new AmbariException("Test Exception")).anyTimes();
 
-    executionJob.finalizeExecution(EasyMock.<Map<String, Object>>anyObject());
+    executionJob.finalizeExecution(EasyMock.anyObject());
     expectLastCall().once();
 
     replay(scheduleManagerMock, executionJob, context, jobDataMap, jobDetail);

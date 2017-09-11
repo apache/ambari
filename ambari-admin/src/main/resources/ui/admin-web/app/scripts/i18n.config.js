@@ -159,6 +159,7 @@ angular.module('ambariAdminConsole')
     'common.alerts.cannotUpdateAdminStatus': 'Cannot update User Admin status',
     'common.alerts.checkFailed': 'CHECK FAILED',
     'common.alerts.onlySimpleChars': 'Must contain only simple characters.',
+    'common.hidden' : 'Hidden',
 
     'main.title': 'Welcome to Apache Ambari',
     'main.noClusterDescription': 'Provision a cluster, manage who can access the cluster, and customize views for Ambari users.',
@@ -343,7 +344,7 @@ angular.module('ambariAdminConsole')
     'users.alerts.usersEffectivePrivilege': '{{user_name}}\'s effective privilege through its Group(s) is higher than your selected privilege.',
 
     'versions.current': 'Current',
-    'versions.addVersion': 'Add Version',
+    'versions.addVersion': 'Add Version or Hotfix',
     'versions.defaultVersion': '(Default Version Definition)',
     'versions.inUse': 'In Use',
     'versions.installed': 'Installed',

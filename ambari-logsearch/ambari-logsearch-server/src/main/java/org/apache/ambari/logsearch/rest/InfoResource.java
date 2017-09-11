@@ -37,6 +37,7 @@ import java.util.Map;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_ALL_PROPERTIES_INFO_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_ALL_SHIPPER_CONFIG_INFO_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_APP_DETAILS_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_LOGSEARCH_PROPERTIES_INFO_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_AUTH_DETAILS_OD;
 
@@ -48,6 +49,13 @@ public class InfoResource {
 
   @Inject
   private InfoManager infoManager;
+
+  @GET
+  @Produces({"application/json"})
+  @ApiOperation(GET_APP_DETAILS_OD)
+  public Map<String, String> getApplicationInfo() {
+    return infoManager.getApplicationInfo();
+  }
 
   @GET
   @Path("/auth")

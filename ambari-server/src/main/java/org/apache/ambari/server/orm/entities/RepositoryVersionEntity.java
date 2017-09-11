@@ -73,13 +73,27 @@ import com.google.inject.Provider;
     initialValue = 0
     )
 @NamedQueries({
-    @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
-    @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
-    @NamedQuery(name = "repositoryVersionByVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.version=:version"),
-    @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
-    @NamedQuery(name = "repositoryVersionsFromDefinition", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL")
-
-})
+    @NamedQuery(
+        name = "repositoryVersionByDisplayName",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
+    @NamedQuery(
+        name = "repositoryVersionByStack",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
+    @NamedQuery(
+        name = "repositoryVersionByStackAndType",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion AND repoversion.type=:type"),
+    @NamedQuery(
+        name = "repositoryVersionByStackNameAndVersion",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
+    @NamedQuery(
+        name = "repositoryVersionsFromDefinition",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL"),
+    @NamedQuery(
+        name = "findRepositoryByVersion",
+        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC"),
+    @NamedQuery(
+        name = "findByServiceDesiredVersion",
+        query = "SELECT DISTINCT sd.desiredRepositoryVersion from ServiceDesiredStateEntity sd WHERE sd.desiredRepositoryVersion IN ?1") })
 @StaticallyInject
 public class RepositoryVersionEntity {
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
@@ -130,12 +144,16 @@ public class RepositoryVersionEntity {
   @Column(name="version_xsd", insertable = true, updatable = true)
   private String versionXsd;
 
+  @Column(name = "hidden", nullable = false, insertable = true, updatable = true)
+  private short isHidden = 0;
+
   @ManyToOne
   @JoinColumn(name = "parent_id")
   private RepositoryVersionEntity parent;
 
   @OneToMany(mappedBy = "parent")
   private List<RepositoryVersionEntity> children;
+
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -369,11 +387,9 @@ public class RepositoryVersionEntity {
    * {@inheritDoc}
    */
   @Override
-  public String toString(){
-    return Objects.toStringHelper(this)
-        .add("id", id)
-        .add("stack", stack)
-        .add("version", version).toString();
+  public String toString() {
+    return Objects.toStringHelper(this).add("id", id).add("stack", stack).add("version",
+        version).add("type", type).add("hidden", isHidden == 1).toString();
   }
 
   /**
@@ -420,6 +436,27 @@ public class RepositoryVersionEntity {
    */
   public Long getParentId() {
     return null == parent ? null : parent.getId();
+  }
+
+  /**
+   * Gets whether this repository is hidden.
+   *
+   * @return
+   */
+  public boolean isHidden() {
+    return isHidden != 0;
+  }
+
+  /**
+   * Sets whether this repository is hidden. A repository can be hidden for
+   * several reasons, including if it has been removed (but needs to be kept
+   * around for foreign key relationships) or if it just is not longer desired
+   * to see it.
+   *
+   * @param isHidden
+   */
+  public void setHidden(boolean isHidden) {
+    this.isHidden = (short) (isHidden ? 1 : 0);
   }
 
 }

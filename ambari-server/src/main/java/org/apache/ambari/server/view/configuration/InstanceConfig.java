@@ -136,7 +136,7 @@ public class InstanceConfig {
    * @return the instance properties
    */
   public List<PropertyConfig> getProperties() {
-    return properties == null ? Collections.<PropertyConfig>emptyList() : properties;
+    return properties == null ? Collections.emptyList() : properties;
   }
 
 }

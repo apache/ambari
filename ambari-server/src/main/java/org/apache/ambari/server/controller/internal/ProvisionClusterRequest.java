@@ -105,6 +105,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String REPO_VERSION_PROPERTY = "repository_version";
 
   /**
+   * The repo version id to use
+   */
+  public static final String REPO_VERSION_ID_PROPERTY = "repository_version_id";
+
+  /**
    * The global quick link filters property
    */
   public static final String QUICKLINKS_PROFILE_FILTERS_PROPERTY = "quicklinks_profile/filters";
@@ -139,6 +144,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private String repoVersion;
 
+  private Long repoVersionId;
+
   private final String quickLinksProfileJson;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
@@ -156,6 +163,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     if (properties.containsKey(REPO_VERSION_PROPERTY)) {
       repoVersion = properties.get(REPO_VERSION_PROPERTY).toString();
+    }
+
+    if (properties.containsKey(REPO_VERSION_ID_PROPERTY)) {
+      repoVersionId = Long.parseLong(properties.get(REPO_VERSION_ID_PROPERTY).toString());
     }
 
     if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
@@ -459,6 +470,13 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public String getRepositoryVersion() {
     return repoVersion;
+  }
+
+  /**
+   * @return the repository version id or {@code null}
+   */
+  public Long getRepositoryVersionId(){
+    return repoVersionId;
   }
 
   /**

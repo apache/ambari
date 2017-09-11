@@ -887,22 +887,22 @@ public class ClusterControllerImplTest {
 
     expect(
         resourceProvider.checkPropertyIds(Collections.singleton(AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME))).andReturn(
-        Collections.<String> emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
     expect(
         resourceProvider.getResources(anyObject(Request.class),
             anyObject(Predicate.class))).andReturn(
-        Collections.<Resource> emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
-    expect(resourceProvider.checkPropertyIds(EasyMock.<Set<String>>anyObject())).andReturn(
-        new HashSet<String>()).anyTimes();
+    expect(resourceProvider.checkPropertyIds(EasyMock.anyObject())).andReturn(
+      new HashSet<>()).anyTimes();
 
     // strict pageRequest mock to ensure that paging is not performed on
     // the result set
     PageRequest pageRequest = EasyMock.createStrictMock(PageRequest.class);
 
     SortRequest sortRequest = EasyMock.createStrictMock(SortRequest.class);
-    expect(sortRequest.getPropertyIds()).andReturn(new ArrayList<String>()).atLeastOnce();
+    expect(sortRequest.getPropertyIds()).andReturn(new ArrayList<>()).atLeastOnce();
 
     replay(providerModule, resourceProvider, pageRequest, sortRequest);
 
@@ -1039,7 +1039,7 @@ public class ClusterControllerImplTest {
 
       resource.setProperty(PropertyHelper.getPropertyId("Clusters", "cluster_name"), "cluster");
 
-      return Collections.<Resource>singleton(resource);
+      return Collections.singleton(resource);
     }
   }
 

@@ -362,6 +362,10 @@
         <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating logger configurations for Atlas.">
+        <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
+      </execute-stage>
+
       <!-- KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger Kms plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>

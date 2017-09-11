@@ -21,7 +21,6 @@ limitations under the License.
 __all__ = ["copy_to_hdfs", "get_sysprep_skip_copy_tarballs_hdfs"]
 
 import os
-import uuid
 import tempfile
 import re
 
@@ -30,7 +29,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions import stack_tools
+from resource_management.libraries.functions import stack_tools, stack_features, stack_select
 
 STACK_NAME_PATTERN = "{{ stack_name }}"
 STACK_ROOT_PATTERN = "{{ stack_root }}"
@@ -64,17 +63,17 @@ TARBALL_MAP = {
              "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN))
 }
 
-SERVICE_MAP = {
-  "slider": "SLIDER",
-  "tez": "TEZ_CLIENT",
-  "pig": "PIG",
-  "sqoop": "SQOOP",
-  "hive": "HIVE_CLIENT",
-  "mapreduce": "HDFS_CLIENT",
-  "hadoop_streaming": "MAPREDUCE2_CLIENT",
-  "tez_hive2": "HIVE_CLIENT",
-  "spark": "SPARK_CLIENT",
-  "spark2": "SPARK2_CLIENT"
+SERVICE_TO_CONFIG_MAP = {
+  "slider": "slider-env",
+  "tez": "tez-env",
+  "pig": "pig-env",
+  "sqoop": "sqoop-env",
+  "hive": "hive-env",
+  "mapreduce": "hadoop-env",
+  "hadoop_streaming": "mapred-env",
+  "tez_hive2": "hive-env",
+  "spark": "spark-env",
+  "spark2": "spark2-env"
 }
 
 def get_sysprep_skip_copy_tarballs_hdfs():
@@ -141,32 +140,23 @@ def get_current_version(use_upgrading_version_during_upgrade=True):
   :param use_upgrading_version_during_upgrade: True, except when the RU/EU hasn't started yet.
   :return: Version, or False if an error occurred.
   """
-  upgrade_direction = default("/commandParams/upgrade_direction", None)
-  is_stack_upgrade = upgrade_direction is not None
-  current_version = default("/hostLevelParams/current_version", None)
-  Logger.info("Default version is {0}".format(current_version))
-  if is_stack_upgrade:
-    if use_upgrading_version_during_upgrade:
-      # This is the version going to. In the case of a downgrade, it is the lower version.
-      current_version = default("/commandParams/version", None)
-      Logger.info("Because this is a Stack Upgrade, will use version {0}".format(current_version))
-    else:
-      Logger.info("This is a Stack Upgrade, but keep the version unchanged.")
-  else:
-    if current_version is None:
-      # During normal operation, the first installation of services won't yet know about the version, so must rely
-      # on <stack-selector> to get it.
-      stack_version = _get_single_version_from_stack_select()
-      if stack_version:
-        Logger.info("Will use stack version {0}".format(stack_version))
-        current_version = stack_version
+  # get the version for this command
+  version = stack_features.get_stack_feature_version(Script.get_config())
 
+  # if there is no upgrade, then use the command's version
+  if not Script.in_stack_upgrade() or use_upgrading_version_during_upgrade:
+    Logger.info("Tarball version was calcuated as {0}. Use Command Version: {1}".format(
+      version, use_upgrading_version_during_upgrade))
+
+    return version
+
+  # we're in an upgrade and we need to use an older version
+  current_version = stack_select.get_role_component_current_stack_version()
   if current_version is None:
-    message_suffix = "during stack %s" % str(upgrade_direction) if is_stack_upgrade else ""
-    Logger.warning("Cannot copy tarball because unable to determine current version {0}.".format(message_suffix))
+    Logger.warning("Unable to determine the current version of the component for this command; unable to copy the tarball")
     return False
 
-  return current_version
+  return current_version;
 
 
 def _get_single_version_from_stack_select():
@@ -241,11 +231,11 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
     return True
 
   if not skip_component_check:
-    #Use components installed on the node to check if a file can be copied into HDFS
-    local_components = default("/localComponents", [])
-    component = SERVICE_MAP.get(name)
-    if component not in local_components:
-      Logger.info("{0} is not installed on the host. Skip copying {1}".format(component, source_file))
+    # Check if service is installed on the cluster to check if a file can be copied into HDFS
+    config_name = SERVICE_TO_CONFIG_MAP.get(name)
+    config = default("/configurations/"+config_name, None)
+    if config is None:
+      Logger.info("{0} is not present on the cluster. Skip copying {1}".format(config_name, source_file))
       return False
 
   Logger.info("Source file: {0} , Dest file in HDFS: {1}".format(source_file, dest_file))

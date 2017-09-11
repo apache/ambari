@@ -67,6 +67,11 @@ public class ServiceCheckGrouping extends Grouping {
   @XmlElement(name="service")
   private Set<String> excludeServices = new HashSet<>();
 
+  @Override
+  protected boolean serviceCheckAfterProcessing() {
+    return false;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -137,11 +142,8 @@ public class ServiceCheckGrouping extends Grouping {
       // create stages for the priorities
       for (String service : priorityServices) {
         if (checkServiceValidity(upgradeContext, service, serviceMap)) {
-          StageWrapper wrapper = new StageWrapper(
-            StageWrapper.Type.SERVICE_CHECK,
-            "Service Check " + upgradeContext.getServiceDisplay(service),
-            new TaskWrapper(service, "", Collections.<String>emptySet(),
-              new ServiceCheckTask()));
+          StageWrapper wrapper = new ServiceCheckStageWrapper(service,
+              upgradeContext.getServiceDisplay(service), true);
 
           result.add(wrapper);
           clusterServices.remove(service);
@@ -156,11 +158,9 @@ public class ServiceCheckGrouping extends Grouping {
           }
 
           if (checkServiceValidity(upgradeContext, service, serviceMap)) {
-            StageWrapper wrapper = new StageWrapper(
-              StageWrapper.Type.SERVICE_CHECK,
-              "Service Check " + upgradeContext.getServiceDisplay(service),
-              new TaskWrapper(service, "", Collections.<String>emptySet(),
-                new ServiceCheckTask()));
+            StageWrapper wrapper = new ServiceCheckStageWrapper(service,
+                upgradeContext.getServiceDisplay(service), false);
+
             result.add(wrapper);
           }
         }
@@ -266,4 +266,44 @@ public class ServiceCheckGrouping extends Grouping {
       }
     }
   }
+
+  /**
+   * Special type of stage wrapper that allows inspection of the service check for
+   * merging if required.  This prevents consecutive service checks from running, particularly
+   * for Patch or Maintenance types of upgrades.
+   */
+  public static class ServiceCheckStageWrapper extends StageWrapper {
+    public String service;
+    public boolean priority;
+
+    ServiceCheckStageWrapper(String service, String serviceDisplay, boolean priority) {
+      super(StageWrapper.Type.SERVICE_CHECK,
+          String.format("Service Check %s", serviceDisplay),
+          new TaskWrapper(service, "", Collections.emptySet(), new ServiceCheckTask()));
+
+      this.service = service;
+      this.priority = priority;
+    }
+
+    @Override
+    public int hashCode() {
+      return service.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!other.getClass().equals(getClass())) {
+        return false;
+      }
+
+      if (other == this) {
+        return true;
+      }
+
+      return ((ServiceCheckStageWrapper) other).service.equals(service);
+
+    }
+
+  }
+
 }

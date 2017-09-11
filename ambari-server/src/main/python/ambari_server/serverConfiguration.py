@@ -221,6 +221,9 @@ SETUP_DONE_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, JDK_NAME_PROPERTY
                          NR_USER_PROPERTY, PERSISTENCE_TYPE_PROPERTY
 ]
 
+def get_default_views_dir():
+  return AmbariPath.get("/var/lib/ambari-server/resources/views")
+
 def get_conf_dir():
   try:
     conf_dir = os.environ[AMBARI_CONF_VAR]
@@ -1182,8 +1185,8 @@ def update_ambari_properties():
     if NR_USER_PROPERTY not in new_properties.keys():
       new_properties.process_pair(NR_USER_PROPERTY, "root")
 
-    if OS_FAMILY_PROPERTY not in new_properties.keys():
-      new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
+    # update the os. In case os detection routine changed
+    new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
 
     with open(conf_file, 'w') as hfW:
       new_properties.store(hfW)

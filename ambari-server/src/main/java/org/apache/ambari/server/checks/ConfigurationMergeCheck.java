@@ -63,8 +63,7 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
 
-    String stackName = request.getTargetStackId().getStackName();
-    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, request.getTargetVersion());
+    RepositoryVersionEntity rve = request.getTargetRepositoryVersion();
 
     Map<String, Map<String, ThreeWayValue>> changes =
         m_mergeHelper.getConflicts(request.getClusterName(), rve.getStackId());

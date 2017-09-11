@@ -540,7 +540,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
     expect(user.isLdapUser()).andReturn(false).anyTimes();
     expect(user.isActive()).andReturn(true).anyTimes();
     expect(user.isAdmin()).andReturn(false).anyTimes();
-    expect(user.getGroups()).andReturn(Collections.<String>emptyList()).anyTimes();
+    expect(user.getGroups()).andReturn(Collections.emptyList()).anyTimes();
 
     return user;
   }

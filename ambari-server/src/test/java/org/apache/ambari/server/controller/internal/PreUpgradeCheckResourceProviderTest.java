@@ -142,7 +142,7 @@ public class PreUpgradeCheckResourceProviderTest {
 
     ResourceProvider provider = getPreUpgradeCheckResourceProvider(managementController, injector);
     // create the request
-    Request request = PropertyHelper.getReadRequest(new HashSet<String>());
+    Request request = PropertyHelper.getReadRequest(new HashSet<>());
     PredicateBuilder builder = new PredicateBuilder();
     Predicate predicate = builder.property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals("upgrade_pack11").and()

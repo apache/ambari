@@ -81,7 +81,7 @@ public class RepositoryServiceTest extends BaseServiceTest {
   private class TestRepositoryService extends RepositoryService {
 
     public TestRepositoryService() {
-      super(new HashMap<Type, String>());
+      super(new HashMap<>());
     }
 
     @Override

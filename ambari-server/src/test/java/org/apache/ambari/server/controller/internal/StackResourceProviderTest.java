@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackRequest;
 import org.apache.ambari.server.controller.StackResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -52,7 +51,7 @@ public class StackResourceProviderTest {
     allResponse.add(new StackResponse("Stack2"));
 
     // set expectations
-    expect(managementController.getStacks(EasyMock.<Set<StackRequest>>anyObject())).andReturn(allResponse).once();
+    expect(managementController.getStacks(EasyMock.anyObject())).andReturn(allResponse).once();
 
     // replay
     replay(managementController);

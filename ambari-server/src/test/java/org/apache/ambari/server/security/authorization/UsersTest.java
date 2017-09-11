@@ -164,9 +164,9 @@ public class UsersTest extends EasyMockSupport {
     existing.setUserName(UserName.fromString(SERVICEOP_USER_NAME));
     existing.setUserType(UserType.LDAP);
     existing.setUserId(1);
-    existing.setMemberEntities(Collections.<MemberEntity>emptySet());
+    existing.setMemberEntities(Collections.emptySet());
     PrincipalEntity principal = new PrincipalEntity();
-    principal.setPrivileges(Collections.<PrivilegeEntity>emptySet());
+    principal.setPrivileges(Collections.emptySet());
     existing.setPrincipal(principal);
     initForCreateUser(existing);
 

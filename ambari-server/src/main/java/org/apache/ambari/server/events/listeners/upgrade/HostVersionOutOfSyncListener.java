@@ -232,7 +232,7 @@ public class HostVersionOutOfSyncListener {
       for (ServiceComponent component : serviceComponents.values()) {
         for (String hostname : component.getServiceComponentHosts().keySet()) {
           if (! affectedHosts.containsKey(hostname)) {
-            affectedHosts.put(hostname, new ArrayList<ServiceComponent>());
+            affectedHosts.put(hostname, new ArrayList<>());
           }
           affectedHosts.get(hostname).add(component);
         }

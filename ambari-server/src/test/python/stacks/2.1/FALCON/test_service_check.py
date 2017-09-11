@@ -25,15 +25,18 @@ class TestFalconServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
   STACK_VERSION = "2.1"
 
+  CONFIG_OVERRIDES = {"serviceName":"FALCON", "role":"FALCON_CLIENT"}
+
   def test_service_check(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname="FalconServiceCheck",
                        command="service_check",
                        config_file="default.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
+    self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-client/bin/falcon admin -version',
                               logoutput = True,
                               tries = 3,
                               user = 'ambari-qa',

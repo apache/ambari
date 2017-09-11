@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -240,7 +239,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     }
 
     // Generate list of services that have no config types
-    List<String> servicesWithNoConfigs = new ArrayList<String>();
+    List<String> servicesWithNoConfigs = new ArrayList<>();
     for(ServiceModule serviceModule: serviceModules.values()){
       if (!serviceModule.hasConfigs()){
         servicesWithNoConfigs.add(serviceModule.getId());
@@ -290,6 +289,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     // grab stack level kerberos.json from parent stack
     if (stackInfo.getKerberosDescriptorFileLocation() == null) {
       stackInfo.setKerberosDescriptorFileLocation(parentStack.getModuleInfo().getKerberosDescriptorFileLocation());
+    }
+
+    // grab stack level kerberos_preconfigure.json from parent stack
+    if (stackInfo.getKerberosDescriptorPreConfigurationFileLocation() == null) {
+      stackInfo.setKerberosDescriptorPreConfigurationFileLocation(parentStack.getModuleInfo().getKerberosDescriptorPreConfigurationFileLocation());
     }
 
     if (stackInfo.getWidgetsDescriptorFileLocation() == null) {
@@ -573,6 +577,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setStackHooksFolder(stackDirectory.getHooksDir());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
       stackInfo.setKerberosDescriptorFileLocation(stackDirectory.getKerberosDescriptorFilePath());
+      stackInfo.setKerberosDescriptorPreConfigurationFileLocation(stackDirectory.getKerberosDescriptorPreconfigureFilePath());
       stackInfo.setWidgetsDescriptorFileLocation(stackDirectory.getWidgetsDescriptorFilePath());
       stackInfo.setUpgradesFolder(stackDirectory.getUpgradesDir());
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
@@ -654,7 +659,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private void populateConfigurationModules() {
     //todo: can't exclude types in stack config
     ConfigurationDirectory configDirectory = stackDirectory.getConfigurationDirectory(
-        AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME, AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME);
+        StackDirectory.SERVICE_CONFIG_FOLDER_NAME, StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME);
 
     if (configDirectory != null) {
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {
@@ -680,7 +685,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       StackModule parent, Map<String,StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     stackInfo.getProperties().clear();
-    stackInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
+    stackInfo.setAllConfigAttributes(new HashMap<>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
@@ -1164,7 +1169,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     // Uniqueness is checked for each os type
     for (String osType: serviceReposByOsType.keySet()) {
-      List<RepositoryInfo> stackReposForOsType = stackReposByOsType.containsKey(osType) ? stackReposByOsType.get(osType) : Collections.<RepositoryInfo>emptyList();
+      List<RepositoryInfo> stackReposForOsType = stackReposByOsType.containsKey(osType) ? stackReposByOsType.get(osType) : Collections.emptyList();
       List<RepositoryInfo> serviceReposForOsType = serviceReposByOsType.get(osType);
       Set<String> stackRepoNames = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.GET_REPO_NAME_FUNCTION));
       Set<String> stackRepoUrls = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.SAFE_GET_BASE_URL_FUNCTION));

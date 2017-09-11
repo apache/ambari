@@ -229,6 +229,6 @@ public class OsFamily {
      */
     public Map<String, String> getAliases() {
       return (null == jsonOsFamily || null == jsonOsFamily.getAliases()) ?
-          Collections.<String, String>emptyMap() : jsonOsFamily.getAliases();
+          Collections.emptyMap() : jsonOsFamily.getAliases();
     }
 }

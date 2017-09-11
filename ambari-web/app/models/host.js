@@ -55,6 +55,8 @@ App.Host = DS.Model.extend({
   index: DS.attr('number'),
   stackVersions: DS.hasMany('App.HostStackVersion'),
 
+  isFiltered: DS.attr('boolean'),
+
   /**
    * Is host checked at the main Hosts page
    */

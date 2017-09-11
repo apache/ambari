@@ -435,11 +435,11 @@ public class ViewRegistryTest {
       expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", "AUTO-INSTANCE")).andReturn(viewAutoInstanceEntity).anyTimes();
       expect(viewAutoInstanceEntity.getInstanceData("p1")).andReturn(autoInstanceDataEntity).anyTimes();
     } else {
-      expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>());
+      expect(clusters.getClusters()).andReturn(new HashMap<>());
     }
 
     if (removeUndeployed) {
-      expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+      expect(viewDAO.findAll()).andReturn(Collections.emptyList());
     }
 
     // replay mocks
@@ -668,7 +668,7 @@ public class ViewRegistryTest {
     TestListener listener = new TestListener();
     registry.registerListener(listener, "MY_VIEW", "1.0.0");
 
-    EventImpl event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), VIEW_XML_1);
+    EventImpl event = EventImplTest.getEvent("MyEvent", Collections.emptyMap(), VIEW_XML_1);
 
     registry.fireEvent(event);
 
@@ -677,7 +677,7 @@ public class ViewRegistryTest {
     listener.clear();
 
     // fire an event for a different view
-    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), VIEW_XML_2);
+    event = EventImplTest.getEvent("MyEvent", Collections.emptyMap(), VIEW_XML_2);
 
     registry.fireEvent(event);
 
@@ -686,7 +686,7 @@ public class ViewRegistryTest {
     // un-register the listener
     registry.unregisterListener(listener, "MY_VIEW", "1.0.0");
 
-    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), VIEW_XML_1);
+    event = EventImplTest.getEvent("MyEvent", Collections.emptyMap(), VIEW_XML_1);
 
     registry.fireEvent(event);
 
@@ -700,7 +700,7 @@ public class ViewRegistryTest {
     TestListener listener = new TestListener();
     registry.registerListener(listener, "MY_VIEW", null); // all versions of MY_VIEW
 
-    EventImpl event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), VIEW_XML_1);
+    EventImpl event = EventImplTest.getEvent("MyEvent", Collections.emptyMap(), VIEW_XML_1);
 
     registry.fireEvent(event);
 
@@ -709,7 +709,7 @@ public class ViewRegistryTest {
     listener.clear();
 
     // fire an event for a different view
-    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), VIEW_XML_2);
+    event = EventImplTest.getEvent("MyEvent", Collections.emptyMap(), VIEW_XML_2);
 
     registry.fireEvent(event);
 
@@ -720,13 +720,13 @@ public class ViewRegistryTest {
     // un-register the listener
     registry.unregisterListener(listener, "MY_VIEW", null); // all versions of MY_VIEW
 
-    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), VIEW_XML_1);
+    event = EventImplTest.getEvent("MyEvent", Collections.emptyMap(), VIEW_XML_1);
 
     registry.fireEvent(event);
 
     Assert.assertNull(listener.getLastEvent());
 
-    event = EventImplTest.getEvent("MyEvent", Collections.<String, String>emptyMap(), VIEW_XML_2);
+    event = EventImplTest.getEvent("MyEvent", Collections.emptyMap(), VIEW_XML_2);
 
     registry.fireEvent(event);
 
@@ -1303,7 +1303,7 @@ public class ViewRegistryTest {
     ViewRegistry registry = ViewRegistry.getInstance();
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
 
-    expect(viewEntity.getInstances()).andReturn(Collections.<ViewInstanceEntity>emptyList()).anyTimes();
+    expect(viewEntity.getInstances()).andReturn(Collections.emptyList()).anyTimes();
 
     replay(viewEntity, configuration);
 

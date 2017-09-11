@@ -174,7 +174,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testHeartbeat() throws Exception {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<HostRoleCommand>());
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<>());
     replay(am);
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
@@ -241,7 +241,7 @@ public class TestHeartbeatHandler {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     hb.setComponentStatus(componentStatuses);
 
@@ -269,7 +269,7 @@ public class TestHeartbeatHandler {
     hb.setResponseId(1);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     hb.setComponentStatus(componentStatuses);
 
     resp = handler.handleHeartBeat(hb);
@@ -305,7 +305,7 @@ public class TestHeartbeatHandler {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();
@@ -745,7 +745,7 @@ public class TestHeartbeatHandler {
     hs.setCause("");
     hs.setStatus(status);
     heartBeat.setNodeStatus(hs);
-    heartBeat.setReports(Collections.<CommandReport>emptyList());
+    heartBeat.setReports(Collections.emptyList());
 
     return heartBeat;
   }
@@ -822,7 +822,7 @@ public class TestHeartbeatHandler {
     cr.setExitCode(777);
     reports.add(cr);
     hb.setReports(reports);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, RoleCommand.INSTALL);
@@ -891,7 +891,7 @@ public class TestHeartbeatHandler {
     cr.setExitCode(777);
     reports.add(cr);
     hb.setReports(reports);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
@@ -938,9 +938,9 @@ public class TestHeartbeatHandler {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     hb.setAgentEnv(new AgentEnv());
-    hb.setMounts(new ArrayList<DiskInfo>());
+    hb.setMounts(new ArrayList<>());
 
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED,
@@ -957,7 +957,7 @@ public class TestHeartbeatHandler {
 
     ActionQueue aq = new ActionQueue();
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<HostRoleCommand>());
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<>());
     replay(am);
 
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, aq);
@@ -1387,7 +1387,7 @@ public class TestHeartbeatHandler {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
 
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
@@ -1549,7 +1549,7 @@ public class TestHeartbeatHandler {
     kerberosIdentityDataFileWriter.writeRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
         "dn/_HOST@_REALM", "service",
         "/etc/security/keytabs/dn.service.keytab",
-        "hdfs", "r", "hadoop", "", "false");
+        "hdfs", "r", "hadoop", "", "false", "false");
 
     kerberosIdentityDataFileWriter.close();
 

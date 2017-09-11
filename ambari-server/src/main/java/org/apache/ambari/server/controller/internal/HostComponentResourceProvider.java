@@ -399,7 +399,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public RequestStatusResponse start(String cluster, String hostName) throws  SystemException,
     UnsupportedPropertyException, NoSuchParentResourceException {
 
-    return this.start(cluster, hostName, Collections.<String>emptySet(), false);
+    return this.start(cluster, hostName, Collections.emptySet(), false);
   }
 
   public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents, boolean skipFailure) throws  SystemException,
@@ -654,12 +654,10 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         directTransitionScHosts.put(sch, newState);
       } else {
         if (!changedScHosts.containsKey(sc.getName())) {
-          changedScHosts.put(sc.getName(),
-              new EnumMap<State, List<ServiceComponentHost>>(State.class));
+          changedScHosts.put(sc.getName(), new EnumMap<>(State.class));
         }
         if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
-          changedScHosts.get(sc.getName()).put(newState,
-              new ArrayList<ServiceComponentHost>());
+          changedScHosts.get(sc.getName()).put(newState, new ArrayList<>());
         }
         LOG.info(getServiceComponentRequestInfoLogMessage("Handling update to host component", request, oldState, newState));
         changedScHosts.get(sc.getName()).get(newState).add(sch);

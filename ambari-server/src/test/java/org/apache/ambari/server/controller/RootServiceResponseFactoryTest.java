@@ -142,7 +142,7 @@ public class RootServiceResponseFactoryTest {
       } else {
         assertTrue(rootServiceComponents.contains(new RootServiceComponentResponse(
             serviceName, component.name(), RootServiceResponseFactory.NOT_APPLICABLE,
-            Collections.<String, String> emptyMap())));
+            Collections.emptyMap())));
       }
     }
 

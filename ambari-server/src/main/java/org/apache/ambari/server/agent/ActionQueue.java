@@ -83,7 +83,7 @@ public class ActionQueue {
 
     if (q == null) {
       //try to add new queue to map if not found
-      q = hostQueues.putIfAbsent(hostname, new ConcurrentLinkedQueue<AgentCommand>());
+      q = hostQueues.putIfAbsent(hostname, new ConcurrentLinkedQueue<>());
       if (q == null) {
         //null means that new queue was added to map, get it
         q = getQueue(hostname);

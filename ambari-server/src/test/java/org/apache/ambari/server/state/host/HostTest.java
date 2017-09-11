@@ -383,7 +383,7 @@ public class HostTest {
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     Config config = configFactory.createNew(c1, "global", "v1",
-        new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }}, new HashMap<>());
 
     try {
       host.addDesiredConfig(c1.getClusterId(), true, null, config);
@@ -400,7 +400,7 @@ public class HostTest {
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
 
     config = configFactory.createNew(c1, "global", "v2",
-        new HashMap<String,String>() {{ put("c", "d"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String,String>() {{ put("c", "d"); }}, new HashMap<>());
     host.addDesiredConfig(c1.getClusterId(), true, "_test1", config);
 
     map = host.getDesiredConfigs(c1.getClusterId());

@@ -30,7 +30,6 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.TransactionalLocks;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -90,7 +89,7 @@ public class TransactionalLockInterceptorTest {
 
     // invoke method with annotations
     HostRoleCommandDAO hostRoleCommandDAO = m_injector.getInstance(HostRoleCommandDAO.class);
-    hostRoleCommandDAO.mergeAll(new ArrayList<HostRoleCommandEntity>());
+    hostRoleCommandDAO.mergeAll(new ArrayList<>());
 
     // verify locks are called
     EasyMock.verify(transactionalLocks, readWriteLock, readLock, writeLock);

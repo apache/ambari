@@ -96,7 +96,7 @@ CREATE TABLE clusterconfig (
   config_data VARCHAR(3000) NOT NULL,
   config_attributes VARCHAR(3000),
   create_timestamp BIGINT NOT NULL,
-  service_deleted SMALLINT NOT NULL DEFAULT 0,
+  unmapped SMALLINT NOT NULL DEFAULT 0,
   selected_timestamp BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
@@ -184,6 +184,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR(128) NOT NULL,
   repositories VARCHAR(3000) NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden SMALLINT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml CLOB,
   version_xsd VARCHAR(512),
@@ -261,7 +262,7 @@ CREATE TABLE host_version (
   CONSTRAINT PK_host_version PRIMARY KEY (id),
   CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id, state));
+  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id));
 
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
@@ -306,6 +307,7 @@ CREATE TABLE groups (
   principal_id BIGINT NOT NULL,
   group_name VARCHAR(255) NOT NULL,
   ldap_group INTEGER NOT NULL DEFAULT 0,
+  group_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
   CONSTRAINT PK_groups PRIMARY KEY (group_id),
   UNIQUE (ldap_group, group_name),
   CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id));
@@ -587,7 +589,7 @@ CREATE table viewurl(
   url_id BIGINT ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -851,6 +853,7 @@ CREATE TABLE upgrade (
   skip_failures SMALLINT DEFAULT 0 NOT NULL,
   skip_sc_failures SMALLINT DEFAULT 0 NOT NULL,
   downgrade_allowed SMALLINT DEFAULT 1 NOT NULL,
+  revert_allowed SMALLINT DEFAULT 0 NOT NULL,
   suspended SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),

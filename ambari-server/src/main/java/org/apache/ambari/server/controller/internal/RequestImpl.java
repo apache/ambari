@@ -106,13 +106,13 @@ public class RequestImpl implements Request {
                      SortRequest sortRequest, PageRequest pageRequest) {
 
     this.propertyIds = propertyIds == null ?
-        ImmutableSet.<String>of() : ImmutableSet.copyOf(propertyIds);
+        ImmutableSet.of() : ImmutableSet.copyOf(propertyIds);
 
     this.properties = properties == null ?
-        ImmutableSet.<Map<String,Object>>of() : ImmutableSet.copyOf(properties);
+        ImmutableSet.of() : ImmutableSet.copyOf(properties);
 
     this.requestInfoProperties = requestInfoProperties == null ?
-        ImmutableMap.<String, String>of() : ImmutableMap.copyOf(requestInfoProperties);
+        ImmutableMap.of() : ImmutableMap.copyOf(requestInfoProperties);
 
 
     m_mapTemporalInfo = mapTemporalInfo;

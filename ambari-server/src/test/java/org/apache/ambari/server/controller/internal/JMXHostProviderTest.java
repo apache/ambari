@@ -219,7 +219,7 @@ public class JMXHostProviderTest {
         "hdfs-site", "version1", configs, null);
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
-      controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
+      controller.updateClusters(Collections.singleton(crequest), new HashMap<>());
 
     } else {
       Map<String, String> configs = new HashMap<>();
@@ -231,7 +231,7 @@ public class JMXHostProviderTest {
 
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
-      controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
+      controller.updateClusters(Collections.singleton(crequest), new HashMap<>());
     }
   }
 

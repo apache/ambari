@@ -177,7 +177,7 @@ public class ClustersImpl implements Clusters {
       Cluster currentCluster = clusterFactory.create(clusterEntity);
       clusters.put(clusterEntity.getClusterName(), currentCluster);
       clustersById.put(currentCluster.getClusterId(), currentCluster);
-      clusterHostMap.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<Host, Boolean>()));
+      clusterHostMap.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<>()));
     }
 
     for (HostEntity hostEntity : hostEntities) {
@@ -243,7 +243,7 @@ public class ClustersImpl implements Clusters {
     clusters.put(clusterName, cluster);
     clustersById.put(cluster.getClusterId(), cluster);
     clusterHostMap.put(clusterName,
-        Collections.newSetFromMap(new ConcurrentHashMap<Host, Boolean>()));
+        Collections.newSetFromMap(new ConcurrentHashMap<>()));
 
     cluster.setCurrentStackVersion(stackId);
   }
@@ -370,7 +370,7 @@ public class ClustersImpl implements Clusters {
 
     HostEntity hostEntity = new HostEntity();
     hostEntity.setHostName(hostname);
-    hostEntity.setClusterEntities(new ArrayList<ClusterEntity>());
+    hostEntity.setClusterEntities(new ArrayList<>());
 
     // not stored to DB
     Host host = hostFactory.create(hostEntity);
@@ -378,7 +378,7 @@ public class ClustersImpl implements Clusters {
     List<DiskInfo> emptyDiskList = new CopyOnWriteArrayList<>();
     host.setDisksInfo(emptyDiskList);
     host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
-    host.setHostAttributes(new ConcurrentHashMap<String, String>());
+    host.setHostAttributes(new ConcurrentHashMap<>());
     host.setState(HostState.INIT);
 
     // the hosts by ID map is updated separately since the host has not yet
@@ -386,7 +386,7 @@ public class ClustersImpl implements Clusters {
     hosts.put(hostname, host);
 
     hostClusterMap.put(hostname,
-        Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>()));
+        Collections.newSetFromMap(new ConcurrentHashMap<>()));
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a host to Clusters, hostname={}", hostname);
@@ -424,7 +424,7 @@ public class ClustersImpl implements Clusters {
       for (String clusterName : hostClusterNames) {
         if (clusterName != null && !clusterName.isEmpty()) {
           if (!clusterHosts.containsKey(clusterName)) {
-            clusterHosts.put(clusterName, new HashSet<String>());
+            clusterHosts.put(clusterName, new HashSet<>());
           }
           clusterHosts.get(clusterName).add(hostname);
         }
@@ -774,7 +774,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public Map<String, Object> getSessionAttributes(String name) {
     Cluster cluster = findCluster(name);
-    return cluster == null ? Collections.<String, Object>emptyMap() : cluster.getSessionAttributes();
+    return cluster == null ? Collections.emptyMap() : cluster.getSessionAttributes();
   }
 
   /**

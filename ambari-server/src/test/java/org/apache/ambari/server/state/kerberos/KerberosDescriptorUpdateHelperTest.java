@@ -33,7 +33,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
-import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.StackManager;
@@ -90,7 +89,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
     expect(osFamily.os_list()).andReturn(Collections.singleton("centos6")).anyTimes();
 
     ExtensionLinkDAO linkDao = injector.getInstance(ExtensionLinkDAO.class);
-    expect(linkDao.findByStack(anyString(), anyString())).andReturn(Collections.<ExtensionLinkEntity>emptyList()).anyTimes();
+    expect(linkDao.findByStack(anyString(), anyString())).andReturn(Collections.emptyList()).anyTimes();
 
     TypedQuery<StackEntity> query = createNiceMock(TypedQuery.class);
     expect(query.setMaxResults(1)).andReturn(query).anyTimes();
@@ -107,8 +106,8 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
     injector.injectMembers(metaInfo);
     metaInfo.init();
 
-    KerberosDescriptor hdp24 = metaInfo.getKerberosDescriptor("HDP", "2.4");
-    KerberosDescriptor hdp25 = metaInfo.getKerberosDescriptor("HDP", "2.5");
+    KerberosDescriptor hdp24 = metaInfo.getKerberosDescriptor("HDP", "2.4", false);
+    KerberosDescriptor hdp25 = metaInfo.getKerberosDescriptor("HDP", "2.5", false);
     KerberosDescriptor user = new KerberosDescriptor(hdp24.toMap());
 
     KerberosDescriptor updated = KerberosDescriptorUpdateHelper.updateUserKerberosDescriptor(hdp24, hdp25, user);

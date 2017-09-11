@@ -69,6 +69,7 @@
         "ConfigGroup/id",
         "ConfigGroup/cluster_name",
         "ConfigGroup/group_name",
+        "ConfigGroup/service_name",
         "ConfigGroup/tag",
         "ConfigGroup/description",
         "ConfigGroup/hosts",
@@ -238,6 +239,7 @@
         "StackServiceComponents/has_bulk_commands_definition",
         "StackServiceComponents/bulk_commands_display_name",
         "StackServiceComponents/bulk_commands_master_component_name",
+        "StackServiceComponents/rolling_restart_supported",
         "auto_deploy/enabled",
         "auto_deploy/location",
         "_"

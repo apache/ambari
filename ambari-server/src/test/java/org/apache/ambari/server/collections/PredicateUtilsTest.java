@@ -75,7 +75,7 @@ public class PredicateUtilsTest {
 
   private Map<String, Object> createMap() {
     Map<String, Object> andMap =
-        Collections.<String, Object>singletonMap(
+        Collections.singletonMap(
             AndPredicate.NAME, Arrays.asList(
                 Collections.<String, Object>singletonMap(ContainsPredicate.NAME, Arrays.asList("services", "HDFS")),
                 Collections.<String, Object>singletonMap(EqualsPredicate.NAME, Arrays.asList("configurations/service-env/property1", "true"))
@@ -83,14 +83,14 @@ public class PredicateUtilsTest {
         );
 
     Map<String, Object> orMap =
-        Collections.<String, Object>singletonMap(OrPredicate.NAME,
+        Collections.singletonMap(OrPredicate.NAME,
             Arrays.asList(
                 Collections.<String, Object>singletonMap(EqualsPredicate.NAME, Arrays.asList("configurations/cluster-env/property1", "false")),
                 andMap
             )
         );
 
-    return Collections.<String, Object>singletonMap(NotPredicate.NAME, orMap);
+    return Collections.singletonMap(NotPredicate.NAME, orMap);
   }
 
   private String createJSON() {

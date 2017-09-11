@@ -100,7 +100,7 @@ describe('App.MainAlertDefinitionsView', function () {
           },
           {
             name: "summary",
-            status: "sorting_asc"
+            status: "sorting_desc"
           }
         ])).to.be.true;
     });

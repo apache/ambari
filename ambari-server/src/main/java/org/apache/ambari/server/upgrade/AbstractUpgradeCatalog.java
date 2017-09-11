@@ -397,17 +397,17 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
               // Do nothing
             } else if (upgradeBehavior.isDelete()) {
               if (!toRemoveProperties.containsKey(configType)) {
-                toRemoveProperties.put(configType, new HashSet<String>());
+                toRemoveProperties.put(configType, new HashSet<>());
               }
               toRemoveProperties.get(configType).add(property.getName());
             } else if (upgradeBehavior.isUpdate()) {
               if (!toUpdateProperties.containsKey(configType)) {
-                toUpdateProperties.put(configType, new HashSet<String>());
+                toUpdateProperties.put(configType, new HashSet<>());
               }
               toUpdateProperties.get(configType).add(property.getName());
             } else if (upgradeBehavior.isAdd()) {
               if (!toAddProperties.containsKey(configType)) {
-                toAddProperties.put(configType, new HashSet<String>());
+                toAddProperties.put(configType, new HashSet<>());
               }
               toAddProperties.get(configType).add(property.getName());
             }
@@ -426,7 +426,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
         for (Entry<String, Set<String>> toRemove : toRemoveProperties.entrySet()) {
           String newPropertyKey = toRemove.getKey();
-          updateConfigurationPropertiesWithValuesFromXml(newPropertyKey, Collections.<String>emptySet(), toRemove.getValue(), false, true);
+          updateConfigurationPropertiesWithValuesFromXml(newPropertyKey, Collections.emptySet(), toRemove.getValue(), false, true);
         }
       }
     }
@@ -626,7 +626,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected void removeConfigurationPropertiesFromCluster(Cluster cluster, String configType, Set<String> removePropertiesList)
       throws AmbariException {
 
-    updateConfigurationPropertiesForCluster(cluster, configType, new HashMap<String, String>(), removePropertiesList, false, true);
+    updateConfigurationPropertiesForCluster(cluster, configType, new HashMap<>(), removePropertiesList, false, true);
   }
 
   /**
@@ -783,7 +783,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         comment = "can only take the first stack we find until we can support multiple with Kerberos")
     StackId stackId = getStackId(cluster);
 
-    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
+    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion(), false);
 
     // Get the User-set Kerberos Descriptor
     ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);

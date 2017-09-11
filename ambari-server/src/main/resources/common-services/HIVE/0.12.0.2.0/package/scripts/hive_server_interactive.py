@@ -114,6 +114,8 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # Start LLAP before Hive Server Interactive start.
       status = self._llap_start(env)
       if not status:
+        # if we couldnt get LLAP in RUNNING or RUNNING_ALL state, stop LLAP process before bailing out.
+        self._llap_stop(env)
         raise Fail("Skipping START of Hive Server Interactive since LLAP app couldn't be STARTED.")
 
       # TODO : test the workability of Ranger and Hive2 during upgrade

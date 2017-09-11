@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -173,6 +173,7 @@ public class UpgradePackTest {
     ConfigureTask ct = (ConfigureTask) t;
     // check that the Configure task successfully parsed id
     assertEquals("hdp_2_1_1_nm_pre_upgrade", ct.getId());
+    assertFalse(ct.supportsPatch);
   }
 
   @Test
@@ -210,10 +211,12 @@ public class UpgradePackTest {
         "SERVICE_CHECK_1",
         "CORE_SLAVES",
         "SERVICE_CHECK_2",
+        "OOZIE",
         "POST_CLUSTER");
 
     List<String> expected_down = Arrays.asList(
         "PRE_CLUSTER",
+        "OOZIE",
         "CORE_SLAVES",
         "SERVICE_CHECK_2",
         "CORE_MASTER",

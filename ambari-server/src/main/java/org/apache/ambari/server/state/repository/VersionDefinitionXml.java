@@ -132,7 +132,7 @@ public class VersionDefinitionXml {
       if (availableServices.isEmpty()) {
         // !!! populate available services from the manifest
         for (ManifestService ms : manifests.values()) {
-          addToAvailable(ms, stack, Collections.<String>emptySet());
+          addToAvailable(ms, stack, Collections.emptySet());
         }
       } else {
         for (AvailableServiceReference ref : availableServices) {
@@ -150,7 +150,7 @@ public class VersionDefinitionXml {
    * Gets the set of services that are included in this XML
    * @return an empty set for STANDARD repositories, or a non-empty set for PATCH type.
    */
-  public Set<String> getAvailableServiceNames() {
+  private Set<String> getAvailableServiceNames() {
     if (availableServices.isEmpty()) {
       return Collections.emptySet();
     } else {
@@ -167,6 +167,13 @@ public class VersionDefinitionXml {
     }
   }
 
+  /**
+   * Sets if the version definition is a stack default.  This can only be true
+   * when parsing "latest-vdf" for a stack.
+   */
+  public void setStackDefault(boolean stackDefault) {
+    m_stackDefault = stackDefault;
+  }
 
   /**
    * Gets if the version definition was built as the default for a stack
@@ -193,7 +200,7 @@ public class VersionDefinitionXml {
       String name = manifest.serviceName;
 
       if (!manifestVersions.containsKey(name)) {
-        manifestVersions.put(manifest.serviceName, new TreeSet<String>());
+        manifestVersions.put(manifest.serviceName, new TreeSet<>());
       }
 
       manifestVersions.get(manifest.serviceName).add(manifest.version);

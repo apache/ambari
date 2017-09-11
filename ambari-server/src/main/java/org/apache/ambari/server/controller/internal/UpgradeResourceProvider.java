@@ -731,11 +731,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntity.setText(wrapper.getText());
               itemEntity.setTasks(wrapper.getTasksJson());
               itemEntity.setHosts(wrapper.getHostsJson());
-              itemEntities.add(itemEntity);
 
               injectVariables(configHelper, cluster, itemEntity);
-              makeServerSideStage(group, upgradeContext, effectiveRepositoryVersion, req,
-                  itemEntity, (ServerSideActionTask) task, configUpgradePack);
+              if (makeServerSideStage(group, upgradeContext, effectiveRepositoryVersion, req,
+                  itemEntity, (ServerSideActionTask) task, configUpgradePack)) {
+                itemEntities.add(itemEntity);
+              }
             }
           }
         } else {
@@ -765,7 +766,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgrade.setUpgradeGroups(groupEntities);
 
     req.getRequestStatusResponse();
-    return createUpgradeInsideTransaction(cluster, req, upgrade);
+    return createUpgradeInsideTransaction(cluster, req, upgrade, upgradeContext);
   }
 
   /**
@@ -782,6 +783,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param upgradeEntity
    *          the upgrade to create and associate with the newly created request
    *          (not {@code null}).
+   * @param upgradeContext
+   *          the upgrade context associated with the upgrade being created.
    * @return the persisted {@link UpgradeEntity} encapsulating all
    *         {@link UpgradeGroupEntity} and {@link UpgradeItemEntity}.
    * @throws AmbariException
@@ -789,7 +792,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Transactional
   UpgradeEntity createUpgradeInsideTransaction(Cluster cluster,
       RequestStageContainer request,
-      UpgradeEntity upgradeEntity) throws AmbariException {
+      UpgradeEntity upgradeEntity, UpgradeContext upgradeContext) throws AmbariException {
+
+    // if this is a patch reversion, then we must unset the revertable flag of
+    // the upgrade being reverted
+    if (upgradeContext.isPatchRevert()) {
+      UpgradeEntity upgradeBeingReverted = s_upgradeDAO.findUpgrade(
+          upgradeContext.getPatchRevertUpgradeId());
+
+      upgradeBeingReverted.setRevertAllowed(false);
+      upgradeBeingReverted = s_upgradeDAO.merge(upgradeBeingReverted);
+    }
 
     request.persist();
     RequestEntity requestEntity = s_requestDAO.findByPK(request.getId());
@@ -1112,7 +1125,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
-      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.<String> emptyList()));
+      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.emptyList()));
     }
 
     Cluster cluster = context.getCluster();
@@ -1172,7 +1185,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * upgrade
    * @throws AmbariException
    */
-  private void makeServerSideStage(UpgradeGroupHolder group, UpgradeContext context,
+  private boolean makeServerSideStage(UpgradeGroupHolder group, UpgradeContext context,
       RepositoryVersionEntity effectiveRepositoryVersion, RequestStageContainer request,
       UpgradeItemEntity entity, ServerSideActionTask task, ConfigUpgradePack configUpgradePack)
       throws AmbariException {
@@ -1188,6 +1201,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
+
+    boolean process = true;
 
     switch (task.getType()) {
       case SERVER_ACTION:
@@ -1224,6 +1239,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
       case CONFIGURE: {
         ConfigureTask ct = (ConfigureTask) task;
+
+        // !!! would prefer to do this in the sequence generator, but there's too many
+        // places to miss
+        if (context.getOrchestrationType().isRevertable() && !ct.supportsPatch) {
+          process = false;
+        }
+
         Map<String, String> configurationChanges =
                 ct.getConfigurationChanges(cluster, configUpgradePack);
 
@@ -1254,8 +1276,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         break;
     }
 
+    if (!process) {
+      return false;
+    }
+
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        Role.AMBARI_SERVER_ACTION.toString(), Collections.<RequestResourceFilter> emptyList(),
+        Role.AMBARI_SERVER_ACTION.toString(), Collections.emptyList(),
         commandParams);
 
     actionContext.setTimeout(Short.valueOf((short) -1));
@@ -1291,6 +1317,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         context.isComponentFailureAutoSkipped());
 
     request.addStages(Collections.singletonList(stage));
+
+    return true;
   }
 
   /**

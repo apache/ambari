@@ -144,7 +144,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
     if (propertyMaps.isEmpty()) {
-      propertyMaps.add(Collections.<String, Object>emptyMap());
+      propertyMaps.add(Collections.emptyMap());
     }
 
     for (Map<String, Object> propertyMap : propertyMaps) {

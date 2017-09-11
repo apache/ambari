@@ -17,8 +17,9 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -30,6 +31,8 @@ import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.BooleanUtils;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -55,43 +58,16 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
    * {@inheritDoc}
    */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request, Arrays.asList("YARN"), true)) {
-      return false;
-    }
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet("YARN");
+  }
 
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-
-    String minApplicableStackVersion = null;
-    PrerequisiteCheckConfig prerequisiteCheckConfig = request.getPrerequisiteCheckConfig();
-    Map<String, String> checkProperties = null;
-    if(prerequisiteCheckConfig != null) {
-      checkProperties = prerequisiteCheckConfig.getCheckProperties(this.getClass().getName());
-    }
-    if(checkProperties != null && checkProperties.containsKey(MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME)) {
-      minApplicableStackVersion = checkProperties.get(MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME);
-    }
-
-    // Due to the introduction of YARN Timeline state recovery only from certain
-    // stack-versions onwards, this check is not applicable to earlier versions
-    // of the stack.
-    // Applicable only if min-applicable-stack-version config property is not defined, or
-    // version equals or exceeds the configured version.
-    if(minApplicableStackVersion != null && !minApplicableStackVersion.isEmpty()) {
-      String[] minStack = minApplicableStackVersion.split("-");
-      if(minStack.length == 2) {
-        String minStackName = minStack[0];
-        String minStackVersion = minStack[1];
-        Service yarnService = cluster.getService("YARN");
-        String stackName = yarnService.getDesiredStackId().getStackName();
-        if (minStackName.equals(stackName)) {
-          String currentRepositoryVersion = yarnService.getDesiredRepositoryVersion().getVersion();
-          return VersionUtils.compareVersions(currentRepositoryVersion, minStackVersion) >= 0;
-        }
-      }
-    }
-
-    return true;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<CheckQualification> getQualifications() {
+    return Lists.newArrayList(new YarnTimelineServerMinVersionQualification());
   }
 
   /**
@@ -106,6 +82,55 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
       prerequisiteCheck.getFailedOn().add("YARN");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
+    }
+  }
+
+  /**
+   * The {@link YarnTimelineServerMinVersionQualification} is used to determine
+   * if the ATS component needs to have the
+   * {@value #MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME} set.
+   */
+  private class YarnTimelineServerMinVersionQualification implements CheckQualification {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+      final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+
+      String minApplicableStackVersion = null;
+      PrerequisiteCheckConfig prerequisiteCheckConfig = request.getPrerequisiteCheckConfig();
+      Map<String, String> checkProperties = null;
+      if(prerequisiteCheckConfig != null) {
+        checkProperties = prerequisiteCheckConfig.getCheckProperties(this.getClass().getName());
+      }
+
+      if(checkProperties != null && checkProperties.containsKey(MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME)) {
+        minApplicableStackVersion = checkProperties.get(MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME);
+      }
+
+      // Due to the introduction of YARN Timeline state recovery only from certain
+      // stack-versions onwards, this check is not applicable to earlier versions
+      // of the stack.
+      // Applicable only if min-applicable-stack-version config property is not defined, or
+      // version equals or exceeds the configured version.
+      if(minApplicableStackVersion != null && !minApplicableStackVersion.isEmpty()) {
+        String[] minStack = minApplicableStackVersion.split("-");
+        if(minStack.length == 2) {
+          String minStackName = minStack[0];
+          String minStackVersion = minStack[1];
+          Service yarnService = cluster.getService("YARN");
+          String stackName = yarnService.getDesiredStackId().getStackName();
+          if (minStackName.equals(stackName)) {
+            String currentRepositoryVersion = yarnService.getDesiredRepositoryVersion().getVersion();
+            return VersionUtils.compareVersions(currentRepositoryVersion, minStackVersion) >= 0;
+          }
+        }
+      }
+
+      return true;
+
     }
   }
 }

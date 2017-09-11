@@ -224,7 +224,7 @@ public class ActionManager {
   public List<Long> getRequestsByStatus(RequestStatus status, int maxResults, boolean ascOrder) {
     List<Long> requests = db.getRequestsByStatus(status, maxResults, ascOrder);
 
-    for (Request logicalRequest : topologyManager.getRequests(Collections.<Long>emptySet())) {
+    for (Request logicalRequest : topologyManager.getRequests(Collections.emptySet())) {
       //todo: Request.getStatus() returns HostRoleStatus and we are comparing to RequestStatus
       //todo: for now just compare the names as RequestStatus names are a subset of HostRoleStatus names
       HostRoleStatus logicalRequestStatus = logicalRequest.getStatus();

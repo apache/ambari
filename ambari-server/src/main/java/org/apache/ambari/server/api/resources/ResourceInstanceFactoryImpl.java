@@ -294,7 +294,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         String version  = mapIds.get(Resource.Type.ViewVersion);
 
         Set<SubResourceDefinition> subResourceDefinitions = (viewName == null || version == null)  ?
-            Collections.<SubResourceDefinition>emptySet() :
+            Collections.emptySet() :
             ViewRegistry.getInstance().getSubResourceDefinitions(viewName, version);
 
         resourceDefinition = new ViewInstanceResourceDefinition(subResourceDefinitions);

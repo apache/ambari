@@ -956,7 +956,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         deleteStatusMetaData.addException(hostname, ex);
       }
       removeHostFromClusterTopology(clusters, hostRequest);
-      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
+      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.emptyList())) {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
     }

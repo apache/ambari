@@ -75,7 +75,7 @@ public class TaskWrapper {
     component = c;
 
     this.hosts = hosts;
-    this.params = (params == null) ? new HashMap<String, String>() : params;
+    this.params = (params == null) ? new HashMap<>() : params;
     this.tasks = tasks;
 
     // !!! FIXME there should only be one task

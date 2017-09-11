@@ -192,7 +192,7 @@ public class ServiceCheckValidityCheckTest {
     serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
 
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
-    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(Collections.<HostRoleCommandEntity>emptyList());
+    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(Collections.emptyList());
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));

@@ -23,7 +23,9 @@
 
     <!-- imports -->
     <module name="AvoidStarImport"/>
-    <module name="IllegalImport"/>
+    <module name="IllegalImport">
+      <property name="illegalPkgs" value="sun, org.apache.hadoop.metrics2.sink.relocated"/>
+    </module>
     <module name="ImportOrder">
       <property name="groups" value="java,javax,org,com,*"/>
       <property name="ordered" value="true"/>

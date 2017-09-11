@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -269,7 +268,7 @@ public class RepositoryVersionHelper {
       }
 
       List<ServiceOsSpecific.Package> packagesForService = amc.getPackagesForServiceHost(info,
-        new HashMap<String, String>(), osFamily);
+        new HashMap<>(), osFamily);
 
       List<String> blacklistedPackagePrefixes = configuration.get().getRollingUpgradeSkipPackagesPrefixes();
 
@@ -291,22 +290,8 @@ public class RepositoryVersionHelper {
 
     Map<String, String> roleParams = new HashMap<>();
     roleParams.put("stack_id", stackId.getStackId());
-    roleParams.put("repository_version", repoVersion.getVersion());
     // !!! TODO make roleParams <String, Object> so we don't have to do this awfulness.
     roleParams.put(KeyNames.PACKAGE_LIST, gson.toJson(packages));
-    roleParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
-
-    VersionDefinitionXml xml = null;
-    try {
-      xml = repoVersion.getRepositoryXml();
-    } catch (Exception e) {
-      throw new SystemException(String.format("Could not load xml from repo version %s",
-          repoVersion.getVersion()));
-    }
-
-    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
-      roleParams.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
-    }
 
     return roleParams;
   }
@@ -318,16 +303,20 @@ public class RepositoryVersionHelper {
    * @param repoVersion   the repository version entity
    * @param repos         the repository entities
    */
-  public void addCommandRepository(ActionExecutionContext context, String osFamily,
-      RepositoryVersionEntity repoVersion, List<RepositoryEntity> repos) {
-    StackId stackId = repoVersion.getStackId();
+  public void addCommandRepository(ActionExecutionContext context,
+      RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) {
 
     final CommandRepository commandRepo = new CommandRepository();
-    commandRepo.setRepositories(osFamily, repos);
+    commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
-    commandRepo.setStackName(stackId.getStackName());
-    commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+    commandRepo.setStackName(repoVersion.getStackId().getStackName());
+
+    if (!osEntity.isAmbariManagedRepos()) {
+      commandRepo.setNonManaged();
+    } else {
+      commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+    }
 
     context.addVisitor(new ExecutionCommandVisitor() {
       @Override

@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
@@ -133,10 +134,10 @@ public class ServiceInfo implements Validable{
   private String parent;
 
   @XmlElement(name = "widgetsFileName")
-  private String widgetsFileName = AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME;
+  private String widgetsFileName = StackDirectory.WIDGETS_DESCRIPTOR_FILE_NAME;
 
   @XmlElement(name = "metricsFileName")
-  private String metricsFileName = AmbariMetaInfo.SERVICE_METRIC_FILE_NAME;
+  private String metricsFileName = StackDirectory.SERVICE_METRIC_FILE_NAME;
 
   @XmlTransient
   private volatile Map<String, PropertyInfo> requiredProperties;
@@ -186,7 +187,7 @@ public class ServiceInfo implements Validable{
   private List<ServicePropertyInfo> servicePropertyList = Lists.newArrayList();
 
   @XmlTransient
-  private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.<String, String>newHashMap()));
+  private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.newHashMap()));
 
   /**
    *
@@ -233,11 +234,11 @@ public class ServiceInfo implements Validable{
 
   @JsonIgnore
   @XmlElement(name="configuration-dir")
-  private String configDir = AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME;
+  private String configDir = StackDirectory.SERVICE_CONFIG_FOLDER_NAME;
 
   @JsonIgnore
   @XmlElement(name = "themes-dir")
-  private String themesDir = AmbariMetaInfo.SERVICE_THEMES_FOLDER_NAME;
+  private String themesDir = StackDirectory.SERVICE_THEMES_FOLDER_NAME;
 
   @JsonIgnore
   @XmlElementWrapper(name = "themes")
@@ -249,7 +250,7 @@ public class ServiceInfo implements Validable{
 
   @JsonIgnore
   @XmlElement(name = "quickLinksConfigurations-dir")
-  private String quickLinksConfigurationsDir = AmbariMetaInfo.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME;
+  private String quickLinksConfigurationsDir = StackDirectory.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME;
 
   @JsonIgnore
   @XmlElementWrapper(name = "quickLinksConfigurations")
@@ -633,7 +634,7 @@ public class ServiceInfo implements Validable{
    */
   public synchronized Map<String, Map<String, Map<String, String>>> getConfigTypeAttributes() {
     Map<String, Map<String, Map<String, String>>> tmpConfigTypes = configTypes == null ?
-        new HashMap<String, Map<String, Map<String, String>>>() : configTypes;
+      new HashMap<>() : configTypes;
 
     for(String excludedtype : excludedConfigTypes){
       tmpConfigTypes.remove(excludedtype);
@@ -726,7 +727,7 @@ public class ServiceInfo implements Validable{
             type = type.substring(0, idx);
 
             if (!configLayout.containsKey(type))
-              configLayout.put(type, new HashSet<String>());
+              configLayout.put(type, new HashSet<>());
 
             configLayout.get(type).add(pi.getName());
           }

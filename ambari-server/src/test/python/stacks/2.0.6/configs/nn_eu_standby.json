@@ -42,8 +42,7 @@
         "stack_name": "HDP", 
         "group_list": "[\"hadoop\",\"users\"]", 
         "host_sys_prepped": "false", 
-        "ambari_db_rca_username": "mapred", 
-        "current_version": "2.2.7.0-2816", 
+        "ambari_db_rca_username": "mapred",
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "mysql_jdbc_url": "http://10.0.0.28:8080/resources//mysql-connector-java.jar", 
         "repo_info": "[{\"baseUrl\":\"http://repos.ambari.apache.org/hdp/HDP-2.2.7.0-2816\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.2\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.6.0\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.8.0\",\"baseSaved\":true},{\"baseUrl\":\"http://repos.ambari.apache.org/hdp/HDP-UTILS-1.1.0.20\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.20\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"baseSaved\":true}]", 
@@ -70,7 +69,23 @@
     "role": "NAMENODE", 
     "requestId": 22, 
     "taskId": 147, 
-    "public_hostname": "c6402.ambari.apache.org", 
+    "public_hostname": "c6402.ambari.apache.org",
+    "upgradeSummary": {
+      "services": {
+        "HDFS": {
+          "sourceRepositoryId": 1,
+          "sourceStackId": "HDP-2.2",
+          "sourceVersion": "2.2.7.0-2816",
+          "targetRepositoryId": 2,
+          "targetStackId": "HDP-2.3",
+          "targetVersion": "2.3.2.0-2844"
+        }
+      },
+      "direction": "UPGRADE",
+      "type": "nonrolling_upgrade",
+      "isRevert": false,
+      "orchestration": "STANDARD"
+    },
     "configurations": {
         "hdfs-site": {
             "dfs.namenode.http-address.nn1.nn1": "c6401.ambari.apache.org:50070", 

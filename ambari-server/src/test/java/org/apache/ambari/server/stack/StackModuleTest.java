@@ -97,7 +97,7 @@ public class StackModuleTest {
   public void serviceReposAreProcessedEvenIfNoStackRepo() throws Exception {
     StackModule sm = createStackModule("FooBar",
         "2.4",
-        Optional.<List<RepositoryInfo>>absent(),
+        Optional.absent(),
         Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org")));
     Set<String> repoIds = getIds(sm.getModuleInfo().getRepositories());
     assertEquals(ImmutableSet.of("bar:2.0.1"), repoIds);
@@ -112,7 +112,7 @@ public class StackModuleTest {
   public void duplicateStackServiceReposAreCheckedPerOs() throws Exception {
     StackModule sm = createStackModule("FooBar",
         "2.4",
-        Optional.<List<RepositoryInfo>>absent(),
+        Optional.absent(),
         Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos6")),
         Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos7")));
     Multiset<String> repoIds = getIdsMultiple(sm.getModuleInfo().getRepositories());
@@ -124,7 +124,7 @@ public class StackModuleTest {
   public void removedServicesInitialValue () throws Exception {
     StackModule sm = createStackModule("FooBar",
         "2.4",
-        Optional.<List<RepositoryInfo>>absent(),
+        Optional.absent(),
         Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos6")),
         Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos7")));
     List<String> removedServices = sm.getModuleInfo().getRemovedServices();
@@ -135,7 +135,7 @@ public class StackModuleTest {
   public void servicesWithNoConfigsInitialValue() throws Exception {
     StackModule sm = createStackModule("FooBar",
         "2.4",
-        Optional.<List<RepositoryInfo>>absent(),
+        Optional.absent(),
         Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos6")),
         Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos7")));
     List<String> servicesWithNoConfigs = sm.getModuleInfo().getServicesWithNoConfigs();
@@ -173,7 +173,7 @@ public class StackModuleTest {
     StackModule sm = new StackModule(sd, ctx);
     sm.resolve(null,
         ImmutableMap.of(String.format("%s:%s", stackName, stackVersion), sm),
-        ImmutableMap.<String, ServiceModule>of(), ImmutableMap.<String, ExtensionModule>of());
+        ImmutableMap.of(), ImmutableMap.of());
     return sm;
   }
 

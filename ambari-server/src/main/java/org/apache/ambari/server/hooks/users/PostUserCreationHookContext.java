@@ -38,7 +38,7 @@ public class PostUserCreationHookContext implements HookContext {
 
   @AssistedInject
   public PostUserCreationHookContext(@Assisted String userName) {
-    userGroups.put(userName, Collections.<String>emptySet());
+    userGroups.put(userName, Collections.emptySet());
   }
 
 

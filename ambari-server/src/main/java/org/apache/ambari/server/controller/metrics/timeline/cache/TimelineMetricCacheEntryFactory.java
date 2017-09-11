@@ -245,7 +245,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
 
     for (TimelineMetric existingMetric : existingMetrics.getMetrics()) {
       if (removeAll) {
-        existingMetric.setMetricValues(new TreeMap<Long, Double>());
+        existingMetric.setMetricValues(new TreeMap<>());
       } else {
         TreeMap<Long, Double> existingMetricValues = existingMetric.getMetricValues();
         LOG.trace("Existing metric: {} # {}", existingMetric.getMetricName(), existingMetricValues.size());

@@ -296,7 +296,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
   @Override
   public Map<String, ResourceInstance> getSubResources() {
-    return new HashMap<String, ResourceInstance>(ensureSubResources());
+    return new HashMap<>(ensureSubResources());
   }
 
 
@@ -998,7 +998,7 @@ public class QueryImpl implements Query, ResourceInstance {
     }
 
     if (allProperties) {
-      return PropertyHelper.getReadRequest(Collections.<String> emptySet(),
+      return PropertyHelper.getReadRequest(Collections.emptySet(),
           requestInfoProperties, null, pageRequest, sortRequest);
     }
 

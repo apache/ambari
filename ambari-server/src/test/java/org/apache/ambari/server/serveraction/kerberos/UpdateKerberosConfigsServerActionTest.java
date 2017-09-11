@@ -106,7 +106,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
     configHelper.updateConfigType(anyObject(Cluster.class), anyObject(StackId.class), anyObject(AmbariManagementController.class),
-        anyObject(String.class), EasyMock.<Map<String, String>>anyObject(), EasyMock.<Collection<String>>anyObject(), anyObject(String.class), anyObject(String.class));
+        anyObject(String.class), EasyMock.anyObject(), EasyMock.anyObject(), anyObject(String.class), anyObject(String.class));
     expectLastCall().atLeastOnce();
 
     replayAll();

@@ -538,6 +538,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
             reportedTaskStatus = HostRoleStatus.SKIPPED_FAILED;
           }
         }
+
+        // if TIMEOUT and marked for holding then set status = HOLDING_TIMEOUT
+        if (reportedTaskStatus == HostRoleStatus.TIMEDOUT && commandEntity.isRetryAllowed()){
+          reportedTaskStatus = HostRoleStatus.HOLDING_TIMEDOUT;
+        }
+
         if (!existingTaskStatus.isCompletedState()) {
           commandEntity.setStatus(reportedTaskStatus);
         }
@@ -599,6 +605,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         if (command.isFailureAutoSkipped()) {
           status = HostRoleStatus.SKIPPED_FAILED;
         }
+      }
+
+      // if TIMEOUT and marked for holding then set status = HOLDING_TIMEOUT
+      if (status == HostRoleStatus.TIMEDOUT && command.isRetryAllowed()){
+        status = HostRoleStatus.HOLDING_TIMEDOUT;
       }
 
       command.setStatus(status);

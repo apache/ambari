@@ -543,7 +543,7 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    */
   private Set<RoleAuthorization> createUnmodifiableSet(Set<RoleAuthorization> set) {
     return (set == null)
-        ? Collections.<RoleAuthorization>emptySet()
+        ? Collections.emptySet()
         : Collections.unmodifiableSet(new HashSet<>(set));
   }
 }

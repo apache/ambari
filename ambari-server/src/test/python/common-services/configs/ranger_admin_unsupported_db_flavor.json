@@ -1,0 +1,386 @@
+{
+  "roleCommand": "SERVICE_CHECK",
+  "clusterName": "c1",
+  "hostname": "c6401.ambari.apache.org",
+  "hostLevelParams": {
+    "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+    "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
+    "ambari_db_rca_password": "mapred",
+    "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
+    "jce_name": "UnlimitedJCEPolicyJDK7.zip",
+    "stack_version": "2.2",
+    "stack_name": "HDP",
+    "ambari_db_rca_driver": "org.postgresql.Driver",
+    "jdk_name": "jdk-7u67-linux-x64.tar.gz",
+    "ambari_db_rca_username": "mapred",
+    "java_home": "/usr/jdk64/jdk1.7.0_45",
+    "java_version": "8",
+    "db_name": "ambari",
+    "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
+    "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
+    "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
+    "custom_mssql_jdbc_name" : "mssql-jdbc-driver.jar",
+    "custom_sqlanywhere_jdbc_name" : "sqla-client-jdbc.tar.gz"
+  },
+  "commandType": "EXECUTION_COMMAND",
+  "roleParams": {},
+  "serviceName": "SLIDER",
+  "role": "SLIDER",
+  "commandParams": {
+    "version": "2.2.1.0-2067",
+    "command_timeout": "300",
+    "service_package_folder": "OOZIE",
+    "script_type": "PYTHON",
+    "script": "scripts/service_check.py",
+    "excluded_hosts": "host1,host2"
+  },
+  "taskId": 152,
+  "public_hostname": "c6401.ambari.apache.org",
+  "configurations": {
+    "admin-properties": {
+      "authentication_method": "UNIX",
+      "db_root_user": "root",
+      "xa_ldap_groupSearchBase": "\"ou=groups,dc=xasecure,dc=net\"",
+      "audit_db_name": "ranger_audit",
+      "xa_ldap_ad_domain": "\"xasecure.net\"",
+      "remoteLoginEnabled": "true",
+      "SQL_CONNECTOR_JAR": "/usr/share/java/mysql-connector-java.jar",
+      "xa_ldap_userDNpattern": "\"uid={0},ou=users,dc=xasecure,dc=net\"",
+      "SQL_COMMAND_INVOKER": "mysql",
+      "db_user": "rangeradmin",
+      "db_password": "aa",
+      "authServicePort": "5151",
+      "audit_db_password": "aa",
+      "DB_FLAVOR": "UNSUPPORTED",
+      "audit_db_user": "rangerlogger",
+      "db_root_password": "aa",
+      "xa_ldap_url": "\"ldap://71.127.43.33:389\"",
+      "db_name": "ranger",
+      "xa_ldap_groupSearchFilter": "\"(member=uid={0},ou=users,dc=xasecure,dc=net)\"",
+      "authServiceHostName": "localhost",
+      "xa_ldap_ad_url": "\"ldap://ad.xasecure.net:389\"",
+      "policymgr_external_url": "http://localhost:6080",
+      "policymgr_http_enabled": "true",
+      "db_host": "localhost",
+      "xa_ldap_groupRoleAttribute": "\"cn\""
+    },
+    "ranger-site": {
+      "http.enabled": "true",
+      "http.service.port": "6080",
+      "https.attrib.keystorePass": "ranger",
+      "https.attrib.clientAuth": "want",
+      "https.attrib.keystoreFile": "/etc/ranger/admin/keys/server.jks",
+      "https.service.port": "6182",
+      "https.attrib.keyAlias": "myKey"
+    },
+    "ranger-admin-site": {
+      "ranger.admin.kerberos.cookie.domain": "",
+      "ranger.kms.service.user.hdfs": "hdfs",
+      "ranger.spnego.kerberos.principal": "",
+      "ranger.ldap.ad.url": "{{ranger_ug_ldap_url}}",
+      "ranger.plugins.hive.serviceuser": "hive",
+      "ranger.lookup.kerberos.keytab": "",
+      "ranger.plugins.kms.serviceuser": "kms",
+      "ranger.service.https.attrib.ssl.enabled": "false",
+      "ranger.sso.browser.useragent": "Mozilla,chrome",
+      "ranger.jpa.jdbc.url": "jdbc:mysql://c6401.ambari.apache.org:3306/ranger01",
+      "ranger.plugins.hbase.serviceuser": "hbase",
+      "ranger.plugins.hdfs.serviceuser": "hdfs",
+      "ranger.ldap.group.searchbase": "{{ranger_ug_ldap_group_searchbase}}",
+      "ranger.ldap.user.dnpattern": "uid={0},ou=users,dc=xasecure,dc=net",
+      "ranger.plugins.knox.serviceuser": "knox",
+      "ranger.ldap.base.dn": "dc=example,dc=com",
+      "ranger.sso.publicKey": "",
+      "ranger.admin.kerberos.cookie.path": "/",
+      "ranger.service.https.attrib.clientAuth": "want",
+      "ranger.jpa.jdbc.user": "{{ranger_db_user}}",
+      "ranger.ldap.ad.user.searchfilter": "(sAMAccountName={0})",
+      "ranger.ldap.group.roleattribute": "cn",
+      "ranger.plugins.kafka.serviceuser": "kafka",
+      "ranger.admin.kerberos.principal": "",
+      "ranger.ldap.ad.bind.dn": "{{ranger_ug_ldap_bind_dn}}",
+      "ranger.credential.provider.path": "/etc/ranger/admin/rangeradmin.jceks",
+      "ranger.ldap.referral": "ignore",
+      "ranger.service.http.port": "6080",
+      "ranger.ldap.user.searchfilter": "(uid={0})",
+      "ranger.plugins.atlas.serviceuser": "atlas",
+      "ranger.truststore.password": "changeit",
+      "ranger.ldap.bind.password": "{{ranger_usersync_ldap_ldapbindpassword}}",
+      "ranger.audit.solr.password": "NONE",
+      "ranger.audit.solr.zookeepers": "c6401.ambari.apache.org:2181/ambari-solr",
+      "ranger.lookup.kerberos.principal": "",
+      "ranger.service.https.port": "6182",
+      "ranger.plugins.storm.serviceuser": "storm",
+      "ranger.externalurl": "{{ranger_external_url}}",
+      "ranger.truststore.file": "/etc/ranger/admin/conf/ranger-admin-keystore.jks",
+      "ranger.kms.service.user.hive": "",
+      "ranger.https.attrib.keystore.file": "/etc/ranger/admin/conf/ranger-admin-keystore.jks",
+      "ranger.jpa.jdbc.dialect": "{{jdbc_dialect}}",
+      "ranger.service.host": "{{ranger_host}}",
+      "ranger.service.https.attrib.keystore.keyalias": "rangeradmin",
+      "ranger.service.https.attrib.keystore.pass": "xasecure",
+      "ranger.unixauth.remote.login.enabled": "true",
+      "ranger.jpa.jdbc.credential.alias": "rangeradmin",
+      "ranger.ldap.ad.bind.password": "{{ranger_usersync_ldap_ldapbindpassword}}",
+      "ranger.audit.solr.username": "ranger_solr",
+      "ranger.sso.enabled": "false",
+      "ranger.audit.solr.urls": "",
+      "ranger.ldap.ad.domain": "",
+      "ranger.plugins.yarn.serviceuser": "yarn",
+      "ranger.audit.source.type": "solr",
+      "ranger.ldap.bind.dn": "{{ranger_ug_ldap_bind_dn}}",
+      "ranger.ldap.url": "{{ranger_ug_ldap_url}}",
+      "ranger.authentication.method": "UNIX",
+      "ranger.service.http.enabled": "true",
+      "ranger.ldap.group.searchfilter": "{{ranger_ug_ldap_group_searchfilter}}",
+      "ranger.ldap.ad.referral": "ignore",
+      "ranger.ldap.ad.base.dn": "dc=example,dc=com",
+      "ranger.jpa.jdbc.password": "_",
+      "ranger.spnego.kerberos.keytab": "",
+      "ranger.sso.providerurl": "",
+      "ranger.unixauth.service.hostname": "{{ugsync_host}}",
+      "ranger.admin.kerberos.keytab": "",
+      "ranger.admin.kerberos.token.valid.seconds": "30",
+      "ranger.jpa.jdbc.driver": "com.mysql.jdbc.Driver",
+      "ranger.unixauth.service.port": "5151"
+    },
+    "usersync-properties": {
+      "SYNC_INTERVAL": "1",
+      "SYNC_LDAP_USERNAME_CASE_CONVERSION": "none",
+      "SYNC_LDAP_USER_SEARCH_FILTER": "-",
+      "SYNC_LDAP_URL": "ldap://localhost:389",
+      "SYNC_LDAP_GROUPNAME_CASE_CONVERSION": "none",
+      "SYNC_LDAP_USER_SEARCH_SCOPE": "sub",
+      "SYNC_LDAP_BIND_PASSWORD": "admin321",
+      "SYNC_LDAP_USER_NAME_ATTRIBUTE": "cn",
+      "MIN_UNIX_USER_ID_TO_SYNC": "1000",
+      "SYNC_LDAP_USER_SEARCH_BASE": "ou=users,dc=xasecure,dc=net",
+      "SYNC_LDAP_USER_OBJECT_CLASS": "person",
+      "CRED_KEYSTORE_FILENAME": "/usr/lib/xausersync/.jceks/xausersync.jceks",
+      "SYNC_SOURCE": "unix",
+      "SYNC_LDAP_BIND_DN": "cn=admin,dc=xasecure,dc=net",
+      "SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE": "memberof,ismemberof",
+      "logdir": "logs"
+    },
+    "usersync-properties": {
+      "SYNC_INTERVAL": "1",
+      "SYNC_LDAP_USERNAME_CASE_CONVERSION": "none",
+      "SYNC_LDAP_USER_SEARCH_FILTER": "-",
+      "SYNC_LDAP_URL": "ldap://localhost:389",
+      "SYNC_LDAP_GROUPNAME_CASE_CONVERSION": "none",
+      "SYNC_LDAP_USER_SEARCH_SCOPE": "sub",
+      "SYNC_LDAP_BIND_PASSWORD": "admin321",
+      "SYNC_LDAP_USER_NAME_ATTRIBUTE": "cn",
+      "MIN_UNIX_USER_ID_TO_SYNC": "1000",
+      "SYNC_LDAP_USER_SEARCH_BASE": "ou=users,dc=xasecure,dc=net",
+      "SYNC_LDAP_USER_OBJECT_CLASS": "person",
+      "CRED_KEYSTORE_FILENAME": "/usr/lib/xausersync/.jceks/xausersync.jceks",
+      "SYNC_SOURCE": "unix",
+      "SYNC_LDAP_BIND_DN": "cn=admin,dc=xasecure,dc=net",
+      "SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE": "memberof,ismemberof",
+      "logdir": "logs"
+    },
+    "ranger-env": {
+      "ranger_group": "ranger",
+      "ranger_admin_log_dir": "/var/log/ranger/admin",
+      "oracle_home": "-",
+      "admin_username": "admin",
+      "ranger_user": "ranger",
+      "ranger_admin_username": "amb_ranger_admin",
+      "admin_password": "admin",
+      "ranger_admin_password": "aa",
+      "ranger_usersync_log_dir": "/var/log/ranger/usersync",
+      "xml_configurations_supported" : "false"
+    },
+    "spark-javaopts-properties": {
+      "content": " "
+    },
+    "hadoop-env": {
+      "dtnode_heapsize": "1024m",
+      "namenode_opt_maxnewsize": "256m",
+      "hdfs_log_dir_prefix": "/var/log/hadoop",
+      "namenode_heapsize": "1024m",
+      "proxyuser_group": "users",
+      "hadoop_pid_dir_prefix": "/var/run/hadoop",
+      "content": "\n# Set Hadoop-specific environment variables here.\n\n# The only required environment variable is JAVA_HOME.  All others are\n# optional.  When running a distributed configuration it is best to\n# set JAVA_HOME in this file, so that it is correctly defined on\n# remote nodes.\n\n# The java implementation to use.  Required.\nexport JAVA_HOME={{java_home}}\nexport HADOOP_HOME_WARN_SUPPRESS=1\n\n# Hadoop home directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# Hadoop Configuration Directory\n\n{# this is different for HDP1 #}\n# Path to jsvc required by secure HDP 2.0 datanode\nexport JSVC_HOME={{jsvc_path}}\n\n\n# The maximum amount of heap to use, in MB. Default is 1000.\nexport HADOOP_HEAPSIZE=\"{{hadoop_heapsize}}\"\n\nexport HADOOP_NAMENODE_INIT_HEAPSIZE=\"-Xms{{namenode_heapsize}}\"\n\n# Extra Java runtime options.  Empty by default.\nexport HADOOP_OPTS=\"-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}\"\n\n# Command specific options appended to HADOOP_OPTS when specified\nexport HADOOP_NAMENODE_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}\"\nHADOOP_JOBTRACKER_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{jtnode_opt_newsize}} -XX:MaxNewSize={{jtnode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xmx{{jtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA ${HADOOP_JOBTRACKER_OPTS}\"\n\nHADOOP_TASKTRACKER_OPTS=\"-server -Xmx{{ttnode_heapsize}} -Dhadoop.security.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}\"\nexport HADOOP_DATANODE_OPTS=\"-server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:ErrorFile=/var/log/hadoop/$USER/hs_err_pid%p.log -XX:NewSize=200m -XX:MaxNewSize=200m -XX:PermSize=128m -XX:MaxPermSize=256m -Xloggc:/var/log/hadoop/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{dtnode_heapsize}} -Xmx{{dtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_DATANODE_OPTS}\"\nHADOOP_BALANCER_OPTS=\"-server -Xmx{{hadoop_heapsize}}m ${HADOOP_BALANCER_OPTS}\"\n\nexport HADOOP_SECONDARYNAMENODE_OPTS=$HADOOP_NAMENODE_OPTS\n\n# The following applies to multiple commands (fs, dfs, fsck, distcp etc)\nexport HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m -XX:MaxPermSize=512m $HADOOP_CLIENT_OPTS\"\n\n# On secure datanodes, user to run the datanode as after dropping privileges\nexport HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER:-{{hadoop_secure_dn_user}}}\n\n# Extra ssh options.  Empty by default.\nexport HADOOP_SSH_OPTS=\"-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR\"\n\n# Where log files are stored.  $HADOOP_HOME/logs by default.\nexport HADOOP_LOG_DIR={{hdfs_log_dir_prefix}}/$USER\n\n# History server logs\nexport HADOOP_MAPRED_LOG_DIR={{mapred_log_dir_prefix}}/$USER\n\n# Where log files are stored in the secure data environment.\nexport HADOOP_SECURE_DN_LOG_DIR={{hdfs_log_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# File naming remote slave hosts.  $HADOOP_HOME/conf/slaves by default.\n# export HADOOP_SLAVES=${HADOOP_HOME}/conf/slaves\n\n# host:path where hadoop code should be rsync'd from.  Unset by default.\n# export HADOOP_MASTER=master:/home/$USER/src/hadoop\n\n# Seconds to sleep between slave commands.  Unset by default.  This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HADOOP_SLAVE_SLEEP=0.1\n\n# The directory where pid files are stored. /tmp by default.\nexport HADOOP_PID_DIR={{hadoop_pid_dir_prefix}}/$USER\nexport HADOOP_SECURE_DN_PID_DIR={{hadoop_pid_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# History server pid\nexport HADOOP_MAPRED_PID_DIR={{mapred_pid_dir_prefix}}/$USER\n\nYARN_RESOURCEMANAGER_OPTS=\"-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY\"\n\n# A string representing this instance of hadoop. $USER by default.\nexport HADOOP_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes.  See 'man nice'.\n\n# export HADOOP_NICENESS=10\n\n# Use libraries from standard classpath\nJAVA_JDBC_LIBS=\"\"\n#Add libraries required by mysql connector\nfor jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n# Add libraries required by oracle connector\nfor jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n# Add libraries required by nodemanager\nMAPREDUCE_LIBS={{mapreduce_libs_path}}\nexport HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}\n\n# added to the HADOOP_CLASSPATH\nif [ -d \"/usr/hdp/current/tez-client\" ]; then\n  if [ -d \"/etc/tez/conf/\" ]; then\n    # When using versioned RPMs, the tez-client will be a symlink to the current folder of tez in HDP.\n    export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/\n  fi\nfi\n\n\n# Setting path to hdfs command line\nexport HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}\n\n# Mostly required for hadoop 2.0\nexport JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}\n\nexport HADOOP_OPTS=\"-Dhdp.version=$HDP_VERSION $HADOOP_OPTS\"",
+      "hdfs_user": "hdfs",
+      "namenode_opt_newsize": "256m",
+      "hadoop_root_logger": "INFO,RFA",
+      "hadoop_heapsize": "1024",
+      "namenode_opt_maxpermsize": "256m",
+      "namenode_opt_permsize": "128m"
+    },
+    "slider-client": {
+      "slider.yarn.queue": "default"
+    },
+    "core-site": {
+      "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
+    },
+    "hdfs-site": {
+      "a": "b"
+    },
+    "yarn-site": {
+      "yarn.application.classpath": "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*",
+      "yarn.resourcemanager.address": "c6401.ambari.apache.org:8050",
+      "yarn.resourcemanager.scheduler.address": "c6401.ambari.apache.org:8030"
+    },
+    "cluster-env": {
+      "managed_hdfs_resource_property_names": "",
+      "security_enabled": "false",
+      "ignore_groupsusers_create": "false",
+      "smokeuser": "ambari-qa",
+      "kerberos_domain": "EXAMPLE.COM",
+      "user_group": "hadoop"
+    },
+    "ranger-knox-plugin-properties": {
+      "POLICY_MGR_URL": "{{policymgr_mgr_url}}",
+      "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900",
+      "KNOX_HOME": "/usr/hdp/current/knox-server",
+      "XAAUDIT.HDFS.DESTINATION_DIRECTORY": "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/%app-type%/%time:yyyyMMdd%",
+      "XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY": "__REPLACE__LOG_DIR/hadoop/%app-type%/audit",
+      "common.name.for.certificate": "-",
+      "XAAUDIT.HDFS.IS_ENABLED": "false",
+      "SQL_CONNECTOR_JAR": "{{sql_connector_jar}}",
+      "XAAUDIT.HDFS.LOCAL_BUFFER_FILE": "%time:yyyyMMdd-HHmm.ss%.log",
+      "REPOSITORY_NAME": "{{repo_name}}",
+      "SSL_KEYSTORE_PASSWORD": "myKeyFilePassword",
+      "XAAUDIT.DB.IS_ENABLED": "true",
+      "XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS": "600",
+      "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60",
+      "XAAUDIT.SOLR.SOLR_URL": "http://localhost:6083/solr/ranger_audits",
+      "XAAUDIT.DB.DATABASE_NAME": "{{xa_audit_db_name}}",
+      "XAAUDIT.DB.HOSTNAME": "{{xa_db_host}}",
+      "XAAUDIT.SOLR.IS_ENABLED": "false",
+      "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks",
+      "ranger-knox-plugin-enabled": "Yes",
+      "XAAUDIT.DB.USER_NAME": "{{xa_audit_db_user}}",
+      "policy_user": "ambari-qa",
+      "XAAUDIT.HDFS.DESTINTATION_FILE": "%hostname%-audit.log",
+      "XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS": "86400",
+      "XAAUDIT.DB.PASSWORD": "{{xa_audit_db_password}}",
+      "XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT": "10",
+      "SSL_TRUSTSTORE_PASSWORD": "changeit",
+      "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY": "__REPLACE__LOG_DIR/hadoop/%app-type%/audit/archive",
+      "REPOSITORY_CONFIG_USERNAME": "admin",
+      "XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS": "1000",
+      "XAAUDIT.DB.FLAVOUR": "{{xa_audit_db_flavor}}",
+      "XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS": "60",
+      "SSL_TRUSTSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-truststore.jks",
+      "REPOSITORY_CONFIG_PASSWORD": "admin-password",
+      "XAAUDIT.SOLR.MAX_QUEUE_SIZE": "1"
+    },
+    "webhcat-site": {
+      "templeton.jar": "/usr/hdp/current/hive-webhcat/share/webhcat/svr/lib/hive-webhcat-*.jar",
+      "templeton.pig.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/pig.tar.gz",
+      "templeton.hive.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/hive.tar.gz",
+      "templeton.sqoop.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/sqoop.tar.gz",
+      "templeton.streaming.jar": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mr/hadoop-streaming.jar"
+    },
+    "slider-log4j": {
+      "content": "log4jproperties\nline2"
+    },
+    "slider-env": {
+      "content": "envproperties\nline2"
+    },
+    "ranger-hbase-plugin-properties": {
+      "ranger-hbase-plugin-enabled":"yes"
+    },
+    "ranger-hive-plugin-properties": {
+      "ranger-hive-plugin-enabled":"yes"
+    }
+  },
+  "configuration_attributes": {
+    "yarn-site": {
+      "final": {
+        "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
+        "yarn.nodemanager.container-executor.class": "true",
+        "yarn.nodemanager.local-dirs": "true"
+      }
+    },
+    "hdfs-site": {
+      "final": {
+        "dfs.web.ugi": "true",
+        "dfs.support.append": "true",
+        "dfs.cluster.administrators": "true"
+      }
+    },
+    "core-site": {
+      "final": {
+        "hadoop.proxyuser.hive.groups": "true",
+        "webinterface.private.actions": "true",
+        "hadoop.proxyuser.oozie.hosts": "true"
+      }
+    }
+  },
+  "configurationTags": {
+    "slider-client": {
+      "tag": "version1"
+    },
+    "slider-log4j": {
+      "tag": "version1"
+    },
+    "slider-env": {
+      "tag": "version1"
+    },
+    "core-site": {
+      "tag": "version1"
+    },
+    "hdfs-site": {
+      "tag": "version1"
+    },
+    "yarn-site": {
+      "tag": "version1"
+    },
+    "gateway-site": {
+      "tag": "version1"
+    },
+    "topology": {
+      "tag": "version1"
+    },
+    "users-ldif": {
+      "tag": "version1"
+    },
+    "kafka-env": {
+      "tag": "version1"
+    },
+    "kafka-log4j": {
+      "tag": "version1"
+    },
+    "kafka-broker": {
+      "tag": "version1"
+    }
+  },
+  "commandId": "7-1",
+  "clusterHostInfo": {
+    "ambari_server_host": [
+      "c6401.ambari.apache.org"
+    ],
+    "all_ping_ports": [
+      "8670",
+      "8670"
+    ],
+    "rm_host": [
+      "c6402.ambari.apache.org"
+    ],
+    "all_hosts": [
+      "c6401.ambari.apache.org",
+      "c6402.ambari.apache.org"
+    ],
+    "knox_gateway_hosts": [
+      "jaimin-knox-1.c.pramod-thangali.internal"
+    ],
+    "kafka_broker_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "zookeeper_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "ranger_admin_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "ranger_usersync_hosts" : [
+      "c6408.ambari.apache.org"
+    ]
+
+  }
+}

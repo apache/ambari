@@ -158,7 +158,7 @@ public class UserHookServiceTest extends EasyMockSupport {
     replayAll();
 
     // WHEN
-    Boolean triggered = hookService.execute(new PostUserCreationHookContext(Collections.<String, Set<String>>emptyMap()));
+    Boolean triggered = hookService.execute(new PostUserCreationHookContext(Collections.emptyMap()));
 
     //THEN
     Assert.assertFalse("The hook should not be triggered if there is no users in the context!", triggered);
@@ -216,7 +216,7 @@ public class UserHookServiceTest extends EasyMockSupport {
 
     // TBD refine expectations to validate the logic / eg capture arguments
     stageMock.addServerActionCommand(EasyMock.anyString(), EasyMock.anyString(), EasyMock.anyObject(Role.class), EasyMock.anyObject(RoleCommand.class), EasyMock.anyString(), EasyMock.anyObject(ServiceComponentHostServerActionEvent.class),
-        EasyMock.<Map<String, String>>anyObject(), EasyMock.anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject(), EasyMock.anyInt(), EasyMock.anyBoolean(), EasyMock.anyBoolean());
+        EasyMock.anyObject(), EasyMock.anyString(), EasyMock.anyObject(), EasyMock.anyInt(), EasyMock.anyBoolean(), EasyMock.anyBoolean());
     EasyMock.expect(requestFactoryMock.createNewFromStages(Arrays.asList(stageMock), "{}")).andReturn(null);
     EasyMock.expect(stageFactoryMock.createNew(1, "/var/lib/ambari-server/tmp:1", "test-cluster", 1, "Post user creation hook for [ 1 ] users", "{}", "{}")).andReturn(stageMock);
 

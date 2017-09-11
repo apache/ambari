@@ -327,6 +327,7 @@ def setup_historyserver():
                        action="create_on_execute",
                        owner=params.mapred_user,
                        group=params.user_group,
+                       change_permissions_for_parents=True,
                        mode=0777
   )
   params.HdfsResource(None, action="execute")
@@ -389,10 +390,22 @@ def setup_resourcemanager():
        create_parents=True,
        cd_access='a',
   )
-  File(params.rm_nodes_exclude_path,
+  File(params.exclude_file_path,
+       content=Template("exclude_hosts_list.j2"),
        owner=params.yarn_user,
        group=params.user_group
   )
+  if params.include_hosts:
+    Directory(params.rm_nodes_include_dir,
+      mode=0755,
+      create_parents=True,
+      cd_access='a',
+      )
+    File(params.include_file_path,
+      content=Template("include_hosts_list.j2"),
+      owner=params.yarn_user,
+      group=params.user_group
+    )
   File(params.yarn_job_summary_log,
      owner=params.yarn_user,
      group=params.user_group
@@ -401,7 +414,6 @@ def setup_resourcemanager():
     params.HdfsResource(params.node_labels_dir,
                          type="directory",
                          action="create_on_execute",
-                         change_permissions_for_parents=True,
                          owner=params.yarn_user,
                          group=params.user_group,
                          mode=0700

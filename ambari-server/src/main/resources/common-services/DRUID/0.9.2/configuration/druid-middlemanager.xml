@@ -101,4 +101,22 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>druid.indexer.fork.property.hadoop.mapreduce.reduce.java.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <description>
+      Default java properties from Reducer containers
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>druid.indexer.fork.property.hadoop.mapreduce.map.java.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <description>
+      Default java properties from Map containers
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
 </configuration>

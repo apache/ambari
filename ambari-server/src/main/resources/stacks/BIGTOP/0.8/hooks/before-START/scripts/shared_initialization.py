@@ -137,21 +137,6 @@ def setup_configs():
                 group=params.user_group
       )
 
-  generate_include_file()
-
-
-def generate_include_file():
-  import params
-
-  if params.has_namenode and params.dfs_hosts and params.has_slaves:
-    include_hosts_list = params.slave_hosts
-    File(params.dfs_hosts,
-         content=Template("include_hosts_list.j2"),
-         owner=params.hdfs_user,
-         group=params.user_group
-    )
-
-
 def install_snappy():
   import params
 

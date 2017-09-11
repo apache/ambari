@@ -32,8 +32,6 @@ import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -53,8 +51,8 @@ public class ClusterServiceTest extends BaseServiceTest {
     ClusterDAO clusterDAO = EasyMock.createNiceMock(ClusterDAO.class);
     HostDAO hostDAO = EasyMock.createNiceMock(HostDAO.class);
 
-    EasyMock.expect(clusterDAO.findAll()).andReturn(new ArrayList<ClusterEntity>()).atLeastOnce();
-    EasyMock.expect(hostDAO.findAll()).andReturn(new ArrayList<HostEntity>()).atLeastOnce();
+    EasyMock.expect(clusterDAO.findAll()).andReturn(new ArrayList<>()).atLeastOnce();
+    EasyMock.expect(hostDAO.findAll()).andReturn(new ArrayList<>()).atLeastOnce();
 
     EasyMock.replay(clusterDAO, hostDAO);
 

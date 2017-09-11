@@ -441,10 +441,10 @@ public abstract class KerberosOperationHandler {
    */
   protected Keytab mergeKeytabs(Keytab keytab, Keytab updates) {
     List<KeytabEntry> keytabEntries = (keytab == null)
-        ? Collections.<KeytabEntry>emptyList()
+        ? Collections.emptyList()
         : new ArrayList<>(keytab.getEntries());
     List<KeytabEntry> updateEntries = (updates == null)
-        ? Collections.<KeytabEntry>emptyList()
+        ? Collections.emptyList()
         : new ArrayList<>(updates.getEntries());
     List<KeytabEntry> mergedEntries = new ArrayList<>();
 
@@ -802,7 +802,7 @@ public abstract class KerberosOperationHandler {
       encryptionTypes = ENCRYPTION_TYPE_TRANSLATION_MAP.get(name.toLowerCase());
     }
 
-    return (encryptionTypes == null) ? Collections.<EncryptionType>emptySet() : encryptionTypes;
+    return (encryptionTypes == null) ? Collections.emptySet() : encryptionTypes;
   }
 
   /**

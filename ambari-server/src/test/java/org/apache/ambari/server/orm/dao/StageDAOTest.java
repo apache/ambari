@@ -134,7 +134,7 @@ public class StageDAOTest {
     sortProperties.add(new SortRequestProperty(
         StageResourceProvider.STAGE_LOG_INFO, SortRequest.Order.ASC));
 
-    Request request = PropertyHelper.getReadRequest(new HashSet<>(Arrays.<String>asList()),
+    Request request = PropertyHelper.getReadRequest(new HashSet<>(Arrays.asList()),
         null, null, null, sortRequest);
 
     // get back all 5

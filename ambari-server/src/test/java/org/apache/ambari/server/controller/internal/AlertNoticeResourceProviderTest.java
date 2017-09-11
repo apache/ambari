@@ -128,7 +128,7 @@ public class AlertNoticeResourceProviderTest {
         "AlertHistory/cluster_name", "AlertHistory/id");
 
     expect(m_dao.findAllNotices(EasyMock.anyObject(AlertNoticeRequest.class))).andReturn(
-        Collections.<AlertNoticeEntity>emptyList());
+        Collections.emptyList());
 
     replay(m_dao);
 

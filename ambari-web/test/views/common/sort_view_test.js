@@ -182,6 +182,53 @@ describe('#wrapperView', function () {
       });
 
     })
-  })
+  });
+
+  describe('#getSortedContent', function() {
+    var wrapperView;
+    var content = [
+      Em.Object.create({
+        id: 1
+      }),
+      Em.Object.create({
+        id: 2
+      })
+    ];
+
+    beforeEach(function() {
+      wrapperView = sort.wrapperView.create({
+        childViews: [],
+        isSorting: false
+      });
+      sinon.stub(wrapperView, 'sort', function(arg1, arg2, arg3, arg4) {
+        return arg4.reverse();
+      });
+    });
+    afterEach(function() {
+      wrapperView.sort.restore();
+    });
+
+    it('should return content without sorting', function() {
+      expect(wrapperView.getSortedContent(content)).to.be.eql(content);
+      expect(wrapperView.sort.called).to.be.false;
+    });
+
+    it('should return content with sorting', function() {
+      wrapperView.set('childViews', [
+        Em.Object.create({
+          status: 'sorting_desc'
+        })
+      ]);
+      expect(wrapperView.getSortedContent(content)).to.be.eql(content.reverse());
+      expect(wrapperView.sort.calledWith(
+        Em.Object.create({
+          status: 'sorting_desc'
+        }),
+        true,
+        true,
+        content
+      )).to.be.true;
+    });
+  });
 
 });

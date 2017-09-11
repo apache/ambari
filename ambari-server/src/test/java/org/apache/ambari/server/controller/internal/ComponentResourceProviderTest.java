@@ -388,7 +388,7 @@ public class ComponentResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getEffectiveMaintenanceState(
-        capture(EasyMock.<ServiceComponentHost>newCapture()))).andReturn(MaintenanceState.OFF).anyTimes();
+        capture(EasyMock.newCapture()))).andReturn(MaintenanceState.OFF).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -701,7 +701,7 @@ public class ComponentResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getEffectiveMaintenanceState(
-        capture(EasyMock.<ServiceComponentHost>newCapture()))).andReturn(MaintenanceState.OFF).anyTimes();
+        capture(EasyMock.newCapture()))).andReturn(MaintenanceState.OFF).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 

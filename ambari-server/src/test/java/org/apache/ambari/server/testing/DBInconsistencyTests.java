@@ -98,6 +98,8 @@ public class DBInconsistencyTests {
 
     helper.addHost(clusters, cluster, "h1");
 
+    helper.initializeClusterWithStack(cluster);
+
     helper.installHdfsService(cluster, serviceFactory,
       serviceComponentFactory, serviceComponentHostFactory, "h1");
 

@@ -33,6 +33,13 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>zeppelin.server.ssl.port</name>
+    <value>9995</value>
+    <description>Server ssl port. (used when ssl property is set to true)
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>zeppelin.notebook.dir</name>
     <value>notebook</value>
     <description>notebook persist</description>
@@ -70,7 +77,7 @@
   </property>
   <property>
     <name>zeppelin.notebook.storage</name>
-    <value>org.apache.zeppelin.notebook.repo.VFSNotebookRepo</value>
+    <value>org.apache.zeppelin.notebook.repo.HdfsNotebookRepo</value>
     <description>notebook persistence layer implementation. If S3 is used, set this to
             org.apache.zeppelin.notebook.repo.S3NotebookRepo instead. If S3 is used to store the
             notebooks, it is necessary to use the following folder structure
@@ -176,14 +183,26 @@
   </property>
   <property>
     <name>zeppelin.anonymous.allowed</name>
-    <value>true</value>
+    <value>false</value>
     <description>Anonymous user allowed by default</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zeppelin.notebook.public</name>
+    <value>false</value>
+    <description>Make notebook public by default when created, private otherwise</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin.websocket.max.text.message.size</name>
     <value>1024000</value>
     <description>Size in characters of the maximum text message to be received by websocket. Defaults to 1024000</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>zeppelin.interpreter.config.upgrade</name>
+    <value>true</value>
+    <description>If this is set to true, on every restart of Zeppelin server default interpreter parameters will be reset</description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

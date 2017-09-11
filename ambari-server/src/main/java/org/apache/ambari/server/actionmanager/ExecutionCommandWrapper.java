@@ -26,6 +26,7 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -42,6 +44,9 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -69,6 +74,9 @@ public class ExecutionCommandWrapper {
 
   @Inject
   private Gson gson;
+
+  @Inject
+  private UpgradeContextFactory upgradeContextFactory;
 
   /**
    * Used for injecting hooks and common-services into the command.
@@ -114,7 +122,7 @@ public class ExecutionCommandWrapper {
 
       // sanity; if no configurations, just initialize to prevent NPEs
       if (null == executionCommand.getConfigurations()) {
-        executionCommand.setConfigurations(new TreeMap<String, Map<String, String>>());
+        executionCommand.setConfigurations(new TreeMap<>());
       }
 
       Map<String, Map<String, String>> configurations = executionCommand.getConfigurations();
@@ -176,7 +184,7 @@ public class ExecutionCommandWrapper {
             configurations.get(type).putAll(mergedConfig);
 
           } else {
-            configurations.put(type, new HashMap<String, String>());
+            configurations.put(type, new HashMap<>());
             configurations.get(type).putAll(allLevelMergedConfig);
           }
         }
@@ -190,8 +198,7 @@ public class ExecutionCommandWrapper {
 
           if (executionCommand.getConfigurationAttributes() != null) {
             if (!executionCommand.getConfigurationAttributes().containsKey(type)) {
-              executionCommand.getConfigurationAttributes().put(type,
-                  new TreeMap<String, Map<String, String>>());
+              executionCommand.getConfigurationAttributes().put(type, new TreeMap<>());
             }
             configHelper.cloneAttributesMap(attributes,
                 executionCommand.getConfigurationAttributes().get(type));
@@ -224,8 +231,12 @@ public class ExecutionCommandWrapper {
         Map<String, String> commandParams = executionCommand.getCommandParams();
 
         if (null != repositoryVersion) {
-          commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
-          executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
+          // only set the version if it's not set and this is NOT an install
+          // command
+          if (!commandParams.containsKey(KeyNames.VERSION)
+              && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
+            commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
+          }
 
           StackId stackId = repositoryVersion.getStackId();
           StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
@@ -255,6 +266,15 @@ public class ExecutionCommandWrapper {
       // set the desired versions of versionable components.  This is safe even during an upgrade because
       // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.
       executionCommand.setComponentVersions(cluster);
+
+      // provide some basic information about a cluster upgrade if there is one
+      // in progress
+      UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+      if (null != upgrade) {
+        UpgradeContext upgradeContext = upgradeContextFactory.create(cluster, upgrade);
+        UpgradeSummary upgradeSummary = upgradeContext.getUpgradeSummary();
+        executionCommand.setUpgradeSummary(upgradeSummary);
+      }
 
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,

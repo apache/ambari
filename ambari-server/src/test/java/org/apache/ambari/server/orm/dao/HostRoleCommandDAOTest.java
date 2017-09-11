@@ -91,12 +91,12 @@ public class HostRoleCommandDAOTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(requestId);
     requestEntity.setClusterId(clusterEntity.getClusterId());
-    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestEntity.setStages(new ArrayList<>());
     m_requestDAO.create(requestEntity);
 
     AtomicLong stageId = new AtomicLong(1);
     HostEntity host = m_hostDAO.findByName("test_host1");
-    host.setHostRoleCommandEntities(new ArrayList<HostRoleCommandEntity>());
+    host.setHostRoleCommandEntities(new ArrayList<>());
 
     createStage(stageId.getAndIncrement(), 3, host, requestEntity, HostRoleStatus.COMPLETED);
     createStage(stageId.getAndIncrement(), 2, host, requestEntity, HostRoleStatus.SKIPPED_FAILED);
@@ -126,12 +126,12 @@ public class HostRoleCommandDAOTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(requestId);
     requestEntity.setClusterId(clusterEntity.getClusterId());
-    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestEntity.setStages(new ArrayList<>());
     m_requestDAO.create(requestEntity);
 
     AtomicLong stageId = new AtomicLong(1);
     HostEntity host = m_hostDAO.findByName("test_host1");
-    host.setHostRoleCommandEntities(new ArrayList<HostRoleCommandEntity>());
+    host.setHostRoleCommandEntities(new ArrayList<>());
 
     // start out with a stage that is skippable, supports auto skip, and has
     // auto skip tasks
@@ -205,7 +205,7 @@ public class HostRoleCommandDAOTest {
     stageEntity.setClusterId(clusterEntity.getClusterId());
     stageEntity.setRequest(requestEntity);
     stageEntity.setStageId(stageId);
-    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    stageEntity.setHostRoleCommands(new ArrayList<>());
     stageEntity.setSkippable(skipStage);
     stageEntity.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
 

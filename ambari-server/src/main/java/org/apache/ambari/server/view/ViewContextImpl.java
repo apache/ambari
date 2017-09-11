@@ -339,7 +339,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public Collection<ViewDefinition> getViewDefinitions() {
-    return Collections.<ViewDefinition>unmodifiableCollection(viewRegistry.getDefinitions());
+    return Collections.unmodifiableCollection(viewRegistry.getDefinitions());
   }
 
   @Override
@@ -348,7 +348,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
     for (ViewEntity viewEntity : viewRegistry.getDefinitions()) {
       instanceDefinitions.addAll(viewRegistry.getInstanceDefinitions(viewEntity));
     }
-    return Collections.<ViewInstanceDefinition>unmodifiableCollection(instanceDefinitions);
+    return Collections.unmodifiableCollection(instanceDefinitions);
   }
 
   @Override

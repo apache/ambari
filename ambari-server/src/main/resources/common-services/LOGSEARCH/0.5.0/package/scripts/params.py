@@ -400,4 +400,4 @@ logsearch_server_host = ""
 logsearch_ui_port =  logsearch_https_port if logsearch_protocol == 'https' else logsearch_http_port
 if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
   logsearch_server_host = logsearch_server_hosts[0]
-smoke_logsearch_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {logsearch_protocol}://{logsearch_server_host}:{logsearch_ui_port}/login.html | grep 200')
+smoke_logsearch_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {logsearch_protocol}://{logsearch_server_host}:{logsearch_ui_port}/ | grep 200')

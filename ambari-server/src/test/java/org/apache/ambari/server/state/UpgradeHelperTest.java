@@ -77,6 +77,7 @@ import org.apache.ambari.server.state.stack.upgrade.HostOrderItem;
 import org.apache.ambari.server.state.stack.upgrade.HostOrderItem.HostOrderActionType;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.SecurityCondition;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -140,7 +141,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_configHelper.getPlaceholderValueFromDesiredConfigurations(
         EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn("placeholder-rendered-properly").anyTimes();
     expect(m_configHelper.getEffectiveDesiredTags(
-        EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
+        EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<>()).anyTimes();
   }
 
   @Before
@@ -1109,11 +1110,11 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(5, groups.size());
+    assertEquals(6, groups.size());
 
     // grab the manual task out of ZK which has placeholder text
 
-    UpgradeGroupHolder zookeeperGroup = groups.get(3);
+    UpgradeGroupHolder zookeeperGroup = groups.get(4);
     assertEquals("ZOOKEEPER", zookeeperGroup.name);
     ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
         0).getTasks().get(0);
@@ -1215,7 +1216,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
    * @throws AmbariException
    */
   private Cluster makeCluster(boolean clean) throws AmbariException, AuthorizationException {
-    return makeCluster(clean, new HashSet<String>());
+    return makeCluster(clean, new HashSet<>());
   }
 
   /**
@@ -1835,7 +1836,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
         ProcessingComponent pc = new ProcessingComponent();
         pc.name = "NIMBUS_MESSAGE";
-        pc.preTasks = Lists.<Task>newArrayList(mt);
+        pc.preTasks = Lists.newArrayList(mt);
 
         return Collections.singletonMap("STORM", Collections.singletonMap("NIMBUS", pc));
       }
@@ -2328,7 +2329,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     Service zookeeper = createNiceMock(Service.class);
     expect(zookeeper.getName()).andReturn("ZOOKEEPER").atLeastOnce();
     expect(zookeeper.getServiceComponents()).andReturn(
-        new HashMap<String, ServiceComponent>()).once();
+      new HashMap<>()).once();
     zookeeper.setDesiredRepositoryVersion(repoVersion220);
     expectLastCall().once();
 
@@ -2435,17 +2436,17 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     Config clusterEnv = cf.createNew(cluster, "cluster-env", "version1",
         ImmutableMap.<String, String>builder().put("a", "b").build(),
-        Collections.<String, Map<String, String>>emptyMap());
+        Collections.emptyMap());
 
     Config zooCfg = cf.createNew(cluster, "zoo.cfg", "version1",
         ImmutableMap.<String, String>builder().put("c", "d").build(),
-        Collections.<String, Map<String, String>>emptyMap());
+        Collections.emptyMap());
 
     cluster.addDesiredConfig("admin", Sets.newHashSet(clusterEnv, zooCfg));
 
     Map<String, Map<String, String>> stackMap = new HashMap<>();
-    stackMap.put("cluster-env", new HashMap<String, String>());
-    stackMap.put("hive-site", new HashMap<String, String>());
+    stackMap.put("cluster-env", new HashMap<>());
+    stackMap.put("hive-site", new HashMap<>());
 
     final Map<String, String> clusterEnvMap = new HashMap<>();
 
@@ -2498,7 +2499,70 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     assertNotNull(clusterEnvMap);
     assertTrue(clusterEnvMap.containsKey("a"));
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
+
+  @Test
+  public void testSequentialServiceChecks() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test_checks"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_checks");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+    cluster.deleteService("HDFS");
+    cluster.deleteService("YARN");
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE,
+        UpgradeType.ROLLING, repositoryVersion2110);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(5, groups.size());
+
+    UpgradeGroupHolder serviceCheckGroup = groups.get(2);
+    assertEquals(ServiceCheckGrouping.class, serviceCheckGroup.groupClass);
+    assertEquals(3, serviceCheckGroup.items.size());
+
+    StageWrapper wrapper = serviceCheckGroup.items.get(0);
+    assertEquals(ServiceCheckGrouping.ServiceCheckStageWrapper.class, wrapper.getClass());
+    assertTrue(wrapper.getText().contains("ZooKeeper"));
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
+  }
+
+  @Test
+  public void testPrematureServiceChecks() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test_checks"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_checks");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+    cluster.deleteService("HDFS");
+    cluster.deleteService("YARN");
+    cluster.deleteService("ZOOKEEPER");
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE,
+        UpgradeType.ROLLING, repositoryVersion2110);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(3, groups.size());
+
+    for (UpgradeGroupHolder holder : groups) {
+      assertFalse(ServiceCheckGrouping.class.equals(holder.groupClass));
+    }
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
+  }
+
 
   /**
    * @param cluster

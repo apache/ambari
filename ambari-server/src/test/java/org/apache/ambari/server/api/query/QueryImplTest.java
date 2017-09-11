@@ -95,7 +95,7 @@ public class QueryImplTest {
 
     // expectations
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
-    expect(resourceDefinition.getSubResourceDefinitions()).andReturn(Collections.<SubResourceDefinition>emptySet()).anyTimes();
+    expect(resourceDefinition.getSubResourceDefinitions()).andReturn(Collections.emptySet()).anyTimes();
 
     replay(resourceDefinition);
 
@@ -116,7 +116,7 @@ public class QueryImplTest {
 
     // expectations
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
-    expect(resourceDefinition.getSubResourceDefinitions()).andReturn(Collections.<SubResourceDefinition>emptySet()).anyTimes();
+    expect(resourceDefinition.getSubResourceDefinitions()).andReturn(Collections.emptySet()).anyTimes();
 
     replay(resourceDefinition);
 
@@ -287,12 +287,12 @@ public class QueryImplTest {
         andReturn(queryResponse);
 
     // Always return an empty set of resources.
-    expect(queryResponse.getResources()).andReturn(Collections.<Resource>emptySet()).anyTimes();
+    expect(queryResponse.getResources()).andReturn(Collections.emptySet()).anyTimes();
 
     expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("Clusters/cluster_name").anyTimes();
 
     TreeNode<Set<String>> treeNode = new TreeNodeImpl<>(null, Collections.<String>emptySet(), null);
-    expect(renderer.finalizeProperties(EasyMock.<TreeNode<QueryInfo>>anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
+    expect(renderer.finalizeProperties(EasyMock.anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
 
     replay(clusterController, queryResponse, schema, renderer);
 
@@ -360,7 +360,7 @@ public class QueryImplTest {
     expect(clusterResource.getPropertyValue("Clusters/cluster_name")).andReturn("c1").anyTimes();
 
     TreeNode<Set<String>> treeNode = new TreeNodeImpl<>(null, Collections.<String>emptySet(), null);
-    expect(renderer.finalizeProperties(EasyMock.<TreeNode<QueryInfo>>anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
+    expect(renderer.finalizeProperties(EasyMock.anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
 
     expect(clusterController.getIterable(eq(Resource.Type.Cluster), anyObject(QueryResponse.class),
       anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class),
@@ -408,12 +408,12 @@ public class QueryImplTest {
     expect(iterator.hasNext()).andReturn(false).anyTimes();
 
     // Always return an empty set of resources.
-    expect(queryResponse.getResources()).andReturn(Collections.<Resource>emptySet()).anyTimes();
+    expect(queryResponse.getResources()).andReturn(Collections.emptySet()).anyTimes();
 
     expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("Clusters/cluster_name").anyTimes();
 
     TreeNode<Set<String>> treeNode = new TreeNodeImpl<>(null, Collections.<String>emptySet(), null);
-    expect(renderer.finalizeProperties(EasyMock.<TreeNode<QueryInfo>>anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
+    expect(renderer.finalizeProperties(EasyMock.anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
 
     Capture<Result> resultCapture = EasyMock.newCapture();
 
@@ -422,7 +422,7 @@ public class QueryImplTest {
     replay(clusterController, queryResponse, schema, renderer, iterable, iterator);
 
     //test
-    QueryImpl query = new TestQuery(new HashMap<Resource.Type, String>(), resourceDefinition, clusterController);
+    QueryImpl query = new TestQuery(new HashMap<>(), resourceDefinition, clusterController);
     query.setRenderer(renderer);
 
     query.execute();
@@ -959,7 +959,7 @@ public class QueryImplTest {
     expect(mockSubResourceDefinition.isCollection()).andReturn(false).atLeastOnce();
 
     expect(mockSchema.getKeyPropertyId(isA(Resource.Type.class))).andReturn("test-value").anyTimes();
-    expect(mockSchema.getKeyTypes()).andReturn(Collections.<Resource.Type>emptySet()).anyTimes();
+    expect(mockSchema.getKeyTypes()).andReturn(Collections.emptySet()).anyTimes();
 
     mockRenderer.init(isA(SchemaFactory.class));
     // the mock renderer should return false for requiresPropertyProviderInput, to
@@ -1038,7 +1038,7 @@ public class QueryImplTest {
     expect(mockSubResourceDefinition.isCollection()).andReturn(false).atLeastOnce();
 
     expect(mockSchema.getKeyPropertyId(isA(Resource.Type.class))).andReturn("test-value").anyTimes();
-    expect(mockSchema.getKeyTypes()).andReturn(Collections.<Resource.Type>emptySet()).anyTimes();
+    expect(mockSchema.getKeyTypes()).andReturn(Collections.emptySet()).anyTimes();
 
     mockRenderer.init(isA(SchemaFactory.class));
     // simulate the case of a renderer that requires the property providers to execute
@@ -1055,9 +1055,9 @@ public class QueryImplTest {
     expect(mockClusterController.getIterable(eq(Resource.Type.Host), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
     expect(mockClusterController.getIterable(eq(Resource.Type.Configuration), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
     // expect call to activate property providers for Host resource
-    expect(mockClusterController.populateResources(eq(Resource.Type.Host), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.<Resource>emptySet()).times(1);
+    expect(mockClusterController.populateResources(eq(Resource.Type.Host), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.emptySet()).times(1);
     // expect call to activate property providers for Configuration sub-resource
-    expect(mockClusterController.populateResources(eq(Resource.Type.Configuration), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.<Resource>emptySet()).times(1);
+    expect(mockClusterController.populateResources(eq(Resource.Type.Configuration), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.emptySet()).times(1);
 
     expect(mockQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
     expect(mockSubQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();

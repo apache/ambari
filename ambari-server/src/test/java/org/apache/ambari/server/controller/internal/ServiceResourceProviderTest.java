@@ -50,8 +50,6 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
-import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -214,8 +212,8 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
-        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.anyObject())).
+        andReturn(Collections.emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -332,8 +330,8 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
-        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.anyObject())).
+        andReturn(Collections.emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -400,8 +398,8 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
-        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.anyObject())).
+        andReturn(Collections.emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -467,8 +465,8 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
-        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.anyObject())).
+        andReturn(Collections.emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -536,8 +534,8 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
-        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.anyObject())).
+        andReturn(Collections.emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -629,7 +627,7 @@ public class ServiceResourceProviderTest {
     expect(cluster.getService("Service102")).andReturn(service0);
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
-    expect(service0.getServiceComponents()).andReturn(Collections.<String, ServiceComponent>emptyMap()).anyTimes();
+    expect(service0.getServiceComponents()).andReturn(Collections.emptyMap()).anyTimes();
 
     expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
     expect(stackId.getStackName()).andReturn("HDP").anyTimes();
@@ -660,7 +658,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getRoleCommandOrder(cluster)).andReturn(rco).
     anyTimes();
     expect(rco.getTransitiveServices(eq(service0), eq(RoleCommand.START))).
-    andReturn(Collections.<Service>emptySet()).anyTimes();
+    andReturn(Collections.emptySet()).anyTimes();
 
     // replay
     replay(managementController, clusters, cluster, rco, maintenanceStateHelper,
@@ -731,10 +729,10 @@ public class ServiceResourceProviderTest {
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
-    expect(managementController1.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
-        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
-    expect(managementController2.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
-        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    expect(managementController1.getHostComponents(EasyMock.anyObject())).
+        andReturn(Collections.emptySet()).anyTimes();
+    expect(managementController2.getHostComponents(EasyMock.anyObject())).
+        andReturn(Collections.emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -758,7 +756,7 @@ public class ServiceResourceProviderTest {
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
-    expect(service0.getServiceComponents()).andReturn(Collections.<String, ServiceComponent>emptyMap()).anyTimes();
+    expect(service0.getServiceComponents()).andReturn(Collections.emptyMap()).anyTimes();
 
     expect(serviceResponse0.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(serviceResponse0.getServiceName()).andReturn("Service102").anyTimes();
@@ -795,7 +793,7 @@ public class ServiceResourceProviderTest {
     expect(managementController2.getRoleCommandOrder(cluster)).andReturn(rco).
     anyTimes();
     expect(rco.getTransitiveServices(eq(service0), eq(RoleCommand.START))).
-    andReturn(Collections.<Service>emptySet()).anyTimes();
+    andReturn(Collections.emptySet()).anyTimes();
 
     // replay
     replay(managementController1, response1, managementController2, requestStages1, requestStages2,
@@ -870,7 +868,7 @@ public class ServiceResourceProviderTest {
     expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
-    expect(service.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(service.getServiceComponents()).andReturn(new HashMap<>());
     expect(service.getCluster()).andReturn(cluster);
     cluster.deleteService(serviceName);
 
@@ -918,7 +916,7 @@ public class ServiceResourceProviderTest {
     expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
-    expect(service.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(service.getServiceComponents()).andReturn(new HashMap<>());
     expect(service.getCluster()).andReturn(cluster);
     cluster.deleteService(serviceName);
 

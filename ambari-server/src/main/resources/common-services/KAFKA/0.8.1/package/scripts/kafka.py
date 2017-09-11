@@ -45,35 +45,6 @@ def kafka(upgrade_type=None):
     effective_version = params.stack_version_formatted if upgrade_type is None else format_stack_version(params.version)
     Logger.info(format("Effective stack version: {effective_version}"))
 
-    # In HDP-2.2 (Apache Kafka 0.8.1.1) we used to generate broker.ids based on hosts and add them to
-    # kafka's server.properties. In future version brokers can generate their own ids based on zookeeper seq
-    # We need to preserve the broker.id when user is upgrading from HDP-2.2 to any higher version.
-    # Once its preserved it will be written to kafka.log.dirs/meta.properties and it will be used from there on
-    # similarly we need preserve port as well during the upgrade
-
-    if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and \
-      check_stack_feature(StackFeature.CREATE_KAFKA_BROKER_ID, params.current_version) and \
-      check_stack_feature(StackFeature.KAFKA_LISTENERS, params.version):
-      if len(params.kafka_hosts) > 0 and params.hostname in params.kafka_hosts:
-        brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
-        kafka_server_config['broker.id'] = brokerid
-        Logger.info(format("Calculating broker.id as {brokerid}"))
-      if 'port' in kafka_server_config:
-        port = kafka_server_config['port']
-        Logger.info(format("Port config from previous verson: {port}"))
-        listeners = kafka_server_config['listeners']
-        kafka_server_config['listeners'] = listeners.replace("6667", port)
-        Logger.info(format("Kafka listeners after the port update: {listeners}"))
-        del kafka_server_config['port']
-
-
-    if effective_version is not None and effective_version != "" and \
-      check_stack_feature(StackFeature.CREATE_KAFKA_BROKER_ID, effective_version):
-      if len(params.kafka_hosts) > 0 and params.hostname in params.kafka_hosts:
-        brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
-        kafka_server_config['broker.id'] = brokerid
-        Logger.info(format("Calculating broker.id as {brokerid}"))
-
     # listeners and advertised.listeners are only added in 2.3.0.0 onwards.
     if effective_version is not None and effective_version != "" and \
        check_stack_feature(StackFeature.KAFKA_LISTENERS, effective_version):

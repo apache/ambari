@@ -56,7 +56,7 @@ public class YarnTimelineServerStatePreservingCheckTest {
    *
    */
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     m_check.clustersProvider = new Provider<Clusters>() {
 
       @Override

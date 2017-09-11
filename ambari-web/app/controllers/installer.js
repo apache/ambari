@@ -83,7 +83,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'recommendations',
     'recommendationsHostGroups',
     'recommendationsConfigs',
-    'componentsFromConfigs'
+    'componentsFromConfigs',
+    'operatingSystems',
+    'repositories'
   ],
 
   init: function () {
@@ -124,14 +126,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       delete dbHosts[host];
     });
     this.setDBProperty('hosts', dbHosts);
-  },
-
-  /**
-   * Load confirmed hosts.
-   * Will be used at <code>Assign Masters(step5)</code> step
-   */
-  loadConfirmedHosts: function () {
-    this.set('content.hosts', this.getDBProperty('hosts') || {});
   },
 
   /**
@@ -295,7 +289,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     var isStacksExistInDb = stacks && stacks.length;
     if (isStacksExistInDb) {
       stacks.forEach(function (_stack) {
-        var stack = data.items.findProperty('VersionDefinition.repository_version', _stack.repository_version);
+        var stack = data.items.findProperty('VersionDefinition.id', _stack.id);
         if (stack) {
           stack.VersionDefinition.is_selected = _stack.is_selected;
         }
@@ -708,9 +702,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     response.operating_systems.forEach(function(supportedOS) {
       if(!existedMap[supportedOS.OperatingSystems.os_type]) {
         supportedOS.isSelected = false;
-        supportedOS.repositories.forEach(function(repo) {
-          repo.Repositories.base_url = '';
-        });
         existedOS.push(supportedOS);
       } else if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
         existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {

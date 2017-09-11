@@ -70,8 +70,8 @@ public class ScaleClusterRequestTest {
   private static final ResourceProvider hostResourceProvider = createMock(ResourceProvider.class);
   private static final HostGroup hostGroup1 = createNiceMock(HostGroup.class);
   private static final Configuration blueprintConfig = new Configuration(
-      Collections.<String, Map<String, String>>emptyMap(),
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+      Collections.emptyMap(),
+      Collections.emptyMap());
 
   @Before
   public void setUp() throws Exception {
@@ -89,7 +89,7 @@ public class ScaleClusterRequestTest {
     expect(blueprint.getHostGroup(GROUP3_NAME)).andReturn(hostGroup1).anyTimes();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(hostResourceProvider.checkPropertyIds(Collections.singleton("test/prop"))).
-        andReturn(Collections.<String>emptySet()).once();
+        andReturn(Collections.emptySet()).once();
 
     replay(blueprintFactory, blueprint, hostResourceProvider, hostGroup1);
   }

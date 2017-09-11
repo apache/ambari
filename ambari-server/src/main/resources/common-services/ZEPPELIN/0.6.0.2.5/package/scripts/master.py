@@ -20,25 +20,25 @@ limitations under the License.
 
 import glob
 import os
-from resource_management.core.base import Fail
+
+from resource_management.core import shell, sudo
+from resource_management.core.logger import Logger
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate
-from resource_management.core import sudo
-from resource_management.core.logger import Logger
-from resource_management.core.source import StaticFile
 from resource_management.libraries import XmlConfig
-from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.decorator import retry
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 
-class Master(Script):
 
+class Master(Script):
   def install(self, env):
     import params
     env.set_params(params)
@@ -185,6 +185,45 @@ class Master(Script):
                 group=params.zeppelin_group,
                 mode=0644)
 
+  def check_and_copy_notebook_in_hdfs(self, params):
+    if params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir'].startswith("/"):
+      notebook_directory = params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+    else:
+      notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + \
+                           params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
+
+    kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+    kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
+
+    notebook_directory_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -e {notebook_directory};echo $?"),
+                                           user=params.zeppelin_user)[1]
+
+    #if there is no kerberos setup then the string will contain "-bash: kinit: command not found"
+    if "\n" in notebook_directory_exists:
+      notebook_directory_exists = notebook_directory_exists.split("\n")[1]
+
+    # '1' means it does not exists
+    if notebook_directory_exists == '1':
+      # hdfs dfs -mkdir {notebook_directory}
+      params.HdfsResource(format("{notebook_directory}"),
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.zeppelin_user,
+                          recursive_chown=True,
+                          recursive_chmod=True
+                          )
+
+      # hdfs dfs -put /usr/hdp/current/zeppelin-server/notebook/ {notebook_directory}
+      params.HdfsResource(format("{notebook_directory}"),
+                            type="directory",
+                            action="create_on_execute",
+                            source=params.notebook_dir,
+                            owner=params.zeppelin_user,
+                            recursive_chown=True,
+                            recursive_chmod=True
+                            )
+
+
   def stop(self, env, upgrade_type=None):
     import params
     self.create_zeppelin_log_dir(env)
@@ -202,6 +241,10 @@ class Master(Script):
     Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"),
              os.path.join(params.zeppelin_dir, "notebook")), sudo=True)
 
+    if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
+        and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.HdfsNotebookRepo':
+      self.check_and_copy_notebook_in_hdfs(params)
+
     if params.security_enabled:
         zeppelin_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
         Execute(zeppelin_kinit_cmd, user=params.zeppelin_user)
@@ -216,7 +259,9 @@ class Master(Script):
       self.create_interpreter_json()
       self.update_zeppelin_interpreter()
 
-    self.update_kerberos_properties()
+    if params.zeppelin_interpreter_config_upgrade == True:
+      self.reset_interpreter_settings()
+      self.update_zeppelin_interpreter()
 
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
@@ -234,6 +279,20 @@ class Master(Script):
     except IndexError:
         pid_file = ''
     check_process_status(pid_file)
+
+  def reset_interpreter_settings(self):
+    import json
+    import interpreter_json_template
+    interpreter_json_template = json.loads(interpreter_json_template.template)['interpreterSettings']
+    config_data = self.get_interpreter_settings()
+    interpreter_settings = config_data['interpreterSettings']
+
+    for setting_key in interpreter_json_template.keys():
+      if setting_key not in interpreter_settings:
+        interpreter_settings[setting_key] = interpreter_json_template[
+          setting_key]
+
+    self.set_interpreter_settings(config_data)
 
   def get_interpreter_settings(self):
     import params
@@ -433,6 +492,7 @@ class Master(Script):
           del interpreter_settings[setting_key]
 
     self.set_interpreter_settings(config_data)
+    self.update_kerberos_properties()
 
   def create_interpreter_json(self):
     import interpreter_json_template

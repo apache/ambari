@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,7 +47,7 @@ import com.google.gson.reflect.TypeToken;
  */
 public class LatestRepoCallable implements Callable<Void> {
   private static final int LOOKUP_CONNECTION_TIMEOUT = 2000;
-  private static final int LOOKUP_READ_TIMEOUT = 1000;
+  private static final int LOOKUP_READ_TIMEOUT = 3000;
 
   private final static Logger LOG = LoggerFactory.getLogger(LatestRepoCallable.class);
 
@@ -70,6 +71,7 @@ public class LatestRepoCallable implements Callable<Void> {
 
     Map<String, Map<String, Object>> latestUrlMap = null;
 
+    Long time = System.currentTimeMillis();
     try {
       if (sourceUri.startsWith("http")) {
 
@@ -79,6 +81,7 @@ public class LatestRepoCallable implements Callable<Void> {
 
         LOG.info("Loading latest URL info for stack {}-{} from {}", stack.getName(),
                 stack.getVersion(), sourceUri);
+
         latestUrlMap = gson.fromJson(new InputStreamReader(
             streamProvider.readFrom(sourceUri)), type);
       } else {
@@ -90,7 +93,7 @@ public class LatestRepoCallable implements Callable<Void> {
         }
 
         if (jsonFile.exists()) {
-          LOG.info("Loading latest URL info for stack{}-{} from {}", stack.getName(),
+          LOG.info("Loading latest URL info for stack {}-{} from {}", stack.getName(),
                   stack.getVersion(), jsonFile);
           latestUrlMap = gson.fromJson(new FileReader(jsonFile), type);
         }
@@ -99,6 +102,8 @@ public class LatestRepoCallable implements Callable<Void> {
       LOG.info("Could not load the URI for stack {}-{} from {}, ({}).  Using default repository values",
           stack.getName(), stack.getVersion(), sourceUri, e.getMessage());
       throw e;
+    } finally {
+      LOG.info("Loaded uri {} in {}ms", sourceUri, System.currentTimeMillis() - time);
     }
 
     StackId stackId = new StackId(stack);
@@ -107,30 +112,48 @@ public class LatestRepoCallable implements Callable<Void> {
     }
 
     Map<String, Object> map = latestUrlMap.get(stackId.toString());
-    if (null == map || !map.containsKey("manifests")) {
+    if (null == map) {
       return null;
     }
 
-    @SuppressWarnings("unchecked")
-    Map<String, Object> versionMap = (Map<String, Object>) map.get("manifests");
+    // !!! use this to prevent double loading of VDF.
+    Map<URI, VersionDefinitionXml> parsedMap = new HashMap<>();
 
-    // EACH VDF is for ONLY ONE repository.  We must provide a merged view.
-    // there is no good way around this, so we have to make some concessions
-
-    // !!! each key is a version number, and the value is a map containing
-    // os_family -> VDF link
-
-    for (Entry<String, Object> entry : versionMap.entrySet()) {
-      String version = entry.getKey();
+    if (map.containsKey("manifests")) {
 
       @SuppressWarnings("unchecked")
-      Map<String, String> osMap = (Map<String, String>) entry.getValue();
+      Map<String, Object> versionMap = (Map<String, Object>) map.get("manifests");
 
-      VersionDefinitionXml xml = mergeDefinitions(stackId, version, osMap);
+      // EACH VDF is for ONLY ONE repository.  We must provide a merged view.
+      // there is no good way around this, so we have to make some concessions
 
-      if (null != xml) {
-        stack.addVersionDefinition(version, xml);
+      // !!! each key is a version number, and the value is a map containing
+      // os_family -> VDF link
+
+      for (Entry<String, Object> entry : versionMap.entrySet()) {
+        String version = entry.getKey();
+
+        @SuppressWarnings("unchecked")
+        Map<String, String> osMap = (Map<String, String>) entry.getValue();
+
+        VersionDefinitionXml xml = mergeDefinitions(stackId, version, osMap, parsedMap);
+
+        if (null != xml) {
+          stack.addVersionDefinition(version, xml);
+        }
       }
+    }
+
+    if (map.containsKey("latest-vdf")) {
+      // !!! this is an os_family -> VDF link.  It's identical to the version entry in the 'manifests'
+      // structure.  This is the source of truth for the default, unspecified version when
+      // doing a bluerpint install
+      @SuppressWarnings("unchecked")
+      Map<String, String> osMap = (Map<String, String>) map.get("latest-vdf");
+
+      VersionDefinitionXml xml = mergeDefinitions(stackId, null, osMap, parsedMap);
+      xml.setStackDefault(true);
+      stack.setLatestVersionDefinition(xml);
     }
 
     return null;
@@ -144,7 +167,8 @@ public class LatestRepoCallable implements Callable<Void> {
    * @return the merged version definition
    * @throws Exception
    */
-  private VersionDefinitionXml mergeDefinitions(StackId stackId, String version, Map<String, String> osMap) throws Exception {
+  private VersionDefinitionXml mergeDefinitions(StackId stackId, String version,
+      Map<String, String> osMap, Map<URI, VersionDefinitionXml> parsedMap) throws Exception {
 
     Set<String> oses = new HashSet<>();
     for (RepositoryInfo ri : stack.getRepositories()) {
@@ -183,9 +207,16 @@ public class LatestRepoCallable implements Callable<Void> {
       try {
         URI uri = new URI(uriString);
 
-        VersionDefinitionXml xml = VersionDefinitionXml.load(uri.toURL());
+        VersionDefinitionXml xml = parsedMap.containsKey(uri) ? parsedMap.get(uri) :
+           timedVDFLoad(uri);
 
+        version = (null == version) ? xml.release.version : version;
         merger.add(version, xml);
+
+        if (!parsedMap.containsKey(uri)) {
+          parsedMap.put(uri, xml);
+        }
+
       } catch (Exception e) {
         LOG.warn("Could not load version definition for {} identified by {}. {}",
             stackId, uriString, e.getMessage(), e);
@@ -194,8 +225,6 @@ public class LatestRepoCallable implements Callable<Void> {
 
     return merger.merge();
   }
-
-
 
   /**
    * Resolves a base url given that certain OS types can be used interchangeably.
@@ -218,6 +247,17 @@ public class LatestRepoCallable implements Callable<Void> {
     }
 
     return null;
+  }
+
+  private VersionDefinitionXml timedVDFLoad(URI uri) throws Exception {
+    long time = System.currentTimeMillis();
+
+    try {
+      return VersionDefinitionXml.load(uri.toURL());
+    } finally {
+      LOG.info("Loaded VDF {} in {}ms", uri, System.currentTimeMillis() - time);
+    }
+
   }
 
 }

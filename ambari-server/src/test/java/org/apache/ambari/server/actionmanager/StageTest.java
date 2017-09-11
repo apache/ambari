@@ -74,7 +74,7 @@ public class StageTest {
         RoleCommand.EXECUTE,
         "cluster1",
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        Collections.<String, String> emptyMap(), null, null, 1200, false, false);
+        Collections.emptyMap(), null, null, 1200, false, false);
 
     List<ExecutionCommandWrapper> executionCommands = stage.getExecutionCommands(null);
     assertEquals(1, executionCommands.size());

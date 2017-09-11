@@ -68,6 +68,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCreden
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -457,6 +458,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       LOG.warn("Received an empty requests set");
       return null;
     }
+
     Clusters clusters = getManagementController().getClusters();
     // do all validation checks
     validateCreateRequests(requests, clusters);
@@ -477,6 +479,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       Service s = cluster.addService(sg, request.getServiceName(), request.getServiceDisplayName(), repositoryVersion);
+      if (repositoryVersion.getType() != RepositoryType.STANDARD
+          && cluster.getProvisioningState() == State.INIT) {
+        throw new AmbariException(String.format(
+            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: $s",
+            request.getServiceName(), cluster.getClusterName(), RepositoryType.STANDARD,
+            repositoryVersion));
+      }
       /*
        * Get the credential_store_supported field only from the stack definition.
        * Not possible to update the value through a request.
@@ -664,7 +673,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       if (!serviceNames.containsKey(request.getClusterName())) {
-        serviceNames.put(request.getClusterName(), new HashSet<String>());
+        serviceNames.put(request.getClusterName(), new HashSet<>());
       }
 
       if (serviceNames.get(request.getClusterName())
@@ -767,7 +776,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
         }
         if (!changedServices.containsKey(newState)) {
-          changedServices.put(newState, new ArrayList<Service>());
+          changedServices.put(newState, new ArrayList<>());
         }
         changedServices.get(newState).add(s);
       }
@@ -850,7 +859,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + ", newDesiredState=" + newState);
         }
         if (!changedComps.containsKey(newState)) {
-          changedComps.put(newState, new ArrayList<ServiceComponent>());
+          changedComps.put(newState, new ArrayList<>());
         }
         changedComps.get(newState).add(sc);
       }
@@ -918,12 +927,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           }
         }
         if (!changedScHosts.containsKey(sc.getName())) {
-          changedScHosts.put(sc.getName(),
-              new EnumMap<State, List<ServiceComponentHost>>(State.class));
+          changedScHosts.put(sc.getName(), new EnumMap<>(State.class));
         }
         if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
-          changedScHosts.get(sc.getName()).put(newState,
-              new ArrayList<ServiceComponentHost>());
+          changedScHosts.get(sc.getName()).put(newState, new ArrayList<>());
         }
         if (LOG.isDebugEnabled()) {
           LOG.debug("Handling update to ServiceComponentHost, clusterName={}, serviceName={}, componentName={}, hostname={}, currentState={}, newDesiredState={}",

@@ -332,7 +332,7 @@ public class RoleGraph {
    * when Ambari supports mpacks, custom services and service level role command order.
    * */
   public void breakCycleGraph() throws AmbariException{
-    List<String> edges = new ArrayList<String>();
+    List<String> edges = new ArrayList<>();
     for (String role : graph.keySet()){
       RoleGraphNode fromNode = graph.get(role);
       String fnRole = fromNode.getRole().name();

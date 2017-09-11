@@ -18,6 +18,8 @@
 package org.apache.ambari.server.checks;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -26,6 +28,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -42,18 +45,21 @@ public class ServicesNamenodeTruncateCheck extends AbstractCheckDescriptor {
     super(CheckDescription.SERVICES_NAMENODE_TRUNCATE);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request, Arrays.asList("HDFS"), true)) {
-      return false;
-    }
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet("HDFS");
+  }
 
-    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
-    if (null != ha && ha == PrereqCheckStatus.FAIL) {
-      return false;
-    }
-
-    return true;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<CheckQualification> getQualifications() {
+    return Arrays.asList(
+        new PriorCheckQualification(CheckDescription.SERVICES_NAMENODE_HA));
   }
 
   @Override

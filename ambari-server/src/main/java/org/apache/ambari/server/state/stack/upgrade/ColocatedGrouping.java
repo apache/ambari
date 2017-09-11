@@ -208,7 +208,7 @@ public class ColocatedGrouping extends Grouping {
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVER_SIDE_ACTION,
             "Validate Partial " + upgradeContext.getDirection().getText(true),
-            new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+            new TaskWrapper(null, null, Collections.emptySet(), task));
 
         results.add(wrapper);
       }
@@ -277,7 +277,7 @@ public class ColocatedGrouping extends Grouping {
         List<TaskWrapper> tasks = new ArrayList<>();
         Set<String> displays = new HashSet<>();
         for (String service : serviceChecks) {
-          tasks.add(new TaskWrapper(service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+          tasks.add(new TaskWrapper(service, "", Collections.emptySet(), new ServiceCheckTask()));
           displays.add(service);
         }
 
@@ -309,7 +309,7 @@ public class ColocatedGrouping extends Grouping {
 
             for (String host : tw.getHosts()) {
               if (!compLocations.containsKey(host)) {
-                compLocations.put(host, new HashSet<String>());
+                compLocations.put(host, new HashSet<>());
               }
               compLocations.get(host).add(tw.getComponent());
             }

@@ -57,12 +57,16 @@ import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -75,13 +79,17 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
@@ -125,6 +133,7 @@ public class AmbariContext {
   private static ServiceResourceProvider serviceResourceProvider;
   private static ComponentResourceProvider componentResourceProvider;
   private static HostComponentResourceProvider hostComponentResourceProvider;
+  private static VersionDefinitionResourceProvider versionDefinitionResourceProvider;
 
   private final static Logger LOG = LoggerFactory.getLogger(AmbariContext.class);
 
@@ -191,15 +200,91 @@ public class AmbariContext {
     return getController().getActionManager().getTasks(ids);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersionString) {
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
+                                    String repoVersionString, Long repoVersionId) {
     Stack stack = topology.getBlueprint().getStack();
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
-    RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+    RepositoryVersionEntity repoVersion = null;
+    if (null == repoVersionString && null == repoVersionId) {
+      List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
 
-    if (null == repoVersion) {
-      throw new IllegalArgumentException(String.format("Could not identify repository version with stack %s and version %s for installing services",
-          stackId, repoVersionString));
+      if (stackRepoVersions.isEmpty()) {
+        // !!! no repos, try to get the version for the stack
+        VersionDefinitionResourceProvider vdfProvider = getVersionDefinitionResourceProvider();
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(VersionDefinitionResourceProvider.VERSION_DEF_AVAILABLE_DEFINITION, stackId.toString());
+
+        Request request = new RequestImpl(Collections.<String>emptySet(),
+            Collections.singleton(properties), Collections.<String, String>emptyMap(), null);
+
+        Long defaultRepoVersionId = null;
+
+        try {
+          RequestStatus requestStatus = vdfProvider.createResources(request);
+          if (!requestStatus.getAssociatedResources().isEmpty()) {
+            Resource resource = requestStatus.getAssociatedResources().iterator().next();
+            defaultRepoVersionId = (Long) resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
+          }
+        } catch (Exception e) {
+          throw new IllegalArgumentException(String.format(
+              "Failed to create a default repository version definition for stack %s. "
+              + "This typically is a result of not loading the stack correctly or being able "
+              + "to load information about released versions.  Create a repository version "
+              + " and try again.", stackId), e);
+        }
+
+        repoVersion = repositoryVersionDAO.findByPK(defaultRepoVersionId);
+        // !!! better not!
+        if (null == repoVersion) {
+          throw new IllegalArgumentException(String.format(
+              "Failed to load the default repository version definition for stack %s. "
+              + "Check for a valid repository version and try again.", stackId));
+        }
+
+      } else if (stackRepoVersions.size() > 1) {
+
+        Function<RepositoryVersionEntity, String> function = new Function<RepositoryVersionEntity, String>() {
+          @Override
+          public String apply(RepositoryVersionEntity input) {
+            return input.getVersion();
+          }
+        };
+
+        Collection<String> versions = Collections2.transform(stackRepoVersions, function);
+
+        throw new IllegalArgumentException(String.format("Several repositories were found for %s:  %s.  Specify the version"
+            + " with '%s'", stackId, StringUtils.join(versions, ", "), ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+      } else {
+        repoVersion = stackRepoVersions.get(0);
+        LOG.warn("Cluster is being provisioned using the single matching repository version {}", repoVersion.getVersion());
+      }
+    } else if (null != repoVersionId){
+      repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
+
+      if (null == repoVersion) {
+        throw new IllegalArgumentException(String.format(
+          "Could not identify repository version with repository version id %s for installing services. "
+            + "Specify a valid repository version id with '%s'",
+          repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY));
+      }
+    } else {
+      repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+
+      if (null == repoVersion) {
+        throw new IllegalArgumentException(String.format(
+          "Could not identify repository version with stack %s and version %s for installing services. "
+            + "Specify a valid version with '%s'",
+          stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+      }
+    }
+
+    // only use a STANDARD repo when creating a new cluster
+    if (repoVersion.getType() != RepositoryType.STANDARD) {
+      throw new IllegalArgumentException(String.format(
+          "Unable to create a cluster using the following repository since it is not a STANDARD type: %s",
+          repoVersion));
     }
 
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
@@ -685,8 +770,8 @@ public class AmbariContext {
         }
       });
 
-      ConfigGroupRequest request = new ConfigGroupRequest(
-          null, clusterName, absoluteGroupName, service, "Host Group Configuration",
+      ConfigGroupRequest request = new ConfigGroupRequest(null, clusterName,
+        absoluteGroupName, service, service, "Host Group Configuration",
         Sets.newHashSet(filteredGroupHosts), serviceConfigs);
 
       // get the config group provider and create config group resource
@@ -756,4 +841,14 @@ public class AmbariContext {
     }
     return componentResourceProvider;
   }
+
+  private synchronized VersionDefinitionResourceProvider getVersionDefinitionResourceProvider() {
+    if (versionDefinitionResourceProvider == null) {
+      versionDefinitionResourceProvider = (VersionDefinitionResourceProvider) ClusterControllerHelper.
+          getClusterController().ensureResourceProvider(Resource.Type.VersionDefinition);
+    }
+    return versionDefinitionResourceProvider;
+
+  }
+
 }

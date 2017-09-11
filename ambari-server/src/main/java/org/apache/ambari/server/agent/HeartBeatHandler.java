@@ -536,7 +536,7 @@ public class HeartBeatHandler {
     Map<String, Map<String, String>> componentsMap = new HashMap<>();
 
     for (org.apache.ambari.server.state.Service service : cluster.getServices().values()) {
-      componentsMap.put(service.getName(), new HashMap<String, String>());
+      componentsMap.put(service.getName(), new HashMap<>());
 
       for (ServiceComponent component : service.getServiceComponents().values()) {
         StackId stackId = component.getDesiredStackId();

@@ -159,7 +159,7 @@ public class RestMetricsPropertyProviderTest {
         Collections.singletonMap("tag", "version1"))).anyTimes();
     expect(amc.getConfigHelper()).andReturn(configHelperMock).anyTimes();
     expect(configHelperMock.getEffectiveConfigProperties(eq(c1),
-        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(Collections.singletonMap("storm-site",
+        EasyMock.anyObject())).andReturn(Collections.singletonMap("storm-site",
         Collections.singletonMap("ui.port", DEFAULT_STORM_UI_PORT))).anyTimes();
     replay(amc, configHelperMock);
   }
@@ -307,7 +307,7 @@ public class RestMetricsPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
     Assert.assertEquals(1, restMetricsPropertyProvider.populateResources(Collections.singleton(resource), request, null).size());
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "wrong.metric")));
 
@@ -345,7 +345,7 @@ public class RestMetricsPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, restMetricsPropertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -411,7 +411,7 @@ public class RestMetricsPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "INSTALLED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, restMetricsPropertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -450,7 +450,7 @@ public class RestMetricsPropertyProviderTest {
     }
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Set<Resource> resourceSet = restMetricsPropertyProvider.populateResources(resources, request, null);
 
@@ -493,7 +493,7 @@ public class RestMetricsPropertyProviderTest {
     resources.add(resource);
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Set<Resource> resourceSet = restMetricsPropertyProvider.populateResources(resources, request, null);
 

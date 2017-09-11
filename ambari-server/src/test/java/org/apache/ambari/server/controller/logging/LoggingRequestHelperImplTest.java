@@ -168,7 +168,7 @@ public class LoggingRequestHelperImplTest {
 
     // invoke query request
     LogQueryResponse result =
-      helper.sendQueryRequest(Collections.<String,String>emptyMap());
+      helper.sendQueryRequest(Collections.emptyMap());
 
     // verify that the HttpURLConnection was created with the proper values
     HttpURLConnection httpURLConnection =
@@ -508,7 +508,7 @@ public class LoggingRequestHelperImplTest {
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(clusterMock.getClusterName()).andReturn(expectedClusterName).atLeastOnce();
-    expect(adminPropertiesConfigMock.getProperties()).andReturn(Collections.<String, String>emptyMap()).atLeastOnce();
+    expect(adminPropertiesConfigMock.getProperties()).andReturn(Collections.emptyMap()).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_TWO_LIST_ENTRIES)).atLeastOnce();
     // the credential store service should be consulted in this case, in order
     // to attempt to obtain the LogSearch credential from the store
@@ -524,7 +524,7 @@ public class LoggingRequestHelperImplTest {
 
     // invoke query request
     LogQueryResponse result =
-      helper.sendQueryRequest(Collections.<String,String>emptyMap());
+      helper.sendQueryRequest(Collections.emptyMap());
 
     // verify that the HttpURLConnection was created with the proper values
     HttpURLConnection httpURLConnection =

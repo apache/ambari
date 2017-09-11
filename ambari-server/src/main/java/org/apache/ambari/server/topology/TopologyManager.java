@@ -269,6 +269,7 @@ public class TopologyManager {
     final String clusterName = request.getClusterName();
     final Stack stack = topology.getBlueprint().getStack();
     final String repoVersion = request.getRepositoryVersion();
+    final Long repoVersionID = request.getRepositoryVersionId();
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
@@ -276,7 +277,7 @@ public class TopologyManager {
     SecurityType securityType = null;
     Credential credential = null;
 
-    if (null == repoVersion) {
+    if (null == repoVersion && null == repoVersionID) {
       throw new AmbariException("Repository should be created and the version passed in the request.");
     }
 
@@ -299,7 +300,7 @@ public class TopologyManager {
 
 
     // create resources
-    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
+    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);
 
     if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
@@ -391,8 +392,8 @@ public class TopologyManager {
     properties.put(CredentialResourceProvider.CREDENTIAL_KEY_PROPERTY_ID, credential.getKey());
     properties.put(CredentialResourceProvider.CREDENTIAL_TYPE_PROPERTY_ID, credential.getType().name());
 
-    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
-        Collections.singleton(properties), Collections.<String, String>emptyMap(), null);
+    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
+        Collections.singleton(properties), Collections.emptyMap(), null);
 
     try {
       RequestStatus status = provider.createResources(request);
@@ -443,7 +444,7 @@ public class TopologyManager {
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
             "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
-    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
+    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
         Collections.singleton(properties), requestInfoProps, null);
 
     try {
@@ -745,7 +746,7 @@ public class TopologyManager {
   public Collection<HostRoleCommand> getTasks(long requestId) {
     ensureInitialized();
     LogicalRequest request = allRequests.get(requestId);
-    return request == null ? Collections.<HostRoleCommand>emptyList() : request.getCommands();
+    return request == null ? Collections.emptyList() : request.getCommands();
   }
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> requestIds) {
@@ -761,7 +762,7 @@ public class TopologyManager {
   public Map<Long, HostRoleCommandStatusSummaryDTO> getStageSummaries(Long requestId) {
     ensureInitialized();
     LogicalRequest request = allRequests.get(requestId);
-    return request == null ? Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap() :
+    return request == null ? Collections.emptyMap() :
         request.getStageSummaries();
   }
 

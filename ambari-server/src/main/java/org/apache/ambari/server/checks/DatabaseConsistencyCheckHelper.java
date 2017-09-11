@@ -182,7 +182,6 @@ public class DatabaseConsistencyCheckHelper {
       checkForHostsWithoutState();
       checkHostComponentStates();
       checkServiceConfigs();
-      checkTopologyTables();
       checkForLargeTables();
       LOG.info("******************************* Check database completed *******************************");
       return checkResult;
@@ -315,10 +314,10 @@ public class DatabaseConsistencyCheckHelper {
           } else if (tableRowCount != -1 && tableRowCount < TABLE_ROW_COUNT_LIMIT) {
             LOG.info(String.format("The database table %s currently has %d rows and is within normal limits (%d)", tableName, tableRowCount, TABLE_ROW_COUNT_LIMIT));
           } else {
-            throw new SQLException();
+            warning("Unable to get size for table {}!", tableName);
           }
         } catch (SQLException ex) {
-          LOG.error(String.format("Failed to get %s row count: ", tableName), e);
+          error(String.format("Failed to get %s row count: ", tableName), e);
         }
       } finally {
         if (rs != null) {
@@ -377,7 +376,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during check for config selected more than ones procedure: ", e);
+      error("Exception occurred during check for config selected more than once procedure: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -426,7 +425,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during check for host without state procedure: ", e);
+      error("Exception occurred during check for host without state procedure: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -446,67 +445,6 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
-
-  /**
-   * This method checks that for each row in topology_request there is at least one row in topology_logical_request,
-   * topology_host_request, topology_host_task, topology_logical_task.
-   * */
-  static void checkTopologyTables() {
-    LOG.info("Checking Topology tables");
-
-    String SELECT_REQUEST_COUNT_QUERY = "select count(tpr.id) from topology_request tpr";
-
-    String SELECT_JOINED_COUNT_QUERY = "select count(DISTINCT tpr.id) from topology_request tpr join " +
-      "topology_logical_request tlr on tpr.id = tlr.request_id";
-
-    String SELECT_HOST_REQUEST_COUNT_QUERY = "select count(thr.id) from topology_host_request thr";
-
-    String SELECT_HOST_JOINED_COUNT_QUERY = "select count(DISTINCT thr.id) from topology_host_request thr join " +
-            "topology_host_task tht on thr.id = tht.host_request_id join topology_logical_task " +
-            "tlt on tht.id = tlt.host_task_id";
-
-    Statement statement = null;
-
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
-
-    try {
-      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-      int topologyRequestCount = runQuery(statement, SELECT_REQUEST_COUNT_QUERY);
-      int topologyRequestTablesJoinedCount = runQuery(statement, SELECT_JOINED_COUNT_QUERY);
-
-      if (topologyRequestCount != topologyRequestTablesJoinedCount) {
-        error("Your topology request hierarchy is not complete for each row in topology_request should exist " +
-          "at least one row in topology_logical_request");
-      }
-
-      int topologyHostRequestCount = runQuery(statement, SELECT_HOST_REQUEST_COUNT_QUERY);
-      int topologyHostRequestTablesJoinedCount = runQuery(statement, SELECT_HOST_JOINED_COUNT_QUERY);
-
-      if (topologyHostRequestCount != topologyHostRequestTablesJoinedCount) {
-        error("Your topology request hierarchy is not complete for each row in topology_host_request should exist " +
-                "at least one row in topology_host_task, topology_logical_task.");
-      }
-
-    } catch (SQLException e) {
-      LOG.error("Exception occurred during topology request tables check: ", e);
-    } finally {
-      if (statement != null) {
-        try {
-          statement.close();
-        } catch (SQLException e) {
-          LOG.error("Exception occurred during statement closing procedure: ", e);
-        }
-      }
-    }
-
-  }
-
   private static int runQuery(Statement statement, String query) {
     ResultSet rs = null;
     int result = 0;
@@ -520,7 +458,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during topology request tables check: ", e);
+      error("Exception occurred during topology request tables check: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -601,7 +539,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      LOG.error("Exception occurred during check for same count of host component states and host component desired states: ", e);
+      error("Exception occurred during check for same count of host component states and host component desired states: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -632,7 +570,7 @@ public class DatabaseConsistencyCheckHelper {
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
     for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
-      if (!clusterConfigEntity.isServiceDeleted()){
+      if (!clusterConfigEntity.isUnmapped()){
         continue; // skip clusterConfigs that did not leave after service deletion
       }
       List<String> types = new ArrayList<>();
@@ -667,7 +605,7 @@ public class DatabaseConsistencyCheckHelper {
 
     Set<String> nonMappedConfigs = new HashSet<>();
     for (ClusterConfigEntity clusterConfigEntity : notMappedClasterConfigs) {
-      if (!clusterConfigEntity.isServiceDeleted()){
+      if (!clusterConfigEntity.isUnmapped()){ //this check does not report warning for configs from deleted services
         nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
       }
     }
@@ -681,6 +619,7 @@ public class DatabaseConsistencyCheckHelper {
   * of desired host component states. According to ambari logic these
   * two tables should have the same count of rows. If not then we are
   * adding missed host components.
+  * hard to predict root couse of inconsistency, so it can be dangerous
   */
   @Transactional
   static void fixHostComponentStatesCountEqualsHostComponentsDesiredStates() {
@@ -754,6 +693,7 @@ public class DatabaseConsistencyCheckHelper {
    * The purpose of these checks is to avoid that tables and constraints in ambari's schema get confused with tables
    * and constraints in other schemas on the DB user's search path. This can happen after an improperly made DB restore
    * operation and can cause issues during upgrade.
+   * we may have no permissions (e.g. external DB) to auto fix this problem
   **/
   static void checkSchemaName () {
     Configuration conf = injector.getInstance(Configuration.class);
@@ -774,7 +714,7 @@ public class DatabaseConsistencyCheckHelper {
         }
         // Check if the right schema is first on the search path
         List<Object> searchPathResultColumn = getResultSetColumn(searchPathRs, "search_path");
-        List<String> searchPath = searchPathResultColumn.isEmpty() ? ImmutableList.<String>of() :
+        List<String> searchPath = searchPathResultColumn.isEmpty() ? ImmutableList.of() :
             ImmutableList.copyOf(Splitter.on(",").trimResults().split(String.valueOf(searchPathResultColumn.get(0))));
         String firstSearchPathItem = searchPath.isEmpty() ? null : searchPath.get(0);
         if (!Objects.equals(firstSearchPathItem, conf.getDatabaseSchema())) {
@@ -809,6 +749,7 @@ public class DatabaseConsistencyCheckHelper {
 
   /**
   * This method checks tables engine type to be innodb for MySQL.
+  * it's too risky to autofix by migrating DB to innodb
   * */
   static void checkMySQLEngine () {
     Configuration conf = injector.getInstance(Configuration.class);
@@ -837,7 +778,7 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
     } catch (SQLException e) {
-      LOG.error("Exception occurred during checking MySQL engine to be innodb: ", e);
+      error("Exception occurred during checking MySQL engine to be innodb: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -1087,7 +1028,7 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
     } catch (SQLException | AmbariException e) {
-      LOG.error("Exception occurred during complex service check procedure: ", e);
+      error("Exception occurred during complex service check procedure: ", e);
     } finally {
       if (rs != null) {
         try {

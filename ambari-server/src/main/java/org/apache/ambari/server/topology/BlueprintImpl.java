@@ -622,7 +622,7 @@ public class BlueprintImpl implements Blueprint {
    * @return set of repositories
    * */
   private void processRepoSettings(){
-    repoSettings = new ArrayList<RepositorySetting>();
+    repoSettings = new ArrayList<>();
     if (setting != null){
       Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_REPOSITORY_SETTINGS);
       for (Map<String, String> setting : settingValue) {

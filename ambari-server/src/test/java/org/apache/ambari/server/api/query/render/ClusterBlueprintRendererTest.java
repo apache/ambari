@@ -112,8 +112,7 @@ public class ClusterBlueprintRendererTest {
   private static final HostGroup group1 = createNiceMock(HostGroup.class);
   private static final HostGroup group2 = createNiceMock(HostGroup.class);
 
-  private static final Configuration emptyConfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
-      new HashMap<String, Map<String, Map<String, String>>>());
+  private static final Configuration emptyConfiguration = new Configuration(new HashMap<>(), new HashMap<>());
 
   private static final Map<String, Map<String, String>> clusterProps = new HashMap<>();
   private static final Map<String, Map<String, Map<String, String>>> clusterAttributes =
@@ -179,8 +178,8 @@ public class ClusterBlueprintRendererTest {
     expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(kerberosHelper.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).anyTimes();
-    Set<String> properties = new HashSet<String>();
+    expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
+    Set<String> properties = new HashSet<>();
     properties.add("core-site/hadoop.security.auth_to_local");
     expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();
     expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
@@ -226,7 +225,7 @@ public class ClusterBlueprintRendererTest {
       (Predicate) anyObject(Predicate.class))).andReturn(result).once();
 
     Map<String, Map<String, Object>> resourcePropertiesMap = new HashMap<>();
-    resourcePropertiesMap.put(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY, Collections.<String, Object>emptyMap());
+    resourcePropertiesMap.put(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY, Collections.emptyMap());
     Map<String, Object> propertiesMap = new HashMap<>();
     propertiesMap.put("testProperty", "testValue");
     resourcePropertiesMap.put(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties", propertiesMap);
@@ -246,15 +245,15 @@ public class ClusterBlueprintRendererTest {
 
   @Test
   public void testFinalizeProperties__instance() {
-    QueryInfo rootQuery = new QueryInfo(new ClusterResourceDefinition(), new HashSet<String>());
+    QueryInfo rootQuery = new QueryInfo(new ClusterResourceDefinition(), new HashSet<>());
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Cluster");
     rootQuery.getProperties().add("foo/bar");
     rootQuery.getProperties().add("prop1");
 
-    QueryInfo hostInfo = new QueryInfo(new HostResourceDefinition(), new HashSet<String>());
+    QueryInfo hostInfo = new QueryInfo(new HostResourceDefinition(), new HashSet<>());
     queryTree.addChild(hostInfo, "Host");
 
-    QueryInfo hostComponentInfo = new QueryInfo(new HostComponentResourceDefinition(), new HashSet<String>());
+    QueryInfo hostComponentInfo = new QueryInfo(new HostComponentResourceDefinition(), new HashSet<>());
     queryTree.getChild("Host").addChild(hostComponentInfo, "HostComponent");
 
     ClusterBlueprintRenderer renderer = new ClusterBlueprintRenderer();
@@ -413,7 +412,7 @@ public class ClusterBlueprintRendererTest {
 
   @Test
   public void testFinalizeProperties__instance_noComponentNode() {
-    QueryInfo rootQuery = new QueryInfo(new ClusterResourceDefinition(), new HashSet<String>());
+    QueryInfo rootQuery = new QueryInfo(new ClusterResourceDefinition(), new HashSet<>());
     TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Cluster");
     rootQuery.getProperties().add("foo/bar");
     rootQuery.getProperties().add("prop1");
@@ -674,7 +673,7 @@ public class ClusterBlueprintRendererTest {
 
         if (desiredConfig == null) {
           // override the properties map for simpler testing
-          originalMap.put("Clusters/desired_configs", Collections.<String, Object>emptyMap());
+          originalMap.put("Clusters/desired_configs", Collections.emptyMap());
         } else {
           // allow for unit tests to customize this, needed for attributes export testing
           originalMap.put("Clusters/desired_configs", desiredConfig);
@@ -723,8 +722,8 @@ public class ClusterBlueprintRendererTest {
           super.getPropertiesMap();
 
         // return test properties, to simulate valid configuration entry
-        originalMap.put("properties", Collections.<String, Object>singletonMap("propertyOne", "valueOne"));
-        originalMap.put("properties_attributes", Collections.<String, Object>singletonMap("final", Collections.singletonMap("propertyOne", "true")));
+        originalMap.put("properties", Collections.singletonMap("propertyOne", "valueOne"));
+        originalMap.put("properties_attributes", Collections.singletonMap("final", Collections.singletonMap("propertyOne", "true")));
 
         return originalMap;
       }

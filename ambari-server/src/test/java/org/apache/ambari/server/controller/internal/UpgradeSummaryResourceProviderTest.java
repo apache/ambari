@@ -215,7 +215,7 @@ public class UpgradeSummaryResourceProviderTest {
     hrc1.setRoleCommand(RoleCommand.RESTART);
     hrc1.setHostEntity(h1);
 
-    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    stageEntity.setHostRoleCommands(new ArrayList<>());
     stageEntity.getHostRoleCommands().add(hrc1);
     h1.getHostRoleCommandEntities().add(hrc1);
 
@@ -262,7 +262,7 @@ public class UpgradeSummaryResourceProviderTest {
     requestEntity.setRequestId(1L);
     requestEntity.setClusterId(cluster.getClusterId());
     requestEntity.setStatus(HostRoleStatus.PENDING);
-    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestEntity.setStages(new ArrayList<>());
     requestDAO.create(requestEntity);
 
     UpgradeEntity upgrade = new UpgradeEntity();
@@ -320,7 +320,7 @@ public class UpgradeSummaryResourceProviderTest {
     hrc2.setCommandDetail("Restart ZOOKEEPER_SERVER");
     hrc2.setHostEntity(h1);
 
-    nextStage.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    nextStage.setHostRoleCommands(new ArrayList<>());
     nextStage.getHostRoleCommands().add(hrc2);
     h1.getHostRoleCommandEntities().add(hrc2);
 

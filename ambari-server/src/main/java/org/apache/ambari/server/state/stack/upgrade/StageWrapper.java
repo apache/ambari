@@ -78,7 +78,7 @@ public class StageWrapper {
   public StageWrapper(Type type, String text, Map<String, String> params, List<TaskWrapper> tasks) {
     this.type = type;
     this.text = text;
-    this.params = (params == null ? Collections.<String, String>emptyMap() : params);
+    this.params = (params == null ? Collections.emptyMap() : params);
     this.tasks = tasks;
   }
 

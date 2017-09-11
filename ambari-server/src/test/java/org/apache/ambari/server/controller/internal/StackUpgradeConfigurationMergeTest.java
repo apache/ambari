@@ -59,7 +59,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
@@ -216,7 +215,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     Service zookeeper = createNiceMock(Service.class);
     expect(zookeeper.getName()).andReturn("ZOOKEEPER").atLeastOnce();
     expect(zookeeper.getServiceComponents()).andReturn(
-        new HashMap<String, ServiceComponent>()).once();
+      new HashMap<>()).once();
     zookeeper.setDesiredRepositoryVersion(repoVersion220);
     expectLastCall().once();
 

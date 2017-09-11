@@ -397,8 +397,8 @@ def main(argv):
   parser.add_option('--xsd', dest='xsd_file',
     help="The XSD location when finalizing")
 
-  parser.add_option('--release-type', type='choice', choices=['STANDARD', 'PATCH'], dest='release_type' ,
-    help="Indicate the release type: i.e. STANDARD or PATCH")
+  parser.add_option('--release-type', type='choice', choices=['STANDARD', 'PATCH', 'MAINT'], dest='release_type' ,
+    help="Indicate the release type: i.e. STANDARD, PATCH, MAINT")
   parser.add_option('--release-stack', dest='release_stack',
     help="The stack id: e.g. HDP-2.4")
   parser.add_option('--release-version', dest='release_version',

@@ -96,7 +96,7 @@ CREATE TABLE clusterconfig (
   config_data CLOB NOT NULL,
   config_attributes CLOB,
   create_timestamp NUMBER(19) NOT NULL,
-  service_deleted SMALLINT DEFAULT 0 NOT NULL,
+  unmapped SMALLINT DEFAULT 0 NOT NULL,
   selected_timestamp NUMBER(19) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
@@ -185,6 +185,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR2(128) NOT NULL,
   repositories CLOB NOT NULL,
   repo_type VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden NUMBER(1) DEFAULT 0 NOT NULL,
   version_url VARCHAR(1024),
   version_xml CLOB,
   version_xsd VARCHAR(512),
@@ -586,7 +587,7 @@ CREATE table viewurl(
   url_id NUMBER ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -848,6 +849,7 @@ CREATE TABLE upgrade (
   skip_failures NUMBER(1) DEFAULT 0 NOT NULL,
   skip_sc_failures NUMBER(1) DEFAULT 0 NOT NULL,
   downgrade_allowed NUMBER(1) DEFAULT 1 NOT NULL,
+  revert_allowed NUMBER(1) DEFAULT 0 NOT NULL,
   suspended NUMBER(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
