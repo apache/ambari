@@ -63,43 +63,6 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     }, this);
   }.property(),
 
-  /**
-   * map of properties which correspond to particular state of Upgrade version
-   * @type {object}
-   */
-  statePropertiesMap: {
-    'CURRENT': {
-      isLabel: true,
-      text: Em.I18n.t('common.current'),
-      class: 'label label-success'
-    },
-    'NOT_REQUIRED': {
-      isButton: true,
-      text: Em.I18n.t('common.install'),
-      action: 'installRepoVersionConfirmation'
-    },
-    'LOADING': {
-      isSpinner: true,
-      class: 'spinner'
-    },
-    'INSTALLING': {
-      iconClass: 'glyphicon glyphicon-cog',
-      isLink: true,
-      text: Em.I18n.t('hosts.host.stackVersions.status.installing'),
-      action: 'showProgressPopup'
-    },
-    'INSTALLED': {
-      iconClass: 'glyphicon glyphicon-ok',
-      isLink: true,
-      text: Em.I18n.t('common.installed'),
-      action: null
-    },
-    'SUSPENDED': {
-      isButton: true,
-      text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
-      action: 'resumeUpgrade'
-    }
-  },
 
   /**
    * @param {Em.Object} stackService

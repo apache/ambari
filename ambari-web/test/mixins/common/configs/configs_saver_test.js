@@ -914,7 +914,8 @@ describe('App.ConfigsSaverMixin', function() {
             host_name: 'host1'
           }],
           "service_config_version_note": "note",
-          "desired_configs": "{}"
+          "desired_configs": "{}",
+          "service_name": "S1",
         }
       });
     });
@@ -939,6 +940,7 @@ describe('App.ConfigsSaverMixin', function() {
             host_name: 'host1'
           }],
           "service_config_version_note": "",
+          "service_name": "S1",
           "desired_configs": "{}",
           id: 'g1'
         }

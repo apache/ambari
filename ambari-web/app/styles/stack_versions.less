@@ -304,8 +304,28 @@
       margin: 5px 0 15px 0;
       line-height: 20px;
       height: 35px;
-      .label-success {
-        line-height: 30px;
+      .label-wrapper{
+        display: inline-block;
+        position: relative;
+        .label-success {
+          line-height: 30px;
+        }
+        .dropdown-toggle{
+          background: none;
+          height: auto;
+          padding: 8px 8px;
+          background: none;
+          border:none;
+          outline:none;
+          box-shadow: none;
+          position: absolute;
+          right: 0;
+          top: 0;
+          color: #fff;
+          &:hover, &:active, &:focus{
+            color: #fff;
+          }
+        }
       }
       .btn.btn-primary:not(.dropdown-toggle) {
         padding: 4px 5px;

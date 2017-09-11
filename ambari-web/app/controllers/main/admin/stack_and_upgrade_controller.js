@@ -2064,7 +2064,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   revertPatchUpgrade: function (version) {
     this.set('requestInProgress', true);
-    var upgrade = App.StackUpgradeHistory.find().findProperty('associatedVersion', version.get('repositoryVersion'));
     return App.ajax.send({
       name: 'admin.upgrade.revert',
       sender: this,
@@ -2074,7 +2073,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         this.sender.set('requestInProgress', false);
       },
       data: {
-        upgradeId: upgrade && upgrade.get('upgradeId'),
+        upgradeId: version.get('stackVersion').get('revertUpgradeId'),
         id: version.get('id'),
         value: version.get('repositoryVersion'),
         label: version.get('displayName'),

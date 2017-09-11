@@ -145,9 +145,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
       action: 'resumeUpgrade'
     },
     'CURRENT_PATCH': {
-      isButton: true,
-      text: Em.I18n.t('common.revert'),
-      action: 'confirmRevertPatchUpgrade'
+      isLabel: true,
+      text: Em.I18n.t('common.current'),
+      class: 'label label-success'
     }
   },
 
@@ -169,6 +169,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
     if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
       element.setProperties(statePropertiesMap['CURRENT_PATCH']);
+      element.set('canBeReverted', this.get('content.stackVersion').get('supportsRevert'));
+      element.set('action', 'confirmRevertPatchUpgrade');
+      element.set('actionText', Em.I18n.t('common.revert'));
     }
     else if (['INSTALLING', 'CURRENT'].contains(status) && !this.get('content.isPatch')) {
       element.setProperties(statePropertiesMap[status]);

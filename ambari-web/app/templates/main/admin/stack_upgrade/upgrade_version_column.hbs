@@ -61,7 +61,21 @@
     </div>
   {{/if}}
   {{#if view.stateElement.isLabel}}
+    <div class="label-wrapper">
       <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
+      {{#if view.stateElement.canBeReverted}}
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a {{action runAction view.stateElement.action target="view"}}>
+              {{view.stateElement.actionText}}
+            </a>
+          </li>
+        </ul>
+      {{/if}}
+    </div>
   {{/if}}
   {{#if view.stateElement.isLink}}
     {{#if view.stateElement.iconClass}}
