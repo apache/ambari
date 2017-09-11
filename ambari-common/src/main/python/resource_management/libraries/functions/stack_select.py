@@ -33,6 +33,7 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_tools
+from resource_management.core import shell
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
@@ -75,6 +76,11 @@ PACKAGE_SCOPE_INSTALL = "INSTALL"
 PACKAGE_SCOPE_STANDARD = "STANDARD"
 PACKAGE_SCOPE_PATCH = "PATCH"
 PACKAGE_SCOPE_STACK_SELECT = "STACK-SELECT-PACKAGE"
+
+# the legacy key is used when a package has changed from one version of the stack select tool to another.
+_PACKAGE_SCOPE_LEGACY = "LEGACY"
+
+# the valid scopes which can be requested
 _PACKAGE_SCOPES = (PACKAGE_SCOPE_INSTALL, PACKAGE_SCOPE_STANDARD, PACKAGE_SCOPE_PATCH, PACKAGE_SCOPE_STACK_SELECT)
 
 # the orchestration types which equal to a partial (non-STANDARD) upgrade
@@ -109,6 +115,37 @@ def get_package_name(default_package = None):
     else:
       raise
 
+
+def is_package_supported(package, supported_packages = None):
+  """
+  Gets whether the specified package is supported by the <stack_select> tool.
+  :param package: the package to check
+  :param supported_packages: the list of supported packages pre-fetched
+  :return: True if the package is support, False otherwise
+  """
+  if supported_packages is None:
+    supported_packages = get_supported_packages()
+
+  if package in supported_packages:
+    return True
+
+  return False
+
+
+def get_supported_packages():
+  """
+  Parses the output from <stack-select> packages and returns an array of the various packages.
+  :return: and array of packages support by <stack-select>
+  """
+  stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
+  command = (STACK_SELECT_PREFIX, stack_selector_path, "packages")
+  code, stdout = shell.call(command, sudo = True,  quiet = True)
+
+  if code != 0 or stdout is None:
+    raise Fail("Unable to query for supported packages using {0}".format(stack_selector_path))
+
+  # turn the output into lines, stripping each line
+  return [line.strip() for line in stdout.splitlines()]
 
 
 def get_packages(scope, service_name = None, component_name = None):
@@ -172,7 +209,33 @@ def get_packages(scope, service_name = None, component_name = None):
     Logger.info("Skipping stack-select on {0} because it does not exist in the stack-select package structure.".format(component_name))
     return None
 
-  return data[component_name][scope]
+  # this one scope is not an array, so transform it into one for now so we can
+  # use the same code below
+  packages = data[component_name][scope]
+  if scope == PACKAGE_SCOPE_STACK_SELECT:
+    packages = [packages]
+
+  # grab the package name from the JSON and validate it against the packages
+  # that the stack-select tool supports - if it doesn't support it, then try to find the legacy
+  # package name if it exists
+  supported_packages = get_supported_packages()
+  for index, package in enumerate(packages):
+    if not is_package_supported(package, supported_packages=supported_packages):
+      if _PACKAGE_SCOPE_LEGACY in data[component_name]:
+        legacy_package = data[component_name][_PACKAGE_SCOPE_LEGACY]
+        Logger.info(
+          "The package {0} is not supported by this version of the stack-select tool, defaulting to the legacy package of {1}".format(package, legacy_package))
+
+        # use the legacy package
+        packages[index] = legacy_package
+      else:
+        raise Fail("The package {0} is not supported by this version of the stack-select tool.".format(package))
+
+  # transform the array bcak to a single element
+  if scope == PACKAGE_SCOPE_STACK_SELECT:
+    packages = packages[0]
+
+  return packages
 
 
 def select_all(version_to_select):

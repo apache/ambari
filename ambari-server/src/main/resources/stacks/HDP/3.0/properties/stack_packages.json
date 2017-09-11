@@ -298,12 +298,12 @@
           ]
         },
         "HDFS_CLIENT": {
-          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-client",
           "INSTALL": [
-            "hadoop-client"
+            "hadoop-hdfs-client"
           ],
           "PATCH": [
-            "INVALID"
+            "hadoop-hdfs-client"
           ],
           "STANDARD": [
             "hadoop-client"
@@ -420,12 +420,12 @@
           ]
         },
         "HIVE_CLIENT": {
-          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "STACK-SELECT-PACKAGE": "hive-client",
           "INSTALL": [
-            "hadoop-client"
+            "hive-client"
           ],
           "PATCH": [
-            "INVALID"
+            "hive-client"
           ],
           "STANDARD": [
             "hadoop-client"
@@ -500,12 +500,12 @@
           ]
         },
         "MAPREDUCE2_CLIENT": {
-          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "STACK-SELECT-PACKAGE": "hadoop-mapreduce-client",
           "INSTALL": [
-            "hadoop-client"
+            "hadoop-mapreduce-client"
           ],
           "PATCH": [
-            "hadoop-mapreduce-INVALID"
+            "hadoop-mapreduce-client"
           ],
           "STANDARD": [
             "hadoop-client"
@@ -542,12 +542,12 @@
       },
       "PIG": {
         "PIG": {
-          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "STACK-SELECT-PACKAGE": "pig-client",
           "INSTALL": [
-            "hadoop-client"
+            "pig-client"
           ],
           "PATCH": [
-            "INVALID"
+            "pig-client"
           ],
           "STANDARD": [
             "hadoop-client"
@@ -622,6 +622,18 @@
         }
       },
       "SPARK": {
+        "LIVY_CLIENT": {
+          "STACK-SELECT-PACKAGE": "livy2-client",
+          "INSTALL": [
+            "livy2-client"
+          ],
+          "PATCH": [
+            "livy2-client"
+          ],
+          "STANDARD": [
+            "livy2-client"
+          ]
+        },
         "LIVY_SERVER": {
           "STACK-SELECT-PACKAGE": "livy2-server",
           "INSTALL": [
@@ -741,12 +753,12 @@
       },
       "TEZ": {
         "TEZ_CLIENT": {
-          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "STACK-SELECT-PACKAGE": "tez-client",
           "INSTALL": [
-            "hadoop-client"
+            "tez-client"
           ],
           "PATCH": [
-            "INVALID"
+            "tez-client"
           ],
           "STANDARD": [
             "hadoop-client"
@@ -791,12 +803,12 @@
           ]
         },
         "YARN_CLIENT": {
-          "STACK-SELECT-PACKAGE": "hadoop-client",
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-client",
           "INSTALL": [
-            "hadoop-client"
+            "hadoop-yarn-client"
           ],
           "PATCH": [
-            "INVALID"
+            "hadoop-yarn-client"
           ],
           "STANDARD": [
             "hadoop-client"
