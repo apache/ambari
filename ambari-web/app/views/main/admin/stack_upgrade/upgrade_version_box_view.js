@@ -147,7 +147,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
       isLabel: true,
       text: Em.I18n.t('common.current'),
       class: 'label top-label label-success',
-      canBeReverted: true,
       isCurrent: true
     }
   },
@@ -170,6 +169,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
     if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
       element.setProperties(statePropertiesMap['CURRENT_PATCH']);
+      element.set('canBeReverted', this.get('content.stackVersion').get('supportsRevert'));
     }
     else if (['INSTALLING'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);

@@ -3482,24 +3482,15 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe('#revertPatchUpgrade', function() {
-    beforeEach(function() {
-      sinon.stub(App.StackUpgradeHistory, 'find').returns([
-        Em.Object.create({
-          associatedVersion: '1.1',
-          upgradeId: 1
-        })
-      ]);
-    });
-    afterEach(function() {
-      App.StackUpgradeHistory.find.restore();
-    });
-
     it('App.ajax.send should be called', function() {
       var version = Em.Object.create({
         repositoryVersion: '1.1',
         id: 2,
         displayName: '1.2',
-        upgradeType: 'EXPRESS'
+        upgradeType: 'EXPRESS',
+        stackVersion: Em.Object.create({
+          revertUpgradeId: 1
+        })
       });
       controller.revertPatchUpgrade(version);
       expect(controller.get('requestInProgress')).to.be.true;

@@ -36,7 +36,9 @@ App.stackVersionMapper = App.QuickDataMapper.create({
     "upgrading_hosts": "host_states.UPGRADING",
     "upgraded_hosts": "host_states.UPGRADED",
     "upgrade_failed_hosts": "host_states.UPGRADE_FAILED",
-    "current_hosts": "host_states.CURRENT"
+    "current_hosts": "host_states.CURRENT",
+    "supports_revert": "supports_revert",
+    "revert_upgrade_id": "revert_upgrade_id"
   },
 
   map: function (json) {

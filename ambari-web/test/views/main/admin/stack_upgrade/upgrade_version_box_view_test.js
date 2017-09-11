@@ -369,7 +369,27 @@ describe('App.UpgradeVersionBoxView', function () {
         inputData: {
           'content.status': 'CURRENT',
           'content.isPatch': true,
-          'isUpgrading': false
+          'isUpgrading': false,
+          'content.stackVersion': Em.Object.create({
+            'supportsRevert': false
+          })
+        },
+        expected: {
+          isLabel: true,
+          text: Em.I18n.t('common.current'),
+          class: 'label top-label label-success',
+          canBeReverted: false
+        },
+        title: 'current no-revertable patch version'
+      },
+      {
+        inputData: {
+          'content.status': 'CURRENT',
+          'content.isPatch': true,
+          'isUpgrading': false,
+          'content.stackVersion': Em.Object.create({
+            'supportsRevert': true
+          })
         },
         expected: {
           isLabel: true,
@@ -377,7 +397,7 @@ describe('App.UpgradeVersionBoxView', function () {
           class: 'label top-label label-success',
           canBeReverted: true
         },
-        title: 'current patch version'
+        title: 'current revertable patch version'
       },
       {
         inputData: {

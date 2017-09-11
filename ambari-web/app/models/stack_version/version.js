@@ -34,6 +34,8 @@ App.StackVersion = DS.Model.extend({
   upgradedHosts: DS.attr('array'),
   upgradeFailedHosts: DS.attr('array'),
   currentHosts: DS.attr('array'),
+  supportsRevert: DS.attr('boolean'),
+  revertUpgradeId: DS.attr('number'),
 
   noInstalledHosts:  Em.computed.empty('installedHosts'),
 
