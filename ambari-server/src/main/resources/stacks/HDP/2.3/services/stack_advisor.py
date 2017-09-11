@@ -24,6 +24,12 @@ import fnmatch
 import math
 import socket
 
+try:
+  from stack_advisor_hdp22 import *
+except ImportError:
+  #Ignore ImportError
+  print("stack_advisor_hdp22 not found")
+
 # Local Imports
 
 

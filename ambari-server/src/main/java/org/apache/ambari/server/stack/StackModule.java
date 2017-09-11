@@ -1144,7 +1144,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     Set<RepositoryInfo> serviceRepos = getUniqueServiceRepos(stackRepos);
     stackInfo.getRepositories().addAll(serviceRepos);
 
-    if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0) {
+    if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0 && stackContext != null) {
       stackContext.registerRepoUpdateTask(rxml.getLatestURI(), this);
     }
   }
@@ -1234,7 +1234,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         RepositoryXml serviceRepoXml = ssd.getRepoFile();
         if (null != serviceRepoXml) {
           repos.addAll(serviceRepoXml.getRepositories());
-          if (null != serviceRepoXml.getLatestURI()) {
+          if (null != serviceRepoXml.getLatestURI() && stackContext != null) {
             stackContext.registerRepoUpdateTask(serviceRepoXml.getLatestURI(), this);
           }
         }

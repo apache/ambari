@@ -18,16 +18,20 @@
 
 package org.apache.ambari.server.state;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Represents auto-deployment stack information.
  * This element may be a child of the component and dependency elements.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class AutoDeployInfo {
   /**
    * Whether auto-deploy is enabled
    */
+  @XmlElement(name="enabled")
   private boolean m_enabled = true;
 
   /**

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -293,8 +292,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
           resource.setProperty(MPACK_URI, entity.getMpackUri());
           resource.setProperty(REGISTRY_ID, entity.getRegistryId());
 
-          ArrayList<Packlet> packletArrayList = getManagementController().getPacklets(entity.getMpackId());
-          resource.setProperty(PACKLETS, packletArrayList);
+          List<Packlet> packlets = getManagementController().getPacklets(entity.getMpackId());
+          resource.setProperty(PACKLETS, packlets);
           results.add(resource);
         }
       }

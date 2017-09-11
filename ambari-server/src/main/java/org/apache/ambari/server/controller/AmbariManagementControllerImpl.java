@@ -572,7 +572,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public ArrayList<Packlet> getPacklets(Long mpackId) {
+  public List<Packlet> getPacklets(Long mpackId) {
     return ambariMetaInfo.getPacklets(mpackId);
   }
 

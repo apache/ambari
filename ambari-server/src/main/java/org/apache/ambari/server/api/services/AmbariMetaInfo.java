@@ -655,7 +655,7 @@ public class AmbariMetaInfo {
    * @param mpackId
    * @return List of Packlets.
    */
-  public ArrayList<Packlet> getPacklets(Long mpackId) {
+  public List<Packlet> getPacklets(Long mpackId) {
     return mpackManager.getPacklets(mpackId);
   }
 

@@ -27,6 +27,12 @@ import socket
 import re
 import xml.etree.ElementTree as ET
 
+try:
+  from stack_advisor_hdp21 import *
+except ImportError:
+  #Ignore ImportError
+  print("stack_advisor_hdp21 not found")
+
 # Local Imports
 
 

@@ -104,7 +104,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * package directory name
    */
-  protected static final String PACKAGE_FOLDER_NAME = "package";
+  public static final String PACKAGE_FOLDER_NAME = "package";
 
   /**
    * upgrades directory name

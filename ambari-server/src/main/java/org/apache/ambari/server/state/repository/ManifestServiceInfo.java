@@ -38,6 +38,14 @@ public class ManifestServiceInfo {
   @JsonProperty("versions")
   Set<String> m_versions;
 
+  public String getName() {
+    return m_name;
+  }
+
+  public Set<String> getVersions() {
+    return m_versions;
+  }
+
   /**
    * @param name      the service name
    * @param display   the display name

@@ -20,6 +20,12 @@ limitations under the License.
 # Python imports
 import socket
 
+try:
+  from stack_advisor_hdp206 import *
+except ImportError:
+  #Ignore ImportError
+  print("stack_advisor_hd206 not found")
+
 # Local Imports
 
 

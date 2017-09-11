@@ -57,7 +57,7 @@ import com.google.common.collect.Multimaps;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonFilter("propertiesfilter")
-public class ServiceInfo implements Validable{
+public class ServiceInfo implements Validable, Cloneable {
 
   public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_INSTALLABLE_PROPERTY = new AbstractMap.SimpleEntry<>("installable", "true");
   public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_MANAGED_PROPERTY = new AbstractMap.SimpleEntry<>("managed", "true");
@@ -177,6 +177,7 @@ public class ServiceInfo implements Validable{
   @XmlTransient
   private File widgetsDescriptorFile = null;
 
+  @XmlTransient
   private StackRoleCommandOrder roleCommandOrder;
 
   @XmlTransient
@@ -265,6 +266,7 @@ public class ServiceInfo implements Validable{
    * at getter.
    * Added at schema ver 2
    */
+  @XmlTransient
   private volatile Map<String, ServiceOsSpecific> serviceOsSpecificsMap;
 
   /**
@@ -439,6 +441,39 @@ public class ServiceInfo implements Validable{
 
   public void setProperties(List properties) {
     this.properties = properties;
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    ServiceInfo clone = (ServiceInfo) super.clone();
+    clone.setSchemaVersion(schemaVersion);
+    clone.setName(name);
+    clone.setDisplayName(displayName);
+    clone.setVersion(version);
+    clone.setComment(comment);
+    clone.setServiceType(serviceType);
+    clone.setSelection(selection);
+    clone.components = components;
+    clone.setDeleted(isDeleted);
+    clone.setConfigDependencies(configDependencies);
+    clone.setExcludedConfigTypes(excludedConfigTypes);
+    clone.setMonitoringService(monitoringService);
+    clone.setRestartRequiredAfterChange(restartRequiredAfterChange);
+    clone.setRestartRequiredAfterRackChange(restartRequiredAfterRackChange);
+    clone.setParent(parent);
+    clone.setWidgetsFileName(widgetsFileName);
+    clone.setMetricsFileName(metricsFileName);
+    clone.setCredentialStoreInfo(credentialStoreInfo);
+    clone.setServicePropertyList(servicePropertyList);
+    clone.serviceOsSpecifics =  serviceOsSpecifics;
+    clone.configDir = configDir;
+    clone.themesDir = themesDir;
+    clone.setThemes(themes);
+    clone.setQuickLinksConfigurationsDir(quickLinksConfigurationsDir);
+    clone.setQuickLinksConfigurations(quickLinksConfigurations);
+    clone.setCommandScript(commandScript);
+    clone.setRequiredServices(requiredServices);
+    return clone;
   }
 
   public List<ComponentInfo> getComponents() {

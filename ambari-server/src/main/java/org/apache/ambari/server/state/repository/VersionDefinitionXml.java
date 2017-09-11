@@ -189,7 +189,16 @@ public class VersionDefinitionXml {
    * @return the list of {@code ManifestServiceInfo} instances for each service in the stack
    */
   public synchronized List<ManifestServiceInfo> getStackServices(StackInfo stack) {
+    return getStackServices(stack, false);
+  }
 
+  /**
+   * Gets the list of stack services, applying information from the version definition.
+   * @param stack the stack for which to get the information
+   * @param skipMissingServices skip services missing in version definition
+   * @return the list of {@code ManifestServiceInfo} instances for each service in the stack
+   */
+  public synchronized List<ManifestServiceInfo> getStackServices(StackInfo stack, boolean skipMissingServices) {
     if (null != m_manifest) {
       return m_manifest;
     }
@@ -209,6 +218,9 @@ public class VersionDefinitionXml {
     m_manifest = new ArrayList<>();
 
     for (ServiceInfo si : stack.getServices()) {
+      if(skipMissingServices && !manifestVersions.containsKey(si.getName())) {
+        continue;
+      }
       Set<String> versions = manifestVersions.containsKey(si.getName()) ?
           manifestVersions.get(si.getName()) : Collections.singleton(
               null == si.getVersion() ? "" : si.getVersion());
@@ -219,6 +231,8 @@ public class VersionDefinitionXml {
 
     return m_manifest;
   }
+
+
 
   /**
    * Gets the package version for an OS family

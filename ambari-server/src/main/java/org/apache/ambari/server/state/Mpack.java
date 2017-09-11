@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.state;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -41,10 +41,10 @@ public class Mpack {
   private String description;
 
   @SerializedName("prerequisites")
-  private HashMap<String, String> prerequisites;
+  private Map<String, String> prerequisites;
 
   @SerializedName("packlets")
-  private ArrayList<Packlet> packlets;
+  private List<Packlet> packlets;
 
   @SerializedName("stack-id")
   private String stackId;
@@ -99,19 +99,19 @@ public class Mpack {
     this.description = description;
   }
 
-  public HashMap<String, String> getPrerequisites() {
+  public Map<String, String> getPrerequisites() {
     return prerequisites;
   }
 
-  public void setPrerequisites(HashMap<String, String> prerequisites) {
+  public void setPrerequisites(Map<String, String> prerequisites) {
     this.prerequisites = prerequisites;
   }
 
-  public ArrayList<Packlet> getPacklets() {
+  public List<Packlet> getPacklets() {
     return packlets;
   }
 
-  public void setPacklets(ArrayList<Packlet> packlets) {
+  public void setPacklets(List<Packlet> packlets) {
     this.packlets = packlets;
   }
 
@@ -250,22 +250,29 @@ public class Mpack {
   }
 
   public void copyFrom(Mpack mpack) {
-    if (this.name == null)
+    if (this.name == null) {
       this.name = mpack.getName();
-    if (this.mpackId == null)
+    }
+    if (this.mpackId == null) {
       this.mpackId = mpack.getMpackId();
-    if (this.version == null)
+    }
+    if (this.version == null) {
       this.version = mpack.getVersion();
-    if (this.stackId == null)
+    }
+    if (this.stackId == null) {
       this.stackId = mpack.getStackId();
-    if (this.registryId == null)
+    }
+    if (this.registryId == null) {
       this.registryId = mpack.getRegistryId();
-    if (this.description == null)
+    }
+    if (this.description == null) {
       this.description = mpack.getDescription();
-    if (this.prerequisites == null)
+    }
+    if (this.prerequisites == null) {
       this.prerequisites = mpack.getPrerequisites();
-    if (this.packlets == null)
+    }
+    if (this.packlets == null) {
       this.packlets = mpack.getPacklets();
-
+    }
   }
 }

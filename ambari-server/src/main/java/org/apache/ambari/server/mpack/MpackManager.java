@@ -28,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -243,9 +242,9 @@ public class MpackManager {
     if (!servicesDir.exists()) {
       servicesDir.mkdir();
     }
-    ArrayList<Packlet> packletArrayList = mpack.getPacklets();
+    List<Packlet> packlets = mpack.getPacklets();
 
-    for (Packlet packlet : packletArrayList) {
+    for (Packlet packlet : packlets) {
       if (packlet.getType() == Packlet.PackletType.SERVICE_PACKLET) {
         String packletSourceLocation = packlet.getSourceLocation();
         File serviceTargetDir = new File(servicesDir + File.separator + packlet.getName());
@@ -440,13 +439,14 @@ public class MpackManager {
    * Fetches the packlet info stored in the memory for mpacks/{mpack_id} call.
    *
    * @param mpackId
-   * @return ArrayList
+   * @return list of {@link Packlet}
    */
-  public ArrayList<Packlet> getPacklets(Long mpackId) {
+  public List<Packlet> getPacklets(Long mpackId) {
 
     Mpack mpack = mpackMap.get(mpackId);
-    if (mpack.getPacklets() != null)
+    if (mpack.getPacklets() != null) {
       return mpack.getPacklets();
+    }
     return null;
   }
 

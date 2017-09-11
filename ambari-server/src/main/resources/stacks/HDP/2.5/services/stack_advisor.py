@@ -24,6 +24,11 @@ from ambari_commons.str_utils import string_set_equals
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 
+try:
+  from stack_advisor_hdp24 import *
+except ImportError:
+  #Ignore ImportError
+  print("stack_advisor_hdp24 not found")
 
 class HDP25StackAdvisor(HDP24StackAdvisor):
 

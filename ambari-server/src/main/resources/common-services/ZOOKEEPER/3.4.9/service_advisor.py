@@ -27,7 +27,7 @@ import inspect
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
+STACKS_DIR = os.path.join(SCRIPT_DIR, '/var/lib/ambari-server/resources/stacks/')
 PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
 
 try:

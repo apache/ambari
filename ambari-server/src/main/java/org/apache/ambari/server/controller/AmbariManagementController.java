@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -961,7 +960,7 @@ public interface AmbariManagementController {
    * @param mpackId
    * @return List of packlets
    */
-  ArrayList<Packlet> getPacklets(Long mpackId);
+  List<Packlet> getPacklets(Long mpackId);
 
   /**
    * Get the software registries identified by the given request objects.

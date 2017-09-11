@@ -205,6 +205,28 @@ public class StackManager {
     populateDB(stackDao, extensionDao);
   }
 
+  /***
+   *  Constructor. Initialize StackManager for merging service definitions and creating management packs
+   * @param stackRoot
+   * @param commonServicesRoot
+   */
+  public StackManager(File stackRoot, File commonServicesRoot, boolean validate) throws AmbariException{
+    LOG.info("Initializing the stack manager...");
+
+    if (validate) {
+      validateStackDirectory(stackRoot);
+      validateCommonServicesDirectory(commonServicesRoot);
+    }
+
+    stackMap = new HashMap<>();
+
+    parseDirectories(stackRoot, commonServicesRoot, null);
+
+    fullyResolveCommonServices(stackModules, commonServiceModules, extensionModules);
+    fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
+    fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
+  }
+
   protected void updateArchives(
     File resourcesRoot, File stackRoot, Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules,
     Map<String, ExtensionModule> extensionModules ) throws AmbariException {
@@ -460,6 +482,9 @@ public class StackManager {
    * @return true if all of the repo update tasks have completed; false otherwise
    */
   public boolean haveAllRepoUrlsBeenResolved() {
+    if(stackContext == null) {
+      return true;
+    }
     return stackContext.haveAllRepoTasksCompleted();
   }
 
@@ -493,7 +518,9 @@ public class StackManager {
       stack.finalizeModule();
     }
     // Execute all of the repo tasks in a single thread executor
-    stackContext.executeRepoTasks();
+    if(stackContext != null) {
+      stackContext.executeRepoTasks();
+    }
   }
 
   /**

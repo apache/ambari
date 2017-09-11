@@ -386,7 +386,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     finalizeChildModules(configurationModules.values());
     finalizeChildModules(componentModules.values());
     finalizeConfiguration();
-    if(serviceInfo.getCommandScript() != null && ! isDeleted()) {
+    if(serviceInfo.getCommandScript() != null && ! isDeleted() && stackContext != null) {
       stackContext.registerServiceCheck(getId());
     }
   }

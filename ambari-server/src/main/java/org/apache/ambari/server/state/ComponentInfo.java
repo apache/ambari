@@ -26,6 +26,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -53,6 +54,7 @@ public class ComponentInfo {
    * This is the translation of the xml element ["true", "false", null] (note that if a value is not specified,
    * it will inherit from the parent) into a boolean after actually resolving it.
    */
+  @XmlTransient
   private boolean versionAdvertisedInternal = false;
 
   /**
