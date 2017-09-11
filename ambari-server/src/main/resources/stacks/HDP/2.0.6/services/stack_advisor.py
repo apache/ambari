@@ -477,7 +477,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     ]
 
     self.updateMountProperties("hdfs-site", hdfs_mount_properties, configurations, services, hosts)
-
+    dataDirs = []
     if configurations and "hdfs-site" in configurations and \
             "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"] and \
                     configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"] is not None:
