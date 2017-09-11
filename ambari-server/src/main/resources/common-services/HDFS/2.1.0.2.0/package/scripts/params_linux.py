@@ -276,6 +276,8 @@ else:
 fs_checkpoint_dirs = default("/configurations/hdfs-site/dfs.namenode.checkpoint.dir", "").split(',')
 
 dfs_data_dirs = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
+dfs_data_dirs_perm = default("/configurations/hdfs-site/dfs.datanode.data.dir.perm", "755")
+dfs_data_dirs_perm = int(dfs_data_dirs_perm, base=8) # convert int from octal representation
 
 data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
