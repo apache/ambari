@@ -377,7 +377,7 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0750,
                               create_parents = True,
                               cd_access='a'
                               )
@@ -463,7 +463,7 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0750,
                               create_parents = True,
                               cd_access='a'
                               )
