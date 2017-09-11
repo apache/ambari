@@ -65,6 +65,7 @@ App.ReassignMasterController = App.WizardController.extend({
     hasCheckDBStep: false,
     componentsWithCheckDBStep: ['HIVE_METASTORE', 'HIVE_SERVER', 'OOZIE_SERVER'],
     componentsWithoutSecurityConfigs: ['MYSQL_SERVER'],
+    componentsToStopAllServices: ['NAMENODE', 'SECONDARY_NAMENODE'],
     reassignComponentsInMM: [],
     configs: null,
     configsAttributes: null
@@ -167,9 +168,9 @@ App.ReassignMasterController = App.WizardController.extend({
    * Used to define list of services to stop/start.
    */
   relatedServicesMap: {
-    'JOBTRACKER': ['PIG', 'OOZIE'],
     'RESOURCEMANAGER': ['YARN', 'MAPREDUCE2', 'TEZ', 'PIG', 'OOZIE', 'SLIDER', 'SPARK'],
     'APP_TIMELINE_SERVER': ['YARN', 'MAPREDUCE2', 'TEZ', 'OOZIE', 'SLIDER', 'SPARK'],
+    'HISTORYSERVER': ['MAPREDUCE2', 'PIG', 'OOZIE'],
     'HIVE_SERVER': ['HIVE', 'FALCON', 'ATLAS', 'OOZIE'],
     'HIVE_METASTORE': ['HIVE', 'PIG', 'FALCON', 'ATLAS', 'OOZIE'],
     'WEBHCAT_SERVER': ['HIVE'],

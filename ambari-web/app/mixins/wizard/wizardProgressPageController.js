@@ -428,31 +428,38 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * make server call to stop services
    * if stopListedServicesFlag == false; stop all services excluding the services passed as parameters
    * if stopListedServicesFlag == true; stop only services passed as parameters
-   * if no parameters are passed; stop all services
-   * @param services, stopListedServicesFlag
+   * if namenode or secondary namenode then stop all services
+   * @param services, stopListedServicesFlag, stopAllServices
    * @returns {$.ajax}
    */
-  stopServices: function (services, stopListedServicesFlag) {
+  stopServices: function (services, stopListedServicesFlag, stopAllServices) {
+    var stopAllServices = stopAllServices || false;
     var stopListedServicesFlag = stopListedServicesFlag || false;
     var data = {
       'ServiceInfo': {
         'state': 'INSTALLED'
       }
     };
-    if (services && services.length) {
+    if (stopAllServices) {
+      data.context = "Stop all services";
+    } else {
+      if(!services || !services.length) {
+        services = App.Service.find().mapProperty('serviceName').filter(function (service) {
+          return service != 'HDFS';
+        });
+      }
       var servicesList;
       if (stopListedServicesFlag) {
         servicesList = services.join(',');
-        } else {
+      } else {
         servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
           return !services.contains(s)
         }).join(',');
       }
       data.context = "Stop required services";
       data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
-    } else {
-      data.context = "Stop all services";
     }
+
     return App.ajax.send({
       name: 'common.services.update',
       sender: this,

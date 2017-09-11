@@ -29,7 +29,7 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   tasksMessagesPrefix: 'admin.ra_highAvailability.wizard.step',
 
   stopAllServices: function () {
-    this.stopServices();
+    this.stopServices([], true, true);
   },
 
   installRangerAdmin: function () {

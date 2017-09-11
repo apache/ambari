@@ -2289,8 +2289,8 @@ Em.I18n.translations = {
   'services.reassign.step1.message1': 'This wizard will walk you through moving {0}.<br/>',
   'services.reassign.step1.message2': 'The process to reassign {0} involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
       '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>',
-  'services.reassign.step1.message3': '<br/><b>All required services will be restarted as part of the wizard. You should plan a cluster maintenance window and prepare ' +
-    'for cluster downtime when moving {0}.</b>',
+  'services.reassign.step1.message3': '<br/><p class="alert">Following services will be restarted as part of the wizard: <b>{0}</b>. You should plan a cluster maintenance window and prepare ' +
+    'for cluster downtime when moving {1}.</p>',
 
   'services.reassign.step2.header':'Assign Master',
   'services.reassign.step2.currentHost':'Current:',
