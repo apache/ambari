@@ -568,7 +568,7 @@ public class UpgradeCatalog260Test {
 
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
-    upgradeCatalog260.removeSupersetFromDruid();
+    upgradeCatalog260.executePreDMLUpdates();
 
     verify(dbAccessor);
 
