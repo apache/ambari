@@ -459,10 +459,12 @@ def export_ca_certs(dir_path):
   truststore_p12 = os.path.join(tmpdir,'truststore.p12')
 
   if (params.metric_truststore_type.lower() == 'jks'):
-    # Convert truststore from JKS to PKCS12
-    cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -srcalias {metric_truststore_alias} -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
-    Execute(cmd,
-    )
+    if not params.metric_truststore_alias:
+      for alias in params.metric_truststore_alias_list:
+        # Convert truststore from JKS to PKCS12
+        cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -srcalias " + alias + " -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
+        Execute(cmd,
+        )
     truststore = truststore_p12
 
   # Export all CA certificates from the truststore to the conf directory
