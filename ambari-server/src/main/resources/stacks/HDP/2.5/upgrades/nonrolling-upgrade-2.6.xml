@@ -635,6 +635,11 @@
           <summary>Updating hive atlas application properties</summary>
         </task>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Updating DFS related LLAP configurations">
+        <task xsi:type="configure" id="hdp_2_6_maint_llap_config"/>
+      </execute-stage>
+
       <!-- SPARK -->
       <execute-stage service="SPARK" component="LIVY_SERVER" title="Apply config changes for Livy Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs"/>
