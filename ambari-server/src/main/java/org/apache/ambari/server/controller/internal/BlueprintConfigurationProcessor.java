@@ -1268,12 +1268,16 @@ public class BlueprintConfigurationProcessor {
    *         elements in this property
    */
   private static String[] splitAndTrimStrings(String propertyName) {
-    List<String> namesWithoutWhitespace = new LinkedList<>();
-    for (String service : propertyName.split(",")) {
-      namesWithoutWhitespace.add(service.trim());
-    }
+    if(propertyName != null) {
+      List<String> namesWithoutWhitespace = new LinkedList<>();
+      for (String service : propertyName.split(",")) {
+        namesWithoutWhitespace.add(service.trim());
+      }
 
-    return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
+      return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
+    } else {
+      return new String[0];
+    }
   }
 
   /**
