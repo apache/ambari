@@ -337,8 +337,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "dfs.datanode.BytesRead._rate",
-              "metric_path": "metrics/dfs/datanode/bytes_read._rate",
+              "name": "dfs.datanode.BytesRead",
+              "metric_path": "metrics/dfs/datanode/bytes_read",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }
@@ -346,7 +346,7 @@
           "values": [
             {
               "name": "HDFS Bytes Read",
-              "value": "${dfs.datanode.BytesRead._rate}"
+              "value": "${dfs.datanode.BytesRead}"
             }
           ],
           "properties": {
@@ -361,8 +361,8 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.datanode.BytesWritten._rate",
-              "metric_path": "metrics/dfs/datanode/bytes_written._rate",
+              "name": "dfs.datanode.BytesWritten",
+              "metric_path": "metrics/dfs/datanode/bytes_written",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }
@@ -370,7 +370,7 @@
           "values": [
             {
               "name": "HDFS Bytes Written",
-              "value": "${dfs.datanode.BytesWritten._rate}"
+              "value": "${dfs.datanode.BytesWritten}"
             }
           ],
           "properties": {

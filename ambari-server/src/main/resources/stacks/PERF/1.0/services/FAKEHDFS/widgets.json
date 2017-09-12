@@ -440,8 +440,8 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.datanode.BytesWritten._rate",
-              "metric_path": "metrics/dfs/datanode/bytes_written._rate",
+              "name": "dfs.datanode.BytesWritten",
+              "metric_path": "metrics/dfs/datanode/bytes_written",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             }
@@ -449,7 +449,7 @@
           "values": [
             {
               "name": "FAKEHDFS Bytes Written",
-              "value": "${dfs.datanode.BytesWritten._rate}"
+              "value": "${dfs.datanode.BytesWritten}"
             }
           ],
           "properties": {
@@ -537,26 +537,26 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.datanode.BytesRead._rate",
-              "metric_path": "metrics/dfs/datanode/bytes_read._rate",
+              "name": "dfs.datanode.BytesRead",
+              "metric_path": "metrics/dfs/datanode/bytes_read",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             },
             {
-              "name": "dfs.datanode.BytesWritten._rate",
-              "metric_path": "metrics/dfs/datanode/bytes_written._rate",
+              "name": "dfs.datanode.BytesWritten",
+              "metric_path": "metrics/dfs/datanode/bytes_written",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             },
             {
-              "name": "dfs.datanode.TotalReadTime._rate",
-              "metric_path": "metrics/dfs/datanode/TotalReadTime._rate",
+              "name": "dfs.datanode.TotalReadTime",
+              "metric_path": "metrics/dfs/datanode/TotalReadTime",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             },
             {
-              "name": "dfs.datanode.TotalWriteTime._rate",
-              "metric_path": "metrics/dfs/datanode/TotalWriteTime._rate",
+              "name": "dfs.datanode.TotalWriteTime",
+              "metric_path": "metrics/dfs/datanode/TotalWriteTime",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             }
@@ -564,7 +564,7 @@
           "values": [
             {
               "name": "FAKEDataNode Process Disk I/O Utilization",
-              "value": "${((dfs.datanode.BytesRead._rate/dfs.datanode.TotalReadTime._rate)+(dfs.datanode.BytesWritten._rate/dfs.datanode.TotalWriteTime._rate))*50}"
+              "value": "${((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
             }
           ],
           "properties": {
@@ -579,26 +579,26 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.datanode.RemoteBytesRead._rate",
-              "metric_path": "metrics/dfs/datanode/RemoteBytesRead._rate",
+              "name": "dfs.datanode.RemoteBytesRead",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesRead",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             },
             {
-              "name": "dfs.datanode.ReadsFromRemoteClient._rate",
-              "metric_path": "metrics/dfs/datanode/reads_from_remote_client._rate",
+              "name": "dfs.datanode.ReadsFromRemoteClient",
+              "metric_path": "metrics/dfs/datanode/reads_from_remote_client",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             },
             {
-              "name": "dfs.datanode.RemoteBytesWritten._rate",
-              "metric_path": "metrics/dfs/datanode/RemoteBytesWritten._rate",
+              "name": "dfs.datanode.RemoteBytesWritten",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesWritten",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             },
             {
-              "name": "dfs.datanode.WritesFromRemoteClient._rate",
-              "metric_path": "metrics/dfs/datanode/writes_from_remote_client._rate",
+              "name": "dfs.datanode.WritesFromRemoteClient",
+              "metric_path": "metrics/dfs/datanode/writes_from_remote_client",
               "service_name": "FAKEHDFS",
               "component_name": "FAKEDATANODE"
             }
@@ -606,7 +606,7 @@
           "values": [
             {
               "name": "FAKEDataNode Process Network I/O Utilization",
-              "value": "${((dfs.datanode.RemoteBytesRead._rate/dfs.datanode.ReadsFromRemoteClient._rate)+(dfs.datanode.RemoteBytesWritten._rate/dfs.datanode.WritesFromRemoteClient._rate))*50}"
+              "value": "${((dfs.datanode.RemoteBytesRead/dfs.datanode.ReadsFromRemoteClient)+(dfs.datanode.RemoteBytesWritten/dfs.datanode.WritesFromRemoteClient))*50}"
             }
           ],
           "properties": {

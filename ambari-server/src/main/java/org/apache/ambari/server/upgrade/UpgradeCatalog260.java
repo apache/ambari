@@ -19,6 +19,7 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -399,6 +400,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     ensureZeppelinProxyUserConfigs();
     updateKerberosDescriptorArtifacts();
     updateAmsConfigs();
+    updateHDFSWidgetDefinition();
   }
 
   /**
@@ -573,5 +575,19 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  protected void updateHDFSWidgetDefinition() throws AmbariException {
+    LOG.info("Updating HDFS widget definition.");
+
+    Map<String, List<String>> widgetMap = new HashMap<>();
+    Map<String, String> sectionLayoutMap = new HashMap<>();
+
+    List<String> hdfsHeatmapWidgets = new ArrayList<>(Arrays.asList("HDFS Bytes Read", "HDFS Bytes Written",
+      "DataNode Process Disk I/O Utilization", "DataNode Process Network I/O Utilization"));
+    widgetMap.put("HDFS_HEATMAPS", hdfsHeatmapWidgets);
+    sectionLayoutMap.put("HDFS_HEATMAPS", "default_hdfs_heatmap");
+
+    updateWidgetDefinitionsForService("HDFS", widgetMap, sectionLayoutMap);
   }
 }
