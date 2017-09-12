@@ -1831,6 +1831,8 @@ Em.I18n.translations = {
   'admin.stackUpgrade.failedHosts.options.first': "<b>Pause Upgrade</b>, delete the unhealthy hosts and return to the Upgrade Wizard to Proceed.",
   'admin.stackUpgrade.failedHosts.options.second': "Perform a <b>Downgrade</b>, which will revert all hosts to the previous stack version.",
   'admin.stackUpgrade.failedHosts.options.third': "Ignore these failures and <b>Proceed</b> for now (reconcile the failures later).",
+  'admin.stackUpgrade.failedHosts.isOutOfSync.options.first' : '<b>Pause Upgrade</b> and restart the component',
+  'admin.stackUpgrade.failedHosts.isOutOfSync.options.second' : '<b>Restart</b> the Ambari Agent',
   'admin.stackUpgrade.failedHosts.header': "Failed Hosts",
   'admin.stackUpgrade.failedHosts.subHeader': "Upgrade failed on {0} hosts",
   'admin.stackUpgrade.failedHosts.details': "Open Details",
