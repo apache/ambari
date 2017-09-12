@@ -59,26 +59,15 @@ class TestHostInfo(TestCase):
 
       self.assertTrue(item in names)
 
-  @patch('os.path.exists')
-  @patch('__builtin__.open')
-  def test_checkUsers(self, builtins_open_mock, path_mock):
-    builtins_open_mock.return_value = [
-      "hdfs:x:493:502:Hadoop HDFS:/usr/lib/hadoop:/bin/bash",
-      "zookeeper:x:492:502:ZooKeeper:/var/run/zookeeper:/bin/bash"]
-    path_mock.side_effect = [False, True, False]
-
+  def test_checkUsers(self):
     hostInfo = HostInfoLinux()
     results = []
-    hostInfo.checkUsers(["zookeeper", "hdfs"], results)
-    self.assertEqual(2, len(results))
+    hostInfo.checkUsers(["root", "zxlmnap12341234"], results)
+    self.assertEqual(1, len(results))
     newlist = sorted(results, key=lambda k: k['name'])
-    self.assertTrue(newlist[0]['name'], "hdfs")
-    self.assertTrue(newlist[1]['name'], "zookeeper")
-    self.assertTrue(newlist[0]['homeDir'], "/usr/lib/hadoop")
-    self.assertTrue(newlist[1]['homeDir'], "/var/run/zookeeper")
+    self.assertTrue(newlist[0]['name'], "root")
+    self.assertTrue(newlist[0]['homeDir'], "/root")
     self.assertTrue(newlist[0]['status'], "Available")
-    self.assertTrue(newlist[1]['status'], "Invalid home directory")
-    print(path_mock.mock_calls)
 
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
