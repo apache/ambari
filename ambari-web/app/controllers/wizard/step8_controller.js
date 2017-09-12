@@ -1333,7 +1333,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           clientsToClientMap[_clientName].forEach(function (componentName) {
             clientHosts.forEach(function (_clientHost) {
               var host = this.get('content.hosts')[_clientHost.hostName];
-              if (host.isInstalled && !host.hostComponents.someProperty('HostRoles.component_name', componentName)) {
+              var isClientSelected = clients.someProperty('component_name', componentName);
+              if (host.isInstalled && isClientSelected && !host.hostComponents.someProperty('HostRoles.component_name', componentName)) {
                 hostNames.pushObject(_clientHost.hostName);
               }
             }, this);
