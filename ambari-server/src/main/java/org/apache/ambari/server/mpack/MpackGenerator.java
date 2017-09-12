@@ -39,8 +39,8 @@ import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.ServiceDirectory;
+import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Packlet;
@@ -142,12 +142,12 @@ public class MpackGenerator {
     StackInfo srcStackInfo = stackManager.getStack(srcStackId.getStackName(), srcStackId.getStackVersion());
     StackRoleCommandOrder stackRoleCommandOrder = srcStackInfo.getRoleCommandOrder();
     FileWriter stackRCOFile = new FileWriter(
-      mpackRootDir.getAbsolutePath() + File.separator + AmbariMetaInfo.RCO_FILE_NAME);
+      mpackRootDir.getAbsolutePath() + File.separator + StackDirectory.RCO_FILE_NAME);
     mapper.writerWithDefaultPrettyPrinter().writeValue(stackRCOFile, stackRoleCommandOrder.getContent());
 
     // Export stack configs
     File stackConfigDir = new File(
-      mpackRootDir.getAbsolutePath() + File.separator + AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME);
+      mpackRootDir.getAbsolutePath() + File.separator + StackDirectory.SERVICE_CONFIG_FOLDER_NAME);
     exportConfigs(srcStackInfo.getProperties(), stackConfigDir);
 
     // Export widgets.json
