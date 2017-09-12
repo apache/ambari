@@ -4950,6 +4950,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Test
   public void testAtlas() throws Exception {
     final String expectedHostGroupName = "host_group_1";
+    final String zkHostGroupName = "zk_host_group";
     final String host1 = "c6401.ambari.apache.org";
     final String host2 = "c6402.ambari.apache.org";
     final String host3 = "c6403.ambari.apache.org";
@@ -4968,18 +4969,24 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
-    Collection<String> hgComponents = new HashSet<>();
-    hgComponents.add("KAFKA_BROKER");
-    hgComponents.add("ZOOKEEPER_SERVER");
-    hgComponents.add("HBASE_MASTER");
+    Collection<String> hg1Components = new HashSet<>();
+    hg1Components.add("KAFKA_BROKER");
+    hg1Components.add("HBASE_MASTER");
     List<String> hosts = new ArrayList<>();
     hosts.add(host1);
     hosts.add(host2);
-    hosts.add(host3);
-    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hg1Components, hosts);
+
+    // Place ZOOKEEPER_SERVER in separate host group/host other
+    // than ATLAS
+    Collection<String> zkHostGroupComponents = new HashSet<>();
+    zkHostGroupComponents.add("ZOOKEEPER_SERVER");
+
+    TestHostGroup group2 = new TestHostGroup(zkHostGroupName, zkHostGroupComponents, Collections.singletonList(host3));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
+    hostGroups.add(group2);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
@@ -4990,29 +4997,29 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     List<String> hostArray =
       Arrays.asList(atlasProperties.get("atlas.kafka.bootstrap.servers").split(","));
     List<String> expected =
-      Arrays.asList("c6401.ambari.apache.org:6667", "c6402.ambari.apache.org:6667", "c6403.ambari.apache.org:6667");
+      Arrays.asList("c6401.ambari.apache.org:6667", "c6402.ambari.apache.org:6667");
 
     Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
 
     hostArray = Arrays.asList(atlasProperties.get("atlas.kafka.zookeeper.connect").split(","));
     expected =
-      Arrays.asList("c6401.ambari.apache.org:2181", "c6402.ambari.apache.org:2181", "c6403.ambari.apache.org:2181");
+      Arrays.asList("c6403.ambari.apache.org:2181");
     Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
 
 
     hostArray = Arrays.asList(atlasProperties.get("atlas.graph.index.search.solr.zookeeper-url").split(","));
     expected =
-      Arrays.asList("c6401.ambari.apache.org:2181/ambari-solr", "c6402.ambari.apache.org:2181/ambari-solr", "c6403.ambari.apache.org:2181/ambari-solr");
+      Arrays.asList("c6403.ambari.apache.org:2181/ambari-solr");
     Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
 
     hostArray = Arrays.asList(atlasProperties.get("atlas.graph.storage.hostname").split(","));
     expected =
-      Arrays.asList("c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org");
+      Arrays.asList("c6403.ambari.apache.org");
     Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
 
     hostArray = Arrays.asList(atlasProperties.get("atlas.audit.hbase.zookeeper.quorum").split(","));
     expected =
-      Arrays.asList("c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org");
+      Arrays.asList("c6403.ambari.apache.org");
     Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
   }
 

@@ -2735,7 +2735,7 @@ public class BlueprintConfigurationProcessor {
     atlasPropsMap.put("atlas.kafka.bootstrap.servers", new MultipleHostTopologyUpdater("KAFKA_BROKER"));
     atlasPropsMap.put("atlas.kafka.zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.graph.index.search.solr.zookeeper-url", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER", ',', false, true, true));
-    atlasPropsMap.put("atlas.graph.storage.hostname", new MultipleHostTopologyUpdater("HBASE_MASTER"));
+    atlasPropsMap.put("atlas.graph.storage.hostname", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.audit.hbase.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // RANGER_ADMIN
