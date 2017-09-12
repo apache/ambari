@@ -540,6 +540,12 @@
             <set key="tez.runtime.shuffle.parallel.copies" value="8"/>
           </definition>
 
+          <definition xsi:type="configure" id="hdp_2_6_maint_llap_config" summary="Updating LLAP configuration">
+            <type>hive-interactive-site</type>
+            <set key="dfs.short.circuit.shared.memory.watcher.interrupt.check.ms" value="0" />
+            <set key="dfs.client.mmap.enabled" value="false" />
+          </definition>
+
         </changes>
 
       </component>
