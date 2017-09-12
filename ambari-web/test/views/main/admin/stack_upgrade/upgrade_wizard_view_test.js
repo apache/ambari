@@ -868,6 +868,22 @@ describe('App.upgradeWizardView', function () {
       expect(view.get('controller.areSlaveComponentFailuresHostsLoaded')).to.be.true;
     });
   });
+  it("isSlaveComponentFailuresItem must be true when status is OUT_OF_SYNC", function () {
+    view.reopen({
+      activeStatuses: ['OUT_OF_SYNC'],
+      upgradeGroups: [Em.Object.create({
+        status: 'OUT_OF_SYNC'
+      })]
+    });
+    view.propertyDidChange('activeGroup');
+    view.set('activeGroup.upgradeItems', [Em.Object.create({
+      context: view.get("controller.slaveFailuresContext"),
+      status: 'OUT_OF_SYNC'
+    })]);
+
+    expect(view.get('isSlaveComponentFailuresItem')).to.be.true;
+    expect(view.get('isOutOfSync')).to.be.true;
+  });
 
   describe("#getServiceCheckItem()", function() {
     beforeEach(function () {

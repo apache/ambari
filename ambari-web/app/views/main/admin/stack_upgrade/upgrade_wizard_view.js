@@ -192,7 +192,9 @@ App.upgradeWizardView = Em.View.extend({
    */
   isSlaveComponentFailuresItem: function () {
     var item = this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('context', this.get("controller.slaveFailuresContext"));
-    return item && ['HOLDING', 'HOLDING_FAILED'].contains(item.get('status'));
+    var status = item && item.get('status');
+    this.set('isOutOfSync', status === 'OUT_OF_SYNC');
+    return ['HOLDING', 'HOLDING_FAILED', 'OUT_OF_SYNC'].contains(status);
   }.property('activeGroup.upgradeItems.@each.status', 'activeGroup.upgradeItems.@each.context'),
 
   /**

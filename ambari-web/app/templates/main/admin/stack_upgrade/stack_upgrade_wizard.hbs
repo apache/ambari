@@ -180,6 +180,10 @@
                 <p>
                   {{t admin.stackUpgrade.failedHosts.options}}
                 <ul>
+                  {{#if view.isOutOfSync}}
+                    <li>{{t admin.stackUpgrade.failedHosts.isOutOfSync.options.first}}</li>
+                    <li>{{t admin.stackUpgrade.failedHosts.isOutOfSync.options.second}}</li>
+                  {{/if}}
                   <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
                   {{#if view.isDowngradeAvailable}}
                     <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
