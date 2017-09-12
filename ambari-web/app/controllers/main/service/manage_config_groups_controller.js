@@ -955,8 +955,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
               if (errors.length > 0) {
                 self.get('subViewController').set('errorMessage', errors.join(". "));
               } else {
-                if (!self.get('isAddService') && !self.get('isInstaller') && !modifiedConfigGroups.toCreate.everyProperty('properties.length', 0)) {
-                  //update service config versions only if it is service configs page and at least one newly created group had properties
+                if (!self.get('isAddService') && !self.get('isInstaller')) {
+                  //update service config versions only if it is service configs page
                   App.router.get('mainServiceInfoConfigsController').loadServiceConfigVersions().done(function () {
                     self.updateConfigGroupOnServicePage();
                     self.hide();
