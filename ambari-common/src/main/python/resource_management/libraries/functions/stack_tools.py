@@ -32,6 +32,7 @@ from resource_management.core.utils import pad
 STACK_SELECTOR_NAME = "stack_selector"
 CONF_SELECTOR_NAME = "conf_selector"
 
+
 def get_stack_tool(name):
   """
   Give a tool selector name get the stack-specific tool name, tool path, tool package
@@ -43,7 +44,7 @@ def get_stack_tool(name):
   stack_name = default("/hostLevelParams/stack_name", None)
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack tools cannot be loaded")
-    return (None, None, None)
+    return None, None, None
 
   stack_tools = None
   stack_tools_config = default("/configurations/cluster-env/stack_tools", None)
@@ -52,23 +53,22 @@ def get_stack_tool(name):
 
   if stack_tools is None:
     Logger.warning("The stack tools could not be found in cluster-env")
-    return (None, None, None)
+    return None, None, None
 
   if stack_name not in stack_tools:
     Logger.warning("Cannot find stack tools for the stack named {0}".format(stack_name))
-    return (None, None, None)
+    return None, None, None
 
   # load the stack tooks keyed by the stack name
   stack_tools = stack_tools[stack_name]
 
   if not stack_tools or not name or name.lower() not in stack_tools:
     Logger.warning("Cannot find config for {0} stack tool in {1}".format(str(name), str(stack_tools)))
-    return (None, None, None)
-
+    return None, None, None
 
   tool_config = stack_tools[name.lower()]
 
-  # Return fixed length (tool_name, tool_path tool_package) tuple
+  # Return fixed length (tool_name, tool_path, tool_package) tuple
   return tuple(pad(tool_config[:3], 3))
 
 def get_stack_tool_name(name):

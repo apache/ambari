@@ -321,4 +321,4 @@ class TestHookAfterInstall(RMFTestCase):
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
-    logger_warning_mock.assert_any_call('Skipping running stack-selector-tool becase this is a sys_prepped host. This may cause symlink pointers not to be created for HDP componets installed later on top of an already sys_prepped host.')
+    logger_warning_mock.assert_any_call('Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for HDP components installed later on top of an already sys_prepped host')

@@ -42,7 +42,7 @@ def setup_stack_symlinks(struct_out_file):
     return
 
   if params.host_sys_prepped:
-    Logger.warning("Skipping running stack-selector-tool becase this is a sys_prepped host. This may cause symlink pointers not to be created for HDP componets installed later on top of an already sys_prepped host.")
+    Logger.warning("Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for HDP components installed later on top of an already sys_prepped host")
     return
 
   # get the packages which the stack-select tool should be used on
@@ -88,17 +88,14 @@ def load_version(struct_out_file):
   """
   Load version from file.  Made a separate method for testing
   """
-  json_version = None
   try:
-    if os.path.exists(struct_out_file):
-      with open(struct_out_file, 'r') as fp:
-        json_info = json.load(fp)
-        json_version = json_info['version']
-  except:
-    pass
+    with open(struct_out_file, 'r') as fp:
+      json_info = json.load(fp)
 
-  return json_version
-  
+    return json_info['version']
+  except (IOError, KeyError, TypeError):
+    return None
+
 
 def link_configs(struct_out_file):
   """

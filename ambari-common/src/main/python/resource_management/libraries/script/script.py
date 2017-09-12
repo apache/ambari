@@ -227,6 +227,8 @@ class Script(object):
         repo_version_id = default("/hostLevelParams/repository_version_id", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
+      else:
+        Logger.error("Component '{0}' did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
 
 
   def should_expose_component_version(self, command_name):
