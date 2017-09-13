@@ -2338,9 +2338,9 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_xmn_size": "192",
+          "hbase_master_xmn_size": "128",
           "hbase_master_heapsize": "512",
-          "hbase_regionserver_heapsize": "768"
+          "hbase_regionserver_heapsize": "512"
         }
       },
       "ams-grafana-env": {
@@ -2416,14 +2416,14 @@ class TestHDP22StackAdvisor(TestCase):
 
     expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '500'
     expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '7'
-    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1408'
-    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '320'
-    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '512'
+    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2560'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '448'
+    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '896'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-    # Still 100 nodes, but with HDFS and YARN services installed on all nodes
+    # 200 nodes, but with HDFS and YARN services installed on all nodes
     services['services'] = [
       {
         "StackServices": {
@@ -2484,14 +2484,22 @@ class TestHDP22StackAdvisor(TestCase):
       }
 
     ]
-    expected["ams-site"]['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'mem_total'
+    expected["ams-site"]['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'dfs.FSNamesystem.FilesTotal,' \
+                                                                                        'dfs.datanode.WritesFromRemoteClient,' \
+                                                                                        'ipc.IPC.numCallsInReplicationQueue,' \
+                                                                                        'mapred.ShuffleMetrics.ShuffleOutputsFailed,' \
+                                                                                        'mem_buffered,' \
+                                                                                        'read_count,' \
+                                                                                        'regionserver.Server.percentFilesLocal,' \
+                                                                                        'rpcdetailed.rpcdetailed.RegisterNodeManagerNumOps,' \
+                                                                                        'sdisk_vdb_write_count'
     expected["ams-site"]['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'mem_total'
 
-    expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '500'
-    expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '7'
-    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432'
-    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '512'
-    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640'
+    expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '600'
+    expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '6'
+    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '6656'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '1088'
+    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '2176'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -2535,6 +2543,7 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+
     # Embedded mode, 8192m master heapsize, more splitpoints recommended
     services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
@@ -2559,12 +2568,11 @@ class TestHDP22StackAdvisor(TestCase):
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
 
     # Distributed mode, low memory, no splitpoints recommended
-    services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
     expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'mem_total'
     expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'mem_total'
-    expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
+    expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '6656'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '102'
-    expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '384'
+    expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '1024'
     expected['ams-site']['properties']['timeline.metrics.service.watcher.disabled'] = 'true'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -2609,6 +2617,200 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations["ams-site"]['properties']['timeline.metrics.cache.size'], '700')
     self.assertEquals(configurations["ams-site"]['properties']['timeline.metrics.cache.commit.interval'], '5')
+
+    # 500 Nodes with HDFS, YARN, HIVE, STORM, HBASE, KAFKA, AMS
+    node_count = 500
+    hosts = {
+      "items": []
+    }
+    for i in range(1, node_count):
+      hosts['items'].extend([{
+        "Hosts": {
+          "host_name": "host" + str(i)
+          }
+      }])
+
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "HDFS"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NAMENODE",
+              "hostnames": ["host1"]
+            }
+          } ,
+          {
+            "StackServiceComponents": {
+              "component_name": "SECONDARY_NAMENODE",
+              "hostnames": ["host2"]
+            }
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "DATANODE",
+              "hostnames": ["host" + str(i) for i in range(6, node_count + 1)]
+            }
+          }
+        ]
+      },
+      {
+        "StackServices": {
+          "service_name": "HBASE"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "HBASE_MASTER",
+              "hostnames": ["host3"]
+            }
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "HBASE_REGIONSERVER",
+              "hostnames": ["host" + str(i) for i in range(6, node_count + 1)]
+            }
+          }
+        ]
+      },
+      {
+        "StackServices": {
+          "service_name": "YARN"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "RESOURCEMANAGER",
+              "hostnames": ["host4"]
+            }
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["host" + str(i) for i in range(6, node_count + 1)]
+            }
+          }
+        ]
+      },
+      {
+        "StackServices": {
+          "service_name": "HIVE"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "HIVE_METASTORE",
+              "hostnames": ["host3"]
+            }
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "HIVE_SERVER",
+              "hostnames": ["host3"]
+            }
+          }
+        ]
+      },
+      {
+        "StackServices": {
+          "service_name": "STORM"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NIMBUS",
+              "hostnames": ["host" + str(i) for i in range(1, 6)]
+            }
+          }
+        ]
+      },
+      {
+        "StackServices": {
+          "service_name": "KAFKA"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "KAFKA_BROKER",
+              "hostnames": ["host" + str(i) for i in range(1, 6)]
+            }
+          }
+        ]
+      },
+      {
+        "StackServices": {
+          "service_name": "AMBARI_METRICS"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "METRICS_COLLECTOR",
+              "hostnames": ["host6"]
+            }
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "METRICS_MONITOR",
+              "hostnames": ["host" + str(i) for i in range(6, node_count + 1)]
+            }
+          }
+        ]
+      }
+    ]
+
+    services['configurations'] = {
+      'core-site': {'properties': {}},
+      'ams-site': {'properties': {}},
+      'ams-hbase-site': {'properties': {}},
+      'ams-hbase-env': {'properties': {}}
+    }
+    services["configurations"]['ams-site']['properties']['timeline.metrics.service.operation.mode'] = 'distributed'
+
+    expected['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
+    expected['ams-hbase-site']['properties']['hbase.rootdir'] = '/user/ams/hbase'
+    expected['ams-hbase-site']['properties']['hbase.zookeeper.property.clientPort'] = '2181'
+
+    expected["ams-site"]['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'default.General.active_calls_api_get_all_databases,' \
+                                                                                        'default.General.api_get_database_mean,' \
+                                                                                        'default.General.gc.PS-MarkSweep.count,' \
+                                                                                        'dfs.FsVolume.TotalDataFileIos,' \
+                                                                                        'disk_free,' \
+                                                                                        'jvm.JvmMetrics.MemHeapMaxM,' \
+                                                                                        'kafka.network.RequestMetrics.RemoteTimeMs.request.Metadata.75percentile,' \
+                                                                                        'kafka.network.RequestMetrics.ResponseQueueTimeMs.request.Update.Metadata.mean,' \
+                                                                                        'load_one,master.FileSystem.MetaHlogSplitTime_75th_percentile,' \
+                                                                                        'metricssystem.MetricsSystem.NumActiveSources,' \
+                                                                                        'regionserver.Server.Append_95th_percentile,' \
+                                                                                        'regionserver.Server.blockCacheEvictionCount,' \
+                                                                                        'rpc.rpc.client.SentBytes,' \
+                                                                                        'sdisk_vda1_write_bytes'
+    expected["ams-site"]['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'ipc.IPC.authorizationSuccesses,' \
+                                                                                           'metricssystem.MetricsSystem.PublishNumOps'
+
+    expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '700'
+    expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '5'
+    expected["ams-site"]['properties']['timeline.metrics.service.resultset.fetchSize'] = '5000'
+    expected["ams-site"]['properties']['phoenix.query.maxGlobalMemoryPercentage'] = '30'
+
+    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '7040'
+
+    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '512'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '102'
+
+    expected["ams-hbase-env"]['properties']['hbase_regionserver_heapsize'] = '21120'
+    expected["ams-hbase-env"]['properties']['regionserver_xmn_size'] = '3200'
+
+    expected["ams-hbase-site"]['properties']['phoenix.query.maxGlobalMemoryPercentage'] = '20'
+    expected['ams-hbase-site']['properties']['hbase.hregion.memstore.flush.size'] = '268435456'
+    expected['ams-hbase-site']['properties']['hbase.regionserver.handler.count'] = '60'
+    expected['ams-hbase-site']['properties']['hbase.regionserver.hlog.blocksize'] = '134217728'
+    expected['ams-hbase-site']['properties']['hbase.regionserver.maxlogs'] = '64'
+    expected['ams-hbase-site']['properties']['phoenix.coprocessor.maxMetaDataCacheSize'] = '40960000'
+
+    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
 
   def test_recommendHbaseConfigurations(self):
     servicesList = ["HBASE"]
