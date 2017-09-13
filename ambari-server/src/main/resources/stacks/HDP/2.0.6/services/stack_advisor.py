@@ -681,18 +681,22 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     schMemoryMap = {
       "HDFS": {
         "NAMENODE": HEAP_PER_MASTER_COMPONENT,
+        "SECONDARY_NAMENODE": HEAP_PER_MASTER_COMPONENT,
         "DATANODE": HEAP_PER_SLAVE_COMPONENT
       },
       "YARN": {
         "RESOURCEMANAGER": HEAP_PER_MASTER_COMPONENT,
+        "NODEMANAGER": HEAP_PER_SLAVE_COMPONENT,
+        "HISTORYSERVER" : HEAP_PER_MASTER_COMPONENT,
+        "APP_TIMELINE_SERVER": HEAP_PER_MASTER_COMPONENT
       },
       "HBASE": {
         "HBASE_MASTER": HEAP_PER_MASTER_COMPONENT,
         "HBASE_REGIONSERVER": HEAP_PER_SLAVE_COMPONENT
       },
-      "ACCUMULO": {
-        "ACCUMULO_MASTER": HEAP_PER_MASTER_COMPONENT,
-        "ACCUMULO_TSERVER": HEAP_PER_SLAVE_COMPONENT
+      "HIVE": {
+        "HIVE_METASTORE": HEAP_PER_MASTER_COMPONENT,
+        "HIVE_SERVER": HEAP_PER_MASTER_COMPONENT
       },
       "KAFKA": {
         "KAFKA_BROKER": HEAP_PER_MASTER_COMPONENT
@@ -706,6 +710,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "AMBARI_METRICS": {
         "METRICS_COLLECTOR": HEAP_PER_MASTER_COMPONENT,
         "METRICS_MONITOR": HEAP_PER_SLAVE_COMPONENT
+      },
+      "ACCUMULO": {
+        "ACCUMULO_MASTER": HEAP_PER_MASTER_COMPONENT,
+        "ACCUMULO_TSERVER": HEAP_PER_SLAVE_COMPONENT
+      },
+      "LOGSEARCH": {
+        "LOGSEARCH_LOGFEEDER" : HEAP_PER_SLAVE_COMPONENT
       }
     }
     total_sinks_count = 0
@@ -716,9 +727,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         schCount = len(
           self.getHostsWithComponent(serviceName, componentName, services,
                                      hosts))
-        hbase_heapsize += int((schCount * multiplier) ** 0.9)
+        hbase_heapsize += int((schCount * multiplier))
         total_sinks_count += schCount
-    collector_heapsize = int(hbase_heapsize/4 if hbase_heapsize > 2048 else 512)
+    collector_heapsize = int(hbase_heapsize/3 if hbase_heapsize > 2048 else 512)
+    hbase_heapsize = min(hbase_heapsize, 32768)
 
     return round_to_n(collector_heapsize), round_to_n(hbase_heapsize), total_sinks_count
 
@@ -843,7 +855,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 81920000)
         putAmsSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
         putAmsSiteProperty("timeline.metrics.service.resultset.fetchSize", 10000)
-      elif total_sinks_count >= 500:
+      elif total_sinks_count >= 1000:
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
@@ -859,17 +871,17 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     # Distributed mode heap size
     if operatingMode == "distributed":
-      hbase_heapsize = max(hbase_heapsize, 768)
+      hbase_heapsize = max(hbase_heapsize, 1024)
       putHbaseEnvProperty("hbase_master_heapsize", "512")
       putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
-      putHbaseEnvProperty("regionserver_xmn_size", round_to_n(0.15*hbase_heapsize,64))
+      putHbaseEnvProperty("regionserver_xmn_size", round_to_n(0.15 * hbase_heapsize,64))
     else:
       # Embedded mode heap size : master + regionserver
-      hbase_rs_heapsize = 768
+      hbase_rs_heapsize = 512
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_rs_heapsize)
       putHbaseEnvProperty("hbase_master_heapsize", hbase_heapsize)
-      putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize+hbase_rs_heapsize),64))
+      putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize + hbase_rs_heapsize),64))
 
     # If no local DN in distributed mode
     if operatingMode == "distributed":
@@ -1212,6 +1224,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       pass
     elif len(self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")) > 1 and op_mode != 'distributed':
       correct_op_mode_item = self.getErrorItem("Correct value should be 'distributed' for clusters with more then 1 Metrics collector")
+    elif op_mode == 'embedded':
+      collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
+      if total_sinks_count > 1000:
+        correct_op_mode_item = self.getWarnItem("Number of sinks writing metrics to collector is expected to be more than 1000. "
+                                                "'Embedded' mode AMS might not be able to handle the load. Consider moving to distributed mode.")
+
     validationItems.extend([{"config-name":'timeline.metrics.service.operation.mode', "item": correct_op_mode_item }])
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
 
@@ -1372,6 +1390,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     is_hbase_distributed = amsHbaseSite.get("hbase.cluster.distributed").lower() == 'true'
 
     if is_hbase_distributed:
+
+      if not regionServerItem and hbase_regionserver_heapsize > 32768:
+        regionServerItem = self.getWarnItem("Value is more than the recommended maximum heap size of 32G.")
+        validationItems.extend([{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem}])
+
       minMasterXmn = 0.12 * hbase_master_heapsize
       maxMasterXmn = 0.2 * hbase_master_heapsize
       if hbase_master_xmn_size < minMasterXmn:
@@ -1394,6 +1417,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                                                "(20% of hbase_regionserver_heapsize)"
                                                .format(int(floor(maxRegionServerXmn))))
     else:
+
+      if not hbaseMasterHeapsizeItem and (hbase_master_heapsize + hbase_regionserver_heapsize) > 32768:
+        hbaseMasterHeapsizeItem = self.getWarnItem("Value of Master + Regionserver heapsize is more than the recommended maximum heap size of 32G.")
+        validationItems.extend([{"config-name": "hbase_master_heapsize", "item": hbaseMasterHeapsizeItem}])
+
       minMasterXmn = 0.12 * (hbase_master_heapsize + hbase_regionserver_heapsize)
       maxMasterXmn = 0.2 *  (hbase_master_heapsize + hbase_regionserver_heapsize)
       if hbase_master_xmn_size < minMasterXmn:
@@ -1440,39 +1468,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                   collectorHostName, str(", ".join(hostMasterComponents[collectorHostName]))))
               if hbaseMasterHeapsizeItem:
                 validationItems.extend([{"config-name": "hbase_master_heapsize", "item": hbaseMasterHeapsizeItem}])
-
-            # Check for unused RAM on AMS Collector node
-            hostComponents = []
-            for service in services["services"]:
-              for component in service["components"]:
-                if component["StackServiceComponents"]["hostnames"] is not None:
-                  if collectorHostName in component["StackServiceComponents"]["hostnames"]:
-                    hostComponents.append(component["StackServiceComponents"]["component_name"])
-
-            requiredMemory = getMemorySizeRequired(hostComponents, configurations)
-            unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
-
-            heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
-            xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
-            hbase_needs_increase = to_number(properties[heapPropertyToIncrease]) * mb < 32 * gb
-
-            if unusedMemory > 4*gb and hbase_needs_increase:  # warn user, if more than 4GB RAM is unused
-
-              recommended_hbase_heapsize = int((unusedMemory - 4*gb)*4/5) + to_number(properties.get(heapPropertyToIncrease))*mb
-              recommended_hbase_heapsize = min(32*gb, recommended_hbase_heapsize) #Make sure heapsize <= 32GB
-              recommended_hbase_heapsize = round_to_n(recommended_hbase_heapsize/mb,128) # Round to 128m multiple
-              if to_number(properties[heapPropertyToIncrease]) < recommended_hbase_heapsize:
-                hbaseHeapsizeItem = self.getWarnItem("Consider allocating {0} MB to {1} in ams-hbase-env to use up some "
-                                                     "unused memory on host"
-                                                         .format(recommended_hbase_heapsize,
-                                                                 heapPropertyToIncrease))
-                validationItems.extend([{"config-name": heapPropertyToIncrease, "item": hbaseHeapsizeItem}])
-
-              recommended_xmn_size = round_to_n(0.15*recommended_hbase_heapsize,128)
-              if to_number(properties[xmnPropertyToIncrease]) < recommended_xmn_size:
-                xmnPropertyToIncreaseItem = self.getWarnItem("Consider allocating {0} MB to use up some unused memory "
-                                                             "on host".format(recommended_xmn_size))
-                validationItems.extend([{"config-name": xmnPropertyToIncrease, "item": xmnPropertyToIncreaseItem}])
       pass
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
@@ -2241,7 +2236,7 @@ def getHeapsizeProperties():
            "DATANODE": [{"config-name": "hadoop-env",
                          "property": "dtnode_heapsize",
                          "default": "1024m"}],
-           "REGIONSERVER": [{"config-name": "hbase-env",
+           "HBASE_REGIONSERVER": [{"config-name": "hbase-env",
                              "property": "hbase_regionserver_heapsize",
                              "default": "1024m"}],
            "HBASE_MASTER": [{"config-name": "hbase-env",
