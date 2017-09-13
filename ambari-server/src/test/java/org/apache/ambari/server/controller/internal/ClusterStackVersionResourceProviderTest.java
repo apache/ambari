@@ -127,6 +127,8 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.util.Modules;
 
+import junit.framework.AssertionFailedError;
+
 
  /**
  * ClusterStackVersionResourceProvider tests.
@@ -1853,6 +1855,9 @@ public class ClusterStackVersionResourceProviderTest {
 
     expect(desiredVersionDefinition.getAvailableServices((StackInfo)EasyMock.anyObject())).andReturn(availableServices).once();
 
+    expect(cluster.transitionHostsToInstalling(
+        anyObject(RepositoryVersionEntity.class), anyObject(VersionDefinitionXml.class),
+        EasyMock.anyBoolean())).andReturn(Collections.<Host>emptyList()).atLeastOnce();
 
     replay(cluster, repoVersionEnt, desiredVersionDefinition, service1, service2, availableService1, availableService2);
 
@@ -1891,7 +1896,9 @@ public class ClusterStackVersionResourceProviderTest {
      availableServices.add(availableService2);
 
      expect(desiredVersionDefinition.getAvailableServices((StackInfo)EasyMock.anyObject())).andReturn(availableServices).once();
-
+     expect(cluster.transitionHostsToInstalling(
+         anyObject(RepositoryVersionEntity.class), anyObject(VersionDefinitionXml.class),
+         EasyMock.anyBoolean())).andThrow(new AssertionFailedError()).anyTimes();
 
      replay(cluster, repoVersionEnt, desiredVersionDefinition, service1, availableService1, availableService2);
 

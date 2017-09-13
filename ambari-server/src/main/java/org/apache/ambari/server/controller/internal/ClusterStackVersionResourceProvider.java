@@ -490,6 +490,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
     }
 
+    checkPatchVDFAvailableServices(cluster, repoVersionEntity, versionDefinitionXml);
 
     // the cluster will create/update all of the host versions to the correct state
     List<Host> hostsNeedingInstallCommands = cluster.transitionHostsToInstalling(
@@ -590,9 +591,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       // determine services for the repo
       Set<String> serviceNames = new HashSet<>();
-
-
-      checkPatchVDFAvailableServices(cluster, repoVersionEnt, desiredVersionDefinition);
 
       // !!! limit the serviceNames to those that are detailed for the repository.
       // TODO packages don't have component granularity
