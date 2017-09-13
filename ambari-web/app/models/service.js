@@ -30,6 +30,7 @@ App.Service = DS.Model.extend({
   quickLinks: DS.hasMany('App.QuickLinks'),  // mapped in app/mappers/service_metrics_mapper.js method - mapQuickLinks
   hostComponents: DS.hasMany('App.HostComponent'),
   serviceConfigsTemplate: App.config.get('preDefinedServiceConfigs'),
+  desiredRepositoryVersionId: DS.attr('number'),
   /**
    * used by services("OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON")
    * that have only client components
