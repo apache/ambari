@@ -19,29 +19,19 @@ package org.apache.ambari.server.checks;
 
 import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.controller.internal.PageRequestImpl;
-import org.apache.ambari.server.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.internal.SortRequestImpl;
-import org.apache.ambari.server.controller.internal.TaskResourceProvider;
-import org.apache.ambari.server.controller.spi.PageRequest;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.SortRequest;
-import org.apache.ambari.server.controller.spi.SortRequestProperty;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO.LastServiceCheckDTO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -72,17 +62,6 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceCheckValidityCheck.class);
 
   private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy hh:mm:ss");
-  private static List<SortRequestProperty> sortRequestProperties =
-      Collections.singletonList(new SortRequestProperty(TaskResourceProvider.TASK_START_TIME_PROPERTY_ID, SortRequest.Order.DESC));
-  private static SortRequest sortRequest = new SortRequestImpl(sortRequestProperties);
-  private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(PageRequest.StartingPoint.End, 1000, 0, null, null);
-  private static final RequestImpl REQUEST = new RequestImpl(null, null, null, null, sortRequest, PAGE_REQUEST);
-  private static final Predicate PREDICATE = new PredicateBuilder()
-    .property(TaskResourceProvider.TASK_COMMAND_PROPERTY_ID).equals(RoleCommand.SERVICE_CHECK.name())
-    .and().property(TaskResourceProvider.TASK_START_TIME_PROPERTY_ID).greaterThan(-1)
-    .toPredicate();
-
-
 
   @Inject
   Provider<ServiceConfigDAO> serviceConfigDAOProvider;
@@ -90,6 +69,8 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
   @Inject
   Provider<HostRoleCommandDAO> hostRoleCommandDAOProvider;
 
+  @Inject
+  Provider<ActionMetadata> actionMetadataProvider;
 
   /**
    * Constructor.
@@ -112,8 +93,8 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     long clusterId = cluster.getClusterId();
 
+    // build a mapping of the last config changes by service
     Map<String, Long> lastServiceConfigUpdates = new HashMap<>();
-
     for (Service service : cluster.getServices().values()) {
       if (service.getMaintenanceState() != MaintenanceState.OFF || !hasAtLeastOneComponentVersionAdvertised(service)) {
         continue;
@@ -123,43 +104,34 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
       lastServiceConfigUpdates.put(service.getName(), lastServiceConfig.getCreateTimestamp());
     }
 
-    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findAll(REQUEST, PREDICATE);
-
-    // !!! build a map of Role to latest-config-check in case it was rerun multiple times, we want the latest
-    Map<Role, HostRoleCommandEntity> latestTimestamps = new HashMap<>();
-    for (HostRoleCommandEntity command : commands) {
-      Role role = command.getRole();
-
-      // Because results are already sorted by start_time desc, first occurrence is guaranteed to have max(start_time).
-      if (!latestTimestamps.containsKey(role)) {
-        latestTimestamps.put(role, command);
-      }
+    // get the latest service checks, grouped by role
+    List<LastServiceCheckDTO> lastServiceChecks = hostRoleCommandDAO.getLatestServiceChecksByRole(clusterId);
+    Map<String, Long> lastServiceChecksByRole = new HashMap<>();
+    for( LastServiceCheckDTO lastServiceCheck : lastServiceChecks ) {
+      lastServiceChecksByRole.put(lastServiceCheck.role, lastServiceCheck.endTime);
     }
 
     LinkedHashSet<String> failedServiceNames = new LinkedHashSet<>();
-    for (Map.Entry<String, Long> serviceEntry : lastServiceConfigUpdates.entrySet()) {
-      String serviceName = serviceEntry.getKey();
-      Long configTimestamp = serviceEntry.getValue();
 
-      boolean serviceCheckWasExecuted = false;
-      for (HostRoleCommandEntity command : latestTimestamps.values()) {
-        if (null !=  command.getCommandDetail() && command.getCommandDetail().contains(serviceName)) {
-          serviceCheckWasExecuted = true;
-          Long serviceCheckTimestamp = command.getStartTime();
+    // for every service, see if there was a service check executed and then
+    for( Entry<String, Long> entry : lastServiceConfigUpdates.entrySet() ) {
+      String serviceName = entry.getKey();
+      long configCreationTime = entry.getValue();
+      String role = actionMetadataProvider.get().getServiceCheckAction(serviceName);
 
-          if (serviceCheckTimestamp < configTimestamp) {
-            failedServiceNames.add(serviceName);
-            LOG.info("Service {} latest config change is {}, latest service check executed at {}",
-                serviceName,
-                DATE_FORMAT.format(new Date(configTimestamp)),
-                DATE_FORMAT.format(new Date(serviceCheckTimestamp)));
-          }
-        }
+      if(!lastServiceChecksByRole.containsKey(role) ) {
+        LOG.info("There was no service check found for service {} matching role {}", serviceName, role);
+        failedServiceNames.add(serviceName);
+        continue;
       }
 
-      if (!serviceCheckWasExecuted) {
+      long lastServiceCheckTime = lastServiceChecksByRole.get(role);
+      if (lastServiceCheckTime < configCreationTime) {
         failedServiceNames.add(serviceName);
-        LOG.info("Service {} service check has never been executed", serviceName);
+        LOG.info(
+            "The {} service (role {}) had its configurations updated on {}, but the last service check was {}",
+            serviceName, role, DATE_FORMAT.format(new Date(configCreationTime)),
+            DATE_FORMAT.format(new Date(lastServiceCheckTime)));
       }
     }
 
