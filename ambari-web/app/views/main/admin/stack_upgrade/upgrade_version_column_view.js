@@ -82,14 +82,8 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
       return false;
     }
     if ( this.get('content.isCurrent') ){
-      // if version is current, check whether this service is available and the version itself is the newest version of all versions that contain the same service
-      var serviceWithHigherVersion =  App.RepositoryVersion.find().filterProperty('isCurrent').find(function ( version ) {
-        var service = version.get('stackServices').toArray().find( function (service) {
-          return service.get('name') === stackService.get('name') && service.get('isAvailable')
-        });
-        return Boolean(service && stringUtils.compareVersions(version.get('repositoryVersion'), this.get('content.repositoryVersion')) === 1);
-      }, this);
-      return stackService.get('isAvailable') && !serviceWithHigherVersion;
+      var originalService = App.Service.find(stackService.get('name'));
+      return stackService.get('isAvailable') && originalService.get('desiredRepositoryVersionId') === this.get('content.id');
     }
     else{
       return stackService.get('isAvailable')
