@@ -864,3 +864,6 @@ druid_storage_dir = ""
 if 'druid-common' in config['configurations'] \
         and 'druid.storage.storageDirectory' in config['configurations']['druid-common']:
   druid_storage_dir = config['configurations']['druid-common']['druid.storage.storageDirectory']
+
+
+manage_hive_fsroot = default('/configurations/cluster-env/manage_hive_fsroot', True)
