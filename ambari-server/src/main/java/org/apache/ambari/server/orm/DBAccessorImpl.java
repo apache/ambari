@@ -653,12 +653,10 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void alterColumn(String tableName, DBColumnInfo columnInfo)
-          throws SQLException {
+  public void alterColumn(String tableName, DBColumnInfo columnInfo) throws SQLException {
     //varchar extension only (derby limitation, but not too much for others),
     if (dbmsHelper.supportsColumnTypeChange()) {
-      String statement = dbmsHelper.getAlterColumnStatement(tableName,
-              columnInfo);
+      String statement = dbmsHelper.getAlterColumnStatement(tableName, columnInfo);
       executeQuery(statement);
     } else {
       //use addColumn: add_tmp-update-drop-rename for Derby
