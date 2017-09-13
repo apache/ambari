@@ -36,7 +36,6 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -56,7 +55,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -308,12 +306,6 @@ public class ComponentVersionCheckActionTest {
 
     makeUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
 
-    // Verify the repo before calling Finalize
-    AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
-
-    RepositoryInfo repo = metaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
-    assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -469,12 +461,6 @@ public class ComponentVersionCheckActionTest {
 
     sch = createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
     sch.setVersion(HDP_2_1_1_1);
-
-    // Verify the repo before calling Finalize
-    AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
-
-    RepositoryInfo repo = metaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
-    assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
