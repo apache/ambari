@@ -117,6 +117,7 @@
                     <include>karma.conf.js</include>
                     <include>tsconfig.json</include>
                     <include>tslint.json</include>
+                    <include>webpack.config.js</include>
                   </includes>
                 </resource>
               </resources>

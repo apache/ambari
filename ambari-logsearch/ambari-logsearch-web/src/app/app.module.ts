@@ -79,7 +79,7 @@ import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 
 export function HttpLoaderFactory(http: Http) {
   // adding 'static' parameter to step over mock data request
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json?static=true');
+  return new TranslateHttpLoader(http, 'resources/assets/i18n/', '.json?static=true');
 }
 
 export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions): any {
