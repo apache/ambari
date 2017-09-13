@@ -21,6 +21,7 @@ import static org.apache.ambari.server.view.ViewContextImpl.CORE_SITE;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
@@ -121,6 +123,9 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String SERVICE_COMPONENT_DESIRED_STATE = "servicecomponentdesiredstate";
   public static final String HOST_COMPONENT_DESIRED_STATE = "hostcomponentdesiredstate";
   public static final String HOST_COMPONENT_STATE = "hostcomponentstate";
+
+  public static final String AMS_SSL_CLIENT = "ams-ssl-client";
+  public static final String METRIC_TRUSTSTORE_ALIAS = "ssl.client.truststore.alias";
 
   /**
    * Logger.
@@ -395,6 +400,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     removeSupersetFromDruid();
     ensureZeppelinProxyUserConfigs();
     updateKerberosDescriptorArtifacts();
+    updateAmsConfigs();
   }
 
   public int getCurrentVersionID() throws AmbariException, SQLException {
@@ -531,6 +537,30 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
           }
           artifactEntity.setArtifactData(kerberosDescriptor.toMap());
           artifactDAO.merge(artifactEntity);
+        }
+      }
+    }
+  }
+
+  protected void updateAmsConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+
+          Config amsSslClient = cluster.getDesiredConfigByType(AMS_SSL_CLIENT);
+          if (amsSslClient != null) {
+            Map<String, String> amsSslClientProperties = amsSslClient.getProperties();
+
+            if (amsSslClientProperties.containsKey(METRIC_TRUSTSTORE_ALIAS)) {
+              LOG.info("Removing " + METRIC_TRUSTSTORE_ALIAS + " from " + AMS_SSL_CLIENT);
+              removeConfigurationPropertiesFromCluster(cluster, AMS_SSL_CLIENT, Collections.singleton(METRIC_TRUSTSTORE_ALIAS));
+            }
+
+          }
         }
       }
     }
