@@ -50,10 +50,8 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import com.google.common.collect.Maps;
-import com.google.inject.AbstractModule;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
@@ -62,23 +60,16 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
-import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
-import org.apache.ambari.server.orm.entities.WidgetEntity;
-import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
@@ -88,9 +79,7 @@ import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import com.google.gson.Gson;
@@ -151,9 +140,6 @@ public class UpgradeCatalog260Test {
 
   @Mock(type = MockType.NICE)
   private Injector injector;
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Before
   public void init() {
@@ -749,73 +735,4 @@ public class UpgradeCatalog260Test {
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
 
-  @Test
-  public void testHDFSWidgetUpdate() throws Exception {
-    final Clusters clusters = createNiceMock(Clusters.class);
-    final Cluster cluster = createNiceMock(Cluster.class);
-    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-    final Gson gson = new Gson();
-    final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
-    final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-    WidgetEntity widgetEntity = createNiceMock(WidgetEntity.class);
-    StackId stackId = new StackId("HDP", "2.0.0");
-    StackInfo stackInfo = createNiceMock(StackInfo.class);
-    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-
-    String widgetStr = "{\n" +
-      "  \"layouts\": [\n" +
-      "      {\n" +
-      "      \"layout_name\": \"default_hdfs_heatmap\",\n" +
-      "      \"display_name\": \"Standard HDFS HeatMaps\",\n" +
-      "      \"section_name\": \"HDFS_HEATMAPS\",\n" +
-      "      \"widgetLayoutInfo\": [\n" +
-      "        {\n" +
-      "          \"widget_name\": \"HDFS Bytes Read\",\n" +
-      "          \"metrics\": [],\n" +
-      "          \"values\": []\n" +
-      "        }\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  ]\n" +
-      "}";
-
-    File dataDirectory = temporaryFolder.newFolder();
-    File file = new File(dataDirectory, "hdfs_widget.json");
-    FileUtils.writeStringToFile(file, widgetStr);
-
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
-        bind(AmbariManagementController.class).toInstance(controller);
-        bind(Clusters.class).toInstance(clusters);
-        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(Gson.class).toInstance(gson);
-        bind(WidgetDAO.class).toInstance(widgetDAO);
-        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(AmbariMetaInfo.class).toInstance(metaInfo);
-      }
-    });
-    expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", cluster);
-    }}).anyTimes();
-    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
-    expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
-    expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo).anyTimes();
-    expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file).anyTimes();
-
-    expect(widgetDAO.findByName(1L, "HDFS Bytes Read", "ambari", "HDFS_HEATMAPS"))
-      .andReturn(Collections.singletonList(widgetEntity));
-    expect(widgetDAO.merge(widgetEntity)).andReturn(null);
-    expect(widgetEntity.getWidgetName()).andReturn("HDFS Bytes Read").anyTimes();
-
-    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo);
-
-    mockInjector.getInstance(UpgradeCatalog260.class).updateHDFSWidgetDefinition();
-
-    verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
-  }
 }
