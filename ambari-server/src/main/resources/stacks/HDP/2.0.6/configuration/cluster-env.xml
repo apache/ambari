@@ -357,4 +357,10 @@ gpgcheck=0</value>
     <description>Timeout for safemode exit, during namenode rolling restart</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>manage_hive_fsroot</name>
+    <value>true</value>
+    <description>If flag is set to true, ambari will manage fsroot for Hive, by setting it to fs.defautlFS of local HDFS</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
