@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.alerts.AlertRunnable;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
