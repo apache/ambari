@@ -330,7 +330,8 @@
             "zeppelin.interpreter.connect.timeout": "30000", 
             "zeppelin.notebook.s3.bucket": "zeppelin", 
             "zeppelin.notebook.homescreen.hide": "false", 
-            "zeppelin.server.allowed.origins": "*"
+            "zeppelin.server.allowed.origins": "*",
+            "zeppelin.interpreter.config.upgrade": "true"
         },
     "zoo.cfg": {
       "clientPort": "2181"

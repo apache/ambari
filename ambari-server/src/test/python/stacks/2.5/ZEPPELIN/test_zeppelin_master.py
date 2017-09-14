@@ -24,9 +24,10 @@ from mock.mock import MagicMock, patch, call
 import time
 from resource_management.core import sudo
 import glob
+import interpreter_json_generated
 
 @patch.object(glob, "glob", new = MagicMock(return_value=["/tmp"]))
-@patch.object(sudo, "read_file", new = MagicMock(return_value='{"interpreterSettings":[]}'))
+@patch.object(sudo, "read_file", new = MagicMock(return_value=interpreter_json_generated.template))
 class TestZeppelinMaster(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ZEPPELIN/0.6.0.2.5/package"
   STACK_VERSION = "2.5"
@@ -319,12 +320,20 @@ class TestZeppelinMaster(RMFTestCase):
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
-        content = '{\n  "interpreterSettings": []\n}',
+        content=interpreter_json_generated.template_after_base,
         owner = 'zeppelin',
         group = 'zeppelin',
     )
+    self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
+        content=interpreter_json_generated.template_after_without_spark_and_livy,
+        owner = 'zeppelin',
+        group = 'zeppelin')
+    self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
+                              content=interpreter_json_generated.template_after_kerberos,
+                              owner = 'zeppelin',
+                              group = 'zeppelin')
     self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh restart >> /var/log/zeppelin/zeppelin-setup.log',
-        user = 'zeppelin',
+        user = 'zeppelin'
     )
     self.assertNoMoreResources()
 
