@@ -72,6 +72,11 @@ class TestUpgradeCatalog10 extends TestUpgradeCatalog {
   public String getTargetVersion() {
     return "0.1.0";
   }
+
+  @Override
+  public String getSourceVersion() {
+    return "0.0.1";
+  }
 }
 
 /**
@@ -141,11 +146,11 @@ public class SchemaUpgradeHelperTest {
 
   @Test
   public void testGetMinimalUpgradeCatalogVersion() throws Exception{
-    Method getMinimalUpgradeCatalogVersion = schemaUpgradeHelper.getClass().getDeclaredMethod("getMinimalUpgradeCatalogVersion");
+    Method getMinimalUpgradeCatalogVersion = schemaUpgradeHelper.getClass().getDeclaredMethod("getMinimalUpgradeCatalogSourceVersion");
     getMinimalUpgradeCatalogVersion.setAccessible(true);
     String s = (String)getMinimalUpgradeCatalogVersion.invoke(schemaUpgradeHelper);
 
-    Assert.assertEquals("0.1.0", s);
+    Assert.assertEquals("0.0.1", s);
   }
 
   @Test

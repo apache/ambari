@@ -178,6 +178,9 @@ public class SchemaUpgradeHelper {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
+      catalogBinder.addBinding().to(UpgradeCatalog2402.class);
+      catalogBinder.addBinding().to(UpgradeCatalog242.class);
+      catalogBinder.addBinding().to(UpgradeCatalog250.class);
       catalogBinder.addBinding().to(UpgradeCatalog251.class);
       catalogBinder.addBinding().to(UpgradeCatalog252.class);
       catalogBinder.addBinding().to(UpgradeCatalog260.class);
@@ -304,11 +307,11 @@ public class SchemaUpgradeHelper {
   }
 
   /**
-   * Returns minimal version of available {@link UpgradeCatalog}
+   * Returns minimal source version of available {@link UpgradeCatalog}
    *
-   * @return string representation of minimal version of {@link UpgradeCatalog}
+   * @return string representation of minimal source version of {@link UpgradeCatalog}
    */
-  private String getMinimalUpgradeCatalogVersion(){
+  private String getMinimalUpgradeCatalogSourceVersion(){
     List<UpgradeCatalog> candidateCatalogs = new ArrayList<>(allUpgradeCatalogs);
     Collections.sort(candidateCatalogs, new AbstractUpgradeCatalog.VersionComparator());
 
@@ -316,13 +319,13 @@ public class SchemaUpgradeHelper {
       return null;
     }
 
-    return candidateCatalogs.iterator().next().getTargetVersion();
+    return candidateCatalogs.iterator().next().getSourceVersion();
   }
 
   /**
    * Checks if source version meets minimal requirements for upgrade
    *
-   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link #getMinimalUpgradeCatalogVersion()}
+   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link #getMinimalUpgradeCatalogSourceVersion()}
    * @param sourceVersion current version of the Database, which need to be upgraded
    *
    * @return  true if upgrade is allowed or false if not
@@ -399,7 +402,7 @@ public class SchemaUpgradeHelper {
       String sourceVersion = schemaUpgradeHelper.readSourceVersion();
       LOG.info("Upgrading schema from source version = " + sourceVersion);
 
-      String minimalRequiredUpgradeVersion = schemaUpgradeHelper.getMinimalUpgradeCatalogVersion();
+      String minimalRequiredUpgradeVersion = schemaUpgradeHelper.getMinimalUpgradeCatalogSourceVersion();
 
       if (!schemaUpgradeHelper.verifyUpgradePath(minimalRequiredUpgradeVersion, sourceVersion)){
         throw new AmbariException(String.format("Database version does not meet minimal upgrade requirements. Expected version should be not less than %s, current version is %s",
