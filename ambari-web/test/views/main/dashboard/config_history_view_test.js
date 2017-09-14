@@ -111,6 +111,7 @@ describe('App.MainConfigHistoryView', function() {
       App.ServiceConfigVersion.find.restore();
     });
     it("content", function () {
+      subView.observeContent();
       expect(subView.get('content')).to.eql([
         {
           "value": "",
