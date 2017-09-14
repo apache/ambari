@@ -3054,20 +3054,27 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#installRepoVersionError()", function () {
     var header = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title');
+    var mock = Em.Object.create({
+      id: 1,
+      defaultStatus: 'NOT_REQUIRED',
+      stackVersion: {}
+    });
 
     beforeEach(function() {
       sinon.stub(App, 'showAlertPopup');
+      sinon.stub(App.RepositoryVersion, 'find').returns(mock);
     });
 
     afterEach(function() {
       App.showAlertPopup.restore();
+      App.RepositoryVersion.find.restore();
     });
 
     it("responseText is incorrect", function() {
       var data = {
         responseText: null
       };
-      controller.installRepoVersionError(data);
+      controller.installRepoVersionError(data, null, mock);
       expect(App.showAlertPopup.calledWith(header, "")).to.be.true;
     });
 
@@ -3076,7 +3083,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         responseText: '',
         statusText: 'timeout'
       };
-      controller.installRepoVersionError(data);
+      controller.installRepoVersionError(data, null, mock);
       expect(App.showAlertPopup.calledWith(header, Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.timeout'))).to.be.true;
     });
 
@@ -3084,7 +3091,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       var data = {
         responseText: '{"message":"msg"}'
       };
-      controller.installRepoVersionError(data);
+      controller.installRepoVersionError(data, null, mock);
       expect(App.showAlertPopup.calledWith(header, 'msg')).to.be.true;
     });
   });

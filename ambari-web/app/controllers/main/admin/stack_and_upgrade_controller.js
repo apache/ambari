@@ -1732,7 +1732,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param data
    * @method installStackVersionSuccess
    */
-  installRepoVersionError: function (data) {
+  installRepoVersionError: function (data, opt, params) {
     var header = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title');
     var body = "";
     if (data && data.responseText) {
@@ -1743,6 +1743,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     }
     if (data && data.statusText === "timeout") {
       body = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.timeout');
+    }
+    var version = App.RepositoryVersion.find(params.id);
+    version.set('defaultStatus', 'INSTALL_FAILED');
+    if (version.get('stackVersion')) {
+      version.set('stackVersion.state', 'INSTALL_FAILED');
     }
     App.showAlertPopup(header, body);
   },
@@ -1766,11 +1771,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var lastRepoVersionInstall = App.router.get('backgroundOperationsController.services').find(function(request) {
       return request.get('name').startsWith('Install version');
     });
-    if (!requestIds ||
-      (lastRepoVersionInstall && !requestIds.contains(lastRepoVersionInstall.get('id')))) {
+    if (lastRepoVersionInstall &&
+      (!requestIds || !requestIds.contains(lastRepoVersionInstall.get('id')))) {
       requestIds = [lastRepoVersionInstall.get('id')];
     }
-    return requestIds;
+    return requestIds || [];
   },
 
   /**
