@@ -566,7 +566,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'INSTALL_FAILED',
           isButton: true,
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
         },
         title: 'INSTALL_FAILED state, no admin access, request in progress, another installation running'
       },
@@ -597,7 +597,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'INSTALL_FAILED',
           isButton: true,
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
         },
         title: 'INSTALL_FAILED state, no admin access, no requests in progress, another installation running'
       },
@@ -631,7 +631,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: false
           }],
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
           isDisabled: false
         },
         title: 'OUT_OF_SYNC state, admin access, no requests in progress, no installation'
@@ -664,7 +664,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: true
           }],
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
           isDisabled: true
         },
         title: 'OUT_OF_SYNC state, admin access, request in progress, no installation'
@@ -718,7 +718,7 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation',
+              action: 'installRepoVersionPopup',
               isDisabled: true
             },
             {
@@ -764,7 +764,7 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation',
+              action: 'installRepoVersionPopup',
               isDisabled: true
             },
             {
@@ -1408,7 +1408,7 @@ describe('App.UpgradeVersionBoxView', function () {
         ],
         "isButtonGroup": true,
         "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
-        "action": 'installRepoVersionConfirmation',
+        "action": 'installRepoVersionPopup',
         "isDisabled": false
       })));
     });
@@ -1434,7 +1434,7 @@ describe('App.UpgradeVersionBoxView', function () {
         "buttons": [
           {
             "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
-            "action": "installRepoVersionConfirmation",
+            "action": "installRepoVersionPopup",
             "isDisabled": false
           },
           {
@@ -1514,7 +1514,7 @@ describe('App.UpgradeVersionBoxView', function () {
         ],
         "isButton": false,
         "text": Em.I18n.t('admin.stackVersions.version.installNow'),
-        "action": 'installRepoVersionConfirmation',
+        "action": 'installRepoVersionPopup',
         "isDisabled": false,
         "isButtonGroup": true
       })));
