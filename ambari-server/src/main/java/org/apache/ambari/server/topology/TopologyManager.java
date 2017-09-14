@@ -116,9 +116,6 @@ public class TopologyManager {
   private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<>();
 
   @Inject
-  private Injector injector;
-
-  @Inject
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
 
   @Inject
@@ -276,10 +273,6 @@ public class TopologyManager {
 
     SecurityType securityType = null;
     Credential credential = null;
-
-    if (null == repoVersion && null == repoVersionID) {
-      throw new AmbariException("Repository should be created and the version passed in the request.");
-    }
 
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
