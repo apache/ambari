@@ -1702,6 +1702,7 @@ Em.I18n.translations = {
   'admin.stackVersions.upgrade.start.fail.title':'Upgrade could not be started',
   'admin.stackVersions.upgrade.installPackage.fail.title':'Packages could not be installed',
   'admin.stackVersions.upgrade.installPackage.fail.timeout':'Request timed out.',
+  'admin.stackVersions.upgrade.installPackage.fail.noAvailableServices':"Version {0} does not contain services that are installed.",
 
   'admin.stackVersions.upgrade.patch.revert.confirmation':'Are you sure you want to revert the following services:',
 

@@ -1457,14 +1457,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * confirmation popup before install repository version
    */
-  installRepoVersionConfirmation: function (repo) {
+  installRepoVersionPopup: function (repo) {
+    var availableServices = repo.get('stackServices').filter(function(service) {
+      return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable') && service.get('isUpgradable');
+    }, this);
+    if (!availableServices.length){
+      return App.showAlertPopup( Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title'), Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.noAvailableServices').format(repo.get('displayName')) );
+    }
     var self = this;
     var bodyContent = repo.get('isPatch')
       ? Em.I18n.t('admin.stackVersions.version.install.patch.confirm')
       : Em.I18n.t('admin.stackVersions.version.install.confirm');
-    var availableServices = repo.get('stackServices').filter(function(service) {
-      return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable') && service.get('isUpgradable');
-    }, this);
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       popupBody: bodyContent.format(repo.get('displayName')),

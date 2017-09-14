@@ -1192,18 +1192,20 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#installRepoVersionConfirmation()", function () {
+  describe("#installRepoVersionPopup()", function () {
     before(function () {
       sinon.stub(controller, 'installRepoVersion', Em.K);
+      sinon.stub(App.Service, 'find').returns({});
     });
     after(function () {
       controller.installRepoVersion.restore();
+      App.Service.find.restore();
     });
     it("show popup", function () {
       var repo = Em.Object.create({'displayName': 'HDP-2.2', stackServices: []});
-      var popup = controller.installRepoVersionConfirmation(repo);
+      var popup = controller.installRepoVersionPopup(repo);
       popup.onPrimary();
-      expect(controller.installRepoVersion.calledWith(repo)).to.be.true;
+      expect(controller.installRepoVersion.calledWith(repo)).to.be.false;
     });
   });
 
