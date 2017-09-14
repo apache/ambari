@@ -118,6 +118,7 @@ public class TopologyManagerTest {
 
   @Mock(type = MockType.NICE)
   private ProvisionClusterRequest request;
+
   private final PersistedTopologyRequest persistedTopologyRequest = new PersistedTopologyRequest(1, request);
   @Mock(type = MockType.STRICT)
   private LogicalRequestFactory logicalRequestFactory;
@@ -283,7 +284,6 @@ public class TopologyManagerTest {
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
 
