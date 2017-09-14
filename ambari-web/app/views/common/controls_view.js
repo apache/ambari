@@ -230,9 +230,9 @@ App.ServiceConfigTextFieldUserGroupWithID = Ember.View.extend(App.ServiceConfigP
   templateName: require('templates/wizard/controls_service_config_usergroup_with_id'),
 
   isUIDGIDVisible: function () {
-    var overrideUidDisabled = this.get('parentView').serviceConfigs.findProperty('name', 'override_uid').value === 'false';
+    var overrideUid = this.get('parentView').serviceConfigs.findProperty('name', 'override_uid');
     //don't display the ugid field if there is no uid/gid for this property or override_uid is unchecked
-    if (Em.isNone(this.get('serviceConfig.ugid')) || overrideUidDisabled) {
+    if (Em.isNone(this.get('serviceConfig.ugid')) || overrideUid && overrideUid.value === 'false') {
       return false;
     }
 
