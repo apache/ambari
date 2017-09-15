@@ -2536,6 +2536,50 @@ public class UpgradeHelperTest extends EasyMockSupport {
   }
 
   @Test
+  public void testSequentialServiceChecksWithServiceCheckFailure() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test_checks"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_checks");
+    assertNotNull(upgrade);
+
+    // !!! fake skippable so we don't affect other tests
+    for (Grouping g : upgrade.getAllGroups()) {
+      if (g.name.equals("SERVICE_CHECK_1") || g.name.equals("SERVICE_CHECK_2")) {
+        g.skippable = true;
+      }
+    }
+
+    Cluster cluster = makeCluster();
+    cluster.deleteService("HDFS");
+    cluster.deleteService("YARN");
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING, repositoryVersion2110,
+        RepositoryType.STANDARD, cluster.getServices().keySet(), m_masterHostResolver, false);
+    expect(context.isServiceCheckFailureAutoSkipped()).andReturn(Boolean.TRUE).atLeastOnce();
+
+    replay(context);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(5, groups.size());
+
+    UpgradeGroupHolder serviceCheckGroup = groups.get(2);
+    assertEquals(ServiceCheckGrouping.class, serviceCheckGroup.groupClass);
+    assertEquals(4, serviceCheckGroup.items.size());
+
+    StageWrapper wrapper = serviceCheckGroup.items.get(0);
+    assertEquals(ServiceCheckGrouping.ServiceCheckStageWrapper.class, wrapper.getClass());
+    assertTrue(wrapper.getText().contains("ZooKeeper"));
+
+    wrapper = serviceCheckGroup.items.get(serviceCheckGroup.items.size()-1);
+    assertTrue(wrapper.getText().equals("Verifying Skipped Failures"));
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
+  }
+
+
+  @Test
   public void testPrematureServiceChecks() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.containsKey("upgrade_test_checks"));
