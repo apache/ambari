@@ -124,6 +124,12 @@ public class RepositoryVersionHelper {
         repositoryEntity.setBaseUrl(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
         repositoryEntity.setName(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
         repositoryEntity.setRepositoryId(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
+        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID) != null) {
+          repositoryEntity.setDistribution(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID).getAsString());
+        }
+        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID) != null) {
+          repositoryEntity.setComponents(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID).getAsString());
+        }
         if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID) != null) {
           repositoryEntity.setMirrorsList(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID).getAsString());
         }
@@ -177,6 +183,8 @@ public class RepositoryVersionHelper {
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, repository.getBaseUrl());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, repository.getRepoName());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, repository.getRepoId());
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID, repository.getDistribution());
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, repository.getComponents());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
         repositoriesJson.add(repositoryJson);
@@ -196,6 +204,8 @@ public class RepositoryVersionHelper {
         RepositoryInfo repositoryInfo = new RepositoryInfo();
         repositoryInfo.setRepoId(repositoryEntity.getRepositoryId());
         repositoryInfo.setRepoName(repositoryEntity.getName());
+        repositoryInfo.setDistribution(repositoryEntity.getDistribution());
+        repositoryInfo.setComponents(repositoryEntity.getComponents());
         repositoryInfo.setBaseUrl(repositoryEntity.getBaseUrl());
         repositoryInfo.setOsType(os.getOsType());
         repositoryInfo.setAmbariManagedRepositories(os.isAmbariManagedRepos());
