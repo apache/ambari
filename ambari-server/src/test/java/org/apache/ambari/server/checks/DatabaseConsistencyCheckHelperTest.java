@@ -179,8 +179,9 @@ public class DatabaseConsistencyCheckHelperTest {
     expect(mockStatement.executeQuery("select count(*) from hostcomponentstate")).andReturn(mockResultSet);
     expect(mockStatement.executeQuery("select count(*) from hostcomponentdesiredstate")).andReturn(mockResultSet);
     expect(mockStatement.executeQuery("select count(*) FROM hostcomponentstate hcs " +
-            "JOIN hostcomponentdesiredstate hcds ON hcs.service_name=hcds.service_name AND " +
-            "hcs.component_name=hcds.component_name AND hcs.host_id=hcds.host_id")).andReturn(mockResultSet);
+            "JOIN hostcomponentdesiredstate hcds ON hcs.service_id=hcds.service_id AND " +
+            "hcs.service_group_id=hcds.service_group_id AND hcs.component_name=hcds.component_name AND " +
+            "hcs.host_id=hcds.host_id")).andReturn(mockResultSet);
     expect(mockStatement.executeQuery("select component_name, host_id from hostcomponentstate group by component_name, host_id having count(component_name) > 1")).andReturn(mockResultSet);
 
     DatabaseConsistencyCheckHelper.setInjector(mockInjector);

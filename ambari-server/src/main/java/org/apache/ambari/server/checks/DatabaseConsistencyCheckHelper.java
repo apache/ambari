@@ -487,7 +487,9 @@ public class DatabaseConsistencyCheckHelper {
     String GET_HOST_COMPONENT_STATE_COUNT_QUERY = "select count(*) from hostcomponentstate";
     String GET_HOST_COMPONENT_DESIRED_STATE_COUNT_QUERY = "select count(*) from hostcomponentdesiredstate";
     String GET_MERGED_TABLE_ROW_COUNT_QUERY = "select count(*) FROM hostcomponentstate hcs " +
-            "JOIN hostcomponentdesiredstate hcds ON hcs.service_name=hcds.service_name AND hcs.component_name=hcds.component_name AND hcs.host_id=hcds.host_id";
+            "JOIN hostcomponentdesiredstate hcds ON hcs.service_id=hcds.service_id AND " +
+            "hcs.service_group_id=hcds.service_group_id AND hcs.component_name=hcds.component_name AND " +
+            "hcs.host_id=hcds.host_id";
     String GET_HOST_COMPONENT_STATE_DUPLICATES_QUERY = "select component_name, host_id from hostcomponentstate group by component_name, host_id having count(component_name) > 1";
     int hostComponentStateCount = 0;
     int hostComponentDesiredStateCount = 0;
