@@ -2858,8 +2858,9 @@ describe('hosts utils', function () {
 
         it('start index', function () {
           view.set('startIndex', 0);
+          view.set('parentView.availableHosts', []);
           view.propertyDidChange('filterColumn');
-          expect(view.get('startIndex')).to.equal(1);
+          expect(view.get('startIndex')).to.equal(0);
         });
 
       });

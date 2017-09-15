@@ -20,7 +20,6 @@ var App = require('app');
 var c;
 
 describe('App.ManageConfigGroupsController', function() {
-  var controller = App.ManageConfigGroupsController.create({});
 
   beforeEach(function() {
     c = App.ManageConfigGroupsController.create({});
@@ -587,6 +586,94 @@ describe('App.ManageConfigGroupsController', function() {
       expect(c.get('componentsForFilter').mapProperty('selected')).to.be.eql([false, false]);
     });
 
+  });
+
+  describe('#getNewlyAddedHostComponentsMap', function() {
+    beforeEach(function() {
+      this.mockGet = sinon.stub(App.router, 'get');
+      this.mockGet.withArgs('addServiceController.content.clients').returns([
+        {
+          isInstalled: true,
+          component_name: 'Client1',
+          display_name: 'client1'
+        },
+        {
+          isInstalled: false,
+          component_name: 'Client2',
+          display_name: 'client2'
+        }
+      ]);
+      this.mockGet.withArgs('addServiceController.content.masterComponentHosts').returns([
+        {
+          isInstalled: true,
+          hostName: 'host1',
+          component: 'Master1',
+          display_name: 'master1'
+        },
+        {
+          isInstalled: false,
+          hostName: 'host2',
+          component: 'Master2',
+          display_name: 'master2'
+        }
+      ]);
+      this.mockGet.withArgs('addServiceController.content.slaveComponentHosts').returns([
+        {
+          componentName: 'Slave1',
+          displayName: 'slave1',
+          hosts: [
+            {
+              hostName: 'host1',
+              isInstalled: false
+            }
+          ]
+        },
+        {
+          componentName: 'Slave2',
+          displayName: 'slave2',
+          hosts: [
+            {
+              hostName: 'host2',
+              isInstalled: true
+            }
+          ]
+        },
+        {
+          componentName: 'CLIENT',
+          displayName: 'client',
+          hosts: [
+            {
+              hostName: 'host1',
+              isInstalled: false
+            }
+          ]
+        }
+      ]);
+    });
+    afterEach(function() {
+      this.mockGet.restore();
+    });
+
+    it('should return host-components map', function() {
+      expect(JSON.stringify(c.getNewlyAddedHostComponentsMap())).to.be.equal(JSON.stringify({
+        "host2": [
+          {
+            "componentName": "Master2",
+            "displayName": "master2"
+          }
+        ],
+        "host1": [
+          {
+            "componentName": "Slave1",
+            "displayName": "slave1"
+          },
+          {
+            "componentName": "Client2",
+            "displayName": "client2"
+          }
+        ]
+      }));
+    });
   });
 
 });
