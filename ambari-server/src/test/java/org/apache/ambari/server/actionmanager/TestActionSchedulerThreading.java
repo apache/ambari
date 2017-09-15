@@ -34,14 +34,12 @@ import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
@@ -100,44 +98,37 @@ public class TestActionSchedulerThreading {
 
     StackId stackId = cluster.getCurrentStackVersion();
     StackId newStackId = new StackId("HDP-2.2.0");
-    RepositoryVersionEntity repoVersion220 = ormTestHelper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     // make sure the stacks are different
     Assert.assertFalse(stackId.equals(newStackId));
-
-    // add a service
-    String serviceName = "ZOOKEEPER";
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(cluster);
-    Service service = cluster.addService(serviceName, repositoryVersion);
-    String configType = "zoo.cfg";
 
     Map<String, String> properties = new HashMap<>();
     Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
 
-    // zoo-cfg for v1 on current stack
+    // foo-type for v1 on current stack
     properties.put("foo-property-1", "foo-value-1");
-    Config c1 = configFactory.createNew(cluster, configType, "version-1", properties, propertiesAttributes);
+    Config c1 = configFactory.createNew(cluster, "foo-type", "version-1", properties, propertiesAttributes);
 
     // make v1 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
 
     // bump the stack
-    service.setDesiredRepositoryVersion(repoVersion220);
+    cluster.setDesiredStackVersion(newStackId);
 
     // save v2
-    // zoo-cfg for v2 on new stack
+    // foo-type for v2 on new stack
     properties.put("foo-property-2", "foo-value-2");
-    Config c2 = configFactory.createNew(cluster, configType, "version-2", properties, propertiesAttributes);
+    Config c2 = configFactory.createNew(cluster, "foo-type", "version-2", properties, propertiesAttributes);
 
     // make v2 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c2), "note-2");
 
     // check desired config
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    desiredConfig = desiredConfigs.get(configType);
+    DesiredConfig desiredConfig = desiredConfigs.get("foo-type");
+    desiredConfig = desiredConfigs.get("foo-type");
     assertNotNull(desiredConfig);
     assertEquals(Long.valueOf(2), desiredConfig.getVersion());
     assertEquals("version-2", desiredConfig.getTag());
@@ -145,7 +136,7 @@ public class TestActionSchedulerThreading {
     final String hostName = cluster.getHosts().iterator().next().getHostName();
 
     // move the stack back to the old stack
-    service.setDesiredRepositoryVersion(repositoryVersion);
+    cluster.setDesiredStackVersion(stackId);
 
     // create the semaphores, taking 1 from each to make them blocking from the
     // start
@@ -167,7 +158,7 @@ public class TestActionSchedulerThreading {
     threadInitialCachingSemaphore.acquire();
 
     // apply the configs for the old stack
-    cluster.applyLatestConfigurations(stackId, serviceName);
+    cluster.applyLatestConfigurations(stackId);
 
     // wake the thread up and have it verify that it can see the updated configs
     applyLatestConfigsSemaphore.release();
