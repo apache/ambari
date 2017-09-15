@@ -3684,7 +3684,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     LOG.debug("Refresh include/exclude files action will be executed for " + serviceMasterMap);
     HashMap<String, String> requestProperties = new HashMap<>();
     requestProperties.put("context", "Update Include/Exclude Files for " + serviceMasterMap.keySet().toString());
-    requestProperties.put("exclusive", "true");
     HashMap<String, String> params = new HashMap<>();
     params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, String.valueOf(isDecommission));
 
@@ -3705,7 +3704,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     //Create request for command
     ExecuteActionRequest actionRequest = new ExecuteActionRequest(
       clusterName, AmbariCustomCommandExecutionHelper.DECOMMISSION_COMMAND_NAME, null,
-      resourceFilters, null, params, true);
+      resourceFilters, null, params, false);
     //Send action
     createAction(actionRequest, requestProperties);
   }

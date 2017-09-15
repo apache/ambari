@@ -9388,6 +9388,7 @@ public class AmbariManagementControllerTest {
     List<Long> requestIDs = actionDB.getRequestsByStatus(null, 1, false);
     Request request = actionDB.getRequest(requestIDs.get(0));
     assertEquals("Update Include/Exclude Files for [HDFS]", request.getRequestContext());
+    assertEquals(false, request.isExclusive());
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     Map<String, String> requestParams = StageUtils.getGson().fromJson(request.getInputs(), type);
     assertEquals(2, requestParams.size());
