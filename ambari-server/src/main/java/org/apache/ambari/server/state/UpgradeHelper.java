@@ -563,15 +563,29 @@ public class UpgradeHelper {
     LinkedHashSet<StageWrapper> priority = new LinkedHashSet<>();
     LinkedHashSet<StageWrapper> others = new LinkedHashSet<>();
 
+    Set<String> extraKeys = new HashSet<>();
+    LinkedHashSet<StageWrapper> extras = new LinkedHashSet<>();
+
     for (List<StageWrapper> holderItems : new List[] { oldHolder.items, newHolder.items }) {
       for (StageWrapper stageWrapper : holderItems) {
-        ServiceCheckStageWrapper wrapper = (ServiceCheckStageWrapper) stageWrapper;
-
-        if (wrapper.priority) {
-          priority.add(stageWrapper);
+        if (stageWrapper instanceof ServiceCheckStageWrapper) {
+          ServiceCheckStageWrapper wrapper = (ServiceCheckStageWrapper) stageWrapper;
+          if (wrapper.priority) {
+            priority.add(stageWrapper);
+          } else {
+            others.add(stageWrapper);
+          }
         } else {
-          others.add(stageWrapper);
+          // !!! It's a good chance that back-to-back service check groups are adding the
+          // same non-service-check wrappers.
+          // this should be "equal enough" to prevent them from duplicating on merge
+          String key = stageWrapper.toString();
+          if (!extraKeys.contains(key)) {
+            extras.add(stageWrapper);
+            extraKeys.add(key);
+          }
         }
+
       }
     }
 
@@ -580,6 +594,7 @@ public class UpgradeHelper {
 
     oldHolder.items = Lists.newLinkedList(priority);
     oldHolder.items.addAll(others);
+    oldHolder.items.addAll(extras);
   }
 
   /**
