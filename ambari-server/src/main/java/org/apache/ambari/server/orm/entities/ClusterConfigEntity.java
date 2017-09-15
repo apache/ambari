@@ -71,6 +71,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
         name = "ClusterConfigEntity.findEnabledConfigByType",
         query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1 and config.type = :type"),
     @NamedQuery(
+        name = "ClusterConfigEntity.findEnabledConfigs",
+        query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1"),
+    @NamedQuery(
         name = "ClusterConfigEntity.findEnabledConfigsByTypes",
         query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1 and config.type in :types") })
 

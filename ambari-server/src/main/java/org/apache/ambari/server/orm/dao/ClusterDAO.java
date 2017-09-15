@@ -341,9 +341,29 @@ public class ClusterDAO {
    *          the entity to merge (not {@code null}).
    * @return the managed entity which was merged (never {@code null}).
    */
+  @Transactional
   public ClusterConfigEntity merge(ClusterConfigEntity clusterConfigEntity) {
+    return merge(clusterConfigEntity, false);
+  }
+
+  /**
+   * Merge the specified entity into the current persistence context.
+   *
+   * @param clusterConfigEntity
+   *          the entity to merge (not {@code null}).
+   * @param flush
+   *          if {@code true} then {@link EntityManager#flush()} will be invoked
+   *          immediately after the merge.
+   * @return the managed entity which was merged (never {@code null}).
+   */
+  @Transactional
+  public ClusterConfigEntity merge(ClusterConfigEntity clusterConfigEntity, boolean flush) {
     EntityManager entityManager = entityManagerProvider.get();
-    return entityManager.merge(clusterConfigEntity);
+    ClusterConfigEntity clusterConfigEntityRes = entityManager.merge(clusterConfigEntity);
+    if(flush) {
+      entityManager.flush();
+    }
+    return clusterConfigEntityRes;
   }
 
   @Transactional

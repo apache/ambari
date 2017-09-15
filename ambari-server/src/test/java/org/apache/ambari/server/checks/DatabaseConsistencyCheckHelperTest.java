@@ -19,6 +19,9 @@ package org.apache.ambari.server.checks;
 
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -33,16 +36,20 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -155,13 +162,13 @@ public class DatabaseConsistencyCheckHelperTest {
   @Test
   public void testCheckTopologyTablesAreConsistent() throws Exception {
     testCheckTopologyTablesConsistent(2);
-    Assert.assertFalse(DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+    Assert.assertFalse(DatabaseConsistencyCheckHelper.getLastCheckResult().isErrorOrWarning());
   }
 
   @Test
   public void testCheckTopologyTablesAreNotConsistent() throws Exception {
     testCheckTopologyTablesConsistent(1);
-    Assert.assertTrue(DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+    Assert.assertTrue(DatabaseConsistencyCheckHelper.getLastCheckResult().isErrorOrWarning());
   }
 
   private void testCheckTopologyTablesConsistent(int resultCount) throws Exception {
@@ -746,5 +753,80 @@ public class DatabaseConsistencyCheckHelperTest {
     Assert.assertFalse(MapUtils.isEmpty(configGroups));
     Assert.assertEquals(1, configGroups.size());
     Assert.assertEquals(1L, configGroups.values().iterator().next().getId().longValue());
+  }
+
+  @Test
+  public void testFixConfigsSelectedMoreThanOnce() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
+    final ClusterDAO clusterDAO = easyMockSupport.createNiceMock(ClusterDAO.class);
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final ResultSet mockResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
+
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(ClusterDAO.class).toInstance(clusterDAO);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+
+    expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
+    expect(mockStatement.executeQuery("select c.cluster_name, cc.type_name from clusterconfig cc " +
+        "join clusters c on cc.cluster_id=c.cluster_id " +
+        "group by c.cluster_name, cc.type_name " +
+        "having sum(cc.selected) > 1")).andReturn(mockResultSet);
+    expect(mockResultSet.next()).andReturn(true).once();
+    expect(mockResultSet.getString("cluster_name")).andReturn("123").once();
+    expect(mockResultSet.getString("type_name")).andReturn("type1").once();
+    expect(mockResultSet.next()).andReturn(false).once();
+
+    Cluster clusterMock = easyMockSupport.createNiceMock(Cluster.class);
+    expect(mockClusters.getCluster("123")).andReturn(clusterMock);
+
+    expect(clusterMock.getClusterId()).andReturn(123L).once();
+
+    ClusterConfigEntity clusterConfigEntity1 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
+    ClusterConfigEntity clusterConfigEntity2 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
+    expect(clusterConfigEntity1.getType()).andReturn("type1").anyTimes();
+    expect(clusterConfigEntity1.getSelectedTimestamp()).andReturn(123L);
+    clusterConfigEntity1.setSelected(false);
+    expectLastCall().once();
+
+    expect(clusterConfigEntity2.getType()).andReturn("type1").anyTimes();
+    expect(clusterConfigEntity2.getSelectedTimestamp()).andReturn(321L);
+    clusterConfigEntity2.setSelected(false);
+    expectLastCall().once();
+    clusterConfigEntity2.setSelected(true);
+    expectLastCall().once();
+
+    TypedQuery queryMock = easyMockSupport.createNiceMock(TypedQuery.class);
+    expect(mockEntityManager.createNamedQuery(anyString(), anyObject(Class.class))).andReturn(queryMock).anyTimes();
+    expect(queryMock.setParameter(anyString(), anyString())).andReturn(queryMock).once();
+    expect(queryMock.setParameter(anyString(), anyLong())).andReturn(queryMock).once();
+    expect(queryMock.getResultList()).andReturn(Arrays.asList(clusterConfigEntity1, clusterConfigEntity2)).once();
+    expect(clusterDAO.merge(anyObject(ClusterConfigEntity.class), anyBoolean())).andReturn(null).times(3);
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
+
+    easyMockSupport.replayAll();
+
+    DatabaseConsistencyCheckHelper.fixConfigsSelectedMoreThanOnce();
+
+    easyMockSupport.verifyAll();
   }
 }
