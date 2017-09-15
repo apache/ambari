@@ -1337,10 +1337,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @param parentProperties
    * @param name
    * @param fileName
+   * @param configGroup
+   * @param savedValue
    * @returns {*}
    * @override
    */
-  allowUpdateProperty: function(parentProperties, name, fileName) {
+  allowUpdateProperty: function(parentProperties, name, fileName, configGroup, savedValue) {
     if (name.contains('proxyuser')) return true;
     if (['installerController'].contains(this.get('wizardController.name')) || !!(parentProperties && parentProperties.length)) {
       return true;
@@ -1349,12 +1351,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!stackProperty || !this.get('installedServices')[stackProperty.serviceName]) {
         return true;
       } else if (stackProperty.propertyDependsOn.length) {
-        return !!stackProperty.propertyDependsOn.filter(function (p) {
+        return stackProperty.propertyDependsOn.some(function (p) {
           var service = App.config.get('serviceByConfigTypeMap')[p.type];
           return service && !this.get('installedServices')[service.get('serviceName')];
-        }, this).length;
+        }, this);
       } else {
-        return false;
+        return !Em.isNone(savedValue) && stackProperty.recommendedValue === savedValue;
       }
     }
     return true;

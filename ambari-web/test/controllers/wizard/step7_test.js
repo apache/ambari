@@ -2050,6 +2050,17 @@ describe('App.InstallerStep7Controller', function () {
         expect(installerStep7Controller.allowUpdateProperty([], '', '')).to.be.false;
       });
 
+      it('stackProperty was not customized', function () {
+        installerStep7Controller.reopen({installedServices: {s1: true}});
+        this.stub.returns({
+          serviceName: 's1',
+          propertyDependsOn: [],
+          recommendedValue: '1'
+        });
+
+        expect(installerStep7Controller.allowUpdateProperty([], '', '', null, '1')).to.be.true;
+      });
+
     });
 
     it('true if it is not installer or addService', function () {
