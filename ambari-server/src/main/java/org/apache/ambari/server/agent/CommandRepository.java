@@ -133,11 +133,15 @@ public class CommandRepository {
     @SerializedName("ambariManaged")
     private boolean m_ambariManaged = true;
 
-    /**
-     * The name should not change.  Ubuntu requires that it match exactly as the repo was built.
-     */
+
     @SerializedName("repoName")
     private final String m_repoName;
+
+    @SerializedName("distribution")
+    private final String m_distribution;
+
+    @SerializedName("components")
+    private final String m_components;
 
     @SerializedName("mirrorsList")
     private String m_mirrorsList;
@@ -149,6 +153,8 @@ public class CommandRepository {
       m_osType = info.getOsType();
       m_repoId = info.getRepoId();
       m_repoName = info.getRepoName();
+      m_distribution = info.getDistribution();
+      m_components = info.getComponents();
       m_mirrorsList = info.getMirrorsList();
     }
 
@@ -156,6 +162,8 @@ public class CommandRepository {
       m_baseUrl = entity.getBaseUrl();
       m_repoId = entity.getRepositoryId();
       m_repoName = entity.getName();
+      m_distribution = entity.getDistribution();
+      m_components = entity.getComponents();
       m_mirrorsList = entity.getMirrorsList();
       m_osType = osType;
     }
@@ -176,6 +184,13 @@ public class CommandRepository {
       return m_repoName;
     }
 
+    public String getDistribution() {
+      return m_distribution;
+    }
+
+    public String getComponents() {
+      return m_components;
+    }
 
     public String getBaseUrl() {
       return m_baseUrl;
@@ -193,6 +208,8 @@ public class CommandRepository {
       return new ToStringBuilder(null)
           .append("os", m_osType)
           .append("name", m_repoName)
+          .append("distribution", m_distribution)
+          .append("components", m_components)
           .append("id", m_repoId)
           .append("baseUrl", m_baseUrl)
           .toString();

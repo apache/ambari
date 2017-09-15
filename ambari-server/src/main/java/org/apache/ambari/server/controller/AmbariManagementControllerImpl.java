@@ -4483,7 +4483,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
           if (operatingSystem.getOsType().equals(osType)) {
             for (RepositoryEntity repository: operatingSystem.getRepositories()) {
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(), repository.getName(), "", "", "");
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
+                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "", "");
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4511,7 +4512,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
-              repo.getRepoId(), repo.getRepoName(), repo.getMirrorsList(),
+              repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
               repo.getBaseUrl(), repo.getLatestUri());
 
           resp.setVersionDefinitionId(versionDefinitionId);

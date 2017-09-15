@@ -45,7 +45,8 @@ def _alter_repo(action, repo_string, repo_template):
     if not 'mirrorsList' in repo:
       repo['mirrorsList'] = None
 
-    ubuntu_components = [ repo['repoName'] ] + UBUNTU_REPO_COMPONENTS_POSTFIX
+    ubuntu_components = [ repo['distribution'] if 'distribution' in repo and repo['distribution'] else repo['repoName'] ] \
+                        + [repo['components'].replace(",", " ") if 'components' in repo and repo['components'] else UBUNTU_REPO_COMPONENTS_POSTFIX]
 
     Repository(repo['repoId'],
                action = action,

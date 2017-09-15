@@ -146,6 +146,8 @@ public class RepositoryXml implements Validable{
     private String mirrorslist = null;
     private String repoid = null;
     private String reponame = null;
+    private String distribution = null;
+    private String components = null;
     private String latest = null;
     private boolean unique = false;
 
@@ -178,6 +180,14 @@ public class RepositoryXml implements Validable{
      */
     public String getRepoName() {
       return reponame;
+    }
+
+    public String getDistribution() {
+      return distribution;
+    }
+
+    public String getComponents() {
+      return components;
     }
 
     public String getLatestUri() {
@@ -217,6 +227,8 @@ public class RepositoryXml implements Validable{
           ri.setOsType(os.trim());
           ri.setRepoId(r.getRepoId());
           ri.setRepoName(r.getRepoName());
+          ri.setDistribution(r.getDistribution());
+          ri.setComponents(r.getComponents());
           ri.setLatestBaseUrl(r.getBaseUrl());
           ri.setUnique(r.isUnique());
 

@@ -767,6 +767,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             repo.getRepositoryId());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID),
             repo.getName());
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID),
+            repo.getDistribution());
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID),
+            repo.getComponents());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID),
             entity.getStackName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),

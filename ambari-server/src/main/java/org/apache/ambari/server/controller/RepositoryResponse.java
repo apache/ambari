@@ -26,6 +26,8 @@ public class RepositoryResponse {
   private String osType;
   private String repoId;
   private String repoName;
+  private String distribution;
+  private String components;
   private String mirrorsList;
   private String defaultBaseUrl;
   private String latestBaseUrl;
@@ -35,11 +37,14 @@ public class RepositoryResponse {
   private boolean unique;
 
   public RepositoryResponse(String baseUrl, String osType, String repoId,
-      String repoName, String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
+      String repoName, String distribution, String components,
+      String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
     setBaseUrl(baseUrl);
     setOsType(osType);
     setRepoId(repoId);
     setRepoName(repoName);
+    setDistribution(distribution);
+    setComponents(components);
     setMirrorsList(mirrorsList);
     setDefaultBaseUrl(defaultBaseUrl);
     setLatestBaseUrl(latestBaseUrl);
@@ -97,6 +102,22 @@ public class RepositoryResponse {
 
   public void setRepoName(String repoName) {
     this.repoName = repoName;
+  }
+
+  public String getDistribution() {
+    return distribution;
+  }
+
+  public void setDistribution(String distribution) {
+    this.distribution = distribution;
+  }
+
+  public String getComponents() {
+    return components;
+  }
+
+  public void setComponents(String components) {
+    this.components = components;
   }
 
   public String getMirrorsList() {

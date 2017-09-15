@@ -26,7 +26,7 @@ import ambari_simplejson as json
 __all__ = ["create_repo_files", "CommandRepository"]
 
 # components_lits = repoName + postfix
-UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
+UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
 
 def create_repo_files(template, command_repository):
@@ -122,6 +122,8 @@ class _CommandRepositoryEntry(object):
   def __init__(self, json_dict):
     self.repo_id = _find_value(json_dict, 'repoId')  # this is the id within the repo file, not an Ambari artifact
     self.repo_name = _find_value(json_dict, 'repoName')
+    self.distribution = _find_value(json_dict, 'distribution')
+    self.components = _find_value(json_dict, 'components')
     self.base_url = _find_value(json_dict, 'baseUrl')
     self.mirrors_list = _find_value(json_dict, 'mirrorsList')
     self.ambari_managed = _find_value(json_dict, 'ambariManaged')
@@ -129,6 +131,5 @@ class _CommandRepositoryEntry(object):
     if self.ambari_managed is None:
       self.ambari_managed = True
 
-    # if repoName is changed on the java side, this will fail for ubuntu since we rely on the
-    # name being the same as how the repository was built
-    self.ubuntu_components = [self.repo_name] + UBUNTU_REPO_COMPONENTS_POSTFIX
+    self.ubuntu_components = [self.distribution if self.distribution else self.repo_name] + \
+                             [self.components.replace(",", " ") if self.components else UBUNTU_REPO_COMPONENTS_POSTFIX]
