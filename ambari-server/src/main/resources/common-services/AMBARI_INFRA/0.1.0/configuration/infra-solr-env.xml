@@ -156,7 +156,7 @@
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
-      <maximum>5120</maximum>
+      <maximum>32768</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
@@ -170,7 +170,7 @@
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
-      <maximum>5120</maximum>
+      <maximum>32768</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
