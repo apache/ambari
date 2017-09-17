@@ -2002,11 +2002,11 @@ class TestHDP23StackAdvisor(TestCase):
         "property_attributes": {
           "logsearch.collection.service.logs.numshards": {
             "minimum": "1",
-            "maximum": "3"
+            "maximum": "5"
           },
           "logsearch.collection.audit.logs.numshards": {
             "minimum": "1",
-            "maximum": "3"
+            "maximum": "5"
           }
         }
       }
