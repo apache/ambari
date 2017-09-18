@@ -290,6 +290,12 @@ angular.module('ambariAdminConsole')
       }
     });
 
+    if ( $scope.useRedhatSatellite ){
+      angular.forEach( $scope.osList, function (os) {
+        os.repositories = [];
+      } )
+    }
+
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
     return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
