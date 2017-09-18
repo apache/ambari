@@ -37,6 +37,9 @@ public class Mpack {
   @SerializedName("version")
   private String version;
 
+  @SerializedName("buildNumber")
+  private String buildNumber;
+
   @SerializedName("description")
   private String description;
 
@@ -91,6 +94,14 @@ public class Mpack {
     this.version = version;
   }
 
+  public String getBuildNumber() {
+    return buildNumber;
+  }
+
+  public void setBuildNumber(String buildNumber) {
+    this.buildNumber = buildNumber;
+  }
+
   public String getDescription() {
     return description;
   }
@@ -134,6 +145,7 @@ public class Mpack {
     result = prime * result + ((mpackId == null) ? 0 : mpackId.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
+    result = prime * result + ((buildNumber == null) ? 0 : buildNumber.hashCode());
     result = prime * result + ((registryId == null) ? 0 : registryId.hashCode());
     result = prime * result + ((description == null) ? 0 : description.hashCode());
     result = prime * result + ((prerequisites == null) ? 0 : prerequisites.hashCode());
@@ -171,6 +183,14 @@ public class Mpack {
         return false;
       }
     } else if (!version.equals(other.version)) {
+      return false;
+    }
+
+    if (buildNumber == null) {
+      if (other.buildNumber != null) {
+        return false;
+      }
+    } else if (!buildNumber.equals(other.buildNumber)) {
       return false;
     }
 
@@ -240,6 +260,7 @@ public class Mpack {
     sb.append("name=").append(name).append(", ");
     sb.append("mpackId=").append(mpackId).append(", ");
     sb.append("version=").append(version).append(", ");
+    sb.append("buildNumber=").append(buildNumber).append(", ");
     sb.append("stackid=").append(stackId).append(", ");
     sb.append("registryId=").append(registryId).append(", ");
     sb.append("description=").append(description).append(", ");
@@ -258,6 +279,9 @@ public class Mpack {
     }
     if (this.version == null) {
       this.version = mpack.getVersion();
+    }
+    if (this.buildNumber == null) {
+      this.buildNumber = mpack.getBuildNumber();
     }
     if (this.stackId == null) {
       this.stackId = mpack.getStackId();

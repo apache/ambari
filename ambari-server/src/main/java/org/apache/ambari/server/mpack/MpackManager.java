@@ -370,7 +370,8 @@ public class MpackManager {
    */
   protected boolean validateMpackInfo(String expectedMpackName, String expectedMpackVersion, String actualMpackName, String actualMpackVersion) {
 
-    if (expectedMpackName.equalsIgnoreCase(actualMpackName) && expectedMpackVersion.equalsIgnoreCase(actualMpackVersion)) {
+    String strippedActualMpackVersion = actualMpackVersion.substring(0,actualMpackVersion.lastIndexOf('.'));
+    if (expectedMpackName.equalsIgnoreCase(actualMpackName) && expectedMpackVersion.equalsIgnoreCase(strippedActualMpackVersion)) {
       return true;
     }
     else {

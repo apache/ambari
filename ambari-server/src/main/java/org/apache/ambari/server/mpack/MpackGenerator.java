@@ -277,7 +277,8 @@ public class MpackGenerator {
 
     Mpack mpack = new Mpack();
     mpack.setName(dstStackName);
-    mpack.setVersion(vdf.release.getFullVersion());
+    mpack.setVersion(vdf.release.version);
+    mpack.setBuildNumber(vdf.release.getFullVersion());
     mpack.setStackId(dstStackId.getStackId());
     mpack.setDescription(dstStackName + " Ambari Management Pack");
     Map<String, String> prereqs = new HashMap<>();
