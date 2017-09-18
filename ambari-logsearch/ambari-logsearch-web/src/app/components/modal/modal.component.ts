@@ -26,7 +26,7 @@ import * as $ from 'jquery';
 export class ModalComponent implements OnInit, AfterViewInit {
 
   constructor(private element: ElementRef) {
-    this.rootElement = $(this.element.nativeElement);
+    this.rootElement = $(element.nativeElement);
   }
 
   ngOnInit() {

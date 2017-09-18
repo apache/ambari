@@ -21,8 +21,8 @@
                      [defaultLabel]="filters.clusters.defaultLabel" [isMultipleChoice]="true"
                      class="filter-input"></filter-dropdown>
     <search-box formControlName="query" [items]="searchBoxItems" class="filter-input"></search-box>
-    <filter-dropdown formControlName="timeRange" [options]="filters.timeRange.options"
-                     [defaultLabel]="filters.timeRange.defaultLabel" class="filter-input"></filter-dropdown>
+    <time-range-picker formControlName="timeRange" [defaultLabel]="filters.timeRange.defaultLabel"
+                       class="filter-input"></time-range-picker>
     <timezone-picker class="filter-input"></timezone-picker>
     <!--button class="btn btn-success" type="button">
       <span class="fa fa-search"></span>

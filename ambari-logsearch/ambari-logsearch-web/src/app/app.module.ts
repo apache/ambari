@@ -74,6 +74,8 @@ import {ModalComponent} from '@app/components/modal/modal.component';
 import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
 import {SearchBoxComponent} from '@app/components/search-box/search-box.component';
+import {TimeRangePickerComponent} from '@app/components/time-range-picker/time-range-picker.component';
+import {DatePickerComponent} from '@app/components/date-picker/date-picker.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 
@@ -119,6 +121,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     TimeZonePickerComponent,
     NodeBarComponent,
     SearchBoxComponent,
+    TimeRangePickerComponent,
+    DatePickerComponent,
     TimeZoneAbbrPipe
   ],
   imports: [
