@@ -566,5 +566,18 @@
       </component>
     </service>
 
+    <service name="ZEPPELIN">
+      <component name="ZEPPELIN_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs" summary="Apply external depedency config 1">
+            <type>zeppelin-env</type>
+            <insert key="zeppelin_env_content"
+              value='export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"'
+              insert-type="append" newline-before="true" newline-after="true"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
   </services>
 </upgrade-config-changes>

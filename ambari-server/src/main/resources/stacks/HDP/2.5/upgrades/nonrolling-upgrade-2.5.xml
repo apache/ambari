@@ -271,6 +271,11 @@
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
 
+      <!-- ZEPPELIN -->
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply external depedency config 2">
+        <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
+      </execute-stage>
+
       <!-- HDFS -->
       <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
         <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
