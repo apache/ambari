@@ -25,7 +25,7 @@ limitations under the License.
         make beautiful data-driven, interactive and collaborative documents with SQL, Scala
         and more.
       </comment>
-      <version>0.6.0.2.5</version>
+      <version>0.6.0</version>
       <components>
         <component>
           <name>ZEPPELIN_MASTER</name>
