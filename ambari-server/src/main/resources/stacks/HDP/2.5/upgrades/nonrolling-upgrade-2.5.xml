@@ -302,9 +302,16 @@
         </task>
       </execute-stage>
 
+      <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Hive properties">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
           <summary>Removing atlas.cluster.name property</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable">
+          <summary>Update tez.runtime.shuffle.ssl.enable property</summary>
         </task>
       </execute-stage>
 

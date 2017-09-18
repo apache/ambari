@@ -587,6 +587,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable">
+          <summary>Update tez.runtime.shuffle.ssl.enable property</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update JVM stack size for LLAP">
         <task xsi:type="configure" id="llap_append_stack_size_java_opts">
           <summary>Updating JVM stack size for LLAP</summary>

@@ -757,6 +757,10 @@
       </component>
 
       <component name="HIVE_SERVER_INTERACTIVE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable"/>
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
