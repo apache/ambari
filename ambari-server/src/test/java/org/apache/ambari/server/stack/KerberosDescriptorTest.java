@@ -18,148 +18,112 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.util.Assert;
-
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.ValidationMessage;
+
+import junit.framework.Assert;
 
 /**
  * KerberosDescriptorTest tests the stack- and service-level descriptors for certain stacks
  * and services
  */
-@Ignore
 public class KerberosDescriptorTest {
-  private static final KerberosDescriptorFactory KERBEROS_DESCRIPTOR_FACTORY = new KerberosDescriptorFactory();
+  private static Logger LOG = LoggerFactory.getLogger(KerberosDescriptorTest.class);
+
+  private static final Pattern PATTERN_KERBEROS_DESCRIPTOR_FILENAME = Pattern.compile("^kerberos(?:_preconfigure)?\\.json$");
 
   private static File stacksDirectory;
-  private static File hdpStackDirectory;
-  private static File hdp22StackDirectory;
-  private static File hdp22ServicesDirectory;
   private static File commonServicesDirectory;
 
   @BeforeClass
   public static void beforeClass() {
     URL rootDirectoryURL = KerberosDescriptorTest.class.getResource("/");
-    Assert.notNull(rootDirectoryURL);
+    Assert.assertNotNull(rootDirectoryURL);
 
     File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
-    Assert.notNull(resourcesDirectory);
-    Assert.isTrue(resourcesDirectory.canRead());
+    Assert.assertNotNull(resourcesDirectory);
+    Assert.assertTrue(resourcesDirectory.canRead());
 
     stacksDirectory = new File(resourcesDirectory, "stacks");
-    Assert.notNull(stacksDirectory);
-    Assert.isTrue(stacksDirectory.canRead());
-
-    hdpStackDirectory = new File(stacksDirectory, "HDP");
-    Assert.notNull(hdpStackDirectory);
-    Assert.isTrue(hdpStackDirectory.canRead());
-
-    hdp22StackDirectory = new File(hdpStackDirectory, "2.2");
-    Assert.notNull(hdp22StackDirectory);
-    Assert.isTrue(hdp22StackDirectory.canRead());
-
-    hdp22ServicesDirectory = new File(hdp22StackDirectory, "services");
-    Assert.notNull(hdp22ServicesDirectory);
-    Assert.isTrue(hdp22ServicesDirectory.canRead());
+    Assert.assertNotNull(stacksDirectory);
+    Assert.assertTrue(stacksDirectory.canRead());
 
     commonServicesDirectory = new File(resourcesDirectory, "common-services");
-    Assert.notNull(commonServicesDirectory);
-    Assert.isTrue(commonServicesDirectory.canRead());
+    Assert.assertNotNull(commonServicesDirectory);
+    Assert.assertTrue(commonServicesDirectory.canRead());
 
   }
 
   @Test
-  public void testCommonHBASEServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "HBASE", "0.96.0.2.0");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("HBASE"));
+  public void testCommonServiceDescriptor() throws Exception {
+    JsonSchema schema = getJsonSchemaFromPath("kerberos_descriptor_schema.json");
+    Assert.assertTrue(visitFile(schema, commonServicesDirectory, true));
   }
 
   @Test
-  public void testCommonHDFSServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "HDFS", "2.1.0.2.0");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("HDFS"));
+  public void testStackServiceDescriptor() throws Exception {
+    JsonSchema schema = getJsonSchemaFromPath("kerberos_descriptor_schema.json");
+    Assert.assertTrue(visitFile(schema, stacksDirectory, true));
   }
 
-  @Test
-  public void testCommonYarnServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "YARN", "2.1.0.2.0");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("YARN"));
-    Assert.notNull(descriptor.getService("MAPREDUCE2"));
+  private boolean visitFile(JsonSchema schema, File file, boolean previousResult) throws Exception {
+
+    if (file.isDirectory()) {
+      boolean currentResult = true;
+
+      File[] files = file.listFiles();
+      if (files != null) {
+        for (File currentFile : files) {
+          currentResult = visitFile(schema, currentFile, previousResult) && currentResult;
+        }
+      }
+      return previousResult && currentResult;
+    } else if (file.isFile()) {
+      if (PATTERN_KERBEROS_DESCRIPTOR_FILENAME.matcher(file.getName()).matches()) {
+        LOG.info("Validating " + file.getAbsolutePath());
+
+        JsonNode node = getJsonNodeFromUrl(file.toURI().toURL().toExternalForm());
+        Set<ValidationMessage> errors = schema.validate(node);
+
+        if ((errors != null) && !errors.isEmpty()) {
+          for (ValidationMessage message : errors) {
+            LOG.error(message.getMessage());
+          }
+
+          return false;
+        }
+
+        return true;
+      } else {
+        return true;
+      }
+    }
+
+    return previousResult;
   }
 
-  @Test
-  public void testCommonFalconServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "FALCON", "0.5.0.2.1");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("FALCON"));
+  private JsonNode getJsonNodeFromUrl(String url) throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.readTree(new URL(url));
   }
 
-  @Test
-  public void testCommonHiveServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "HIVE", "0.12.0.2.0");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("HIVE"));
-  }
-
-  @Test
-  public void testCommonKnoxServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "KNOX", "0.5.0.2.2");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("KNOX"));
-  }
-
-  @Test
-  public void testCommonOozieServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor;
-
-    descriptor = getKerberosDescriptor(commonServicesDirectory, "OOZIE", "4.0.0.2.0");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("OOZIE"));
-  }
-
-  @Test
-  public void testCommonStormServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "STORM", "0.9.1");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("STORM"));
-  }
-
-  @Test
-  public void testCommonZookeepeerServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "ZOOKEEPER", "3.4.5");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("ZOOKEEPER"));
-  }
-
-  @Test
-  public void testCommonSparkServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "SPARK", "1.2.1");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("SPARK"));
-  }
-
-  private KerberosDescriptor getKerberosDescriptor(File baseDirectory, String service, String version) throws IOException {
-    File serviceDirectory = new File(baseDirectory, service);
-    File serviceVersionDirectory = new File(serviceDirectory, version);
-    return KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(serviceVersionDirectory, "kerberos.json"));
+  private JsonSchema getJsonSchemaFromPath(String name) throws Exception {
+    JsonSchemaFactory factory = new JsonSchemaFactory();
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name);
+    return factory.getSchema(is);
   }
 }

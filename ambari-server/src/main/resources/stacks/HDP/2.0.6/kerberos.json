@@ -68,8 +68,8 @@
               }
             },
             {
-              "name" : "ambari-server_spnego",
-              "reference" : "/spnego"
+              "name": "ambari-server_spnego",
+              "reference": "/spnego"
             }
           ]
         }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,6 +30,8 @@ import org.apache.commons.lang.StringUtils;
  * It also provides utility and helper methods.
  */
 public abstract class AbstractKerberosDescriptor {
+
+  static final String KEY_NAME = "name";
 
   /**
    * An AbstractKerberosDescriptor serving as the parent (or container) for this
@@ -71,7 +73,7 @@ public abstract class AbstractKerberosDescriptor {
     String name = getName();
 
     if (name != null) {
-      dataMap.put("name", name);
+      dataMap.put(KEY_NAME, name);
     }
 
     return dataMap;

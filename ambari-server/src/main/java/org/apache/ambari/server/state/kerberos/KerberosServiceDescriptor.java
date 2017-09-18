@@ -20,9 +20,9 @@ package org.apache.ambari.server.state.kerberos;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -46,6 +46,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  *      "title": "KerberosServiceDescriptor",
  *      "description": "Describes an Ambari service",
  *      "type": "object",
+ *      "preconfigure": "boolean",
  *      "properties": {
  *        "name": {
  *          "description": "An identifying name for this service descriptor.",
@@ -84,6 +85,9 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  * KerberosServiceDescriptor#name value.
  */
 public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContainer {
+
+  static final String KEY_PRECONFIGURE = "preconfigure";
+  static final String KEY_COMPONENTS = Type.COMPONENT.getDescriptorPluralName();
 
   /**
    * A Map of the components contained within this KerberosServiceDescriptor
@@ -137,7 +141,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
     setName(name);
 
     if (data != null) {
-      Object list = data.get(Type.COMPONENT.getDescriptorPluralName());
+      Object list = data.get(KEY_COMPONENTS);
       if (list instanceof Collection) {
         // Assume list is Collection<Map<String, Object>>
         for (Object item : (Collection) list) {
@@ -147,7 +151,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
         }
       }
 
-      setPreconfigure(getBooleanValue(data, "preconfigure"));
+      setPreconfigure(getBooleanValue(data, KEY_PRECONFIGURE));
     }
   }
 
@@ -275,11 +279,11 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
       for (KerberosComponentDescriptor component : components.values()) {
         list.add(component.toMap());
       }
-      map.put(Type.COMPONENT.getDescriptorPluralName(), list);
+      map.put(KEY_COMPONENTS, list);
     }
 
     if (preconfigure != null) {
-      map.put("preProcess", preconfigure.toString());
+      map.put(KEY_PRECONFIGURE, preconfigure.toString());
     }
 
     return map;

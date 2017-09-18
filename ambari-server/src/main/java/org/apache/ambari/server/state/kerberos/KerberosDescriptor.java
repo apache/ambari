@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.commons.lang.StringUtils;
@@ -90,6 +90,9 @@ import org.apache.commons.lang.StringUtils;
  */
 public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
 
+  static final String KEY_PROPERTIES = "properties";
+  static final String KEY_SERVICES = Type.SERVICE.getDescriptorPluralName();
+
   /**
    * A Map of the "global" properties contained within this KerberosDescriptor
    */
@@ -121,7 +124,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     super(data);
 
     if (data != null) {
-      Object list = data.get(Type.SERVICE.getDescriptorPluralName());
+      Object list = data.get(KEY_SERVICES);
       if (list instanceof Collection) {
         for (Object item : (Collection) list) {
           if (item instanceof Map) {
@@ -130,7 +133,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
         }
       }
 
-      Object map = data.get("properties");
+      Object map = data.get(KEY_PROPERTIES);
       if (map instanceof Map) {
         for (Map.Entry<?, ?> entry : ((Map<?, ?>) map).entrySet()) {
           Object value = entry.getValue();
@@ -326,11 +329,11 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
       for (KerberosServiceDescriptor service : services.values()) {
         list.add(service.toMap());
       }
-      map.put(Type.SERVICE.getDescriptorPluralName(), list);
+      map.put(KEY_SERVICES, list);
     }
 
     if (properties != null) {
-      map.put("properties", new TreeMap<String, String>(properties));
+      map.put(KEY_PROPERTIES, new TreeMap<String, String>(properties));
     }
 
     return map;

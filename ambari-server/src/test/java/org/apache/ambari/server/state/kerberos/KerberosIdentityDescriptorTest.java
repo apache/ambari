@@ -17,21 +17,23 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import junit.framework.Assert;
-import org.apache.ambari.server.AmbariException;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 
-@Category({ category.KerberosTest.class})
+import org.apache.ambari.server.AmbariException;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import junit.framework.Assert;
+
+@Category({category.KerberosTest.class})
 public class KerberosIdentityDescriptorTest {
-  public static final String JSON_VALUE =
+  static final String JSON_VALUE =
       "{" +
           "  \"name\": \"identity_1\"" +
           "," +
@@ -47,64 +49,59 @@ public class KerberosIdentityDescriptorTest {
   static final Map<String, Object> MAP_VALUE_REFERENCE;
 
   static {
-    MAP_VALUE = new TreeMap<String, Object>();
-    MAP_VALUE.put("name", "identity_1");
-    MAP_VALUE.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
-    MAP_VALUE.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
-    MAP_VALUE.put("password", "secret");
+    MAP_VALUE = new TreeMap<>();
+    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_NAME, "identity_1");
+    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_PRINCIPAL, KerberosPrincipalDescriptorTest.MAP_VALUE);
+    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_KEYTAB, KerberosKeytabDescriptorTest.MAP_VALUE);
 
-    MAP_VALUE_ALT = new TreeMap<String, Object>();
-    MAP_VALUE_ALT.put("name", "identity_2");
-    MAP_VALUE_ALT.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
-    MAP_VALUE_ALT.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
-    MAP_VALUE_ALT.put("password", "secret2");
+    MAP_VALUE_ALT = new TreeMap<>();
+    MAP_VALUE_ALT.put(KerberosIdentityDescriptor.KEY_NAME, "identity_2");
+    MAP_VALUE_ALT.put(KerberosIdentityDescriptor.KEY_PRINCIPAL, KerberosPrincipalDescriptorTest.MAP_VALUE);
+    MAP_VALUE_ALT.put(KerberosIdentityDescriptor.KEY_KEYTAB, KerberosKeytabDescriptorTest.MAP_VALUE);
 
-    TreeMap<String, Object> ownerMap = new TreeMap<String, Object>();
-    ownerMap.put("name", "me");
-    ownerMap.put("access", "rw");
+    TreeMap<String, Object> ownerMap = new TreeMap<>();
+    ownerMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "me");
+    ownerMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "rw");
 
-    TreeMap<String, Object> groupMap = new TreeMap<String, Object>();
-    groupMap.put("name", "nobody");
-    groupMap.put("access", "");
+    TreeMap<String, Object> groupMap = new TreeMap<>();
+    groupMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "nobody");
+    groupMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "");
 
 
-    TreeMap<String, Object> keytabMap = new TreeMap<String, Object>();
-    keytabMap.put("file", "/home/user/me/subject.service.keytab");
-    keytabMap.put("owner", ownerMap);
-    keytabMap.put("group", groupMap);
-    keytabMap.put("configuration", "service-site/me.component.keytab.file");
+    TreeMap<String, Object> keytabMap = new TreeMap<>();
+    keytabMap.put(KerberosKeytabDescriptor.KEY_FILE, "/home/user/me/subject.service.keytab");
+    keytabMap.put(KerberosKeytabDescriptor.KEY_OWNER, ownerMap);
+    keytabMap.put(KerberosKeytabDescriptor.KEY_GROUP, groupMap);
+    keytabMap.put(KerberosKeytabDescriptor.KEY_CONFIGURATION, "service-site/me.component.keytab.file");
 
-    MAP_VALUE_REFERENCE = new TreeMap<String, Object>();
-    MAP_VALUE_REFERENCE.put("name", "shared_identity");
-    MAP_VALUE_REFERENCE.put("reference", "/shared");
-    MAP_VALUE_REFERENCE.put("keytab", keytabMap);
+    MAP_VALUE_REFERENCE = new TreeMap<>();
+    MAP_VALUE_REFERENCE.put(KerberosIdentityDescriptor.KEY_NAME, "shared_identity");
+    MAP_VALUE_REFERENCE.put(KerberosIdentityDescriptor.KEY_REFERENCE, "/shared");
+    MAP_VALUE_REFERENCE.put(KerberosIdentityDescriptor.KEY_KEYTAB, keytabMap);
   }
 
 
-  public static void validateFromJSON(KerberosIdentityDescriptor identityDescriptor) {
+  static void validateFromJSON(KerberosIdentityDescriptor identityDescriptor) {
     Assert.assertNotNull(identityDescriptor);
     Assert.assertFalse(identityDescriptor.isContainer());
 
     KerberosPrincipalDescriptorTest.validateFromJSON(identityDescriptor.getPrincipalDescriptor());
     KerberosKeytabDescriptorTest.validateFromJSON(identityDescriptor.getKeytabDescriptor());
-    Assert.assertNull(identityDescriptor.getPassword());
   }
 
-  public static void validateFromMap(KerberosIdentityDescriptor identityDescriptor) {
+  static void validateFromMap(KerberosIdentityDescriptor identityDescriptor) {
     Assert.assertNotNull(identityDescriptor);
     Assert.assertFalse(identityDescriptor.isContainer());
 
     KerberosPrincipalDescriptorTest.validateFromMap(identityDescriptor.getPrincipalDescriptor());
     KerberosKeytabDescriptorTest.validateFromMap(identityDescriptor.getKeytabDescriptor());
-    Assert.assertEquals("secret", identityDescriptor.getPassword());
   }
 
-  public static void validateUpdatedData(KerberosIdentityDescriptor identityDescriptor) {
+  static void validateUpdatedData(KerberosIdentityDescriptor identityDescriptor) {
     Assert.assertNotNull(identityDescriptor);
 
     KerberosPrincipalDescriptorTest.validateUpdatedData(identityDescriptor.getPrincipalDescriptor());
     KerberosKeytabDescriptorTest.validateUpdatedData(identityDescriptor.getKeytabDescriptor());
-    Assert.assertEquals("secret", identityDescriptor.getPassword());
   }
 
   private static KerberosIdentityDescriptor createFromJSON() {
@@ -157,12 +154,12 @@ public class KerberosIdentityDescriptorTest {
   public void testShouldInclude() {
     KerberosIdentityDescriptor identityDescriptor = createFromJSON();
 
-    Map<String, Object> context = new TreeMap<String, Object>();
+    Map<String, Object> context = new TreeMap<>();
 
-    context.put("services", new HashSet<String>(Arrays.asList("HIVE", "HDFS", "ZOOKEEPER")));
+    context.put("services", new HashSet<>(Arrays.asList("HIVE", "HDFS", "ZOOKEEPER")));
     Assert.assertTrue(identityDescriptor.shouldInclude(context));
 
-    context.put("services", new HashSet<String>(Arrays.asList("NOT_HIVE", "HDFS", "ZOOKEEPER")));
+    context.put("services", new HashSet<>(Arrays.asList("NOT_HIVE", "HDFS", "ZOOKEEPER")));
     Assert.assertFalse(identityDescriptor.shouldInclude(context));
   }
 }

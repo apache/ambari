@@ -7,8 +7,6 @@
     {
       "name": "BEACON",
       "preconfigure" : true,
-      "configurations": {
-      },
       "identities": [
         {
           "name": "beacon_server",

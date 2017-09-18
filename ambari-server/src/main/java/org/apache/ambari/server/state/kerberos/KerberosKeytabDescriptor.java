@@ -97,6 +97,14 @@ import java.util.TreeMap;
  */
 public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
 
+  static final String KEY_FILE = "file";
+  static final String KEY_OWNER = "owner";
+  static final String KEY_GROUP = "group";
+  static final String KEY_CONFIGURATION = "configuration";
+  static final String KEY_CACHABLE = "cachable";
+  static final String KEY_ACL_NAME = "name";
+  static final String KEY_ACL_ACCESS = "access";
+
   /**
    * A String declaring the local username that should be set as the owner of the keytab file
    */
@@ -188,29 +196,29 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
   public KerberosKeytabDescriptor(Map<?, ?> data) {
     // The name for this KerberosKeytabDescriptor is stored in the "file" entry in the map
     // This is not automatically set by the super classes.
-    setName(getStringValue(data, "file"));
+    setName(getStringValue(data, KEY_FILE));
 
     if (data != null) {
       Object object;
 
-      object = data.get("owner");
+      object = data.get(KEY_OWNER);
       if (object instanceof Map) {
         Map<?, ?> map = (Map<?, ?>) object;
-        setOwnerName(getStringValue(map, "name"));
-        setOwnerAccess(getStringValue(map, "access"));
+        setOwnerName(getStringValue(map, KEY_ACL_NAME));
+        setOwnerAccess(getStringValue(map, KEY_ACL_ACCESS));
       }
 
-      object = data.get("group");
+      object = data.get(KEY_GROUP);
       if (object instanceof Map) {
         Map<?, ?> map = (Map<?, ?>) object;
-        setGroupName(getStringValue(map, "name"));
-        setGroupAccess(getStringValue(map, "access"));
+        setGroupName(getStringValue(map, KEY_ACL_NAME));
+        setGroupAccess(getStringValue(map, KEY_ACL_ACCESS));
       }
 
-      setConfiguration(getStringValue(data, "configuration"));
+      setConfiguration(getStringValue(data, KEY_CONFIGURATION));
 
       // If the "cachable" value is anything but false, set it to true
-      setCachable(!"false".equalsIgnoreCase(getStringValue(data, "cachable")));
+      setCachable(!"false".equalsIgnoreCase(getStringValue(data, KEY_CACHABLE)));
     }
   }
 
@@ -422,23 +430,23 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
     String data;
 
     data = getFile();
-    map.put("file", data);
+    map.put(KEY_FILE, data);
 
     // Build file owner map
     Map<String, String> owner = new TreeMap<String, String>();
 
     data = getOwnerName();
     if (data != null) {
-      owner.put("name", data);
+      owner.put(KEY_ACL_NAME, data);
     }
 
     data = getOwnerAccess();
     if (data != null) {
-      owner.put("access", data);
+      owner.put(KEY_ACL_ACCESS, data);
     }
 
     if (!owner.isEmpty()) {
-      map.put("owner", owner);
+      map.put(KEY_OWNER, owner);
     }
     // Build file owner map (end)
 
@@ -447,22 +455,22 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
 
     data = getGroupName();
     if (data != null) {
-      group.put("name", data);
+      group.put(KEY_ACL_NAME, data);
     }
 
     data = getGroupAccess();
     if (data != null) {
-      group.put("access", data);
+      group.put(KEY_ACL_ACCESS, data);
     }
 
     if (!owner.isEmpty()) {
-      map.put("group", group);
+      map.put(KEY_GROUP, group);
     }
     // Build file owner map (end)
 
     data = getConfiguration();
     if (data != null) {
-      map.put("configuration", data);
+      map.put(KEY_CONFIGURATION, data);
     }
 
     return map;

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,7 +33,6 @@ import com.google.common.base.Optional;
  * <li>name</li>
  * <li>principal</li>
  * <li>keytab</li>
- * <li>password</li>
  * </ul>
  * <p/>
  * The following (pseudo) JSON Schema will yield a valid KerberosIdentityDescriptor
@@ -58,11 +57,6 @@ import com.google.common.base.Optional;
  *          "type": "{@link org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor}",
  *          }
  *        }
- *        "password": {
- *          "description": "The password to use for this identity. If not set a secure random
- *                          password will automatically be generated",
- *          "type": "string"
- *        }
  *      }
  *   }
  * </pre>
@@ -72,6 +66,12 @@ import com.google.common.base.Optional;
  * KerberosIdentityDescriptor#name value
  */
 public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
+
+  static final String KEY_REFERENCE = "reference";
+  static final String KEY_PRINCIPAL = Type.PRINCIPAL.getDescriptorName();
+  static final String KEY_KEYTAB = Type.KEYTAB.getDescriptorName();
+  static final String KEY_WHEN = "when";
+
 
   /**
    * The path to the Kerberos Identity definitions this {@link KerberosIdentityDescriptor} references
@@ -89,13 +89,6 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
   private KerberosKeytabDescriptor keytab = null;
 
   /**
-   * A String containing the password for this Kerberos identity
-   * <p/>
-   * If this value is null or empty, a random password will be generated as necessary.
-   */
-  private String password = null;
-
-  /**
    * An expression used to determine when this {@link KerberosIdentityDescriptor} is relevant for the
    * cluster. If the process expression is not <code>null</code> and evaluates to <code>false</code>
    * then this {@link KerberosIdentityDescriptor} will be ignored when processing identities.
@@ -105,11 +98,11 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
   /**
    * Creates a new KerberosIdentityDescriptor
    *
-   * @param name the name of this identity descriptor
+   * @param name      the name of this identity descriptor
    * @param reference an optional path to a referenced KerberosIdentityDescriptor
    * @param principal a KerberosPrincipalDescriptor
-   * @param keytab a KerberosKeytabDescriptor
-   * @param when a predicate
+   * @param keytab    a KerberosKeytabDescriptor
+   * @param when      a predicate
    */
   public KerberosIdentityDescriptor(String name, String reference, KerberosPrincipalDescriptor principal, KerberosKeytabDescriptor keytab, Predicate when) {
     setName(name);
@@ -133,24 +126,22 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     // This is not automatically set by the super classes.
     setName(getStringValue(data, "name"));
 
-    setReference(getStringValue(data, "reference"));
+    setReference(getStringValue(data, KEY_REFERENCE));
 
     if (data != null) {
       Object item;
 
-      setPassword(getStringValue(data, "password"));
-
-      item = data.get(Type.PRINCIPAL.getDescriptorName());
+      item = data.get(KEY_PRINCIPAL);
       if (item instanceof Map) {
         setPrincipalDescriptor(new KerberosPrincipalDescriptor((Map<?, ?>) item));
       }
 
-      item = data.get(Type.KEYTAB.getDescriptorName());
+      item = data.get(KEY_KEYTAB);
       if (item instanceof Map) {
         setKeytabDescriptor(new KerberosKeytabDescriptor((Map<?, ?>) item));
       }
 
-      item = data.get("when");
+      item = data.get(KEY_WHEN);
       if (item instanceof Map) {
         setWhen(PredicateUtils.fromMap((Map<String, Object>) item));
       }
@@ -221,27 +212,6 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
   }
 
   /**
-   * Gets the password for this this KerberosIdentityDescriptor
-   *
-   * @return A String containing the password for this this KerberosIdentityDescriptor
-   * @see #password
-   */
-  public String getPassword() {
-    return password;
-  }
-
-  /**
-   * Sets the password for this this KerberosIdentityDescriptor
-   *
-   * @param password A String containing the password for this this KerberosIdentityDescriptor
-   * @see #password
-   */
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-
-  /**
    * Gets the expression (or {@link Predicate}) to use to determine when to include this Kerberos
    * identity while processing Kerberos identities.
    * <p>
@@ -295,8 +265,6 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
 
       setReference(updates.getReference());
 
-      setPassword(updates.getPassword());
-
       KerberosPrincipalDescriptor existingPrincipal = getPrincipalDescriptor();
       if (existingPrincipal == null) {
         setPrincipalDescriptor(updates.getPrincipalDescriptor());
@@ -312,7 +280,7 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
       }
 
       Predicate updatedWhen = updates.getWhen();
-      if(updatedWhen != null) {
+      if (updatedWhen != null) {
         setWhen(updatedWhen);
       }
     }
@@ -331,23 +299,19 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     Map<String, Object> dataMap = super.toMap();
 
     if (reference != null) {
-      dataMap.put("reference", reference);
+      dataMap.put(KEY_REFERENCE, reference);
     }
 
     if (principal != null) {
-      dataMap.put(Type.PRINCIPAL.getDescriptorName(), principal.toMap());
+      dataMap.put(KEY_PRINCIPAL, principal.toMap());
     }
 
     if (keytab != null) {
-      dataMap.put(Type.KEYTAB.getDescriptorName(), keytab.toMap());
+      dataMap.put(KEY_KEYTAB, keytab.toMap());
     }
 
-    if (password != null) {
-      dataMap.put("password", password);
-    }
-
-    if(when != null) {
-      dataMap.put("when", PredicateUtils.toMap(when));
+    if (when != null) {
+      dataMap.put(KEY_WHEN, PredicateUtils.toMap(when));
     }
 
     return dataMap;
@@ -409,11 +373,6 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
               (getKeytabDescriptor() == null)
                   ? (descriptor.getKeytabDescriptor() == null)
                   : getKeytabDescriptor().equals(descriptor.getKeytabDescriptor())
-          ) &&
-          (
-              (getPassword() == null)
-                  ? (descriptor.getPassword() == null)
-                  : getPassword().equals(descriptor.getPassword())
           ) &&
           (
               (getWhen() == null)

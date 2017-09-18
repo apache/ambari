@@ -17,18 +17,21 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import junit.framework.Assert;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-@Category({ category.KerberosTest.class})
+import junit.framework.Assert;
+
+@Category({category.KerberosTest.class})
 public class KerberosPrincipalDescriptorTest {
-  public static final String JSON_VALUE =
+  static final String JSON_VALUE =
       "{" +
           "\"value\": \"service/_HOST@_REALM\"," +
           "\"configuration\": \"service-site/service.component.kerberos.principal\"," +
@@ -36,27 +39,27 @@ public class KerberosPrincipalDescriptorTest {
           "\"local_username\": \"localUser\"" +
           "}";
 
-  public static final String JSON_VALUE_SPARSE =
+  private static final String JSON_VALUE_SPARSE =
       "{" +
           "\"value\": \"serviceOther/_HOST@_REALM\"" +
           "}";
 
   public static final Map<String, Object> MAP_VALUE;
-  public static final Map<String, Object> MAP_VALUE_SPARSE;
+  private static final Map<String, Object> MAP_VALUE_SPARSE;
 
   static {
-    MAP_VALUE = new TreeMap<String, Object>();
-    MAP_VALUE.put("value", "user@_REALM");
-    MAP_VALUE.put("configuration", "service-site/service.component.kerberos.https.principal");
-    MAP_VALUE.put("type", "user");
-    MAP_VALUE.put("local_username", null);
+    MAP_VALUE = new TreeMap<>();
+    MAP_VALUE.put(KerberosPrincipalDescriptor.KEY_VALUE, "user@_REALM");
+    MAP_VALUE.put(KerberosPrincipalDescriptor.KEY_CONFIGURATION, "service-site/service.component.kerberos.https.principal");
+    MAP_VALUE.put(KerberosPrincipalDescriptor.KEY_TYPE, "user");
+    MAP_VALUE.put(KerberosPrincipalDescriptor.KEY_LOCAL_USERNAME, null);
 
-    MAP_VALUE_SPARSE = new TreeMap<String, Object>();
-    MAP_VALUE_SPARSE.put("value", "userOther@_REALM");
+    MAP_VALUE_SPARSE = new TreeMap<>();
+    MAP_VALUE_SPARSE.put(KerberosPrincipalDescriptor.KEY_VALUE, "userOther@_REALM");
   }
 
 
-  public static void validateFromJSON(KerberosPrincipalDescriptor principalDescriptor) {
+  static void validateFromJSON(KerberosPrincipalDescriptor principalDescriptor) {
     Assert.assertNotNull(principalDescriptor);
     Assert.assertFalse(principalDescriptor.isContainer());
     Assert.assertEquals("service/_HOST@_REALM", principalDescriptor.getValue());
@@ -65,7 +68,7 @@ public class KerberosPrincipalDescriptorTest {
     Assert.assertEquals("localUser", principalDescriptor.getLocalUsername());
   }
 
-  public static void validateFromMap(KerberosPrincipalDescriptor principalDescriptor) {
+  static void validateFromMap(KerberosPrincipalDescriptor principalDescriptor) {
     Assert.assertNotNull(principalDescriptor);
     Assert.assertFalse(principalDescriptor.isContainer());
     Assert.assertEquals("user@_REALM", principalDescriptor.getValue());
@@ -74,7 +77,7 @@ public class KerberosPrincipalDescriptorTest {
     Assert.assertNull(principalDescriptor.getLocalUsername());
   }
 
-  public static void validateUpdatedData(KerberosPrincipalDescriptor principalDescriptor) {
+  static void validateUpdatedData(KerberosPrincipalDescriptor principalDescriptor) {
     Assert.assertNotNull(principalDescriptor);
     Assert.assertEquals("user@_REALM", principalDescriptor.getValue());
     Assert.assertEquals("service-site/service.component.kerberos.https.principal", principalDescriptor.getConfiguration());

@@ -18,9 +18,9 @@
 package org.apache.ambari.server.state.kerberos;
 
 
-import java.util.TreeMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * KerberosConfigurationDescriptor is an implementation of an AbstractKerberosDescriptor that

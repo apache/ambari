@@ -17,13 +17,6 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import junit.framework.Assert;
-import org.apache.ambari.server.AmbariException;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,6 +25,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.ambari.server.AmbariException;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import junit.framework.Assert;
 
 @Category({ category.KerberosTest.class})
 public class KerberosComponentDescriptorTest {
@@ -58,9 +60,9 @@ public class KerberosComponentDescriptorTest {
 
   static {
     Map<String, Object> identitiesMap = new TreeMap<String, Object>();
-    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE);
-    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_ALT.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE_ALT);
-    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE.get(KerberosIdentityDescriptor.KEY_NAME), KerberosIdentityDescriptorTest.MAP_VALUE);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_ALT.get(KerberosIdentityDescriptor.KEY_NAME), KerberosIdentityDescriptorTest.MAP_VALUE_ALT);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE.get(KerberosIdentityDescriptor.KEY_NAME), KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE);
 
     Map<String, Object> serviceSiteProperties = new TreeMap<String, Object>();
     serviceSiteProperties.put("service.component.property1", "red");
@@ -75,11 +77,11 @@ public class KerberosComponentDescriptorTest {
     Collection<String> authToLocalRules = new ArrayList<String>();
     authToLocalRules.add("component.name.rules2");
 
-    MAP_VALUE = new TreeMap<String, Object>();
-    MAP_VALUE.put("name", "A_DIFFERENT_COMPONENT_NAME");
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), new ArrayList<>(identitiesMap.values()));
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), configurationsMap.values());
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), authToLocalRules);
+    MAP_VALUE = new TreeMap<>();
+    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_NAME, "A_DIFFERENT_COMPONENT_NAME");
+    MAP_VALUE.put(KerberosComponentDescriptor.KEY_IDENTITIES, new ArrayList<>(identitiesMap.values()));
+    MAP_VALUE.put(KerberosComponentDescriptor.KEY_CONFIGURATIONS, configurationsMap.values());
+    MAP_VALUE.put(KerberosComponentDescriptor.KEY_AUTH_TO_LOCAL_PROPERTIES, authToLocalRules);
   }
 
   static void validateFromJSON(KerberosComponentDescriptor componentDescriptor) {
