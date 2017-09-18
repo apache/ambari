@@ -29,7 +29,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -44,7 +43,6 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,15 +187,8 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * Expand item_text column of upgrade_item
    */
   private void expandUpgradeItemItemTextColumn() throws SQLException {
-    Configuration.DatabaseType databaseType = configuration.getDatabaseType();
-
-    if (Configuration.DatabaseType.MYSQL == databaseType) {
-      dbAccessor.alterColumn(UPGRADE_ITEM_TABLE, new DBAccessor.DBColumnInfo(
-        UPGRADE_ITEM_ITEM_TEXT, new FieldTypeDefinition("TEXT"), null));
-    } else {
-      dbAccessor.changeColumnType(UPGRADE_ITEM_TABLE, UPGRADE_ITEM_ITEM_TEXT,
-        String.class, char[].class);
-    }
+    dbAccessor.changeColumnType(UPGRADE_ITEM_TABLE, UPGRADE_ITEM_ITEM_TEXT,
+      String.class, char[].class);
   }
 
   private void renameServiceDeletedColumn() throws AmbariException, SQLException {
