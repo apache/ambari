@@ -2292,7 +2292,7 @@ Em.I18n.translations = {
   'services.reassign.step1.message1': 'This wizard will walk you through moving {0}.<br/>',
   'services.reassign.step1.message2': 'The process to reassign {0} involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
       '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>',
-  'services.reassign.step1.message3': '<br/><p class="alert">Following services will be restarted as part of the wizard: <b>{0}</b>. You should plan a cluster maintenance window and prepare ' +
+  'services.reassign.step1.message3': '<br/><p class="restart-services-alert">Following services will be restarted as part of the wizard: <b>{0}</b>. You should plan a cluster maintenance window and prepare ' +
     'for cluster downtime when moving {1}.</p>',
 
   'services.reassign.step2.header':'Assign Master',
@@ -2752,9 +2752,9 @@ Em.I18n.translations = {
   'hosts.delete.popup.title':'Delete Host',
   'hosts.delete.popup.unknownComponents':'The following components have unknown status:',
   'hosts.recover.popup.title': 'Confirmation',
-  'hosts.recover.popup.body': 'This action will completely re-install all components on this host, and should only be used when restoring a host using replacement hardware. <strong>Are you sure you want to continue?<strong>',
+  'hosts.recover.popup.body': 'This action will completely re-install all components on this host. <strong>Are you sure you want to continue?<strong>',
   'hosts.recover.error.popup.title': 'Cannot Recover Host',
-  'hosts.recover.error.popup.body': 'Host cannot be recovered unless every host component is not in Stopped, Install Failed or Init state',
+  'hosts.recover.error.popup.body': 'This host cannot be recovered unless every component is Stopped. Please stop all components and try again.',
   'hosts.cant.do.popup.title':'Unable to Delete Host',
   'hosts.cant.do.popup.masterList.body':'This host cannot be deleted since it has the following master components:',
   'hosts.cant.do.popup.masterList.body.end':'To delete this host, you must first move all the master components listed above.',
