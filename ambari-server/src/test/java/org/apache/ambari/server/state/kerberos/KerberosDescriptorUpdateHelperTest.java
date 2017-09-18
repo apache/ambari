@@ -50,7 +50,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import junit.framework.Assert;
 
-@Category({ category.KerberosTest.class})
+@Category({category.KerberosTest.class})
 public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
   private static final KerberosDescriptorFactory KERBEROS_DESCRIPTOR_FACTORY = new KerberosDescriptorFactory();
   private static final Gson GSON = new Gson();
