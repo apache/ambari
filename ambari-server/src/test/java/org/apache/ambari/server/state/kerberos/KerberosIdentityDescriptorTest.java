@@ -31,9 +31,9 @@ import com.google.gson.reflect.TypeToken;
 
 import junit.framework.Assert;
 
-@Category({category.KerberosTest.class})
+@Category({ category.KerberosTest.class})
 public class KerberosIdentityDescriptorTest {
-  static final String JSON_VALUE =
+  public static final String JSON_VALUE =
       "{" +
           "  \"name\": \"identity_1\"" +
           "," +
@@ -50,58 +50,63 @@ public class KerberosIdentityDescriptorTest {
 
   static {
     MAP_VALUE = new TreeMap<>();
-    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_NAME, "identity_1");
-    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_PRINCIPAL, KerberosPrincipalDescriptorTest.MAP_VALUE);
-    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_KEYTAB, KerberosKeytabDescriptorTest.MAP_VALUE);
+    MAP_VALUE.put("name", "identity_1");
+    MAP_VALUE.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
+    MAP_VALUE.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
+    MAP_VALUE.put("password", "secret");
 
     MAP_VALUE_ALT = new TreeMap<>();
-    MAP_VALUE_ALT.put(KerberosIdentityDescriptor.KEY_NAME, "identity_2");
-    MAP_VALUE_ALT.put(KerberosIdentityDescriptor.KEY_PRINCIPAL, KerberosPrincipalDescriptorTest.MAP_VALUE);
-    MAP_VALUE_ALT.put(KerberosIdentityDescriptor.KEY_KEYTAB, KerberosKeytabDescriptorTest.MAP_VALUE);
+    MAP_VALUE_ALT.put("name", "identity_2");
+    MAP_VALUE_ALT.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
+    MAP_VALUE_ALT.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
+    MAP_VALUE_ALT.put("password", "secret2");
 
     TreeMap<String, Object> ownerMap = new TreeMap<>();
-    ownerMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "me");
-    ownerMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "rw");
+    ownerMap.put("name", "me");
+    ownerMap.put("access", "rw");
 
     TreeMap<String, Object> groupMap = new TreeMap<>();
-    groupMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "nobody");
-    groupMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "");
+    groupMap.put("name", "nobody");
+    groupMap.put("access", "");
 
 
     TreeMap<String, Object> keytabMap = new TreeMap<>();
-    keytabMap.put(KerberosKeytabDescriptor.KEY_FILE, "/home/user/me/subject.service.keytab");
-    keytabMap.put(KerberosKeytabDescriptor.KEY_OWNER, ownerMap);
-    keytabMap.put(KerberosKeytabDescriptor.KEY_GROUP, groupMap);
-    keytabMap.put(KerberosKeytabDescriptor.KEY_CONFIGURATION, "service-site/me.component.keytab.file");
+    keytabMap.put("file", "/home/user/me/subject.service.keytab");
+    keytabMap.put("owner", ownerMap);
+    keytabMap.put("group", groupMap);
+    keytabMap.put("configuration", "service-site/me.component.keytab.file");
 
     MAP_VALUE_REFERENCE = new TreeMap<>();
-    MAP_VALUE_REFERENCE.put(KerberosIdentityDescriptor.KEY_NAME, "shared_identity");
-    MAP_VALUE_REFERENCE.put(KerberosIdentityDescriptor.KEY_REFERENCE, "/shared");
-    MAP_VALUE_REFERENCE.put(KerberosIdentityDescriptor.KEY_KEYTAB, keytabMap);
+    MAP_VALUE_REFERENCE.put("name", "shared_identity");
+    MAP_VALUE_REFERENCE.put("reference", "/shared");
+    MAP_VALUE_REFERENCE.put("keytab", keytabMap);
   }
 
 
-  static void validateFromJSON(KerberosIdentityDescriptor identityDescriptor) {
+  public static void validateFromJSON(KerberosIdentityDescriptor identityDescriptor) {
     Assert.assertNotNull(identityDescriptor);
     Assert.assertFalse(identityDescriptor.isContainer());
 
     KerberosPrincipalDescriptorTest.validateFromJSON(identityDescriptor.getPrincipalDescriptor());
     KerberosKeytabDescriptorTest.validateFromJSON(identityDescriptor.getKeytabDescriptor());
+    Assert.assertNull(identityDescriptor.getPassword());
   }
 
-  static void validateFromMap(KerberosIdentityDescriptor identityDescriptor) {
+  public static void validateFromMap(KerberosIdentityDescriptor identityDescriptor) {
     Assert.assertNotNull(identityDescriptor);
     Assert.assertFalse(identityDescriptor.isContainer());
 
     KerberosPrincipalDescriptorTest.validateFromMap(identityDescriptor.getPrincipalDescriptor());
     KerberosKeytabDescriptorTest.validateFromMap(identityDescriptor.getKeytabDescriptor());
+    Assert.assertEquals("secret", identityDescriptor.getPassword());
   }
 
-  static void validateUpdatedData(KerberosIdentityDescriptor identityDescriptor) {
+  public static void validateUpdatedData(KerberosIdentityDescriptor identityDescriptor) {
     Assert.assertNotNull(identityDescriptor);
 
     KerberosPrincipalDescriptorTest.validateUpdatedData(identityDescriptor.getPrincipalDescriptor());
     KerberosKeytabDescriptorTest.validateUpdatedData(identityDescriptor.getKeytabDescriptor());
+    Assert.assertEquals("secret", identityDescriptor.getPassword());
   }
 
   private static KerberosIdentityDescriptor createFromJSON() {

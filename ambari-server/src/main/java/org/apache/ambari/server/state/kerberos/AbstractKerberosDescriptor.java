@@ -34,8 +34,6 @@ import org.apache.commons.lang.StringUtils;
  */
 public abstract class AbstractKerberosDescriptor {
 
-  static final String KEY_NAME = "name";
-
   /**
    * An AbstractKerberosDescriptor serving as the parent (or container) for this
    * AbstractKerberosDescriptor.
@@ -76,7 +74,7 @@ public abstract class AbstractKerberosDescriptor {
     String name = getName();
 
     if (name != null) {
-      dataMap.put(KEY_NAME, name);
+      dataMap.put("name", name);
     }
 
     return dataMap;

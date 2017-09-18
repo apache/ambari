@@ -29,9 +29,9 @@ import com.google.gson.reflect.TypeToken;
 
 import junit.framework.Assert;
 
-@Category({category.KerberosTest.class})
+@Category({ category.KerberosTest.class})
 public class KerberosKeytabDescriptorTest {
-  static final String JSON_VALUE =
+  public static final String JSON_VALUE =
       "{" +
           "  \"file\": \"/etc/security/keytabs/${host}/subject.service.keytab\"," +
           "  \"owner\": {" +
@@ -45,25 +45,25 @@ public class KerberosKeytabDescriptorTest {
           "  \"configuration\": \"service-site/service.component.keytab.file\"" +
           "}";
 
-  static final Map<String, Object> MAP_VALUE;
+  public static final Map<String, Object> MAP_VALUE;
 
   static {
     TreeMap<String, Object> ownerMap = new TreeMap<>();
-    ownerMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "root");
-    ownerMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "rw");
+    ownerMap.put("name", "root");
+    ownerMap.put("access", "rw");
 
     TreeMap<String, Object> groupMap = new TreeMap<>();
-    groupMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "hadoop");
-    groupMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "r");
+    groupMap.put("name", "hadoop");
+    groupMap.put("access", "r");
 
     MAP_VALUE = new TreeMap<>();
-    MAP_VALUE.put(KerberosKeytabDescriptor.KEY_FILE, "/etc/security/keytabs/subject.service.keytab");
-    MAP_VALUE.put(KerberosKeytabDescriptor.KEY_OWNER, ownerMap);
-    MAP_VALUE.put(KerberosKeytabDescriptor.KEY_GROUP, groupMap);
-    MAP_VALUE.put(KerberosKeytabDescriptor.KEY_CONFIGURATION, "service-site/service2.component.keytab.file");
+    MAP_VALUE.put("file", "/etc/security/keytabs/subject.service.keytab");
+    MAP_VALUE.put("owner", ownerMap);
+    MAP_VALUE.put("group", groupMap);
+    MAP_VALUE.put("configuration", "service-site/service2.component.keytab.file");
   }
 
-  static void validateFromJSON(KerberosKeytabDescriptor keytabDescriptor) {
+  public static void validateFromJSON(KerberosKeytabDescriptor keytabDescriptor) {
     Assert.assertNotNull(keytabDescriptor);
     Assert.assertFalse(keytabDescriptor.isContainer());
 
@@ -75,7 +75,7 @@ public class KerberosKeytabDescriptorTest {
     Assert.assertEquals("service-site/service.component.keytab.file", keytabDescriptor.getConfiguration());
   }
 
-  static void validateFromMap(KerberosKeytabDescriptor keytabDescriptor) {
+  public static void validateFromMap(KerberosKeytabDescriptor keytabDescriptor) {
     Assert.assertNotNull(keytabDescriptor);
     Assert.assertFalse(keytabDescriptor.isContainer());
 
@@ -87,7 +87,7 @@ public class KerberosKeytabDescriptorTest {
     Assert.assertEquals("service-site/service2.component.keytab.file", keytabDescriptor.getConfiguration());
   }
 
-  static void validateUpdatedData(KerberosKeytabDescriptor keytabDescriptor) {
+  public static void validateUpdatedData(KerberosKeytabDescriptor keytabDescriptor) {
     Assert.assertNotNull(keytabDescriptor);
 
     Assert.assertEquals("/etc/security/keytabs/subject.service.keytab", keytabDescriptor.getFile());

@@ -46,7 +46,6 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  *      "title": "KerberosServiceDescriptor",
  *      "description": "Describes an Ambari service",
  *      "type": "object",
- *      "preconfigure": "boolean",
  *      "properties": {
  *        "name": {
  *          "description": "An identifying name for this service descriptor.",
@@ -85,9 +84,6 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
  * KerberosServiceDescriptor#name value.
  */
 public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContainer {
-
-  static final String KEY_PRECONFIGURE = "preconfigure";
-  static final String KEY_COMPONENTS = Type.COMPONENT.getDescriptorPluralName();
 
   /**
    * A Map of the components contained within this KerberosServiceDescriptor
@@ -141,7 +137,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
     setName(name);
 
     if (data != null) {
-      Object list = data.get(KEY_COMPONENTS);
+      Object list = data.get(Type.COMPONENT.getDescriptorPluralName());
       if (list instanceof Collection) {
         // Assume list is Collection<Map<String, Object>>
         for (Object item : (Collection) list) {
@@ -151,7 +147,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
         }
       }
 
-      setPreconfigure(getBooleanValue(data, KEY_PRECONFIGURE));
+      setPreconfigure(getBooleanValue(data, "preconfigure"));
     }
   }
 
@@ -279,11 +275,11 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
       for (KerberosComponentDescriptor component : components.values()) {
         list.add(component.toMap());
       }
-      map.put(KEY_COMPONENTS, list);
+      map.put(Type.COMPONENT.getDescriptorPluralName(), list);
     }
 
     if (preconfigure != null) {
-      map.put(KEY_PRECONFIGURE, preconfigure.toString());
+      map.put("preProcess", preconfigure.toString());
     }
 
     return map;

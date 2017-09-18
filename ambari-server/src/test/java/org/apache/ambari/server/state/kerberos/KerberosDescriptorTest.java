@@ -40,12 +40,12 @@ import com.google.gson.Gson;
 
 import junit.framework.Assert;
 
-@Category({category.KerberosTest.class})
+@Category({ category.KerberosTest.class})
 public class KerberosDescriptorTest {
   private static final KerberosDescriptorFactory KERBEROS_DESCRIPTOR_FACTORY = new KerberosDescriptorFactory();
   private static final KerberosServiceDescriptorFactory KERBEROS_SERVICE_DESCRIPTOR_FACTORY = new KerberosServiceDescriptorFactory();
 
-  private static final String JSON_VALUE =
+  public static final String JSON_VALUE =
       "{" +
           "  \"properties\": {" +
           "      \"realm\": \"${cluster-env/kerberos_domain}\"," +
@@ -59,30 +59,30 @@ public class KerberosDescriptorTest {
           "    ]" +
           "}";
 
-  private static final Map<String, Object> MAP_VALUE;
+  public static final Map<String, Object> MAP_VALUE;
 
   static {
     Map<String, Object> keytabOwnerMap = new TreeMap<>();
-    keytabOwnerMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "root");
-    keytabOwnerMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "rw");
+    keytabOwnerMap.put("name", "root");
+    keytabOwnerMap.put("access", "rw");
 
     Map<String, Object> keytabGroupMap = new TreeMap<>();
-    keytabGroupMap.put(KerberosKeytabDescriptor.KEY_ACL_NAME, "hadoop");
-    keytabGroupMap.put(KerberosKeytabDescriptor.KEY_ACL_ACCESS, "r");
+    keytabGroupMap.put("name", "hadoop");
+    keytabGroupMap.put("access", "r");
 
     Map<String, Object> keytabMap = new TreeMap<>();
-    keytabMap.put(KerberosKeytabDescriptor.KEY_FILE, "/etc/security/keytabs/subject.service.keytab");
-    keytabMap.put(KerberosKeytabDescriptor.KEY_OWNER, keytabOwnerMap);
-    keytabMap.put(KerberosKeytabDescriptor.KEY_GROUP, keytabGroupMap);
-    keytabMap.put(KerberosKeytabDescriptor.KEY_CONFIGURATION, "service-site/service2.component.keytab.file");
+    keytabMap.put("file", "/etc/security/keytabs/subject.service.keytab");
+    keytabMap.put("owner", keytabOwnerMap);
+    keytabMap.put("group", keytabGroupMap);
+    keytabMap.put("configuration", "service-site/service2.component.keytab.file");
 
     Map<String, Object> sharedIdentityMap = new TreeMap<>();
-    sharedIdentityMap.put(KerberosIdentityDescriptor.KEY_NAME, "shared");
-    sharedIdentityMap.put(KerberosIdentityDescriptor.KEY_PRINCIPAL, KerberosPrincipalDescriptorTest.MAP_VALUE);
-    sharedIdentityMap.put(KerberosIdentityDescriptor.KEY_KEYTAB, keytabMap);
+    sharedIdentityMap.put("name", "shared");
+    sharedIdentityMap.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
+    sharedIdentityMap.put("keytab", keytabMap);
 
     Map<String, Object> servicesMap = new TreeMap<>();
-    servicesMap.put((String) KerberosServiceDescriptorTest.MAP_VALUE.get(KerberosServiceDescriptor.KEY_NAME), KerberosServiceDescriptorTest.MAP_VALUE);
+    servicesMap.put((String) KerberosServiceDescriptorTest.MAP_VALUE.get("name"), KerberosServiceDescriptorTest.MAP_VALUE);
 
     Map<String, Object> identitiesMap = new TreeMap<>();
     identitiesMap.put("shared", sharedIdentityMap);
@@ -104,14 +104,14 @@ public class KerberosDescriptorTest {
     properties.put("some.property", "Hello World");
 
     MAP_VALUE = new TreeMap<>();
-    MAP_VALUE.put(KerberosDescriptor.KEY_PROPERTIES, properties);
-    MAP_VALUE.put(KerberosDescriptor.KEY_AUTH_TO_LOCAL_PROPERTIES, authToLocalRules);
-    MAP_VALUE.put(KerberosDescriptor.KEY_SERVICES, servicesMap.values());
-    MAP_VALUE.put(KerberosDescriptor.KEY_CONFIGURATIONS, configurationsMap.values());
-    MAP_VALUE.put(KerberosDescriptor.KEY_IDENTITIES, identitiesMap.values());
+    MAP_VALUE.put("properties", properties);
+    MAP_VALUE.put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), authToLocalRules);
+    MAP_VALUE.put(AbstractKerberosDescriptor.Type.SERVICE.getDescriptorPluralName(), servicesMap.values());
+    MAP_VALUE.put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), configurationsMap.values());
+    MAP_VALUE.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), identitiesMap.values());
   }
 
-  private static void validateFromJSON(KerberosDescriptor descriptor) {
+  public static void validateFromJSON(KerberosDescriptor descriptor) {
     Assert.assertNotNull(descriptor);
     Assert.assertTrue(descriptor.isContainer());
 
@@ -146,7 +146,7 @@ public class KerberosDescriptorTest {
     Assert.assertNull(configurations);
   }
 
-  private static void validateFromMap(KerberosDescriptor descriptor) throws AmbariException {
+  public static void validateFromMap(KerberosDescriptor descriptor) throws AmbariException {
     Assert.assertNotNull(descriptor);
     Assert.assertTrue(descriptor.isContainer());
 
@@ -219,7 +219,7 @@ public class KerberosDescriptorTest {
     Assert.assertEquals("red", configProperties.get("property1"));
   }
 
-  private void validateUpdatedData(KerberosDescriptor descriptor) {
+  public void validateUpdatedData(KerberosDescriptor descriptor) {
     Assert.assertNotNull(descriptor);
 
     Map<String, String> properties = descriptor.getProperties();
@@ -420,7 +420,7 @@ public class KerberosDescriptorTest {
 
   @Test
   public void testGetReferencedIdentityDescriptor_Recursive() throws IOException {
-    boolean identityFound;
+    boolean identityFound = false;
     List<KerberosIdentityDescriptor> identities;
 
     URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_get_referenced_identity_descriptor.json");
@@ -482,8 +482,8 @@ public class KerberosDescriptorTest {
   public void testFiltersOutIdentitiesBasedonInstalledServices() throws IOException {
     URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_filtering_identity_descriptor.json");
     KerberosComponentDescriptor componentDescriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(systemResourceURL.getFile()))
-        .getService("SERVICE1")
-        .getComponent("SERVICE1_COMPONENT1");
+      .getService("SERVICE1")
+      .getComponent("SERVICE1_COMPONENT1");
     List<KerberosIdentityDescriptor> identities = componentDescriptor.getIdentities(true, new HashedMap() {{
       put("services", Collections.emptySet());
     }});
