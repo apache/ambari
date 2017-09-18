@@ -806,8 +806,13 @@
 
     <service name="ZEPPELIN">
       <component name="ZEPPELIN_MASTER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
+        </pre-upgrade>
+        <pre-downgrade/>
+
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
