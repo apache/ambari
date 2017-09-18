@@ -126,6 +126,7 @@ module.exports = {
 
         didInsertElement: function() {
           var defaultFilterColumn = this.get('filterColumns').findProperty('selected');
+          this.get('filterComponents').setEach('selected', false);
           this.set('filterColumn', defaultFilterColumn);
           initialHosts.setEach('filtered', true);
           this.set('parentView.availableHosts', initialHosts);
