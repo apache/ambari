@@ -25,15 +25,21 @@ App.ReassignMasterWizardStep1View = Em.View.extend({
   message: function () {
     var componentName = this.get('controller.content.reassign.component_name');
     var listOfServices;
+    var installedServices = App.Service.find().mapProperty('serviceName');
 
     if(this.get('controller.content.componentsToStopAllServices').contains(componentName)) {
-      listOfServices = App.Service.find().mapProperty('serviceName');
+      listOfServices = installedServices;
     } else {
       listOfServices = this.get('controller.target.reassignMasterController.relatedServicesMap')[componentName];
       if(!listOfServices || !listOfServices.length) {
-        listOfServices = App.Service.find().mapProperty('serviceName').filter(function (service) {
+        listOfServices = installedServices.filter(function (service) {
           return service != 'HDFS';
         });
+      } else {  //not display any service which is not installed
+        var installedServicesToStop = listOfServices.filter(function (service) {
+          return installedServices.contains(service);
+        });
+        listOfServices = installedServicesToStop;
       }
     }
 

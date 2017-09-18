@@ -263,7 +263,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('content.reassign.component_name', 'HISTORYSERVER');
       controller.set('content.componentsToStopAllServices', ['NAMENODE', 'SECONDARY_NAMENODE'])
       controller.stopRequiredServices();
-      expect(controller.stopServices.calledWith(['MAPREDUCE2', 'PIG', 'OOZIE'], true)).to.be.true;
+      expect(controller.stopServices.calledWith(['MAPREDUCE2', 'HIVE', 'PIG', 'OOZIE'], true)).to.be.true;
     });
   });
 
@@ -937,7 +937,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it("component has related services", function() {
       controller.set('content.reassign.component_name', 'HISTORYSERVER');
       controller.startRequiredServices();
-      expect(controller.startServices.calledWith(false, ['MAPREDUCE2', 'PIG', 'OOZIE'], true)).to.be.true;
+      expect(controller.startServices.calledWith(false, ['MAPREDUCE2', 'HIVE', 'PIG', 'OOZIE'], true)).to.be.true;
     });
     it("component does not have related services", function() {
       controller.set('content.reassign.component_name', 'C1');
