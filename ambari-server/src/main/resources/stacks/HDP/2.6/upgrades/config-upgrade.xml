@@ -91,6 +91,14 @@
           </definition>
         </changes>
       </component>
+      <component name="HIVE_SERVER_INTERACTIVE">
+        <changes>
+          <definition xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable" summary="Update additional LLAP-Tez settings">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.ssl.enable" value="false"/>
+          </definition>
+        </changes>
+      </component>
     </service>
 
     <service name="HBASE">

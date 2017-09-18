@@ -520,6 +520,11 @@
             <set key="tez.runtime.shuffle.read.timeout" value="30000"/>
           </definition>
 
+          <definition xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable" summary="Update additional LLAP-Tez settings">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.ssl.enable" value="false"/>
+          </definition>
+
           <definition xsi:type="configure" id="hdp_2_6_0_0_copy_hive_tez_container_size_to_hiveInteractive">
             <type>hive-interactive-site</type>
             <transfer operation="copy" from-type="hive-site" from-key="hive.tez.container.size" to-key="hive.tez.container.size" default-value="682"  if-type="hive-interactive-site" if-key="hive.tez.container.size" if-key-state="absent"/>

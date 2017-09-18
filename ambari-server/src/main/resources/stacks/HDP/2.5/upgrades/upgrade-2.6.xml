@@ -861,6 +861,7 @@
           <task xsi:type="configure" id="llap_update_settings"/>
           <task xsi:type="configure" id="llap_update_tez_settings"/>
           <task xsi:type="configure" id="hdp_2_6_maint_llap_config"/>
+          <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable"/>
         </pre-upgrade>
         
         <pre-downgrade />

@@ -312,6 +312,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable">
+          <summary>Update tez.runtime.shuffle.ssl.enable property</summary>
+        </task>
+      </execute-stage>
+
       <!-- HBASE -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for Ranger Hbase plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hbase_plugin_cluster_name"/>
