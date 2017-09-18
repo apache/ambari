@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.stack.RepositoryXml;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +100,11 @@ public class StackServiceDirectory extends ServiceDirectory {
     String stackName = stackDir.getName();
     String versionString = stackVersionDir.getName().replaceAll("\\.", "");
 
-    return stackName + versionString + serviceName + "ServiceAdvisor";
+    // Remove illegal python characters from the advisor name
+    String advisorClassName = stackName + versionString + serviceName + "ServiceAdvisor";
+    advisorClassName = advisorClassName.replaceAll("[^a-zA-Z0-9]+", "");
+
+    return advisorClassName;
   }
 
   /**
