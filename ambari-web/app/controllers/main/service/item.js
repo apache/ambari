@@ -655,7 +655,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var batches = [{
       "order_id": 1,
       "type": "POST",
-      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {
           "context": "Refresh YARN Capacity Scheduler",
@@ -671,7 +671,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }, {
       "order_id": 2,
       "type": "POST",
-      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {"context": "Restart LLAP", "command": "RESTART_LLAP"},
         "Requests/resource_filters": [{
