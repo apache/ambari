@@ -2081,7 +2081,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       {
         "order_id": 1,
         "type": "POST",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+        "uri": "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
@@ -2109,7 +2109,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       batches.push({
         "order_id": id,
         "type": "PUT",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
         "RequestBodyInfo": {
           "RequestInfo": {
             context: Em.I18n.t('hosts.host.regionserver.decommission.batch2'),
@@ -2133,7 +2133,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     batches.push({
       "order_id": id,
       "type": "POST",
-      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {
           "context": Em.I18n.t('hosts.host.regionserver.decommission.batch3'),
@@ -2220,7 +2220,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       {
         "order_id": 1,
         "type": "POST",
-        "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+        "uri": "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": context_1,
@@ -2245,7 +2245,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       batches.push({
         "order_id": id,
         "type": "PUT",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
         "RequestBodyInfo": {
           "RequestInfo": {
             context: startContext,
@@ -3111,7 +3111,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       {
         "order_id": 1,
         "type": "PUT",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
         "RequestBodyInfo": {
           "RequestInfo": {
             context: Em.I18n.t('hosts.host.recover.initAllComponents.context'),
@@ -3133,7 +3133,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       {
         "order_id": 2,
         "type": "PUT",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
         "RequestBodyInfo": {
           "RequestInfo": {
             context: Em.I18n.t('hosts.host.recover.installAllComponents.context'),
@@ -3156,7 +3156,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       batches.push({
         "order_id": 3,
         "type": "PUT",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName'),
+        "uri": "/clusters/" + App.get('clusterName'),
         "RequestBodyInfo": {
           "RequestInfo": {
             context: Em.I18n.t('hosts.host.recover.regenerateKeytabs.context'),
