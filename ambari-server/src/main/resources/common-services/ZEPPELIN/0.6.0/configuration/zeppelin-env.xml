@@ -17,8 +17,6 @@
    limitations under the License.
 -->
 <configuration>
-
-
   <property>
     <name>zeppelin_pid_dir</name>
     <value>/var/run/zeppelin</value>
@@ -28,7 +26,7 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin_user</name>
@@ -39,7 +37,7 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin_group</name>
@@ -50,13 +48,13 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin_log_dir</name>
     <value>/var/log/zeppelin</value>
     <description>Zeppelin Log dir</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin_env_content</name>
@@ -137,19 +135,19 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
 # export ZEPPELIN_IMPERSONATE_CMD             # Optional, when user want to run interpreter as end web user. eg) 'sudo -H -u ${ZEPPELIN_IMPERSONATE_USER} bash -c '
 
     </value>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin.executor.mem</name>
     <value>512m</value>
     <description>Executor memory to use (e.g. 512m or 1g)</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin.executor.instances</name>
     <value>2</value>
     <description>Number of executor instances to use (e.g. 2)</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin.spark.jar.dir</name>
@@ -157,7 +155,7 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
     <description>Shared location where zeppelin spark jar will be copied to. Should be accesible
       by all cluster nodes
     </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -170,7 +168,7 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
       Kerberos principal name for the Zeppelin.
     </description>
     <property-type>KERBEROS_PRINCIPAL</property-type>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zeppelin.server.kerberos.keytab</name>
@@ -181,6 +179,6 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
     <description>
       Location of the kerberos keytab file for the Zeppelin.
     </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

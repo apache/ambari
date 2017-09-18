@@ -29,7 +29,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
 
@@ -61,6 +61,8 @@ install_dir = os.path.join(stack_root, "current")
 executor_mem = config['configurations']['zeppelin-env']['zeppelin.executor.mem']
 executor_instances = config['configurations']['zeppelin-env'][
   'zeppelin.executor.instances']
+
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 spark_jar_dir = config['configurations']['zeppelin-env']['zeppelin.spark.jar.dir']
 spark_jar = format("{spark_jar_dir}/zeppelin-spark-0.5.5-SNAPSHOT.jar")
@@ -152,6 +154,29 @@ if 'hive_server_interactive_hosts' in master_configs and len(master_configs['hiv
     hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
     hive_server2_support_dynamic_service_discovery = config['configurations']['hive-site']['hive.server2.support.dynamic.service.discovery']
 
+spark_thrift_server_hosts = None
+spark_hive_thrift_port = None
+spark_hive_principal = None
+if 'spark_thriftserver_hosts' in master_configs and len(master_configs['spark_thriftserver_hosts']) != 0:
+  spark_thrift_server_hosts = str(master_configs['spark_thriftserver_hosts'][0])
+  if config['configurations']['spark-hive-site-override']:
+    spark_hive_thrift_port = config['configurations']['spark-hive-site-override']['hive.server2.thrift.port']
+  if config['configurations']['spark-thrift-sparkconf'] and \
+      'spark.sql.hive.hiveserver2.jdbc.url.principal' in config['configurations']['spark-thrift-sparkconf']:
+    spark_hive_principal = config['configurations']['spark-thrift-sparkconf']['spark.sql.hive.hiveserver2.jdbc.url.principal']
+
+spark2_thrift_server_hosts = None
+spark2_hive_thrift_port = None
+spark2_hive_principal = None
+if 'spark2_thriftserver_hosts' in master_configs and len(master_configs['spark2_thriftserver_hosts']) != 0:
+  spark2_thrift_server_hosts = str(master_configs['spark2_thriftserver_hosts'][0])
+  if config['configurations']['spark2-hive-site-override']:
+    spark2_hive_thrift_port = config['configurations']['spark2-hive-site-override']['hive.server2.thrift.port']
+  if config['configurations']['spark2-thrift-sparkconf'] and \
+      'spark.sql.hive.hiveserver2.jdbc.url.principal' in config['configurations']['spark2-thrift-sparkconf']:
+    spark2_hive_principal = config['configurations']['spark2-thrift-sparkconf']['spark.sql.hive.hiveserver2.jdbc.url.principal']
+
+
 # detect hbase details if installed
 zookeeper_znode_parent = None
 hbase_zookeeper_quorum = None
@@ -171,12 +196,17 @@ else:
 
 zeppelin_kerberos_keytab = config['configurations']['zeppelin-env']['zeppelin.server.kerberos.keytab']
 zeppelin_kerberos_principal = config['configurations']['zeppelin-env']['zeppelin.server.kerberos.principal']
+if 'zeppelin.interpreter.config.upgrade' in config['configurations']['zeppelin-config']:
+  zeppelin_interpreter_config_upgrade = config['configurations']['zeppelin-config']['zeppelin.interpreter.config.upgrade']
+else:
+  zeppelin_interpreter_config_upgrade = False
 
 # e.g. 2.3
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 
 # e.g. 2.3.0.0
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 # e.g. 2.3.0.0-2130
 full_stack_version = default("/commandParams/version", None)
