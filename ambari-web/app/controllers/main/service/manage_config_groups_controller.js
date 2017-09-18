@@ -381,6 +381,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    */
   getNewlyAddedHostComponentsMap: function () {
     var newlyAddedHostComponentsMap = {};
+    var masters = App.router.get('addServiceController.content.masterComponentHosts') || [];
+    var slaves = App.router.get('addServiceController.content.slaveComponentHosts') || [];
     var clients = App.router.get('addServiceController.content.clients').filterProperty('isInstalled', false).map(function (component) {
       return Em.Object.create({
         componentName: component.component_name,
@@ -388,7 +390,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       });
     });
 
-    App.router.get('addServiceController.content.masterComponentHosts').forEach(function (component) {
+    masters.forEach(function (component) {
       if (!component.isInstalled) {
         if (!newlyAddedHostComponentsMap[component.hostName]) {
           newlyAddedHostComponentsMap[component.hostName] = [];
@@ -400,7 +402,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       }
     });
 
-    App.router.get('addServiceController.content.slaveComponentHosts').forEach(function (component) {
+    slaves.forEach(function (component) {
       component.hosts.forEach(function (host) {
         if (!host.isInstalled) {
           if (!newlyAddedHostComponentsMap[host.hostName]) {
