@@ -744,6 +744,18 @@
             </organization>
         </developer>
         <developer>
+            <id>nishant</id>
+            <name>Nishant Bangarwa</name>
+            <email>nishant@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>nitiraj</id>
             <name>Nitiraj Rathore</name>
             <email>nitiraj@apache.org</email>
