@@ -202,7 +202,7 @@ smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 security_check_status_file = format('{log_dir}/security_check.status')
 
 # hbase
-hbase_conf_dir = "/etc/hbase/conf"
+hbase_conf_dir = default('configurations/atlas-env/atlas.hbase.conf.dir','/etc/hbase/conf')
 
 atlas_search_backend = default("/configurations/application-properties/atlas.graph.index.search.backend", "")
 search_backend_solr = atlas_search_backend.startswith('solr')

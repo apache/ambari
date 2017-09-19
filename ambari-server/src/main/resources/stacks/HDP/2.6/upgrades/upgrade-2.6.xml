@@ -1041,6 +1041,7 @@
           <task xsi:type="configure" id="atlas_env_gc_worker"/>
           <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
           <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
+          <task xsi:type="configure" id="atlas_hbase_conf_dir"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
