@@ -231,7 +231,7 @@ function start()
   # hbase_daemon "zookeeper" "start"
   #	hbase_daemon "master" "start"
   #	hbase_daemon "regionserver" "start"
-  if [ !"${DISTRIBUTED_HBASE}" ]; then
+  if [[ "${DISTRIBUTED_HBASE}" == "false" || "${DISTRIBUTED_HBASE}" == "False" ]]; then
     echo "$(date) Starting HBase." | tee -a $STARTUPFILE
     hbase_daemon "master" "start"
   else
@@ -332,7 +332,7 @@ function stop()
   fi
 
   #stop hbase daemons
-  if [ !"${DISTRIBUTED_HBASE}" ]; then
+  if [[ "${DISTRIBUTED_HBASE}" == "false" || "${DISTRIBUTED_HBASE}" == "False" ]]; then
     echo "Stopping HBase master" | tee -a $STARTUPFILE
     hbase_daemon "master" "stop"
   fi
