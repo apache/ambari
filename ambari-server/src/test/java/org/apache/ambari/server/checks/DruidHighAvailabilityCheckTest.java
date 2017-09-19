@@ -128,7 +128,7 @@ public class DruidHighAvailabilityCheckTest
     final Service service = Mockito.mock(Service.class);
     final ServiceComponent serviceComponent = Mockito.mock(ServiceComponent.class);
     final ServiceComponent haComponent = Mockito.mock(ServiceComponent.class);
-    Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.<String,ServiceComponentHost>singletonMap("host", null));
+    Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.singletonMap("host", null));
     Mockito.when(haComponent.getServiceComponentHosts()).thenReturn(ImmutableMap.<String,ServiceComponentHost>of("host1", serviceComponentHost, "host2", serviceComponentHost));
 
     // All Components Not HA
