@@ -926,7 +926,8 @@ public class UpgradeHelper {
    * stack and the target stack. If a value has changed between stacks, then the
    * target stack value should be taken unless the cluster's value differs from
    * the old stack. This can occur if a property has been customized after
-   * installation.</li>
+   * installation. Read-only properties, however, are always taken from the new
+   * stack.</li>
    * <li>Downgrade: Reset the latest configurations from the service's original
    * stack. The new configurations that were created on upgrade must be left
    * intact until all components have been reverted, otherwise heartbeats will
@@ -983,6 +984,11 @@ public class UpgradeHelper {
       }
 
       ConfigHelper configHelper = m_configHelperProvider.get();
+
+      // the auto-merge must take read-only properties even if they have changed
+      // - if the properties was read-only in the source stack, then we must
+      // take the new stack's value
+      Map<String, Set<String>> readOnlyProperties = getReadOnlyProperties(sourceStackId, serviceName);
 
       // populate a map of default configurations for the service on the old
       // stack (this is used when determining if a property has been
@@ -1047,8 +1053,7 @@ public class UpgradeHelper {
         Map<String, String> existingConfigurations = existingServiceConfig.getProperties();
 
         // get the new configurations
-        Map<String, String> newDefaultConfigurations = newServiceDefaultConfigsByType.get(
-            configurationType);
+        Map<String, String> newDefaultConfigurations = newServiceDefaultConfigsByType.get(configurationType);
 
         // if the new stack configurations don't have the type, then simply add
         // all of the existing in
@@ -1067,8 +1072,7 @@ public class UpgradeHelper {
           }
         }
 
-        // process every existing configuration property for this configuration
-        // type
+        // process every existing configuration property for this configuration type
         for (Map.Entry<String, String> existingConfigurationEntry : existingConfigurations.entrySet()) {
           String existingConfigurationKey = existingConfigurationEntry.getKey();
           String existingConfigurationValue = existingConfigurationEntry.getValue();
@@ -1085,17 +1089,22 @@ public class UpgradeHelper {
               // from the original stack
               String oldDefaultValue = oldServiceDefaultConfigs.get(existingConfigurationKey);
 
-              if (!StringUtils.equals(existingConfigurationValue, oldDefaultValue)) {
-                // at this point, we've determined that there is a
-                // difference
-                // between default values between stacks, but the value was
-                // also customized, so keep the customized value
+              // see if this property is a read-only property which means that
+              // we shouldn't care if it was changed - we should take the new
+              // stack's value
+              Set<String> readOnlyPropertiesForType = readOnlyProperties.get(configurationType);
+              boolean readOnly = (null != readOnlyPropertiesForType
+                  && readOnlyPropertiesForType.contains(existingConfigurationKey));
+
+              if (!readOnly && !StringUtils.equals(existingConfigurationValue, oldDefaultValue)) {
+                // at this point, we've determined that there is a difference
+                // between default values between stacks, but the value was also
+                // customized, so keep the customized value
                 newDefaultConfigurations.put(existingConfigurationKey, existingConfigurationValue);
               }
             }
           } else {
-            // there is no entry in the map, so add the existing key/value
-            // pair
+            // there is no entry in the map, so add the existing key/value pair
             newDefaultConfigurations.put(existingConfigurationKey, existingConfigurationValue);
           }
         }
@@ -1148,5 +1157,56 @@ public class UpgradeHelper {
             newServiceDefaultConfigsByType, userName, serviceVersionNote);
       }
     }
+  }
+
+  /**
+   * Gets all of the read-only properties for the given service. This will also
+   * include any stack properties as well which are read-only.
+   *
+   * @param stackId
+   *          the stack to get read-only properties for (not {@code null}).
+   * @param serviceName
+   *          the namee of the service (not {@code null}).
+   * @return a map of configuration type to set of property names which are
+   *         read-only
+   * @throws AmbariException
+   */
+  private Map<String, Set<String>> getReadOnlyProperties(StackId stackId, String serviceName)
+      throws AmbariException {
+    Map<String, Set<String>> readOnlyProperties = new HashMap<>();
+
+    Set<PropertyInfo> properties = new HashSet<>();
+
+    Set<PropertyInfo> stackProperties = m_ambariMetaInfoProvider.get().getStackProperties(
+        stackId.getStackName(), stackId.getStackVersion());
+
+    Set<PropertyInfo> serviceProperties = m_ambariMetaInfoProvider.get().getServiceProperties(
+        stackId.getStackName(), stackId.getStackVersion(), serviceName);
+
+    if (CollectionUtils.isNotEmpty(stackProperties)) {
+      properties.addAll(stackProperties);
+    }
+
+    if (CollectionUtils.isNotEmpty(serviceProperties)) {
+      properties.addAll(serviceProperties);
+    }
+
+    for (PropertyInfo property : properties) {
+      ValueAttributesInfo valueAttributes = property.getPropertyValueAttributes();
+      if (null != valueAttributes && valueAttributes.getReadOnly() == Boolean.TRUE) {
+        String type = ConfigHelper.fileNameToConfigType(property.getFilename());
+
+        // get the set of properties for this type, initializing it if needed
+        Set<String> readOnlyPropertiesForType = readOnlyProperties.get(type);
+        if (null == readOnlyPropertiesForType) {
+          readOnlyPropertiesForType = new HashSet<>();
+          readOnlyProperties.put(type, readOnlyPropertiesForType);
+        }
+
+        readOnlyPropertiesForType.add(property.getName());
+      }
+    }
+
+    return readOnlyProperties;
   }
 }

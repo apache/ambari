@@ -33,6 +33,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -56,6 +57,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -66,6 +68,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -96,12 +99,15 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
   private Injector m_injector;
+  private AmbariMetaInfo m_metainfo;
 
   /**
    * @throws Exception
    */
   @Before
   public void before() throws Exception {
+    m_metainfo = createNiceMock(AmbariMetaInfo.class);
+
     MockModule mockModule = new MockModule();
 
     // create an injector which will inject the mocks
@@ -287,6 +293,135 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     assertEquals("stack-220-original", expectedBarType.get("bar-property-2"));
   }
 
+  /**
+   * Tests that any read-only properties are not taken from the existing
+   * configs, but from the new stack value.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testReadOnlyPropertyIsTakenFromTargetStack() throws Exception {
+    RepositoryVersionEntity repoVersion211 = createNiceMock(RepositoryVersionEntity.class);
+    RepositoryVersionEntity repoVersion220 = createNiceMock(RepositoryVersionEntity.class);
+
+    StackId stack211 = new StackId("HDP-2.1.1");
+    StackId stack220 = new StackId("HDP-2.2.0");
+
+    String version211 = "2.1.1.0-1234";
+    String version220 = "2.2.0.0-1234";
+
+    expect(repoVersion211.getStackId()).andReturn(stack211).atLeastOnce();
+    expect(repoVersion211.getVersion()).andReturn(version211).atLeastOnce();
+
+    expect(repoVersion220.getStackId()).andReturn(stack220).atLeastOnce();
+    expect(repoVersion220.getVersion()).andReturn(version220).atLeastOnce();
+
+    String fooSite = "foo-site";
+    String fooPropertyName = "foo-property-1";
+    String serviceName = "ZOOKEEPER";
+
+    Map<String, Map<String, String>> stack211Configs = new HashMap<>();
+    Map<String, String> stack211FooType = new HashMap<>();
+    stack211Configs.put(fooSite, stack211FooType);
+    stack211FooType.put(fooPropertyName, "stack-211-original");
+
+    Map<String, Map<String, String>> stack220Configs = new HashMap<>();
+    Map<String, String> stack220FooType = new HashMap<>();
+    stack220Configs.put(fooSite, stack220FooType);
+    stack220FooType.put(fooPropertyName, "stack-220-original");
+
+    PropertyInfo readOnlyProperty = new PropertyInfo();
+    ValueAttributesInfo valueAttributesInfo = new ValueAttributesInfo();
+    valueAttributesInfo.setReadOnly(true);
+    readOnlyProperty.setName(fooPropertyName);
+    readOnlyProperty.setFilename(fooSite + ".xml");
+    readOnlyProperty.setPropertyValueAttributes(null);
+    readOnlyProperty.setPropertyValueAttributes(valueAttributesInfo);
+
+    expect(m_metainfo.getServiceProperties(stack211.getStackName(), stack211.getStackVersion(),
+        serviceName)).andReturn(Sets.newHashSet(readOnlyProperty)).atLeastOnce();
+
+    Map<String, String> existingFooType = new HashMap<>();
+
+    ClusterConfigEntity fooConfigEntity = createNiceMock(ClusterConfigEntity.class);
+
+    expect(fooConfigEntity.getType()).andReturn(fooSite);
+
+    Config fooConfig = createNiceMock(Config.class);
+
+    existingFooType.put(fooPropertyName, "my-foo-property-1");
+
+    expect(fooConfig.getType()).andReturn(fooSite).atLeastOnce();
+    expect(fooConfig.getProperties()).andReturn(existingFooType);
+
+    Map<String, DesiredConfig> desiredConfigurations = new HashMap<>();
+    desiredConfigurations.put(fooSite, null);
+
+    Service zookeeper = createNiceMock(Service.class);
+    expect(zookeeper.getName()).andReturn(serviceName).atLeastOnce();
+    expect(zookeeper.getServiceComponents()).andReturn(
+        new HashMap<String, ServiceComponent>()).once();
+    zookeeper.setDesiredRepositoryVersion(repoVersion220);
+    expectLastCall().once();
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getCurrentStackVersion()).andReturn(stack211).atLeastOnce();
+    expect(cluster.getDesiredStackVersion()).andReturn(stack220);
+    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
+    expect(cluster.getDesiredConfigByType(fooSite)).andReturn(fooConfig);
+    expect(cluster.getService(serviceName)).andReturn(zookeeper);
+
+    ConfigHelper configHelper = m_injector.getInstance(ConfigHelper.class);
+
+    expect(configHelper.getDefaultProperties(stack211, serviceName)).andReturn(stack211Configs).anyTimes();
+    expect(configHelper.getDefaultProperties(stack220, serviceName)).andReturn(stack220Configs).anyTimes();
+
+    Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
+
+    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(AmbariManagementController.class),
+        EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
+        EasyMock.anyObject(String.class));
+
+    expectLastCall().once();
+
+    // mock the service config DAO and replay it
+    ServiceConfigEntity zookeeperServiceConfig = createNiceMock(ServiceConfigEntity.class);
+    expect(zookeeperServiceConfig.getClusterConfigEntities()).andReturn(
+        Lists.newArrayList(fooConfigEntity));
+
+    ServiceConfigDAO serviceConfigDAOMock = m_injector.getInstance(ServiceConfigDAO.class);
+    List<ServiceConfigEntity> latestServiceConfigs = Lists.newArrayList(zookeeperServiceConfig);
+    expect(serviceConfigDAOMock.getLastServiceConfigsForService(EasyMock.anyLong(),
+        eq(serviceName))).andReturn(latestServiceConfigs).once();
+
+    UpgradeContext context = createNiceMock(UpgradeContext.class);
+    expect(context.getCluster()).andReturn(cluster).atLeastOnce();
+    expect(context.getType()).andReturn(UpgradeType.ROLLING).atLeastOnce();
+    expect(context.getDirection()).andReturn(Direction.UPGRADE).atLeastOnce();
+    expect(context.getRepositoryVersion()).andReturn(repoVersion220).anyTimes();
+    expect(context.getSupportedServices()).andReturn(Sets.newHashSet(serviceName)).atLeastOnce();
+    expect(context.getSourceRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion211).atLeastOnce();
+    expect(context.getTargetRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion220).atLeastOnce();
+    expect(context.getOrchestrationType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(context.getHostRoleCommandFactory()).andStubReturn(m_injector.getInstance(HostRoleCommandFactory.class));
+    expect(context.getRoleGraphFactory()).andStubReturn(m_injector.getInstance(RoleGraphFactory.class));
+
+    replayAll();
+
+    UpgradeHelper upgradeHelper = m_injector.getInstance(UpgradeHelper.class);
+    upgradeHelper.updateDesiredRepositoriesAndConfigs(context);
+
+    Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
+    Map<String, String> expectedFooType = expectedConfigurations.get(fooSite);
+
+    // As the upgrade pack did not have any Flume updates, its configs should
+    // not be updated.
+    assertEquals(1, expectedConfigurations.size());
+    assertEquals(1, expectedFooType.size());
+
+    assertEquals("stack-220-original", expectedFooType.get(fooPropertyName));
+  }
 
   private class MockModule implements Module {
 
@@ -326,6 +461,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(ServiceConfigDAO.class).toInstance(createNiceMock(ServiceConfigDAO.class));
       binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
       binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+      binder.bind(AmbariMetaInfo.class).toInstance(m_metainfo);
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);
     }
