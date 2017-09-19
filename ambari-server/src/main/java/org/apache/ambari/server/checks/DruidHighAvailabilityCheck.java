@@ -76,7 +76,7 @@ public class DruidHighAvailabilityCheck extends AbstractCheckDescriptor
   @Override
   public List<CheckQualification> getQualifications()
   {
-    return Arrays.asList(
+    return Arrays.<CheckQualification>asList(
         new PriorCheckQualification(CheckDescription.DRUID_HA_WARNING));
   }
 
