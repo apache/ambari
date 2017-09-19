@@ -208,6 +208,10 @@
             <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.RollingFileAppender&quot;&gt;"/>
             <replace key="content" find="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;info&quot;/&gt;" replace-with="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;"/>
           </definition>
+          <definition xsi:type="configure" id="atlas_hbase_conf_dir" summary="Adding configuration for hbase conf directory">
+            <type>atlas-env</type>
+            <set key="atlas.hbase.conf.dir" value="/etc/hbase/conf"/>
+          </definition>
         </changes>
       </component>
     </service>

@@ -375,6 +375,10 @@
         <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Adding configuration for hbase conf directory">
+        <task xsi:type="configure" id="atlas_hbase_conf_dir"/>
+      </execute-stage>
+
       <!-- KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger Kms plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>
