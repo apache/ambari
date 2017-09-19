@@ -1470,7 +1470,8 @@ public class AmbariCustomCommandExecutionHelper {
   }
 
   Map<String, String> createDefaultHostParams(Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    return createDefaultHostParams(cluster, repositoryVersion.getStackId());
+    StackId stackId = (null == repositoryVersion) ? cluster.getDesiredStackVersion() : repositoryVersion.getStackId();
+    return createDefaultHostParams(cluster, stackId);
   }
 
   Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException {
