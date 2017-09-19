@@ -88,6 +88,7 @@ describe('App.UpgradeVersionColumnView', function () {
       stackVersionType: 'HCP',
       isCompatible: true,
       hidden: false,
+      isMaint: false,
       stackServices: [
         Em.Object.create({
           name: 'zk',
@@ -102,11 +103,32 @@ describe('App.UpgradeVersionColumnView', function () {
           isAvailable: true
         })
       ]
-    })
+    }),
+    Em.Object.create({
+      id: 4,
+      status: "INSTALLED",
+      repositoryVersion: "2.0.2.1",
+      stackVersionType: 'HCP',
+      isCompatible: true,
+      hidden: false,
+      isMaint: true,
+      stackServices: [
+        Em.Object.create({
+          name: 'zk',
+          isAvailable: true
+        }),
+        Em.Object.create({
+          name: 'storm',
+          isAvailable: false
+        }),
+        Em.Object.create({
+          name: 'hdfs',
+          isAvailable: true
+        })
+      ]
+    }),
   ];
 
-
-  
   describe("#isStackServiceAvailable", function () {
     beforeEach(function() {
       sinon.stub(App.Service, 'find', function (id) {
@@ -143,4 +165,23 @@ describe('App.UpgradeVersionColumnView', function () {
       expect(view.isStackServiceAvailable(versions[1].get('stackServices')[1])).to.be.true;
     });
   });
+
+  describe("#getNotUpgradable", function () {
+    it ('Should return false for not maint', function () {
+      view.set('content', versions[2]);
+      expect(view.getNotUpgradable(true, false)).to.be.false;
+    });
+    it ('Should return true for maint, when service is available and not upgradable', function () {
+      view.set('content', versions[3]);
+      expect(view.getNotUpgradable(true, false)).to.be.true;
+    });
+    it ('Should return false for maint, when service is available and upgradable', function () {
+      view.set('content', versions[3]);
+      expect(view.getNotUpgradable(true, true)).to.be.false;
+    });
+    it ('Should return false for maint, when service is not available and upgradable', function () {
+      view.set('content', versions[3]);
+      expect(view.getNotUpgradable(false, true)).to.be.false;
+    })
+  })
 });
