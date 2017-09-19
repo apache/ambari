@@ -31,11 +31,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 /**
  * RoleCommandOrderProvider which caches RoleCommandOrder objects for a cluster to avoid the cost of construction of
  * RoleCommandOrder objects each time.
  */
+@Singleton
 public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider {
 
   private static Logger LOG = LoggerFactory.getLogger(CachedRoleCommandOrderProvider.class);
