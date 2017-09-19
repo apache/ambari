@@ -61,6 +61,8 @@ class InitializerModule:
     self.cache_dir = self.config.get('agent', 'cache_dir', default='/var/lib/ambari-agent/cache')
     self.command_reports_interval = int(self.config.get('agent', 'command_reports_interval', default='5'))
     self.alert_reports_interval = int(self.config.get('agent', 'alert_reports_interval', default='5'))
+    self.status_commands_run_interval = int(self.config.get('agent', 'status_commands_run_interval', default='20'))
+    self.command_update_output = bool(int(self.config.get('agent', 'command_update_output', default='1')))
 
     self.cluster_cache_dir = os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
     self.recovery_cache_dir = os.path.join(self.cache_dir, FileCache.RECOVERY_CACHE_DIRECTORY)

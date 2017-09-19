@@ -36,6 +36,7 @@ class CommandStatusReporter(threading.Thread):
     Run an endless loop which reports all the commands results (IN_PROGRESS, FAILED, COMPLETE) every self.command_reports_interval seconds.
     """
     if self.command_reports_interval == 0:
+      logger.warn("CommandStatusReporter is turned off. Some functionality might not work correctly.")
       return
 
     while not self.stop_event.is_set():

@@ -45,19 +45,31 @@ class CommandStatusDict():
     self.current_state = {} # Contains all statuses
     self.lock = threading.RLock()
     self.initializer_module = initializer_module
+    self.command_update_output = initializer_module.command_update_output
     self.reported_reports = set()
 
 
-  def put_command_status(self, command, new_report):
+  def put_command_status(self, command, report):
     """
     Stores new version of report for command (replaces previous)
     """
-    key = command['taskId']
-    with self.lock: # Synchronized
-      self.current_state[key] = (command, new_report)
-      self.reported_reports.discard(key)
+    from ActionQueue import ActionQueue
 
-    self.force_update_to_server({command['clusterId']: [new_report]})
+    key = command['taskId']
+
+    # delete stale data about this command
+    with self.lock:
+      self.reported_reports.discard(key)
+      self.current_state.pop(key, None)
+
+    is_sent = self.force_update_to_server({command['clusterId']: [report]})
+    updatable = report['status'] == ActionQueue.IN_PROGRESS_STATUS and self.command_update_output
+
+    if not is_sent or updatable:
+      # if sending is not successful send later
+      with self.lock:
+        self.current_state[key] = (command, report)
+        self.reported_reports.discard(key)
 
   def force_update_to_server(self, reports_dict):
     if not self.initializer_module.is_registered:

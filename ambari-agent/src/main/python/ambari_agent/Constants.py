@@ -45,5 +45,3 @@ REGISTRATION_ENDPOINT = '/register'
 
 AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
 CORRELATION_ID_STRING = 'correlationId'
-
-STATUS_COMMANDS_PACK_INTERVAL_SECONDS = 20

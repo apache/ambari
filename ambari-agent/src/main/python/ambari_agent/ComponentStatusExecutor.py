@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 class ComponentStatusExecutor(threading.Thread):
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
+    self.status_commands_run_interval = initializer_module.status_commands_run_interval
     self.metadata_cache = initializer_module.metadata_cache
     self.topology_cache = initializer_module.topology_cache
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
@@ -41,8 +42,12 @@ class ComponentStatusExecutor(threading.Thread):
 
   def run(self):
     """
-    Run an endless loop which executes all status commands every Constants.STATUS_COMMANDS_PACK_INTERVAL_SECONDS seconds.
+    Run an endless loop which executes all status commands every 'status_commands_run_interval' seconds.
     """
+    if self.status_commands_run_interval == 0:
+      logger.warn("ComponentStatusExecutor is turned off. Some functionality might not work correctly.")
+      return
+
     while not self.stop_event.is_set():
       try:
         self.clean_not_existing_clusters_info()
@@ -118,7 +123,7 @@ class ComponentStatusExecutor(threading.Thread):
       except:
         logger.exception("Exception in ComponentStatusExecutor. Re-running it")
 
-      self.stop_event.wait(Constants.STATUS_COMMANDS_PACK_INTERVAL_SECONDS)
+      self.stop_event.wait(self.status_commands_run_interval)
     logger.info("ComponentStatusExecutor has successfully finished")
 
   def send_updates_to_server(self, cluster_reports):

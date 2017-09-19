@@ -38,6 +38,7 @@ class AlertStatusReporter(threading.Thread):
     Run an endless loop which reports all the alert statuses got from collector
     """
     if self.alert_reports_interval == 0:
+      logger.warn("AlertStatusReporter is turned off. Some functionality might not work correctly.")
       return
 
     while not self.stop_event.is_set():
