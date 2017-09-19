@@ -383,7 +383,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     var newlyAddedHostComponentsMap = {};
     var masters = App.router.get('addServiceController.content.masterComponentHosts') || [];
     var slaves = App.router.get('addServiceController.content.slaveComponentHosts') || [];
-    var clients = App.router.get('addServiceController.content.clients').filterProperty('isInstalled', false).map(function (component) {
+    var clients = (App.router.get('addServiceController.content.clients') || []);
+
+    clients = clients.filterProperty('isInstalled', false).map(function (component) {
       return Em.Object.create({
         componentName: component.component_name,
         displayName: component.display_name
