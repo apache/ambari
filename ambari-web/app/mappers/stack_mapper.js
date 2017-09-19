@@ -84,7 +84,9 @@ App.stackMapper = App.QuickDataMapper.create({
     repo_name: 'repo_name',
     stack_name: 'stack_name',
     stack_version: 'stack_version',
-    operating_system_id: 'os_id'
+    operating_system_id: 'os_id',
+    components: 'components',
+    distribution: 'distribution'
   },
   
   map: function(json) {
@@ -140,7 +142,6 @@ App.stackMapper = App.QuickDataMapper.create({
     stack.use_redhat_satellite = item.operating_systems[0].OperatingSystems.ambari_managed_repositories === false;
     stack.stack_services = servicesArray;
     stack.operating_systems = operatingSystemsArray;
-
     App.store.safeLoadMany(modelRepo, resultRepo);
     App.store.safeLoadMany(modelOS, resultOS);
     App.store.safeLoadMany(modelServices, resultServices);

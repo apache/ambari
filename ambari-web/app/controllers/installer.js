@@ -697,18 +697,33 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       if(!existedMap[supportedOS.OperatingSystems.os_type]) {
         supportedOS.isSelected = false;
         existedOS.push(supportedOS);
-      } else if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
-        existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
-          supportedOS.repositories.forEach(function (supportedRepo) {
-            if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
-              repo.Repositories.base_url = supportedRepo.Repositories.base_url;
-              repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
-              repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
-            }
+      } else {
+        if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.base_url = supportedRepo.Repositories.base_url;
+                repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
+                repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
           });
-        });
+        }
+        else{
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
+          });
+        }
       }
     });
+
     App.stackMapper.map(data.versionDefinition);
 
     if (!this.decrementProperty('loadStacksRequestsCounter')) {
@@ -790,7 +805,9 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
           "Repositories": {
             "base_url": repository.get('baseUrl'),
             "repo_id": repository.get('repoId'),
-            "repo_name": repository.get('repoName')
+            "repo_name": repository.get('repoName'),
+            "components": repository.get('components'),
+            "distribution": repository.get('distribution')
           }
         });
       });

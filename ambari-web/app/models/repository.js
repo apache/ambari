@@ -32,6 +32,8 @@ App.Repository = DS.Model.extend({
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
   operatingSystem: DS.belongsTo('App.OperatingSystem'),
+  components: DS.attr('string'),
+  distribution: DS.attr('string'),
 
   validation: DS.attr('string', {defaultValue: ''}),
   errorContent: DS.attr('string', {defaultValue: ''}),
