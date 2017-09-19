@@ -57,11 +57,15 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
         name: service.get('serviceName'),
         latestVersion: stackService ? stackService.get('latestVersion') : '',
         isVersionInvisible: !stackService,
-        notUpgradable: !this.get('content.isStandard')  && isAvailable && !stackService.get('isUpgradable'),
+        notUpgradable: this.getNotUpgradable(isAvailable, stackService.get('isUpgradable')),
         isAvailable: isAvailable
       });
     }, this);
   }.property(),
+
+  getNotUpgradable: function(isAvailable, isUpgradable) {
+    return this.get('content.isMaint') && this.get('content.status') !== 'CURRENT' && isAvailable && !isUpgradable;
+  },
 
 
   /**
