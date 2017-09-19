@@ -1764,7 +1764,7 @@ Em.I18n.translations = {
   'admin.stackDowngrade.state.paused.fail.header': "Pause Downgrade failed",
   'admin.stackDowngrade.state.paused.fail.body': "Downgrade could not be paused. Try again later.",
 
-  'admin.stackVersions.version.service.notUpgradable': "Update available, but already installed.",
+  'admin.stackVersions.version.service.notUpgradable': "The version of this service included in this repository is already installed in the cluster.",
 
   'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
