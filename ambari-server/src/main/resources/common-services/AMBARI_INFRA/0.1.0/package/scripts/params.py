@@ -49,6 +49,8 @@ stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
+hostname = config['hostname'].lower()
+
 infra_solr_conf = "/etc/ambari-infra-solr/conf"
 
 infra_solr_port = status_params.infra_solr_port
@@ -144,6 +146,8 @@ if security_enabled:
 
 infra_solr_ranger_audit_service_users = format(config['configurations']['infra-solr-security-json']['infra_solr_ranger_audit_service_users']).split(',')
 infra_solr_security_json_content = config['configurations']['infra-solr-security-json']['content']
+
+infra_solr_jmx_enabled = str(default('/configurations/infra-solr-env/infra_solr_jmx_enabled', False)).lower()
 
 #Solr log4j
 infra_log_maxfilesize = default('configurations/infra-solr-log4j/infra_log_maxfilesize',10)
