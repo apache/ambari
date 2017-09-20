@@ -267,6 +267,10 @@ def upgrade(args):
   # Move files installed by package to default views directory to a custom one
   for views_dir in get_views_dir(properties):
     root_views_dir = views_dir + "/../"
+
+    if os.path.samefile(root_views_dir, get_default_views_dir()):
+      continue
+
     for file in glob.glob(get_default_views_dir()+'/*'):
       shutil.move(file, root_views_dir)
 
