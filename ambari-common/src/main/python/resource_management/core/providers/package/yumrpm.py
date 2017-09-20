@@ -19,8 +19,6 @@ limitations under the License.
 Ambari Agent
 
 """
-import ConfigParser
-import glob
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.providers.package import RPMBasedPackageProvider
@@ -29,8 +27,11 @@ from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 
+import glob
 import re
 import os
+
+import ConfigParser
 
 INSTALL_CMD = {
   True: ['/usr/bin/yum', '-y', 'install'],
@@ -44,7 +45,6 @@ REMOVE_CMD = {
 
 REMOVE_WITHOUT_DEPENDENCIES_CMD = ['rpm', '-e', '--nodeps']
 
-YUM_REPO_LOCATION = "/etc/yum.repos.d"
 REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean', 'metadata']
 ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed"]
 ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
@@ -61,41 +61,30 @@ VERIFY_DEPENDENCY_CMD = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'depende
 LIST_ALL_SELECT_TOOL_PACKAGES_CMD = "yum list all --showduplicates|grep -v '@' |grep '^{pkg_name}'|awk '{print $2}'"
 SELECT_TOOL_VERSION_PATTERN = re.compile("(\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,2}-*\d*).*")  # xx.xx.xx.xx(-xxxx)
 
+YUM_REPO_LOCATION = "/etc/yum.repos.d"
 
 class YumProvider(RPMBasedPackageProvider):
 
-  def get_available_packages_in_repos(self, repos):
+  def get_available_packages_in_repos(self, repositories):
     """
     Gets all (both installed and available) packages that are available at given repositories.
-
-    :type repos resource_management.libraries.functions.repository_util.CommandRepository
+    :param repositories: from command configs like config['repositoryFile']['repositories']
     :return: installed and available packages from these repositories
     """
     available_packages = []
     installed_packages = []
-    repo_ids = [repo.repo_id for repo in repos.items]
+    available_packages_in_repos = []
 
-    if repos.feat.scoped:
-      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
-    else:
-      Logger.info("Packages will be queried using all available repositories on the system.")
+    repo_ids = self._build_repos_ids(repositories)
+    Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
 
     for repo in repo_ids:
-      repo = repo if repos.feat.scoped else None
-      available_packages.extend(self._get_available_packages(repo))
+      available_packages.extend(self._lookup_packages(
+        [AMBARI_SUDO_BINARY, "yum", "list", "available", "--disablerepo=*", "--enablerepo=" + repo], 'Available Packages'))
       installed_packages.extend(self._get_installed_packages(repo))
 
-    # fallback logic
-    if len(installed_packages) == 0 or len(available_packages) == 0:
-      repo_ids = self._build_repos_ids(repos)
-      for repo in repo_ids:
-        available_packages.extend(self._get_available_packages(repo))
-        installed_packages.extend(self._get_installed_packages(repo))
-
-      available_packages = set(available_packages)
-      installed_packages = set(installed_packages)
-
-    return [package[0] for package in available_packages + installed_packages]
+    available_packages_in_repos += [package[0] for package in available_packages + installed_packages]
+    return available_packages_in_repos
 
   def get_all_package_versions(self, pkg_name):
     """
@@ -127,22 +116,6 @@ class YumProvider(RPMBasedPackageProvider):
       versions = [versions]
 
     return [self.__parse_select_tool_version(i) for i in versions]
-
-  def _get_available_packages(self, repo_filter=None):
-    """
-    Returning list of available packages with possibility to filter them by name
-    :param repo_filter: repository name
-
-    :type repo_filter str|None
-    :rtype list[list,]
-    """
-
-    cmd = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
-
-    if repo_filter:
-      cmd.extend(["--disablerepo=*", "--enablerepo=" + repo_filter])
-
-    return self._lookup_packages(cmd, 'Available Packages')
 
   def _get_installed_packages(self, repo_filter=None):
     """
@@ -206,7 +179,7 @@ class YumProvider(RPMBasedPackageProvider):
     :rtype list|dict
     """
     #  ToDo: move to iterative package lookup (check apt provider for details)
-    return self._get_available_packages(None)
+    return self._lookup_packages(ALL_AVAILABLE_PACKAGES_CMD, "Available Packages")
 
   def all_installed_packages(self, from_unknown_repo=False):
     """
@@ -218,7 +191,7 @@ class YumProvider(RPMBasedPackageProvider):
     :return result_type formatted list of packages
     """
     #  ToDo: move to iterative package lookup (check apt provider for details)
-    return self._get_installed_packages(None)
+    return self._lookup_packages(ALL_INSTALLED_PACKAGES_CMD, "Installed Packages")
 
   def verify_dependencies(self):
     """
@@ -296,6 +269,7 @@ class YumProvider(RPMBasedPackageProvider):
     else:
       return self.rpm_check_package_available(name)
 
+
   def yum_check_package_available(self, name):
     """
     Does the same as rpm_check_package_avaiable, but faster.
@@ -315,28 +289,19 @@ class YumProvider(RPMBasedPackageProvider):
 
     return False
 
+
   @staticmethod
-  def _build_repos_ids(repos):
+  def _build_repos_ids(repositories):
     """
     Gets a set of repository identifiers based on the supplied repository JSON structure as
     well as any matching repos defined in /etc/yum.repos.d.
-    :type repos resource_management.libraries.functions.repository_util.CommandRepository
+    :param repositories:  the repositories defined on the command
     :return:  the list of repo IDs from both the command and any matches found on the system
     with the same URLs.
     """
-
-    repo_ids = []
-    base_urls = []
-    mirrors = []
-
-    for repo in repos.items:
-      repo_ids.append(repo.repo_id)
-
-      if repo.base_url:
-        base_urls.append(repo.base_url)
-
-      if repo.mirrors_list:
-        mirrors.append(repo.mirrors_list)
+    repo_ids = [repository['repoId'] for repository in repositories]
+    base_urls = [repository['baseUrl'] for repository in repositories if 'baseUrl' in repository]
+    mirrors = [repository['mirrorsList'] for repository in repositories if 'mirrorsList' in repository]
 
     # for every repo file, find any which match the base URLs we're trying to write out
     # if there are any matches, it means the repo already exists and we should use it to search
@@ -357,4 +322,3 @@ class YumProvider(RPMBasedPackageProvider):
             repo_ids.append(section)
 
     return set(repo_ids)
-

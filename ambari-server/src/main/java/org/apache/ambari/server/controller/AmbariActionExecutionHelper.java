@@ -570,6 +570,7 @@ public class AmbariActionExecutionHelper {
         rootJsonObject.add("repositories", repositories);
       }
     }
+
     hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
   }
 }

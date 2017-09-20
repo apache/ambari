@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -46,21 +44,6 @@ public class CommandRepository {
 
   @SerializedName("stackName")
   private String m_stackName;
-
-  @SerializedName("repoFileName")
-  private String m_repoFileName;
-
-  @SerializedName("feature")
-  private CommandRepositoryFeature feature = new CommandRepositoryFeature();
-
-  /**
-   * Provides {@link CommandRepository} feature
-   *
-   * @return {@link CommandRepositoryFeature}
-   */
-  public CommandRepositoryFeature getFeature(){
-    return feature;
-  }
 
   /**
    * @param version the repo version
@@ -136,70 +119,6 @@ public class CommandRepository {
   }
 
   /**
-   * Update repository id to be consistent with old format
-   *
-   * @param repoVersion
-   */
-  @Deprecated
-  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  public void setLegacyRepoId(String repoVersion){
-    for (Repository repo : m_repositories) {
-      repo.m_repoId = String.format("%s-%s", repo.getRepoName(), repoVersion);
-    }
-  }
-
-  /**
-   * Sets filename for the repo
-   *
-   * @param stackName  name of the stack
-   * @param repoVersion repository version
-   */
-  @Deprecated
-  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  public void setLegacyRepoFileName(String stackName, String repoVersion) {
-    this.m_repoFileName = String.format("%s-%s", stackName, repoVersion);
-  }
-
-  /**
-   * Sets filename for the repo
-   *
-   * @param stackName  name of the stack
-   * @param repoVersionId repository version id
-   */
-  public void setRepoFileName(String stackName, Long repoVersionId) {
-    this.m_repoFileName = String.format("ambari-%s-%s", stackName.toLowerCase(), repoVersionId.toString());
-  }
-
-  /**
-   * Minimal information about repository feature
-   */
-  public static class CommandRepositoryFeature {
-
-    /**
-     * Repository is pre-installed on the host
-     */
-    @SerializedName("preInstalled")
-    private Boolean m_isPreInstalled = false;
-
-    /**
-     * Indicates if any operation with the packages should be scoped to this repository only.
-     *
-     * Currently affecting: getting available packages from the repository
-     */
-    @SerializedName("scoped")
-    private boolean m_isScoped = true;
-
-    public void setIsScoped(boolean isScoped){
-      this.m_isScoped = isScoped;
-    }
-
-    public void setPreInstalled(String isPreInstalled) {
-      this.m_isPreInstalled = isPreInstalled.equalsIgnoreCase("true");
-    }
-
-  }
-
-  /**
    * Minimal information required to generate repo files on the agent.  These are copies
    * of the repository objects from repo versions that can be changed for URL overrides, etc.
    */
@@ -247,10 +166,6 @@ public class CommandRepository {
       m_components = entity.getComponents();
       m_mirrorsList = entity.getMirrorsList();
       m_osType = osType;
-    }
-
-    public void setRepoId(String repoId){
-      m_repoId = repoId;
     }
 
     public void setBaseUrl(String url) {

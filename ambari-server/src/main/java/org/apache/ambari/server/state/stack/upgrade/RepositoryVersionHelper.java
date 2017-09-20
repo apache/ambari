@@ -309,38 +309,23 @@ public class RepositoryVersionHelper {
   /**
    * Adds a command repository to the action context
    * @param context       the context
-   * @param osEntity      the OS family
+   * @param osFamily      the OS family
    * @param repoVersion   the repository version entity
+   * @param repos         the repository entities
    */
   public void addCommandRepository(ActionExecutionContext context,
       RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) {
 
     final CommandRepository commandRepo = new CommandRepository();
-    boolean sysPreppedHost = configuration.get().areHostsSysPrepped().equalsIgnoreCase("true");
-
     commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
     commandRepo.setStackName(repoVersion.getStackId().getStackName());
-    commandRepo.getFeature().setPreInstalled(configuration.get().areHostsSysPrepped());
-    commandRepo.getFeature().setIsScoped(!sysPreppedHost);
 
     if (!osEntity.isAmbariManagedRepos()) {
       commandRepo.setNonManaged();
     } else {
-      if (repoVersion.isLegacy()){
-        commandRepo.setLegacyRepoFileName(repoVersion.getStackName(), repoVersion.getVersion());
-        commandRepo.setLegacyRepoId(repoVersion.getVersion());
-        commandRepo.getFeature().setIsScoped(false);
-      } else {
-        commandRepo.setRepoFileName(repoVersion.getStackName(), repoVersion.getId());
-        commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
-      }
-    }
-
-    if (configuration.get().arePackagesLegacyOverridden()) {
-      LOG.warn("Legacy override option is turned on, disabling CommandRepositoryFeature.scoped feature");
-      commandRepo.getFeature().setIsScoped(false);
+      commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
     }
 
     context.addVisitor(new ExecutionCommandVisitor() {

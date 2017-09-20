@@ -1275,12 +1275,9 @@ public class AmbariCustomCommandExecutionHelper {
   public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, final Host host) throws AmbariException {
 
     final CommandRepository command = new CommandRepository();
-    boolean sysPreppedHost = configs.areHostsSysPrepped().equalsIgnoreCase("true");
     StackId stackId = component.getDesiredStackId();
     command.setRepositories(Collections.<RepositoryInfo>emptyList());
     command.setStackName(stackId.getStackName());
-    command.getFeature().setPreInstalled(configs.areHostsSysPrepped());
-    command.getFeature().setIsScoped(!sysPreppedHost);
 
     final BaseUrlUpdater<Void> updater = new BaseUrlUpdater<Void>(null) {
       @Override
@@ -1299,14 +1296,7 @@ public class AmbariCustomCommandExecutionHelper {
             if (!osEntity.isAmbariManagedRepos()) {
               command.setNonManaged();
             } else {
-              if (rve.isLegacy()){
-                command.setLegacyRepoId(rve.getVersion());
-                command.setLegacyRepoFileName(rve.getStackName(), rve.getVersion());
-                command.getFeature().setIsScoped(false);
-              } else {
-                command.setRepoFileName(rve.getStackName(), rve.getId());
-                command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
-              }
+              command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
             }
           }
         }
@@ -1316,11 +1306,6 @@ public class AmbariCustomCommandExecutionHelper {
     };
 
     updateBaseUrls(cluster, component, updater);
-
-    if (configs.arePackagesLegacyOverridden()) {
-      LOG.warn("Legacy override option is turned on, disabling CommandRepositoryFeature.scoped feature");
-      command.getFeature().setIsScoped(false);
-    }
 
     return command;
   }

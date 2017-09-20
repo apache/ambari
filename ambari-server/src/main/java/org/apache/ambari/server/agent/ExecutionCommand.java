@@ -445,7 +445,6 @@ public class ExecutionCommand extends AgentCommand {
     @Deprecated
     @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_INFO = "repo_info";
-
     String DB_NAME = "db_name";
     String GLOBAL = "global";
     String AMBARI_DB_RCA_URL = "ambari_db_rca_url";
