@@ -19,6 +19,7 @@ import {Component, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import 'rxjs/add/operator/map';
 import {FilteringService} from '@app/services/filtering.service';
+import {UtilsService} from '@app/services/utils.service';
 
 @Component({
   selector: 'logs-list',
@@ -27,7 +28,7 @@ import {FilteringService} from '@app/services/filtering.service';
 })
 export class LogsListComponent {
 
-  constructor(private filtering: FilteringService) {
+  constructor(private filtering: FilteringService, private utils: UtilsService) {
   }
 
   @Input()
@@ -41,7 +42,9 @@ export class LogsListComponent {
 
   readonly customStyledColumns = ['level', 'type', 'logtime', 'log_message'];
 
-  timeFormat: string = 'DD/MM/YYYY HH:mm:ss';
+  readonly dateFormat: string = 'dddd, MMMM Do';
+
+  readonly timeFormat: string = 'h:mm:ss A';
 
   get timeZone(): string {
     return this.filtering.timeZone;
@@ -53,6 +56,10 @@ export class LogsListComponent {
   
   get filtersForm(): FormGroup {
     return this.filtering.filtersForm;
+  }
+
+  isDifferentDates(dateA, dateB): boolean {
+    return this.utils.isDifferentDates(dateA, dateB, this.timeZone);
   }
 
   isColumnDisplayed(key: string): boolean {

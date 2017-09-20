@@ -360,34 +360,6 @@ export class FilteringService {
       label: 'sorting.title',
       options: [
         {
-          label: 'sorting.level.asc',
-          value: {
-            key: 'level',
-            type: 'asc'
-          }
-        },
-        {
-          label: 'sorting.level.desc',
-          value: {
-            key: 'level',
-            type: 'desc'
-          }
-        },
-        {
-          label: 'sorting.component.asc',
-          value: {
-            key: 'type',
-            type: 'asc'
-          }
-        },
-        {
-          label: 'sorting.component.desc',
-          value: {
-            key: 'type',
-            type: 'desc'
-          }
-        },
-        {
           label: 'sorting.time.asc',
           value: {
             key: 'logtime',

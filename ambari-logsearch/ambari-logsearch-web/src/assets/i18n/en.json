@@ -68,10 +68,6 @@
   "levels.unknown": "Unknown",
 
   "sorting.title": "Sort By",
-  "sorting.level.asc": "Ascending Level",
-  "sorting.level.desc": "Descending Level",
-  "sorting.component.asc": "Ascending Component",
-  "sorting.component.desc": "Descending Component",
   "sorting.time.asc": "Ascending Time",
   "sorting.time.desc": "Descending Time",
 
