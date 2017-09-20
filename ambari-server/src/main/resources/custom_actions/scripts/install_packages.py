@@ -103,7 +103,7 @@ class InstallPackages(Script):
     self.repository_version = self.repository_version.strip()
 
     try:
-      if not command_repository.repositories:
+      if not command_repository.items:
         Logger.warning(
           "Repository list is empty. Ambari may not be managing the repositories for {0}.".format(
             self.repository_version))
@@ -330,7 +330,7 @@ class InstallPackages(Script):
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       try:
-        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(CommandRepository(config['repositoryFile']))
       except Exception:
         available_packages_in_repos = []
       for package in filtered_package_list:

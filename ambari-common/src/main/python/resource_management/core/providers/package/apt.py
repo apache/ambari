@@ -274,24 +274,31 @@ class AptProvider(PackageProvider):
 
     return packages
 
-  def get_available_packages_in_repos(self, repositories):
+  def get_available_packages_in_repos(self, repos):
     """
     Gets all (both installed and available) packages that are available at given repositories.
-    :param repositories: from command configs like config['repositoryFile']['repositories']
+    :type repos resource_management.libraries.functions.repository_util.CommandRepository
     :return: installed and available packages from these repositories
     """
 
     filtered_packages = []
     packages = self.all_available_packages()
+    repo_ids = []
 
-    for repo in repositories:
-      repo_url_part = repo['baseUrl'].replace("http://", "").replace("/", "_")
+    for repo in repos.items:
+      repo_ids.append(repo.base_url.replace("http://", "").replace("/", "_"))
 
-      for package in packages:
-        if repo_url_part in package[2]:
-          filtered_packages.append(package[0])
+    if repos.feat.scoped:
+      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      for repo_id in repo_ids:
+        for package in packages:
+          if repo_id in package[2]:
+            filtered_packages.append(package[0])
 
-    return filtered_packages
+      return filtered_packages
+    else:
+      Logger.info("Packages will be queried using all available repositories on the system.")
+      return [package[0] for package in packages]
 
   def get_all_package_versions(self, pkg_name):
     """

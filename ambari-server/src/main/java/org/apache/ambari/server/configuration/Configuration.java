@@ -2022,6 +2022,10 @@ public class Configuration {
   public static final ConfigurationProperty<String> SYS_PREPPED_HOSTS = new ConfigurationProperty<>(
       "packages.pre.installed", "false");
 
+  @Markdown(description = "This property is used in specific testing circumstances only. Its use otherwise will lead to very unpredictable results with repository management and package installation")
+  public static final ConfigurationProperty<String> LEGACY_OVERRIDE = new ConfigurationProperty<>(
+    "repositories.legacy-override.enabled", "false");
+
   private static final String LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT = "";
 
   /**
@@ -3367,6 +3371,15 @@ public class Configuration {
 
   public String areHostsSysPrepped(){
     return getProperty(SYS_PREPPED_HOSTS);
+  }
+
+  /**
+   * Return {@code true} if we forced to work with legacy repositories
+   *
+   * @return {@link Boolean}
+   */
+  public boolean arePackagesLegacyOverridden(){
+    return getProperty(LEGACY_OVERRIDE).equalsIgnoreCase("true");
   }
 
   public CommandExecutionType getStageExecutionType(){
