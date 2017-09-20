@@ -41,26 +41,65 @@ STACK_VERSION_PATTERN = "{{ stack_version }}"
 # especially since it is an attribute of a stack and becomes
 # complicated to change during a Rolling/Express upgrade.
 TARBALL_MAP = {
-  "slider": ("{0}/{1}/slider/lib/slider.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+  "slider": {
+    "dirs": ("{0}/{1}/slider/lib/slider.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
              "/{0}/apps/{1}/slider/slider.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "tez": ("{0}/{1}/tez/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "service": "SLIDER"
+  },
+
+  "tez": {
+    "dirs": ("{0}/{1}/tez/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
           "/{0}/apps/{1}/tez/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "tez_hive2": ("{0}/{1}/tez_hive2/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "service": "TEZ"
+  },
+
+  "tez_hive2": {
+    "dirs": ("{0}/{1}/tez_hive2/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
           "/{0}/apps/{1}/tez_hive2/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "hive": ("{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "service": "HIVE"
+  },
+
+  "hive": {
+    "dirs": ("{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
            "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "pig": ("{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "service": "HIVE"
+  },
+
+  "pig": {
+    "dirs": ("{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
           "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "hadoop_streaming": ("{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "service": "PIG"
+  },
+
+  "hadoop_streaming": {
+    "dirs": ("{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
                        "/{0}/apps/{1}/mapreduce/hadoop-streaming.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "sqoop": ("{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "service": "MAPREDUCE2"
+  },
+
+  "sqoop": {
+    "dirs": ("{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
             "/{0}/apps/{1}/sqoop/sqoop.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "mapreduce": ("{0}/{1}/hadoop/mapreduce.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+    "service": "SQOOP"
+  },
+
+  "mapreduce": {
+    "dirs": ("{0}/{1}/hadoop/mapreduce.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
                 "/{0}/apps/{1}/mapreduce/mapreduce.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "spark": ("{0}/{1}/spark/lib/spark-{2}-assembly.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, STACK_NAME_PATTERN),
+    "service": "MAPREDUCE2"
+  },
+
+  "spark": {
+    "dirs": ("{0}/{1}/spark/lib/spark-{2}-assembly.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, STACK_NAME_PATTERN),
             "/{0}/apps/{1}/spark/spark-{0}-assembly.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "spark2": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN),
-             "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN))
+    "service": "SPARK"
+  },
+
+  "spark2": {
+    "dirs": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN),
+             "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "service": "SPARK2"
+  }
 }
 
 
@@ -89,7 +128,13 @@ def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_so
     Logger.error("Cannot copy {0} tarball to HDFS because stack name could not be determined.".format(str(name)))
     return (False, None, None)
 
-  stack_version = get_current_version(use_upgrading_version_during_upgrade)
+  if name is None or name.lower() not in TARBALL_MAP:
+    Logger.error("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(str(name), str(stack_name)))
+    return (False, None, None)
+
+  service = TARBALL_MAP[name.lower()]['service']
+
+  stack_version = get_current_version(service=service, use_upgrading_version_during_upgrade=use_upgrading_version_during_upgrade)
   if not stack_version:
     Logger.error("Cannot copy {0} tarball to HDFS because stack version could be be determined.".format(str(name)))
     return (False, None, None)
@@ -99,10 +144,7 @@ def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_so
     Logger.error("Cannot copy {0} tarball to HDFS because stack root could be be determined.".format(str(name)))
     return (False, None, None)
 
-  if name is None or name.lower() not in TARBALL_MAP:
-    Logger.error("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(str(name), str(stack_name)))
-    return (False, None, None)
-  (source_file, dest_file) = TARBALL_MAP[name.lower()]
+  (source_file, dest_file) = TARBALL_MAP[name.lower()]['dirs']
 
   if custom_source_file is not None:
     source_file = custom_source_file
@@ -122,14 +164,22 @@ def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_so
   return (True, source_file, dest_file)
 
 
-def get_current_version(use_upgrading_version_during_upgrade=True):
+def get_current_version(service=None, use_upgrading_version_during_upgrade=True):
   """
   Get the effective version to use to copy the tarballs to.
+  :param service: the service name when checking for an upgrade.  made optional for unknown \
+    code bases that may be using this function
   :param use_upgrading_version_during_upgrade: True, except when the RU/EU hasn't started yet.
   :return: Version, or False if an error occurred.
   """
+
+  from resource_management.libraries.functions import upgrade_summary
+
   # get the version for this command
   version = stack_features.get_stack_feature_version(Script.get_config())
+  if service is not None:
+    version = upgrade_summary.get_target_version(service_name=service, default_version=version)
+
 
   # if there is no upgrade, then use the command's version
   if not Script.in_stack_upgrade() or use_upgrading_version_during_upgrade:
@@ -140,6 +190,9 @@ def get_current_version(use_upgrading_version_during_upgrade=True):
 
   # we're in an upgrade and we need to use an older version
   current_version = stack_select.get_role_component_current_stack_version()
+  if service is not None:
+    current_version = upgrade_summary.get_source_version(service_name=service, default_version=current_version)
+
   if current_version is None:
     Logger.warning("Unable to determine the current version of the component for this command; unable to copy the tarball")
     return False
