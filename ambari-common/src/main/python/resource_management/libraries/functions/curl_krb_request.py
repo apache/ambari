@@ -111,7 +111,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
   if not os.path.exists(curl_krb_cache_path):
     os.makedirs(curl_krb_cache_path)
-  os.chmod(curl_krb_cache_path, 0777)
+  os.chmod(curl_krb_cache_path, 01777)
 
   ccache_file_path = "{0}{1}{2}_{3}_cc_{4}".format(curl_krb_cache_path, os.sep, cache_file_prefix, user, ccache_file_name)
   kerberos_env = {'KRB5CCNAME': ccache_file_path}
