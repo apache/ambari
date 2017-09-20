@@ -294,7 +294,7 @@ public class ScaleClusterRequestTest {
   public void test_NoHostNameOrHostCount() throws Exception {
     Map<String, Object> properties = createScaleClusterPropertiesGroup1_HostName(CLUSTER_NAME, BLUEPRINT_NAME);
     // remove host name
-    properties.remove("host_name");
+    properties.remove("Hosts/host_name");
 
     // reset default host resource provider expectations to none
     reset(hostResourceProvider);
@@ -336,7 +336,7 @@ public class ScaleClusterRequestTest {
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
     properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP1_NAME);
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, HOST1_NAME);
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, HOST1_NAME);
 
     return properties;
   }
@@ -381,7 +381,7 @@ public class ScaleClusterRequestTest {
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
     properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP1_NAME);
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, HOST2_NAME);
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, HOST2_NAME);
 
     return properties;
   }

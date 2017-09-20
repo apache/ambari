@@ -217,7 +217,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
    */
   //todo: this was copied exactly from HostResourceProvider
   private String getHostNameFromProperties(Map<String, Object> properties) {
-    String hostName = (String) properties.get(HostResourceProvider.HOST_NAME_PROPERTY_ID);
+    String hostName = (String) properties.get(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID);
 
     return hostName;
   }
