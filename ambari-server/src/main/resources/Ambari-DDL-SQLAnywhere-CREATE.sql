@@ -154,6 +154,7 @@ CREATE TABLE repo_version (
   repositories TEXT NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
+  resolved BIT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml TEXT,
   version_xsd VARCHAR(512),

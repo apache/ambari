@@ -306,6 +306,11 @@ public class StackVersionListenerTest extends EasyMockSupport {
     RepositoryVersionDAO dao = createNiceMock(RepositoryVersionDAO.class);
     RepositoryVersionEntity entity = createNiceMock(RepositoryVersionEntity.class);
     expect(entity.getVersion()).andReturn("2.4.0.0").once();
+
+    // when the version gets reported back, we set this repo to resolved
+    entity.setResolved(true);
+    expectLastCall().once();
+
     expect(dao.findByPK(1L)).andReturn(entity).once();
     expect(dao.merge(entity)).andReturn(entity).once();
 
