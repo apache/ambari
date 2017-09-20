@@ -21,8 +21,7 @@ from ambari_commons import OSCheck
 
 import glob
 
-import time
-from mock.mock import MagicMock, patch, call
+from mock.mock import MagicMock, patch
 from resource_management.core import sudo
 from stacks.utils.RMFTestCase import *
 
@@ -34,7 +33,7 @@ import interpreter_json_generated
               new=MagicMock(return_value=interpreter_json_generated.template))
 class TestZeppelin070(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ZEPPELIN/0.7.0/package"
-  STACK_VERSION = "2.5"
+  STACK_VERSION = "2.6"
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/log/zeppelin',
@@ -59,7 +58,7 @@ class TestZeppelin070(RMFTestCase):
                               cd_access='a',
                               )
     self.assertResourceCalled('Execute', (
-    'chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo=True)
+      'chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo=True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
                               owner='zeppelin',
                               group='zeppelin',
@@ -118,7 +117,7 @@ class TestZeppelin070(RMFTestCase):
                               cd_access='a',
                               )
     self.assertResourceCalled('Execute', (
-    'chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo=True)
+      'chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo=True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
                               owner='zeppelin',
                               group='zeppelin',
@@ -181,7 +180,7 @@ class TestZeppelin070(RMFTestCase):
                               cd_access='a',
                               )
     self.assertResourceCalled('Execute', (
-    'chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
+      'chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
                               sudo=True,
                               )
     self.assertResourceCalled('Execute',
@@ -200,7 +199,7 @@ class TestZeppelin070(RMFTestCase):
                        )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', (
-    'chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
+      'chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
                               sudo=True,
                               )
 
@@ -215,7 +214,7 @@ class TestZeppelin070(RMFTestCase):
                        )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', (
-    'chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
+      'chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
                               sudo=True,
                               )
     self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin',
@@ -305,23 +304,139 @@ class TestZeppelin070(RMFTestCase):
                               principal_name=UnknownConfigurationMock(),
                               security_enabled=False,
                               )
+
+    self.assertResourceCalled('HdfsResource',
+                              '/etc/zeppelin/conf/interpreter.json',
+                              hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              user="zeppelin",
+                              group="zeppelin",
+                              type='file',
+                              action=['download_on_execute'],
+                              source="/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json",
+                              hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock(),
+                              security_enabled=False,
+                              )
+
     self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
                               content=interpreter_json_generated.template_after_base,
                               owner='zeppelin',
                               group='zeppelin',
                               )
+
+    self.assertResourceCalled('HdfsResource',
+                              '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
+                              hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              user="zeppelin",
+                              group="zeppelin",
+                              type='file',
+                              action=['create_on_execute'],
+                              source="/etc/zeppelin/conf/interpreter.json",
+                              replace_existing_files=True,
+                              hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock(),
+                              security_enabled=False,
+                              )
+
+    self.assertResourceCalled('HdfsResource',
+                              '/etc/zeppelin/conf/interpreter.json',
+                              hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              user="zeppelin",
+                              group="zeppelin",
+                              type='file',
+                              action=['download_on_execute'],
+                              source="/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json",
+                              hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock(),
+                              security_enabled=False,
+                              )
+
     self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
                               content=interpreter_json_generated.template_after_without_spark_and_livy,
                               owner='zeppelin',
-                              group='zeppelin')
+                              group='zeppelin',
+                              )
+
+    self.assertResourceCalled('HdfsResource',
+                              '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
+                              hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              user="zeppelin",
+                              group="zeppelin",
+                              type='file',
+                              action=['create_on_execute'],
+                              source="/etc/zeppelin/conf/interpreter.json",
+                              replace_existing_files=True,
+                              hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock(),
+                              security_enabled=False,
+                              )
+
+    self.assertResourceCalled('HdfsResource',
+                              '/etc/zeppelin/conf/interpreter.json',
+                              hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              user="zeppelin",
+                              group="zeppelin",
+                              type='file',
+                              action=['download_on_execute'],
+                              source="/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json",
+                              hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock(),
+                              security_enabled=False,
+                              )
 
     self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
                               content=interpreter_json_generated.template_after_kerberos,
                               owner='zeppelin',
-                              group='zeppelin')
+                              group='zeppelin',
+                              )
+
+    self.assertResourceCalled('HdfsResource',
+                              '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
+                              hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              user="zeppelin",
+                              group="zeppelin",
+                              type='file',
+                              action=['create_on_execute'],
+                              source="/etc/zeppelin/conf/interpreter.json",
+                              replace_existing_files=True,
+                              hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock(),
+                              security_enabled=False,
+                              )
 
     self.assertResourceCalled('Execute',
                               '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh restart >> /var/log/zeppelin/zeppelin-setup.log',
                               user='zeppelin'
                               )
+
     self.assertNoMoreResources()
