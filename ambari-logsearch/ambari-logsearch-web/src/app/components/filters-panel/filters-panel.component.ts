@@ -18,6 +18,7 @@
 
 import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
+import {Subject} from 'rxjs/Subject';
 import {TranslateService} from '@ngx-translate/core';
 import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -42,7 +43,13 @@ export class FiltersPanelComponent {
               };
             }),
             labelKeys = items.map(item => item.name);
-          translate.get(labelKeys).first().subscribe(translation => this.searchBoxItems = items.map(item => {
+          this.searchBoxItems = items.map(item => {
+            return {
+              label: item.name,
+              value: item.value
+            };
+          });
+          translate.get(labelKeys).first().subscribe(translation => this.searchBoxItemsTranslated = items.map(item => {
             return {
               name: translation[item.name],
               value: item.value
@@ -62,12 +69,18 @@ export class FiltersPanelComponent {
 
   searchBoxItems: any[] = [];
 
+  searchBoxItemsTranslated: any[] = [];
+
   get filters(): any {
     return this.filtering.filters;
   }
 
   get filtersForm(): FormGroup {
     return this.filtering.filtersForm;
+  }
+
+  get queryParameterNameChange(): Subject<any> {
+    return this.filtering.queryParameterNameChange;
   }
 
 }

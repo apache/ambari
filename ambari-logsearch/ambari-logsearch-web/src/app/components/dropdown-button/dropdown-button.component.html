@@ -15,10 +15,15 @@
   limitations under the License.
 -->
 
-<div class="filter-label" *ngIf="label">{{label | translate}}</div>
 <div [ngClass]="{'dropup': isDropup}">
   <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">
-    <span *ngIf="!isMultipleChoice">{{selectedLabel | translate}}</span> <span class="caret"></span>
+    <span *ngIf="iconClass || label"
+          [ngClass]="{'filter-label': true, 'plain': !isMultipleChoice && !hideCaret && showSelectedValue}">
+      <span *ngIf="iconClass" [ngClass]="iconClass"></span>
+      <span *ngIf="label">{{label | translate}}</span>
+    </span>
+    <span *ngIf="showSelectedValue && !isMultipleChoice">{{selectedLabel | translate}}</span>
+    <span *ngIf="!hideCaret" class="caret"></span>
   </button>
   <ul data-component="dropdown-list" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
       [items]="options" [isMultipleChoice]="isMultipleChoice" (selectedItemChange)="updateValue($event)"></ul>

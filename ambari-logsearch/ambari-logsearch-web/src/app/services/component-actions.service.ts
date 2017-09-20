@@ -19,11 +19,12 @@
 import {Injectable} from '@angular/core';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {CollectionModelService} from '@app/models/store.model';
+import {FilteringService} from '@app/services/filtering.service';
 
 @Injectable()
 export class ComponentActionsService {
 
-  constructor(private appSettings: AppSettingsService) {
+  constructor(private appSettings: AppSettingsService, private filtering: FilteringService) {
   }
 
   //TODO implement actions
@@ -49,5 +50,10 @@ export class ComponentActionsService {
       isDisplayed: columnNames.indexOf(item.name) > -1
     }));
   }
+
+  proceedWithExclude = (item: string): void => this.filtering.queryParameterNameChange.next({
+    item: item,
+    isExclude: true
+  });
 
 }

@@ -18,6 +18,7 @@
 
 import {Injectable} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
+import {Subject} from 'rxjs/Subject';
 import * as moment from 'moment-timezone';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
@@ -431,6 +432,8 @@ export class FilteringService {
   }, {});
 
   filtersForm = new FormGroup(this.filtersFormItems);
+
+  queryParameterNameChange: Subject<any> = new Subject();
 
   loadClusters(): void {
     this.httpClient.get('clusters').subscribe(response => {

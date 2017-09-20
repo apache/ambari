@@ -38,6 +38,15 @@ export class DropdownButtonComponent implements OnInit {
   label?: string;
 
   @Input()
+  iconClass?: string;
+
+  @Input()
+  hideCaret: boolean = false;
+
+  @Input()
+  showSelectedValue: boolean = true;
+
+  @Input()
   options?: any[];
 
   @Input()

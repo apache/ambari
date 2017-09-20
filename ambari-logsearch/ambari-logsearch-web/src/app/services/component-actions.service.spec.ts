@@ -19,20 +19,45 @@
 import {TestBed, inject} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {FilteringService} from '@app/services/filtering.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 import {ComponentActionsService} from './component-actions.service';
 
 describe('ComponentActionsService', () => {
+  const httpClient = {
+    get: () => {
+      return {
+        subscribe: () => {
+        }
+      };
+    }
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         StoreModule.provideStore({
-          appSettings
+          appSettings,
+          clusters,
+          components,
+          hosts
         })
       ],
       providers: [
+        ComponentActionsService,
         AppSettingsService,
-        ComponentActionsService
+        ClustersService,
+        ComponentsService,
+        HostsService,
+        FilteringService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        }
       ]
     });
   });

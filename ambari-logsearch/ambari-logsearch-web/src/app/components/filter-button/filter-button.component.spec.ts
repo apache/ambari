@@ -23,9 +23,12 @@ import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 import {FilterButtonComponent} from './filter-button.component';
 
@@ -40,7 +43,9 @@ describe('FilterButtonComponent', () => {
         StoreModule.provideStore({
           appSettings,
           clusters,
-          components
+          components,
+          appState,
+          hosts
         }),
         ...TranslationModules
       ],
@@ -48,9 +53,12 @@ describe('FilterButtonComponent', () => {
         AppSettingsService,
         ClustersService,
         ComponentsService,
+        AppStateService,
+        HostsService,
         ComponentActionsService,
         FilteringService,
-        UtilsService
+        UtilsService,
+        HttpClientService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

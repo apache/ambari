@@ -20,7 +20,8 @@
     <filter-dropdown [label]="filters.clusters.label" formControlName="clusters" [options]="filters.clusters.options"
                      [defaultLabel]="filters.clusters.defaultLabel" [isMultipleChoice]="true"
                      class="filter-input"></filter-dropdown>
-    <search-box formControlName="query" [items]="searchBoxItems" class="filter-input"></search-box>
+    <search-box formControlName="query" [items]="searchBoxItemsTranslated" class="filter-input"
+                [parameterNameChangeSubject]="queryParameterNameChange"></search-box>
     <time-range-picker formControlName="timeRange" [defaultLabel]="filters.timeRange.defaultLabel"
                        class="filter-input"></time-range-picker>
     <timezone-picker class="filter-input"></timezone-picker>
@@ -29,9 +30,8 @@
     </button-->
   </div>
   <div class="default-flex col-md-4">
-    <a href="#">
-      <span class="fa fa-search-minus"></span> {{'filter.excluded' | translate}}
-    </a>
+    <dropdown-button [options]="searchBoxItems" iconClass="fa fa-search-minus" label="filter.excluded"
+                     [hideCaret]="true" [showSelectedValue]="false" action="proceedWithExclude"></dropdown-button>
     <filter-button formControlName="hosts" [label]="filters.hosts.label"
                    [iconClass]="filters.hosts.iconClass" [subItems]="filters.hosts.options"
                    [isMultipleChoice]="true" [isRightAlign]="true"

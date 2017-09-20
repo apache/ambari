@@ -18,6 +18,7 @@
 
 import {Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {Subject} from 'rxjs/Subject';
 import {UtilsService} from '@app/services/utils.service';
 
 @Component({
@@ -46,6 +47,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.parameterInput.addEventListener('focus', this.onParameterInputFocus);
     this.parameterInput.addEventListener('blur', this.onParameterInputBlur);
     this.valueInput.addEventListener('blur', this.onValueInputBlur);
+    this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
   }
 
   ngOnDestroy() {
@@ -54,9 +56,14 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.parameterInput.removeEventListener('focus', this.onParameterInputFocus);
     this.parameterInput.removeEventListener('blur', this.onParameterInputBlur);
     this.valueInput.removeEventListener('blur', this.onValueInputBlur);
+    this.parameterNameChangeSubject.unsubscribe();
   }
 
   private currentId: number = 0;
+
+  private isExclude: boolean = false;
+
+  private defaultSubject: Subject<any> = new Subject();
 
   isActive: boolean = false;
 
@@ -68,6 +75,9 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
 
   @Input()
   items: any[] = [];
+
+  @Input()
+  parameterNameChangeSubject: Subject<any> = this.defaultSubject;
 
   @ViewChild('parameterInput')
   parameterInputRef: ElementRef;
@@ -127,14 +137,19 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     return item.name;
   }
 
-  onParameterNameChange(item: any): void {
-    if (item) {
-      this.isParameterInput = false;
-      this.isValueInput = true;
-      this.activeItem = item;
-      this.currentValue = '';
-      setTimeout(() => this.valueInput.focus(), 0);
-    }
+  changeParameterName(item: any): void {
+    this.parameterNameChangeSubject.next(item);
+  }
+
+  onParameterNameChange = (options: any): void => {
+    this.activeItem = typeof options.item === 'string' ?
+      this.items.find(field => field.value === options.item) : options.item;
+    this.isExclude = options.isExclude;
+    this.isActive = true;
+    this.isParameterInput = false;
+    this.isValueInput = true;
+    this.currentValue = '';
+    setTimeout(() => this.valueInput.focus(), 0);
   }
 
   onParameterValueChange(event: KeyboardEvent): void {
@@ -144,7 +159,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
         name: this.activeItem.value,
         label: this.activeItem.name,
         value: this.currentValue,
-        isExclude: false
+        isExclude: this.isExclude
       });
       this.currentValue = '';
       this.activeItem = null;
