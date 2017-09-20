@@ -242,7 +242,7 @@ class Master(Script):
              os.path.join(params.zeppelin_dir, "notebook")), sudo=True)
 
     if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
-        and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.HdfsNotebookRepo':
+        and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
       self.check_and_copy_notebook_in_hdfs(params)
 
     if params.security_enabled:

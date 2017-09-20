@@ -77,7 +77,7 @@
   </property>
   <property>
     <name>zeppelin.notebook.storage</name>
-    <value>org.apache.zeppelin.notebook.repo.HdfsNotebookRepo</value>
+    <value>org.apache.zeppelin.notebook.repo.VFSNotebookRepo</value>
     <description>notebook persistence layer implementation. If S3 is used, set this to
             org.apache.zeppelin.notebook.repo.S3NotebookRepo instead. If S3 is used to store the
             notebooks, it is necessary to use the following folder structure
