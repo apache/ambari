@@ -715,6 +715,9 @@ Em.I18n.translations = {
   'installer.step2.bootStrap.error':'Errors were encountered while setting up Ambari Agents on the hosts.',
   'installer.step2.bootStrap.inProgress':'Please wait while Ambari Agents are being set up on the hosts. This can take several minutes depending on the number of hosts.',
   'installer.step2.bootStrap.header':'Setting Up Ambari Agents',
+  'installer.step2.skipHostChecks.label': 'Skip host checks',
+  'installer.step2.skipHostChecks.popup.header': 'Warning',
+  'installer.step2.skipHostChecks.popup.body': 'By skipping host checks, Ambari will not check and warn if any issues with the host are identified and the host will be added to the cluster as is.',
 
   'installer.step3.header':'Confirm Hosts',
   'installer.step3.body':'Registering your hosts.<br>' +
