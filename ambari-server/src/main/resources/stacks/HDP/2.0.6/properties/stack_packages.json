@@ -796,9 +796,11 @@
         "SUPERVISOR": {
           "STACK-SELECT-PACKAGE": "storm-supervisor",
           "INSTALL": [
+            "storm-client",
             "storm-supervisor"
           ],
           "PATCH": [
+            "storm-client",
             "storm-supervisor"
           ],
           "STANDARD": [
