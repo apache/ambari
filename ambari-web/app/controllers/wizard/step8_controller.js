@@ -1306,6 +1306,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (this.get('content.slaveComponentHosts').someProperty('componentName', 'CLIENT')) {
       clientHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'CLIENT').hosts;
     }
+    var clients = this.get('content.clients').filterProperty('isInstalled', false);
     var clientsToMasterMap = this.getClientsMap('isMaster');
     var clientsToClientMap = this.getClientsMap('isClient');
     var installedClients = [];
