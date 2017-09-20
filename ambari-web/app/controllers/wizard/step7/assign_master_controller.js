@@ -286,8 +286,9 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   renderHostInfo: function () {
     var parentController = this.get('content.controllerName');
     if (parentController) {
-      this._super();
+      return this._super();
     } else {
+      var dfd = $.Deferred();
       var hosts = App.Host.find().toArray();
       var result = [];
       for (var p = 0; p < hosts.length; p++) {
@@ -304,6 +305,8 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       this.set("hosts", result);
       this.sortHosts(result);
       this.set('isHostsLoaded', true);
+      dfd.resolve();
+      return dfd.promise();
     }
   },
 
