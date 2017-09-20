@@ -49,8 +49,6 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
-import com.google.common.collect.Maps;
-import com.google.inject.AbstractModule;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -93,7 +91,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -219,7 +219,8 @@ public class UpgradeCatalog260Test {
     expectDropStaleTables();
 
     Capture<DBColumnInfo> repoVersionHiddenColumnCapture = newCapture();
-    expectUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture);
+    Capture<DBColumnInfo> repoVersionResolvedColumnCapture = newCapture();
+    expectUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture, repoVersionResolvedColumnCapture);
 
     Capture<DBColumnInfo> unapped = newCapture();
     expectRenameServiceDeletedColumn(unapped);
@@ -248,7 +249,7 @@ public class UpgradeCatalog260Test {
     verifyAddSelectedCollumsToClusterconfigTable(selectedColumnInfo, selectedmappingColumnInfo, selectedTimestampColumnInfo, createTimestampColumnInfo);
     verifyUpdateUpgradeTable(rvid, orchestration, revertAllowed);
     verifyCreateUpgradeHistoryTable(columns);
-    verifyUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture);
+    verifyUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture, repoVersionResolvedColumnCapture);
   }
 
   public void expectDropStaleTables() throws SQLException {
@@ -581,16 +582,24 @@ public class UpgradeCatalog260Test {
    * @param hiddenColumnCapture
    * @throws SQLException
    */
-  public void expectUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture) throws SQLException {
+  public void expectUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture,
+      Capture<DBColumnInfo> repoVersionResolvedColumnCapture) throws SQLException {
     dbAccessor.addColumn(eq(UpgradeCatalog260.REPO_VERSION_TABLE), capture(hiddenColumnCapture));
+    dbAccessor.addColumn(eq(UpgradeCatalog260.REPO_VERSION_TABLE), capture(repoVersionResolvedColumnCapture));
     expectLastCall().once();
   }
 
-  public void verifyUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture) {
+  public void verifyUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture,
+      Capture<DBColumnInfo> resolvedColumnCapture) {
     DBColumnInfo hiddenColumn = hiddenColumnCapture.getValue();
     Assert.assertEquals(0, hiddenColumn.getDefaultValue());
     Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_HIDDEN_COLUMN, hiddenColumn.getName());
     Assert.assertEquals(false, hiddenColumn.isNullable());
+
+    DBColumnInfo resolvedColumn = resolvedColumnCapture.getValue();
+    Assert.assertEquals(0, resolvedColumn.getDefaultValue());
+    Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_RESOLVED_COLUMN, resolvedColumn.getName());
+    Assert.assertEquals(false, resolvedColumn.isNullable());
   }
 
   @Test

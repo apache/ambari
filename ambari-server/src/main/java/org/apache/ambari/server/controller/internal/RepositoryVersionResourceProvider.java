@@ -87,6 +87,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("RepositoryVersions", "repository_version");
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
   public static final String REPOSITORY_VERSION_HIDDEN_PROPERTY_ID             = PropertyHelper.getPropertyId("RepositoryVersions", "hidden");
+  public static final String REPOSITORY_VERSION_RESOLVED_PROPERTY_ID           = PropertyHelper.getPropertyId("RepositoryVersions", "resolved");
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
@@ -121,7 +122,8 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_PARENT_ID,
       REPOSITORY_VERSION_HAS_CHILDREN,
       REPOSITORY_VERSION_AVAILABLE_SERVICES,
-      REPOSITORY_VERSION_STACK_SERVICES);
+      REPOSITORY_VERSION_STACK_SERVICES,
+      REPOSITORY_VERSION_RESOLVED_PROPERTY_ID);
 
   @SuppressWarnings("serial")
   public static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
@@ -257,7 +259,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       setResourceProperty(resource, REPOSITORY_VERSION_HIDDEN_PROPERTY_ID, entity.isHidden(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_TYPE_PROPERTY_ID, entity.getType(), requestedIds);
-
+      setResourceProperty(resource, REPOSITORY_VERSION_RESOLVED_PROPERTY_ID, entity.isResolved(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_PARENT_ID, entity.getParentId(), requestedIds);
 
       List<RepositoryVersionEntity> children = entity.getChildren();

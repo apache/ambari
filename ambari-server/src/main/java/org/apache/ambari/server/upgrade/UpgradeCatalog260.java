@@ -32,8 +32,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -78,6 +80,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
 
   public static final String REPO_VERSION_TABLE = "repo_version";
   public static final String REPO_VERSION_ID_COLUMN = "repo_version_id";
+  public static final String REPO_VERSION_RESOLVED_COLUMN = "resolved";
   public static final String REPO_VERSION_HIDDEN_COLUMN = "hidden";
 
   public static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
@@ -381,14 +384,20 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Updates {@value #REPO_VERSION_TABLE} table. Adds
-   * {@value #REPO_VERSION_HIDDEN_COLUMN} column.
+   * Updates {@value #REPO_VERSION_TABLE} table. Adds the following columns:
+   * <ul>
+   * <li>{@value #REPO_VERSION_HIDDEN_COLUMN}
+   * <li>{@value #REPO_VERSION_RESOLVED_COLUMN}
+   * </ul>
    *
    * @throws java.sql.SQLException
    */
   private void updateRepositoryVersionTable() throws SQLException {
     dbAccessor.addColumn(REPO_VERSION_TABLE,
         new DBAccessor.DBColumnInfo(REPO_VERSION_HIDDEN_COLUMN, Short.class, null, 0, false));
+
+    dbAccessor.addColumn(REPO_VERSION_TABLE,
+        new DBAccessor.DBColumnInfo(REPO_VERSION_RESOLVED_COLUMN, Short.class, null, 0, false));
   }
 
   /**
@@ -410,6 +419,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     updateKerberosDescriptorArtifacts();
     updateAmsConfigs();
     updateHDFSWidgetDefinition();
+    updateExistingRepositoriesToBeResolved();
   }
 
   /**
@@ -598,5 +608,20 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     sectionLayoutMap.put("HDFS_HEATMAPS", "default_hdfs_heatmap");
 
     updateWidgetDefinitionsForService("HDFS", widgetMap, sectionLayoutMap);
+  }
+
+  /**
+   * Sets all existing repository versions to be resolved (we have to assume
+   * that they are good since they've been using them to run stuff).
+   *
+   * @throws AmbariException
+   */
+  protected void updateExistingRepositoriesToBeResolved() throws AmbariException {
+    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    List<RepositoryVersionEntity> repositoryVersions = repositoryVersionDAO.findAll();
+    for (RepositoryVersionEntity repositoryVersion : repositoryVersions) {
+      repositoryVersion.setResolved(true);
+      repositoryVersionDAO.merge(repositoryVersion);
+    }
   }
 }

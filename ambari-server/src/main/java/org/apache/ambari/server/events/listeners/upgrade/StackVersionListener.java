@@ -99,6 +99,7 @@ public class StackVersionListener {
         String currentRepoVersion = rve.getVersion();
         if (!StringUtils.equals(currentRepoVersion, newVersion)) {
           rve.setVersion(newVersion);
+          rve.setResolved(true);
           repositoryVersionDAO.merge(rve);
         }
       }

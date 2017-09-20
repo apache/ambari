@@ -40,7 +40,7 @@ class TestVersionSelectUtil(TestCase):
   @patch("resource_management.core.shell.call")
   @patch('os.path.exists')
   @patch("resource_management.libraries.functions.stack_tools.get_stack_tool")
-  def test_get_component_version(self, get_stack_tool_mock, os_path_exists_mock, call_mock, open_mock):
+  def test_get_component_version_from_symlink(self, get_stack_tool_mock, os_path_exists_mock, call_mock, open_mock):
     stack_expected_version = "2.2.1.0-2175"
 
     # Mock classes for reading from a file
@@ -79,21 +79,21 @@ class TestVersionSelectUtil(TestCase):
     call_mock.side_effect = [(0, "value will come from MagicFile"), ] * 3
 
     # Missing stack name
-    version = self.module.get_component_version(None, "hadoop-hdfs-datanode")
+    version = self.module.get_component_version_from_symlink(None, "hadoop-hdfs-datanode")
     self.assertEquals(version, None)
     # Missing component name
-    version = self.module.get_component_version("HDP", None)
+    version = self.module.get_component_version_from_symlink("HDP", None)
     self.assertEquals(version, None)
 
     # Invalid stack name
-    version = self.module.get_component_version("StackDoesNotExist", "hadoop-hdfs-datanode")
+    version = self.module.get_component_version_from_symlink("StackDoesNotExist", "hadoop-hdfs-datanode")
     self.assertEquals(version, None)
     # Invalid component name
-    version = self.module.get_component_version("HDP", "hadoop-nonexistent-component-name")
+    version = self.module.get_component_version_from_symlink("HDP", "hadoop-nonexistent-component-name")
     self.assertEquals(version, None)
 
     # Pass
-    version = self.module.get_component_version("HDP", "hadoop-hdfs-namenode")
+    version = self.module.get_component_version_from_symlink("HDP", "hadoop-hdfs-namenode")
     self.assertEquals(version, stack_expected_version)
-    version = self.module.get_component_version("HDP", "hadoop-hdfs-datanode")
+    version = self.module.get_component_version_from_symlink("HDP", "hadoop-hdfs-datanode")
     self.assertEquals(version, stack_expected_version)

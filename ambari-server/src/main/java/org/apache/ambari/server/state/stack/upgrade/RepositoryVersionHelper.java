@@ -320,6 +320,7 @@ public class RepositoryVersionHelper {
     commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
+    commandRepo.setResolved(repoVersion.isResolved());
     commandRepo.setStackName(repoVersion.getStackId().getStackName());
 
     if (!osEntity.isAmbariManagedRepos()) {

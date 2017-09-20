@@ -46,6 +46,13 @@ public class CommandRepository {
   private String m_stackName;
 
   /**
+   * {@code true} if Ambari believes that this repository has reported back it's
+   * version after distribution.
+   */
+  @SerializedName("resolved")
+  private boolean m_resolved;
+
+  /**
    * @param version the repo version
    */
   public void setRepositoryVersion(String version) {
@@ -116,6 +123,27 @@ public class CommandRepository {
       repo.m_mirrorsList = null;
       repo.m_ambariManaged = false;
     }
+  }
+
+  /**
+   * Gets whether this repository has been marked as having its version
+   * resolved.
+   *
+   * @return {@code true} if this repository has been confirmed to have the
+   *         right version.
+   */
+  public boolean isResolved() {
+    return m_resolved;
+  }
+
+  /**
+   * Gets whether this repository has had its version resolved.
+   *
+   * @param resolved
+   *          {@code true} to mark this repository as being resolved.
+   */
+  public void setResolved(boolean resolved) {
+    m_resolved = resolved;
   }
 
   /**

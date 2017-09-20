@@ -124,6 +124,7 @@ public class DistributeRepositoriesActionListener {
         if (null != repoVersion && StringUtils.isNotBlank(actualVersion)) {
           if (!StringUtils.equals(repoVersion.getVersion(), actualVersion)) {
             repoVersion.setVersion(actualVersion);
+            repoVersion.setResolved(true);
             repoVersionDAO.merge(repoVersion);
             repositoryVersion = actualVersion;
           }

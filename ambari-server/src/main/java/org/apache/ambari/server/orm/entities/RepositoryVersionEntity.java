@@ -146,6 +146,16 @@ public class RepositoryVersionEntity {
   @Column(name = "hidden", nullable = false, insertable = true, updatable = true)
   private short isHidden = 0;
 
+  /**
+   * Repositories can't be trusted until they have been deployed and we've
+   * detected their actual version. Most of the time, things match up, but
+   * editing a VDF could causes the version to be misrepresented. Once we have
+   * received the correct version of the repository (normally after it's been
+   * installed), then we can set this flag to {@code true}.
+   */
+  @Column(name = "resolved", nullable = false)
+  private short resolved = 0;
+
   @ManyToOne
   @JoinColumn(name = "parent_id")
   private RepositoryVersionEntity parent;
@@ -216,6 +226,13 @@ public class RepositoryVersionEntity {
     return version;
   }
 
+  /**
+   * Sets the version on this repository version entity. If the version is
+   * confirmed as correct, then the called should also set
+   * {@link #setResolved(boolean)}.
+   *
+   * @param version
+   */
   public void setVersion(String version) {
     this.version = version;
   }
@@ -473,4 +490,24 @@ public class RepositoryVersionEntity {
     this.isHidden = (short) (isHidden ? 1 : 0);
   }
 
+  /**
+   * Gets whether this repository has been installed and has reported back its
+   * actual version.
+   *
+   * @return {@code true} if the version for this repository can be trusted,
+   *         {@code false} otherwise.
+   */
+  public boolean isResolved() {
+    return resolved == 1;
+  }
+
+  /**
+   * Sets whether this repository has been installed and has reported back its
+   * actual version.
+   *
+   * @param resolved
+   */
+  public void setResolved(boolean resolved) {
+    this.resolved = resolved ? (short) 1 : (short) 0;
+  }
 }

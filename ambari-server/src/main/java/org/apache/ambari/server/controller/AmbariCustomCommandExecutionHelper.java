@@ -1284,6 +1284,7 @@ public class AmbariCustomCommandExecutionHelper {
       public Void apply(RepositoryVersionEntity rve) {
         command.setRepositoryVersionId(rve.getId());
         command.setRepositoryVersion(rve.getVersion());
+        command.setResolved(rve.isResolved());
         command.setStackName(rve.getStackName());
 
         // !!! a repository version entity has all the repos worked out.  We shouldn't use
