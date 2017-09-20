@@ -77,13 +77,19 @@
   </property>
   <property>
     <name>zeppelin.notebook.storage</name>
-    <value>org.apache.zeppelin.notebook.repo.HdfsNotebookRepo</value>
+    <value>org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo</value>
     <description>notebook persistence layer implementation. If S3 is used, set this to
             org.apache.zeppelin.notebook.repo.S3NotebookRepo instead. If S3 is used to store the
             notebooks, it is necessary to use the following folder structure
             bucketname/username/notebook/
         </description>
     <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zeppelin.config.fs.dir</name>
+    <value>conf</value>
+    <description>Location where interpreter.json should be installed</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>zeppelin.interpreter.dir</name>

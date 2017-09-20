@@ -23,6 +23,7 @@ import os
 
 from resource_management.core import shell, sudo
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate
@@ -242,7 +243,7 @@ class Master(Script):
              os.path.join(params.zeppelin_dir, "notebook")), sudo=True)
 
     if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
-        and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.HdfsNotebookRepo':
+        and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
       self.check_and_copy_notebook_in_hdfs(params)
 
     if params.security_enabled:
@@ -294,15 +295,6 @@ class Master(Script):
 
     self.set_interpreter_settings(config_data)
 
-  def get_interpreter_settings(self):
-    import params
-    import json
-
-    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
-    config_content = sudo.read_file(interpreter_config)
-    config_data = json.loads(config_content)
-    return config_data
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
@@ -310,6 +302,41 @@ class Master(Script):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
       stack_select.select_packages(params.version)
+
+  def getZeppelinConfFS(self, params):
+    hdfs_interpreter_config = params.config['configurations']['zeppelin-config']['zeppelin.config.fs.dir'] + "/interpreter.json"
+
+    if not hdfs_interpreter_config.startswith("/"):
+      hdfs_interpreter_config = "/user/" + format("{zeppelin_user}") + "/" + hdfs_interpreter_config
+
+    return hdfs_interpreter_config
+
+  def get_interpreter_settings(self):
+    import params
+    import json
+
+    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
+    if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
+      and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
+
+      if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
+        try:
+          # copy from hdfs to /etc/zeppelin/conf/interpreter.json
+          params.HdfsResource(interpreter_config,
+                              type="file",
+                              action="download_on_execute",
+                              source=self.getZeppelinConfFS(params),
+                              group=params.zeppelin_group,
+                              user=params.zeppelin_user)
+        except Fail as fail:
+          if "doesn't exist" not in fail.args[0]:
+            print "Error getting interpreter.json from HDFS"
+            print fail.args
+            raise Fail
+
+    config_content = sudo.read_file(interpreter_config)
+    config_data = json.loads(config_content)
+    return config_data
 
   def set_interpreter_settings(self, config_data):
     import params
@@ -319,8 +346,19 @@ class Master(Script):
     File(interpreter_config,
          group=params.zeppelin_group,
          owner=params.zeppelin_user,
-         content=json.dumps(config_data, indent=2)
-         )
+         content=json.dumps(config_data, indent=2))
+
+    if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
+      and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
+
+      if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
+        params.HdfsResource(self.getZeppelinConfFS(params),
+                            type="file",
+                            action="create_on_execute",
+                            source=interpreter_config,
+                            group=params.zeppelin_group,
+                            user=params.zeppelin_user,
+                            replace_existing_files=True)
 
   def update_kerberos_properties(self):
     import params
@@ -499,8 +537,11 @@ class Master(Script):
     import params
 
     interpreter_json = interpreter_json_template.template
-    File(format("{params.conf_dir}/interpreter.json"), content=interpreter_json,
-         owner=params.zeppelin_user, group=params.zeppelin_group)
+    File(format("{params.conf_dir}/interpreter.json"),
+         content=interpreter_json,
+         owner=params.zeppelin_user,
+         group=params.zeppelin_group,
+         mode=0664)
 
   def get_zeppelin_spark_dependencies(self):
     import params
