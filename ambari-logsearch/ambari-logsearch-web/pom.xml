@@ -78,7 +78,6 @@
               <arguments>build-prod</arguments>
             </configuration>
           </execution>
-          <!-- TODO: Use this for testing and make it skippable:
           <execution>
             <id>run tests</id>
             <phase>test</phase>
@@ -87,9 +86,9 @@
            </goals>
            <configuration>
             <arguments>test</arguments>
+            <skip>${skipTests}</skip>
            </configuration>
           </execution>
-          -->
         </executions>
       </plugin>
       <plugin>
