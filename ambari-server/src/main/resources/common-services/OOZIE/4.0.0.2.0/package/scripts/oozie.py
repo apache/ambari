@@ -424,7 +424,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
                  "and performing a Downgrade.")
     return
 
-  effective_version = get_current_version()
+  effective_version = get_current_version(service="ATLAS")
   atlas_hive_hook_dir = format("{stack_root}/{effective_version}/atlas/hook/hive/")
   if not os.path.exists(atlas_hive_hook_dir):
     Logger.error(format("ERROR. Atlas is installed in cluster but this Oozie server doesn't "
