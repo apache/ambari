@@ -1280,6 +1280,72 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
     self.assertNoMoreResources()
 
+  @patch("os.path.isdir")
+  @patch("os.path.exists")
+  @patch("os.path.isfile")
+  @patch("os.remove")
+  @patch("shutil.rmtree", new = MagicMock())
+  @patch("glob.iglob")
+  @patch("shutil.copy2", new = MagicMock())
+  def test_upgrade_23_with_type(self, glob_mock, remove_mock,
+      isfile_mock, exists_mock, isdir_mock):
+
+    def exists_mock_side_effect(path):
+      if path == '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar':
+        return True
+
+      return False
+
+    isdir_mock.return_value = True
+    exists_mock.side_effect = exists_mock_side_effect
+    isfile_mock.return_value = True
+    glob_mock.return_value = ["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]
+
+    prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
+    New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/oozie-upgrade.json"
+
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['upgradeSummary'] = {
+      'services': { 'OOZIE': { 'sourceStackId': 'HDP-2.3' }},
+      'direction': 'UPGRADE',
+      'type': 'rolling_upgrade',
+      'orchestration': 'STANDARD'
+    }
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
+     classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
+     command_args = ["rolling"],
+     config_overrides = self.CONFIG_OVERRIDES,
+     stack_version = self.UPGRADE_STACK_VERSION,
+     target = RMFTestCase.TARGET_COMMON_SERVICES,
+     call_mocks = [(0, prepare_war_stdout)],
+     mocks_dict = mocks_dict)
+
+    self.assertTrue(isfile_mock.called)
+    self.assertEqual(isfile_mock.call_count,2)
+    isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
+
+    self.assertTrue(glob_mock.called)
+    self.assertEqual(glob_mock.call_count,1)
+    glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
+
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-client', '2.3.0.0-1234'), sudo = True)
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
+
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
+
+    self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
+    self.assertNoMoreResources()
+
 
   @patch("os.path.isdir")
   @patch("os.path.exists")

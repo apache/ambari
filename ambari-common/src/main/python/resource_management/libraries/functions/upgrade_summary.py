@@ -25,6 +25,22 @@ from resource_management.libraries.functions.constants import Direction
 UpgradeSummary = namedtuple("UpgradeSummary", "type direction orchestration is_revert services")
 UpgradeServiceSummary = namedtuple("UpgradeServiceSummary", "service_name source_stack source_version target_stack target_version")
 
+
+def get_source_stack(service_name):
+  """
+  Gets the source stack (from) version of a service participating in an upgrade. If there is no
+  upgrade or the specific service is not participating, this will return None.
+  :param service_name:  the service name to check for, or None to extract it from the command
+  :return:  the stack that the service is upgrading from or None if there is no upgrade or
+  the service is not included in the upgrade.
+  """
+  service_summary = _get_service_summary(service_name)
+  if service_summary is None:
+    return None
+
+  return service_summary.source_stack
+
+
 def get_source_version(service_name = None, default_version=None):
   """
   Gets the source (from) version of a service participating in an upgrade. If there is no

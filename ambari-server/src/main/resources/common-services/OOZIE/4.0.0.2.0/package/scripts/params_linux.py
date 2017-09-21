@@ -23,6 +23,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -36,6 +37,7 @@ from resource_management.libraries.functions.get_architecture import get_archite
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.stack_tools import get_stack_name
 from resource_management.libraries.functions.version import get_major_version
+
 
 from resource_management.core.utils import PasswordString
 from ambari_commons.credential_store_helper import get_password_from_credential_store
@@ -70,6 +72,9 @@ stack_root = status_params.stack_root
 # The source stack will be present during a cross-stack upgrade.
 # E.g., BigInsights-4.2.5 or HDP-2.6
 source_stack = default("/commandParams/source_stack", None)
+if source_stack is None:
+  source_stack = upgrade_summary.get_source_stack("OOZIE")
+
 # This variable name is important, do not change
 source_stack_name = get_stack_name(source_stack)
 
