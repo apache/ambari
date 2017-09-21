@@ -60,9 +60,13 @@
         HBase RegionServer Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
     </description>
+    <display-name>HBase RegionServer Maximum Memory</display-name>
     <value-attributes>
       <type>int</type>
+      <minimum>512</minimum>
+      <maximum>32768</maximum>
       <unit>MB</unit>
+      <increment-step>256</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -80,9 +84,13 @@
     <name>regionserver_xmn_size</name>
     <value>128</value>
     <description>HBase RegionServer maximum value for young generation heap size.</description>
+    <display-name>HBase RegionServer maximum value for Xmn</display-name>
     <value-attributes>
       <type>int</type>
+      <minimum>128</minimum>
+      <maximum>8192</maximum>
       <unit>MB</unit>
+      <increment-step>128</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -98,9 +106,13 @@
     <description>
       HBase Master maximum value for young generation heap size.
     </description>
+    <display-name>HBase Master maximum value for Xmn</display-name>
     <value-attributes>
       <type>int</type>
+      <minimum>64</minimum>
+      <maximum>1024</maximum>
       <unit>MB</unit>
+      <increment-step>64</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -133,9 +145,13 @@
         HBase Master Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
     </description>
+    <display-name>HBase Master Maximum Memory</display-name>
     <value-attributes>
       <type>int</type>
+      <minimum>256</minimum>
+      <maximum>4096</maximum>
       <unit>MB</unit>
+      <increment-step>256</increment-step>
     </value-attributes>
     <depends-on>
       <property>
