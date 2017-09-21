@@ -117,23 +117,6 @@ App.WizardStep2View = Em.View.extend({
     }
   }),
 
-  skipHostsCheckBox: Em.Checkbox.extend({
-    attributeBindings: ['checked'],
-    checked: Em.computed.alias('controller.content.installOptions.skipHostChecks'),
-    click: function () {
-      var skipHostChecks = !this.get('controller.content.installOptions.skipHostChecks');
-      this.set('controller.content.installOptions.skipHostChecks', skipHostChecks);
-      if(skipHostChecks) {
-        App.ModalPopup.show({
-          header: Em.I18n.t('installer.step2.skipHostChecks.popup.header'),
-          body: Em.I18n.t('installer.step2.skipHostChecks.popup.body'),
-          primary: Em.I18n.t('ok'),
-          secondary: false
-        });
-      }
-    }
-  }),
-
   /**
    * Textarea with ssh-key
    * @type {Ember.TextField}

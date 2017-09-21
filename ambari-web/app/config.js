@@ -68,6 +68,7 @@ App.enableDigitalClock = false;
 App.enableExperimental = false;
 
 App.supports = {
+  disableHostCheckOnAddHostWizard: false,
   preUpgradeCheck: true,
   displayOlderVersions: false,
   autoRollbackHA: false,

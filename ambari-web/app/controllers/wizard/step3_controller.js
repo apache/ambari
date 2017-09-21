@@ -222,11 +222,11 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   checksUpdateStatus: null,
 
   /**
-   * skips host check on Add host wizard based on step 2
+   * disables host check on Add host wizard as per the experimental flag
    */
   disableHostCheck: function () {
-    return this.get('content.installOptions.skipHostChecks') && this.get('isAddHostWizard');
-  }.property('content.installOptions.skipHostChecks', 'isAddHostWizard'),
+    return App.get('supports.disableHostCheckOnAddHostWizard') && this.get('isAddHostWizard');
+  }.property('App.supports.disableHostCheckOnAddHostWizard', 'isAddHostWizard'),
 
   /**
    *
