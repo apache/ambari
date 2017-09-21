@@ -107,7 +107,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       this.mock.returns(false);
       controller.set('upgradeData', null);
       controller.propertyDidChange('requestStatus');
-      expect(controller.get('requestStatus')).to.be.empty;
+      expect(controller.get('requestStatus')).to.equal('INIT');
     });
   });
 

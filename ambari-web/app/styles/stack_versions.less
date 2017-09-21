@@ -457,22 +457,22 @@
   }
 }
 
-#stack-upgrade-dialog {
+#stack-upgrade-dialog,
+#stack-upgrade-record-dialog {
+  margin-top: 5px;
   .details-box {
     padding: 5px;
-    margin-left: 15px;
-    margin-right: 95px;
-    margin-top: 10px;
-    .button-row {
-      text-align: right;
-      padding: 5px;
-    }
+    margin-top: 5px;
     input[type="checkbox"] {
       margin: 0;
     }
     .message {
       line-height: 30px;
     }
+  }
+  .button-row {
+    text-align: right;
+    padding: 5px;
   }
   .task-details {
     .manage-controls a {
@@ -497,102 +497,58 @@
   }
   .task-list-main-warp i {
     font-size: 16px;
+    vertical-align: baseline;
   }
   ul.failed-info-list {
     max-height: 500px;
     margin-top: 5px;
   }
-  .upgrade-options-link {
-    position: absolute;
-    cursor: pointer;
-    right: 10%;
-    top: 13px;
-    width: 100px;
-    a {
-      font-size: 13px;
-    }
-    .icon-cogs {
-      color: #0088cc;
-      margin-right: 3px;
+  .pause-button {
+    margin-top: -5px;
+    i {
+      padding-right: 4px;
+      font-size: 15px;
     }
   }
-  .upgrade-options-link.disabled {
-    cursor: not-allowed;
-    a, .icon-cogs {
-      color: #808080;
+  .active-task-label {
+    padding: 8px 15px;
+    display: inline-block;
+  }
+  .upgrade-groups {
+    padding-left: 0;
+    .progress {
+      width: 85%;
+      display: inline-block;
     }
-    a:hover {
-      text-decoration: none;
+    .percent {
+      display: inline-block;
+      vertical-align: top;
     }
   }
 }
 
-#stack-upgrade-record-dialog {
-  .details-box {
-    padding: 5px;
-    margin-left: 15px;
-    margin-right: 95px;
-    .button-row {
-      text-align: right;
-      padding: 5px;
-    }
-    input[type="checkbox"] {
-      margin: 0;
-    }
-    .message {
-      line-height: 30px;
-    }
+.upgrade-options-link {
+  cursor: pointer;
+  display: inline-block;
+  padding-left: 20px;
+  vertical-align: bottom;
+  a {
+    font-size: 14px;
+    font-weight: normal;
   }
-  .task-details {
-    .manage-controls a {
-      cursor: pointer;
-      margin-right: 12px;
-    }
-    textarea {
-      width: 100%;
-      min-height: 100px;
-      box-sizing: border-box;
-    }
-  }
-  .task-list {
-    overflow-x: hidden;
-    .progress {
-      margin-bottom: 0;
-    }
-    padding-left: 20px;
-    i {
-      margin-right: 5px;
-    }
-  }
-  .task-list-main-warp i {
+  .icon-cogs {
     font-size: 16px;
+    color: #0088cc;
+    margin-right: 3px;
   }
-  ul.failed-info-list {
-    max-height: 500px;
-    margin-top: 5px;
+}
+.upgrade-options-link.disabled {
+  cursor: not-allowed;
+  a, .icon-cogs {
+    color: #808080;
   }
-  .upgrade-options-link {
-    position: absolute;
-    cursor: pointer;
-    right: 10%;
-    top: 13px;
-    width: 100px;
-    a {
-      font-size: 13px;
-    }
-    .icon-cogs {
-      color: #0088cc;
-      margin-right: 3px;
-    }
-  }
-  .upgrade-options-link.disabled {
-    cursor: not-allowed;
-    a, .icon-cogs {
-      color: #808080;
-    }
-    a:hover {
-      text-decoration: none;
-    }
+  a:hover {
+    text-decoration: none;
   }
 }
 

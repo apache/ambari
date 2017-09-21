@@ -372,7 +372,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     } else if (this.get('upgradeData.Upgrade')){
       return this.get('upgradeData.Upgrade.request_status');
     } else {
-      return '';
+      return 'INIT';
     }
   }.property('upgradeData.Upgrade.request_status', 'App.upgradeSuspended'),
 

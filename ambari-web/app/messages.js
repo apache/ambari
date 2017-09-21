@@ -1861,6 +1861,8 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.aborted': "Upgrade Aborted",
   'admin.stackUpgrade.state.completed': "Upgrade Finished",
   'admin.stackUpgrade.state.inProgress.downgrade': "Downgrade in Progress",
+  'admin.stackUpgrade.state.init': "Upgrade Initializing",
+  'admin.stackUpgrade.state.init.downgrade': "Downgrade Initializing",
   'admin.stackUpgrade.state.paused.downgrade': "Downgrade Paused",
   'admin.stackUpgrade.state.aborted.downgrade': "Downgrade Aborted",
   'admin.stackUpgrade.state.completed.downgrade': "Downgrade Finished",

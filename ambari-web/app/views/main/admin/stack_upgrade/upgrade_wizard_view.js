@@ -250,6 +250,9 @@ App.upgradeWizardView = Em.View.extend({
       case 'HOLDING':
         labelKey = 'admin.stackUpgrade.state.paused';
         break;
+      default:
+        labelKey = 'admin.stackUpgrade.state.init';
+        break;
     }
     if (labelKey) {
       labelKey += (this.get('controller.isDowngrade')) ? '.downgrade' : "";
