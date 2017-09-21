@@ -81,6 +81,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -2303,8 +2304,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         stackId.getStackVersion());
     Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stackInfo.getName(), stackInfo.getVersion());
 
-    ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
-      scHost.getServiceComponentName()).getExecutionCommand();
+    ExecutionCommandWrapper execCmdWrapper = stage.getExecutionCommandWrapper(hostname, componentName);
+    ExecutionCommand execCmd = execCmdWrapper.getExecutionCommand();
 
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
@@ -2535,8 +2536,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setCommandParams(commandParams);
 
     execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, component, host));
+    execCmdWrapper.setVersions(cluster);
 
-    if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
+    if (execCmd.getConfigurationTags().containsKey("cluster-env")) {
       LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
         execCmd.getHostname(), execCmd.getRole(), execCmd.getRoleCommand(), execCmd.getCommandId(), execCmd.getConfigurationTags().get("cluster-env").get("tag"));
     }

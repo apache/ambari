@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,6 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -207,66 +207,7 @@ public class ExecutionCommandWrapper {
         }
       }
 
-      // set the repository version for the component this command is for -
-      // always use the current desired version
-      try {
-        RepositoryVersionEntity repositoryVersion = null;
-        String serviceName = executionCommand.getServiceName();
-        if (!StringUtils.isEmpty(serviceName)) {
-          Service service = cluster.getService(serviceName);
-          if (null != service) {
-            repositoryVersion = service.getDesiredRepositoryVersion();
-          }
-
-          String componentName = executionCommand.getComponentName();
-          if (!StringUtils.isEmpty(componentName)) {
-            ServiceComponent serviceComponent = service.getServiceComponent(
-                executionCommand.getComponentName());
-
-            if (null != serviceComponent) {
-              repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
-            }
-          }
-        }
-
-        Map<String, String> commandParams = executionCommand.getCommandParams();
-
-        if (null != repositoryVersion) {
-          // only set the version if it's not set and this is NOT an install
-          // command
-          if (!commandParams.containsKey(KeyNames.VERSION)
-              && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
-            commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
-          }
-
-          StackId stackId = repositoryVersion.getStackId();
-          StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-              stackId.getStackVersion());
-
-          if (!commandParams.containsKey(HOOKS_FOLDER)) {
-            commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-          }
-
-          if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
-            if (!StringUtils.isEmpty(serviceName)) {
-              ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-                  stackId.getStackVersion(), serviceName);
-
-              commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-            }
-          }
-        }
-      } catch (ServiceNotFoundException serviceNotFoundException) {
-        // it's possible that there are commands specified for a service where
-        // the service doesn't exist yet
-        LOG.warn(
-            "The service {} is not installed in the cluster. No repository version will be sent for this command.",
-            executionCommand.getServiceName());
-      }
-
-      // set the desired versions of versionable components.  This is safe even during an upgrade because
-      // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.
-      executionCommand.setComponentVersions(cluster);
+      setVersions(cluster);
 
       // provide some basic information about a cluster upgrade if there is one
       // in progress
@@ -290,6 +231,69 @@ public class ExecutionCommandWrapper {
     }
 
     return executionCommand;
+  }
+
+  public void setVersions(Cluster cluster) {
+    // set the repository version for the component this command is for -
+    // always use the current desired version
+    String serviceName = executionCommand.getServiceName();
+    try {
+      RepositoryVersionEntity repositoryVersion = null;
+      if (!StringUtils.isEmpty(serviceName)) {
+        Service service = cluster.getService(serviceName);
+        if (null != service) {
+          repositoryVersion = service.getDesiredRepositoryVersion();
+
+          String componentName = executionCommand.getComponentName();
+          if (!StringUtils.isEmpty(componentName)) {
+            ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+            if (null != serviceComponent) {
+              repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+            }
+          }
+        }
+      }
+
+      Map<String, String> commandParams = executionCommand.getCommandParams();
+
+      if (null != repositoryVersion) {
+        // only set the version if it's not set and this is NOT an install
+        // command
+        if (!commandParams.containsKey(VERSION)
+          && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
+          commandParams.put(VERSION, repositoryVersion.getVersion());
+        }
+
+        StackId stackId = repositoryVersion.getStackId();
+        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+          stackId.getStackVersion());
+
+        if (!commandParams.containsKey(HOOKS_FOLDER)) {
+          commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+        }
+
+        if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
+          if (!StringUtils.isEmpty(serviceName)) {
+            ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+              stackId.getStackVersion(), serviceName);
+
+            commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+          }
+        }
+      }
+
+      // set the desired versions of versionable components.  This is safe even during an upgrade because
+      // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.
+      executionCommand.setComponentVersions(cluster);
+    } catch (ServiceNotFoundException serviceNotFoundException) {
+      // it's possible that there are commands specified for a service where
+      // the service doesn't exist yet
+      LOG.warn(
+        "The service {} is not installed in the cluster. No repository version will be sent for this command.",
+        serviceName);
+    } catch (AmbariException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
