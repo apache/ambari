@@ -4,13 +4,16 @@
       "name": "OOZIE",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "oozie_spnego",
+          "reference": "/spnego"
         },
         {
-          "name": "/smokeuser"
+          "name": "oozie_smokeuser",
+          "reference": "/smokeuser"
         },
         {
-          "name": "/hdfs"
+          "name": "oozie_hdfs",
+          "reference": "/hdfs"
         }
       ],
       "auth_to_local_properties" : [
@@ -54,7 +57,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "oozie_oozie_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "oozie-site/oozie.authentication.kerberos.principal"
               },

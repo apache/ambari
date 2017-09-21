@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,10 +39,13 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -550,23 +553,29 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
       if (data != null) {
         final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
         if (kerberosDescriptor != null) {
-          KerberosServiceDescriptor rangerKmsServiceDescriptor = kerberosDescriptor.getService("RANGER_KMS");
-          if (rangerKmsServiceDescriptor != null) {
+          fixRangerKMSKerberosDescriptor(kerberosDescriptor);
+          fixIdentityReferences(getCluster(artifactEntity), kerberosDescriptor);
 
-            KerberosIdentityDescriptor rangerKmsServiceIdentity = rangerKmsServiceDescriptor.getIdentity("/smokeuser");
-            if (rangerKmsServiceIdentity != null) {
-              rangerKmsServiceDescriptor.removeIdentity("/smokeuser");
-            }
-            KerberosComponentDescriptor rangerKmscomponentDescriptor = rangerKmsServiceDescriptor.getComponent("RANGER_KMS_SERVER");
-            if (rangerKmscomponentDescriptor != null) {
-              KerberosIdentityDescriptor rangerKmsComponentIdentity = rangerKmscomponentDescriptor.getIdentity("/smokeuser");
-              if (rangerKmsComponentIdentity != null) {
-                rangerKmscomponentDescriptor.removeIdentity("/smokeuser");
-              }
-            }
-          }
           artifactEntity.setArtifactData(kerberosDescriptor.toMap());
           artifactDAO.merge(artifactEntity);
+        }
+      }
+    }
+  }
+
+  protected void fixRangerKMSKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    KerberosServiceDescriptor rangerKmsServiceDescriptor = kerberosDescriptor.getService("RANGER_KMS");
+    if (rangerKmsServiceDescriptor != null) {
+
+      KerberosIdentityDescriptor rangerKmsServiceIdentity = rangerKmsServiceDescriptor.getIdentity("/smokeuser");
+      if (rangerKmsServiceIdentity != null) {
+        rangerKmsServiceDescriptor.removeIdentity("/smokeuser");
+      }
+      KerberosComponentDescriptor rangerKmscomponentDescriptor = rangerKmsServiceDescriptor.getComponent("RANGER_KMS_SERVER");
+      if (rangerKmscomponentDescriptor != null) {
+        KerberosIdentityDescriptor rangerKmsComponentIdentity = rangerKmscomponentDescriptor.getIdentity("/smokeuser");
+        if (rangerKmsComponentIdentity != null) {
+          rangerKmscomponentDescriptor.removeIdentity("/smokeuser");
         }
       }
     }
@@ -608,6 +617,181 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     sectionLayoutMap.put("HDFS_HEATMAPS", "default_hdfs_heatmap");
 
     updateWidgetDefinitionsForService("HDFS", widgetMap, sectionLayoutMap);
+  }
+
+  /**
+   * Retrieves the relevant {@link Cluster} given information from the suppliied {@link ArtifactEntity}.
+   * <p>
+   * The cluster id value is taken from the entity's foreign key value and then used to obtain the cluster object.
+   *
+   * @param artifactEntity an {@link ArtifactEntity}
+   * @return a {@link Cluster}
+   */
+  private Cluster getCluster(ArtifactEntity artifactEntity) {
+    if (artifactEntity != null) {
+      Map<String, String> keys = artifactEntity.getForeignKeys();
+      if (keys != null) {
+        String clusterId = keys.get("cluster");
+        if (StringUtils.isNumeric(clusterId)) {
+          Clusters clusters = injector.getInstance(Clusters.class);
+          try {
+            return clusters.getCluster(Long.valueOf(clusterId));
+          } catch (AmbariException e) {
+            LOG.error(String.format("Failed to obtain cluster using cluster id %s -  %s", clusterId, e.getMessage()), e);
+          }
+        } else {
+          LOG.error(String.format("Failed to obtain cluster id from artifact entity with foreign keys: %s", keys));
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Recursively traverses the Kerberos descriptor to find and fix the identity references.
+   * <p>
+   * Each found identity descriptor that indicates it is a reference by having a <code>name</code>
+   * value that starts with a "/" or a "./" is fixed by clearing the <code>principal name</code>value,
+   * setting the <code>reference</code> value to the <code>name</code> value and changing the
+   * <code>name</code> value to a name with the following pattern:
+   * <code>SERVICE_COMPONENT_IDENTITY</code>
+   * <p>
+   * For example, if the identity is for the "SERVICE1" service and is a reference to "HDFS/NAMENODE/hdfs";
+   * then the name is set to "<code>service1_hdfs</code>"
+   * <p>
+   * For example, if the identity is for the "COMPONENT21" component of the "SERVICE2" service and is a reference to "HDFS/NAMENODE/hdfs";
+   * then the name is set to "<code>service2_component21_hdfs</code>"
+   * <p>
+   * Once the identity descriptor properties of the identity are fixed, the relevant configuration
+   * value is fixed to match the value if the referenced identity. This may lead to a new version
+   * of the relevant configuration type.
+   *
+   * @param cluster   the cluster
+   * @param container the current Kerberos descriptor container
+   * @throws AmbariException if an error occurs
+   */
+  private void fixIdentityReferences(Cluster cluster, AbstractKerberosDescriptorContainer container)
+      throws AmbariException {
+    List<KerberosIdentityDescriptor> identities = container.getIdentities();
+    if (identities != null) {
+      for (KerberosIdentityDescriptor identity : identities) {
+        String name = identity.getName();
+
+        if (!StringUtils.isEmpty(name) && (name.startsWith("/") || name.startsWith("./"))) {
+          String[] parts = name.split("/");
+          String newName = buildName(identity.getParent(), parts[parts.length - 1]);
+
+          identity.setName(newName);
+          identity.setReference(name);
+        }
+
+        String identityReference = identity.getReference();
+        if (!StringUtils.isEmpty(identityReference)) {
+          // If this identity references another identity:
+          //  * The principal name needs to be the same as the referenced identity
+          //    - ensure that no principal name is being set for this identity
+          //  * Any configuration set to contain the reference principal name needs to be fixed to
+          //    be the correct principal name
+          KerberosPrincipalDescriptor principal = identity.getPrincipalDescriptor();
+          if (principal != null) {
+            // Fix the value
+            principal.setValue(null);
+
+            // Fix the relative configuration
+            if (!StringUtils.isEmpty(principal.getConfiguration())) {
+              String referencedPrincipalName = getConfiguredPrincipalNameFromReference(cluster, container, identityReference);
+
+              if(!StringUtils.isEmpty(referencedPrincipalName)) {
+                String[] parts = principal.getConfiguration().split("/");
+                if (parts.length == 2) {
+                  String type = parts[0];
+                  String property = parts[1];
+
+                  updateConfigurationPropertiesForCluster(cluster,
+                      type,
+                      Collections.singletonMap(property, referencedPrincipalName),
+                      true,
+                      false);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (container instanceof KerberosDescriptor) {
+      Map<String, KerberosServiceDescriptor> services = ((KerberosDescriptor) container).getServices();
+      if (services != null) {
+        for (KerberosServiceDescriptor serviceDescriptor : services.values()) {
+          fixIdentityReferences(cluster, serviceDescriptor);
+        }
+      }
+    } else if (container instanceof KerberosServiceDescriptor) {
+      Map<String, KerberosComponentDescriptor> components = ((KerberosServiceDescriptor) container).getComponents();
+      if (components != null) {
+        for (KerberosComponentDescriptor componentDescriptor : components.values()) {
+          fixIdentityReferences(cluster, componentDescriptor);
+        }
+      }
+    }
+  }
+
+  /**
+   * Finds the value of the configuration found for the principal in the referenced identity
+   * descriptor.
+   *
+   * @param cluster           the cluster
+   * @param container         the current {@link KerberosIdentityDescriptor}, ideally the identity's parent descriptor
+   * @param identityReference the path to the referenced identity
+   * @return the value of the configuration specified in the referenced identity's principal descriptor
+   * @throws AmbariException if an error occurs
+   */
+  private String getConfiguredPrincipalNameFromReference(Cluster cluster,
+                                                         AbstractKerberosDescriptorContainer container,
+                                                         String identityReference)
+      throws AmbariException {
+    KerberosIdentityDescriptor identityDescriptor = container.getReferencedIdentityDescriptor(identityReference);
+
+    if (identityDescriptor != null) {
+      KerberosPrincipalDescriptor principal = identityDescriptor.getPrincipalDescriptor();
+      if ((principal != null) && (!StringUtils.isEmpty(principal.getConfiguration()))) {
+        String[] parts = principal.getConfiguration().split("/");
+        if (parts.length == 2) {
+          String type = parts[0];
+          String property = parts[1];
+
+          Config config = cluster.getDesiredConfigByType(type);
+
+          if (config != null) {
+            return config.getProperties().get(property);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Builds the name of an identity based on the identity's container and the referenced identity's name.
+   * <p>
+   * The calculated name will be in the following format and converted to all lowercase characters:
+   * <code>SERVICE_COMPONENT_IDENTITY</code>
+   *
+   * @param container    the current {@link KerberosIdentityDescriptor}, ideally the identity's parent descriptor
+   * @param identityName the referenced identity's name
+   * @return a name
+   */
+  private String buildName(AbstractKerberosDescriptor container, String identityName) {
+    if (container instanceof KerberosServiceDescriptor) {
+      return container.getName().toLowerCase() + "_" + identityName;
+    } else if (container instanceof KerberosComponentDescriptor) {
+      return container.getParent().getName().toLowerCase() + "_" + container.getName().toLowerCase() + "_" + identityName;
+    } else {
+      return identityName;
+    }
   }
 
   /**

@@ -4,13 +4,16 @@
       "name": "SOLR",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "solr_spnego",
+          "reference": "/spnego"
         },
         {
-          "name": "/smokeuser"
+          "name": "solr_smokeuser",
+          "reference": "/smokeuser"
         },
         {
-          "name": "/hdfs"
+          "name": "solr_hdfs",
+          "reference": "/hdfs"
         }
       ],
       "configurations": [

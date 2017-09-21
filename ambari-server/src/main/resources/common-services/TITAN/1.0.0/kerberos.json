@@ -34,7 +34,8 @@
           "name": "TITAN_CLIENT",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "titan_titan_client_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             }
           ]
         }

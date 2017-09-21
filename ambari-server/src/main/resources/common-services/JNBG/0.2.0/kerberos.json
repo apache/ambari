@@ -4,7 +4,8 @@
       "name": "JNBG",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "jnbg_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "components": [
@@ -12,7 +13,8 @@
           "name": "KERNEL_GATEWAY",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "jnbg_kernel_gateway_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             },
             {
               "name": "jnbg_principal",
@@ -41,7 +43,8 @@
           "name": "PYTHON_CLIENT",
           "identities": [
             {
-              "name": "/JNBG/KERNEL_GATEWAY/jnbg_principal"
+              "name": "jnbg_python_client_jnbg_principal",
+              "reference": "/JNBG/KERNEL_GATEWAY/jnbg_principal"
             }
           ]
         }

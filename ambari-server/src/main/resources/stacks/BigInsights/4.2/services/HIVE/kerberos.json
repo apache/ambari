@@ -4,10 +4,12 @@
       "name": "HIVE",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "hive_spnego",
+          "reference": "/spnego"
         },
         {
-          "name": "/smokeuser"
+          "name": "hive_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [
@@ -60,7 +62,8 @@
           "name": "HIVE_SERVER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "hive_hive_server_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             },
             {
               "name": "hive_server_hive",
@@ -84,7 +87,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "hive_hive_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "hive-site/hive.server2.authentication.spnego.principal"
               },
@@ -98,7 +102,8 @@
           "name": "WEBHCAT_SERVER",
           "identities": [
             {
-              "name": "/spnego",
+              "name": "hive_webhcat_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "webhcat-site/templeton.kerberos.principal"
               },

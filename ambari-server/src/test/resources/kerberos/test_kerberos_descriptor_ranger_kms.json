@@ -65,6 +65,7 @@
             {
               "name": "/spnego",
               "principal": {
+                "value" : "invalid_name@${realm}",
                 "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal"
               },
               "keytab": {

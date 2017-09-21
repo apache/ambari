@@ -4,10 +4,12 @@
       "name": "SOLR",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "solr_smokeuser",
+          "reference": "/smokeuser"
         },
         {
-          "name": "/spnego",
+          "name": "solr_spnego",
+          "reference": "/spnego",
           "principal": {
             "configuration": "solr-env/solr_web_kerberos_principal"
           },

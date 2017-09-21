@@ -4,10 +4,12 @@
       "name": "HBASE",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "hbase_spnego",
+          "reference": "/spnego"
         },
         {
-          "name": "/hdfs"
+          "name": "hbase_hdfs",
+          "reference": "/hdfs"
         },
         {
           "name": "hbase",
@@ -31,7 +33,8 @@
           }
         },
         {
-          "name": "/smokeuser"
+          "name": "hbase_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [

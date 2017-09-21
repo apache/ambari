@@ -4,7 +4,8 @@
       "name": "RANGER_KMS",
       "identities": [
         {
-          "name": "/spnego",
+          "name": "ranger_kms_spnego",
+          "reference": "/spnego",
           "keytab": {
             "configuration": "kms-site/hadoop.kms.authentication.kerberos.keytab"
           }
@@ -36,7 +37,8 @@
           "name": "RANGER_KMS_SERVER",
           "identities": [
             {
-              "name": "/spnego",
+              "name": "ranger_kms_ranger_kms_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal"
               },
@@ -62,7 +64,8 @@
               }
             },
             {
-              "name": "/RANGER_KMS/RANGER_KMS_SERVER/rangerkms",
+              "name": "ranger_kms_ranger_kms_server_rangerkms",
+              "reference": "/RANGER_KMS/RANGER_KMS_SERVER/rangerkms",
               "principal": {
                 "configuration": "ranger-kms-audit/xasecure.audit.jaas.Client.option.principal"
               },

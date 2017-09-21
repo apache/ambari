@@ -55,8 +55,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -67,13 +67,13 @@ import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
@@ -131,41 +131,16 @@ public class UpgradeCatalog260Test {
   @Mock(type = MockType.NICE)
   private OsFamily osFamily;
 
-  @Mock(type = MockType.NICE)
-  private KerberosHelper kerberosHelper;
-
-  @Mock(type = MockType.NICE)
-  private ActionManager actionManager;
-
-  @Mock(type = MockType.NICE)
-  private Config config;
-
-  @Mock(type = MockType.STRICT)
-  private Service service;
-
-  @Mock(type = MockType.NICE)
-  private Clusters clusters;
-
-  @Mock(type = MockType.NICE)
-  private Cluster cluster;
-
-  @Mock(type = MockType.NICE)
-  private Injector injector;
-
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Before
   public void init() {
-    reset(entityManagerProvider, injector);
+    reset(entityManagerProvider);
 
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
 
-    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper).anyTimes();
-
-    replay(entityManagerProvider, injector);
+    replay(entityManagerProvider);
   }
 
   @After
@@ -227,17 +202,7 @@ public class UpgradeCatalog260Test {
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-      }
-    };
-
-    Injector injector = Guice.createInjector(module);
+    Injector injector = getInjector();
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.executeDDLUpdates();
 
@@ -261,7 +226,7 @@ public class UpgradeCatalog260Test {
     expectLastCall().once();
   }
 
-  public  void expectRenameServiceDeletedColumn(Capture<DBColumnInfo> unmapped) throws SQLException {
+  public void expectRenameServiceDeletedColumn(Capture<DBColumnInfo> unmapped) throws SQLException {
     dbAccessor.renameColumn(eq(UpgradeCatalog260.CLUSTER_CONFIG_TABLE), eq(UpgradeCatalog260.SERVICE_DELETED_COLUMN), capture(unmapped));
     expectLastCall().once();
   }
@@ -331,7 +296,7 @@ public class UpgradeCatalog260Test {
   }
 
   public void verifyUpdateUpgradeTable(Capture<DBColumnInfo> rvid,
-      Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed) {
+                                       Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed) {
     DBColumnInfo rvidValue = rvid.getValue();
     Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_ID_COLUMN, rvidValue.getName());
     Assert.assertEquals(Long.class, rvidValue.getType());
@@ -355,7 +320,7 @@ public class UpgradeCatalog260Test {
   }
 
   public void expectUpdateUpgradeTable(Capture<DBColumnInfo> rvid,
-      Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed)
+                                       Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed)
       throws SQLException {
 
     dbAccessor.clearTable(eq(UpgradeCatalog260.UPGRADE_TABLE));
@@ -557,17 +522,7 @@ public class UpgradeCatalog260Test {
     expectLastCall().once();
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-      }
-    };
-
-    Injector injector = Guice.createInjector(module);
+    Injector injector = getInjector();
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.executePreDMLUpdates();
 
@@ -605,26 +560,16 @@ public class UpgradeCatalog260Test {
   @Test
   public void testEnsureZeppelinProxyUserConfigs() throws AmbariException {
 
-    final Clusters clusters = createMock(Clusters.class);
+    Injector injector = getInjector();
+
+    final Clusters clusters = injector.getInstance(Clusters.class);
     final Cluster cluster = createMock(Cluster.class);
     final Config zeppelinEnvConf = createMock(Config.class);
     final Config coreSiteConf = createMock(Config.class);
     final Config coreSiteConfNew = createMock(Config.class);
-    final AmbariManagementController controller = createMock(AmbariManagementController.class);
+    final AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
 
     Capture<? extends Map<String, String>> captureCoreSiteConfProperties = newCapture();
-
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-        binder.bind(Clusters.class).toInstance(clusters);
-        binder.bind(AmbariManagementController.class).toInstance(controller);
-      }
-    };
 
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
 
@@ -647,7 +592,6 @@ public class UpgradeCatalog260Test {
 
     replay(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller);
 
-    Injector injector = Guice.createInjector(module);
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.ensureZeppelinProxyUserConfigs();
 
@@ -661,6 +605,8 @@ public class UpgradeCatalog260Test {
   @Test
   public void testUpdateKerberosDescriptorArtifact() throws Exception {
 
+    Injector injector = getInjector();
+
     URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_kerberos_descriptor_ranger_kms.json");
     Assert.assertNotNull(systemResourceURL);
 
@@ -671,28 +617,68 @@ public class UpgradeCatalog260Test {
     serviceDescriptor = kerberosDescriptor.getService("RANGER_KMS");
     Assert.assertNotNull(serviceDescriptor);
     Assert.assertNotNull(serviceDescriptor.getIdentity("/smokeuser"));
+    Assert.assertNotNull(serviceDescriptor.getIdentity("/spnego"));
 
     KerberosComponentDescriptor componentDescriptor;
     componentDescriptor = serviceDescriptor.getComponent("RANGER_KMS_SERVER");
     Assert.assertNotNull(componentDescriptor);
     Assert.assertNotNull(componentDescriptor.getIdentity("/smokeuser"));
+    Assert.assertNotNull(componentDescriptor.getIdentity("/spnego"));
+    Assert.assertNotNull(componentDescriptor.getIdentity("/spnego").getPrincipalDescriptor());
+    Assert.assertEquals("invalid_name@${realm}", componentDescriptor.getIdentity("/spnego").getPrincipalDescriptor().getValue());
 
     ArtifactEntity artifactEntity = createMock(ArtifactEntity.class);
 
     expect(artifactEntity.getArtifactData()).andReturn(kerberosDescriptor.toMap()).once();
 
     Capture<Map<String, Object>> captureMap = newCapture();
+    expect(artifactEntity.getForeignKeys()).andReturn(Collections.singletonMap("cluster", "2"));
     artifactEntity.setArtifactData(capture(captureMap));
     expectLastCall().once();
 
     ArtifactDAO artifactDAO = createMock(ArtifactDAO.class);
     expect(artifactDAO.merge(artifactEntity)).andReturn(artifactEntity).atLeastOnce();
 
-    replay(artifactDAO, artifactEntity);
+    Map<String, String> properties = new HashMap<>();
+    properties.put("ranger.ks.kerberos.principal", "correct_value@EXAMPLE.COM");
+    properties.put("xasecure.audit.jaas.Client.option.principal", "wrong_value@EXAMPLE.COM");
 
-    UpgradeCatalog260 upgradeCatalog260 = createMockBuilder(UpgradeCatalog260.class).createMock();
+    Config config = createMock(Config.class);
+    expect(config.getProperties()).andReturn(properties).anyTimes();
+    expect(config.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).anyTimes();
+    expect(config.getTag()).andReturn("version1").anyTimes();
+    expect(config.getType()).andReturn("ranger-kms-audit").anyTimes();
+
+    Config newConfig = createMock(Config.class);
+    expect(newConfig.getTag()).andReturn("version2").anyTimes();
+    expect(newConfig.getType()).andReturn("ranger-kms-audit").anyTimes();
+
+    ServiceConfigVersionResponse response = createMock(ServiceConfigVersionResponse.class);
+
+    Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getDesiredConfigByType("dbks-site")).andReturn(config).anyTimes();
+    expect(cluster.getDesiredConfigByType("ranger-kms-audit")).andReturn(config).anyTimes();
+    expect(cluster.getConfigsByType("ranger-kms-audit")).andReturn(Collections.singletonMap("version1", config)).anyTimes();
+    expect(cluster.getServiceByConfigType("ranger-kms-audit")).andReturn("RANGER").anyTimes();
+    expect(cluster.getClusterName()).andReturn("cl1").anyTimes();
+    expect(cluster.getConfig(eq("ranger-kms-audit"), anyString())).andReturn(newConfig).once();
+    expect(cluster.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig))).andReturn(response).once();
+
+    final Clusters clusters = injector.getInstance(Clusters.class);
+    expect(clusters.getCluster(2L)).andReturn(cluster).anyTimes();
+
+    Capture<? extends Map<String, String>> captureProperties = newCapture();
+
+    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    expect(controller.createConfig(eq(cluster), eq("ranger-kms-audit"), capture(captureProperties), anyString(), anyObject(Map.class)))
+        .andReturn(null)
+        .once();
+
+    replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller);
+
+    UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
-    verify(artifactDAO, artifactEntity);
+    verify(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller);
 
     KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(captureMap.getValue());
     Assert.assertNotNull(kerberosDescriptorUpdated);
@@ -700,10 +686,27 @@ public class UpgradeCatalog260Test {
     Assert.assertNull(kerberosDescriptorUpdated.getService("RANGER_KMS").getIdentity("/smokeuser"));
     Assert.assertNull(kerberosDescriptorUpdated.getService("RANGER_KMS").getComponent("RANGER_KMS_SERVER").getIdentity("/smokeuser"));
 
+    KerberosIdentityDescriptor identity;
+
+    Assert.assertNull(kerberosDescriptorUpdated.getService("RANGER_KMS").getIdentity("/spnego"));
+    identity = kerberosDescriptorUpdated.getService("RANGER_KMS").getIdentity("ranger_kms_spnego");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("/spnego", identity.getReference());
+
+    Assert.assertNull(kerberosDescriptorUpdated.getService("RANGER_KMS").getComponent("RANGER_KMS_SERVER").getIdentity("/spnego"));
+    identity = kerberosDescriptorUpdated.getService("RANGER_KMS").getComponent("RANGER_KMS_SERVER").getIdentity("ranger_kms_ranger_kms_server_spnego");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("/spnego", identity.getReference());
+    Assert.assertNotNull(identity.getPrincipalDescriptor());
+    Assert.assertNull(identity.getPrincipalDescriptor().getValue());
+
+    Assert.assertTrue(captureProperties.hasCaptured());
+    Map<String, String> newProperties = captureProperties.getValue();
+    Assert.assertEquals("correct_value@EXAMPLE.COM", newProperties.get("xasecure.audit.jaas.Client.option.principal"));
   }
 
   @Test
-  public void testUpdateAmsConfigs() throws Exception{
+  public void testUpdateAmsConfigs() throws Exception {
 
     Map<String, String> oldProperties = new HashMap<String, String>() {
       {
@@ -817,7 +820,7 @@ public class UpgradeCatalog260Test {
     expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file).anyTimes();
 
     expect(widgetDAO.findByName(1L, "HDFS Bytes Read", "ambari", "HDFS_HEATMAPS"))
-      .andReturn(Collections.singletonList(widgetEntity));
+        .andReturn(Collections.singletonList(widgetEntity));
     expect(widgetDAO.merge(widgetEntity)).andReturn(null);
     expect(widgetEntity.getWidgetName()).andReturn("HDFS Bytes Read").anyTimes();
 
@@ -826,5 +829,20 @@ public class UpgradeCatalog260Test {
     mockInjector.getInstance(UpgradeCatalog260.class).updateHDFSWidgetDefinition();
 
     verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
+  }
+
+  private Injector getInjector() {
+
+    return Guice.createInjector(new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(osFamily);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(Configuration.class).toInstance(configuration);
+        binder.bind(Clusters.class).toInstance(createMock(Clusters.class));
+        binder.bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
+      }
+    });
   }
 }

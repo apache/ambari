@@ -4,7 +4,8 @@
       "name": "SOLR",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "solr_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [

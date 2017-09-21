@@ -4,10 +4,12 @@
       "name": "SPARK",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "spark_smokeuser",
+          "reference": "/smokeuser"
         },
         {
-          "name": "/hdfs"
+          "name": "spark_hdfs",
+          "reference": "/hdfs"
         },
         {
           "name": "sparkuser",
@@ -42,10 +44,12 @@
           "name": "SPARK_THRIFTSERVER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "spark_spark_thriftserver_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             },
             {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive"
+              "name": "spark_spark_thriftserver_hive_server_hive",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive"
             }
           ]
         }		

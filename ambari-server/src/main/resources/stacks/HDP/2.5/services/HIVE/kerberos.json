@@ -4,10 +4,12 @@
       "name": "HIVE",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "hive_spnego",
+          "reference": "/spnego"
         },
         {
-          "name": "/smokeuser"
+          "name": "hive_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [
@@ -33,7 +35,8 @@
           "name": "HIVE_METASTORE",
           "identities": [
             {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
+              "name": "hive_hive_metastore_hive_server_hive",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
                 "configuration": "hive-site/hive.metastore.kerberos.principal"
               },
@@ -47,7 +50,8 @@
           "name": "HIVE_SERVER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "hive_hive_server_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             },
             {
               "name": "hive_server_hive",
@@ -81,7 +85,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "hive_hive_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "hive-site/hive.server2.authentication.spnego.principal"
               },
@@ -105,16 +110,20 @@
           "name": "HIVE_SERVER_INTERACTIVE",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "hive_hive_server_interactive_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             },
             {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive"
+              "name": "hive_hive_server_interactive_hive_server_hive",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive"
             },
             {
-              "name": "/HIVE/HIVE_SERVER/spnego"
+              "name": "hive_hive_server_interactive_spnego",
+              "reference": "/HIVE/HIVE_SERVER/spnego"
             },
             {
-              "name": "/YARN/NODEMANAGER/llap_zk_hive"
+              "name": "hive_hive_server_interactive_llap_zk_hive",
+              "reference": "/YARN/NODEMANAGER/llap_zk_hive"
             }
           ]
         },
@@ -122,7 +131,8 @@
           "name": "WEBHCAT_SERVER",
           "identities": [
             {
-              "name": "/spnego",
+              "name": "hive_webhcat_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "webhcat-site/templeton.kerberos.principal"
               },

@@ -7,7 +7,8 @@
           "name": "TITAN",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "titan_titan_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             }
           ]
         }

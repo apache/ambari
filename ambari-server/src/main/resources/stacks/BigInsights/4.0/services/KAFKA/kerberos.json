@@ -4,7 +4,8 @@
       "name": "KAFKA",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "kafka_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [
