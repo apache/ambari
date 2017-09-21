@@ -445,8 +445,10 @@ describe('App.clusterController', function () {
       restoreLastUpgrade: Em.K,
       initDBProperties: Em.K,
       loadUpgradeData: Em.K,
+      loadCompatibleVersions: Em.K,
+      updateCurrentStackVersion: Em.K,
       loadStackVersionsToModel: function () {
-        return {done: Em.K};
+        return {done: Em.clb};
       }
     });
 
@@ -459,6 +461,8 @@ describe('App.clusterController', function () {
       sinon.spy(upgradeController, 'initDBProperties');
       sinon.spy(upgradeController, 'loadUpgradeData');
       sinon.spy(upgradeController, 'loadStackVersionsToModel');
+      sinon.spy(upgradeController, 'loadCompatibleVersions');
+      sinon.spy(upgradeController, 'updateCurrentStackVersion');
       sinon.stub(App.stackUpgradeHistoryMapper, 'map');
     });
 
@@ -471,6 +475,8 @@ describe('App.clusterController', function () {
       upgradeController.initDBProperties.restore();
       upgradeController.loadUpgradeData.restore();
       upgradeController.loadStackVersionsToModel.restore();
+      upgradeController.loadCompatibleVersions.restore();
+      upgradeController.updateCurrentStackVersion.restore();
       App.stackUpgradeHistoryMapper.map.restore();
     });
 
@@ -501,6 +507,14 @@ describe('App.clusterController', function () {
 
       it('loadStackVersionsToModel is called with valid arguments', function () {
         expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
+      });
+
+      it('loadCompatibleVersions should be called', function () {
+        expect(upgradeController.loadCompatibleVersions.calledOnce).to.be.true;
+      });
+
+      it('updateCurrentStackVersion should be called', function () {
+        expect(upgradeController.updateCurrentStackVersion.calledOnce).to.be.true;
       });
 
       it('initDBProperties is not called', function () {
