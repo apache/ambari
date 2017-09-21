@@ -921,12 +921,14 @@ class ActionScheduler implements Runnable {
       RoleCommandPair roleCommand = new
               RoleCommandPair(Role.valueOf(command.getRole()), command.getRoleCommand());
       Set<RoleCommandPair> roleCommandDependencies = rco.getDependencies().get(roleCommand);
-      // remove eventual references to the same RoleCommand
-      roleCommandDependencies.remove(roleCommand);
 
       // check if there are any dependencies IN_PROGRESS
-      if (roleCommandDependencies != null && CollectionUtils.containsAny(rolesCommandsInProgress, roleCommandDependencies)) {
-        areCommandDependenciesFinished = false;
+      if (roleCommandDependencies != null) {
+        // remove eventual references to the same RoleCommand
+        roleCommandDependencies.remove(roleCommand);
+        if (CollectionUtils.containsAny(rolesCommandsInProgress, roleCommandDependencies)) {
+          areCommandDependenciesFinished = false;
+        }
       }
     }
 
