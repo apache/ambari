@@ -21,13 +21,13 @@ import java.util
 import java.util.logging.LogManager
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.apache.ambari.metrics.alertservice.prototype.MetricsCollectorInterface
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
-import org.apache.ambari.metrics.alertservice.common.{MetricAnomaly, TimelineMetrics}
-import org.apache.ambari.metrics.alertservice.methods.MetricAnomalyModel
-import org.apache.ambari.metrics.alertservice.methods.ema.{EmaModel, EmaModelLoader}
-import org.apache.ambari.metrics.alertservice.spark.AnomalyMetricPublisher
+import org.apache.ambari.metrics.alertservice.prototype.methods.{AnomalyDetectionTechnique, MetricAnomaly}
+import org.apache.ambari.metrics.alertservice.prototype.methods.ema.{EmaModelLoader, EmaTechnique}
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics
 import org.apache.log4j.Logger
 import org.apache.spark.storage.StorageLevel
 
@@ -41,7 +41,7 @@ object MetricAnomalyDetector extends Logging {
   var groupId = "ambari-metrics-group"
   var topicName = "ambari-metrics-topic"
   var numThreads = 1
-  val anomalyDetectionModels: Array[MetricAnomalyModel] = Array[MetricAnomalyModel]()
+  val anomalyDetectionModels: Array[AnomalyDetectionTechnique] = Array[AnomalyDetectionTechnique]()
 
   def main(args: Array[String]): Unit = {
 
@@ -54,7 +54,7 @@ object MetricAnomalyDetector extends Logging {
     }
 
     for (method <- args(0).split(",")) {
-      if (method == "ema") anomalyDetectionModels :+ new EmaModel()
+      if (method == "ema") anomalyDetectionModels :+ new EmaTechnique(0.5, 3)
     }
 
     val appIds = util.Arrays.asList(args(1).split(","))
@@ -63,7 +63,7 @@ object MetricAnomalyDetector extends Logging {
     val collectorPort = args(3)
     val collectorProtocol = args(4)
 
-    val anomalyMetricPublisher: AnomalyMetricPublisher = new AnomalyMetricPublisher(collectorHost, collectorProtocol, collectorPort)
+    val anomalyMetricPublisher: MetricsCollectorInterface = new MetricsCollectorInterface(collectorHost, collectorProtocol, collectorPort)
 
     val sparkConf = new SparkConf().setAppName("AmbariMetricsAnomalyDetector")
 
@@ -99,10 +99,6 @@ object MetricAnomalyDetector extends Logging {
         for (timelineMetric <- timelineMetrics.getMetrics) {
           var anomalies = emaModel.test(timelineMetric)
           anomalyMetricPublisher.publish(anomalies)
-          for (anomaly <- anomalies) {
-            var an = anomaly : MetricAnomaly
-            logger.info(an.getAnomalyAsString)
-          }
         }
       })
     })
