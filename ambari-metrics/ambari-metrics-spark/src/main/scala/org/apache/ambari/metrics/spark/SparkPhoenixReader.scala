@@ -17,8 +17,8 @@
 
 package org.apache.ambari.metrics.spark
 
-import org.apache.ambari.metrics.alertservice.common.TimelineMetric
-import org.apache.ambari.metrics.alertservice.methods.ema.EmaModel
+import org.apache.ambari.metrics.alertservice.prototype.methods.ema.EmaTechnique
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric
 import org.apache.spark.mllib.stat.Statistics
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
@@ -61,15 +61,19 @@ object SparkPhoenixReader {
       t => metricValues.put(t.getLong(3), t.getDouble(4) / t.getInt(5))
     )
 
-    //val metricName = result.head().getString(0)
+    //val seriesName = result.head().getString(0)
     //val hostname = result.head().getString(1)
     //val appId = result.head().getString(2)
 
-    val timelineMetric = new TimelineMetric(metricName, appId, hostname, metricValues)
+    val timelineMetric = new TimelineMetric()
+    timelineMetric.setMetricName(metricName)
+    timelineMetric.setAppId(appId)
+    timelineMetric.setHostName(hostname)
+    timelineMetric.setMetricValues(metricValues)
 
-    var emaModel = new EmaModel()
-    emaModel.train(timelineMetric, weight, timessdev)
-    emaModel.save(sc, modelDir)
+//    var emaModel = new EmaTechnique()
+//    emaModel.train(timelineMetric, weight, timessdev)
+//    emaModel.save(sc, modelDir)
 
 //    var metricData:Seq[Double] = Seq.empty
 //    result.collect().foreach(
