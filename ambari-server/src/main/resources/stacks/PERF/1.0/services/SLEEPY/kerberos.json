@@ -4,7 +4,8 @@
       "name": "SLEEPY",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "sleepy_spnego",
+          "reference": "/spnego"
         },
         {
           "name": "sleepy",
@@ -28,7 +29,8 @@
           }
         },
         {
-          "name": "/smokeuser"
+          "name": "sleepy_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [
@@ -38,7 +40,8 @@
           "name": "SLEEPY",
           "identities": [
             {
-              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "sleepy_sleepy_hdfs",
+              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "sleepy_sleepy",
@@ -62,7 +65,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "sleepy_sleepy_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "sleepy-site/sleepy.security.authentication.spnego.kerberos.principal"
               },

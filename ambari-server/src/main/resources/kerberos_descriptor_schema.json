@@ -5,10 +5,11 @@
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^(\\.\\/)?[/a-zA-Z0-9_\\-]+$"
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
         },
         "reference": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(\\.\\/)?[/a-zA-Z0-9_\\-]+$"
         },
         "principal": {
           "type": "object",

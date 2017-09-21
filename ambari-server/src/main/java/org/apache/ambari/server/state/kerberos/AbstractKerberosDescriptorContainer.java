@@ -640,7 +640,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
    * @param path a String declaring the path to a KerberosIdentityDescriptor
    * @return a KerberosIdentityDescriptor identified by the path or null if not found
    */
-  protected KerberosIdentityDescriptor getReferencedIdentityDescriptor(String path)
+  public KerberosIdentityDescriptor getReferencedIdentityDescriptor(String path)
       throws AmbariException {
     KerberosIdentityDescriptor identityDescriptor = null;
 
@@ -855,12 +855,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
     if (identity != null) {
       KerberosIdentityDescriptor referencedIdentity;
       try {
-        if (identity.getReference() != null) {
-          referencedIdentity = getReferencedIdentityDescriptor(identity.getReference());
-        } else {
-          // For backwards compatibility, see if the identity's name indicates a reference...
-          referencedIdentity = getReferencedIdentityDescriptor(identity.getName());
-        }
+        referencedIdentity = getReferencedIdentityDescriptor(identity.getReference());
       } catch (AmbariException e) {
         throw new AmbariException(String.format("Invalid Kerberos identity reference: %s", identity.getReference()), e);
       }

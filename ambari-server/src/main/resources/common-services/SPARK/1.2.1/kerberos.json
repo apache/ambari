@@ -4,7 +4,8 @@
       "name": "SPARK",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "spark_smokeuser",
+          "reference": "/smokeuser"
         },
         {
           "name": "sparkuser",
@@ -40,7 +41,8 @@
           "name": "SPARK_JOBHISTORYSERVER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "spark_spark_jobhistoryserver_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             }
           ]
         },

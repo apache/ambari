@@ -4,7 +4,8 @@
       "name": "DRUID",
       "identities": [
         {
-          "name": "/spnego",
+          "name": "druid_spnego",
+          "reference": "/spnego",
           "principal": {
             "configuration": "druid-common/druid.hadoop.security.spnego.principal"
           },
@@ -55,7 +56,8 @@
           }
         },
         {
-          "name": "/smokeuser"
+          "name": "druid_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "components": [
@@ -63,7 +65,8 @@
           "name": "DRUID_HISTORICAL",
           "identities": [
             {
-              "name": "/druid"
+              "name": "druid_druid_historical_druid",
+              "reference": "/druid"
             }
           ]
         },
@@ -71,7 +74,8 @@
           "name": "DRUID_BROKER",
           "identities": [
             {
-              "name": "/druid"
+              "name": "druid_druid_broker_druid",
+              "reference": "/druid"
             }
           ]
         },
@@ -79,7 +83,8 @@
           "name": "DRUID_OVERLORD",
           "identities": [
             {
-              "name": "/druid"
+              "name": "druid_druid_historical_druid",
+              "reference": "/druid"
             }
           ]
         },
@@ -87,7 +92,8 @@
           "name": "DRUID_COORDINATOR",
           "identities": [
             {
-              "name": "/druid"
+              "name": "druid_druid_coordinator_druid",
+              "reference": "/druid"
             }
           ]
         },
@@ -95,7 +101,8 @@
           "name": "DRUID_MIDDLEMANAGER",
           "identities": [
             {
-              "name": "/druid"
+              "name": "druid_druid_middlemanager_druid",
+              "reference": "/druid"
             }
           ]
         },
@@ -103,7 +110,8 @@
           "name": "DRUID_SUPERSET",
           "identities": [
             {
-              "name": "/druid"
+              "name": "druid_druid_superset_druid",
+              "reference": "/druid"
             }
           ]
         }

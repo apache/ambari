@@ -7,7 +7,8 @@
           "name": "SLIDER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "slider_slider_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             }
           ]
         }
