@@ -24,7 +24,7 @@ ams_ks <- function(train_data, test_data, p_value) {
 #  test_data <- data[which(data$TS >= test_start & data$TS <= test_end), 2]
   
   anomalies <- data.frame()
-  res <- ks.test(train_data, test_data[,2])
+  res <- ks.test(train_data[,2], test_data[,2])
   
   if (res[2] < p_value) {
     anomaly <- c(test_data[1,1], test_data[length(test_data),1], res[1], res[2])

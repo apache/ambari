@@ -32,12 +32,17 @@ ams_tukeys <- function(train_data, test_data, n) {
     lb <- quantiles[2] - n*iqr
     ub <- quantiles[4] + n*iqr
     if ( (x < lb)  || (x > ub) ) {
-      anomaly <- c(test_data[i,1], x)
+      if (x < lb) {
+        niqr <- (quantiles[2] - x) / iqr
+      } else {
+        niqr <- (x - quantiles[4]) / iqr
+      }
+      anomaly <- c(test_data[i,1], x, niqr)
       anomalies <- rbind(anomalies, anomaly)
     }
   }
   if(length(anomalies) > 0) {
-    names(anomalies) <- c("TS", "Value")
+    names(anomalies) <- c("TS", "Value", "niqr")
   }
   return (anomalies)
 }

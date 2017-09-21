@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,11 +35,11 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @InterfaceAudience.Public
 @InterfaceStability.Unstable
-public class TimelineMetric implements Comparable<TimelineMetric> {
+public class TimelineMetric implements Comparable<TimelineMetric>, Serializable {
 
   private String metricName;
   private String appId;
-  private String instanceId;
+  private String instanceId = null;
   private String hostName;
   private long startTime;
   private String type;

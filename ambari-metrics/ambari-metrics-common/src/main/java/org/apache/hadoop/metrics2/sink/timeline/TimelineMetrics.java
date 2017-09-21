@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ import org.apache.hadoop.classification.InterfaceStability;
 @XmlAccessorType(XmlAccessType.NONE)
 @InterfaceAudience.Public
 @InterfaceStability.Unstable
-public class TimelineMetrics {
+public class TimelineMetrics implements Serializable{
 
   private List<TimelineMetric> allMetrics = new ArrayList<TimelineMetric>();
 

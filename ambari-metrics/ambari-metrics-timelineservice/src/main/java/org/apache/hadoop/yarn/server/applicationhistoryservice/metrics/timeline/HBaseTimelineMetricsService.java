@@ -401,30 +401,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   }
 
 
-  private org.apache.ambari.metrics.alertservice.common.TimelineMetrics fromTimelineMetrics(TimelineMetrics timelineMetrics) {
-    org.apache.ambari.metrics.alertservice.common.TimelineMetrics otherMetrics = new org.apache.ambari.metrics.alertservice.common.TimelineMetrics();
-
-    List<org.apache.ambari.metrics.alertservice.common.TimelineMetric> timelineMetricList = new ArrayList<>();
-    for (TimelineMetric timelineMetric : timelineMetrics.getMetrics()) {
-      timelineMetricList.add(fromTimelineMetric(timelineMetric));
-    }
-    otherMetrics.setMetrics(timelineMetricList);
-    return otherMetrics;
-  }
-
-  private org.apache.ambari.metrics.alertservice.common.TimelineMetric fromTimelineMetric(TimelineMetric timelineMetric) {
-
-    org.apache.ambari.metrics.alertservice.common.TimelineMetric otherMetric = new org.apache.ambari.metrics.alertservice.common.TimelineMetric();
-    otherMetric.setMetricValues(timelineMetric.getMetricValues());
-    otherMetric.setStartTime(timelineMetric.getStartTime());
-    otherMetric.setHostName(timelineMetric.getHostName());
-    otherMetric.setInstanceId(timelineMetric.getInstanceId());
-    otherMetric.setAppId(timelineMetric.getAppId());
-    otherMetric.setMetricName(timelineMetric.getMetricName());
-
-    return otherMetric;
-  }
-
   @Override
   public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
       throws SQLException, IOException {
