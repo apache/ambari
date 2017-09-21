@@ -291,7 +291,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
           if (this.get('content.isPatch')) {
             element.get('buttons').pushObject({
-              text: Em.I18n.t('common.discard'),
+              text: Em.I18n.t('common.hide'),
               action: 'confirmDiscardRepoVersion',
               isDisabled: isDisabled
             });
@@ -322,7 +322,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     element.set('isButtonGroup', true);
     element.set('isButton', false);
     element.get('buttons').pushObject({
-      text: Em.I18n.t('common.discard'),
+      text: Em.I18n.t('common.hide'),
       action: 'confirmDiscardRepoVersion',
       isDisabled: isDisabledOnInit
     });

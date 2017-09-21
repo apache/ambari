@@ -421,7 +421,7 @@ describe('App.UpgradeVersionBoxView', function () {
             {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": false,
-              "text": "Discard"
+              "text": Em.I18n.t('common.hide')
             }
           ],
           isDisabled: false
@@ -450,7 +450,7 @@ describe('App.UpgradeVersionBoxView', function () {
             {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": true,
-              "text": "Discard"
+              "text": Em.I18n.t('common.hide')
             }
           ],
           isDisabled: true
@@ -647,7 +647,7 @@ describe('App.UpgradeVersionBoxView', function () {
             {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": true,
-              "text": "Discard"
+              "text": Em.I18n.t('common.hide')
             }
           ],
           isDisabled: true
@@ -1406,7 +1406,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: false
           },
           {
-            "text": Em.I18n.t('common.discard'),
+            "text": Em.I18n.t('common.hide'),
             "action": "confirmDiscardRepoVersion",
             "isDisabled": false
           }
@@ -1443,7 +1443,7 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
         "buttons": [
           {
-            "text": Em.I18n.t('common.discard'),
+            "text": Em.I18n.t('common.hide'),
             "action": "confirmDiscardRepoVersion",
             "isDisabled": false
           }
@@ -1471,7 +1471,7 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
         "buttons": [
           {
-            "text": Em.I18n.t('common.discard'),
+            "text": Em.I18n.t('common.hide'),
             "action": "confirmDiscardRepoVersion",
             "isDisabled": false
           }
