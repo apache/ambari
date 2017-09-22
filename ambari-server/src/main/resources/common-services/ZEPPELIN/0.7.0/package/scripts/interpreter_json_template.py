@@ -182,7 +182,7 @@ template = '''
         "zeppelin.livy.concurrentSQL": "false",
         "zeppelin.livy.spark.sql.field.truncate": "true",
         "livy.spark.executor.cores": "",
-        "zeppelin.livy.displayAppInfo": "false",
+        "zeppelin.livy.displayAppInfo": "true",
         "zeppelin.livy.url": "http://localhost:8998",
         "livy.spark.dynamicAllocation.minExecutors": "",
         "livy.spark.driver.cores": "",
@@ -240,6 +240,11 @@ template = '''
             "language": "r",
             "editOnDblClick": false
           }
+        },
+        {
+          "name": "shared",
+          "class": "org.apache.zeppelin.livy.LivySharedInterpreter",
+          "defaultInterpreter": false
         }
       ],
       "dependencies": [],
