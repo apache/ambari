@@ -31,8 +31,6 @@
       2) distributed: HBase daemons writing to HDFS
     </description>
     <on-ambari-upgrade add="true"/>
-    <display-name>Operation Mode</display-name>
-    <description>Metrics service Operation mode</description>
     <value-attributes>
       <overridable>false</overridable>
       <type>value-list</type>
