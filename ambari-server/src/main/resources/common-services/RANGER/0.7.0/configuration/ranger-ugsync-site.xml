@@ -72,4 +72,11 @@
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>ranger.usersync.ldap.grouphierarchylevels</name>
+    <display-name>Group Hierarchy Levels</display-name>
+    <value>0</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

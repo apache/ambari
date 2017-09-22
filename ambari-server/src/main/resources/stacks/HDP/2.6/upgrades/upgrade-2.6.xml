@@ -555,6 +555,14 @@
       </component>
 
       <component name="RANGER_USERSYNC">
+        <pre-upgrade>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerUsersyncConfigCalculation">
+            <summary>Enabling Nested Group Sync for Ranger</summary>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
