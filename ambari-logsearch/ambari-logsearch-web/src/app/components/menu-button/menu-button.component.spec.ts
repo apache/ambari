@@ -28,6 +28,7 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {ListItem} from "@app/classes/list-item.class";
 
 import {MenuButtonComponent} from './menu-button.component';
 
@@ -86,7 +87,11 @@ describe('MenuButtonComponent', () => {
         title: 'empty sub-items array'
       },
       {
-        subItems: [{}],
+        subItems: [
+          {
+            value: null
+          }
+        ],
         hasSubItems: true,
         title: 'sub-items present'
       }
@@ -115,13 +120,21 @@ describe('MenuButtonComponent', () => {
         title: 'empty sub-items array'
       },
       {
-        subItems: [{}],
+        subItems: [
+          {
+            value: null
+          }
+        ],
         hideCaret: false,
         hasCaret: true,
         title: 'sub-items present, caret not hidden'
       },
       {
-        subItems: [{}],
+        subItems: [
+          {
+            value: null
+          }
+        ],
         hideCaret: true,
         hasCaret: true,
         title: 'sub-items present, caret hidden'

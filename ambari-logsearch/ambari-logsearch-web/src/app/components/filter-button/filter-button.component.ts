@@ -18,6 +18,7 @@
 
 import {Component, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {ListItem} from "@app/classes/list-item.class";
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
@@ -56,7 +57,7 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
     this.onChange(newValue);
   }
 
-  updateValue(options: any): void {
+  updateValue(options: ListItem): void {
     const value = options && options.value;
     if (this.isMultipleChoice) {
       this.value = this.utils.updateMultiSelectValue(this.value, value, options.isChecked);

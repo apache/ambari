@@ -17,6 +17,7 @@
  */
 
 import {Component, OnInit, Input} from '@angular/core';
+import {ListItem} from '@app/classes/list-item.class';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 
@@ -47,7 +48,7 @@ export class DropdownButtonComponent implements OnInit {
   showSelectedValue: boolean = true;
 
   @Input()
-  options?: any[];
+  options?: ListItem[];
 
   @Input()
   defaultValue?: string;
@@ -82,7 +83,7 @@ export class DropdownButtonComponent implements OnInit {
     this.selectedValue = value;
   }
 
-  updateValue(eventOptions: any): void {
+  updateValue(eventOptions: ListItem): void {
     const value = eventOptions && eventOptions.value,
       action = this.action && this.actions[this.action];
     if (this.isMultipleChoice) {

@@ -139,5 +139,7 @@
   "logs.stack": "Stack",
   "logs.taskId": "Task Id",
   "logs.versionNote": "Version Note",
-  "logs.versionNumber": "Version Number"
+  "logs.versionNumber": "Version Number",
+  "logs.addToQuery": "Add to Query",
+  "logs.excludeFromQuery": "Exclude from Query"
 }

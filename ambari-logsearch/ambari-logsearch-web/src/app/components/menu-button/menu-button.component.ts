@@ -17,6 +17,7 @@
  */
 
 import {Component, Input, ViewChild, ElementRef} from '@angular/core';
+import {ListItem} from '@app/classes/list-item.class';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import * as $ from 'jquery';
 
@@ -46,7 +47,7 @@ export class MenuButtonComponent {
   labelClass?: string;
 
   @Input()
-  subItems?: any[];
+  subItems?: ListItem[];
 
   @Input()
   isMultipleChoice: boolean = false;
@@ -90,7 +91,7 @@ export class MenuButtonComponent {
     }
   }
   
-  updateValue(options: any) {
+  updateValue(options: ListItem) {
     // TODO implement value change behaviour
   }
 

@@ -17,6 +17,7 @@
  */
 
 import {Component, AfterViewInit, Input, Output, EventEmitter, ViewChildren, ViewContainerRef, QueryList} from '@angular/core';
+import {ListItem} from '@app/classes/list-item.class';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 
 @Component({
@@ -37,7 +38,7 @@ export class DropdownListComponent implements AfterViewInit {
   }
 
   @Input()
-  items: any[];
+  items: ListItem[];
 
   @Input()
   defaultAction: Function;
@@ -49,14 +50,14 @@ export class DropdownListComponent implements AfterViewInit {
   additionalLabelComponentSetter?: string;
 
   @Output()
-  selectedItemChange: EventEmitter<any> = new EventEmitter();
+  selectedItemChange: EventEmitter<ListItem> = new EventEmitter();
 
   @ViewChildren('additionalComponent', {
     read: ViewContainerRef
   })
   containers: QueryList<ViewContainerRef>;
 
-  changeSelectedItem(options: any): void {
+  changeSelectedItem(options: ListItem): void {
     this.selectedItemChange.emit(options);
   }
 

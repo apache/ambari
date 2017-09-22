@@ -84,7 +84,7 @@ export function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, 'resources/assets/i18n/', '.json?static=true');
 }
 
-export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions): any {
+export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions): XHRBackend | InMemoryBackendService {
   if (environment.production) {
     return new XHRBackend(browser, options, xsrf);
   } else {

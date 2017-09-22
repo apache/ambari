@@ -19,12 +19,15 @@
   <label class="list-item-label" *ngIf="isMultipleChoice">
     <input type="checkbox" [attr.id]="item.id || item.value" [attr.checked]="item.isChecked ? 'checked' : null"
            (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked})">
-    <label [attr.for]="item.id || item.value" class="label-container">{{item.label | translate}}
+    <label [attr.for]="item.id || item.value" class="label-container">
+      <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
+      {{item.label | translate}}
       <div #additionalComponent></div>
     </label>
   </label>
   <span class="list-item-label label-container" *ngIf="!isMultipleChoice"
         (click)="changeSelectedItem({value: item.value, label: item.label})">
+    <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
     {{item.label | translate}}
     <div #additionalComponent></div>
   </span>

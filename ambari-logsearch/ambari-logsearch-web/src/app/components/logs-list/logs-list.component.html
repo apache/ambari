@@ -46,7 +46,10 @@
           <span class="action-icon fa fa-crosshairs"></span>
         </div>
         <div class="log-content-inner-wrapper">
-          <div class="log-content" *ngIf="isColumnDisplayed('log_message')">{{log.log_message}}</div>
+          <div class="log-content" *ngIf="isColumnDisplayed('log_message')"
+               (contextmenu)="openMessageContextMenu($event)">
+            {{log.log_message}}
+          </div>
         </div>
       </div>
       <div *ngFor="let column of displayedColumns">
@@ -56,5 +59,7 @@
     </ng-template>
   </accordion-panel>
 </div>
+<ul #contextmenu data-component="dropdown-list" class="dropdown-menu context-menu" [items]="contextMenuItems"
+    (selectedItemChange)="updateQuery($event)"></ul>
 <pagination class="col-md-12" *ngIf="logs && logs.length" [totalCount]="totalCount" [filtersForm]="filtersForm"
             [filterInstance]="filters.pageSize" [currentCount]="logs.length"></pagination>

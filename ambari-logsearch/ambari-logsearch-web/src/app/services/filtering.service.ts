@@ -20,6 +20,7 @@ import {Injectable} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
 import * as moment from 'moment-timezone';
+import {ListItem} from '@app/classes/list-item.class';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
@@ -47,7 +48,7 @@ export class FilteringService {
     });
   }
 
-  private getListItem(name: string): any {
+  private getListItem(name: string): ListItem {
     return {
       label: name,
       value: name
@@ -402,6 +403,8 @@ export class FilteringService {
   filtersForm = new FormGroup(this.filtersFormItems);
 
   queryParameterNameChange: Subject<any> = new Subject();
+
+  queryParameterAdd: Subject<any> = new Subject();
 
   loadClusters(): void {
     this.httpClient.get('clusters').subscribe(response => {
