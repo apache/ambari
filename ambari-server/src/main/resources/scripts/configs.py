@@ -181,7 +181,7 @@ def update_from_file(config_file):
     except Exception as e:
       raise Exception('Cannot find file "{0}" to PUT'.format(config_file))
     try:
-      file_properties = json.loads('{' + file_content + '}')
+      file_properties = json.loads(file_content)
     except Exception as e:
       raise Exception('File "{0}" should be in the following JSON format ("properties_attributes" is optional):\n{1}'.format(config_file, FILE_FORMAT))
     new_properties = file_properties.get(PROPERTIES, {})
@@ -199,26 +199,14 @@ def delete_specific_property(config_name):
     return properties, attributes
   return update
 
-def format_json(dictionary, tab_level=0):
-  output = ''
-  tab = ' ' * 2 * tab_level
-  for key, value in dictionary.iteritems():
-    output += ',\n{0}"{1}": '.format(tab, key)
-    if isinstance(value, dict):
-      output += '{\n' + format_json(value, tab_level + 1) + tab + '}'
-    else:
-      output += '"{0}"'.format(value)
-  output += '\n'
-  return output[2:]
-
 def output_to_file(filename):
   def output(config):
     with open(filename, 'w') as out_file:
-      out_file.write(format_json(config))
+      json.dump(config, out_file, indent=2)
   return output
 
 def output_to_console(config):
-  print format_json(config)
+  print json.dumps(config, indent=2)
 
 def get_config(cluster, config_type, accessor, output):
   properties, attributes = get_current_config(cluster, config_type, accessor)
