@@ -66,10 +66,6 @@ export class FilteringService {
       options: [],
       defaultValue: ''
     },
-    text: {
-      label: 'filter.message',
-      defaultValue: ''
-    },
     timeRange: {
       options: [
         [

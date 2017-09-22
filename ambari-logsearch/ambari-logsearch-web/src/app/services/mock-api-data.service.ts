@@ -60,7 +60,7 @@ export class mockApiDataService implements InMemoryDbService {
           key: 'logtime',
           filterFunction: (value, filterValue) => value < moment(filterValue).valueOf()
         },
-        host_name: {
+        hostList: {
           key: 'host',
           isValuesList: true
         }

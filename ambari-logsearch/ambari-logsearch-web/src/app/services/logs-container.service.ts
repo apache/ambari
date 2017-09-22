@@ -43,11 +43,10 @@ export class LogsContainerService {
 
   private readonly listFilters = {
     clusters: ['clusters'],
-    text: ['iMessage'],
     timeRange: ['end_time', 'start_time'],
     components: ['mustBe'],
     levels: ['level'],
-    hosts: ['host_name'],
+    hosts: ['hostList'],
     sorting: ['sortType', 'sortBy'],
     pageSize: ['pageSize'],
     page: ['page'],
@@ -56,10 +55,10 @@ export class LogsContainerService {
 
   private readonly histogramFilters = {
     clusters: ['clusters'],
-    text: ['iMessage'],
     timeRange: ['to', 'from'],
     components: ['mustBe'],
     levels: ['level'],
+    hosts: ['hostList'],
     query: ['includeQuery', 'excludeQuery']
   };
 
