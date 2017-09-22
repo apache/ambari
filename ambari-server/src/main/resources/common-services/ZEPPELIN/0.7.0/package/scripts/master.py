@@ -327,7 +327,7 @@ class Master(Script):
                               action="download_on_execute",
                               source=self.getZeppelinConfFS(params),
                               group=params.zeppelin_group,
-                              user=params.zeppelin_user)
+                              owner=params.zeppelin_user)
         except Fail as fail:
           if "doesn't exist" not in fail.args[0]:
             print "Error getting interpreter.json from HDFS"
@@ -357,7 +357,7 @@ class Master(Script):
                             action="create_on_execute",
                             source=interpreter_config,
                             group=params.zeppelin_group,
-                            user=params.zeppelin_user,
+                            owner=params.zeppelin_user,
                             replace_existing_files=True)
 
   def update_kerberos_properties(self):
