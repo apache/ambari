@@ -394,6 +394,13 @@
         <task xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver"/>
       </execute-stage>
 
+      <!-- RANGER -->
+      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Enabling Nested Group Sync for Ranger">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerUsersyncConfigCalculation">
+          <summary>Enabling Nested Group Sync for Ranger</summary>
+        </task>
+      </execute-stage>
+
     </group>
 
 
