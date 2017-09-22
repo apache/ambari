@@ -34,7 +34,7 @@ template = '''
     "livy.spark.dynamicAllocation.initialExecutors": "",
     "zeppelin.livy.session.create_timeout": "120",
     "livy.spark.driver.memory": "",
-    "zeppelin.livy.displayAppInfo": "false",
+    "zeppelin.livy.displayAppInfo": "true",
     "livy.spark.jars.packages": "",
     "livy.spark.dynamicAllocation.maxExecutors": "",
     "zeppelin.livy.concurrentSQL": "false",
@@ -89,6 +89,11 @@ template = '''
         "language": "r"
       },
       "name": "sparkr",
+      "defaultInterpreter": false
+    },
+    {
+      "name": "shared",
+      "class": "org.apache.zeppelin.livy.LivySharedInterpreter",
       "defaultInterpreter": false
     }
   ],
