@@ -544,7 +544,7 @@ describe('App.upgradeWizardView', function () {
           status: '',
           isDowngrade: false
         },
-        result: ''
+        result: Em.I18n.t('admin.stackUpgrade.state.init')
       },
       {
         data: {

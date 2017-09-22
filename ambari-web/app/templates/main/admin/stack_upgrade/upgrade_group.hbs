@@ -23,16 +23,16 @@
     <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.content.title}}</a>
   </div>
   {{#if view.content.isRunning}}
-    <div class="col-md-3">
+    <div class="col-md-4 pull-right">
       {{view view.progressBarView
         progressBinding="view.content.progress"
         statusBinding="view.content.status"
         totalTasksBinding="view.content.total_task_count"
         completedTasksBinding="view.content.completed_task_count"
       }}
-    </div>
-    <div class="col-md-1">
-      <div>{{view.content.progress}}%</div>
+      <div class="percent pull-right">
+        <span>{{view.content.progress}}%</span>
+      </div>
     </div>
   {{/if}}
 </div>
@@ -48,14 +48,14 @@
           <a href="#" {{action toggleExpanded item view.content.upgradeItems target="view"}}>{{item.context}}</a>
         </div>
         {{#if item.isRunning}}
-          <div class="col-md-3">
+          <div class="col-md-4 pull-right">
             {{view App.ProgressBarView
               progressBinding="item.progress"
               statusBinding="item.status"
-            }}
-          </div>
-          <div class="col-md-1">
-            <div>{{item.progress}}%</div>
+              }}
+            <div class="percent pull-right">
+                <span>{{item.progress}}%</span>
+            </div
           </div>
         {{/if}}
       </div>
