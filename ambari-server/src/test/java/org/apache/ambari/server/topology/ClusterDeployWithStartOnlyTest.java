@@ -391,7 +391,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
     expectLastCall().once();
 
-    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).times(2);
+    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).times(1);
 
     persistedTopologyRequest = new PersistedTopologyRequest(1, request);
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,

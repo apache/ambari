@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.security.authorization.internal.RunWithInternalSecurityContext;
 import org.apache.ambari.server.topology.ClusterConfigurationRequest;
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -39,11 +41,14 @@ public class ConfigureClusterTask implements Callable<Boolean> {
 
   private ClusterConfigurationRequest configRequest;
   private ClusterTopology topology;
+  private AmbariEventPublisher ambariEventPublisher;
 
   @AssistedInject
-  public ConfigureClusterTask(@Assisted ClusterTopology topology, @Assisted ClusterConfigurationRequest configRequest) {
+  public ConfigureClusterTask(@Assisted ClusterTopology topology, @Assisted ClusterConfigurationRequest configRequest,
+                              @Assisted AmbariEventPublisher ambariEventPublisher) {
     this.configRequest = configRequest;
     this.topology = topology;
+    this.ambariEventPublisher = ambariEventPublisher;
   }
 
   @Override
@@ -71,6 +76,12 @@ public class ConfigureClusterTask implements Callable<Boolean> {
       // this will signal an unsuccessful run, retry will be triggered if required
       throw new Exception(e);
     }
+
+    LOG.info("Cluster configuration finished successfully!");
+    // Notify listeners that cluster configuration finished
+    long clusterId = topology.getClusterId();
+    ambariEventPublisher.publish(new ClusterConfigFinishedEvent(clusterId,
+            topology.getAmbariContext().getClusterName(clusterId)));
 
     LOG.info("TopologyManager.ConfigureClusterTask: Exiting");
     return true;

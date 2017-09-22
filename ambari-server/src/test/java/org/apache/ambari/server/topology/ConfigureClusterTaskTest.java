@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.anyObject;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -31,6 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
@@ -61,12 +64,18 @@ public class ConfigureClusterTaskTest {
   @Mock(type = MockType.STRICT)
   private ClusterTopology clusterTopology;
 
+  @Mock(type = MockType.STRICT)
+  private AmbariContext ambariContext;
+
+  @Mock(type = MockType.NICE)
+  private AmbariEventPublisher ambariEventPublisher;
+
   private ConfigureClusterTask testSubject;
 
   @Before
   public void before() {
-    reset(clusterConfigurationRequest, clusterTopology);
-    testSubject = new ConfigureClusterTask(clusterTopology, clusterConfigurationRequest);
+    reset(clusterConfigurationRequest, clusterTopology, ambariContext, ambariEventPublisher);
+    testSubject = new ConfigureClusterTask(clusterTopology, clusterConfigurationRequest, ambariEventPublisher);
   }
 
   @Test
@@ -74,13 +83,18 @@ public class ConfigureClusterTaskTest {
       Exception {
     // GIVEN
     // is it OK to handle the non existence of hostgroups as a success?!
+
     expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.EMPTY_LIST);
     expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.EMPTY_MAP);
+    expect(clusterTopology.getClusterId()).andReturn(1L).anyTimes();
+    expect(clusterTopology.getAmbariContext()).andReturn(ambariContext);
+    expect(ambariContext.getClusterName(1L)).andReturn("testCluster");
 
     // this is only called if the "prerequisites" are satisfied
     clusterConfigurationRequest.process();
+    ambariEventPublisher.publish(anyObject(AmbariEvent.class));
 
-    replay(clusterConfigurationRequest, clusterTopology);
+    replay(clusterConfigurationRequest, clusterTopology, ambariContext, ambariEventPublisher);
 
     // WHEN
     Boolean result = testSubject.call();
