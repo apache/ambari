@@ -66,7 +66,7 @@ public class AmbariSolrCloudCLI {
       + "\n./solrCloudCli.sh --secure-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
       + "\n./solrCloudCli.sh --unsecure-znode -z host1:2181,host2:2181 -zn /ambari-solr --jaas-file /etc/myconf/jaas_file"
       + "\n./solrCloudCli.sh --secure-solr-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
-      + "\n./solrCloudCli.sh --setup-kerberos-plugin -z host1:2181,host2:2181 -zn /ambari-solr --security-json-location /etc/infra-solr/conf/security.json\n";
+      + "\n./solrCloudCli.sh --setup-kerberos-plugin -z host1:2181,host2:2181 -zn /ambari-solr --security-json-location /etc/infra-solr/conf/security.json\n ";
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -126,22 +126,22 @@ public class AmbariSolrCloudCLI {
 
     final Option secureSolrZnodeOption = Option.builder("ssz")
       .longOpt(SECURE_SOLR_ZNODE_COMMAND)
-      .desc("Set acls for solr znode")
+      .desc("Set acls for solr znode (command)")
       .build();
 
     final Option secureZnodeOption = Option.builder("sz")
       .longOpt(SECURE_ZNODE_COMMAND)
-      .desc("Set acls for znode")
+      .desc("Set acls for znode (command)")
       .build();
 
     final Option unsecureZnodeOption = Option.builder("uz")
       .longOpt(UNSECURE_ZNODE_COMMAND)
-      .desc("Disable security for znode")
+      .desc("Disable security for znode (command)")
       .build();
 
     final Option removeAdminHandlerOption = Option.builder("rah")
       .longOpt(REMOVE_ADMIN_HANDLERS)
-      .desc("Remove AdminHandlers request handler from solrconfig.xml")
+      .desc("Remove AdminHandlers request handler from solrconfig.xml (command)")
       .build();
 
     final Option shardNameOption = Option.builder("sn")
@@ -428,7 +428,7 @@ public class AmbariSolrCloudCLI {
       } else {
         List<String> commands = Arrays.asList(CREATE_COLLECTION_COMMAND, CREATE_SHARD_COMMAND, UPLOAD_CONFIG_COMMAND,
           DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND, SET_CLUSTER_PROP, CREATE_ZNODE, SECURE_ZNODE_COMMAND, UNSECURE_ZNODE_COMMAND,
-          SECURE_SOLR_ZNODE_COMMAND, CHECK_ZNODE, SETUP_KERBEROS_PLUGIN);
+          SECURE_SOLR_ZNODE_COMMAND, CHECK_ZNODE, SETUP_KERBEROS_PLUGIN, REMOVE_ADMIN_HANDLERS);
         helpFormatter.printHelp(CMD_LINE_SYNTAX, options);
         exit(1, String.format("One of the supported commands is required (%s)", StringUtils.join(commands, "|")));
       }
