@@ -241,28 +241,16 @@ if has_hbase_masters:
 repo_info = config['hostLevelParams']['repo_info']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
 
-user_to_groups_dict = collections.defaultdict(lambda:[user_group])
-user_to_groups_dict[smoke_user] = [proxyuser_group]
-if has_ganglia_server:
-  user_to_groups_dict[gmond_user] = [gmond_user]
-  user_to_groups_dict[gmetad_user] = [gmetad_user]
-if has_tez:
-  user_to_groups_dict[tez_user] = [proxyuser_group]
-if has_oozie_server:
-  user_to_groups_dict[oozie_user] = [proxyuser_group]
-if has_falcon_server_hosts:
-  user_to_groups_dict[falcon_user] = [proxyuser_group]
-if has_ranger_admin:
-  user_to_groups_dict[ranger_user] = [ranger_group]
-if has_zeppelin_master:
-  user_to_groups_dict[zeppelin_user] = [zeppelin_group, user_group]
+user_to_groups_dict = {}
+
 #Append new user-group mapping to the dict
 try:
-  user_group_map = ast.literal_eval(config['hostLevelParams']['user_group'])
+  user_group_map = ast.literal_eval(config['hostLevelParams']['user_groups'])
   for key in user_group_map.iterkeys():
     user_to_groups_dict[key] = user_group_map[key]
 except ValueError:
   print('User Group mapping (user_group) is missing in the hostLevelParams')
+
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
 user_list = json.loads(config['hostLevelParams']['user_list'])

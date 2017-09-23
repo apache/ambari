@@ -62,19 +62,19 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'oozie',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'nobody',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'nobody'],
+                              groups = [u'hadoop',u'nobody'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'ambari-qa',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'flume',
@@ -110,7 +110,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'tez',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'zookeeper',
@@ -122,7 +122,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'falcon',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'sqoop',

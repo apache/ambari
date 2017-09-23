@@ -75,6 +75,12 @@ export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2&gt; /dev/nul
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
