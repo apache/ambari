@@ -16,16 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.common;
+package org.apache.ambari.infra.conf;
 
-public final class InfraManagerConstants {
-  public static final int DEFAULT_PORT = 61890;
-  public static final String DEFAULT_PROTOCOL = "http";
-  public static final String INFRA_MANAGER_SESSION_ID = "INFRA_MANAGER_SESSIONID";
-  public static final String PROTOCOL_SSL = "https";
-  public static final String ROOT_CONTEXT = "/";
-  public static final String WEB_RESOURCE_FOLDER = "webapp";
-  public static final String DEFAULT_DATA_FOLDER_LOCATION = "/opt/ambari-infra-manager/data";
-  public static final String DATA_FOLDER_LOCATION_PARAM = "dataFolderLocation";
-  public static final Integer SESSION_TIMEOUT = 60 * 30;
+import org.apache.ambari.infra.rest.JobResource;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletProperties;
+
+import javax.ws.rs.ApplicationPath;
+
+@ApplicationPath("/api/v1")
+public class InfraManagerJerseyResourceConfig extends ResourceConfig {
+
+  public InfraManagerJerseyResourceConfig() {
+    packages(JobResource.class.getPackage().getName());
+    register(JacksonFeature.class);
+    property(ServletProperties.FILTER_FORWARD_ON_404, true);
+  }
+
 }
