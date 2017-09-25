@@ -1195,17 +1195,35 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#installRepoVersionPopup()", function () {
     before(function () {
       sinon.stub(controller, 'installRepoVersion', Em.K);
-      sinon.stub(App.Service, 'find').returns({});
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({
+        isLoaded: true
+      }));
     });
     after(function () {
       controller.installRepoVersion.restore();
       App.Service.find.restore();
     });
-    it("show popup", function () {
-      var repo = Em.Object.create({'displayName': 'HDP-2.2', stackServices: []});
+    it("show confirmation popup for non standart and available services", function () {
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', isStandard: false, stackServices: [Em.Object.create({
+        name: 'HDFS',
+        isUpgradable: true,
+        isAvailable: true
+      })]});
+      var popup = controller.installRepoVersionPopup(repo);
+      popup.onPrimary();
+      expect(controller.installRepoVersion.calledWith(repo)).to.be.true;
+    });
+    it("show pre-check popup for non standard and empty available services", function () {
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', isStandard: false, stackServices: []});
       var popup = controller.installRepoVersionPopup(repo);
       popup.onPrimary();
       expect(controller.installRepoVersion.calledWith(repo)).to.be.false;
+    });
+    it("show confirmation popup for standart", function () {
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', isStandard: true, stackServices: []});
+      var popup = controller.installRepoVersionPopup(repo);
+      popup.onPrimary();
+      expect(controller.installRepoVersion.calledWith(repo)).to.be.true;
     });
   });
 

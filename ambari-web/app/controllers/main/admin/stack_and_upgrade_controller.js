@@ -1461,7 +1461,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var availableServices = repo.get('stackServices').filter(function(service) {
       return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable') && service.get('isUpgradable');
     }, this);
-    if (!availableServices.length){
+    if (!availableServices.length && !repo.get('isStandard')){
       return App.showAlertPopup( Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title'), Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.noAvailableServices').format(repo.get('displayName')) );
     }
     var self = this;
