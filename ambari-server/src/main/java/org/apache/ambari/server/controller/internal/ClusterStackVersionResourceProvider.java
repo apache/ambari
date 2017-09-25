@@ -204,6 +204,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   /**
    * Constructor.
    */
+  @Inject
   public ClusterStackVersionResourceProvider(
           AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
@@ -447,7 +448,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
   }
 
-  @Transactional
+  @Transactional(rollbackOn = {RuntimeException.class, SystemException.class, AmbariException.class})
   RequestStatus createOrUpdateHostVersions(Cluster cluster,
       RepositoryVersionEntity repoVersionEntity, VersionDefinitionXml versionDefinitionXml,
       StackId stackId, boolean forceInstalled, Map<String, Object> propertyMap)
@@ -663,10 +664,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
   }
 
-  private ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,
+  @Transactional
+  ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,
       Cluster cluster, AmbariManagementController managementController, AmbariMetaInfo ami,
       final StackId stackId, Set<String> repoServices, Stage stage1, Host host)
           throws SystemException {
+
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
@@ -681,7 +684,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     if (null == osEntity || CollectionUtils.isEmpty(osEntity.getRepositories())) {
       throw new SystemException(String.format("Repositories for os type %s are " +
-          "not defined. Repo version=%s, stackId=%s",
+          "not defined for version %s of Stack %s.",
             osFamily, repoVersion.getVersion(), stackId));
     }
 
