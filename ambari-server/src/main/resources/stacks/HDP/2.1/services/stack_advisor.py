@@ -86,6 +86,10 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
 
     Must be overriden in child class.
     """
+
+    # since old stack advisors are extending each other they should call parent method first
+    super(HDP21StackAdvisor, self).modifyComponentLayoutSchemes()
+
     self.componentLayoutSchemes.update({
       'APP_TIMELINE_SERVER': {31: 1, "else": 2},
       'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
