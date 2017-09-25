@@ -56,6 +56,8 @@ architecture = get_architecture()
 
 # Needed since this writes out the Atlas Hive Hook config file.
 cluster_name = config['clusterName']
+serviceName = config['serviceName']
+role = config['role']
 
 hostname = config["hostname"]
 
