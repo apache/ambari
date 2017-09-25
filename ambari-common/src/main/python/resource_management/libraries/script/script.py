@@ -46,7 +46,7 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
-from resource_management.libraries.functions.version_select_util import get_component_version
+from resource_management.libraries.functions.version_select_util import get_component_version_from_symlink
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
@@ -206,18 +206,40 @@ class Script(object):
       return os.path.realpath(config_path)
     return None
 
-  def save_component_version_to_structured_out(self):
+  def save_component_version_to_structured_out(self, command_name):
     """
-    :param stack_name: One of HDP, HDPWIN, PHD, BIGTOP.
-    :return: Append the version number to the structured out.
+    Saves the version of the component for this command to the structured out file. If the
+    command is an install command and the repository is trusted, then it will use the version of
+    the repository. Otherwise, it will consult the stack-select tool to read the symlink version.
+    :param command_name: command name
+    :return: None
     """
+    from resource_management.libraries.functions.default import default
     from resource_management.libraries.functions import stack_select
+
+    repository_resolved = default("repositoryFile/resolved", False)
+    repository_version = default("repositoryFile/repoVersion", None)
+    is_install_command = command_name is not None and command_name.lower() == "install"
+
+    # start out with no version
+    component_version = None
+
+    # install command + trusted repo means use the repo version and don't consult stack-select
+    # this is needed in cases where an existing symlink is on the system and stack-select can't
+    # change it on installation (because it's scared to in order to support parallel installs)
+    if is_install_command and repository_resolved and repository_version is not None:
+      Logger.info("The repository with version {0} for this command has been marked as resolved."\
+        " It will be used to report the version of the component which was installed".format(repository_version))
+
+      component_version = repository_version
 
     stack_name = Script.get_stack_name()
     stack_select_package_name = stack_select.get_package_name()
 
     if stack_select_package_name and stack_name:
-      component_version = get_component_version(stack_name, stack_select_package_name)
+      # only query for the component version from stack-select if we can't trust the repository yet
+      if component_version is None:
+        component_version = get_component_version_from_symlink(stack_name, stack_select_package_name)
 
       if component_version:
         self.put_structured_out({"version": component_version})
@@ -332,7 +354,7 @@ class Script(object):
 
     finally:
       if self.should_expose_component_version(self.command_name):
-        self.save_component_version_to_structured_out()
+        self.save_component_version_to_structured_out(self.command_name)
 
   def execute_prefix_function(self, command_name, afix, env):
     """
@@ -917,7 +939,7 @@ class Script(object):
           self.post_rolling_restart(env)
 
     if self.should_expose_component_version("restart"):
-      self.save_component_version_to_structured_out()
+      self.save_component_version_to_structured_out("restart")
 
 
   # TODO, remove after all services have switched to post_upgrade_restart
