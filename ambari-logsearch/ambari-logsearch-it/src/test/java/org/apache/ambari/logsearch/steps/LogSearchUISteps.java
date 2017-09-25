@@ -22,11 +22,9 @@ import junit.framework.Assert;
 import org.apache.ambari.logsearch.domain.StoryDataRegistry;
 import org.apache.ambari.logsearch.web.Home;
 import org.jbehave.core.annotations.AfterScenario;
-import org.jbehave.core.annotations.AfterStories;
 import org.jbehave.core.annotations.AfterStory;
 import org.jbehave.core.annotations.BeforeScenario;
 import org.jbehave.core.annotations.BeforeStories;
-import org.jbehave.core.annotations.BeforeStory;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Named;
 import org.jbehave.core.annotations.Then;
@@ -92,7 +90,7 @@ public class LogSearchUISteps extends AbstractLogSearchSteps {
     LOG.info("Type password: {}", password);
     home.findElement(By.id("password")).sendKeys(password);
     LOG.info("Click on Sign In button.");
-    home.findElement(By.className("custLogin")).click();
+    home.findElement(By.cssSelector("login-form > div > form > button")).click();
     closeTourPopup();
   }
 
