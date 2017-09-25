@@ -18,6 +18,7 @@
 
 import {Component, OnInit, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {Moment} from 'moment';
 import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
@@ -46,9 +47,9 @@ export class TimeRangePickerComponent implements OnInit, ControlValueAccessor {
 
   selectedLabel: string;
 
-  startTime: number;
+  startTime: Moment;
 
-  endTime: number;
+  endTime: Moment;
 
   private onChange: (fn: any) => void;
 
@@ -67,12 +68,12 @@ export class TimeRangePickerComponent implements OnInit, ControlValueAccessor {
     this.onChange(newValue);
   }
 
-  setStartTime(timeStamp: number): void {
-    this.startTime = timeStamp;
+  setStartTime(timeObject: Moment): void {
+    this.startTime = timeObject;
   }
 
-  setEndTime(timeStamp: number): void {
-    this.endTime = timeStamp;
+  setEndTime(timeObject: Moment): void {
+    this.endTime = timeObject;
   }
 
   setTimeRange(value: any, label: string) {

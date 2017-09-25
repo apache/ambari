@@ -43,7 +43,7 @@ export class LogsContainerService {
 
   private readonly listFilters = {
     clusters: ['clusters'],
-    timeRange: ['end_time', 'start_time'],
+    timeRange: ['to', 'from'],
     components: ['mustBe'],
     levels: ['level'],
     hosts: ['hostList'],
@@ -111,9 +111,7 @@ export class LogsContainerService {
         let value;
         const valueGetter = this.filtering.valueGetters[paramName];
         if (valueGetter) {
-          if (paramName === 'start_time') {
-            value = valueGetter(inputValue, params['end_time']);
-          } else if (paramName === 'from') {
+          if (paramName === 'from') {
             value = valueGetter(inputValue, params['to']);
           } else {
             value = valueGetter(inputValue);

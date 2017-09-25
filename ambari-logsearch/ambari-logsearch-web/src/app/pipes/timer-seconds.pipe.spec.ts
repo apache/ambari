@@ -16,32 +16,22 @@
  * limitations under the License.
  */
 
-import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
+import {TestBed, inject} from '@angular/core/testing';
+import {UtilsService} from '@app/services/utils.service';
 
-import {TopMenuComponent} from './top-menu.component';
+import {TimerSecondsPipe} from './timer-seconds.pipe';
 
-describe('TopMenuComponent', () => {
-  let component: TopMenuComponent;
-  let fixture: ComponentFixture<TopMenuComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: TranslationModules,
-      declarations: [TopMenuComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
-    .compileComponents();
-  }));
-
+describe('TimerSecondsPipe', () => {
   beforeEach(() => {
-    fixture = TestBed.createComponent(TopMenuComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    TestBed.configureTestingModule({
+      providers: [
+        UtilsService
+      ]
+    });
   });
 
-  it('should create component', () => {
-    expect(component).toBeTruthy();
-  });
+  it('create an instance', inject([UtilsService], (utils: UtilsService) => {
+    const pipe = new TimerSecondsPipe(utils);
+    expect(pipe).toBeTruthy();
+  }));
 });

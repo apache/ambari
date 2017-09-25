@@ -78,8 +78,9 @@ import {TimeRangePickerComponent} from '@app/components/time-range-picker/time-r
 import {DatePickerComponent} from '@app/components/date-picker/date-picker.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
+import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
 
-export function HttpLoaderFactory(http: Http) {
+export function HttpLoaderFactory(http: Http): TranslateHttpLoader {
   // adding 'static' parameter to step over mock data request
   return new TranslateHttpLoader(http, 'resources/assets/i18n/', '.json?static=true');
 }
@@ -123,7 +124,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     SearchBoxComponent,
     TimeRangePickerComponent,
     DatePickerComponent,
-    TimeZoneAbbrPipe
+    TimeZoneAbbrPipe,
+    TimerSecondsPipe
   ],
   imports: [
     BrowserModule,

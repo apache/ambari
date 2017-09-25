@@ -16,14 +16,26 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {Pipe, PipeTransform} from '@angular/core';
+import {UtilsService} from '@app/services/utils.service';
 
-:host {
-  display: block;
-  overflow: hidden;
-  padding-top: @block-margin-top;
+@Pipe({
+  name: 'timerSeconds'
+})
+export class TimerSecondsPipe implements PipeTransform {
 
-  .auto-refresh-message {
-    background-color: @filters-panel-background-color;
+  constructor(private utils: UtilsService) {
   }
+
+  transform(value: number): string {
+    const seconds = value % 60,
+      outputSeconds = this.utils.fitIntegerDigitsCount(seconds),
+      fullMinutes = (value - seconds) / 60,
+      minutes = fullMinutes % 60,
+      outputMinutes = this.utils.fitIntegerDigitsCount(minutes),
+      hours = (fullMinutes - minutes) / 60,
+      outputHours = hours ? `${this.utils.fitIntegerDigitsCount(hours)}:` : '';
+    return `${outputHours}${outputMinutes}:${outputSeconds}`;
+  }
+
 }

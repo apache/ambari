@@ -34,6 +34,7 @@ import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
 
 import {FiltersPanelComponent} from './filters-panel.component';
 
@@ -51,7 +52,10 @@ describe('FiltersPanelComponent', () => {
       }
     };
     TestBed.configureTestingModule({
-      declarations: [FiltersPanelComponent],
+      declarations: [
+        FiltersPanelComponent,
+        TimerSecondsPipe
+      ],
       imports: [
         StoreModule.provideStore({
           appSettings,

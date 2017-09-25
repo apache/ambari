@@ -54,4 +54,10 @@ export class UtilsService {
     return !momentA.isSame(momentB, 'day');
   }
 
+  fitIntegerDigitsCount(numberToFormat: number, minLength: number = 2): string {
+    return numberToFormat.toLocaleString(undefined, {
+      minimumIntegerDigits: minLength
+    });
+  }
+
 }

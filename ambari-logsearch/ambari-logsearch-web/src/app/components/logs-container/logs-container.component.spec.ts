@@ -19,6 +19,7 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {StoreModule} from '@ngrx/store';
+import {TranslationModules} from '@app/test-config.spec';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -63,7 +64,8 @@ describe('LogsContainerComponent', () => {
           serviceLogsFields,
           serviceLogsHistogramData,
           hosts
-        })
+        }),
+        ...TranslationModules
       ],
       providers: [
         {

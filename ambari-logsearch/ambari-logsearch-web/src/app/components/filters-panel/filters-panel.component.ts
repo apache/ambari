@@ -89,4 +89,8 @@ export class FiltersPanelComponent {
     return this.filtering.queryParameterAdd;
   }
 
+  get captureSeconds(): number {
+    return this.filtering.captureSeconds;
+  }
+
 }

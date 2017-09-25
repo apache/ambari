@@ -19,6 +19,10 @@
 import {Injectable} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/timer';
+import 'rxjs/add/operator/takeUntil';
+import {Moment} from 'moment';
 import * as moment from 'moment-timezone';
 import {ListItem} from '@app/classes/list-item.class';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
@@ -190,16 +194,6 @@ export class FilteringService {
               unit: 'd'
             }
           },
-          // TODO implement time range calculation
-          /*
-          {
-            label: 'filter.timeRange.todaySoFar',
-            value: {
-              type: 'CURRENT',
-              unit: 'd'
-            }
-          },
-          */
           {
             label: 'filter.timeRange.thisWeek',
             value: {
@@ -207,16 +201,6 @@ export class FilteringService {
               unit: 'w'
             }
           },
-          // TODO implement time range calculation
-          /*
-          {
-            label: 'filter.timeRange.thisWeekSoFar',
-            value: {
-              type: 'CURRENT',
-              unit: 'w'
-            }
-          },
-          */
           {
             label: 'filter.timeRange.thisMonth',
             value: {
@@ -406,6 +390,43 @@ export class FilteringService {
 
   queryParameterAdd: Subject<any> = new Subject();
 
+  private stopTimer: Subject<any> = new Subject();
+
+  private stopAutoRefreshCountdown: Subject<any> = new Subject();
+
+  captureSeconds: number = 0;
+
+  private readonly autoRefreshInterval: number = 30000;
+
+  autoRefreshRemainingSeconds: number = 0;
+
+  private startCaptureMoment: Moment;
+
+  private stopCaptureMoment: Moment;
+
+  startCaptureTimer(): void {
+    this.startCaptureMoment = moment();
+    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => this.captureSeconds = seconds);
+  }
+
+  stopCaptureTimer(): void {
+    const autoRefreshIntervalSeconds = this.autoRefreshInterval / 1000;
+    this.stopCaptureMoment = moment();
+    this.captureSeconds = 0;
+    this.stopTimer.next();
+    Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe(seconds => {
+      this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
+      if (!this.autoRefreshRemainingSeconds) {
+        this.stopAutoRefreshCountdown.next();
+        this.filtersForm.controls.timeRange.setValue({
+          type: 'CUSTOM',
+          start: this.startCaptureMoment,
+          end: this.stopCaptureMoment
+        });
+      }
+    });
+  }
+
   loadClusters(): void {
     this.httpClient.get('clusters').subscribe(response => {
       const clusterNames = response.json();
@@ -498,8 +519,6 @@ export class FilteringService {
   }
 
   readonly valueGetters = {
-    end_time: this.getEndTime,
-    start_time: this.getStartTime,
     to: this.getEndTime,
     from: this.getStartTime,
     sortType: value => value && value.type,

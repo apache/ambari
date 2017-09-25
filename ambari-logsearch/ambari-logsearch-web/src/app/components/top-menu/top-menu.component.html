@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-<menu-button *ngFor="let item of items" [label]="item.label" [action]="item.action"
+<menu-button *ngFor="let item of items" label="{{item.label | translate}}" [action]="item.action"
              [iconClass]="item.iconClass" [labelClass]="item.labelClass"
              [subItems]="item.subItems" [hideCaret]="item.hideCaret">
 </menu-button>

@@ -21,7 +21,7 @@
   <a #dropdownToggle class="dropdown-toggle caret" data-toggle="dropdown" *ngIf="hasCaret"></a>
   <br>
   <a *ngIf="label" (mousedown)="onMouseDown($event)" [ngClass]="labelClass" (mouseup)="onMouseUp($event)"
-     (click)="$event.stopPropagation()">{{label | translate}}</a>
+     (click)="$event.stopPropagation()">{{label}}</a>
   <ul data-component="dropdown-list" *ngIf="hasSubItems" [items]="subItems" (selectedItemChange)="updateValue($event)"
       [isMultipleChoice]="isMultipleChoice" [additionalLabelComponentSetter]="additionalLabelComponentSetter"
       [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"></ul>

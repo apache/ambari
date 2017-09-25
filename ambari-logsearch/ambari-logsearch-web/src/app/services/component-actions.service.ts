@@ -20,11 +20,12 @@ import {Injectable} from '@angular/core';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {CollectionModelService} from '@app/models/store.model';
 import {FilteringService} from '@app/services/filtering.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Injectable()
 export class ComponentActionsService {
 
-  constructor(private appSettings: AppSettingsService, private filtering: FilteringService) {
+  constructor(private appSettings: AppSettingsService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
   }
 
   //TODO implement actions
@@ -35,10 +36,20 @@ export class ComponentActionsService {
   redo() {
   }
 
-  refresh() {
+  refresh(): void {
+    // TODO implement dynamic definition of logs type
+    this.logsContainer.loadLogs('serviceLogs');
   }
 
   openHistory() {
+  }
+
+  startCapture(): void {
+    this.filtering.startCaptureTimer();
+  }
+
+  stopCapture(): void {
+    this.filtering.stopCaptureTimer();
   }
 
   setTimeZone(timeZone: string): void {
