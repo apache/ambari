@@ -127,6 +127,13 @@ public class DistributeRepositoriesActionListener {
             repoVersion.setResolved(true);
             repoVersionDAO.merge(repoVersion);
             repositoryVersion = actualVersion;
+          } else {
+            // the reported versions are the same - we should ensure that the
+            // repo is resolved
+            if (!repoVersion.isResolved()) {
+              repoVersion.setResolved(true);
+              repoVersionDAO.merge(repoVersion);
+            }
           }
         }
       }
