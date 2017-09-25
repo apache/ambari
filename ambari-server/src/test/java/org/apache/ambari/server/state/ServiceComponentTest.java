@@ -273,15 +273,28 @@ public class ServiceComponentTest {
     service.addServiceComponent(component);
 
     addHostToCluster("h1", service.getCluster().getClusterName());
+    addHostToCluster("h2", service.getCluster().getClusterName());
+    addHostToCluster("h3", service.getCluster().getClusterName());
     ServiceComponentHost sch =
       serviceComponentHostFactory.createNew(component, "h1");
+    ServiceComponentHost sch2 =
+      serviceComponentHostFactory.createNew(component, "h2");
+    ServiceComponentHost sch3 =
+      serviceComponentHostFactory.createNew(component, "h3");
     sch.setState(State.INSTALLED);
+    sch2.setState(State.INSTALLED);
+    sch3.setState(State.INSTALLED);
 
     Map<String, ServiceComponentHost> compHosts =
       new HashMap<>();
     compHosts.put("h1", sch);
+    compHosts.put("h2", sch2);
+    compHosts.put("h3", sch3);
     component.addServiceComponentHosts(compHosts);
-    Assert.assertEquals(1, component.getServiceComponentHosts().size());
+    Assert.assertEquals(3, component.getServiceComponentHosts().size());
+
+    component.getServiceComponentHost("h2").setMaintenanceState(MaintenanceState.ON);
+    sch3.setMaintenanceState(MaintenanceState.ON);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -298,9 +311,11 @@ public class ServiceComponentTest {
     int totalCount = r.getServiceComponentStateCount().get("totalCount");
     int startedCount = r.getServiceComponentStateCount().get("startedCount");
     int installedCount = r.getServiceComponentStateCount().get("installedCount");
-    Assert.assertEquals(1, totalCount);
+    int installedAndMaintenanceOffCount = r.getServiceComponentStateCount().get("installedAndMaintenanceOffCount");
+    Assert.assertEquals(3, totalCount);
     Assert.assertEquals(0, startedCount);
-    Assert.assertEquals(1, installedCount);
+    Assert.assertEquals(3, installedCount);
+    Assert.assertEquals(1, installedAndMaintenanceOffCount);
 
     // TODO check configs
     // r.getConfigVersions()

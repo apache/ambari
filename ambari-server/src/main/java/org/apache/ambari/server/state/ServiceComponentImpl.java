@@ -31,6 +31,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
@@ -96,6 +97,9 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Inject
   private HostComponentStateDAO hostComponentDAO;
+
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   @AssistedInject
   public ServiceComponentImpl(@Assisted Service service, @Assisted String componentName,
@@ -724,10 +728,31 @@ public class ServiceComponentImpl implements ServiceComponent {
     return count;
   }
 
+  /**
+   * Count the ServiceComponentHosts that have given state and are effectively not in maintenanceMode
+   * @param state
+   * @return
+   */
+  private int getMaintenanceOffSCHCountByState(State state) {
+    int count = 0;
+    for (ServiceComponentHost sch : hostComponents.values()) {
+      try {
+        MaintenanceState effectiveMaintenanceState = maintenanceStateHelper.getEffectiveState(sch, sch.getHost());
+        if (sch.getState() == state && effectiveMaintenanceState == MaintenanceState.OFF) {
+          count++;
+        }
+      } catch (AmbariException e) {
+        e.printStackTrace();
+      }
+    }
+    return count;
+  }
+
   private Map <String, Integer> getServiceComponentStateCount() {
     Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", getSCHCountByState(State.STARTED));
     serviceComponentStateCountMap.put("installedCount", getSCHCountByState(State.INSTALLED));
+    serviceComponentStateCountMap.put("installedAndMaintenanceOffCount", getMaintenanceOffSCHCountByState(State.INSTALLED));
     serviceComponentStateCountMap.put("installFailedCount", getSCHCountByState(State.INSTALL_FAILED));
     serviceComponentStateCountMap.put("initCount", getSCHCountByState(State.INIT));
     serviceComponentStateCountMap.put("unknownCount", getSCHCountByState(State.UNKNOWN));

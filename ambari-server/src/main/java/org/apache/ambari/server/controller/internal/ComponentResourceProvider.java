@@ -85,6 +85,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_TOTAL_COUNT_PROPERTY_ID     = "ServiceComponentInfo/total_count";
   protected static final String COMPONENT_STARTED_COUNT_PROPERTY_ID   = "ServiceComponentInfo/started_count";
   protected static final String COMPONENT_INSTALLED_COUNT_PROPERTY_ID = "ServiceComponentInfo/installed_count";
+  protected static final String COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID
+                                                                      = "ServiceComponentInfo/installed_and_maintenance_off_count";
   protected static final String COMPONENT_INIT_COUNT_PROPERTY_ID      = "ServiceComponentInfo/init_count";
   protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID   = "ServiceComponentInfo/unknown_count";
   protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = "ServiceComponentInfo/install_failed_count";
@@ -124,6 +126,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     PROPERTY_IDS.add(COMPONENT_TOTAL_COUNT_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_STARTED_COUNT_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID);
 
     PROPERTY_IDS.add(COMPONENT_INIT_COUNT_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
@@ -220,6 +223,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("totalCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("startedCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installedCount"), requestedIds);
+      setResourceProperty(resource, COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installedAndMaintenanceOffCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installFailedCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_INIT_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("initCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_UNKNOWN_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);

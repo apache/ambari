@@ -217,6 +217,7 @@ public class ComponentResourceProviderTest {
     Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", 1);
     serviceComponentStateCountMap.put("installedCount", 0);
+    serviceComponentStateCountMap.put("installedAndMaintenanceOffCount", 0);
     serviceComponentStateCountMap.put("installFailedCount", 0);
     serviceComponentStateCountMap.put("initCount", 0);
     serviceComponentStateCountMap.put("unknownCount", 1);
@@ -280,6 +281,7 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_INIT_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
@@ -310,6 +312,8 @@ public class ComponentResourceProviderTest {
         ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID));
       Assert.assertEquals(0, resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID));
+      Assert.assertEquals(0, resource.getPropertyValue(
+        ComponentResourceProvider.COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID));
       Assert.assertEquals(0, resource.getPropertyValue(
           ComponentResourceProvider.COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID));
       Assert.assertEquals(0, resource.getPropertyValue(
@@ -379,6 +383,7 @@ public class ComponentResourceProviderTest {
     Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", 0);
     serviceComponentStateCountMap.put("installedCount", 1);
+    serviceComponentStateCountMap.put("installedAndMaintenanceOffCount", 0);
     serviceComponentStateCountMap.put("installFailedCount", 0);
     serviceComponentStateCountMap.put("initCount", 0);
     serviceComponentStateCountMap.put("unknownCount", 0);
@@ -691,6 +696,7 @@ public class ComponentResourceProviderTest {
     Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", 0);
     serviceComponentStateCountMap.put("installedCount", 1);
+    serviceComponentStateCountMap.put("installedAndMaintenanceOffCount", 0);
     serviceComponentStateCountMap.put("installFailedCount", 0);
     serviceComponentStateCountMap.put("initCount", 0);
     serviceComponentStateCountMap.put("unknownCount", 0);
