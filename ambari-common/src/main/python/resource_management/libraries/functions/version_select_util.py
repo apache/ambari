@@ -28,10 +28,11 @@ from resource_management.core import shell
 from resource_management.libraries.functions import stack_tools
 
 
-def get_component_version(stack_name, component_name):
+def get_component_version_from_symlink(stack_name, component_name):
   """
-  For any stack name, returns the version currently installed for a given component.
-  Because each stack name may have different logic, the input is a generic dictionary.
+  Gets the version of the specified component by invoking the stack-select tool to query for the
+  version which is referenced by the symlink.
+
   :param stack_name: one of HDP, HDPWIN, BIGTOP, PHD, etc. usually retrieved from
   the command-#.json file's ["hostLevelParams"]["stack_name"]
   :param component_name: Component name as a string necessary to get the version

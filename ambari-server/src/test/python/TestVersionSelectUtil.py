@@ -133,7 +133,7 @@ class TestVersionSelectUtil(TestCase):
     call_mock.side_effect = [(0, "value will come from MagicFile"), ] * 2
 
     # Pass
-    version = self.module.get_component_version("HDP", "hive-server2")
+    version = self.module.get_component_version_from_symlink("HDP", "hive-server2")
     self.assertEquals(version, stack_expected_version)
-    version = self.module.get_component_version("HDP", "zookeeper-server")
+    version = self.module.get_component_version_from_symlink("HDP", "zookeeper-server")
     self.assertEquals(version, stack_expected_version)
