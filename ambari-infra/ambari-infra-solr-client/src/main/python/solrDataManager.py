@@ -32,6 +32,8 @@ from subprocess import call, Popen, PIPE
 from urllib import quote, unquote
 from zipfile import ZipFile, ZIP_DEFLATED
 import tarfile
+import gzip
+import shutil
 
 VERSION = "1.0"
 
@@ -69,7 +71,7 @@ def parse_arguments():
   parser.add_option("-g", "--ignore-unfinished-uploading", dest="ignore_unfinished_uploading", action="store_true", default=False)
   
   parser.add_option("--json-file", dest="json_file", help="create a json file instead of line delimited json", action="store_true", default=False)
-  parser.add_option("-z", "--compression", dest="compression", help="none | tar.gz | tar.bz2 | zip", default="tar.gz")
+  parser.add_option("-z", "--compression", dest="compression", help="none | tar.gz | tar.bz2 | zip | gz", default="gz")
   
   parser.add_option("-k", "--solr-keytab", dest="solr_keytab", type="string", help="the keytab for a kerberized solr")
   parser.add_option("-n", "--solr-principal", dest="solr_principal", type="string", help="the principal for a kerberized solr")
@@ -122,7 +124,7 @@ def parse_arguments():
     parser.print_help()
     sys.exit()
 
-  compression_values = ["none", "tar.gz", "tar.bz2", "zip"]
+  compression_values = ["none", "tar.gz", "tar.bz2", "zip", "gz"]
   if options.compression not in compression_values:
     print "compression must be one of {0}".format(" | ".join(compression_values))
     parser.print_help()
@@ -469,34 +471,43 @@ def upload_block(solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, 
   os.remove("{0}/command.json".format(working_dir))
 
 def compress_file(working_dir, tmp_file_path, file_name, compression):
+  data_file_name = "{0}.json".format(file_name)
   if compression == "none":
     upload_file_path = "{0}/{1}.json".format(working_dir, file_name)
     os.rename(tmp_file_path, upload_file_path)
   elif compression == "tar.gz":
-    upload_file_path = "{0}/{1}.tar.gz".format(working_dir, file_name)
-    zipped_file_name = "{0}.json".format(file_name)
+    upload_file_path = "{0}/{1}.json.tar.gz".format(working_dir, file_name)
     tar = tarfile.open(upload_file_path, mode="w:gz")
     try:
-      tar.add(tmp_file_path, arcname=zipped_file_name)
+      tar.add(tmp_file_path, arcname=data_file_name)
     finally:
       tar.close()
   elif compression == "tar.bz2":
-    upload_file_path = "{0}/{1}.tar.bz2".format(working_dir, file_name)
-    zipped_file_name = "{0}.json".format(file_name)
+    upload_file_path = "{0}/{1}.json.tar.bz2".format(working_dir, file_name)
     tar = tarfile.open(upload_file_path, mode="w:bz2")
     try:
-      tar.add(tmp_file_path, arcname=zipped_file_name)
+      tar.add(tmp_file_path, arcname=data_file_name)
     finally:
       tar.close()
   elif compression == "zip":
-    upload_file_path = "{0}/{1}.zip".format(working_dir, file_name)
-    zipped_file_name = "{0}.json".format(file_name)
+    upload_file_path = "{0}/{1}.json.zip".format(working_dir, file_name)
     zip = ZipFile(upload_file_path, 'w')
-    zip.write(tmp_file_path, zipped_file_name, ZIP_DEFLATED)
-    logger.info("Created file %s", zipped_file_name)
+    zip.write(tmp_file_path, data_file_name, ZIP_DEFLATED)
+  elif compression == "gz":
+    upload_file_path = "{0}/{1}.json.gz".format(working_dir, file_name)
+    gz = gzip.open(upload_file_path, mode="wb")
+    f = open(tmp_file_path)
+    try:
+      shutil.copyfileobj(f, gz)
+    finally:
+      gz.close()
+      f.close()
   else:
     logger.warn("Unknown compression type")
     sys.exit()
+  
+  logger.info("Created data file %s", data_file_name)
+
   
   return upload_file_path
 
