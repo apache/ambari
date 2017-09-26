@@ -198,6 +198,11 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // longer used
       finalizeHostRepositoryVersions(cluster);
 
+      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
+        outSB.append(String.format("Finalizing the version for cluster %s.\n", cluster.getClusterName()));
+        cluster.setCurrentStackVersion(cluster.getDesiredStackVersion());
+      }
+
       // mark revertable
       if (repositoryType.isRevertable() && direction == Direction.UPGRADE) {
         UpgradeEntity upgrade = cluster.getUpgradeInProgress();
