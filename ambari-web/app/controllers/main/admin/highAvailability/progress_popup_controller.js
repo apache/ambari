@@ -180,7 +180,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     var hosts = [];
     var hostsMap = {};
     var popupTitle = this.get('popupTitle');
-    var id = data[0].Requests.id;
+    var id = this.get('requestIds')[0];
 
     data.forEach(function (request) {
       request.tasks.forEach(function (task) {
