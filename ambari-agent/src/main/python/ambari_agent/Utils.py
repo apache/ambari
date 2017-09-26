@@ -153,9 +153,13 @@ class Utils(object):
     return version
 
   @staticmethod
-  def restartAgent():
-    # TODO STOMP: set stop event?
-    ExitHelper().exit(AGENT_AUTO_RESTART_EXIT_CODE)
+  def restartAgent(stop_event, graceful_stop_timeout=30):
+    from ambari_agent import main
+    main.EXIT_CODE_ON_STOP = AGENT_AUTO_RESTART_EXIT_CODE
+    stop_event.set()
+
+    t = threading.Timer( graceful_stop_timeout, ExitHelper().exit, [AGENT_AUTO_RESTART_EXIT_CODE])
+    t.start()
 
 class ImmutableDictionary(dict):
   def __init__(self, dictionary):

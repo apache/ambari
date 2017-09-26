@@ -30,7 +30,7 @@ class AlertStatusReporter(threading.Thread):
     self.initializer_module = initializer_module
     self.collector = initializer_module.alert_scheduler_handler.collector()
     self.stop_event = initializer_module.stop_event
-    self.alert_reports_interval = initializer_module.alert_reports_interval
+    self.alert_reports_interval = initializer_module.config.alert_reports_interval
     threading.Thread.__init__(self)
 
   def run(self):

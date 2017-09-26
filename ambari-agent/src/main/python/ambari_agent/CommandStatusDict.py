@@ -45,7 +45,7 @@ class CommandStatusDict():
     self.current_state = {} # Contains all statuses
     self.lock = threading.RLock()
     self.initializer_module = initializer_module
-    self.command_update_output = initializer_module.command_update_output
+    self.command_update_output = initializer_module.config.command_update_output
     self.reported_reports = set()
 
 

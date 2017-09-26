@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 class ComponentStatusExecutor(threading.Thread):
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
-    self.status_commands_run_interval = initializer_module.status_commands_run_interval
+    self.status_commands_run_interval = initializer_module.config.status_commands_run_interval
     self.metadata_cache = initializer_module.metadata_cache
     self.topology_cache = initializer_module.topology_cache
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
@@ -101,8 +101,13 @@ class ComponentStatusExecutor(threading.Thread):
               }
 
               component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
-              # TODO STOMP: if status command failed with exception show exception
               status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
+
+              # log if status command failed
+              if status == LiveStatus.DEAD_STATUS:
+                stderr = component_status_result['stderr']
+                if not "ComponentIsNotRunning" in stderr and not "ClientComponentHasNoStatus" in stderr:
+                  logger.info("Status command for {0} failed:\n{1}".format(component_name, stderr))
 
               result = {
                 'serviceName': service_name,

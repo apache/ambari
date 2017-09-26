@@ -28,7 +28,7 @@ class CommandStatusReporter(threading.Thread):
     self.initializer_module = initializer_module
     self.commandStatuses = initializer_module.commandStatuses
     self.stop_event = initializer_module.stop_event
-    self.command_reports_interval = initializer_module.command_reports_interval
+    self.command_reports_interval = initializer_module.config.command_reports_interval
     threading.Thread.__init__(self)
 
   def run(self):

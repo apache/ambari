@@ -54,6 +54,7 @@ class HeartbeatThread(threading.Thread):
     self.registration_builder = Register(initializer_module.config)
 
     self.initializer_module = initializer_module
+    self.config = initializer_module.config
 
     # listeners
     self.server_responses_listener = ServerResponsesListener()
@@ -70,7 +71,7 @@ class HeartbeatThread(threading.Thread):
     (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener),
     (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener),
     (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener),
-    (Constants.ALERTS_DEFENITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener)
+    (Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener)
     ]
     self.responseId = 0
     self.file_cache = initializer_module.file_cache
@@ -179,13 +180,13 @@ class HeartbeatThread(threading.Thread):
 
     if serverId != self.responseId + 1:
       logger.error("Error in responseId sequence - restarting")
-      Utils.restartAgent()
+      Utils.restartAgent(self.stop_event)
     else:
       self.responseId = serverId
 
     if 'restartAgent' in response and response['restartAgent'].lower() == "true":
       logger.warn("Restarting the agent by the request from server")
-      Utils.restartAgent()
+      Utils.restartAgent(self.stop_event)
 
   def get_heartbeat_body(self):
     """
@@ -197,8 +198,7 @@ class HeartbeatThread(threading.Thread):
     """
     Create a stomp connection
     """
-    # TODO STOMP: handle if agent.ssl=false?
-    connection_url = 'wss://{0}:{1}/agent/stomp/v1'.format(self.initializer_module.server_hostname, self.initializer_module.secured_url_port)
+    connection_url = 'wss://{0}:{1}/agent/stomp/v1'.format(self.config.server_hostname, self.config.secured_url_port)
     self.connection = security.establish_connection(connection_url)
 
   def add_listeners(self):

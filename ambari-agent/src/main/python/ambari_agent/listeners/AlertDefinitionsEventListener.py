@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class AlertDefinitionsEventListener(EventListener):
   """
-  Listener of Constants.ALERTS_DEFENITIONS_TOPIC events from server.
+  Listener of Constants.ALERTS_DEFINITIONS_TOPIC events from server.
   """
   def __init__(self, alert_definitions_cache, alert_scheduler_handler):
     self.alert_definitions_cache = alert_definitions_cache
@@ -36,7 +36,7 @@ class AlertDefinitionsEventListener(EventListener):
 
   def on_event(self, headers, message):
     """
-    Is triggered when an event to Constants.ALERTS_DEFENITIONS_TOPIC topic is received from server.
+    Is triggered when an event to Constants.ALERTS_DEFINITIONS_TOPIC topic is received from server.
 
     @param headers: headers dictionary
     @param message: message payload dictionary
@@ -59,4 +59,4 @@ class AlertDefinitionsEventListener(EventListener):
     self.alert_scheduler_handler.update_definitions(event_type)
 
   def get_handled_path(self):
-    return Constants.ALERTS_DEFENITIONS_TOPIC
+    return Constants.ALERTS_DEFINITIONS_TOPIC

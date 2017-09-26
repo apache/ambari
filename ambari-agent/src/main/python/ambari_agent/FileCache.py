@@ -25,7 +25,6 @@ import shutil
 import zipfile
 import urllib2
 import urllib
-from AmbariConfig import AmbariConfig
 
 logger = logging.getLogger()
 
@@ -125,6 +124,7 @@ class FileCache():
 
 
   def auto_cache_update_enabled(self):
+    from AmbariConfig import AmbariConfig
     if self.config and \
         self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY) and \
             self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY).lower() == "false":

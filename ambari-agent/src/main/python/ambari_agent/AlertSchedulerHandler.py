@@ -51,11 +51,11 @@ class AlertSchedulerHandler():
 
   def __init__(self, initializer_module, in_minutes=True):
 
-    self.cachedir = initializer_module.alerts_cachedir
-    self.stacks_dir = initializer_module.stacks_dir
-    self.common_services_dir = initializer_module.common_services_dir
-    self.extensions_dir = initializer_module.extensions_dir
-    self.host_scripts_dir = initializer_module.host_scripts_dir
+    self.cachedir = initializer_module.config.alerts_cachedir
+    self.stacks_dir = initializer_module.config.stacks_dir
+    self.common_services_dir = initializer_module.config.common_services_dir
+    self.extensions_dir = initializer_module.config.extensions_dir
+    self.host_scripts_dir = initializer_module.config.host_scripts_dir
 
     self._cluster_configuration = initializer_module.configurations_cache
     self.alert_definitions_cache = initializer_module.alert_definitions_cache

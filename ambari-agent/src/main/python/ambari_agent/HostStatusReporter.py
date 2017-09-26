@@ -33,7 +33,7 @@ class HostStatusReporter(threading.Thread):
   """
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
-    self.report_interval = initializer_module.host_status_report_interval
+    self.report_interval = initializer_module.config.host_status_report_interval
     self.stop_event = initializer_module.stop_event
     self.config = initializer_module.config
     self.host_info = HostInfo(initializer_module.config)

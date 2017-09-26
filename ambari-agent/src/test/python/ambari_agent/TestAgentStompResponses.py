@@ -331,13 +331,13 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     while not self.initializer_module.is_registered:
       time.sleep(0.1)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_defenitions'}, body=self.get_json("alert_definitions_add.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_definitions'}, body=self.get_json("alert_definitions_add.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_defenitions'}, body=self.get_json("alert_definitions_edit.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_definitions'}, body=self.get_json("alert_definitions_edit.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_defenitions'}, body=self.get_json("alert_definitions_delete.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/alert_definitions'}, body=self.get_json("alert_definitions_delete.json"))
     self.server.topic_manager.send(f)
 
 
