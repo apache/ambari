@@ -69,7 +69,7 @@ public class StackContext {
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
 
   private final static Logger LOG = LoggerFactory.getLogger(StackContext.class);
-  private static final int THREAD_COUNT = 5;
+  private static final int THREAD_COUNT = 10;
 
 
   /**
@@ -195,7 +195,7 @@ public class StackContext {
      */
     public void execute() {
 
-      long l = System.nanoTime();
+      long currentTime = System.nanoTime();
       List<Future<Map<StackModule, RepoUrlInfoResult>>> results = new ArrayList<>();
 
       // !!! first, load the *_urlinfo.json files and block for completion
@@ -205,7 +205,7 @@ public class StackContext {
         LOG.warn("Could not load urlinfo as the executor was interrupted", e);
         return;
       } finally {
-        LOG.info("Loaded urlinfo in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - l) + "ms");
+        LOG.info("Loaded urlinfo in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - currentTime) + "ms");
       }
 
       List<Map<StackModule, RepoUrlInfoResult>> urlInfoResults = new ArrayList<>();
@@ -218,6 +218,7 @@ public class StackContext {
         }
       }
 
+      currentTime = System.nanoTime();
       for (Map<StackModule, RepoUrlInfoResult> urlInfoResult : urlInfoResults) {
         for (Entry<StackModule, RepoUrlInfoResult> entry : urlInfoResult.entrySet()) {
           StackModule stackModule = entry.getKey();
@@ -240,6 +241,14 @@ public class StackContext {
       }
 
       executor.shutdown();
+
+      try {
+        executor.awaitTermination(2,  TimeUnit.MINUTES);
+      } catch (InterruptedException e) {
+        LOG.warn("Loading all VDF was interrupted", e.getCause());
+      } finally {
+        LOG.info("Loaded all VDF in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - currentTime) + "ms");
+      }
     }
 
 

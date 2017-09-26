@@ -1420,7 +1420,7 @@ public class AmbariMetaInfo {
   /**
    * Ensures that the map of version definition files is populated
    */
-  private void ensureVersionDefinitions() {
+  private synchronized void ensureVersionDefinitions() {
     if (null != versionDefinitions) {
       return;
     }
