@@ -358,6 +358,7 @@ class Master(Script):
                             source=interpreter_config,
                             group=params.zeppelin_group,
                             owner=params.zeppelin_user,
+                            user=params.zeppelin_user,
                             replace_existing_files=True)
 
   def update_kerberos_properties(self):
