@@ -10424,6 +10424,17 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("FILES_LOCAL", layoutUserWidgetEntities.get(2).getWidget().getWidgetName());
     Assert.assertEquals("UPDATED_BLOCKED_TIME", layoutUserWidgetEntities.get(3).getWidget().getWidgetName());
     Assert.assertEquals("HBASE_SUMMARY", layoutUserWidgetEntities.get(0).getWidget().getDefaultSectionName());
+
+    candidateLayoutEntity = null;
+    for (WidgetLayoutEntity entity : layoutEntities) {
+      if (entity.getLayoutName().equals("default_system_heatmap")) {
+        candidateLayoutEntity = entity;
+        break;
+      }
+    }
+    Assert.assertNotNull(candidateLayoutEntity);
+    Assert.assertEquals("ambari", candidateVisibleEntity.getAuthor());
+    Assert.assertEquals("CLUSTER", candidateVisibleEntity.getScope());
   }
 
   // this is a temporary measure as a result of moving updateHostComponents from AmbariManagementController

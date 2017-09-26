@@ -425,6 +425,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     // do all validation checks
     validateCreateRequests(requests, clusters);
 
+    Set<Cluster> clustersSetFromRequests = new HashSet<>();
+
     for (ServiceRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
@@ -480,6 +482,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       // Initialize service widgets
       getManagementController().initializeWidgetsAndLayouts(cluster, s);
+      clustersSetFromRequests.add(cluster);
+    }
+
+    // Create cluster widgets and layouts
+    for (Cluster cluster : clustersSetFromRequests) {
+      getManagementController().initializeWidgetsAndLayouts(cluster, null);
     }
   }
 
