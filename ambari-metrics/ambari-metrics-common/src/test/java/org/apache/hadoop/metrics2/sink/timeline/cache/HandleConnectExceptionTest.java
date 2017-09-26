@@ -213,6 +213,11 @@ public class HandleConnectExceptionTest {
     }
 
     @Override
+    protected String getHostInMemoryAggregationProtocol() {
+      return "http";
+    }
+
+    @Override
     public boolean emitMetrics(TimelineMetrics metrics) {
       super.init();
       return super.emitMetrics(metrics);
