@@ -39,6 +39,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricName("m1");
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
     TreeMap<Long, Double> inputValues = new TreeMap<>();
     inputValues.put(now - 1000, 1.0d);
     inputValues.put(now - 2000, 2.0d);
@@ -66,6 +67,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricName("m1");
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
     TreeMap<Long, Double> inputValues = new TreeMap<>();
     inputValues.put(now - 1000, 1.0d);
     inputValues.put(now - 2000, 2.0d);
@@ -93,6 +95,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricName("m1");
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
     TreeMap<Long, Double> inputValues = new TreeMap<>();
     inputValues.put(now, 0.0d);
     inputValues.put(now - 1000, 1.0d);
@@ -120,6 +123,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricName("m1");
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
     TreeMap<Long, Double> inputValues = new TreeMap<>();
     inputValues.put(now - 1000, 1.0d);
     timelineMetric.setMetricValues(inputValues);
@@ -145,6 +149,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricName("m1");
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
     TreeMap<Long, Double> inputValues = new TreeMap<>();
     inputValues.put(now - 1000, 1.0d);
     timelineMetric.setMetricValues(inputValues);
@@ -168,6 +173,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricName("m1");
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
     TreeMap<Long, Double> inputValues = new TreeMap<>();
 
     long seconds = 1000;
@@ -228,6 +234,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setMetricName("m1");
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
+    timelineMetric.setStartTime(now);
     TreeMap<Long, Double> inputValues = new TreeMap<>();
     inputValues.put(now - 100, 1.0d);
     inputValues.put(now - 200, 2.0d);

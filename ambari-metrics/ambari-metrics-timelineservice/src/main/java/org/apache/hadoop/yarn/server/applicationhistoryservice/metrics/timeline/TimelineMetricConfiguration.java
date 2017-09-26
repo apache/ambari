@@ -322,16 +322,14 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES =
     "timeline.metrics.precision.table.hbase.hstore.blockingStoreFiles";
 
-<<<<<<< HEAD
   public static final String TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS =
     "timeline.metrics.support.multiple.clusters";
 
   public static final String TIMELINE_METRICS_EVENT_METRIC_PATTERNS =
     "timeline.metrics.downsampler.event.metric.patterns";
-=======
+
   public static final String TIMELINE_METRICS_UUID_GEN_STRATEGY =
     "timeline.metrics.uuid.gen.strategy";
->>>>>>> AMBARI-21214 : Use a uuid vs long row key for metrics in AMS schema. (avijayan)
 
   public static final String HOST_APP_ID = "HOST";
 
@@ -532,6 +530,13 @@ public class TimelineMetricConfiguration {
       return metricsConf.get(TIMELINE_SERVICE_RPC_ADDRESS, defaultRpcAddress);
     }
     return defaultRpcAddress;
+  }
+
+  public String getKafkaServers() {
+    if (metricsConf != null) {
+      return metricsConf.get("timeline.metrics.kafka.servers", null);
+    }
+    return null;
   }
 
   public boolean isDistributedCollectorModeDisabled() {

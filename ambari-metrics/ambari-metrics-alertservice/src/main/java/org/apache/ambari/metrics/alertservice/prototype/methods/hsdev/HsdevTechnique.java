@@ -58,19 +58,23 @@ public class HsdevTechnique implements Serializable {
     double historicMedian = median(trainData.values);
     double currentMedian = median(testData.values);
 
-    double diff = Math.abs(currentMedian - historicMedian);
-    LOG.info("Found anomaly for metric : " + key + " in the period ending " + new Date((long)testData.ts[testLength - 1]));
-    LOG.info("Current median = " + currentMedian + ", Historic Median = " + historicMedian + ", HistoricSd = " + historicSd);
 
-    if (diff > n * historicSd) {
-      double zScore = diff / historicSd;
-      LOG.info("Z Score of current series : " + zScore);
-      return new MetricAnomaly(key,
-        (long) testData.ts[testLength - 1],
-        testData.values[testLength - 1],
-        methodType,
-        zScore);
+    if (historicSd > 0) {
+      double diff = Math.abs(currentMedian - historicMedian);
+      LOG.info("Found anomaly for metric : " + key + " in the period ending " + new Date((long)testData.ts[testLength - 1]));
+      LOG.info("Current median = " + currentMedian + ", Historic Median = " + historicMedian + ", HistoricSd = " + historicSd);
+
+      if (diff > n * historicSd) {
+        double zScore = diff / historicSd;
+        LOG.info("Z Score of current series : " + zScore);
+        return new MetricAnomaly(key,
+          (long) testData.ts[testLength - 1],
+          testData.values[testLength - 1],
+          methodType,
+          zScore);
+      }
     }
+
     return null;
   }
 
