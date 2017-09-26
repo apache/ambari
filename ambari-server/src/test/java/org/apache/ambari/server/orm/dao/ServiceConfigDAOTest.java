@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.orm.dao;
+
+import static java.util.Arrays.asList;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -388,10 +390,15 @@ public class ServiceConfigDAOTest {
 
     long clusterId = serviceConfigEntity.getClusterId();
 
-    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_01);
-    Assert.assertEquals(4, serviceConfigs.size());
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(
+        clusterId, HDP_01, "HDFS");
 
-    serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_02);
+    Assert.assertEquals(3, serviceConfigs.size());
+
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_01, "YARN");
+    Assert.assertEquals(1, serviceConfigs.size());
+    
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_02, "HDFS");
     Assert.assertEquals(0, serviceConfigs.size());
   }
 
@@ -475,6 +482,16 @@ public class ServiceConfigDAOTest {
     Assert.assertEquals("version5", entity.getTag());
     Assert.assertEquals("oozie-site", entity.getType());
     Assert.assertTrue(entity.isSelected());
+  }
+
+  @Test
+  public void testGetLatestClusterConfigsWithTypes() throws Exception {
+    initClusterEntities();
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
+    List<ClusterConfigEntity> entities = clusterDAO.getLatestConfigurationsWithTypes(clusterEntity.getClusterId(), HDP_01, asList("oozie-site"));
+    Assert.assertEquals(1, entities.size());
+    entities = clusterDAO.getLatestConfigurationsWithTypes(clusterEntity.getClusterId(), HDP_01, asList("no-such-type"));
+    Assert.assertTrue(entities.isEmpty());
   }
 
   /**

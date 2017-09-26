@@ -62,6 +62,7 @@ import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
@@ -181,7 +182,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  * Used for injection purposes.
  */
 public class ControllerModule extends AbstractModule {
-  private static Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
   private static final String AMBARI_PACKAGE = "org.apache.ambari.server";
 
   private final Configuration configuration;
@@ -467,6 +468,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("credential"), CredentialResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("kerberosDescriptor"), KerberosDescriptorResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("upgrade"), UpgradeResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("clusterStackVersion"), ClusterStackVersionResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
@@ -539,8 +541,7 @@ public class ControllerModule extends AbstractModule {
 
       LOG.info("Searching package {} for annotations matching {}", AMBARI_PACKAGE, classes);
 
-      matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE,
-          new ArrayList<Class<?>>(), classes);
+      matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE, new ArrayList<>(), classes);
 
       if (null == matchedClasses || matchedClasses.size() == 0) {
         LOG.warn("No instances of {} found to register", classes);

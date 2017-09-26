@@ -24,16 +24,12 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 from hdfs_nfsgateway import nfsgateway
 from hdfs import hdfs
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 
 
 class NFSGateway(Script):
-
-  def get_component_name(self):
-    return "hadoop-hdfs-nfs3"
 
   def install(self, env):
     import params
@@ -47,8 +43,7 @@ class NFSGateway(Script):
     env.set_params(params)
 
     if params.stack_version_formatted and check_stack_feature(StackFeature.NFS, params.stack_version_formatted):
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-nfs3", params.version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params

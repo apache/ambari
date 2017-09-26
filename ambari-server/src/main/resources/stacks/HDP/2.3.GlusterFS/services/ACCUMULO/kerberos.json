@@ -67,10 +67,12 @@
           }
         },
         {
-          "name": "/HDFS/NAMENODE/hdfs"
+          "name": "accumulo_hdfs",
+          "reference": "/HDFS/NAMENODE/hdfs"
         },
         {
-          "name": "/smokeuser"
+          "name": "accumulo_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [
@@ -91,7 +93,8 @@
           "name": "ACCUMULO_MASTER",
           "identities": [
             {
-              "name": "./accumulo_service"
+              "name": "accumulo_accumulo_master_accumulo_service",
+              "reference": "./accumulo_service"
             }
           ]
         },
@@ -99,7 +102,8 @@
           "name": "ACCUMULO_TSERVER",
           "identities": [
             {
-              "name": "./accumulo_service"
+              "name": "accumulo_accumulo_tserver_accumulo_service",
+              "reference": "./accumulo_service"
             }
           ]
         },
@@ -107,10 +111,12 @@
           "name": "ACCUMULO_MONITOR",
           "identities": [
             {
-              "name": "./accumulo_service"
+              "name": "accumulo_accumulo_monitor_accumulo_service",
+              "reference": "./accumulo_service"
             },
             {
-              "name": "./accumulo_tracer"
+              "name": "accumulo_accumulo_monitor_accumulo_tracer",
+              "reference": "./accumulo_tracer"
             }
           ]
         },
@@ -118,7 +124,8 @@
           "name": "ACCUMULO_GC",
           "identities": [
             {
-              "name": "./accumulo_service"
+              "name": "accumulo_accumulo_gc_accumulo_service",
+              "reference": "./accumulo_service"
             }
           ]
         },
@@ -126,7 +133,8 @@
           "name": "ACCUMULO_TRACER",
           "identities": [
             {
-              "name": "./accumulo_tracer"
+              "name": "accumulo_accumulo_tracer_accumulo_tracer",
+              "reference": "./accumulo_tracer"
             }
           ]
         },
@@ -134,7 +142,8 @@
           "name": "ACCUMULO_CLIENT",
           "identities": [
             {
-              "name": "./accumulo"
+              "name": "accumulo_accumulo_client_accumulo",
+              "reference": "./accumulo"
             }
           ]
         }

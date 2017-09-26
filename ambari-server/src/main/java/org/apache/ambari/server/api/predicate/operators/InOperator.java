@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -47,7 +47,7 @@ public class InOperator extends AbstractOperator implements RelationalOperator {
   public Predicate toPredicate(String prop, String val) throws InvalidQueryException {
 
     if (val == null) {
-      throw new InvalidQueryException("IN operator is missing a required right operand.");
+      throw new InvalidQueryException("IN operator is missing a required right operand for property " + prop);
     }
 
     String[] tokens = val.split(",");

@@ -24,10 +24,8 @@ import java.util.List;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -41,6 +39,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -58,7 +57,7 @@ import com.google.inject.Provider;
 @PrepareForTest(HostComponentSummary.class)   // This class has a static method that will be mocked
 public class InstallPackagesCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
-  private final ClusterVersionDAO clusterVersionDAO = Mockito.mock(ClusterVersionDAO.class);
+
   private final HostVersionDAO hostVersionDAO = Mockito.mock(HostVersionDAO.class);
   private final RepositoryVersionDAO repositoryVersionDAO = Mockito.mock(RepositoryVersionDAO.class);
   private AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
@@ -67,12 +66,22 @@ public class InstallPackagesCheckTest {
   private String repositoryVersion = "2.2.6.0-1234";
   private String clusterName = "cluster";
 
+  final RepositoryVersionEntity m_repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
+  /**
+   *
+   */
+  @Before
+  public void setup() throws Exception {
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn(repositoryVersion);
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(targetStackId);
+  }
+
   @Test
   public void testIsApplicable() throws Exception {
     PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
-    checkRequest.setRepositoryVersion(repositoryVersion);
     checkRequest.setSourceStackId(sourceStackId);
-    checkRequest.setTargetStackId(targetStackId);
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
     InstallPackagesCheck ipc = new InstallPackagesCheck();
     Configuration config = Mockito.mock(Configuration.class);
     ipc.config = config;
@@ -101,13 +110,6 @@ public class InstallPackagesCheckTest {
       }
     };
 
-    installPackagesCheck.clusterVersionDAOProvider = new Provider<ClusterVersionDAO>() {
-      @Override
-      public ClusterVersionDAO get() {
-        return clusterVersionDAO;
-      }
-    };
-
     installPackagesCheck.hostVersionDaoProvider = new Provider<HostVersionDAO>() {
       @Override
       public HostVersionDAO get() {
@@ -132,10 +134,6 @@ public class InstallPackagesCheckTest {
 
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(stackId);
     Mockito.when(clusters.getCluster(clusterName)).thenReturn(cluster);
-    ClusterVersionEntity clusterVersionEntity = Mockito.mock(ClusterVersionEntity.class);
-    Mockito.when(clusterVersionEntity.getState()).thenReturn(RepositoryVersionState.INSTALLED);
-    Mockito.when(clusterVersionDAO.findByClusterAndStackAndVersion(
-        clusterName, targetStackId, repositoryVersion)).thenReturn(clusterVersionEntity);
     final List<String> hostNames = new ArrayList<>();
     hostNames.add("host1");
     hostNames.add("host2");
@@ -157,9 +155,8 @@ public class InstallPackagesCheckTest {
     Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
     PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
-    checkRequest.setRepositoryVersion(repositoryVersion);
     checkRequest.setSourceStackId(sourceStackId);
-    checkRequest.setTargetStackId(targetStackId);
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
 
     // Case 1. Initialize with good values
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
@@ -168,21 +165,10 @@ public class InstallPackagesCheckTest {
 
     // Case 2: Install Packages failed on host1
     Mockito.when(hostVersionEntities.get(0).getState()).thenReturn(RepositoryVersionState.INSTALL_FAILED);
-    Mockito.when(clusterVersionEntity.getState()).thenReturn(RepositoryVersionState.INSTALL_FAILED);
     check = new PrerequisiteCheck(null, null);
     installPackagesCheck.perform(check, checkRequest);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertNotNull(check.getFailedOn());
     Assert.assertTrue(check.getFailedOn().contains("host1"));
-
-    // Case 3: Install Packages failed on host1 and host1 was put in Maintenance Mode
-    Mockito.when(hostVersionEntities.get(0).getState()).thenReturn(RepositoryVersionState.INSTALL_FAILED);
-    Mockito.when(hosts.get(0).getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
-    Mockito.when(clusterVersionEntity.getState()).thenReturn(RepositoryVersionState.INSTALL_FAILED);
-    check = new PrerequisiteCheck(null, null);
-    installPackagesCheck.perform(check, checkRequest);
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertNotNull(check.getFailedOn());
-    Assert.assertTrue(check.getFailedOn().contains(clusterName));
   }
 }

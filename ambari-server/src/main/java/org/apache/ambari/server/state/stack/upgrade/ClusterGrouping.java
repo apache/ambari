@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -70,6 +70,10 @@ public class ClusterGrouping extends Grouping {
     return new ClusterBuilder(this);
   }
 
+  @Override
+  protected boolean serviceCheckAfterProcessing() {
+    return false;
+  }
 
   /**
    * Represents a single-stage execution that happens as part of a cluster-wide
@@ -171,6 +175,13 @@ public class ClusterGrouping extends Grouping {
             continue;
           }
 
+          // only schedule this stage if its service is part of the upgrade
+          if (StringUtils.isNotBlank(execution.service)) {
+            if (!upgradeContext.isServiceSupported(execution.service)) {
+              continue;
+            }
+          }
+
           Task task = execution.task;
 
           StageWrapper wrapper = null;
@@ -233,7 +244,7 @@ public class ClusterGrouping extends Grouping {
       return new StageWrapper(
           StageWrapper.Type.SERVER_SIDE_ACTION,
           execution.title,
-          new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+          new TaskWrapper(null, null, Collections.emptySet(), task));
     }
   }
 
@@ -289,7 +300,7 @@ public class ClusterGrouping extends Grouping {
         }
 
         return new StageWrapper(
-            StageWrapper.Type.RU_TASKS,
+            StageWrapper.Type.UPGRADE_TASKS,
             execution.title,
             new TaskWrapper(service, component, realHosts, et));
       }
@@ -306,7 +317,7 @@ public class ClusterGrouping extends Grouping {
       }
 
       return new StageWrapper(
-          StageWrapper.Type.RU_TASKS,
+          StageWrapper.Type.UPGRADE_TASKS,
           execution.title,
           new TaskWrapper(service, component, hostNames, et));
     }

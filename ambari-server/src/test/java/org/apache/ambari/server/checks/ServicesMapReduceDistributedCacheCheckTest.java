@@ -22,18 +22,24 @@ import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.inject.Provider;
 
@@ -41,13 +47,25 @@ import com.google.inject.Provider;
  * Unit tests for ServicesMapReduceDistributedCacheCheck
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ServicesMapReduceDistributedCacheCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
 
   private final ServicesMapReduceDistributedCacheCheck servicesMapReduceDistributedCacheCheck = new ServicesMapReduceDistributedCacheCheck();
 
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
+
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     servicesMapReduceDistributedCacheCheck.clustersProvider = new Provider<Clusters>() {
 
       @Override
@@ -57,32 +75,40 @@ public class ServicesMapReduceDistributedCacheCheckTest {
     };
     Configuration config = Mockito.mock(Configuration.class);
     servicesMapReduceDistributedCacheCheck.config = config;
+
+    m_services.clear();
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
-    final Map<String, Service> services = new HashMap<>();
     final Service service = Mockito.mock(Service.class);
 
-    services.put("YARN", service);
+    m_services.put("YARN", service);
 
-    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(cluster.getServices()).thenReturn(m_services);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
 
-    Assert.assertTrue(servicesMapReduceDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
-    PrereqCheckRequest req = new PrereqCheckRequest("cluster");
-    req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.FAIL);
-    Assert.assertFalse(servicesMapReduceDistributedCacheCheck.isApplicable(req));
+    Assert.assertTrue(servicesMapReduceDistributedCacheCheck.isApplicable(request));
 
-    req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.PASS);
-    Assert.assertTrue(servicesMapReduceDistributedCacheCheck.isApplicable(req));
+    request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
 
+    request.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.FAIL);
+    Assert.assertFalse(servicesMapReduceDistributedCacheCheck.isApplicable(request));
 
-    services.remove("YARN");
-    Assert.assertFalse(servicesMapReduceDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
+    request.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.PASS);
+    Assert.assertTrue(servicesMapReduceDistributedCacheCheck.isApplicable(request));
+
+    m_services.remove("YARN");
+    Assert.assertFalse(servicesMapReduceDistributedCacheCheck.isApplicable(request));
   }
 
   @Test

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.RepositoryRequest;
 import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -49,20 +48,22 @@ public class RepositoryResourceProviderTest {
   private static final String VAL_REPO_ID = "HDP-0.2";
   private static final String VAL_REPO_NAME = "HDP1";
   private static final String VAL_BASE_URL = "http://foo.com";
+  private static final String VAL_DISTRIBUTION = "mydist";
+  private static final String VAL_COMPONENT_NAME = "mycomponentname";
 
   @Test
   public void testGetResources() throws Exception{
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null, null, null);
+        VAL_REPO_ID, VAL_REPO_NAME, VAL_DISTRIBUTION, VAL_COMPONENT_NAME, null, null);
     rr.setStackName(VAL_STACK_NAME);
     rr.setStackVersion(VAL_STACK_VERSION);
     Set<RepositoryResponse> allResponse = new HashSet<>();
     allResponse.add(rr);
 
     // set expectations
-    expect(managementController.getRepositories(EasyMock.<Set<RepositoryRequest>>anyObject())).andReturn(allResponse).times(2);
+    expect(managementController.getRepositories(EasyMock.anyObject())).andReturn(allResponse).times(2);
 
     // replay
     replay(managementController);
@@ -77,6 +78,8 @@ public class RepositoryResourceProviderTest {
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID);
 
     Predicate predicate =
         new PredicateBuilder().property(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
@@ -112,6 +115,12 @@ public class RepositoryResourceProviderTest {
 
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       Assert.assertNull(o);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_DISTRIBUTION);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_COMPONENT_NAME);
     }
 
     // !!! check that the stack version id is returned
@@ -140,6 +149,12 @@ public class RepositoryResourceProviderTest {
 
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       Assert.assertEquals(525L, o);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_DISTRIBUTION);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_COMPONENT_NAME);
     }
 
     // verify
@@ -153,13 +168,12 @@ public class RepositoryResourceProviderTest {
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null, null ,null);
+        VAL_REPO_ID, VAL_REPO_NAME, null, null, null, null);
     Set<RepositoryResponse> allResponse = new HashSet<>();
     allResponse.add(rr);
 
     // set expectations
-    expect(managementController.getRepositories(EasyMock.<Set<RepositoryRequest>>anyObject())).andReturn(allResponse).times(1);
-    managementController.updateRepositories(EasyMock.<Set<RepositoryRequest>>anyObject());
+    expect(managementController.getRepositories(EasyMock.anyObject())).andReturn(allResponse).times(1);
 
     // replay
     replay(managementController);

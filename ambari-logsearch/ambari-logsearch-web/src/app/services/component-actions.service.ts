@@ -1,0 +1,70 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {Injectable} from '@angular/core';
+import {AppSettingsService} from '@app/services/storage/app-settings.service';
+import {CollectionModelService} from '@app/models/store.model';
+import {FilteringService} from '@app/services/filtering.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
+
+@Injectable()
+export class ComponentActionsService {
+
+  constructor(private appSettings: AppSettingsService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
+  }
+
+  //TODO implement actions
+
+  undo() {
+  }
+
+  redo() {
+  }
+
+  refresh(): void {
+    // TODO implement dynamic definition of logs type
+    this.logsContainer.loadLogs('serviceLogs');
+  }
+
+  openHistory() {
+  }
+
+  startCapture(): void {
+    this.filtering.startCaptureTimer();
+  }
+
+  stopCapture(): void {
+    this.filtering.stopCaptureTimer();
+  }
+
+  setTimeZone(timeZone: string): void {
+    this.appSettings.setParameter('timeZone', timeZone);
+  }
+
+  updateSelectedColumns(columnNames: string[], model: CollectionModelService): void {
+    model.mapCollection(item => Object.assign({}, item, {
+      isDisplayed: columnNames.indexOf(item.name) > -1
+    }));
+  }
+
+  proceedWithExclude = (item: string): void => this.filtering.queryParameterNameChange.next({
+    item: item,
+    isExclude: true
+  });
+
+}

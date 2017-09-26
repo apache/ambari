@@ -22,12 +22,12 @@ import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -87,10 +87,6 @@ class HiveMetastoreWindows(HiveMetastore):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveMetastoreDefault(HiveMetastore):
-  def get_component_name(self):
-    return "hive-metastore"
-
-
   def status(self, env):
     import status_params
     from resource_management.libraries.functions import check_process_status
@@ -109,8 +105,7 @@ class HiveMetastoreDefault(HiveMetastore):
     is_upgrade = params.upgrade_direction == Direction.UPGRADE
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hive", params.version)
-      stack_select.select("hive-metastore", params.version)
+      stack_select.select_packages(params.version)
 
     if is_upgrade and params.stack_version_formatted_major and \
             check_stack_feature(StackFeature.HIVE_METASTORE_UPGRADE_SCHEMA, params.stack_version_formatted_major):
@@ -185,10 +180,12 @@ class HiveMetastoreDefault(HiveMetastore):
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
-    if params.current_version is not None:
-      current_version = format_stack_version(params.current_version)
-      if not(check_stack_feature(StackFeature.CONFIG_VERSIONING, current_version)):
-        schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
+
+    upgrade_from_version = upgrade_summary.get_source_version("HIVE",
+      default_version = params.version_for_stack_feature_checks)
+
+    if not (check_stack_feature(StackFeature.CONFIG_VERSIONING, upgrade_from_version)):
+      schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 
     env_dict = {
       'HIVE_CONF_DIR': schematool_hive_server_conf_dir

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -67,6 +67,6 @@ public class ScalingThreadPoolExecutor extends ThreadPoolExecutor {
    */
   public ScalingThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,
       TimeUnit unit, int workerQueueSize) {
-    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new LinkedBlockingQueue<Runnable>(workerQueueSize));
+    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new LinkedBlockingQueue<>(workerQueueSize));
   }
 }

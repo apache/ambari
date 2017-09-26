@@ -217,9 +217,14 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 return commandReport;
               }
 
+              boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
+              boolean onlyKeytabWrite = "true".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.ONLY_KEYTAB_WRITE));
+              boolean grabKeytabFromCache = regenerateKeytabs && onlyKeytabWrite;
+              // if grabKeytabFromCache=true we will try to get keytab from cache and send to agent, it will be true for
+              // headless cached keytabs
               if (password == null) {
-                if (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
-                  .exists(evaluatedPrincipal, hostEntity.getHostId())) {
+                if (!grabKeytabFromCache && (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
+                  .exists(evaluatedPrincipal, hostEntity.getHostId()))) {
                   // There is nothing to do for this since it must already exist and we don't want to
                   // regenerate the keytab
                   message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);
@@ -288,7 +293,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
               }
             } else {
-              LOG.debug(String.format("Skipping previously processed keytab for %s on host %s", evaluatedPrincipal, hostName));
+              LOG.debug("Skipping previously processed keytab for {} on host {}", evaluatedPrincipal, hostName);
             }
           }
         }
@@ -320,7 +325,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
   public Keytab createKeytab(String principal, String password, Integer keyNumber,
                              KerberosOperationHandler operationHandler, boolean checkCache,
                              boolean canCache, ActionLog actionLog) throws AmbariException {
-    LOG.debug("Creating keytab for " + principal + " with kvno " + keyNumber);
+    LOG.debug("Creating keytab for {} with kvno {}", principal, keyNumber);
     Keytab keytab = null;
 
     // Possibly get the keytab from the cache
@@ -366,7 +371,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
             if (previousCachedFilePath != null) {
               if (!new File(previousCachedFilePath).delete()) {
-                LOG.debug(String.format("Failed to remove orphaned cache file %s", previousCachedFilePath));
+                LOG.debug("Failed to remove orphaned cache file {}", previousCachedFilePath);
               }
             }
           }

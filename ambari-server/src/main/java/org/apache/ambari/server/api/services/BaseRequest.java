@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -134,7 +134,7 @@ public abstract class BaseRequest implements Request {
   @Override
   public Result process() {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Handling API Request: '" + getURI() + "'");
+      LOG.debug("Handling API Request: '{}'", getURI());
     }
 
     Result result;

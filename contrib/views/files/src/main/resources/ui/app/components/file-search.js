@@ -23,11 +23,6 @@ export default Ember.Component.extend({
   classNameBindings: ['expanded::col-md-9', 'expanded::col-md-offset-3'],
   expanded: false,
 
-  searchText: '',
-
-  throttleTyping: Ember.observer('searchText', function() {
-    Ember.run.debounce(this, this.searchFiles, 500);
-  }),
 
   searchFiles: function() {
     this.sendAction('searchAction', this.get('searchText'));
@@ -38,5 +33,10 @@ export default Ember.Component.extend({
   },
   focusOut: function() {
     this.set('expanded', false);
+  },
+  actions : {
+      throttleTyping: function() {
+        Ember.run.debounce(this, this.searchFiles, 1000);
+      }
   }
 });

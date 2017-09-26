@@ -33,6 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -55,7 +56,7 @@ public class CredentialService extends BaseService {
    * @param ui      uri info
    * @return credential collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getCredentials(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createCredentialResource(null));
@@ -70,7 +71,7 @@ public class CredentialService extends BaseService {
    * @param alias   alias (or credential ID)
    * @return credential instance representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{alias}")
   @Produces("text/plain")
   public Response getCredential(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -87,7 +88,7 @@ public class CredentialService extends BaseService {
    * @param alias   alias (or credential ID)
    * @return information regarding the created credential
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{alias}")
   @Produces("text/plain")
   public Response createCredential(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -104,7 +105,7 @@ public class CredentialService extends BaseService {
    * @param alias   alias (or credential ID)
    * @return information regarding the created credential
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{alias}")
   @Produces("text/plain")
   public Response updateCredential(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -121,7 +122,7 @@ public class CredentialService extends BaseService {
    * @param alias   alias (or credential ID)
    * @return information regarding the deleted credential
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{alias}")
   @Produces("text/plain")
   public Response deleteCredential(@Context HttpHeaders headers, @Context UriInfo ui,

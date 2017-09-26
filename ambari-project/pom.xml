@@ -32,8 +32,12 @@
     <powermock.version>1.6.3</powermock.version>
     <jetty.version>8.1.19.v20160209</jetty.version>
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
+    <swagger.version>1.5.10</swagger.version>
+    <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
+    <slf4j.version>1.7.20</slf4j.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
+    <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
   </properties>
   <profiles>
     <profile>
@@ -210,12 +214,22 @@
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>1.7.2</version>
+        <version>${slf4j.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-log4j12</artifactId>
-        <version>1.7.2</version>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jul-to-slf4j</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>${slf4j.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.persistence</groupId>
@@ -312,7 +326,6 @@
         <artifactId>ant-launcher</artifactId>
         <version>1.7.1</version>
       </dependency>
-
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
@@ -486,6 +499,36 @@
         <artifactId>checkstyle</artifactId>
         <version>${checkstyle.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.easymock</groupId>
+        <artifactId>easymock</artifactId>
+        <version>3.4</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-annotations</artifactId>
+        <version>${swagger.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-core</artifactId>
+        <version>${swagger.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-jaxrs</artifactId>
+        <version>${swagger.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-models</artifactId>
+        <version>${swagger.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.kongchen</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
+        <version>${swagger.maven.plugin.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <build>
@@ -494,6 +537,11 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>1.4.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -523,11 +571,31 @@
               <version>${checkstyle.version}</version>
             </dependency>
             <dependency>
-              <groupId>utility</groupId>
-              <artifactId>utility</artifactId>
+              <groupId>org.apache.ambari</groupId>
+              <artifactId>ambari-utility</artifactId>
               <version>1.0.0.0-SNAPSHOT</version>
             </dependency>
           </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>com.github.kongchen</groupId>
+          <artifactId>swagger-maven-plugin</artifactId>
+          <version>${swagger.maven.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>properties-maven-plugin</artifactId>
+          <version>1.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>2.20</version>
         </plugin>
       </plugins>
     </pluginManagement>

@@ -39,6 +39,7 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -70,6 +71,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -429,7 +431,7 @@ public class HostRoleCommandDAO {
 
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       if (!hostCommands.containsKey(commandEntity.getHostName())) {
-        hostCommands.put(commandEntity.getHostName(), new ArrayList<HostRoleCommandEntity>());
+        hostCommands.put(commandEntity.getHostName(), new ArrayList<>());
       }
 
       hostCommands.get(commandEntity.getHostName()).add(commandEntity);
@@ -963,6 +965,24 @@ public class HostRoleCommandDAO {
   }
 
   /**
+   * Gets the most recently run service check grouped by the command's role
+   * (which is the only way to identify the service it was for!?)
+   *
+   * @param clusterId
+   *          the ID of the cluster to get the service checks for.
+   */
+  @RequiresSession
+  public List<LastServiceCheckDTO> getLatestServiceChecksByRole(long clusterId) {
+    TypedQuery<LastServiceCheckDTO> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findLatestServiceChecksByRole", LastServiceCheckDTO.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("roleCommand", RoleCommand.SERVICE_CHECK);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * The {@link HostRoleCommandPredicateVisitor} is used to convert an Ambari
    * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
    */
@@ -994,9 +1014,9 @@ public class HostRoleCommandDAO {
     }
   }
 
-  public List<Long> findTaskIdsByRequestStageIds(List<RequestDAO.StageEntityPK> requestStageIds) {
+  public Set<Long> findTaskIdsByRequestStageIds(List<RequestDAO.StageEntityPK> requestStageIds) {
     EntityManager entityManager = entityManagerProvider.get();
-    List<Long> taskIds = new ArrayList<Long>();
+    List<Long> taskIds = new ArrayList<>();
     for (RequestDAO.StageEntityPK requestIds : requestStageIds) {
       TypedQuery<Long> hostRoleCommandQuery =
               entityManager.createNamedQuery("HostRoleCommandEntity.findTaskIdsByRequestStageIds", Long.class);
@@ -1007,6 +1027,34 @@ public class HostRoleCommandDAO {
       taskIds.addAll(daoUtils.selectList(hostRoleCommandQuery));
     }
 
-    return taskIds;
+    return Sets.newHashSet(taskIds);
+  }
+
+  /**
+   * A simple DTO for storing the most recent service check time for a given
+   * {@link Role}.
+   */
+  public static class LastServiceCheckDTO {
+
+    /**
+     * The role.
+     */
+    public final String role;
+
+    /**
+     * The time that the service check ended.
+     */
+    public final long endTime;
+
+    /**
+     * Constructor.
+     *
+     * @param role
+     * @param endTime
+     */
+    public LastServiceCheckDTO(String role, long endTime) {
+      this.role = role;
+      this.endTime = endTime;
+    }
   }
 }

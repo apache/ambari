@@ -45,6 +45,18 @@ class TestVersion(TestCase):
     gluster_fs_actual = self.version_module.format_stack_version("GlusterFS")
     self.assertEqual("", gluster_fs_actual)
 
+
+  def test_format_with_hyphens(self):
+    actual = self.version_module.format_stack_version("FOO-1.0")
+    self.assertEqual("1.0.0.0", actual)
+
+    actual = self.version_module.format_stack_version("1.0.0-1234")
+    self.assertEqual("1.0.0.0", actual)
+
+    actual = self.version_module.format_stack_version("FOO-1.0-9999")
+    self.assertEqual("1.0.0.0", actual)
+
+
   def test_comparison(self):
     # All versions to compare, from 1.0.0.0 to 3.0.0.0, and only include elements that are a multiple of 7.
     versions = range(1000, 3000, 7)

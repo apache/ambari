@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,15 +58,7 @@ public class AESEncryptor {
       dcipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       byte[] iv = ecipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
       dcipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(iv));
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    } catch (NoSuchPaddingException e) {
-      e.printStackTrace();
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-    } catch (InvalidParameterSpecException e) {
-      e.printStackTrace();
-    } catch (InvalidAlgorithmParameterException e) {
+    } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidParameterSpecException | InvalidKeyException | NoSuchPaddingException e) {
       e.printStackTrace();
     }
   }
@@ -81,15 +73,7 @@ public class AESEncryptor {
       dcipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       byte[] iv = ecipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
       dcipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(iv));
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    } catch (NoSuchPaddingException e) {
-      e.printStackTrace();
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-    } catch (InvalidParameterSpecException e) {
-      e.printStackTrace();
-    } catch (InvalidAlgorithmParameterException e) {
+    } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidParameterSpecException | InvalidKeyException | NoSuchPaddingException e) {
       e.printStackTrace();
     }
   }
@@ -105,9 +89,7 @@ public class AESEncryptor {
       factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
       KeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH);
       key = factory.generateSecret(spec);
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    } catch (InvalidKeySpecException e) {
+    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       e.printStackTrace();
     }
 

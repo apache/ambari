@@ -20,7 +20,6 @@ Ambari Agent
 """
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -91,24 +90,27 @@ class ResourcemanagerWindows(Resourcemanager):
          mode="f"
     )
 
-    if params.update_exclude_file_only == False:
+    if params.include_hosts:
+      File(params.include_file_path,
+           content=Template("include_hosts_list.j2"),
+           owner=yarn_user,
+           mode="f"
+           )
+
+    if params.update_files_only == False:
       Execute(yarn_refresh_cmd, user=yarn_user)
 
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ResourcemanagerDefault(Resourcemanager):
-  def get_component_name(self):
-    return "hadoop-yarn-resourcemanager"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")
     import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-yarn-resourcemanager", params.version)
+      stack_select.select_packages(params.version)
 
   def disable_security(self, env):
     import params
@@ -122,8 +124,8 @@ class ResourcemanagerDefault(Resourcemanager):
       params.yarn_jaas_file, \
       params.yarn_user)
     zkmigrator.set_acls(params.rm_zk_znode, 'world:anyone:crdwa')
-    zkmigrator.set_acls(params.rm_zk_failover_znode, 'world:anyone:crdwa')
     zkmigrator.set_acls(params.hadoop_registry_zk_root, 'world:anyone:crdwa')
+    zkmigrator.delete_node(params.rm_zk_failover_znode)
 
   def start(self, env, upgrade_type=None):
     import params
@@ -174,7 +176,14 @@ class ResourcemanagerDefault(Resourcemanager):
          group=user_group
     )
 
-    if params.update_exclude_file_only == False:
+    if params.include_hosts:
+      File(params.include_file_path,
+           content=Template("include_hosts_list.j2"),
+           owner=yarn_user,
+           mode="f"
+           )
+
+    if params.update_files_only == False:
       Execute(yarn_refresh_cmd,
             environment= {'PATH' : params.execute_path },
             user=yarn_user)

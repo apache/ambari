@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,7 +33,6 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -45,7 +44,6 @@ import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -64,7 +62,6 @@ public class RetryUpgradeActionServiceTest {
 
   private Injector injector;
 
-  private StackDAO stackDAO;
   private Clusters clusters;
   private RepositoryVersionDAO repoVersionDAO;
   private UpgradeDAO upgradeDAO;
@@ -76,17 +73,16 @@ public class RetryUpgradeActionServiceTest {
   // Instance variables shared by all tests
   String clusterName = "c1";
   Cluster cluster;
+  StackId stack220 = new StackId("HDP-2.2.0");
   StackEntity stackEntity220;
-  StackId stack220;
   Long upgradeRequestId = 1L;
   Long stageId = 1L;
 
   @Before
-  public void before() throws NoSuchFieldException, IllegalAccessException {
+  public void before() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
-    stackDAO = injector.getInstance(StackDAO.class);
     clusters = injector.getInstance(Clusters.class);
     repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     upgradeDAO = injector.getInstance(UpgradeDAO.class);
@@ -94,6 +90,7 @@ public class RetryUpgradeActionServiceTest {
     stageDAO = injector.getInstance(StageDAO.class);
     hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
     helper = injector.getInstance(OrmTestHelper.class);
+    stackEntity220 = helper.createStack(stack220);
   }
 
   @After
@@ -235,8 +232,6 @@ public class RetryUpgradeActionServiceTest {
    * @throws AmbariException
    */
   private void createCluster() throws AmbariException {
-    stackEntity220 = stackDAO.find("HDP", "2.2.0");
-    stack220 = new StackId("HDP-2.2.0");
 
     clusters.addCluster(clusterName, stack220);
     cluster = clusters.getCluster("c1");
@@ -249,9 +244,6 @@ public class RetryUpgradeActionServiceTest {
     repoVersionDAO.create(repoVersionEntity);
 
     helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
-
-    cluster.createClusterVersion(stack220, stack220.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
-    cluster.transitionClusterVersion(stack220, stack220.getStackVersion(), RepositoryVersionState.CURRENT);
   }
 
   /**
@@ -290,8 +282,7 @@ public class RetryUpgradeActionServiceTest {
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
-    upgrade.setFromVersion("2.2.0.0");
-    upgrade.setToVersion("2.2.0.1");
+    upgrade.setRepositoryVersion(repoVersionEntity);
     upgradeDAO.create(upgrade);
 
     cluster.setUpgradeEntity(upgrade);
@@ -304,7 +295,7 @@ public class RetryUpgradeActionServiceTest {
     hrc1.setRole(Role.ZOOKEEPER_SERVER);
     hrc1.setRoleCommand(RoleCommand.RESTART);
 
-    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    stageEntity.setHostRoleCommands(new ArrayList<>());
     stageEntity.getHostRoleCommands().add(hrc1);
     hostRoleCommandDAO.create(hrc1);
     stageDAO.merge(stageEntity);

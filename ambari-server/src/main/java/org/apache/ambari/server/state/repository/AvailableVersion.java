@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,6 +33,10 @@ public class AvailableVersion {
   @JsonProperty("version")
   private String version;
 
+  @JsonProperty("release_version")
+  @JsonSerialize(include=Inclusion.NON_NULL)
+  private String releaseVersion;
+
   @JsonProperty("version_id")
   @JsonSerialize(include=Inclusion.NON_NULL)
   private String versionId;
@@ -40,10 +44,25 @@ public class AvailableVersion {
   @JsonProperty
   private Set<Component> components;
 
-  AvailableVersion(String version, String versionId, Set<Component> components) {
+  AvailableVersion(String version, String versionId, String releaseVersion, Set<Component> components) {
     this.version = version;
     this.versionId = versionId;
+    this.releaseVersion = releaseVersion;
     this.components = components;
+  }
+
+  /**
+   * @return the binary version of the available service.
+   */
+  public String getVersion() {
+    return version;
+  }
+
+  /**
+   * @return the release version of the available service.
+   */
+  public String getReleaseVersion() {
+    return releaseVersion;
   }
 
   static class Component {

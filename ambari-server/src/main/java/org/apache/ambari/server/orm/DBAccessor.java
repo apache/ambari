@@ -184,6 +184,16 @@ public interface DBAccessor {
     throws SQLException;
 
   /**
+   * Add unique table constraint
+   * @param constraintName name of the constraint
+   * @param tableName name of the table
+   * @param columnNames list of columns
+   * @throws SQLException
+   */
+  void updateUniqueConstraint(String tableName, String constraintName, String... columnNames)
+      throws SQLException;
+
+  /**
    *
    * @param tableName name of the table
    * @param constraintName name of the constraint
@@ -321,6 +331,55 @@ public interface DBAccessor {
    * @throws SQLException
    */
   void executeQuery(String query, boolean ignoreFailure) throws SQLException;
+
+  /**
+   * Execute prepared statements
+   * @param query query to execute
+   * @param arguments list of arguments for prepared statement
+   * @throws SQLException
+   */
+  void executePreparedQuery(String query, Object...arguments) throws SQLException;
+
+  /**
+   * Execute prepared update statements
+   * @param query query to execute
+   * @param ignoreFailure determines if exceptions during query execution should be ignored
+   * @param arguments list of arguments for prepared statement
+   * @throws SQLException
+   */
+  void executePreparedQuery(String query, boolean ignoreFailure, Object...arguments) throws SQLException;
+
+  /**
+   * Execute prepared update statements
+   * @param query query to execute
+   * @param arguments list of arguments for prepared statement
+   * @throws SQLException
+   */
+  void executePreparedUpdate(String query, Object...arguments) throws SQLException;
+
+  /**
+   * Execute prepared statements which will not ignore failures
+   * @param query
+   * @param ignoreFailure
+   * @param arguments
+   * @throws SQLException
+   */
+  void executePreparedUpdate(String query, boolean ignoreFailure, Object...arguments) throws SQLException;
+
+  /**
+   * Execute select {@code columnName} from {@code tableName}
+   * where {@code columnNames} values = {@code values}
+   *
+   * @param tableName
+   * @param columnName
+   * @param columnNames
+   * @param values
+   * @param ignoreFailure
+   * @return
+   * @throws SQLException
+   */
+  List<Integer> getIntColumnValues(String tableName, String columnName, String[] columnNames,
+                                   String[] values, boolean ignoreFailure) throws SQLException;
 
   /**
    * Drop table from schema
@@ -638,13 +697,52 @@ public interface DBAccessor {
    *          the target column name
    * @param targetIDFieldName
    *          the target id key name matched with {@code sourceIDFieldName}
-   * @param isColumnNullable
-   *          should be target column nullable or not
-   *
+   * @param initialValue
+   *          initial value for null-contained cells
    * @throws SQLException
    */
   void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
-       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, boolean isColumnNullable) throws SQLException;
+       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, Object initialValue) throws SQLException;
+
+  /**
+   * Copy column from {@code targetTable} by matching
+   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
+   * and condition {@code sourceConditionFieldName} = {@code condition}
+   *
+   * @param sourceTableName          the source table name
+   * @param sourceColumn             the source column name
+   * @param sourceIDFieldName1       the source id key filed name matched with {@code targetIDFieldName1}
+   * @param sourceIDFieldName2       the source id key filed name matched with {@code targetIDFieldName2}
+   * @param sourceIDFieldName3       the source id key filed name matched with {@code targetIDFieldName3}
+   * @param targetTableName          the target table name
+   * @param targetColumn             the target column name
+   * @param targetIDFieldName1       the target id key name matched with {@code sourceIDFieldName1}
+   * @param targetIDFieldName2       the target id key name matched with {@code sourceIDFieldName2}
+   * @param targetIDFieldName3       the target id key name matched with {@code sourceIDFieldName3}
+   * @param sourceConditionFieldName source key column name which should match {@code condition}
+   * @param condition                value which should match {@code sourceConditionFieldName}
+   * @param initialValue             initial value for null-contained cells
+   * @throws SQLException
+   */
+  void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName1, String sourceIDFieldName2, String sourceIDFieldName3,
+                                String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName1, String targetIDFieldName2, String targetIDFieldName3,
+                                String sourceConditionFieldName, String condition, Object initialValue) throws SQLException;
+
+  /**
+   * Remove all rows from the table
+   *
+   * @param tableName name of the table
+   */
+  void clearTable(String tableName) throws SQLException;
+
+  /**
+   * Reset all rows with {@code value} for {@code columnName} column
+   *
+   * @param tableName  name of the table
+   * @param columnName name of the column name to be update
+   * @param value      data to use for update
+   */
+  void clearTableColumn(String tableName, String columnName, Object value) throws SQLException;
 
   enum DbType {
     ORACLE,

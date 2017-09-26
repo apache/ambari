@@ -211,6 +211,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_SERVICE_RPC_ADDRESS =
     "timeline.metrics.service.rpc.address";
 
+  public static final String TIMELINE_SERVICE_DISABLE_CONTAINER_METRICS =
+    "timeline.metrics.service.container.metrics.disabled";
+
   public static final String CLUSTER_AGGREGATOR_APP_IDS =
     "timeline.metrics.service.cluster.aggregator.appIds";
 
@@ -274,8 +277,14 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY =
       "timeline.metrics.aggregate.tables.durability";
 
+  public static final String TIMELINE_METRICS_WHITELIST_ENABLED =
+    "timeline.metrics.whitelisting.enabled";
+
   public static final String TIMELINE_METRICS_WHITELIST_FILE =
     "timeline.metrics.whitelist.file";
+
+  public static final String TIMELINE_METRICS_WHITELIST_FILE_LOCATION_DEFAULT =
+    "/etc/ambari-metrics-collector/conf/metrics_whitelist";
 
   public static final String TIMELINE_METRIC_METADATA_FILTERS =
     "timeline.metrics.service.metadata.filters";
@@ -315,6 +324,9 @@ public class TimelineMetricConfiguration {
 
   public static final String TIMELINE_METRICS_UUID_GEN_STRATEGY =
     "timeline.metrics.uuid.gen.strategy";
+
+  public static final String TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS =
+    "timeline.metrics.support.multiple.clusters";
 
   public static final String HOST_APP_ID = "HOST";
 
@@ -502,6 +514,13 @@ public class TimelineMetricConfiguration {
     return 3;
   }
 
+  public boolean getTimelineMetricsMultipleClusterSupport() {
+    if (metricsConf != null) {
+      return Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS, "false"));
+    }
+    return false;
+  }
+
   public String getTimelineServiceRpcAddress() {
     String defaultRpcAddress = "0.0.0.0:60200";
     if (metricsConf != null) {
@@ -621,6 +640,15 @@ public class TimelineMetricConfiguration {
     }
   }
 
+  public boolean isContainerMetricsDisabled() {
+    try {
+      return metricsConf != null && Boolean.parseBoolean(metricsConf.get(TIMELINE_SERVICE_DISABLE_CONTAINER_METRICS, "false"));
+    } catch (Exception e) {
+
+      return false;
+    }
+  }
+
   public boolean isCollectorInMemoryAggregationEnabled() {
     if (metricsConf != null) {
       return Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_COLLECTOR_INMEMORY_AGGREGATION, "false"));
@@ -637,20 +665,28 @@ public class TimelineMetricConfiguration {
     return Collections.emptyList();
   }
 
-  public String getZkConnectionUrl(String zkClientPort, String zkQuorum) {
-    StringBuilder sb = new StringBuilder();
-    String[] quorumParts = zkQuorum.split(",");
-    String prefix = "";
-    for (String part : quorumParts) {
-      sb.append(prefix);
-      sb.append(part.trim());
-      if (!part.contains(":")) {
-        sb.append(":");
-        sb.append(zkClientPort);
+  public String getZkConnectionUrl(String zkClientPort, String zkQuorum){
+      StringBuilder sb = new StringBuilder();
+      String[] quorumParts = zkQuorum.split(",");
+      String prefix = "";
+      for (String part : quorumParts) {
+        sb.append(prefix);
+        sb.append(part.trim());
+        if (!part.contains(":")) {
+          sb.append(":");
+          sb.append(zkClientPort);
+        }
+        prefix = ",";
       }
-      prefix = ",";
+
+      return sb.toString();
+
     }
 
-    return sb.toString();
+  public boolean isWhitelistingEnabled() {
+    if (metricsConf != null) {
+      return Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_WHITELIST_ENABLED, "false"));
+    }
+    return false;
   }
 }

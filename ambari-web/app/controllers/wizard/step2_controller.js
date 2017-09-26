@@ -557,6 +557,8 @@ App.WizardStep2Controller = Em.Controller.extend({
 
     this.set('content.hosts', $.extend(hosts, this.getHostInfo()));
     this.setAmbariJavaHome();
-  }
+  },
+
+  isAddHostWizard: Em.computed.equal('content.controllerName', 'addHostController')
 
 });

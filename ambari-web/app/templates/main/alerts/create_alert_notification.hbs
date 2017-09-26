@@ -317,6 +317,20 @@
 
     {{! alert-notification Alert Script }}
     {{#if view.isAlertScriptMethodSelected}}
+    <div {{bindAttr class=":form-group controller.inputFields.scriptFileName.errorMsg:has-error"}}>
+       <label class="control-label col-md-2">{{controller.inputFields.scriptFileName.label}}</label>
+
+       <div class="col-md-10">
+          {{view Em.TextField valueBinding="controller.inputFields.scriptFileName.value" class="form-control"}}
+       </div>
+
+       {{#if controller.inputFields.scriptFileName.errorMsg}}
+        <div class="col-md-10 col-md-offset-2 help-block validation-block error-msg">
+           {{controller.inputFields.scriptFileName.errorMsg}}
+        </div>
+       {{/if}}
+    </div>
+
     <div class="form-group">
       <label class="control-label col-md-2">{{controller.inputFields.scriptDispatchProperty.label}}</label>
 

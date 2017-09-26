@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -217,6 +217,21 @@ public class ClusterDAO {
   }
 
   /**
+   * Gets the latest configurations for a given stack with any of the given config types.
+   * This method does not take into account the configuration being enabled.
+   */
+  @RequiresSession
+  public List<ClusterConfigEntity> getLatestConfigurationsWithTypes(long clusterId, StackId stackId, Collection<String> configTypes) {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+    return daoUtils.selectList(
+      entityManagerProvider.get()
+      .createNamedQuery("ClusterConfigEntity.findLatestConfigsByStackWithTypes", ClusterConfigEntity.class)
+      .setParameter("clusterId", clusterId)
+      .setParameter("stack", stackEntity)
+      .setParameter("types", configTypes));
+  }
+
+  /**
    * Gets the latest configurations for a given stack for all of the
    * configurations of the specified cluster.
    *
@@ -341,14 +356,34 @@ public class ClusterDAO {
    *          the entity to merge (not {@code null}).
    * @return the managed entity which was merged (never {@code null}).
    */
+  @Transactional
   public ClusterConfigEntity merge(ClusterConfigEntity clusterConfigEntity) {
+    return merge(clusterConfigEntity, false);
+  }
+
+  /**
+   * Merge the specified entity into the current persistence context.
+   *
+   * @param clusterConfigEntity
+   *          the entity to merge (not {@code null}).
+   * @param flush
+   *          if {@code true} then {@link EntityManager#flush()} will be invoked
+   *          immediately after the merge.
+   * @return the managed entity which was merged (never {@code null}).
+   */
+  @Transactional
+  public ClusterConfigEntity merge(ClusterConfigEntity clusterConfigEntity, boolean flush) {
     EntityManager entityManager = entityManagerProvider.get();
-    return entityManager.merge(clusterConfigEntity);
+    ClusterConfigEntity clusterConfigEntityRes = entityManager.merge(clusterConfigEntity);
+    if(flush) {
+      entityManager.flush();
+    }
+    return clusterConfigEntityRes;
   }
 
   @Transactional
   public void remove(ClusterEntity clusterEntity) {
-    entityManagerProvider.get().remove(merge(clusterEntity));
+    entityManagerProvider.get().remove(clusterEntity);
   }
 
   @Transactional

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,7 +33,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -55,23 +53,20 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -107,7 +102,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
   protected static final String STACK_SELECT_ACTION = "ru_set_all";
-  protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
+  protected static final String INSTALL_PACKAGES_FULL_NAME = "Install Version";
 
 
   private static Set<String> pkPropertyIds = Sets.newHashSet(
@@ -147,8 +142,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
 
-  private static Gson gson = StageUtils.getGson();
-
   @Inject
   private static StageFactory stageFactory;
 
@@ -161,6 +154,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   @Inject
   private static Configuration configuration;
 
+  @Inject
+  private static RepositoryVersionHelper repoVersionHelper;
 
   /**
    * Constructor.
@@ -384,27 +379,27 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       }
     }
 
-    List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
-    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
-    for (OperatingSystemEntity operatingSystem : operatingSystems) {
-      perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
-    }
-
     // Determine repositories for host
     String osFamily = host.getOsFamily();
-    final List<RepositoryEntity> repoInfo = perOsRepos.get(osFamily);
-    if (repoInfo == null) {
+    OperatingSystemEntity osEntity = null;
+    for (OperatingSystemEntity operatingSystem : repoVersionEnt.getOperatingSystems()) {
+      if (osFamily.equals(operatingSystem.getOsType())) {
+        osEntity = operatingSystem;
+        break;
+      }
+    }
+
+    if (null == osEntity) {
+      throw new SystemException(String.format("Operating System matching %s could not be found",
+          osFamily));
+    }
+
+    if (CollectionUtils.isEmpty(osEntity.getRepositories())) {
       throw new SystemException(String.format("Repositories for os type %s are " +
                       "not defined. Repo version=%s, stackId=%s",
         osFamily, desiredRepoVersion, stackId));
     }
 
-    if (repoInfo.isEmpty()){
-      LOG.error(String.format("Repository list is empty. Ambari may not be managing the repositories for %s", osFamily));
-    }
-
-    // For every host at cluster, determine packages for all installed services
-    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
     Set<String> servicesOnHost = new HashSet<>();
 
     if (forceInstallOnNonMemberHost) {
@@ -426,7 +421,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           LOG.error("Service not found for component {}!", componentName, e);
           throw new IllegalArgumentException("Service not found for component : " + componentName);
         }
-
       }
 
     } else {
@@ -435,53 +429,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
         servicesOnHost.add(component.getServiceName());
       }
     }
-    List<String> blacklistedPackagePrefixes = configuration.getRollingUpgradeSkipPackagesPrefixes();
-    for (String serviceName : servicesOnHost) {
-      ServiceInfo info;
-      try {
-        info = ami.getService(stackName, stackVersion, serviceName);
-      } catch (AmbariException e) {
-        throw new SystemException("Can not enumerate services", e);
-      }
-      List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
-              new HashMap<String, String>(), // Contents are ignored
-        osFamily);
-      for (ServiceOsSpecific.Package aPackage : packagesForService) {
-        if (! aPackage.getSkipUpgrade()) {
-          boolean blacklisted = false;
-          for(String prefix : blacklistedPackagePrefixes) {
-            if (aPackage.getName().startsWith(prefix)) {
-              blacklisted = true;
-              break;
-            }
-          }
-          if (! blacklisted) {
-            packages.add(aPackage);
-          }
-        }
-      }
-    }
-    final String packageList = gson.toJson(packages);
-    final String repoList = gson.toJson(repoInfo);
 
-    Map<String, String> params = new HashMap<String, String>(){{
-      put("stack_id", stackId.getStackId());
-      put("repository_version", desiredRepoVersion);
-      put("base_urls", repoList);
-      put(KeyNames.PACKAGE_LIST, packageList);
-    }};
-
-    VersionDefinitionXml xml = null;
-    try {
-      xml = repoVersionEnt.getRepositoryXml();
-    } catch (Exception e) {
-      throw new SystemException(String.format("Could not load xml from repo version %s",
-          repoVersionEnt.getVersion()));
-    }
-
-    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
-      params.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
-    }
+    Map<String, String> roleParams = repoVersionHelper.buildRoleParams(managementController, repoVersionEnt,
+        osFamily, servicesOnHost);
 
     // Create custom action
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
@@ -490,8 +440,10 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     ActionExecutionContext actionContext = new ActionExecutionContext(
             cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
             Collections.singletonList(filter),
-            params);
+            roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
+
+    repoVersionHelper.addCommandRepository(actionContext, repoVersionEnt, osEntity);
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);
@@ -539,7 +491,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       if (!forceInstallOnNonMemberHost) {
         hostVersEntity.setState(RepositoryVersionState.INSTALLING);
         hostVersionDAO.merge(hostVersEntity);
-        cluster.recalculateClusterVersionState(repoVersionEnt);
       }
       req.persist();
     } catch (AmbariException e) {
@@ -553,7 +504,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     Stage stage;
     long stageId;
     ActionExecutionContext actionContext;
-    Map<String, String> commandParams = new HashMap();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("version", desiredRepoVersion);
 
     stage = stageFactory.createNew(req.getId(),
@@ -575,7 +526,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     actionContext = new ActionExecutionContext(
       cluster.getClusterName(), STACK_SELECT_ACTION,
       Collections.singletonList(filter),
-      Collections.<String, String>emptyMap());
+      Collections.emptyMap());
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     try {

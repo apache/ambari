@@ -29,6 +29,7 @@
       HBase to either local filesystem path if using Ambari Metrics in embedded mode or
       to a HDFS dir, example: hdfs://namenode.example.org:8020/amshbase.
     </description>
+    <display-name>HBase root directory</display-name>
     <depends-on>
       <property>
         <type>core-site</type>
@@ -44,6 +45,7 @@
   <property>
     <name>hbase.tmp.dir</name>
     <value>/var/lib/ambari-metrics-collector/hbase-tmp</value>
+    <display-name>HBase tmp directory</display-name>
     <description>
       Temporary directory on the local filesystem.
       Change this setting to point to a location more permanent
@@ -165,9 +167,13 @@
       Threshold size in bytes after which results from parallelly executed
       query results are spooled to disk. Default is 20 mb.
     </description>
+    <display-name>Phoenix Spool threshold</display-name>
     <value-attributes>
       <type>int</type>
-      <unit>Bytes</unit>
+      <unit>B</unit>
+      <minimum>12582912</minimum>
+      <maximum>31457280</maximum>
+      <increment-step>1048576</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -266,12 +272,16 @@
     <name>hbase.hregion.max.filesize</name>
     <value>4294967296</value>
     <description>
-      Maximum HFile size. If the sum of the sizes of a region&#x2019;s HFiles has grown
-      to exceed this value, the region is split in two. Default is 40Gb.
+      Maximum HFile size. If the sum of the sizes of a region HFiles has grown
+      to exceed this value, the region is split in two. Default is 4 GB.
     </description>
+    <display-name>Maximum Region File Size</display-name>
     <value-attributes>
       <type>int</type>
-      <unit>Bytes</unit>
+      <minimum>1073741824</minimum>
+      <maximum>107374182400</maximum>
+      <unit>B</unit>
+      <increment-step>1073741824</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -432,9 +442,13 @@
       number of bytes. Value is checked by a thread that runs every
       hbase.server.thread.wakefrequency.
     </description>
+    <display-name>Memstore Flush Size</display-name>
     <value-attributes>
       <type>int</type>
-      <unit>Bytes</unit>
+      <minimum>33554432</minimum>
+      <maximum>536870912</maximum>
+      <increment-step>1048576</increment-step>
+      <unit>B</unit>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -54,7 +56,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
     Map<String, Map<String, Collection<String>>> requiredPropertiesByService = getRequiredPropertiesByService(topology.getBlueprint());
 
     // find missing properties in the cluster configuration
-    Map<String, Collection<String>> missingProperties = new HashMap<>();
+    Map<String, Collection<String>> missingProperties = new TreeMap<>();
     Map<String, Map<String, String>> topologyConfiguration = new HashMap<>(topology.getConfiguration().getFullProperties(1));
 
     for (HostGroup hostGroup : topology.getBlueprint().getHostGroups().values()) {
@@ -84,7 +86,8 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
         for (String configType : requiredPropertiesByType.keySet()) {
 
           // We need a copy not to modify the original
-          Collection<String> requiredPropertiesForType = new HashSet(requiredPropertiesByType.get(configType));
+          Collection<String> requiredPropertiesForType = new HashSet(
+              requiredPropertiesByType.get(configType));
 
           if (!operationalConfigurations.containsKey(configType)) {
             // all required configuration is missing for the config type
@@ -170,13 +173,13 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
     Map<String, Collection<String>> missing;
 
     if (missingProperties == null) {
-      missing = new HashMap<>();
+      missing = new TreeMap<>();
     } else {
-      missing = new HashMap<>(missingProperties);
+      missing = new TreeMap<>(missingProperties);
     }
 
     if (!missing.containsKey(hostGroup)) {
-      missing.put(hostGroup, new HashSet<String>());
+      missing.put(hostGroup, new TreeSet<>());
     }
 
     missing.get(hostGroup).addAll(values);

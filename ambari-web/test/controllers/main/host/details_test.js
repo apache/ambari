@@ -690,6 +690,9 @@ describe('App.MainHostDetailsController', function () {
           },
           'core-site': {
             tag: 'tag'
+          },
+          'kms-site': {
+            tag: 'tag'
           }
         }
       }}, null, {});
@@ -697,7 +700,7 @@ describe('App.MainHostDetailsController', function () {
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)'
+        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)|(type=kms-site&tag=tag)'
       });
     });
   });
@@ -719,15 +722,6 @@ describe('App.MainHostDetailsController', function () {
     });
     it('hosts list is valid', function() {
       expect(this.hosts).to.eql(['host2']);
-    });
-    it('rangerKMSServerHost is empty', function () {
-      expect(controller.get('rangerKMSServerHost')).to.be.empty;
-    });
-    it('deleteRangerKMSServer is false', function () {
-      expect(controller.get('deleteRangerKMSServer')).to.be.false;
-    });
-    it('fromDeleteHost is false', function () {
-      expect(controller.get('fromDeleteHost')).to.be.false;
     });
   });
 
@@ -2000,6 +1994,8 @@ describe('App.MainHostDetailsController', function () {
       zkServerInstalled: false,
       lastComponents: [],
       masterComponents: [],
+      nonAddableMasterComponents: [],
+      lastMasterComponents: [],
       runningComponents: [],
       nonDeletableComponents: [],
       unknownComponents: [],
@@ -2124,82 +2120,103 @@ describe('App.MainHostDetailsController', function () {
       controller.confirmDeleteHost.restore();
     });
 
-    it('masterComponents exist', function () {
-      controller.set('mockHostComponentsInfo', {
-        masterComponents: [
-          {}
-        ]
-      });
-      controller.validateAndDeleteHost();
-      expect(controller.raiseDeleteComponentsError.calledWith({masterComponents: [
-        {}
-      ]}, 'masterList')).to.be.true;
-    });
     it('nonDeletableComponents exist', function () {
       controller.set('mockHostComponentsInfo', {
-        masterComponents: [],
         nonDeletableComponents: [
           {}
         ]
       });
       controller.validateAndDeleteHost();
       expect(controller.raiseDeleteComponentsError.calledWith({
-        masterComponents: [],
         nonDeletableComponents: [
           {}
         ]
       }, 'nonDeletableList')).to.be.true;
     });
+    it('nonAddableMasterComponents exist', function () {
+      controller.set('mockHostComponentsInfo', {
+        nonDeletableComponents: [],
+        nonAddableMasterComponents: [
+        {}
+        ]
+      });
+      controller.validateAndDeleteHost();
+      expect(controller.raiseDeleteComponentsError.calledWith({
+        nonDeletableComponents: [],
+        nonAddableMasterComponents: [
+          {}
+        ]
+      }, 'masterList')).to.be.true;
+    });
     it('runningComponents exist', function () {
       controller.set('mockHostComponentsInfo', {
-        masterComponents: [],
+        nonAddableMasterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [{}]
       });
       controller.validateAndDeleteHost();
       expect(controller.raiseDeleteComponentsError.calledWith({
-        masterComponents: [],
+        nonAddableMasterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [{}]
       }, 'runningList')).to.be.true;
     });
+    it('lastMasterComponents exist', function () {
+      controller.set('mockHostComponentsInfo', {
+        nonAddableMasterComponents: [],
+        nonDeletableComponents: [],
+        runningComponents: [],
+        lastMasterComponents: [{}]
+      });
+      controller.validateAndDeleteHost();
+      expect(controller.raiseDeleteComponentsError.calledWith({
+        nonAddableMasterComponents: [],
+        nonDeletableComponents: [],
+        runningComponents: [],
+        lastMasterComponents: [{}]
+      }, 'lastMasterList')).to.be.true;
+    });
     it('zkServerInstalled = true', function () {
       controller.set('mockHostComponentsInfo', {
-        masterComponents: [],
+        nonAddableMasterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [],
         unknownComponents: [],
         lastComponents: [],
+        lastMasterComponents: [],
         zkServerInstalled: true
       });
       var popup = controller.validateAndDeleteHost();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.confirmDeleteHost.calledWith({
-        masterComponents: [],
+        nonAddableMasterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [],
         unknownComponents: [],
         lastComponents: [],
+        lastMasterComponents: [],
         zkServerInstalled: true
       })).to.be.true;
     });
     it('zkServerInstalled = false', function () {
       controller.set('mockHostComponentsInfo', {
-        masterComponents: [],
+        nonAddableMasterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [],
         unknownComponents: [],
         lastComponents: [],
+        lastMasterComponents: [],
         zkServerInstalled: false
       });
       controller.validateAndDeleteHost();
       expect(controller.confirmDeleteHost.calledWith({
-        masterComponents: [],
+        nonAddableMasterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [],
         unknownComponents: [],
         lastComponents: [],
+        lastMasterComponents: [],
         zkServerInstalled: false
       })).to.be.true;
     });
@@ -3257,6 +3274,21 @@ describe('App.MainHostDetailsController', function () {
               'core-site': undefined,
               'hdfs-site': undefined
             }
+          },
+          {
+            properties: {
+              'kms-site': {
+                'hadoop.kms.cache.enable': 'true',
+                'hadoop.kms.cache.timeout.ms': '600000',
+                'hadoop.kms.current.key.cache.timeout.ms': '30000',
+                'hadoop.kms.authentication.signer.secret.provider': 'random',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type': 'kerberos',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string': '#HOSTNAME#:#PORT#,...'
+              }
+            },
+            properties_attributes: {
+              'kms-site': undefined
+            }
           }
         ]
       },
@@ -3275,6 +3307,21 @@ describe('App.MainHostDetailsController', function () {
               'core-site': undefined,
               'hdfs-site': undefined
             }
+          },
+          {
+            properties: {
+              'kms-site': {
+                'hadoop.kms.cache.enable': 'false',
+                'hadoop.kms.cache.timeout.ms': '0',
+                'hadoop.kms.current.key.cache.timeout.ms': '0',
+                'hadoop.kms.authentication.signer.secret.provider': 'zookeeper',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type': 'none',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string': 'host1:2181,host2:2181'
+              }
+            },
+            properties_attributes: {
+              'kms-site': undefined
+            }
           }
         ]
       }
@@ -3282,11 +3329,20 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.spy(controller, 'saveConfigsBatch');
+      sinon.stub(App.Service, 'find', function () {
+        return [
+          Em.Object.create({
+            displayName: 'service',
+            serviceName: 'RANGER_KMS'
+          })
+        ];
+      });
       sinon.stub(controller, 'saveLoadedConfigs', Em.K);
     });
 
     afterEach(function () {
       controller.saveConfigsBatch.restore();
+      App.Service.find.restore();
       controller.saveLoadedConfigs.restore();
     });
 
@@ -3309,6 +3365,17 @@ describe('App.MainHostDetailsController', function () {
               type: 'hdfs-site',
               properties: {
                 'dfs.encryption.key.provider.uri': 'kms://http@host2:port/kms'
+              }
+            },
+            {
+              type: 'kms-site',
+              properties: {
+                'hadoop.kms.cache.enable': 'true',
+                'hadoop.kms.cache.timeout.ms': '600000',
+                'hadoop.kms.current.key.cache.timeout.ms': '30000',
+                'hadoop.kms.authentication.signer.secret.provider': 'random',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type': 'kerberos',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string': '#HOSTNAME#:#PORT#,...'
               }
             }
           ]

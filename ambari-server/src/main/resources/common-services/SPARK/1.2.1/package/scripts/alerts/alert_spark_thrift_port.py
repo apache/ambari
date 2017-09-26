@@ -44,7 +44,7 @@ HIVE_SERVER2_PRINCIPAL_KEY = '{{hive-site/hive.server2.authentication.kerberos.p
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
 
-THRIFT_PORT_DEFAULT = 10015
+THRIFT_PORT_DEFAULT = 10001
 HIVE_SERVER_TRANSPORT_MODE_DEFAULT = 'binary'
 
 HIVEUSER_DEFAULT = 'hive'
@@ -128,7 +128,10 @@ def execute(configurations={}, parameters={}, host_name=None):
         if host_name is None:
             host_name = socket.getfqdn()
 
-        beeline_url = ['jdbc:hive2://{host_name}:{port}/', "transportMode={transport_mode}"]
+        if security_enabled:
+            beeline_url = ["'jdbc:hive2://{host_name}:{port}/default;principal={hive_principal}'","transportMode={transport_mode}"]
+        else:
+            beeline_url = ["'jdbc:hive2://{host_name}:{port}/default'","transportMode={transport_mode}"]
         # append url according to used transport
 
         beeline_cmd = os.path.join(spark_home, "bin", "beeline")

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -54,7 +54,7 @@ public class UpgradePack {
 
   private static final String ALL_VERSIONS = "*";
 
-  private static Logger LOG = LoggerFactory.getLogger(UpgradePack.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradePack.class);
 
   /**
    * Name of the file without the extension, such as upgrade-2.2

@@ -414,8 +414,10 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       final String sanitizedName = sanitizeName(name);
 
       try {
-        cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
-        populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+        if (!isExcludedMetric(sanitizedName)) {
+          cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
+          populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+        }
       } catch (NumberFormatException ex) {
         LOG.debug(ex.getMessage());
       }

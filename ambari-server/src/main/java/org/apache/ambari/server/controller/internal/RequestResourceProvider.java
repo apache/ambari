@@ -129,6 +129,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String ACTION_ID = "action";
   public static final String INPUTS_ID = "parameters";
   public static final String EXLUSIVE_ID = "exclusive";
+  public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
 
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
@@ -250,7 +251,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
                 ? null
                 : actionDefinition.getPermissions();
 
-            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, permissions)) {
+            // here goes ResourceType handling for some specific custom actions
+            ResourceType customActionResourceType = resourceType;
+            if (actionName.contains("check_host")) { // check_host custom action
+              customActionResourceType = ResourceType.CLUSTER;
+            }
+
+            if (!AuthorizationHelper.isAuthorized(customActionResourceType, resourceId, permissions)) {
               throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the action %s.", actionName));
             }
           }
@@ -444,16 +451,18 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> resourceFilterList = null;
     Set<Map<String, Object>> resourceFilters;
 
+    Map<String, String> params = new HashMap<>();
     Object resourceFilterObj = propertyMap.get(REQUEST_RESOURCE_FILTER_ID);
     if (resourceFilterObj != null && resourceFilterObj instanceof HashSet) {
       resourceFilters = (HashSet<Map<String, Object>>) resourceFilterObj;
       resourceFilterList = new ArrayList<>();
 
       for (Map<String, Object> resourceMap : resourceFilters) {
+        params.put(HAS_RESOURCE_FILTERS, "true");
         resourceFilterList.addAll(parseRequestResourceFilter(resourceMap,
           (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID)));
       }
-      LOG.debug("RequestResourceFilters : " + resourceFilters);
+      LOG.debug("RequestResourceFilters : {}", resourceFilters);
     }
     // Extract operation level property
     RequestOperationLevel operationLevel = null;
@@ -461,7 +470,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       operationLevel = new RequestOperationLevel(requestInfoProperties);
     }
 
-    Map<String, String> params = new HashMap<>();
     String keyPrefix = INPUTS_ID + "/";
     for (String key : requestInfoProperties.keySet()) {
       if (key.startsWith(keyPrefix)) {
@@ -658,9 +666,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         status = org.apache.ambari.server.actionmanager.RequestStatus.valueOf(requestStatus);
       }
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a Get Request Status request"
-            + ", requestId=null"
-            + ", requestStatus=" + status);
+        LOG.debug("Received a Get Request Status request, requestId=null, requestStatus={}", status);
       }
 
       maxResults = (maxResults != null) ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE;
@@ -796,13 +802,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     final CalculatedStatus status;
     LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
     if (summary.isEmpty() && null != logicalRequest) {
-      // in this case, it appears that there are no tasks but this is a logical
+      // In this case, it appears that there are no tasks but this is a logical
       // topology request, so it's a matter of hosts simply not registering yet
-      // for tasks to be created
-      if (logicalRequest.hasPendingHostRequests()) {
-        status = CalculatedStatus.PENDING;
-      } else {
+      // for tasks to be created ==> status = PENDING.
+      // For a new LogicalRequest there should be at least one HostRequest,
+      // while if they were removed already ==> status = COMPLETED.
+      if (logicalRequest.getHostRequests().isEmpty()) {
         status = CalculatedStatus.COMPLETED;
+      } else {
+        status = CalculatedStatus.PENDING;
       }
     } else {
       // there are either tasks or this is not a logical request, so do normal

@@ -41,7 +41,7 @@ from ambari_server.serverConfiguration import configDefaults, get_resources_loca
   update_database_name_property, get_admin_views_dir, get_views_dir, get_views_jars, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
-  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY
+  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
@@ -60,10 +60,6 @@ SCHEMA_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
                             "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" + \
                             " > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
-STACK_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
-                           "org.apache.ambari.server.upgrade.StackUpgradeHelper" + \
-                           " {2} {3} > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
-
 SCHEMA_UPGRADE_HELPER_CMD_DEBUG = "{0} " \
                          "-server -XX:NewRatio=2 " \
                          "-XX:+UseConcMarkSweepGC " + \
@@ -76,52 +72,6 @@ SCHEMA_UPGRADE_HELPER_CMD_DEBUG = "{0} " \
 SCHEMA_UPGRADE_DEBUG = False
 
 SUSPEND_START_MODE = False
-
-#
-# Stack upgrade
-#
-
-def upgrade_stack(args):
-  logger.info("Upgrade stack.")
-  if not is_root():
-    err = 'Ambari-server upgradestack should be run with ' \
-          'root-level privileges'
-    raise FatalException(4, err)
-
-  check_database_name_property()
-
-  try:
-    stack_id = args[1]
-  except IndexError:
-    #stack_id is mandatory
-    raise FatalException("Invalid number of stack upgrade arguments")
-
-  try:
-    repo_url = args[2]
-  except IndexError:
-    repo_url = None
-
-  try:
-    repo_url_os = args[3]
-  except IndexError:
-    repo_url_os = None
-
-  parser = optparse.OptionParser()
-  parser.add_option("-d", type="int", dest="database_index")
-
-  db = get_ambari_properties()[JDBC_DATABASE_PROPERTY]
-
-  idx = LINUX_DBMS_KEYS_LIST.index(db)
-
-  (options, opt_args) = parser.parse_args(["-d {0}".format(idx)])
-
-  stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-  retcode = run_stack_upgrade(options, stack_name, stack_version, repo_url, repo_url_os)
-
-  if not retcode == 0:
-    raise FatalException(retcode, 'Stack upgrade failed.')
-
-  return retcode
 
 def load_stack_values(version, filename):
   import xml.etree.ElementTree as ET
@@ -143,52 +93,6 @@ def load_stack_values(version, filename):
 
   return values
 
-
-def run_stack_upgrade(args, stackName, stackVersion, repo_url, repo_url_os):
-  jdk_path = get_java_exe_path()
-  if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
-    return 1
-  stackId = {}
-  stackId[stackName] = stackVersion
-  if repo_url is not None:
-    stackId['repo_url'] = repo_url
-  if repo_url_os is not None:
-    stackId['repo_url_os'] = repo_url_os
-
-  serverClassPath = ServerClassPath(get_ambari_properties(), args)
-  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, serverClassPath.get_full_ambari_classpath_escaped_for_shell(),
-                                            "updateStackId",
-                                            "'" + json.dumps(stackId) + "'")
-  (retcode, stdout, stderr) = run_os_command(command)
-  print_info_msg("Return code from stack upgrade command, retcode = {0}".format(str(retcode)))
-  if retcode > 0:
-    print_error_msg("Error executing stack upgrade, please check the server logs.")
-  return retcode
-
-def run_metainfo_upgrade(args, keyValueMap=None):
-  jdk_path = get_java_exe_path()
-  if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
-
-  retcode = 1
-  if keyValueMap:
-    serverClassPath = ServerClassPath(get_ambari_properties(), args)
-    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, serverClassPath.get_full_ambari_classpath_escaped_for_shell(),
-                                              'updateMetaInfo',
-                                              "'" + json.dumps(keyValueMap) + "'")
-    (retcode, stdout, stderr) = run_os_command(command)
-    print_info_msg("Return code from stack upgrade command, retcode = {0}".format(str(retcode)))
-    if retcode > 0:
-      print_error_msg("Error executing metainfo upgrade, please check the server logs.")
-
-  return retcode
-
-
 #
 # Repo upgrade
 #
@@ -202,47 +106,6 @@ def change_objects_owner(args):
   dbms = factory.create(args, properties)
 
   dbms.change_db_files_owner()
-
-def upgrade_local_repo(args):
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  stack_location = get_stack_location(properties)
-  stack_root_local = os.path.join(stack_location, "HDPLocal")
-  if not os.path.exists(stack_root_local):
-    print_info_msg("HDPLocal stack directory does not exist, skipping")
-    return
-
-  stack_root = os.path.join(stack_location, "HDP")
-  if not os.path.exists(stack_root):
-    print_info_msg("HDP stack directory does not exist, skipping")
-    return
-
-  for stack_version_local in os.listdir(stack_root_local):
-    repo_file_local = os.path.join(stack_root_local, stack_version_local, "repos", "repoinfo.xml.rpmsave")
-    if not os.path.exists(repo_file_local):
-      repo_file_local = os.path.join(stack_root_local, stack_version_local, "repos", "repoinfo.xml")
-
-    repo_file = os.path.join(stack_root, stack_version_local, "repos", "repoinfo.xml")
-
-    print_info_msg("Local repo file: {0}".format(repo_file_local))
-    print_info_msg("Repo file: {0}".format(repo_file_local))
-
-    metainfo_update_items = {}
-
-    if os.path.exists(repo_file_local) and os.path.exists(repo_file):
-      local_values = load_stack_values(stack_version_local, repo_file_local)
-      repo_values = load_stack_values(stack_version_local, repo_file)
-      for k, v in local_values.iteritems():
-        if repo_values.has_key(k):
-          local_url = local_values[k]
-          repo_url = repo_values[k]
-          if repo_url != local_url:
-            metainfo_update_items[k] = local_url
-
-    run_metainfo_upgrade(args, metainfo_update_items)
 
 #
 # Schema upgrade
@@ -384,9 +247,6 @@ def upgrade(args):
   else:
     adjust_directory_permissions(user)
 
-  # local repo
-  upgrade_local_repo(args)
-
   # create jdbc symlinks if jdbc drivers are available in resources
   check_jdbc_drivers(args)
 
@@ -403,6 +263,16 @@ def upgrade(args):
     args.warnings.append("*.py files were not moved from custom_actions to custom_actions/scripts.")
   elif compare_versions(ambari_version, "2.0.0") == 0:
     move_user_custom_actions()
+
+  # Move files installed by package to default views directory to a custom one
+  for views_dir in get_views_dir(properties):
+    root_views_dir = views_dir + "/../"
+
+    if os.path.samefile(root_views_dir, get_default_views_dir()):
+      continue
+
+    for file in glob.glob(get_default_views_dir()+'/*'):
+      shutil.move(file, root_views_dir)
 
   # Remove ADMIN_VIEW directory for upgrading Admin View on Ambari upgrade from 1.7.0 to 2.0.0
   admin_views_dirs = get_admin_views_dir(properties)
@@ -545,6 +415,7 @@ def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_n
                                     old_dir_mask, base_service_dir):
   services = glob.glob(os.path.join(resources_dir, services_search_path))
   managed_services = []
+  is_common_services_base_dir = "common-services" in base_service_dir
   for service in services:
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
       managed_services.append(os.path.basename(service))
@@ -565,10 +436,23 @@ def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_n
         continue
 
       # process dirs only
-      if os.path.isdir(backup_service) and not os.path.islink(backup_service):
-        service_name = os.path.basename(backup_service)
-        if not service_name in managed_services:
-          shutil.copytree(backup_service, os.path.join(current_base_service_dir,service_name))
+      if is_common_services_base_dir:
+        version_dirs_in_backup_service_dir = glob.glob(os.path.join(backup_service,"*"))
+        if os.path.isdir(backup_service) and not os.path.islink(backup_service):
+          service_name = os.path.basename(backup_service)
+          current_service_dir_path = os.path.join(current_base_service_dir, service_name)
+          if not service_name in managed_services:
+            if not os.path.exists(current_service_dir_path):
+              os.makedirs(current_service_dir_path)
+            for version_dir_path in version_dirs_in_backup_service_dir:
+              if not os.path.islink(version_dir_path):
+                version_dir =  os.path.basename(version_dir_path)
+                shutil.copytree(version_dir_path, os.path.join(current_service_dir_path, version_dir))
+      else:
+        if os.path.isdir(backup_service) and not os.path.islink(backup_service):
+          service_name = os.path.basename(backup_service)
+          if not service_name in managed_services:
+            shutil.copytree(backup_service, os.path.join(current_base_service_dir,service_name))
 
 
 

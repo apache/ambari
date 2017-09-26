@@ -29,7 +29,11 @@
       {{else}}
           <span class="context-text" style="    z-index: 1;
       position: relative;">
-        Total: <strong>{{arrangedContent.length}}</strong> files or folders
+        {{#if metaInfo.truncated}}
+            Showing <strong>{{arrangedContent.length}}</strong> files or folders of <strong>{{metaInfo.originalSize}}</strong>
+        {{else}}
+            Total: <strong>{{arrangedContent.length}}</strong> files or folders
+        {{/if}}
       </span>
       {{/if}}
     </div>
@@ -82,7 +86,7 @@
         </div>
         <div class="col-md-4 col-xs-4">
             <div class="row">
-              {{file-search searchText=searchText searchAction="searchFiles"}}
+              {{file-search searchText=filter searchAction="searchAction"}}
             </div>
         </div>
     </div>

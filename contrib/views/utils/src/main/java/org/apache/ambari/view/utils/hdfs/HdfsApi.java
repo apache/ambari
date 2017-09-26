@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.utils.hdfs;
 
+import com.google.common.base.Strings;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,13 +53,14 @@ public class HdfsApi {
       LoggerFactory.getLogger(HdfsApi.class);
 
   private final Configuration conf;
-  private final Map<String, String> authParams;
+  private Map<String, String> authParams;
 
   private FileSystem fs;
   private UserGroupInformation ugi;
 
   /**
    * Constructor
+   *
    * @param configurationBuilder hdfs configuration builder
    * @throws IOException
    * @throws InterruptedException
@@ -74,6 +77,38 @@ public class HdfsApi {
         return FileSystem.get(conf);
       }
     });
+  }
+
+  /**
+   * for testing
+   * @throws IOException
+   * @throws InterruptedException
+   * @throws HdfsApiException
+   */
+  HdfsApi(Configuration configuration, FileSystem fs, UserGroupInformation ugi) throws IOException,
+      InterruptedException, HdfsApiException {
+    if(null != configuration){
+      conf = configuration;
+    }else {
+      conf = new Configuration();
+    }
+
+    UserGroupInformation.setConfiguration(conf);
+    if(null != ugi){
+      this.ugi = ugi;
+    }else {
+      this.ugi = UserGroupInformation.getCurrentUser();
+    }
+
+    if(null != fs){
+      this.fs = fs;
+    }else {
+      this.fs = execute(new PrivilegedExceptionAction<FileSystem>() {
+        public FileSystem run() throws IOException {
+          return FileSystem.get(conf);
+        }
+      });
+    }
   }
 
   private UserGroupInformation getProxyUser() throws IOException {
@@ -101,6 +136,7 @@ public class HdfsApi {
 
   /**
    * List dir operation
+   *
    * @param path path
    * @return array of FileStatus objects
    * @throws FileNotFoundException
@@ -117,7 +153,56 @@ public class HdfsApi {
   }
 
   /**
+   *
+   * @param path : list files and dirs in this path
+   * @param nameFilter : if not empty or null, then file names that contain this are only sent.
+   * @param maxAllowedSize : maximum number of files sent in output. -1 means infinite.
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public DirStatus listdir(final String path, final String nameFilter, int maxAllowedSize) throws FileNotFoundException,
+      IOException, InterruptedException {
+    FileStatus[] fileStatuses = this.listdir(path);
+    return filterAndTruncateDirStatus(nameFilter, maxAllowedSize, fileStatuses);
+  }
+
+  public DirStatus filterAndTruncateDirStatus(String nameFilter, int maxAllowedSize, FileStatus[] fileStatuses) {
+    if(null == fileStatuses){
+      return new DirStatus(null, new DirListInfo(0, false, 0, nameFilter));
+    }
+
+    int originalSize = fileStatuses.length;
+    boolean truncated = false;
+
+    if (!Strings.isNullOrEmpty(nameFilter)) {
+      List<FileStatus> filteredList = new LinkedList<>();
+      for(FileStatus fileStatus : fileStatuses){
+        if(maxAllowedSize >=0 && maxAllowedSize <= filteredList.size()){
+          truncated = true;
+          break;
+        }
+        if(fileStatus.getPath().getName().contains(nameFilter)){
+          filteredList.add(fileStatus);
+        }
+      }
+      fileStatuses = filteredList.toArray(new FileStatus[0]);
+    }
+
+    if(maxAllowedSize >=0 && fileStatuses.length > maxAllowedSize) { // in cases where name filter loop is not executed.
+      truncated = true;
+      fileStatuses = Arrays.copyOf(fileStatuses, maxAllowedSize);
+    }
+
+    int finalSize = fileStatuses.length;
+
+    return new DirStatus(fileStatuses, new DirListInfo(originalSize, truncated, finalSize, nameFilter));
+  }
+
+  /**
    * Get file status
+   *
    * @param path path
    * @return file status
    * @throws IOException
@@ -135,6 +220,7 @@ public class HdfsApi {
 
   /**
    * Make directory
+   *
    * @param path path
    * @return success
    * @throws IOException
@@ -151,6 +237,7 @@ public class HdfsApi {
 
   /**
    * Rename
+   *
    * @param src source path
    * @param dst destination path
    * @return success
@@ -168,6 +255,7 @@ public class HdfsApi {
 
   /**
    * Check is trash enabled
+   *
    * @return true if trash is enabled
    * @throws Exception
    */
@@ -182,6 +270,7 @@ public class HdfsApi {
 
   /**
    * Home directory
+   *
    * @return home directory
    * @throws Exception
    */
@@ -195,6 +284,7 @@ public class HdfsApi {
 
   /**
    * Hdfs Status
+   *
    * @return home directory
    * @throws Exception
    */
@@ -208,6 +298,7 @@ public class HdfsApi {
 
   /**
    * Trash directory
+   *
    * @return trash directory
    * @throws Exception
    */
@@ -236,7 +327,7 @@ public class HdfsApi {
   /**
    * Trash directory path.
    *
-   * @param    filePath        the path to the file
+   * @param filePath the path to the file
    * @return trash directory path for the file
    * @throws Exception
    */
@@ -251,6 +342,7 @@ public class HdfsApi {
 
   /**
    * Empty trash
+   *
    * @return
    * @throws Exception
    */
@@ -266,6 +358,7 @@ public class HdfsApi {
 
   /**
    * Move to trash
+   *
    * @param path path
    * @return success
    * @throws IOException
@@ -282,7 +375,8 @@ public class HdfsApi {
 
   /**
    * Delete
-   * @param path path
+   *
+   * @param path      path
    * @param recursive delete recursive
    * @return success
    * @throws IOException
@@ -299,7 +393,8 @@ public class HdfsApi {
 
   /**
    * Create file
-   * @param path path
+   *
+   * @param path      path
    * @param overwrite overwrite existent file
    * @return output stream
    * @throws IOException
@@ -316,6 +411,7 @@ public class HdfsApi {
 
   /**
    * Open file
+   *
    * @param path path
    * @return input stream
    * @throws IOException
@@ -332,7 +428,8 @@ public class HdfsApi {
 
   /**
    * Change permissions
-   * @param path path
+   *
+   * @param path        path
    * @param permissions permissions in format rwxrwxrwx
    * @throws IOException
    * @throws InterruptedException
@@ -353,7 +450,8 @@ public class HdfsApi {
 
   /**
    * Copy file
-   * @param src source path
+   *
+   * @param src  source path
    * @param dest destination path
    * @throws java.io.IOException
    * @throws InterruptedException
@@ -380,8 +478,9 @@ public class HdfsApi {
 
   /**
    * Executes action on HDFS using doAs
+   *
    * @param action strategy object
-   * @param <T> result type
+   * @param <T>    result type
    * @return result of operation
    * @throws IOException
    * @throws InterruptedException
@@ -419,10 +518,9 @@ public class HdfsApi {
    * Converts a Hadoop permission into a Unix permission symbolic representation
    * (i.e. -rwxr--r--) or default if the permission is NULL.
    *
-   * @param p
-   *          Hadoop permission.
+   * @param p Hadoop permission.
    * @return the Unix permission symbolic representation or default if the
-   *         permission is NULL.
+   * permission is NULL.
    */
   private static String permissionToString(FsPermission p) {
     return (p == null) ? "default" : "-" + p.getUserAction().SYMBOL
@@ -435,8 +533,7 @@ public class HdfsApi {
    * specified URL.
    * <p/>
    *
-   * @param status
-   *          Hadoop file status.
+   * @param status Hadoop file status.
    * @return The JSON representation of the file status.
    */
   public Map<String, Object> fileStatusToJSON(FileStatus status) {
@@ -465,8 +562,7 @@ public class HdfsApi {
    * specified URL.
    * <p/>
    *
-   * @param status
-   *          Hadoop file status array.
+   * @param status Hadoop file status array.
    * @return The JSON representation of the file status array.
    */
   @SuppressWarnings("unchecked")

@@ -19,13 +19,20 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Conditions;
 
 import io.swagger.annotations.ApiModel;
 
 @ApiModel
 public class LSServerConditions {
+  @Valid
+  @NotNull
   private LSServerFields fields;
+  
+  public LSServerConditions() {}
   
   public LSServerConditions(Conditions conditions) {
     this.fields = new LSServerFields(conditions.getFields());

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,8 +28,8 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewDataMigrationUtility;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.view.migration.ViewDataMigrationException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,7 +46,7 @@ public class ViewDataMigrationService extends BaseService {
   /**
    * Logger.
    */
-  private static final Log LOG = LogFactory.getLog(ViewDataMigrationService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewDataMigrationService.class);
 
   /**
    * The singleton view registry.

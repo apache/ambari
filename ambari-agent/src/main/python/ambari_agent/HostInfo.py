@@ -21,6 +21,7 @@ limitations under the License.
 import glob
 import logging
 import os
+import pwd
 import re
 import shlex
 import socket
@@ -170,13 +171,13 @@ class HostInfoLinux(HostInfo):
     "hue", "yarn", "tez", "storm", "falcon", "kafka", "knox", "ams",
     "hadoop", "spark", "accumulo", "atlas", "mahout", "ranger", "kms", "zeppelin"
   ]
-  
+
   # Default set of directories that are checked for existence of files and folders
   DEFAULT_BASEDIRS = [
     "/etc", "/var/run", "/var/log", "/usr/lib", "/var/lib", "/var/tmp", "/tmp", "/var",
     "/hadoop", "/usr/hdp"
   ]
-  
+
   # Exact directories names which are checked for existance
   EXACT_DIRECTORIES = [
     "/kafka-logs"
@@ -193,15 +194,17 @@ class HostInfoLinux(HostInfo):
     super(HostInfoLinux, self).__init__(config)
 
   def checkUsers(self, users, results):
-    f = open('/etc/passwd', 'r')
-    for userLine in f:
-      fields = userLine.split(":")
-      if fields[0] in users:
-        result = {}
-        result['name'] = fields[0]
-        result['homeDir'] = fields[5]
-        result['status'] = "Available"
-        results.append(result)
+    for user in users:
+      try:
+          pw = pwd.getpwnam(user)
+          result = {}
+          result['name'] = pw.pw_name
+          result['homeDir'] = pw.pw_dir
+          result['status'] = "Available"
+          results.append(result)
+      except Exception as e:
+          #User doesnot exist, so skip it
+          pass
 
   def checkFolders(self, basePaths, projectNames, exactDirectories, existingUsers, dirs):
     foldersToIgnore = []
@@ -216,13 +219,13 @@ class HostInfoLinux(HostInfo):
             obj['type'] = self.dirType(path)
             obj['name'] = path
             dirs.append(obj)
-            
+
       for path in exactDirectories:
         if os.path.exists(path):
           obj = {}
           obj['type'] = self.dirType(path)
           obj['name'] = path
-          dirs.append(obj)     
+          dirs.append(obj)
     except:
       logger.exception("Checking folders failed")
 

@@ -21,12 +21,11 @@ limitations under the License.
 __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_package_dirs"]
 
 # Python Imports
-import copy
 import os
 import subprocess
+import ambari_simplejson as json
 
 # Local Imports
-import version
 import stack_select
 from resource_management.core import shell
 from resource_management.libraries.functions.format import format
@@ -41,191 +40,6 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
-
-STACK_ROOT_PATTERN = "{{ stack_root }}"
-
-_PACKAGE_DIRS = {
-  "atlas": [
-    {
-      "conf_dir": "/etc/atlas/conf",
-      "current_dir": "{0}/current/atlas-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "accumulo": [
-    {
-      "conf_dir": "/etc/accumulo/conf",
-      "current_dir": "{0}/current/accumulo-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "falcon": [
-    {
-      "conf_dir": "/etc/falcon/conf",
-      "current_dir": "{0}/current/falcon-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hadoop": [
-    {
-      "conf_dir": "/etc/hadoop/conf",
-      "current_dir": "{0}/current/hadoop-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hbase": [
-    {
-      "conf_dir": "/etc/hbase/conf",
-      "current_dir": "{0}/current/hbase-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hive": [
-    {
-      "conf_dir": "/etc/hive/conf",
-      "current_dir": "{0}/current/hive-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hive2": [
-    {
-      "conf_dir": "/etc/hive2/conf",
-      "current_dir": "{0}/current/hive-server2-hive2/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "kafka": [
-    {
-      "conf_dir": "/etc/kafka/conf",
-      "current_dir": "{0}/current/kafka-broker/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "knox": [
-    {
-      "conf_dir": "/etc/knox/conf",
-      "current_dir": "{0}/current/knox-server/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "mahout": [
-    {
-      "conf_dir": "/etc/mahout/conf",
-      "current_dir": "{0}/current/mahout-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "nifi": [
-    {
-      "conf_dir": "/etc/nifi/conf",
-      "current_dir": "{0}/current/nifi/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "oozie": [
-    {
-      "conf_dir": "/etc/oozie/conf",
-      "current_dir": "{0}/current/oozie-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "phoenix": [
-    {
-      "conf_dir": "/etc/phoenix/conf",
-      "current_dir": "{0}/current/phoenix-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-admin": [
-    {
-      "conf_dir": "/etc/ranger/admin/conf",
-      "current_dir": "{0}/current/ranger-admin/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-tagsync": [
-    {
-      "conf_dir": "/etc/ranger/tagsync/conf",
-      "current_dir": "{0}/current/ranger-tagsync/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-kms": [
-    {
-      "conf_dir": "/etc/ranger/kms/conf",
-      "current_dir": "{0}/current/ranger-kms/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "ranger-usersync": [
-    {
-      "conf_dir": "/etc/ranger/usersync/conf",
-      "current_dir": "{0}/current/ranger-usersync/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "slider": [
-    {
-      "conf_dir": "/etc/slider/conf",
-      "current_dir": "{0}/current/slider-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "spark": [
-    {
-      "conf_dir": "/etc/spark/conf",
-      "current_dir": "{0}/current/spark-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "zeppelin": [
-    {
-      "conf_dir": "/etc/zeppelin/conf",
-      "current_dir": "{0}/current/zeppelin-server/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "spark2": [
-    {
-      "conf_dir": "/etc/spark2/conf",
-      "current_dir": "{0}/current/spark2-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "sqoop": [
-    {
-      "conf_dir": "/etc/sqoop/conf",
-      "current_dir": "{0}/current/sqoop-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "storm": [
-    {
-      "conf_dir": "/etc/storm/conf",
-      "current_dir": "{0}/current/storm-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "tez": [
-    {
-      "conf_dir": "/etc/tez/conf",
-      "current_dir": "{0}/current/tez-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "zookeeper": [
-    {
-      "conf_dir": "/etc/zookeeper/conf",
-      "current_dir": "{0}/current/zookeeper-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "pig": [
-    {
-      "conf_dir": "/etc/pig/conf",
-      "current_dir": "{0}/current/pig-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "flume": [
-    {
-      "conf_dir": "/etc/flume/conf",
-      "current_dir": "{0}/current/flume-server/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "storm-slider-client": [
-    {
-      "conf_dir": "/etc/storm-slider-client/conf",
-      "current_dir": "{0}/current/storm-slider-client/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
-  "hive-hcatalog": [
-    {
-      "conf_dir": "/etc/hive-webhcat/conf",
-      "prefix": "/etc/hive-webhcat",
-      "current_dir": "{0}/current/hive-webhcat/etc/webhcat".format(STACK_ROOT_PATTERN)
-    },
-    {
-      "conf_dir": "/etc/hive-hcatalog/conf",
-      "prefix": "/etc/hive-hcatalog",
-      "current_dir": "{0}/current/hive-webhcat/etc/hcatalog".format(STACK_ROOT_PATTERN)
-    }
-  ]
-}
 
 DIRECTORY_TYPE_BACKUP = "backup"
 DIRECTORY_TYPE_CURRENT = "current"
@@ -242,13 +56,35 @@ def get_package_dirs():
   Get package dir mappings
   :return:
   """
+  stack_name = default("/hostLevelParams/stack_name", None)
+  if stack_name is None:
+    raise Fail("The stack name is not present in the command. Packages for conf-select tool cannot be loaded.")
+
+  stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
+  if stack_packages_config is None:
+    raise Fail("The stack packages are not defined on the command. Unable to load packages for the conf-select tool")
+
+  data = json.loads(stack_packages_config)
+
+  if stack_name not in data:
+    raise Fail(
+      "Cannot find conf-select packages for the {0} stack".format(stack_name))
+
+  conf_select_key = "conf-select"
+  data = data[stack_name]
+  if conf_select_key not in data:
+    raise Fail(
+      "There are no conf-select packages defined for this command for the {0} stack".format(stack_name))
+
+  package_dirs = data[conf_select_key]
+
   stack_root = Script.get_stack_root()
-  package_dirs = copy.deepcopy(_PACKAGE_DIRS)
   for package_name, directories in package_dirs.iteritems():
     for dir in directories:
       current_dir = dir['current_dir']
-      current_dir = current_dir.replace(STACK_ROOT_PATTERN, stack_root)
+      current_dir =  current_dir.format(stack_root)
       dir['current_dir'] = current_dir
+
   return package_dirs
 
 def create(stack_name, package, version, dry_run = False):
@@ -400,7 +236,6 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   stack_root = Script.get_stack_root()
   stack_version = Script.get_stack_version()
   version = None
-  allow_setting_conf_select_symlink = False
 
   if not Script.in_stack_upgrade():
     # During normal operation, the HDP stack must be 2.3 or higher
@@ -414,27 +249,10 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
 
       if not os.path.islink(hadoop_conf_dir) and stack_name and version:
         version = str(version)
-        allow_setting_conf_select_symlink = True
   else:
-    # During an upgrade/downgrade, which can be a Rolling or Express Upgrade, need to calculate it based on the version
-    '''
-    Whenever upgrading to HDP 2.2, or downgrading back to 2.2, need to use /etc/hadoop/conf
-    Whenever upgrading to HDP 2.3, or downgrading back to 2.3, need to use a versioned hadoop conf dir
-
-    Type__|_Source_|_Target_|_Direction_____________|_Comment_____________________________________________________________
-    Normal|        | 2.2    |                       | Use /etc/hadoop/conf
-    Normal|        | 2.3    |                       | Use /etc/hadoop/conf, which should be a symlink to <stack-root>/current/hadoop-client/conf
-    EU    | 2.1    | 2.3    | Upgrade               | Use versioned <stack-root>/current/hadoop-client/conf
-          |        |        | No Downgrade Allowed  | Invalid
-    EU/RU | 2.2    | 2.2.*  | Any                   | Use <stack-root>/current/hadoop-client/conf
-    EU/RU | 2.2    | 2.3    | Upgrade               | Use <stack-root>/$version/hadoop/conf, which should be a symlink destination
-          |        |        | Downgrade             | Use <stack-root>/current/hadoop-client/conf
-    EU/RU | 2.3    | 2.3.*  | Any                   | Use <stack-root>/$version/hadoop/conf, which should be a symlink destination
-    '''
-
     # The "stack_version" is the desired stack, e.g., 2.2 or 2.3
     # In an RU, it is always the desired stack, and doesn't change even during the Downgrade!
-    # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is 
+    # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is
     # rm /etc/[component]/conf and then mv /etc/[component]/conf.backup /etc/[component]/conf
     if stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version):
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
@@ -443,13 +261,16 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
       # is the version upgrading/downgrading to.
       stack_info = stack_select._get_upgrade_stack()
 
-      if stack_info is not None:
-        stack_name = stack_info[0]
-        version = stack_info[1]
-      else:
-        raise Fail("Unable to get parameter 'version'")
-      
-      Logger.info("In the middle of a stack upgrade/downgrade for Stack {0} and destination version {1}, determining which hadoop conf dir to use.".format(stack_name, version))
+      if stack_info is None:
+        raise Fail("Unable to retrieve the upgrade/downgrade stack information from the request")
+
+      stack_name = stack_info[0]
+      version = stack_info[1]
+
+      Logger.info(
+        "An upgrade/downgrade for {0}-{1} is in progress, determining which hadoop conf dir to use.".format(
+          stack_name, version))
+
       # This is the version either upgrading or downgrading to.
       if version and check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
         # Determine if <stack-selector-tool> has been run and if not, then use the current
@@ -465,21 +286,6 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
         # Only change the hadoop_conf_dir path, don't <conf-selector-tool> this older version
         hadoop_conf_dir = os.path.join(stack_root, version, "hadoop", "conf")
         Logger.info("Hadoop conf dir: {0}".format(hadoop_conf_dir))
-
-        allow_setting_conf_select_symlink = True
-
-  if allow_setting_conf_select_symlink:
-    # If not in the middle of an upgrade and on HDP 2.3 or higher, or if
-    # upgrading stack to version 2.3.0.0 or higher (which may be upgrade or downgrade), then consider setting the
-    # symlink for /etc/hadoop/conf.
-    # If a host does not have any HDFS or YARN components (e.g., only ZK), then it will not contain /etc/hadoop/conf
-    # Therefore, any calls to <conf-selector-tool> will fail.
-    # For that reason, if the hadoop conf directory exists, then make sure it is set.
-    if os.path.exists(hadoop_conf_dir):
-      conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
-      Logger.info("The hadoop conf dir {0} exists, will call {1} on it for version {2}".format(
-              hadoop_conf_dir, conf_selector_name, version))
-      select(stack_name, "hadoop", version)
 
   Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
   return hadoop_conf_dir
@@ -588,7 +394,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
 
 
   # <stack-root>/current/[component] is already set to to the correct version, e.g., <stack-root>/[version]/[component]
-  
+
   select(stack_name, package, version, ignore_errors = True)
 
   # Symlink /etc/[component]/conf to /etc/[component]/conf.backup

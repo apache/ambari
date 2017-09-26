@@ -460,7 +460,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
       route: '/kerberos',
       enter: function (router, transition) {
-        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS')) {
+        if (router.get('loggedIn') && (!App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || !App.supports.enableToggleKerberos)) {
           router.transitionTo('main.dashboard.index');
         }
       },

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -133,13 +133,13 @@ public class StackManagerTest {
   @Test
   public void testGetsStacks() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
-    assertEquals(20, stacks.size());
+    assertEquals(21, stacks.size());
   }
 
   @Test
   public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
-    assertEquals(16, stacks.size());
+    assertEquals(17, stacks.size());
 
     stacks = stackManager.getStacks("OTHER");
     assertEquals(2, stacks.size());
@@ -289,6 +289,7 @@ public class StackManagerTest {
 
     //should include all stacks in hierarchy
     assertEquals(18, services.size());
+
     HashSet<String> expectedServices = new HashSet<>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");

@@ -16,6 +16,6 @@
 
 export INFRA_MANAGER_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=5007,server=y,suspend=n"
 touch /root/infra-manager.log
-/root/ambari-infra-manager/infraManager.sh --port 61890 > /root/infra-manager.log
+/root/ambari-infra-manager/infraManager.sh > /root/infra-manager.log
 tail -f /root/infra-manager.log
 

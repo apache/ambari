@@ -34,7 +34,6 @@ angular.module('ambariAdminConsole')
   $scope.useRedhatSatellite = false;
 
   $scope.clusterName = $routeParams.clusterName;
-  $scope.subversionPattern = /^\d+\.\d+(-\d+)?$/;
   $scope.upgradeStack = {
     stack_name: '',
     stack_version: '',
@@ -196,8 +195,7 @@ angular.module('ambariAdminConsole')
           if (!existingOSHash[stackOs.OperatingSystems.os_type]) {
             stackOs.selected = false;
             stackOs.repositories.forEach(function(repo) {
-              repo.Repositories.base_url = '';
-              repo.Repositories.initial_base_url = '';
+              repo.Repositories.initial_base_url = repo.Repositories.default_base_url;
             });
             $scope.osList.push(stackOs);
           }
@@ -291,6 +289,12 @@ angular.module('ambariAdminConsole')
         $scope.updateObj.operating_systems.push(os);
       }
     });
+
+    if ( $scope.useRedhatSatellite ){
+      angular.forEach( $scope.osList, function (os) {
+        os.repositories = [];
+      } )
+    }
 
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
     return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
@@ -453,8 +457,10 @@ angular.module('ambariAdminConsole')
 
   $scope.setVersionSelected = function (version) {
     var response = version;
+    var stackVersion = response.updateObj.RepositoryVersions || response.updateObj.VersionDefinition;
     $scope.id = response.id;
-    $scope.isPatch = response.type == 'PATCH';
+    $scope.isPatch = stackVersion.type === 'PATCH';
+    $scope.isMaint = stackVersion.type === 'MAINT';
     $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
     $scope.displayName = response.displayName || $t('common.NA');
     $scope.actualVersion = response.repositoryVersion || response.actualVersion || $t('common.NA');
@@ -465,10 +471,7 @@ angular.module('ambariAdminConsole')
       stack_version: response.stackVersion,
       display_name: response.displayName || $t('common.NA')
     };
-    $scope.services = response.services.filter(function (service) {
-          var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
-          return skipServices.indexOf(service.name) === -1;
-        }) || [];
+    $scope.activeStackVersion.services = Stack.filterAvailableServices(response);
     $scope.repoVersionFullName = response.repoVersionFullName;
     $scope.osList = response.osList;
 

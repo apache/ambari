@@ -19,12 +19,21 @@ limitations under the License.
 '''
 
 import os
+import time
 import sys
 import urllib2
 import socket
+from ambari_commons import OSCheck
 from functools import wraps
 
 from exceptions import FatalException, NonFatalException, TimeoutError
+
+if OSCheck.is_windows_family():
+  from ambari_commons.os_windows import os_run_os_command
+else:
+  # MacOS not supported
+  from ambari_commons.os_linux import os_run_os_command
+  pass
 
 from logging_utils import *
 from os_check import OSCheck
@@ -58,6 +67,30 @@ def download_file(link, destination, chunk_size=16 * 1024, progress_func = None)
   force_download_file(link, destination, chunk_size, progress_func = progress_func)
 
 
+def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func = None):
+  print_info_msg("Trying to download {0} to {1} with python lib [urllib2].".format(link, destination))
+  if os.path.exists(destination):
+    print_warning_msg("File {0} already exists, assuming it was downloaded before".format(destination))
+    return
+  try:
+    force_download_file(link, destination, chunk_size, progress_func = progress_func)
+  except:
+    print_error_msg("Download {0} with python lib [urllib2] failed with error: {1}".format(link, str(sys.exc_info())))
+
+  if not os.path.exists(destination):
+    print "Trying to download {0} to {1} with [curl] command.".format(link, destination)
+    #print_info_msg("Trying to download {0} to {1} with [curl] command.".format(link, destination))
+    curl_command = "curl --fail -k -o %s %s" % (destination, link)
+    retcode, out, err = os_run_os_command(curl_command)
+    if retcode != 0:
+      print_error_msg("Download file {0} with [curl] command failed with error: {1}".format(link, out + err))
+
+
+  if not os.path.exists(destination):
+    print_error_msg("Unable to download file {0}!".format(link))
+    print "ERROR: unable to donwload file %s!" % (link)
+
+
 def download_progress(file_name, downloaded_size, blockSize, totalSize):
   percent = int(downloaded_size * 100 / totalSize)
   status = "\r" + file_name
@@ -69,6 +102,17 @@ def download_progress(file_name, downloaded_size, blockSize, totalSize):
       percent, downloaded_size / 1024 / 1024.0, totalSize / 1024 / 1024.0)
   sys.stdout.write(status)
   sys.stdout.flush()
+
+def wait_for_port_opened(hostname, port, tries_count, try_sleep):
+  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  sock.settimeout(2)
+
+  for i in range(tries_count):
+    if sock.connect_ex((hostname, port)) == 0:
+      return True
+    time.sleep(try_sleep)
+
+  return False
 
 
 def find_range_components(meta):

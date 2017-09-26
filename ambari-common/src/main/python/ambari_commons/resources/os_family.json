@@ -22,6 +22,17 @@
           7
         ]
       },
+      "redhat-ppc": {
+        "extends" : "redhat",
+        "distro": [
+          "redhat-ppc",
+          "centos-ppc"
+        ],
+        "versions": [
+          6,
+          7
+        ]
+      },
       "debian": {
         "extends" : "ubuntu",
         "distro": [

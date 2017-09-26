@@ -516,6 +516,11 @@ describe('App.HostPopup', function () {
 
   });
 
+  describe("#initPopup", function() {
+    it("should reset the breadcrumbs", function() {
+      App.HostPopup.initPopup("rootBreadcrumb", Em.Object.create({ services: [] }));
 
-
+      expect(App.HostPopup.get("breadcrumbs")).to.deep.equal([{ label: "rootBreadcrumb" }]);
+    });
+  });
 });

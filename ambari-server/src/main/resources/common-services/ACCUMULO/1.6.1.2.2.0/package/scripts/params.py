@@ -171,6 +171,7 @@ master_hosts = default('/clusterHostInfo/accumulo_master_hosts', [])
 monitor_hosts = default('/clusterHostInfo/accumulo_monitor_hosts', [])
 gc_hosts = default('/clusterHostInfo/accumulo_gc_hosts', [])
 tracer_hosts = default('/clusterHostInfo/accumulo_tracer_hosts', [])
+hostname = status_params.hostname
 
 # security properties
 accumulo_user_keytab = config['configurations']['accumulo-env']['accumulo_user_keytab']
@@ -181,11 +182,13 @@ kinit_path_local = status_params.kinit_path_local
 if security_enabled:
   bare_accumulo_principal = get_bare_principal(config['configurations']['accumulo-site']['general.kerberos.principal'])
   kinit_cmd = format("{kinit_path_local} -kt {accumulo_user_keytab} {accumulo_principal_name};")
+  general_kerberos_keytab = config['configurations']['accumulo-site']['general.kerberos.keytab']
+  general_kerberos_principal = config['configurations']['accumulo-site']['general.kerberos.principal'].replace('_HOST', hostname.lower())
+  accumulo_jaas_file = format("{server_conf_dir}/accumulo_jaas.conf")
 else:
   kinit_cmd = ""
 
 #for create_hdfs_directory
-hostname = status_params.hostname
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

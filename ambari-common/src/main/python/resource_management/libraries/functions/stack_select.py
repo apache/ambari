@@ -22,6 +22,7 @@ limitations under the License.
 import os
 import sys
 import re
+import ambari_simplejson as json
 
 # Local Imports
 from resource_management.core.logger import Logger
@@ -32,57 +33,15 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_tools
+from resource_management.core import shell
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import upgrade_summary
 
 STACK_SELECT_PREFIX = 'ambari-python-wrap'
-
-# a mapping of Ambari server role to <stack-selector-tool> component name for all
-# non-clients
-SERVER_ROLE_DIRECTORY_MAP = {
-  'ACCUMULO_MASTER' : 'accumulo-master',
-  'ACCUMULO_MONITOR' : 'accumulo-monitor',
-  'ACCUMULO_GC' : 'accumulo-gc',
-  'ACCUMULO_TRACER' : 'accumulo-tracer',
-  'ACCUMULO_TSERVER' : 'accumulo-tablet',
-  'ATLAS_SERVER' : 'atlas-server',
-  'FLUME_HANDLER' : 'flume-server',
-  'FALCON_SERVER' : 'falcon-server',
-  'NAMENODE' : 'hadoop-hdfs-namenode',
-  'DATANODE' : 'hadoop-hdfs-datanode',
-  'SECONDARY_NAMENODE' : 'hadoop-hdfs-secondarynamenode',
-  'NFS_GATEWAY' : 'hadoop-hdfs-nfs3',
-  'JOURNALNODE' : 'hadoop-hdfs-journalnode',
-  'HBASE_MASTER' : 'hbase-master',
-  'HBASE_REGIONSERVER' : 'hbase-regionserver',
-  'HIVE_METASTORE' : 'hive-metastore',
-  'HIVE_SERVER' : 'hive-server2',
-  'HIVE_SERVER_INTERACTIVE' : 'hive-server2-hive2',
-  'WEBHCAT_SERVER' : 'hive-webhcat',
-  'KAFKA_BROKER' : 'kafka-broker',
-  'KNOX_GATEWAY' : 'knox-server',
-  'OOZIE_SERVER' : 'oozie-server',
-  'RANGER_ADMIN' : 'ranger-admin',
-  'RANGER_USERSYNC' : 'ranger-usersync',
-  'RANGER_TAGSYNC' : 'ranger-tagsync',
-  'RANGER_KMS' : 'ranger-kms',
-  'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
-  'SPARK_THRIFTSERVER' : 'spark-thriftserver',
-  'NIMBUS' : 'storm-nimbus',
-  'SUPERVISOR' : 'storm-supervisor',
-  'HISTORYSERVER' : 'hadoop-mapreduce-historyserver',
-  'APP_TIMELINE_SERVER' : 'hadoop-yarn-timelineserver',
-  'NODEMANAGER' : 'hadoop-yarn-nodemanager',
-  'RESOURCEMANAGER' : 'hadoop-yarn-resourcemanager',
-  'ZOOKEEPER_SERVER' : 'zookeeper-server',
-
-  # ZKFC is tied to NN since it doesn't have its own componnet in <stack-selector-tool> and there is
-  # a requirement that the ZKFC is installed on each NN
-  'ZKFC' : 'hadoop-hdfs-namenode'
-}
 
 # mapping of service check to <stack-selector-tool> component
 SERVICE_CHECK_DIRECTORY_MAP = {
@@ -113,6 +72,172 @@ HADOOP_DIR_DEFAULTS = {
   "lib": "/usr/lib/hadoop/lib"
 }
 
+PACKAGE_SCOPE_INSTALL = "INSTALL"
+PACKAGE_SCOPE_STANDARD = "STANDARD"
+PACKAGE_SCOPE_PATCH = "PATCH"
+PACKAGE_SCOPE_STACK_SELECT = "STACK-SELECT-PACKAGE"
+
+# the legacy key is used when a package has changed from one version of the stack select tool to another.
+_PACKAGE_SCOPE_LEGACY = "LEGACY"
+
+# the valid scopes which can be requested
+_PACKAGE_SCOPES = (PACKAGE_SCOPE_INSTALL, PACKAGE_SCOPE_STANDARD, PACKAGE_SCOPE_PATCH, PACKAGE_SCOPE_STACK_SELECT)
+
+# the orchestration types which equal to a partial (non-STANDARD) upgrade
+_PARTIAL_ORCHESTRATION_SCOPES = ("PATCH", "MAINT")
+
+def get_package_name(default_package = None):
+  """
+  Gets the stack-select package name for the service name and
+  component from the current command. Not all services/components are used with the
+  stack-select tools, so those will return no packages.
+
+  :return:  the stack-select package name for the command's component or None
+  """
+  config = Script.get_config()
+
+  if 'role' not in config or 'serviceName' not in config:
+    raise Fail("Both the role and the service name must be included in the command in order to determine which packages to use with the stack-select tool")
+
+  service_name = config['serviceName']
+  component_name = config['role']
+
+  # should return a single item
+  try:
+    package = get_packages(PACKAGE_SCOPE_STACK_SELECT, service_name, component_name)
+    if package is None:
+      package = default_package
+
+    return package
+  except:
+    if default_package is not None:
+      return default_package
+    else:
+      raise
+
+
+def is_package_supported(package, supported_packages = None):
+  """
+  Gets whether the specified package is supported by the <stack_select> tool.
+  :param package: the package to check
+  :param supported_packages: the list of supported packages pre-fetched
+  :return: True if the package is support, False otherwise
+  """
+  if supported_packages is None:
+    supported_packages = get_supported_packages()
+
+  if package in supported_packages:
+    return True
+
+  return False
+
+
+def get_supported_packages():
+  """
+  Parses the output from <stack-select> packages and returns an array of the various packages.
+  :return: and array of packages support by <stack-select>
+  """
+  stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
+  command = (STACK_SELECT_PREFIX, stack_selector_path, "packages")
+  code, stdout = shell.call(command, sudo = True,  quiet = True)
+
+  if code != 0 or stdout is None:
+    raise Fail("Unable to query for supported packages using {0}".format(stack_selector_path))
+
+  # turn the output into lines, stripping each line
+  return [line.strip() for line in stdout.splitlines()]
+
+
+def get_packages(scope, service_name = None, component_name = None):
+  """
+  Gets the packages which should be used with the stack's stack-select tool for the
+  specified service/component. Not all services/components are used with the stack-select tools,
+  so those will return no packages.
+
+  :param scope: the scope of the command
+  :param service_name:  the service name, such as ZOOKEEPER
+  :param component_name: the component name, such as ZOOKEEPER_SERVER
+  :return:  the packages to use with stack-select or None
+  """
+  from resource_management.libraries.functions.default import default
+
+  if scope not in _PACKAGE_SCOPES:
+    raise Fail("The specified scope of {0} is not valid".format(scope))
+
+  config = Script.get_config()
+
+  if service_name is None or component_name is None:
+    if 'role' not in config or 'serviceName' not in config:
+      raise Fail("Both the role and the service name must be included in the command in order to determine which packages to use with the stack-select tool")
+
+    service_name = config['serviceName']
+    component_name = config['role']
+
+
+  stack_name = default("/hostLevelParams/stack_name", None)
+  if stack_name is None:
+    raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
+
+  stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
+  if stack_packages_config is None:
+    raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
+
+  data = json.loads(stack_packages_config)
+
+  if stack_name not in data:
+    raise Fail(
+      "Cannot find stack-select packages for the {0} stack".format(stack_name))
+
+  stack_select_key = "stack-select"
+  data = data[stack_name]
+  if stack_select_key not in data:
+    raise Fail(
+      "There are no stack-select packages defined for this command for the {0} stack".format(stack_name))
+
+  # this should now be the dictionary of role name to package name
+  data = data[stack_select_key]
+  service_name = service_name.upper()
+  component_name = component_name.upper()
+
+  if service_name not in data:
+    Logger.info("Skipping stack-select on {0} because it does not exist in the stack-select package structure.".format(service_name))
+    return None
+
+  data = data[service_name]
+
+  if component_name not in data:
+    Logger.info("Skipping stack-select on {0} because it does not exist in the stack-select package structure.".format(component_name))
+    return None
+
+  # this one scope is not an array, so transform it into one for now so we can
+  # use the same code below
+  packages = data[component_name][scope]
+  if scope == PACKAGE_SCOPE_STACK_SELECT:
+    packages = [packages]
+
+  # grab the package name from the JSON and validate it against the packages
+  # that the stack-select tool supports - if it doesn't support it, then try to find the legacy
+  # package name if it exists
+  supported_packages = get_supported_packages()
+  for index, package in enumerate(packages):
+    if not is_package_supported(package, supported_packages=supported_packages):
+      if _PACKAGE_SCOPE_LEGACY in data[component_name]:
+        legacy_package = data[component_name][_PACKAGE_SCOPE_LEGACY]
+        Logger.info(
+          "The package {0} is not supported by this version of the stack-select tool, defaulting to the legacy package of {1}".format(package, legacy_package))
+
+        # use the legacy package
+        packages[index] = legacy_package
+      else:
+        raise Fail("The package {0} is not supported by this version of the stack-select tool.".format(package))
+
+  # transform the array bcak to a single element
+  if scope == PACKAGE_SCOPE_STACK_SELECT:
+    packages = packages[0]
+
+  return packages
+
+
 def select_all(version_to_select):
   """
   Executes <stack-selector-tool> on every component for the specified version. If the value passed in is a
@@ -133,6 +258,38 @@ def select_all(version_to_select):
   command = format('{sudo} {stack_selector_path} set all `ambari-python-wrap {stack_selector_path} versions | grep ^{version_to_select} | tail -1`')
   only_if_command = format('ls -d {stack_root}/{version_to_select}*')
   Execute(command, only_if = only_if_command)
+
+
+def select_packages(version):
+  """
+  Uses the command's service and role to determine the stack-select packages which need to be invoked.
+  If in an upgrade, then the upgrade summary's orchestration is used to determine which packages
+  to install.
+  :param version: the version to select
+  :return: None
+  """
+  package_scope = PACKAGE_SCOPE_STANDARD
+  orchestration = package_scope
+  summary = upgrade_summary.get_upgrade_summary()
+
+  if summary is not None:
+    orchestration = summary.orchestration
+    if orchestration is None:
+      raise Fail("The upgrade summary for does not contain an orchestration type")
+
+    # if the orchestration is patch or maint, use the "patch" key from the package JSON
+    if orchestration.upper() in _PARTIAL_ORCHESTRATION_SCOPES:
+      package_scope = PACKAGE_SCOPE_PATCH
+
+  stack_select_packages = get_packages(package_scope)
+  if stack_select_packages is None:
+    return
+
+  Logger.info("The following packages will be stack-selected to version {0} using a {1} orchestration and {2} scope: {3}".format(
+    version, orchestration.upper(), package_scope, ", ".join(stack_select_packages)))
+
+  for stack_select_package_name in stack_select_packages:
+    select(stack_select_package_name, version)
 
 
 def select(component, version):
@@ -170,15 +327,15 @@ def get_role_component_current_stack_version():
   Gets the current HDP version of the component that this role command is for.
   :return:  the current HDP version of the specified component or None
   """
-  stack_select_component = None
   role = default("/role", "")
   role_command =  default("/roleCommand", "")
+
   stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
   Logger.info("Checking version for {0} via {1}".format(role, stack_selector_name))
-  if role in SERVER_ROLE_DIRECTORY_MAP:
-    stack_select_component = SERVER_ROLE_DIRECTORY_MAP[role]
-  elif role_command == "SERVICE_CHECK" and role in SERVICE_CHECK_DIRECTORY_MAP:
+  if role_command == "SERVICE_CHECK" and role in SERVICE_CHECK_DIRECTORY_MAP:
     stack_select_component = SERVICE_CHECK_DIRECTORY_MAP[role]
+  else:
+    stack_select_component = get_package_name()
 
   if stack_select_component is None:
     if not role:

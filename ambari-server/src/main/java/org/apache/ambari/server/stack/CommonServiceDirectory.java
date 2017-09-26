@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,12 +37,12 @@ public class CommonServiceDirectory extends ServiceDirectory {
     super(servicePath);
   }
 
-  @Override
   /**
    * Obtain the advisor name.
    *
    * @return advisor name
    */
+  @Override
   public String getAdvisorName(String serviceName) {
     if (getAdvisorFile() == null || serviceName == null)
       return null;
@@ -54,10 +54,10 @@ public class CommonServiceDirectory extends ServiceDirectory {
     return advisorName;
   }
 
-  @Override
   /**
    * @return the service name-version (will be used for logging purposes by superclass)
    */
+  @Override
   public String getService() {
     File serviceVersionDir = new File(getAbsolutePath());
     File serviceDir = serviceVersionDir.getParentFile();
@@ -66,19 +66,19 @@ public class CommonServiceDirectory extends ServiceDirectory {
     return service;
   }
 
-  @Override
   /**
    * @return the resources directory
    */
+  @Override
   protected File getResourcesDirectory() {
     File serviceVersionDir = new File(getAbsolutePath());
     return serviceVersionDir.getParentFile().getParentFile().getParentFile();
   }
 
-  @Override
   /**
    * @return the text common-services (will be used for logging purposes by superclass)
    */
+  @Override
   public String getStack() {
     return "common-services";
   }

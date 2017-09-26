@@ -21,13 +21,19 @@ package org.apache.ambari.logsearch.model.common;
 
 import java.util.Set;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Fields;
 
 import io.swagger.annotations.ApiModel;
 
 @ApiModel
 public class LSServerFields {
+  @NotNull
   private Set<String> type;
+  
+  public LSServerFields() {
+  }
   
   public LSServerFields(Fields fields) {
     this.type = fields.getType();

@@ -77,7 +77,7 @@ public class HealthCheckTest {
 
   @Test
   public void testWarningWhenNoAlertsExist() throws AmbariException {
-    when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(Collections.<AlertCurrentEntity>emptyList());
+    when(alertsDAO.findCurrentByCluster(eq(CLUSTER_ID))).thenReturn(Collections.emptyList());
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     healthCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));

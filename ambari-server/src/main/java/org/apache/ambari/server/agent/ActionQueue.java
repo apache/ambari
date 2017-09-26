@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -38,7 +38,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class ActionQueue {
 
-  private static Logger LOG = LoggerFactory.getLogger(ActionQueue.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ActionQueue.class);
 
   private static HashSet<String> EMPTY_HOST_LIST = new HashSet<>();
 
@@ -83,7 +83,7 @@ public class ActionQueue {
 
     if (q == null) {
       //try to add new queue to map if not found
-      q = hostQueues.putIfAbsent(hostname, new ConcurrentLinkedQueue<AgentCommand>());
+      q = hostQueues.putIfAbsent(hostname, new ConcurrentLinkedQueue<>());
       if (q == null) {
         //null means that new queue was added to map, get it
         q = getQueue(hostname);

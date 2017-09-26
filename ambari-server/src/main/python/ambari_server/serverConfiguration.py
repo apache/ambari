@@ -87,6 +87,12 @@ JCE_NAME_PROPERTY = "jce.name"
 JDK_DOWNLOAD_SUPPORTED_PROPERTY = "jdk.download.supported"
 JCE_DOWNLOAD_SUPPORTED_PROPERTY = "jce.download.supported"
 
+# Stack JDK
+STACK_JAVA_HOME_PROPERTY = "stack.java.home"
+STACK_JDK_NAME_PROPERTY = "stack.jdk.name"
+STACK_JCE_NAME_PROPERTY = "stack.jce.name"
+STACK_JAVA_VERSION = "stack.java.version"
+
 
 #TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
 # has workaround for now, as we don't need dbms name if persistence_type=local
@@ -214,6 +220,9 @@ REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PAT
 SETUP_DONE_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, JDK_NAME_PROPERTY, JDBC_DATABASE_PROPERTY,
                          NR_USER_PROPERTY, PERSISTENCE_TYPE_PROPERTY
 ]
+
+def get_default_views_dir():
+  return AmbariPath.get("/var/lib/ambari-server/resources/views")
 
 def get_conf_dir():
   try:
@@ -1176,8 +1185,8 @@ def update_ambari_properties():
     if NR_USER_PROPERTY not in new_properties.keys():
       new_properties.process_pair(NR_USER_PROPERTY, "root")
 
-    if OS_FAMILY_PROPERTY not in new_properties.keys():
-      new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
+    # update the os. In case os detection routine changed
+    new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
 
     with open(conf_file, 'w') as hfW:
       new_properties.store(hfW)

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -46,6 +46,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -78,6 +79,12 @@ public class RoleGraphTest {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     when(cluster.getClusterId()).thenReturn(1L);
+
+    Service hdfsService = mock(Service.class);
+    when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when (cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", hdfsService)
+        .build());
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
@@ -165,6 +172,22 @@ public class RoleGraphTest {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     when(cluster.getClusterId()).thenReturn(1L);
+
+    Service hdfsService = mock(Service.class);
+    when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", hdfsService)
+        .put("ZOOKEEPER", zkService)
+        .put("HBASE", hbaseService)
+        .build());
+
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph roleGraph = roleGraphFactory.createNew(rco);

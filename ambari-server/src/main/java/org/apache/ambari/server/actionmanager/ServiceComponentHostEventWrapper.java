@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,9 +58,7 @@ public class ServiceComponentHostEventWrapper {
       try {
         eventJson = StageUtils.jaxbToString(event);
         return eventJson;
-      } catch (JAXBException e) {
-        throw new RuntimeException("Couldn't get json", e);
-      } catch (IOException e) {
+      } catch (JAXBException | IOException e) {
         throw new RuntimeException("Couldn't get json", e);
       }
     } else {

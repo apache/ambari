@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,10 +22,13 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {
 
   String getName();
+
+  String getDisplayName();
 
   long getClusterId();
 
@@ -46,27 +49,7 @@ public interface Service {
 
   void setDesiredState(State state);
 
-  /**
-   * Gets this Service's security state.
-   *
-   * @return this services desired SecurityState
-   */
-  SecurityState getSecurityState();
-
-  /**
-   * Sets this Service's desired security state
-   * <p/>
-   * It is expected that the new SecurityState is a valid endpoint state such that
-   * SecurityState.isEndpoint() == true.
-   *
-   * @param securityState the desired SecurityState for this Service
-   * @throws AmbariException if the new state is not an endpoint state
-   */
-  void setSecurityState(SecurityState securityState) throws AmbariException;
-
-  StackId getDesiredStackVersion();
-
-  void setDesiredStackVersion(StackId stackVersion);
+  StackId getDesiredStackId();
 
   ServiceResponse convertToResponse();
 
@@ -138,6 +121,22 @@ public interface Service {
    * @param credentialStoreEnabled - true or false
    */
   void setCredentialStoreEnabled(boolean credentialStoreEnabled);
+
+  /**
+   * @return
+   */
+  RepositoryVersionEntity getDesiredRepositoryVersion();
+
+  /**
+   * @param desiredRepositoryVersion
+   */
+  void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion);
+
+  /**
+   * Gets the repository for the desired version of this service by consulting
+   * the repository states of all known components.
+   */
+  RepositoryVersionState getRepositoryState();
 
   enum Type {
     HDFS,

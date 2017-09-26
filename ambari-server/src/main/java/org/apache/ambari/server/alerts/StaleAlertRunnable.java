@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -205,7 +205,7 @@ public class StaleAlertRunnable extends AlertRunnable {
           String hostName = history.getHostName();
           hostsWithStaleAlerts.add(hostName);
           if (!staleAlertsByHost.containsKey(hostName)) {
-            staleAlertsByHost.put(hostName, new TreeSet<String>());
+            staleAlertsByHost.put(hostName, new TreeSet<>());
           }
 
           staleAlertsByHost.get(hostName).add(MessageFormat.format(TIMED_LABEL_MSG, label,

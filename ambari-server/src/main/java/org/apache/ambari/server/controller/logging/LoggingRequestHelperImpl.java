@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
-  private static Logger LOG = LoggerFactory.getLogger(LoggingRequestHelperImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LoggingRequestHelperImpl.class);
 
   private static final String LOGSEARCH_ADMIN_JSON_CONFIG_TYPE_NAME = "logsearch-admin-json";
 
@@ -156,7 +156,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     try {
       // use the Apache builder to create the correct URI
       URI logSearchURI = createLogSearchQueryURI(protocol, queryParameters);
-      LOG.debug("Attempting to connect to LogSearch server at " + logSearchURI);
+      LOG.debug("Attempting to connect to LogSearch server at {}", logSearchURI);
       HttpURLConnection httpURLConnection  = (HttpURLConnection) logSearchURI.toURL().openConnection();
       secure(httpURLConnection, protocol);
       httpURLConnection.setRequestMethod("GET");
@@ -313,7 +313,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       LogLineResult lineOne = response.getListOfResults().get(0);
       // this assumes that each component has only one associated log file,
       // which may not always hold true
-      LOG.debug("For componentName = " + componentName + ", log file name is = " + lineOne.getLogFilePath());
+      LOG.debug("For componentName = {}, log file name is = {}", componentName, lineOne.getLogFilePath());
       return Collections.singleton(lineOne.getLogFilePath());
 
     }
@@ -326,7 +326,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     try {
       // use the Apache builder to create the correct URI
       URI logLevelQueryURI = createLogLevelQueryURI(protocol, componentName, hostName);
-      LOG.debug("Attempting to connect to LogSearch server at " + logLevelQueryURI);
+      LOG.debug("Attempting to connect to LogSearch server at {}", logLevelQueryURI);
 
       HttpURLConnection httpURLConnection  = (HttpURLConnection) logLevelQueryURI.toURL().openConnection();
       secure(httpURLConnection, protocol);
@@ -446,7 +446,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       if (credential == null) {
         LOG.debug("LogSearch credentials could not be obtained from store.");
       } else {
-        LOG.debug("LogSearch credentials were not of the correct type, this is likely an error in configuration, credential type is = " + credential.getClass().getName());
+        LOG.debug("LogSearch credentials were not of the correct type, this is likely an error in configuration, credential type is = {}",
+          credential.getClass().getName());
       }
     } catch (AmbariException ambariException) {
       LOG.debug("Error encountered while trying to obtain LogSearch admin credentials.", ambariException);
@@ -488,7 +489,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
         // read in the response from LogSearch
         resultStream = httpURLConnection.getInputStream();
         BufferedReader reader = new BufferedReader(new InputStreamReader(resultStream));
-        LOG.debug("Response code from LogSearch Service is = " + httpURLConnection.getResponseCode());
+        LOG.debug("Response code from LogSearch Service is = {}", httpURLConnection.getResponseCode());
 
 
         String line = reader.readLine();
@@ -498,7 +499,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
           line = reader.readLine();
         }
 
-        LOG.debug("Sucessfully retrieved response from server, response = " + buffer);
+        LOG.debug("Sucessfully retrieved response from server, response = {}", buffer);
 
         return buffer;
       } finally {

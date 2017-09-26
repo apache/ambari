@@ -41,7 +41,11 @@ class TestAlertDiskSpace(RMFTestCase):
       total = 21673930752L, used = 5695861760L,
       free = 15978068992L, path="/")
 
-    res = alert_disk_space.execute()
+    configurations = {'{{cluster-env/stack_name}}': 'HDP',
+      '{{cluster-env/stack_root}}': '{"HDP":"/usr/hdp"}'}
+
+    res = alert_disk_space.execute(configurations=configurations)
+
     self.assertEqual(res,
       ('OK', ['Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB], path=/']))
 
@@ -50,7 +54,7 @@ class TestAlertDiskSpace(RMFTestCase):
       total = 21673930752L, used = 14521533603L,
       free = 7152397149L, path="/")
 
-    res = alert_disk_space.execute()
+    res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res, (
       'WARNING',
       ['Capacity Used: [67.00%, 14.5 GB], Capacity Total: [21.7 GB], path=/']))
@@ -60,7 +64,7 @@ class TestAlertDiskSpace(RMFTestCase):
       total = 21673930752L, used = 20590234214L,
       free = 1083696538, path="/")
 
-    res = alert_disk_space.execute()
+    res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res, ('CRITICAL',
     ['Capacity Used: [95.00%, 20.6 GB], Capacity Total: [21.7 GB], path=/']))
 
@@ -69,7 +73,7 @@ class TestAlertDiskSpace(RMFTestCase):
       total = 5418482688L, used = 1625544806L,
       free = 3792937882L, path="/")
 
-    res = alert_disk_space.execute()
+    res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res, ('WARNING', [
       'Capacity Used: [30.00%, 1.6 GB], Capacity Total: [5.4 GB], path=/. Total free space is less than 5.0 GB']))
 
@@ -81,7 +85,7 @@ class TestAlertDiskSpace(RMFTestCase):
       total = 21673930752L, used = 5695861760L,
       free = 15978068992L, path="/usr/hdp")
 
-    res = alert_disk_space.execute()
+    res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res,
       ('OK', ['Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB], path=/usr/hdp']))
 
@@ -90,6 +94,6 @@ class TestAlertDiskSpace(RMFTestCase):
       total = 5418482688L, used = 1625544806L,
       free = 3792937882L, path="/usr/hdp")
 
-    res = alert_disk_space.execute()
+    res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res, (
       'WARNING', ["Capacity Used: [30.00%, 1.6 GB], Capacity Total: [5.4 GB], path=/usr/hdp. Total free space is less than 5.0 GB"]))

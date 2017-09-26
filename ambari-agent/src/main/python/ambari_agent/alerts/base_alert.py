@@ -46,6 +46,7 @@ class BaseAlert(object):
     self.alert_source_meta = alert_source_meta
     self.cluster_name = ''
     self.host_name = ''
+    self.public_host_name = ''
     self.config = config
     
   def interval(self):
@@ -86,10 +87,13 @@ class BaseAlert(object):
     self.cluster_configuration = cluster_configuration
 
 
-  def set_cluster(self, cluster_name, host_name):
+  def set_cluster(self, cluster_name, host_name, public_host_name = None):
     """ sets cluster information for the alert """
     self.cluster_name = cluster_name
     self.host_name = host_name
+    self.public_host_name = host_name
+    if public_host_name:
+      self.public_host_name = public_host_name
 
 
   def _get_alert_meta_value_safely(self, meta_key):
@@ -251,7 +255,8 @@ class BaseAlert(object):
     
     if uri_structure is None:
       return None
-    
+
+    acceptable_codes_key = None
     http_key = None
     https_key = None
     https_property_key = None
@@ -263,7 +268,10 @@ class BaseAlert(object):
     ha_alias_key = None
     ha_http_pattern = None
     ha_https_pattern = None
-    
+
+    if 'acceptable_codes' in uri_structure:
+      acceptable_codes_key = uri_structure['acceptable_codes']
+
     if 'http' in uri_structure:
       http_key = uri_structure['http']
     
@@ -302,11 +310,14 @@ class BaseAlert(object):
 
 
     AlertUriLookupKeys = namedtuple('AlertUriLookupKeys', 
-      'http https https_property https_property_value default_port '
+      'acceptable_codes http https https_property https_property_value default_port '
       'kerberos_keytab kerberos_principal '
       'ha_nameservice ha_alias_key ha_http_pattern ha_https_pattern')
     
-    alert_uri_lookup_keys = AlertUriLookupKeys(http=http_key, https=https_key, 
+    alert_uri_lookup_keys = AlertUriLookupKeys(
+      acceptable_codes=acceptable_codes_key,
+      http=http_key,
+      https=https_key,
       https_property=https_property_key,
       https_property_value=https_property_value_key, default_port=default_port,
       kerberos_keytab=kerberos_keytab, kerberos_principal=kerberos_principal,
@@ -452,7 +463,7 @@ class BaseAlert(object):
       # get the host for dfs.namenode.http-address.c1ha.nn1 and see if it's
       # this host
       value = self._get_configuration_value(key)
-      if value is not None and self.host_name in value:
+      if value is not None and (self.host_name in value or self.public_host_name in value):
         return AlertUri(uri=value, is_ssl_enabled=is_ssl_enabled)
 
     return None

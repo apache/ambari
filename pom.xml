@@ -142,7 +142,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.19</version>
+          <version>2.20</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -264,7 +264,9 @@
             <exclude>pass.txt</exclude>
             <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/unix/metric_groups.conf</exclude>
             <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/windows/metric_groups.conf</exclude>
-            <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
+            <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/unix/metric_groups.conf</exclude>
+            <exclude>stack-advisor/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst</exclude>
+            <exclude>stack-advisor/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>contrib/fast-hdfs-resource/dependency-reduced-pom.xml</exclude>
             <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
@@ -401,6 +403,7 @@
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
+            <exclude>ambari-utility/target/**</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -457,6 +460,7 @@
         </property>
       </activation>
       <modules>
+        <module>ambari-serviceadvisor</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
@@ -480,6 +484,7 @@
         </property>
       </activation>
       <modules>
+        <module>ambari-serviceadvisor</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
@@ -507,6 +512,7 @@
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
+        <module>ambari-serviceadvisor</module>
       </modules>
     </profile>
     <profile>
@@ -529,12 +535,19 @@
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
+        <module>ambari-serviceadvisor</module>
         </modules>
     </profile>
     <profile>
       <id>ambari-metrics</id>
       <modules>
         <module>ambari-metrics</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>ambari-serviceadvisor</id>
+      <modules>
+        <module>ambari-serviceadvisor</module>
       </modules>
     </profile>
     <profile>
@@ -545,6 +558,7 @@
         </os>
       </activation>
       <modules>
+        <module>ambari-serviceadvisor</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
@@ -555,7 +569,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-        </modules>
+      </modules>
     </profile>
     <profile>
       <id>clover</id>

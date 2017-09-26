@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,6 +27,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.KdcServerConnectionVerification;
 import org.apache.ambari.server.StaticallyInject;
 
@@ -44,7 +45,6 @@ public class KdcServerReachabilityCheck {
   @Inject
   private static KdcServerConnectionVerification kdcConnectionChecker;
 
-
   /**
    * Handles: GET /kdc_check/{hosts}
    * Checks the reachability of the given KDC server(s). If a list of hosts is sent, checks will be
@@ -56,7 +56,7 @@ public class KdcServerReachabilityCheck {
    *                     Each entry may contain port separate by a colon (:)
    * @return status whether KDC server is reachable or not
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{hosts}")
   @Produces(MediaType.TEXT_PLAIN)
   public String plainTextCheck(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -81,9 +81,8 @@ public class KdcServerReachabilityCheck {
     return status;
   }
 
-
   // This method is called if XML is request
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{hostname}")
   @Produces(MediaType.TEXT_XML)
   public String xmlCheck(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -99,7 +98,7 @@ public class KdcServerReachabilityCheck {
   }
 
   // This method is called if HTML is request
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{hostname}")
   @Produces(MediaType.TEXT_HTML)
   public String  htmlCheck(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -115,6 +114,5 @@ public class KdcServerReachabilityCheck {
     .append("</html> ")
     .toString();
   }
-
 
 }

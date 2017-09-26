@@ -34,7 +34,7 @@ describe('App.ViewInstance', function () {
           version: '1.0.0',
           instanceName: 'AUTO_CS_INSTANCE'
         },
-        e: 'main/views/CAPACITY-SCHEDULER/1.0.0/AUTO_CS_INSTANCE',
+        e: '#/main/views/CAPACITY-SCHEDULER/1.0.0/AUTO_CS_INSTANCE',
         m: '`shortUrl` does not exist'
       },
       {
@@ -44,7 +44,7 @@ describe('App.ViewInstance', function () {
           version: '1.0.0',
           instanceName: 'AUTO_CS_INSTANCE'
         },
-        e: 'main/view/CAPACITY-SCHEDULER/auto_cs_instance',
+        e: '#/main/view/CAPACITY-SCHEDULER/auto_cs_instance',
         m: '`shortUrl` exists'
       }
     ].forEach(function (test) {

@@ -55,7 +55,7 @@ public class AuditEventCreatorTestBase {
 
           @Override
           public Object getPrincipal() {
-            return new User(userName, "password", Collections.<GrantedAuthority>emptyList());
+            return new User(userName, "password", Collections.emptyList());
           }
 
           @Override

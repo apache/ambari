@@ -21,6 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
     throw new UnsupportedOperationException();
   }
 
-  KerberosHelper getKerberosHelper() {
+  protected KerberosHelper getKerberosHelper() {
     return kerberosHelper;
   }
 
@@ -75,7 +76,23 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
                                     Map<String, Map<String, String>> currentConfigurations,
                                     Map<String, Map<String, String>> kerberosConfigurations,
                                     boolean includeAmbariIdentity,
-                                    Map<String, Set<String>> propertiesToBeIgnored) throws AmbariException {
+                                    Map<String, Set<String>> propertiesToBeIgnored,
+                                    boolean excludeHeadless) throws AmbariException {
+    List<Component> components = new ArrayList<>();
+    for (ServiceComponentHost each : schToProcess) {
+      components.add(Component.fromServiceComponentHost(each));
+    }
+    processServiceComponents(cluster, kerberosDescriptor, components, identityFilter, dataDirectory, currentConfigurations, kerberosConfigurations, includeAmbariIdentity, propertiesToBeIgnored, excludeHeadless);
+  }
+
+  protected void processServiceComponents(Cluster cluster, KerberosDescriptor kerberosDescriptor,
+                                          List<Component> schToProcess,
+                                          Collection<String> identityFilter, String dataDirectory,
+                                          Map<String, Map<String, String>> currentConfigurations,
+                                          Map<String, Map<String, String>> kerberosConfigurations,
+                                          boolean includeAmbariIdentity,
+                                          Map<String, Set<String>> propertiesToBeIgnored,
+                                          boolean excludeHeadless) throws AmbariException {
 
     actionLog.writeStdOut("Processing Kerberos identities and configurations");
 
@@ -113,7 +130,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
         // Iterate over the components installed on the current host to get the service and
         // component-level Kerberos descriptors in order to determine which principals,
         // keytab files, and configurations need to be created or updated.
-        for (ServiceComponentHost sch : schToProcess) {
+        for (Component sch : schToProcess) {
           String hostName = sch.getHostName();
 
           String serviceName = sch.getServiceName();
@@ -126,7 +143,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
             // Add service-level principals (and keytabs)
             kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, serviceIdentities,
-                identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations);
+                identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, excludeHeadless);
             propertiesToIgnore = gatherPropertiesToIgnore(serviceIdentities, propertiesToIgnore);
 
             KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
@@ -137,11 +154,11 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
               // Calculate the set of configurations to update and replace any variables
               // using the previously calculated Map of configurations for the host.
               kerberosHelper.mergeConfigurations(kerberosConfigurations,
-                  componentDescriptor.getConfigurations(true), currentConfigurations);
+                  componentDescriptor.getConfigurations(true), currentConfigurations, null);
 
               // Add component-level principals (and keytabs)
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                  identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations);
+                  identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, excludeHeadless);
               propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
             }
           }
@@ -162,7 +179,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
               List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                  identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, currentConfigurations);
+                  identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, currentConfigurations, excludeHeadless);
               propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
             }
           }

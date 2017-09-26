@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,13 +35,19 @@ import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.RepositoryVersionState;
 
-@Table(name = "host_version", uniqueConstraints = @UniqueConstraint(name = "UQ_host_repo", columnNames = { "repo_version_id", "host_id" }))
 @Entity
-@TableGenerator(name = "host_version_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
-    , pkColumnValue = "host_version_id_seq"
-    , initialValue = 0
-)
+@Table(
+    name = "host_version",
+    uniqueConstraints = @UniqueConstraint(
+        name = "UQ_host_repo",
+        columnNames = { "host_id", "repo_version_id" }))
+@TableGenerator(
+    name = "host_version_id_generator",
+    table = "ambari_sequences",
+    pkColumnName = "sequence_name",
+    valueColumnName = "sequence_value",
+    pkColumnValue = "host_version_id_seq",
+    initialValue = 0)
 @NamedQueries({
     @NamedQuery(name = "hostVersionByClusterAndStackAndVersion", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
@@ -55,6 +61,11 @@ import org.apache.ambari.server.state.RepositoryVersionState;
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host " +
             "WHERE hostVersion.hostEntity.hostName=:hostName"),
 
+    @NamedQuery(
+        name = "findByClusterAndState",
+        query = "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters "
+            + "WHERE clusters.clusterName=:clusterName AND hostVersion.state=:state"),
+
     @NamedQuery(name = "hostVersionByClusterHostnameAndState", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
             "WHERE clusters.clusterName=:clusterName AND hostVersion.hostEntity.hostName=:hostName AND hostVersion.state=:state"),
@@ -64,14 +75,19 @@ import org.apache.ambari.server.state.RepositoryVersionState;
             "WHERE clusters.clusterName=:clusterName AND hostVersion.repositoryVersion.stack.stackName=:stackName AND hostVersion.repositoryVersion.stack.stackVersion=:stackVersion AND hostVersion.repositoryVersion.version=:version AND " +
             "hostVersion.hostEntity.hostName=:hostName"),
 
-    @NamedQuery(name = "hostVersionByClusterHostIdAndState", query =
-        "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
-            "WHERE clusters.clusterId=:clusterId AND hostVersion.hostId=:hostId AND hostVersion.state=:state"),
+    @NamedQuery(
+        name = "findHostVersionByClusterAndRepository",
+        query = "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters "
+            + "WHERE clusters.clusterId = :clusterId AND hostVersion.repositoryVersion = :repositoryVersion"),
 
-    @NamedQuery(name = "hostVersionByClusterStackVersionAndHostId", query =
-        "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
-        "WHERE hostVersion.hostId=:hostId AND clusters.clusterId=:clusterId AND hostVersion.repositoryVersion.stack.stackName=:stackName " +
-        "AND hostVersion.repositoryVersion.stack.stackVersion=:stackVersion AND hostVersion.repositoryVersion.version=:version")
+    @NamedQuery(
+        name = "hostVersionByRepositoryAndStates",
+        query = "SELECT hostVersion FROM HostVersionEntity hostVersion WHERE hostVersion.repositoryVersion = :repositoryVersion AND hostVersion.state IN :states"),
+
+    @NamedQuery(
+        name = "findByHostAndRepository",
+        query = "SELECT hostVersion FROM HostVersionEntity hostVersion WHERE hostVersion.hostEntity = :host AND hostVersion.repositoryVersion = :repositoryVersion")
+
 })
 public class HostVersionEntity {
 
@@ -115,9 +131,9 @@ public class HostVersionEntity {
    * This constructor is mainly used by the unit tests in order to construct an object without the id.
    */
   public HostVersionEntity(HostVersionEntity other) {
-    this.hostEntity = other.hostEntity;
-    this.repositoryVersion = other.repositoryVersion;
-    this.state = other.state;
+    hostEntity = other.hostEntity;
+    repositoryVersion = other.repositoryVersion;
+    state = other.state;
   }
 
   public Long getId() {
@@ -169,15 +185,29 @@ public class HostVersionEntity {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
 
     HostVersionEntity other = (HostVersionEntity) obj;
-    if (id != null ? id != other.id : other.id != null) return false;
-    if (hostEntity != null ? !hostEntity.equals(other.hostEntity) : other.hostEntity != null) return false;
-    if (repositoryVersion != null ? !repositoryVersion.equals(other.repositoryVersion) : other.repositoryVersion != null) return false;
-    if (state != other.state) return false;
+    if (id != null ? id != other.id : other.id != null) {
+      return false;
+    }
+    if (hostEntity != null ? !hostEntity.equals(other.hostEntity) : other.hostEntity != null) {
+      return false;
+    }
+    if (repositoryVersion != null ? !repositoryVersion.equals(other.repositoryVersion) : other.repositoryVersion != null) {
+      return false;
+    }
+    if (state != other.state) {
+      return false;
+    }
     return true;
   }
 

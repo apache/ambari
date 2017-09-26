@@ -98,21 +98,24 @@ else
   exit 1
 fi
 
+# Set log directory path
+if [[ -n "${AMS_MONITOR_LOG_DIR}" ]]; then
+  OUTFILE=${AMS_MONITOR_LOG_DIR}/ambari-metrics-monitor.out
+fi
+
 #TODO decide if rebuild on each start (pretty quickly) to tolerate major node changes (like kernel update)
 #build psutil
 if [ ! "$(ls -A ${RESOURCE_MONITORING_DIR}/psutil/build)" ]; then
   echo "Building psutil..."
   dir=$(pwd)
   cd "${RESOURCE_MONITORING_DIR}/psutil"
-  ${PYTHON} "setup.py" "build"
+  # build psutil and redirect output to log file
+  echo "--------------------------Building psutil--------------------------" >> ${OUTFILE}
+  ${PYTHON} "setup.py" "build" >> ${OUTFILE}
+  echo "----------------------Finished building psutil---------------------" >> ${OUTFILE}
   cd "${dir}"
 else
   echo "psutil build directory is not empty, continuing..."
-fi
-
-# Set log directory path
-if [[ -n "${AMS_MONITOR_LOG_DIR}" ]]; then
-  OUTFILE=${AMS_MONITOR_LOG_DIR}/ambari-metrics-monitor.out
 fi
 
 # Set pid directory path

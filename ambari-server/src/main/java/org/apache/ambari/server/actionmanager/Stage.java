@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,7 +35,6 @@ import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -67,7 +66,7 @@ public class Stage {
    */
   public static final String INTERNAL_HOSTNAME = "_internal_ambari";
 
-  private static Logger LOG = LoggerFactory.getLogger(Stage.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
   private String clusterName;
   private long clusterId = -1L;
@@ -168,7 +167,7 @@ public class Stage {
       String hostname = getSafeHost(command.getHostName());
 
       if (!hostRoleCommands.containsKey(hostname)) {
-        hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
+        hostRoleCommands.put(hostname, new LinkedHashMap<>());
       }
 
       hostRoleCommands.get(hostname).put(command.getRole().toString(), command);
@@ -191,10 +190,12 @@ public class Stage {
     stageEntity.setSkippable(skippable);
     stageEntity.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
     stageEntity.setRequestContext(requestContext);
-    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
-    stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
+    stageEntity.setHostRoleCommands(new ArrayList<>());
+    stageEntity.setRoleSuccessCriterias(new ArrayList<>());
     stageEntity.setCommandParamsStage(commandParamsStage);
-    stageEntity.setHostParamsStage(hostParamsStage);
+    if (null != hostParamsStage) {
+      stageEntity.setHostParamsStage(hostParamsStage);
+    }
     stageEntity.setCommandExecutionType(commandExecutionType);
     stageEntity.setStatus(status);
     stageEntity.setDisplayStatus(displayStatus);
@@ -223,7 +224,7 @@ public class Stage {
   void loadExecutionCommandWrappers() {
     for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
       String hostname = hostRoleCommandEntry.getKey();
-      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+      commandsToSend.put(hostname, new ArrayList<>());
       Map<String, HostRoleCommand> roleCommandMap = hostRoleCommandEntry.getValue();
       for (Map.Entry<String, HostRoleCommand> roleCommandEntry : roleCommandMap.entrySet()) {
         commandsToSend.get(hostname).add(roleCommandEntry.getValue().getExecutionCommandWrapper());
@@ -811,12 +812,12 @@ public class Stage {
 
     String role = r.toString();
     if (commandsToSend.get(hostname) == null) {
-      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+      commandsToSend.put(hostname, new ArrayList<>());
     }
     commandsToSend.get(hostname).add(
         origStage.getExecutionCommandWrapper(hostname, role));
     if (hostRoleCommands.get(hostname) == null) {
-      hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
+      hostRoleCommands.put(hostname, new LinkedHashMap<>());
     }
     // TODO add reference to ExecutionCommand into HostRoleCommand
     hostRoleCommands.get(hostname).put(role,
@@ -851,7 +852,7 @@ public class Stage {
             summaryTaskTimeoutForHost += commandTimeout;
           } else {
             LOG.error("Execution command has no timeout parameter" +
-                    command.toString());
+              command);
           }
         }
         if (summaryTaskTimeoutForHost > stageTimeout) {
@@ -934,7 +935,7 @@ public class Stage {
       builder.append("HOST: ").append(hostRoleCommand.getHostName()).append(" :\n");
       builder.append(hostRoleCommand.getExecutionCommandWrapper().getJson());
       builder.append("\n");
-      builder.append(hostRoleCommand.toString());
+      builder.append(hostRoleCommand);
       builder.append("\n");
     }
     builder.append("STAGE DESCRIPTION END\n");

@@ -32,7 +32,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -64,13 +63,12 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     Set<String> failedServiceNames = new HashSet<>();
 
-    StackId stackId = cluster.getCurrentStackVersion();
-
     // Preq-req check should fail if any service component is in INSTALL_FAILED state
     Set<String> installFailedHostComponents = new HashSet<>();
 
-    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
-      final Service service = serviceEntry.getValue();
+    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
+    for (String serviceName : servicesInUpgrade) {
+      final Service service = cluster.getService(serviceName);
       // Skip service if it is in maintenance mode
       if (service.getMaintenanceState() != MaintenanceState.ON) {
         Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();

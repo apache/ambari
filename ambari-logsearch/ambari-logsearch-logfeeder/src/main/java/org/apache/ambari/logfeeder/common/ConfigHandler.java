@@ -41,16 +41,17 @@ import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logfeeder.util.AliasUtil;
-import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterDescriptorImpl;
@@ -64,6 +65,8 @@ import com.google.gson.reflect.TypeToken;
 public class ConfigHandler implements InputConfigMonitor {
   private static final Logger LOG = Logger.getLogger(ConfigHandler.class);
 
+  private final LogSearchConfigLogFeeder logSearchConfig;
+  
   private final OutputManager outputManager = new OutputManager();
   private final InputManager inputManager = new InputManager();
 
@@ -76,7 +79,9 @@ public class ConfigHandler implements InputConfigMonitor {
   
   private boolean simulateMode = false;
   
-  public ConfigHandler() {}
+  public ConfigHandler(LogSearchConfigLogFeeder logSearchConfig) {
+    this.logSearchConfig = logSearchConfig;
+  }
   
   public void init() throws Exception {
     loadConfigFiles();
@@ -85,6 +90,8 @@ public class ConfigHandler implements InputConfigMonitor {
     
     inputManager.init();
     outputManager.init();
+    
+    logSearchConfig.monitorOutputProperties(outputManager.getOutputsToMonitor());
   }
   
   private void loadConfigFiles() throws Exception {
@@ -107,24 +114,10 @@ public class ConfigHandler implements InputConfigMonitor {
   private List<String> getConfigFiles() {
     List<String> configFiles = new ArrayList<>();
     
-    String logfeederConfigFilesProperty = LogFeederUtil.getStringProperty("logfeeder.config.files");
-    LOG.info("logfeeder.config.files=" + logfeederConfigFilesProperty);
-    if (logfeederConfigFilesProperty != null) {
-      configFiles.addAll(Arrays.asList(logfeederConfigFilesProperty.split(",")));
-    }
-
-    String inputConfigDir = LogFeederUtil.getStringProperty("input_config_dir");
-    if (StringUtils.isNotEmpty(inputConfigDir)) {
-      File configDirFile = new File(inputConfigDir);
-      List<File> inputConfigFiles = FileUtil.getAllFileFromDir(configDirFile, "json", false);
-      for (File inputConfigFile : inputConfigFiles) {
-        configFiles.add(inputConfigFile.getAbsolutePath());
-      }
-    }
-    
-    if (CollectionUtils.isEmpty(configFiles)) {
-      String configFileProperty = LogFeederUtil.getStringProperty("config.file", "config.json");
-      configFiles.addAll(Arrays.asList(configFileProperty.split(",")));
+    String logFeederConfigFilesProperty = LogFeederPropertiesUtil.getConfigFiles();
+    LOG.info("logfeeder.config.files=" + logFeederConfigFilesProperty);
+    if (logFeederConfigFilesProperty != null) {
+      configFiles.addAll(Arrays.asList(logFeederConfigFilesProperty.split(",")));
     }
     
     return configFiles;
@@ -171,6 +164,31 @@ public class ConfigHandler implements InputConfigMonitor {
     inputManager.removeInputsForService(serviceName);
   }
 
+  public Input getTestInput(InputConfig inputConfig, String logId) {
+    for (InputDescriptor inputDescriptor : inputConfig.getInput()) {
+      if (inputDescriptor.getType().equals(logId)) {
+        inputConfigList.add(inputDescriptor);
+        break;
+      }
+    }
+    if (inputConfigList.isEmpty()) {
+      throw new IllegalArgumentException("Log Id " + logId + " was not found in shipper configuriaton");
+    }
+    
+    for (FilterDescriptor filterDescriptor : inputConfig.getFilter()) {
+      if ("grok".equals(filterDescriptor.getFilter())) {
+        // Thus ensure that the log entry passed will be parsed immediately
+        ((FilterGrokDescriptor)filterDescriptor).setMultilinePattern(null);
+      }
+      filterConfigList.add(filterDescriptor);
+    }
+    loadInputs("test");
+    loadFilters("test");
+    List<Input> inputList = inputManager.getInputList("test");
+    
+    return inputList != null && inputList.size() == 1 ? inputList.get(0) : null;
+  }
+
   @SuppressWarnings("unchecked")
   public void loadConfigs(String configData) throws Exception {
     Type type = new TypeToken<Map<String, Object>>() {}.getType();
@@ -199,7 +217,7 @@ public class ConfigHandler implements InputConfigMonitor {
   }
   
   private void simulateIfNeeded() throws Exception {
-    int simulatedInputNumber = LogFeederUtil.getIntProperty("logfeeder.simulate.input_number", 0);
+    int simulatedInputNumber = LogFeederPropertiesUtil.getSimulateInputNumber();
     if (simulatedInputNumber == 0)
       return;
     
@@ -239,6 +257,7 @@ public class ConfigHandler implements InputConfigMonitor {
       }
       output.setDestination(value);
       output.loadConfig(map);
+      output.setLogSearchConfig(logSearchConfig);
 
       // We will only check for is_enabled out here. Down below we will check whether this output is enabled for the input
       if (output.isEnabled()) {
@@ -355,6 +374,7 @@ public class ConfigHandler implements InputConfigMonitor {
     
     // In case of simulation copies of the output are added for each simulation instance, these must be added to the manager
     for (Output output : InputSimulate.getSimulateOutputs()) {
+      output.setLogSearchConfig(logSearchConfig);
       outputManager.add(output);
       usedOutputSet.add(output);
     }
@@ -406,10 +426,6 @@ public class ConfigHandler implements InputConfigMonitor {
   public void addMetrics(List<MetricData> metricsList) {
     inputManager.addMetricsContainers(metricsList);
     outputManager.addMetricsContainers(metricsList);
-  }
-
-  public void waitOnAllInputs() {
-    inputManager.waitOnAllInputs();
   }
 
   public void close() {

@@ -4,10 +4,12 @@
       "name": "STORM",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "storm_spnego",
+          "reference": "/spnego"
         },
         {
-          "name": "/smokeuser"
+          "name": "storm_smokeuser",
+          "reference": "/smokeuser"
         },
         {
           "name": "storm_components",
@@ -30,7 +32,8 @@
           }
         },
         {
-          "name": "/STORM/storm_components",
+          "name": "storm_storm_components",
+          "reference": "/STORM/storm_components",
           "principal": {
             "configuration": "storm-atlas-application.properties/atlas.jaas.KafkaClient.option.principal"
           },
@@ -53,11 +56,7 @@
             "nimbus.impersonation.acl": "{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}",
             "nimbus.admins": "['{{storm_bare_jaas_principal}}', '{{ambari_bare_jaas_principal}}']",
             "nimbus.supervisor.users": "['{{storm_bare_jaas_principal}}']",
-            "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}",
-            "nimbus.autocredential.plugins.classes": "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']",
-            "nimbus.credential.renewers.classes": "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']",
-            "nimbus.credential.renewers.freq.secs": 82800
-            
+            "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}"
           }
         },
         {
@@ -76,7 +75,8 @@
           "name": "STORM_UI_SERVER",
           "identities": [
             {
-              "name": "/spnego",
+              "name": "storm_storm_ui_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "storm-env/storm_ui_principal_name"
               },
@@ -110,7 +110,8 @@
               }
             },
             {
-              "name": "/STORM/storm_components",
+              "name": "storm_numbus_storm_components",
+              "reference": "/STORM/storm_components",
               "principal": {
                 "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal"
               },

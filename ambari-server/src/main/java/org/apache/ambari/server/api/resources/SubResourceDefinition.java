@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -85,7 +85,7 @@ public class SubResourceDefinition {
    * @return  set of additional foreign key properties
    */
   public Set<Resource.Type> getAdditionalForeignKeys() {
-    return m_setForeignKeys == null ? Collections.<Resource.Type>emptySet() : m_setForeignKeys;
+    return m_setForeignKeys == null ? Collections.emptySet() : m_setForeignKeys;
   }
 
   /**

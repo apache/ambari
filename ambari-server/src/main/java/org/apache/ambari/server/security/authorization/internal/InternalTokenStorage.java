@@ -24,10 +24,10 @@ import java.security.SecureRandom;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-@Singleton
 /**
  * Generates single token for internal authentication
  */
+@Singleton
 public class InternalTokenStorage {
   private final SecureRandom random;
   private final String token;

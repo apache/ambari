@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,6 @@
  */
 package org.apache.hadoop.metrics2.host.aggregator;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -29,80 +24,86 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 /**
  * Singleton class with 2 guava caches for raw and aggregated metrics storing
  */
 public class TimelineMetricsHolder {
-    private static final int DEFAULT_RAW_CACHE_EXPIRE_TIME = 60;
-    private static final int DEFAULT_AGGREGATION_CACHE_EXPIRE_TIME = 300;
-    private Cache<String, TimelineMetrics> aggregationMetricsCache;
-    private Cache<String, TimelineMetrics> rawMetricsCache;
-    private static TimelineMetricsHolder instance = null;
-    //to ensure no metric values are expired
-    private static int EXPIRE_DELAY = 30;
-    ReadWriteLock aggregationCacheLock = new ReentrantReadWriteLock();
-    ReadWriteLock rawCacheLock = new ReentrantReadWriteLock();
+  private static final int DEFAULT_RAW_CACHE_EXPIRE_TIME = 60;
+  private static final int DEFAULT_AGGREGATION_CACHE_EXPIRE_TIME = 300;
+  private Cache<String, TimelineMetrics> aggregationMetricsCache;
+  private Cache<String, TimelineMetrics> rawMetricsCache;
+  private static TimelineMetricsHolder instance = null;
+  //to ensure no metric values are expired
+  private static int EXPIRE_DELAY = 30;
+  ReadWriteLock aggregationCacheLock = new ReentrantReadWriteLock();
+  ReadWriteLock rawCacheLock = new ReentrantReadWriteLock();
 
-    private TimelineMetricsHolder(int rawCacheExpireTime, int aggregationCacheExpireTime) {
-        this.rawMetricsCache = CacheBuilder.newBuilder().expireAfterWrite(rawCacheExpireTime + EXPIRE_DELAY, TimeUnit.SECONDS).build();
-        this.aggregationMetricsCache = CacheBuilder.newBuilder().expireAfterWrite(aggregationCacheExpireTime + EXPIRE_DELAY, TimeUnit.SECONDS).build();
-    }
+  private TimelineMetricsHolder(int rawCacheExpireTime, int aggregationCacheExpireTime) {
+    this.rawMetricsCache = CacheBuilder.newBuilder().expireAfterWrite(rawCacheExpireTime + EXPIRE_DELAY, TimeUnit.SECONDS).build();
+    this.aggregationMetricsCache = CacheBuilder.newBuilder().expireAfterWrite(aggregationCacheExpireTime + EXPIRE_DELAY, TimeUnit.SECONDS).build();
+  }
 
-    public static TimelineMetricsHolder getInstance(int rawCacheExpireTime, int aggregationCacheExpireTime) {
-        if (instance == null) {
-            instance = new TimelineMetricsHolder(rawCacheExpireTime, aggregationCacheExpireTime);
-        }
-        return instance;
+  public static TimelineMetricsHolder getInstance(int rawCacheExpireTime, int aggregationCacheExpireTime) {
+    if (instance == null) {
+      instance = new TimelineMetricsHolder(rawCacheExpireTime, aggregationCacheExpireTime);
     }
+    return instance;
+  }
 
-    /**
-     * Uses default expiration time for caches initialization if they are not initialized yet.
-     * @return
-     */
-    public static TimelineMetricsHolder getInstance() {
-        return getInstance(DEFAULT_RAW_CACHE_EXPIRE_TIME, DEFAULT_AGGREGATION_CACHE_EXPIRE_TIME);
-    }
+  /**
+   * Uses default expiration time for caches initialization if they are not initialized yet.
+   * @return
+   */
+  public static TimelineMetricsHolder getInstance() {
+    return getInstance(DEFAULT_RAW_CACHE_EXPIRE_TIME, DEFAULT_AGGREGATION_CACHE_EXPIRE_TIME);
+  }
 
-    public void putMetricsForAggregationPublishing(TimelineMetrics timelineMetrics) {
-        aggregationCacheLock.writeLock().lock();
-        aggregationMetricsCache.put(calculateCacheKey(timelineMetrics), timelineMetrics);
-        aggregationCacheLock.writeLock().unlock();
-    }
+  public void putMetricsForAggregationPublishing(TimelineMetrics timelineMetrics) {
+    aggregationCacheLock.writeLock().lock();
+    aggregationMetricsCache.put(calculateCacheKey(timelineMetrics), timelineMetrics);
+    aggregationCacheLock.writeLock().unlock();
+  }
 
-    private String calculateCacheKey(TimelineMetrics timelineMetrics) {
-        List<TimelineMetric>  metrics =  timelineMetrics.getMetrics();
-        if (metrics.size() > 0) {
-            return  metrics.get(0).getAppId() + System.currentTimeMillis();
-        }
-        return String.valueOf(System.currentTimeMillis());
+  private String calculateCacheKey(TimelineMetrics timelineMetrics) {
+    List<TimelineMetric> metrics = timelineMetrics.getMetrics();
+    if (metrics.size() > 0) {
+      return metrics.get(0).getAppId() + System.currentTimeMillis();
     }
+    return String.valueOf(System.currentTimeMillis());
+  }
 
-    public Map<String, TimelineMetrics> extractMetricsForAggregationPublishing() {
-        return extractMetricsFromCacheWithLock(aggregationMetricsCache, aggregationCacheLock);
-    }
+  public Map<String, TimelineMetrics> extractMetricsForAggregationPublishing() {
+    return extractMetricsFromCacheWithLock(aggregationMetricsCache, aggregationCacheLock);
+  }
 
-    public void putMetricsForRawPublishing(TimelineMetrics metrics) {
-        rawCacheLock.writeLock().lock();
-        rawMetricsCache.put(calculateCacheKey(metrics), metrics);
-        rawCacheLock.writeLock().unlock();
-    }
+  public void putMetricsForRawPublishing(TimelineMetrics metrics) {
+    rawCacheLock.writeLock().lock();
+    rawMetricsCache.put(calculateCacheKey(metrics), metrics);
+    rawCacheLock.writeLock().unlock();
+  }
 
-    public Map<String, TimelineMetrics> extractMetricsForRawPublishing() {
-        return extractMetricsFromCacheWithLock(rawMetricsCache, rawCacheLock);
-    }
+  public Map<String, TimelineMetrics> extractMetricsForRawPublishing() {
+    return extractMetricsFromCacheWithLock(rawMetricsCache, rawCacheLock);
+  }
 
-    /**
-     * Returns values from cache and clears the cache
-     * @param cache
-     * @param lock
-     * @return
-     */
-    private Map<String, TimelineMetrics> extractMetricsFromCacheWithLock(Cache<String, TimelineMetrics> cache, ReadWriteLock lock) {
-        lock.writeLock().lock();
-        Map<String, TimelineMetrics> metricsMap = new TreeMap<>(cache.asMap());
-        cache.invalidateAll();
-        lock.writeLock().unlock();
-        return metricsMap;
-    }
+  /**
+   * Returns values from cache and clears the cache
+   * @param cache
+   * @param lock
+   * @return
+   */
+  private Map<String, TimelineMetrics> extractMetricsFromCacheWithLock(Cache<String, TimelineMetrics> cache, ReadWriteLock lock) {
+    lock.writeLock().lock();
+    Map<String, TimelineMetrics> metricsMap = new TreeMap<>(cache.asMap());
+    cache.invalidateAll();
+    lock.writeLock().unlock();
+    return metricsMap;
+  }
 
 }

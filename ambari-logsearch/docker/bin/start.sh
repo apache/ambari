@@ -70,7 +70,7 @@ function generate_keys() {
 
 function start_solr() {
   echo "Starting Solr..."
-  /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose
+  /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose -force
   touch /var/log/ambari-logsearch-solr/solr.log
 
   if [ $LOGSEARCH_SOLR_SSL_ENABLED == 'true'  ]
@@ -78,7 +78,7 @@ function start_solr() {
     echo "Setting urlScheme as https and restarting solr..."
     $ZKCLI -zkhost localhost:9983 -cmd clusterprop -name urlScheme -val https
     /root/solr-$SOLR_VERSION/bin/solr stop
-    /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose
+    /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose -force
   fi
 }
 
@@ -121,4 +121,3 @@ start_solr
 start_logsearch
 start_logfeeder
 log
-

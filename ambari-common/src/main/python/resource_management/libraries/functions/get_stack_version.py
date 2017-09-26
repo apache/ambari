@@ -68,7 +68,7 @@ def get_stack_version(package_name):
   stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
 
   if not os.path.exists(stack_selector_path):
-    Logger.info('Skipping get_stack_version since " + stack_selector_tool + " is not yet available')
+    Logger.info('Skipping get_stack_version since ' + stack_selector_path + ' is not yet available')
     return None # lazy fail
   
   try:
@@ -77,7 +77,7 @@ def get_stack_version(package_name):
     return_code, stack_output = shell.call(command, timeout=20)
   except Exception, e:
     Logger.error(str(e))
-    raise Fail('Unable to execute " + stack_selector_path + " command to retrieve the version.')
+    raise Fail('Unable to execute ' + stack_selector_path + ' command to retrieve the version.')
 
   if return_code != 0:
     raise Fail(

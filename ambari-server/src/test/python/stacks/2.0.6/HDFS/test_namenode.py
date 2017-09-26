@@ -35,6 +35,8 @@ class TestNamenode(RMFTestCase):
   STACK_VERSION = "2.0.6"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
+  CONFIG_OVERRIDES = {"serviceName":"HDFS", "role":"NAMENODE"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
@@ -289,7 +291,7 @@ class TestNamenode(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assert_configure_secured()
+    self.assert_configure_secured(False)
     self.assertNoMoreResources()
 
 
@@ -302,7 +304,7 @@ class TestNamenode(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
-    self.assert_configure_secured()
+    self.assert_configure_secured(False)
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
                               content = Template('exclude_hosts_list.j2'),
@@ -622,7 +624,7 @@ class TestNamenode(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assert_configure_secured()
+    self.assert_configure_secured(True)
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
                               content = Template('exclude_hosts_list.j2'),
@@ -1041,7 +1043,7 @@ class TestNamenode(RMFTestCase):
                               bin_dir = '/usr/bin')
     self.assertNoMoreResources()
 
-  def test_decommission_update_exclude_file_only(self):
+  def test_decommission_update_files_only(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",
@@ -1153,7 +1155,7 @@ class TestNamenode(RMFTestCase):
                               cd_access='a'
                               )
 
-  def assert_configure_secured(self):
+  def assert_configure_secured(self, ha_enabled):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
         create_parents = True,
     )
@@ -1177,6 +1179,22 @@ class TestNamenode(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_dn_jaas.conf',
+                              content = Template('hdfs_dn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_nn_jaas.conf',
+                              content = Template('hdfs_nn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
+    if ha_enabled:
+      self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_jn_jaas.conf',
+                                content = Template('hdfs_jn_jaas.conf.j2'),
+                                owner = 'hdfs',
+                                group = 'hadoop',
+                                )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -1333,12 +1351,8 @@ class TestNamenode(RMFTestCase):
                        config_file = "nn_eu_standby.json",
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict=mocks_dict)
 
-    calls = mocks_dict['call'].call_args_list
-    self.assertTrue(len(calls) >= 1)
-    self.assertTrue(calls[0].startsWith("conf-select create-conf-dir --package hadoop --stack-version 2.3.2.0-2844 --conf-version 0"))
 
 
   @patch("hdfs_namenode.is_this_namenode_active")
@@ -1386,6 +1400,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -1407,12 +1422,11 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Link', '/etc/hadoop/conf', to='/usr/hdp/current/hadoop-client/conf')
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-namenode', version), sudo=True)
     self.assertNoMoreResources()
 
@@ -1645,11 +1659,8 @@ class TestNamenode(RMFTestCase):
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = itertools.cycle([(0, None, None)]),
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Link', '/etc/hadoop/conf',
-      to = '/usr/hdp/current/hadoop-client/conf')
 
     import sys
     self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf", sys.modules["params"].hadoop_conf_dir)

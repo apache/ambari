@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -123,7 +123,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
     if (propertyMaps.isEmpty()) {
-      propertyMaps.add(Collections.<String, Object>emptyMap());
+      propertyMaps.add(Collections.emptyMap());
     }
 
     for (Map<String, Object> propertyMap : propertyMaps) {

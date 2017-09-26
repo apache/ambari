@@ -445,8 +445,10 @@ describe('App.clusterController', function () {
       restoreLastUpgrade: Em.K,
       initDBProperties: Em.K,
       loadUpgradeData: Em.K,
+      loadCompatibleVersions: Em.K,
+      updateCurrentStackVersion: Em.K,
       loadStackVersionsToModel: function () {
-        return {done: Em.K};
+        return {done: Em.clb};
       }
     });
 
@@ -459,6 +461,9 @@ describe('App.clusterController', function () {
       sinon.spy(upgradeController, 'initDBProperties');
       sinon.spy(upgradeController, 'loadUpgradeData');
       sinon.spy(upgradeController, 'loadStackVersionsToModel');
+      sinon.spy(upgradeController, 'loadCompatibleVersions');
+      sinon.spy(upgradeController, 'updateCurrentStackVersion');
+      sinon.stub(App.stackUpgradeHistoryMapper, 'map');
     });
 
     afterEach(function () {
@@ -470,6 +475,9 @@ describe('App.clusterController', function () {
       upgradeController.initDBProperties.restore();
       upgradeController.loadUpgradeData.restore();
       upgradeController.loadStackVersionsToModel.restore();
+      upgradeController.loadCompatibleVersions.restore();
+      upgradeController.updateCurrentStackVersion.restore();
+      App.stackUpgradeHistoryMapper.map.restore();
     });
 
     describe("has upgrade request", function() {
@@ -501,6 +509,14 @@ describe('App.clusterController', function () {
         expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
       });
 
+      it('loadCompatibleVersions should be called', function () {
+        expect(upgradeController.loadCompatibleVersions.calledOnce).to.be.true;
+      });
+
+      it('updateCurrentStackVersion should be called', function () {
+        expect(upgradeController.updateCurrentStackVersion.calledOnce).to.be.true;
+      });
+
       it('initDBProperties is not called', function () {
         expect(upgradeController.initDBProperties.called).to.be.false;
       });
@@ -509,6 +525,9 @@ describe('App.clusterController', function () {
         expect(upgradeController.loadUpgradeData.called).to.be.false;
       });
 
+      it('App.stackUpgradeHistoryMapper.map should be called', function () {
+        expect(App.stackUpgradeHistoryMapper.map.calledOnce).to.be.true;
+      });
     });
 
     describe("has completed upgrade request", function() {

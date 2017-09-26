@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,8 +34,8 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +93,7 @@ public class ActionDefinitionManager {
     }
 
     File[] customActionDefinitionFiles
-        = customActionDefinitionRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+        = customActionDefinitionRoot.listFiles(StackDirectory.FILENAME_FILTER);
 
     if (customActionDefinitionFiles != null) {
       for (File definitionFile : customActionDefinitionFiles) {
@@ -105,9 +105,9 @@ public class ActionDefinitionManager {
           continue;
         }
         for (ActionDefinitionSpec ad : adx.actionDefinitions()) {
-          LOG.debug("Read action definition = " + ad.toString());
+          LOG.debug("Read action definition = {}", ad);
           StringBuilder errorReason =
-              new StringBuilder("Error while parsing action definition. ").append(ad.toString()).append(" --- ");
+              new StringBuilder("Error while parsing action definition. ").append(ad).append(" --- ");
 
           TargetHostType targetType = safeValueOf(TargetHostType.class, ad.getTargetType(), errorReason);
           ActionType actionType = safeValueOf(ActionType.class, ad.getActionType(), errorReason);
@@ -121,7 +121,7 @@ public class ActionDefinitionManager {
             String actionName = ad.getActionName();
             if (actionDefinitionMap.containsKey(actionName)) {
               LOG.warn("Ignoring action definition as a different definition by that name already exists. "
-                  + ad.toString());
+                  + ad);
               continue;
             }
 

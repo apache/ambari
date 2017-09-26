@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.resources.api.rest;
 
-
 import java.io.File;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,9 +30,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.resources.ResourceManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -42,7 +42,7 @@ import com.google.inject.Inject;
  */
 @Path("/")
 public class GetResource {
-  private static Log LOG = LogFactory.getLog(GetResource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GetResource.class);
 
   private static ResourceManager resourceManager;
 
@@ -51,16 +51,14 @@ public class GetResource {
 	  resourceManager = instance;
   }
 
-
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{resourcePath:.*}")
   @Consumes(MediaType.TEXT_PLAIN)
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response getResource(@PathParam("resourcePath") String resourcePath,
       @Context HttpServletRequest req) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a resource request from agent"
-          + ", resourcePath=" + resourcePath);
+      LOG.debug("Received a resource request from agent, resourcePath={}", resourcePath);
     }
     File resourceFile = resourceManager.getResource(resourcePath);
 

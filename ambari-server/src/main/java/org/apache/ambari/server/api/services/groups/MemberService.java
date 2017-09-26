@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,6 +32,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -61,7 +62,7 @@ public class MemberService extends BaseService {
    * @param groupName    group name
    * @return information regarding the created member
    */
-   @POST
+   @POST @ApiIgnore // until documented
    @Produces("text/plain")
    public Response createMember(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("groupName") String groupName) {
     return handleRequest(headers, body, ui, Request.Type.POST, createMemberResource(groupName, null));
@@ -77,7 +78,7 @@ public class MemberService extends BaseService {
    * @param userName     the user name
    * @return information regarding the created member
    */
-   @POST
+   @POST @ApiIgnore // until documented
    @Path("{userName}")
    @Produces("text/plain")
    public Response createMember(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("groupName") String groupName,

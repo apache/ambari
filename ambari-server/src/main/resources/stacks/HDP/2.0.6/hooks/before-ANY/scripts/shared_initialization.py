@@ -24,6 +24,7 @@ import tempfile
 from copy import copy
 from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
+from resource_management.core import shell
 
 def setup_users():
   """
@@ -44,10 +45,11 @@ def setup_users():
 
     for user in params.user_list:
       User(user,
-          gid = params.user_to_gid_dict[user],
-          groups = params.user_to_groups_dict[user],
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
-      )
+           uid = get_uid(user) if params.override_uid == "true" else None,
+           gid = params.user_to_gid_dict[user],
+           groups = params.user_to_groups_dict[user],
+           fetch_nonlocal_groups = params.fetch_nonlocal_groups,
+           )
 
     if params.override_uid == "true":
       set_uid(params.smoke_user, params.smoke_user_dirs)
@@ -65,6 +67,7 @@ def setup_users():
                create_parents = True,
                cd_access="a",
     )
+
     if params.override_uid == "true":
       set_uid(params.hbase_user, params.hbase_user_dirs)
     else:
@@ -88,7 +91,7 @@ def create_dfs_cluster_admins():
 
   User(params.hdfs_user,
     groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
+    fetch_nonlocal_groups = params.fetch_nonlocal_groups
   )
 
 def create_tez_am_view_acls():
@@ -125,7 +128,7 @@ def create_users_and_groups(user_and_groups):
     Group(copy(groups_list),
     )
   return groups_list
-    
+
 def set_uid(user, user_dirs):
   """
   user_dirs - comma separated directories
@@ -136,9 +139,43 @@ def set_uid(user, user_dirs):
        content=StaticFile("changeToSecureUid.sh"),
        mode=0555)
   ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
-  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs}"),
+  uid = get_uid(user, return_existing=True)
+  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {new_uid}", new_uid=0 if uid is None else uid),
           not_if = format("(test $(id -u {user}) -gt 1000) || ({ignore_groupsusers_create_str})"))
-    
+
+def get_uid(user, return_existing=False):
+  """
+  Tries to get UID for username. It will try to find UID in custom properties in *cluster_env* and, if *return_existing=True*,
+  it will try to return UID of existing *user*.
+
+  :param user: username to get UID for
+  :param return_existing: return UID for existing user
+  :return:
+  """
+  import params
+  user_str = str(user) + "_uid"
+  service_env = [ serviceEnv for serviceEnv in params.config['configurations'] if user_str in params.config['configurations'][serviceEnv]]
+
+  if service_env and params.config['configurations'][service_env[0]][user_str]:
+    service_env_str = str(service_env[0])
+    uid = params.config['configurations'][service_env_str][user_str]
+    if len(service_env) > 1:
+      Logger.warning("Multiple values found for %s, using %s"  % (user_str, uid))
+    return uid
+  else:
+    if return_existing:
+      # pick up existing UID or try to find available UID in /etc/passwd, see changeToSecureUid.sh for more info
+      if user == params.smoke_user:
+        return None
+      File(format("{tmp_dir}/changeUid.sh"),
+           content=StaticFile("changeToSecureUid.sh"),
+           mode=0555)
+      code, newUid = shell.call(format("{tmp_dir}/changeUid.sh {user}"))
+      return int(newUid)
+    else:
+      # do not return UID for existing user, used in User resource call to let OS to choose UID for us
+      return None
+
 def setup_hadoop_env():
   import params
   stackversion = params.stack_version_unformatted
@@ -176,17 +213,26 @@ def setup_hadoop_env():
 
 def setup_java():
   """
+  Install jdk using specific params.
+  Install ambari jdk as well if the stack and ambari jdk are different.
+  """
+  import params
+  __setup_java(custom_java_home=params.java_home, custom_jdk_name=params.jdk_name)
+  if params.ambari_java_home and params.ambari_java_home != params.java_home:
+    __setup_java(custom_java_home=params.ambari_java_home, custom_jdk_name=params.ambari_jdk_name)
+
+def __setup_java(custom_java_home, custom_jdk_name):
+  """
   Installs jdk using specific params, that comes from ambari-server
   """
   import params
-
-  java_exec = format("{java_home}/bin/java")
+  java_exec = format("{custom_java_home}/bin/java")
 
   if not os.path.isfile(java_exec):
     if not params.jdk_name: # if custom jdk is used.
       raise Fail(format("Unable to access {java_exec}. Confirm you have copied jdk to this host."))
 
-    jdk_curl_target = format("{tmp_dir}/{jdk_name}")
+    jdk_curl_target = format("{tmp_dir}/{custom_jdk_name}")
     java_dir = os.path.dirname(params.java_home)
 
     Directory(params.artifact_dir,
@@ -194,13 +240,13 @@ def setup_java():
               )
 
     File(jdk_curl_target,
-         content = DownloadSource(format("{jdk_location}/{jdk_name}")),
+         content = DownloadSource(format("{jdk_location}/{custom_jdk_name}")),
          not_if = format("test -f {jdk_curl_target}")
-    )
+         )
 
     File(jdk_curl_target,
          mode = 0755,
-    )
+         )
 
     tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
 
@@ -213,7 +259,7 @@ def setup_java():
         install_cmd = format("cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
 
       Directory(java_dir
-      )
+                )
 
       Execute(chmod_cmd,
               sudo = True,
@@ -225,10 +271,11 @@ def setup_java():
     finally:
       Directory(tmp_java_dir, action="delete")
 
-    File(format("{java_home}/bin/java"),
+    File(format("{custom_java_home}/bin/java"),
          mode=0755,
          cd_access="a",
          )
     Execute(('chmod', '-R', '755', params.java_home),
-      sudo = True,
-    )
+            sudo = True,
+            )
+

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -69,7 +69,7 @@ public class AmbariJpaPersistModule extends PersistModule {
     if (null != properties) {
       bind(Properties.class).annotatedWith(Jpa.class).toInstance(properties);
     } else {
-      bind(Properties.class).annotatedWith(Jpa.class).toProvider(Providers.<Properties> of(null));
+      bind(Properties.class).annotatedWith(Jpa.class).toProvider(Providers.of(null));
     }
 
     bind(AmbariJpaPersistService.class).in(Singleton.class);

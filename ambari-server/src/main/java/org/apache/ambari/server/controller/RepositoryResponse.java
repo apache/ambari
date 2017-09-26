@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,23 +26,26 @@ public class RepositoryResponse {
   private String osType;
   private String repoId;
   private String repoName;
+  private String distribution;
+  private String components;
   private String mirrorsList;
   private String defaultBaseUrl;
-  private String latestBaseUrl;
   private Long repositoryVersionId;
   private String versionDefinitionId;
   private Long clusterVersionId;
   private boolean unique;
 
   public RepositoryResponse(String baseUrl, String osType, String repoId,
-      String repoName, String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
+                            String repoName, String distribution, String components,
+                            String mirrorsList, String defaultBaseUrl) {
     setBaseUrl(baseUrl);
     setOsType(osType);
     setRepoId(repoId);
     setRepoName(repoName);
+    setDistribution(distribution);
+    setComponents(components);
     setMirrorsList(mirrorsList);
     setDefaultBaseUrl(defaultBaseUrl);
-    setLatestBaseUrl(latestBaseUrl);
   }
 
   public String getStackName() {
@@ -99,6 +102,22 @@ public class RepositoryResponse {
     this.repoName = repoName;
   }
 
+  public String getDistribution() {
+    return distribution;
+  }
+
+  public void setDistribution(String distribution) {
+    this.distribution = distribution;
+  }
+
+  public String getComponents() {
+    return components;
+  }
+
+  public void setComponents(String components) {
+    this.components = components;
+  }
+
   public String getMirrorsList() {
     return mirrorsList;
   }
@@ -113,14 +132,6 @@ public class RepositoryResponse {
 
   public void setDefaultBaseUrl(String url) {
     this.defaultBaseUrl = url;
-  }
-
-  public String getLatestBaseUrl() {
-    return latestBaseUrl;
-  }
-
-  public void setLatestBaseUrl(String url) {
-    latestBaseUrl = url;
   }
 
   public Long getRepositoryVersionId() {

@@ -443,7 +443,7 @@ describe('App', function () {
   describe('#upgradeSuspended', function () {
     var cases = [
       {
-        upgradeState: 'INIT',
+        upgradeState: 'NOT_REQUIRED',
         isSuspended: false,
         upgradeSuspended: false
       },
@@ -480,7 +480,7 @@ describe('App', function () {
 
     var cases = [
       {
-        upgradeState: 'INIT',
+        upgradeState: 'NOT_REQUIRED',
         isSuspended: false,
         upgradeAborted: false
       },
@@ -516,7 +516,7 @@ describe('App', function () {
   describe('#wizardIsNotFinished', function () {
     var cases = [
       {
-        upgradeState: 'INIT',
+        upgradeState: 'NOT_REQUIRED',
         wizardIsNotFinished: false
       },
       {
@@ -549,7 +549,7 @@ describe('App', function () {
   describe("#upgradeHolding", function () {
     var cases = [
       {
-        upgradeState: 'INIT',
+        upgradeState: 'NOT_REQUIRED',
         upgradeAborted: false,
         upgradeHolding: false
       },
@@ -564,7 +564,7 @@ describe('App', function () {
         upgradeHolding: true
       },
       {
-        upgradeState: 'INIT',
+        upgradeState: 'NOT_REQUIRED',
         upgradeAborted: true,
         upgradeHolding: true
       }

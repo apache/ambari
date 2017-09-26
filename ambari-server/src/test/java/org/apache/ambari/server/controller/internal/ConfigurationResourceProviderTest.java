@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -73,7 +73,7 @@ public class ConfigurationResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     managementController.createConfiguration(AbstractResourceProviderTest.Matcher.getConfigurationRequest(
-        "Cluster100", "type", "tag", new HashMap<String, String>(), null));
+        "Cluster100", "type", "tag", new HashMap<>(), null));
     expectLastCall().andReturn(null);
 
     // replay

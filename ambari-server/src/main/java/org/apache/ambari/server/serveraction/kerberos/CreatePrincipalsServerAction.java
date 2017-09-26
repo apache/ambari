@@ -131,7 +131,8 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
 
       if (regenerateKeytabs) {
-        processPrincipal = true;
+        // do not process cached identities that can be passed as is(headless identities)
+        processPrincipal = "false".equals(identityRecord.get(KerberosIdentityDataFileReader.ONLY_KEYTAB_WRITE).toLowerCase());
       } else {
         KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
 

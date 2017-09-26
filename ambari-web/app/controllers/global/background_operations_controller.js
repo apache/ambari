@@ -40,13 +40,13 @@ App.BackgroundOperationsController = Em.Controller.extend({
   operationsCount: 10,
   /**
    * Possible levels:
-   * REQUESTS_LIST
+   * OPS_LIST
    * HOSTS_LIST
    * TASKS_LIST
    * TASK_DETAILS
    */
   levelInfo: Em.Object.create({
-    name: 'REQUESTS_LIST',
+    name: "OPS_LIST",
     requestId: null,
     taskId: null
   }),
@@ -258,7 +258,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     }
     this.removeOldRequests(currentRequestIds);
     this.set("allOperationsCount", runningServices);
-    this.set('isShowMoreAvailable', countGot >= countIssued);
+    this.set('isShowMoreAvailable', countGot > countIssued);
     this.set('serviceTimestamp', App.dateTimeWithTimeZone());
   },
 
@@ -368,6 +368,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var self = this;
     App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       App.updater.immediateRun('requestMostRecent');
+
+      App.HostPopup.set("breadcrumbs", [ App.HostPopup.get("rootBreadcrumb") ]);
+
       if (self.get('popupView') && App.HostPopup.get('isBackgroundOperations')) {
         self.set('popupView.isNotShowBgChecked', !initValue);
         self.set('popupView.isOpen', true);

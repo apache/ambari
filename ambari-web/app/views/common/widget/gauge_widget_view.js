@@ -60,8 +60,8 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
   }.property('value'),
 
   chartView: App.ChartPieView.extend({
-    stroke: '#D6DDDF',  //light grey
-    innerR: 25,
+    stroke: '#transparent',
+    innerR: 40,
 
     /**
      * since chart widget using percentage values factor equal 100
@@ -105,20 +105,18 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
       var color_orange = App.healthStatusOrange;
       if ((isNaN(threshold1) && isNaN(threshold2)) || (isNaN(threshold1) && used <= threshold2) || (isNaN(threshold2) && used <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (used > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (used <= threshold1))) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: ['#FFFFFF', color_green].reverse()
+          scheme: ['#DDDDDD', color_green].reverse()
         }));
-        return color_green;
       } else if ((!isNaN(threshold2) && used.isInRange(threshold1, threshold2)) || (isNaN(threshold2) && used > threshold1)) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: ['#FFFFFF', color_orange].reverse()
+          scheme: ['#DDDDDD', color_orange].reverse()
         }));
-        return color_orange;
       } else {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: ['#FFFFFF', color_red].reverse()
+          scheme: ['#DDDDDD', color_red].reverse()
         }));
-        return color_red;
       }
+      return App.widgetContentColor;
     }.property('parentView.value', 'warningThreshold', 'errorThreshold'),
 
     // refresh text and color when data in model changed

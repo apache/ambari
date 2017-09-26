@@ -144,7 +144,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
   setServerClock: function (data) {
     var clientClock = new Date().getTime();
-    var serverClock = (data.RootServiceComponents.server_clock).toString();
+    var serverClock = (Em.getWithDefault(data, 'RootServiceComponents.server_clock', '')).toString();
     serverClock = serverClock.length < 13 ? serverClock + '000' : serverClock;
     App.set('clockDistance', serverClock - clientClock);
     App.set('currentServerTime', parseInt(serverClock));
@@ -287,6 +287,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   /**
    * restore upgrade status from server
    * and make call to get latest status from server
+   * Also loading all upgrades to App.StackUpgradeHistory model
+   * TODO should be called even if recent background operations doesn't have Upgrade request
    */
   restoreUpgradeState: function () {
     var self = this;
@@ -334,7 +336,10 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         App.set('upgradeState', dbUpgradeState);
       }
 
+      App.stackUpgradeHistoryMapper.map(data);
       upgradeController.loadStackVersionsToModel(true).done(function () {
+        upgradeController.loadCompatibleVersions();
+        upgradeController.updateCurrentStackVersion();
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });
     });

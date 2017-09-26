@@ -34,7 +34,9 @@ class TestHistoryServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
-  
+
+  CONFIG_OVERRIDES = {"serviceName":"MAPREDUCE2", "role":"HISTORYSERVER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/historyserver.py",
                        classname="HistoryServer",
@@ -714,6 +716,16 @@ class TestHistoryServer(RMFTestCase):
                               owner = 'yarn',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn_nm_jaas.conf',
+                              content = Template('yarn_nm_jaas.conf.j2'),
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred_jaas.conf',
+                              content = Template('mapred_jaas.conf.j2'),
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               owner = 'mapred',
                               group = 'hadoop',
@@ -741,15 +753,6 @@ class TestHistoryServer(RMFTestCase):
                               group = 'hadoop',
                               )
 
-  def assert_call_to_get_hadoop_conf_dir(self):
-    # From call to conf_select.get_hadoop_conf_dir()
-    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
-                              not_if = "test -e /etc/hadoop/conf.backup",
-                              sudo = True)
-    self.assertResourceCalled("Directory", "/etc/hadoop/conf",
-                              action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
-
   @patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock):
@@ -765,6 +768,7 @@ class TestHistoryServer(RMFTestCase):
                        classname = "HistoryServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, None), (0, None, None), (0, None, None), (0, None, None)],
@@ -775,8 +779,6 @@ class TestHistoryServer(RMFTestCase):
     self.assertTrue(call("slider", "hadoop", "hdfs", skip=False) in copy_to_hdfs_mock.call_args_list)
 
     # From call to conf_select.get_hadoop_conf_dir()
-    self.assert_call_to_get_hadoop_conf_dir()
-    self.assert_call_to_get_hadoop_conf_dir()
 
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -791,12 +793,3 @@ class TestHistoryServer(RMFTestCase):
     )
 
     self.assertNoMoreResources()
-
-    self.assertEquals(5, mocks_dict['call'].call_count)
-    self.assertEquals(5, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])

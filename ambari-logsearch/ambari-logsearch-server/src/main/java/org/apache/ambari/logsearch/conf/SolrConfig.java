@@ -21,7 +21,7 @@ package org.apache.ambari.logsearch.conf;
 import org.apache.ambari.logsearch.conf.global.SolrAuditLogsState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.conf.global.SolrServiceLogsState;
-import org.apache.ambari.logsearch.conf.global.SolrUserConfigState;
+import org.apache.ambari.logsearch.conf.global.SolrEventHistoryState;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,9 +46,9 @@ public class SolrConfig {
     return null;
   }
 
-  @Bean(name = "userConfigSolrTemplate")
+  @Bean(name = "eventHistorySolrTemplate")
   @DependsOn("serviceSolrTemplate")
-  public SolrTemplate userConfigSolrTemplate() {
+  public SolrTemplate eventHistorySolrTemplate() {
     return null;
   }
 
@@ -68,9 +68,9 @@ public class SolrConfig {
     return new SolrAuditLogsState();
   }
 
-  @Bean(name = "solrUserConfigState")
-  public SolrCollectionState solrUserConfigState() {
-    return new SolrUserConfigState();
+  @Bean(name = "solrEventHistoryState")
+  public SolrCollectionState solrEventHistoryState() {
+    return new SolrEventHistoryState();
   }
 }
 

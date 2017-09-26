@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -212,9 +212,9 @@ public class ViewSubResourceProviderTest {
           datapointsArray[i][0] = temporalInfo.getStartTime() + i * temporalInfo.getStep();
           datapointsArray[i][1] = value;
         }
-        return Collections.<String, Object>singletonMap(metricName, datapointsArray);
+        return Collections.singletonMap(metricName, datapointsArray);
       }
-      return Collections.<String, Object>singletonMap(metricName, value);
+      return Collections.singletonMap(metricName, value);
     }
 
     @Override

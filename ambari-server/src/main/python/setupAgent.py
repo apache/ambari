@@ -238,7 +238,7 @@ def findNearestAgentPackageVersion(projectVersion):
   if projectVersion == "":
     projectVersion = "  "
   if OSCheck.is_suse_family():
-    Command = ["bash", "-c", "zypper --no-gpg-checks -q search -s --match-exact ambari-agent | grep '" + projectVersion +
+    Command = ["bash", "-c", "zypper --no-gpg-checks --non-interactive -q search -s --match-exact ambari-agent | grep '" + projectVersion +
                                  "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
   elif OSCheck.is_windows_family():
     listPackagesCommand = ["cmd", "/c", "choco list ambari-agent --pre --all | findstr " + projectVersion + " > agentPackages.list"]
@@ -271,7 +271,7 @@ def isAgentPackageAlreadyInstalled(projectVersion):
 def getAvailableAgentPackageVersions():
   if OSCheck.is_suse_family():
     Command = ["bash", "-c",
-        "zypper --no-gpg-checks -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'"]
+        "zypper --no-gpg-checks --non-interactive -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'"]
   elif OSCheck.is_windows_family():
     Command = ["cmd", "/c", "choco list ambari-agent --pre --all | findstr ambari-agent"]
   elif OSCheck.is_ubuntu_family():

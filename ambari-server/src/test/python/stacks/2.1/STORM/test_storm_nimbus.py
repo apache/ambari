@@ -26,6 +26,7 @@ from test_storm_base import TestStormBase
 
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, '123', '')))
 class TestStormNimbus(TestStormBase):
+  CONFIG_OVERRIDES = {"serviceName":"STORM", "role":"NIMBUS"}
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
@@ -55,6 +56,15 @@ class TestStormNimbus(TestStormBase):
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1'",
     )
     self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
+        owner = 'storm',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
         owner = 'storm',
         group = 'hadoop',
     )
@@ -99,6 +109,15 @@ class TestStormNimbus(TestStormBase):
         owner = 'storm',
         group = 'hadoop',
     )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+      path = ['/usr/bin'],
+      user = 'storm',
+      not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      owner = 'storm',
+      group = 'hadoop',
+    )
     self.assertNoMoreResources()
 
   def test_start_with_metrics_collector_modern(self):
@@ -141,12 +160,21 @@ class TestStormNimbus(TestStormBase):
         owner = 'storm',
         group = 'hadoop',
     )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+      path = ['/usr/bin'],
+      user = 'storm',
+      not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      owner = 'storm',
+      group = 'hadoop',
+    )
     self.assertNoMoreResources()
 
   @patch("os.path.exists")
   def test_stop_default(self, path_exists_mock):
     # Bool for the pid file
-    path_exists_mock.side_effect = [True]
+    path_exists_mock.side_effect = [True, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -163,6 +191,16 @@ class TestStormNimbus(TestStormBase):
     )
     self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
         action = ['delete'],
+    )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+      not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+    )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
+      not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+      ignore_failures = True,
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -196,12 +234,21 @@ class TestStormNimbus(TestStormBase):
         owner = 'storm',
         group = 'hadoop',
     )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1 &\n echo $! > /var/run/storm/logviewer.pid',
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+        owner = 'storm',
+        group = 'hadoop',
+    )
     self.assertNoMoreResources()
 
   @patch("os.path.exists")
   def test_stop_secured(self, path_exists_mock):
     # Bool for the pid file
-    path_exists_mock.side_effect = [True]
+    path_exists_mock.side_effect = [True, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -219,6 +266,16 @@ class TestStormNimbus(TestStormBase):
     self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
         action = ['delete'],
     )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+      not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+    )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
+      not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1')",
+      ignore_failures = True,
+    )
+    self.assertResourceCalled('File', '/var/run/storm/logviewer.pid',
+      action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def test_pre_upgrade_restart(self):
@@ -226,6 +283,7 @@ class TestStormNimbus(TestStormBase):
                        classname = "Nimbus",
                        command = "pre_upgrade_restart",
                        config_file="default.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -244,20 +302,10 @@ class TestStormNimbus(TestStormBase):
                      classname = "Nimbus",
                      command = "pre_upgrade_restart",
                      config_dict = json_content,
+                     config_overrides = self.CONFIG_OVERRIDES,
                      stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,
-                     call_mocks = [(0, None, ''), (0, None)],
                      mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'storm-client', '2.3.0.0-1234'), sudo=True)
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'storm-nimbus', '2.3.0.0-1234'), sudo=True)
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'storm', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'storm', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])
-    self.assertNoMoreResources()

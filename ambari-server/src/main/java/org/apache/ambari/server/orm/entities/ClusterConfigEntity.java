@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -62,6 +62,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
         name = "ClusterConfigEntity.findLatestConfigsByStack",
         query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId = :clusterId AND clusterConfig.stack = :stack AND clusterConfig.selectedTimestamp = (SELECT MAX(clusterConfig2.selectedTimestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)"),
     @NamedQuery(
+        name = "ClusterConfigEntity.findLatestConfigsByStackWithTypes",
+        query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type IN :types AND clusterConfig.clusterId = :clusterId AND clusterConfig.stack = :stack AND clusterConfig.selectedTimestamp = (SELECT MAX(clusterConfig2.selectedTimestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)"),
+    @NamedQuery(
         name = "ClusterConfigEntity.findNotMappedClusterConfigsToService",
         query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.serviceConfigEntities IS EMPTY AND clusterConfig.type != 'cluster-env'"),
     @NamedQuery(
@@ -70,6 +73,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
     @NamedQuery(
         name = "ClusterConfigEntity.findEnabledConfigByType",
         query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1 and config.type = :type"),
+    @NamedQuery(
+        name = "ClusterConfigEntity.findEnabledConfigs",
+        query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1"),
     @NamedQuery(
         name = "ClusterConfigEntity.findEnabledConfigsByTypes",
         query = "SELECT config FROM ClusterConfigEntity config WHERE config.clusterId = :clusterId AND config.selected = 1 and config.type in :types") })
@@ -129,8 +135,8 @@ public class ClusterConfigEntity {
   @ManyToMany(mappedBy = "clusterConfigEntities")
   private Collection<ServiceConfigEntity> serviceConfigEntities;
 
-  @Column(name = "service_deleted", nullable = false, insertable = true, updatable = true)
-  private short serviceDeleted = 0;
+  @Column(name = "unmapped", nullable = false, insertable = true, updatable = true)
+  private short unmapped = 0;
 
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
@@ -139,12 +145,12 @@ public class ClusterConfigEntity {
   @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = true)
   private StackEntity stack;
 
-  public boolean isServiceDeleted() {
-    return serviceDeleted != 0;
+  public boolean isUnmapped() {
+    return unmapped != 0;
   }
 
-  public void setServiceDeleted(boolean serviceDeleted) {
-    this.serviceDeleted = (short)(serviceDeleted ? 1 : 0);
+  public void setUnmapped(boolean unmapped) {
+    this.unmapped  = (short)(unmapped ? 1 : 0);
   }
 
   public Long getConfigId() {

@@ -66,6 +66,9 @@ public class PostMapValuesAdapter implements JsonDeserializer<List<PostMapValues
         case "map_fieldvalue":
           mappers.add((MapFieldValueDescriptorImpl)context.deserialize(m.getValue(), MapFieldValueDescriptorImpl.class));
           break;
+        case "map_anonymize":
+          mappers.add((MapAnonymizeDescriptorImpl)context.deserialize(m.getValue(), MapAnonymizeDescriptorImpl.class));
+          break;
         default:
           System.out.println("Unknown key: " + m.getKey());
       }
@@ -92,7 +95,7 @@ public class PostMapValuesAdapter implements JsonDeserializer<List<PostMapValues
   private JsonElement createMapperObject(PostMapValuesImpl postMapValues, JsonSerializationContext context) {
     JsonObject jsonObject = new JsonObject();
     for (MapFieldDescriptor m : postMapValues.getMappers()) {
-      jsonObject.add(((MapFieldDescriptor)m).getJsonName(), context.serialize(m));
+      jsonObject.add(((MapFieldDescriptorImpl)m).getJsonName(), context.serialize(m));
     }
     return jsonObject;
   }

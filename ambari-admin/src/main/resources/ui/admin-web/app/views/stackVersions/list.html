@@ -46,6 +46,11 @@
         <button type="button" class="close clearfilter" ng-show="filter.name" ng-click="filter.name=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
       </th>
       <th class="col-medium text-search-container">
+        <label>{{'common.type' | translate}}</label>
+        <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.type" placeholder="{{'common.any' | translate}}">
+        <button type="button" class="close clearfilter" ng-show="filter.type" ng-click="filter.type=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
+      </th>
+      <th class="col-medium text-search-container">
         <label>{{'common.version' | translate}}</label>
         <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.version" placeholder="{{'common.any' | translate}}">
         <button type="button" class="close clearfilter" ng-show="filter.version" ng-click="filter.version=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
@@ -59,6 +64,7 @@
           ></select>
       </th>
       <th class="col-small"></th>
+      <th class="col-small text-center vertical-top">{{'common.hidden' | translate}}</th>
     </tr>
     </thead>
     <tbody>
@@ -67,7 +73,12 @@
         <span>{{repo.stack_name}}-{{repo.stack_version}}</span>
       </td>
       <td class="col-medium">
-        <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">{{repo.display_name}}</a>
+        <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">
+          {{repo.display_name}}
+        </a>
+      </td>
+      <td>
+        <span>{{repo.type}}</span>
       </td>
       <td class="col-medium">
         <span>{{repo.repository_version}}</span>
@@ -102,6 +113,7 @@
           </div>
         </div>
       </td>
+      <td class="text-center"><input type="checkbox" data-ng-model="repo.hidden" data-ng-change="toggleVisibility(repo)" data-ng-disabled="!isHideCheckBoxEnabled(repo)"/></td>
     </tr>
     </tbody>
   </table>

@@ -19,17 +19,29 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldNameDescriptor;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class MapFieldNameDescriptorImpl implements MapFieldNameDescriptor {
+@ShipperConfigTypeDescription(
+    name = "Map Field Name",
+    description = "The name of the mapping element should be map_fieldname. The value json element should contain the following parameter:"
+)
+public class MapFieldNameDescriptorImpl extends MapFieldDescriptorImpl implements MapFieldNameDescriptor {
   @Override
   public String getJsonName() {
     return "map_fieldname";
   }
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_fieldname/new_field_name",
+    type = "string",
+    description = "The name of the renamed field",
+    examples = {"new_name"}
+  )
   @Expose
   @SerializedName("new_fieldname")
   private String newFieldName;

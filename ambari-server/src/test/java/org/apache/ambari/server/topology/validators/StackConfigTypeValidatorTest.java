@@ -95,7 +95,7 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
     // GIVEN
     EasyMock.expect(stackMock.getConfiguration()).andReturn(stackConfigurationMock);
     EasyMock.expect(stackConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("core-site", "yarn-site")));
-    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Collections.<String>emptyList()));
+    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Collections.emptyList()));
 
     replayAll();
 

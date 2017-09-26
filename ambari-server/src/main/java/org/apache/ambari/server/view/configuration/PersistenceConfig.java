@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -41,6 +41,6 @@ public class PersistenceConfig {
    * @return the entity configurations
    */
   public List<EntityConfig> getEntities() {
-    return entities == null ? Collections.<EntityConfig>emptyList() : entities;
+    return entities == null ? Collections.emptyList() : entities;
   }
 }

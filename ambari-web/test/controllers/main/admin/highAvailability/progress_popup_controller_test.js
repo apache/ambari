@@ -360,11 +360,13 @@ describe('App.HighAvailabilityProgressPopupController', function () {
         }
       ];
       controller.setProperties({
+        requestIds: [1],
         popupTitle: 'popupTitle'
       });
       controller.calculateHostsData(data);
       expect(controller.get('services')).to.be.eql([
         {
+          "id": 1,
           "name": "popupTitle",
           "hosts": [
             {

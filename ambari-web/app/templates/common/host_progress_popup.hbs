@@ -19,11 +19,12 @@
 <div class="host-component-popup-wrap col-sm-12">
 
 {{#if view.parentView.isLoaded}}
-{{!-- SERVICES --}}
+{{!-- OPERATIONS --}}
 
   <div {{bindAttr class="view.parentView.isServiceListHidden:hidden :task-list-main-wrap :table-body-wrap"}}>
     <div class="row top-wrap">
-      <div class="table-controls row col-sm-12 pull-right">
+      <h2 class="table-title col-sm-6">{{view view.parentView.titleClass}}</h2>
+      <div class="table-controls row col-sm-6 pull-right">
         <div class="col-sm-12">
           <div class="btn-group pull-right">
             {{view Ember.Select
@@ -53,7 +54,7 @@
         <table class="table table-hover">
           <tbody>
             {{#each servicesInfo in view.services}}
-              <tr {{action gotoHosts servicesInfo}} {{bindAttr class="servicesInfo.isVisible::hidden :pointer"}}>
+              <tr {{action onOpClick servicesInfo}} {{bindAttr class="servicesInfo.isVisible::hidden :pointer"}}>
                 <td class="col-sm-3">
                   {{view statusIcon servicesInfoBinding="servicesInfo"}}
                   <a href="#">
@@ -116,11 +117,6 @@
               classNames="form-control"
             }}
           </div>
-          {{#if controller.isBackgroundOperations}}
-            <button type="button" class="btn btn-link pull-right" {{action backToServiceList}}>
-              <i class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.operations}}
-            </button>
-          {{/if}}
         </div>
       </div>
     </div>
@@ -148,7 +144,7 @@
           <table class="table table-hover">
             <tbody>
               {{#each hostInfo in view.pageContent}}
-                <tr {{action gotoTasks hostInfo}} {{bindAttr class="hostInfo.isVisible::hidden :pointer"}}>
+                <tr {{action onHostClick hostInfo}} {{bindAttr class="hostInfo.isVisible::hidden :pointer"}}>
                   <td class="col-sm-6 text-nowrap">
                     {{view statusIcon servicesInfoBinding="hostInfo"}}
                     <a href="#">
@@ -206,9 +202,6 @@
               classNames="form-control"
             }}
           </div>
-          <button type="button" class="btn btn-link pull-right" {{action backToHostList}}>
-            <i class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.hosts}}
-          </button>
         </div>
       </div>
     </div>
@@ -220,7 +213,7 @@
           <table class="table table-hover">
             <tbody>
               {{#each taskInfo in view.tasks}}
-                <tr {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :pointer"}}>
+                <tr {{action onTaskClick taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :pointer"}}>
                   <td class="col-sm-3">
                     {{view statusIcon servicesInfoBinding="taskInfo"}}
                     <a href="#">
@@ -258,10 +251,7 @@
   <div {{bindAttr class="view.parentView.isLogWrapHidden:hidden :task-detail-info view.hostComponentLogsExists:task-detail-info-tabbed"}}>
     <div class="task-top-wrap top-wrap">
       <div {{bindAttr class="view.hostComponentLogsExists:task-detail-log-nav-actions :row"}}>
-        <h2 class="table-title col-sm-5">
-          <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}}></i>
-          {{view.openedTask.commandDetail}}
-        </h2>
+        <h2 class="table-title col-sm-5">{{t common.taskLog}}</h2>
         <div class="table-controls row col-sm-7 pull-right">
           <div class="col-sm-12">
             {{#if App.supports.logSearch}}
@@ -278,9 +268,6 @@
             </button>
             <button type="button" class="btn btn-link pull-right copy-clipboard" {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}}>
               <i class="glyphicon glyphicon-copy"></i>&nbsp;{{t common.copy}}
-            </button>
-            <button type="button" class="btn btn-link pull-right" {{action backToTaskList}}>
-              <i class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.tasks}}
             </button>
           </div>
         </div>

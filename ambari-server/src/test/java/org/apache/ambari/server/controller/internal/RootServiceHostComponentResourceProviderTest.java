@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -77,7 +77,7 @@ public class RootServiceHostComponentResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getHosts()).andReturn(hosts).anyTimes();
 
-    expect(factory.getRootServiceHostComponent((RootServiceHostComponentRequest) anyObject(), EasyMock.<Set<HostResponse>>anyObject())).
+    expect(factory.getRootServiceHostComponent((RootServiceHostComponentRequest) anyObject(), EasyMock.anyObject())).
         andReturn(responseSet).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();

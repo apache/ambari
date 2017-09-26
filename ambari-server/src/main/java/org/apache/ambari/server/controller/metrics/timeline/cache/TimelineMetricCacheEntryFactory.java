@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -75,7 +75,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
    */
   @Override
   public Object createEntry(Object key) throws Exception {
-    LOG.debug("Creating cache entry since none exists, key = " + key);
+    LOG.debug("Creating cache entry since none exists, key = {}", key);
     TimelineAppMetricCacheKey metricCacheKey = (TimelineAppMetricCacheKey) key;
 
     TimelineMetrics timelineMetrics = null;
@@ -85,7 +85,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
         metricCacheKey.getTemporalInfo().getStartTimeMillis(),
         metricCacheKey.getTemporalInfo().getEndTimeMillis());
     } catch (IOException io) {
-      LOG.debug("Caught IOException on fetching metrics. " + io.getMessage());
+      LOG.debug("Caught IOException on fetching metrics. {}", io.getMessage());
       throw io;
     }
 
@@ -100,7 +100,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
           metricCacheKey.getTemporalInfo().getEndTimeMillis()) //Initial Precision
       );
 
-      LOG.debug("Created cache entry: " + value);
+      LOG.debug("Created cache entry: {}", value);
     }
 
     return value;
@@ -120,7 +120,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
     TimelineAppMetricCacheKey metricCacheKey = (TimelineAppMetricCacheKey) key;
     TimelineMetricsCacheValue existingMetrics = (TimelineMetricsCacheValue) value;
 
-    LOG.debug("Updating cache entry, key: " + key + ", with value = " + value);
+    LOG.debug("Updating cache entry, key: {}, with value = {}", key, value);
 
     Long existingSeriesStartTime = existingMetrics.getStartTime();
     Long existingSeriesEndTime = existingMetrics.getEndTime();
@@ -139,12 +139,12 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
     Long newEndTime = null;
     if(!requestedPrecision.equals(currentPrecision)) {
       // Ignore cache entry. Get the entire data from the AMS and update the cache.
-      LOG.debug("Precision changed from " + currentPrecision + " to " + requestedPrecision);
+      LOG.debug("Precision changed from {} to {}", currentPrecision, requestedPrecision);
       newStartTime = requestedStartTime;
       newEndTime = requestedEndTime;
     } else {
       //Get only the metric values for the delta period from the cache.
-      LOG.debug("No change in precision " + currentPrecision);
+      LOG.debug("No change in precision {}", currentPrecision);
       newStartTime = getRefreshRequestStartTime(existingSeriesStartTime,
           existingSeriesEndTime, requestedStartTime);
       newEndTime = getRefreshRequestEndTime(existingSeriesStartTime,
@@ -157,13 +157,11 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
        !((newStartTime.equals(existingSeriesStartTime) &&
        newEndTime.equals(existingSeriesEndTime)) && requestedPrecision.equals(currentPrecision)) ) {
 
-      LOG.debug("Existing cached timeseries startTime = " +
-          new Date(getMillisecondsTime(existingSeriesStartTime)) + ", endTime = " +
-          new Date(getMillisecondsTime(existingSeriesEndTime)));
+      LOG.debug("Existing cached timeseries startTime = {}, endTime = {}",
+        new Date(getMillisecondsTime(existingSeriesStartTime)), new Date(getMillisecondsTime(existingSeriesEndTime)));
 
-      LOG.debug("Requested timeseries startTime = " +
-          new Date(getMillisecondsTime(newStartTime)) + ", endTime = " +
-          new Date(getMillisecondsTime(newEndTime)));
+      LOG.debug("Requested timeseries startTime = {}, endTime = {}",
+        new Date(getMillisecondsTime(newStartTime)), new Date(getMillisecondsTime(newEndTime)));
 
       // Update spec with new start and end time
       uriBuilder.setParameter("startTime", String.valueOf(newStartTime));
@@ -190,9 +188,8 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
         throw io;
       }
     } else {
-      LOG.debug("Skip updating cache with new startTime = " +
-        new Date(getMillisecondsTime(newStartTime)) +
-        ", new endTime = " + new Date(getMillisecondsTime(newEndTime)));
+      LOG.debug("Skip updating cache with new startTime = {}, new endTime = {}",
+        new Date(getMillisecondsTime(newStartTime)), new Date(getMillisecondsTime(newEndTime)));
     }
   }
 
@@ -214,9 +211,8 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
         if (LOG.isTraceEnabled()) {
           TreeMap<Long, Double> sortedMetrics = new TreeMap<>(timelineMetric.getMetricValues());
 
-          LOG.trace("New metric: " + timelineMetric.getMetricName() +
-            " # " + timelineMetric.getMetricValues().size() + ", startTime = " +
-            sortedMetrics.firstKey() + ", endTime = " + sortedMetrics.lastKey());
+          LOG.trace("New metric: {} # {}, startTime = {}, endTime = {}",
+            timelineMetric.getMetricName(), timelineMetric.getMetricValues().size(), sortedMetrics.firstKey(), sortedMetrics.lastKey());
         }
 
         TimelineMetric existingMetric = null;
@@ -233,9 +229,8 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
 
           if (LOG.isTraceEnabled()) {
             TreeMap<Long, Double> sortedMetrics = new TreeMap<>(existingMetric.getMetricValues());
-            LOG.trace("Merged metric: " + timelineMetric.getMetricName() + ", " +
-              "Final size: " + existingMetric.getMetricValues().size() + ", startTime = " +
-              sortedMetrics.firstKey() + ", endTime = " + sortedMetrics.lastKey());
+            LOG.trace("Merged metric: {}, Final size: {}, startTime = {}, endTime = {}",
+              timelineMetric.getMetricName(), existingMetric.getMetricValues().size(), sortedMetrics.firstKey(), sortedMetrics.lastKey());
           }
         } else {
           existingTimelineMetrics.getMetrics().add(timelineMetric);
@@ -250,11 +245,10 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
 
     for (TimelineMetric existingMetric : existingMetrics.getMetrics()) {
       if (removeAll) {
-        existingMetric.setMetricValues(new TreeMap<Long, Double>());
+        existingMetric.setMetricValues(new TreeMap<>());
       } else {
         TreeMap<Long, Double> existingMetricValues = existingMetric.getMetricValues();
-        LOG.trace("Existing metric: " + existingMetric.getMetricName() +
-          " # " + existingMetricValues.size());
+        LOG.trace("Existing metric: {} # {}", existingMetric.getMetricName(), existingMetricValues.size());
 
         // Retain only the values that are within the [requestStartTime, requestedEndTime] window
         existingMetricValues.headMap(requestedStartTime,false).clear();
@@ -281,8 +275,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
       startTime = getTimeShiftedStartTime(existingSeriesEndTime);
     }
 
-    LOG.trace("Requesting timeseries data with new startTime = " +
-      new Date(getMillisecondsTime(startTime)));
+    LOG.trace("Requesting timeseries data with new startTime = {}", new Date(getMillisecondsTime(startTime)));
 
     return startTime;
   }
@@ -303,8 +296,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
       endTime = existingSeriesStartTime;
     }
 
-    LOG.trace("Requesting timeseries data with new endTime = " +
-      new Date(getMillisecondsTime(endTime)));
+    LOG.trace("Requesting timeseries data with new endTime = {}", new Date(getMillisecondsTime(endTime)));
     return endTime;
   }
 

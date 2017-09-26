@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.metadata;
 
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
@@ -31,14 +31,16 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 /**
  * RoleCommandOrderProvider which caches RoleCommandOrder objects for a cluster to avoid the cost of construction of
  * RoleCommandOrder objects each time.
  */
+@Singleton
 public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider {
 
-  private static Logger LOG = LoggerFactory.getLogger(CachedRoleCommandOrderProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CachedRoleCommandOrderProvider.class);
 
   @Inject
   private Injector injector;
@@ -46,7 +48,7 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
   @Inject
   private Clusters clusters;
 
-  private Map<Integer, RoleCommandOrder> rcoMap = new HashMap<>();
+  private Map<Integer, RoleCommandOrder> rcoMap = new ConcurrentHashMap<>();
 
   @Inject
   public CachedRoleCommandOrderProvider() {
@@ -124,4 +126,10 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
     return rco;
   }
 
+  /**
+   * Clear all entries - used after an upgrade
+   */
+  public void clearRoleCommandOrderCache() {
+    rcoMap.clear();
+  }
 }

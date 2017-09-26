@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -142,7 +142,7 @@ public class RootServiceResponseFactoryTest {
       } else {
         assertTrue(rootServiceComponents.contains(new RootServiceComponentResponse(
             serviceName, component.name(), RootServiceResponseFactory.NOT_APPLICABLE,
-            Collections.<String, String> emptyMap())));
+            Collections.emptyMap())));
       }
     }
 

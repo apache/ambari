@@ -21,7 +21,7 @@ package org.apache.ambari.logsearch.dao;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.conf.SolrUserPropsConfig;
+import org.apache.ambari.logsearch.conf.SolrEventHistoryPropsConfig;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -68,7 +68,7 @@ public class SolrSchemaFieldDao {
   private AuditSolrDao auditSolrDao;
   
   @Inject
-  private SolrUserPropsConfig solrUserConfigPropsConfig;
+  private SolrEventHistoryPropsConfig solrEventHistoryPropsConfig;
   
   private int retryCount;
   private int skipCount;
@@ -117,9 +117,9 @@ public class SolrSchemaFieldDao {
       if (schemaResponse != null) {
         extractSchemaFieldsName(lukeResponses, schemaResponse, schemaFieldNameMap, schemaFieldTypeMap);
         LOG.debug("Populate fields for collection " + solrClient.getDefaultCollection()+ " was successful, next update it after " +
-            solrUserConfigPropsConfig.getPopulateIntervalMins() + " minutes");
+            solrEventHistoryPropsConfig.getPopulateIntervalMins() + " minutes");
         retryCount = 0;
-        skipCount = (solrUserConfigPropsConfig.getPopulateIntervalMins() * 60) / RETRY_SECOND - 1;
+        skipCount = (solrEventHistoryPropsConfig.getPopulateIntervalMins() * 60) / RETRY_SECOND - 1;
       }
       else {
         retryCount++;
@@ -133,7 +133,7 @@ public class SolrSchemaFieldDao {
   @SuppressWarnings("unchecked")
   private List<LukeResponse> getLukeResponsesForCores(CloudSolrClient solrClient) {
     ZkStateReader zkStateReader = solrClient.getZkStateReader();
-    Collection<Slice> activeSlices = zkStateReader.getClusterState().getActiveSlices(solrClient.getDefaultCollection());
+    Collection<Slice> activeSlices = zkStateReader.getClusterState().getCollection(solrClient.getDefaultCollection()).getActiveSlices();
     
     List<LukeResponse> lukeResponses = new ArrayList<>();
     for (Slice slice : activeSlices) {
@@ -141,7 +141,8 @@ public class SolrSchemaFieldDao {
         try (CloseableHttpClient httpClient = HttpClientUtil.createClient(null)) {
           HttpGet request = new HttpGet(replica.getCoreUrl() + LUKE_REQUEST_URL_SUFFIX);
           HttpResponse response = httpClient.execute(request);
-          NamedList<Object> lukeData = (NamedList<Object>) new JavaBinCodec(null, null).unmarshal(response.getEntity().getContent());
+          @SuppressWarnings("resource") // JavaBinCodec implements Closeable, yet it can't be closed if it is used for unmarshalling only
+          NamedList<Object> lukeData = (NamedList<Object>) new JavaBinCodec().unmarshal(response.getEntity().getContent());
           LukeResponse lukeResponse = new LukeResponse();
           lukeResponse.setResponse(lukeData);
           lukeResponses.add(lukeResponse);

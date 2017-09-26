@@ -81,7 +81,6 @@ public class InputFileTest {
     inputFileDescriptor.setSource("file");
     inputFileDescriptor.setTail(true);
     inputFileDescriptor.setGenEventMd5(true);
-    inputFileDescriptor.setStartPosition("beginning");
     inputFileDescriptor.setType("hdfs_datanode");
     inputFileDescriptor.setRowtype("service");
     inputFileDescriptor.setPath(path);

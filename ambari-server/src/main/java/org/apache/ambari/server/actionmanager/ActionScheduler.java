@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -101,7 +101,7 @@ import com.google.inject.persist.UnitOfWork;
 @Singleton
 class ActionScheduler implements Runnable {
 
-  private static Logger LOG = LoggerFactory.getLogger(ActionScheduler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ActionScheduler.class);
 
   public static final String FAILED_TASK_ABORT_REASONING =
     "Server considered task failed and automatically aborted it";
@@ -218,6 +218,50 @@ class ActionScheduler implements Runnable {
 
   /**
    * Unit Test Constructor.
+   * @param sleepTimeMilliSec
+   * @param actionTimeoutMilliSec
+   * @param db
+   * @param actionQueue
+   * @param fsmObject
+   * @param maxAttempts
+   * @param hostsMap
+   * @param unitOfWork
+   * @param ambariEventPublisher
+   * @param configuration
+   * @param entityManagerProvider
+   * @param hostRoleCommandDAO
+   * @param hostRoleCommandFactory
+   * @param roleCommandOrderProvider
+   */
+  protected ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec, ActionDBAccessor db,
+                            ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
+                            UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
+                            Configuration configuration, Provider<EntityManager> entityManagerProvider,
+                            HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory,
+                            RoleCommandOrderProvider roleCommandOrderProvider) {
+
+    sleepTime = sleepTimeMilliSec;
+    actionTimeout = actionTimeoutMilliSec;
+    this.db = db;
+    this.actionQueue = actionQueue;
+    clusters = fsmObject;
+    this.maxAttempts = (short) maxAttempts;
+    this.hostsMap = hostsMap;
+    this.unitOfWork = unitOfWork;
+    this.ambariEventPublisher = ambariEventPublisher;
+    this.configuration = configuration;
+    this.entityManagerProvider = entityManagerProvider;
+    this.hostRoleCommandDAO = hostRoleCommandDAO;
+    this.hostRoleCommandFactory = hostRoleCommandFactory;
+    jpaPublisher = null;
+    this.roleCommandOrderProvider = roleCommandOrderProvider;
+
+    serverActionExecutor = new ServerActionExecutor(db, sleepTime);
+    initializeCaches();
+  }
+
+  /**
+   * Unit Test Constructor.
    *
    * @param sleepTimeMilliSec
    * @param actionTimeoutMilliSec
@@ -238,23 +282,9 @@ class ActionScheduler implements Runnable {
                             Configuration configuration, Provider<EntityManager> entityManagerProvider,
                             HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory) {
 
-    sleepTime = sleepTimeMilliSec;
-    actionTimeout = actionTimeoutMilliSec;
-    this.db = db;
-    this.actionQueue = actionQueue;
-    clusters = fsmObject;
-    this.maxAttempts = (short) maxAttempts;
-    this.hostsMap = hostsMap;
-    this.unitOfWork = unitOfWork;
-    this.ambariEventPublisher = ambariEventPublisher;
-    this.configuration = configuration;
-    this.entityManagerProvider = entityManagerProvider;
-    this.hostRoleCommandDAO = hostRoleCommandDAO;
-    this.hostRoleCommandFactory = hostRoleCommandFactory;
-    jpaPublisher = null;
-
-    serverActionExecutor = new ServerActionExecutor(db, sleepTime);
-    initializeCaches();
+    this(sleepTimeMilliSec, actionTimeoutMilliSec, db, actionQueue, fsmObject, maxAttempts, hostsMap, unitOfWork,
+            ambariEventPublisher, configuration, entityManagerProvider, hostRoleCommandDAO, hostRoleCommandFactory,
+            null);
   }
 
   /**
@@ -395,7 +425,7 @@ class ActionScheduler implements Runnable {
         // Check if we can process this stage in parallel with another stages
         i_stage++;
         long requestId = stage.getRequestId();
-        LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestId + ",StageId=" + stage.getStageId() + ")");
+        LOG.debug("==> STAGE_i = {}(requestId={},StageId={})", i_stage, requestId, stage.getStageId());
 
         RequestEntity request = db.getRequestEntity(requestId);
 
@@ -735,7 +765,7 @@ class ActionScheduler implements Runnable {
       }
 
       int i_my = 0;
-      LOG.trace("===>host=" + host);
+      LOG.trace("===>host={}", host);
 
       for (ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
@@ -743,8 +773,7 @@ class ActionScheduler implements Runnable {
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
         i_my++;
         if (LOG.isTraceEnabled()) {
-          LOG.trace("Host task " + i_my + ") id = " + c.getTaskId() + " status = " + status.toString() +
-            " (role=" + roleStr + "), roleCommand = " + c.getRoleCommand());
+          LOG.trace("Host task {}) id = {} status = {} (role={}), roleCommand = {}", i_my, c.getTaskId(), status, roleStr, c.getRoleCommand());
         }
         boolean hostDeleted = false;
         if (null != cluster) {
@@ -789,7 +818,7 @@ class ActionScheduler implements Runnable {
             commandTimeout += Long.parseLong(timeoutStr) * 1000; // Converting to milliseconds
           } else {
             LOG.error("Execution command has no timeout parameter" +
-              c.toString());
+              c);
           }
         }
 
@@ -853,7 +882,7 @@ class ActionScheduler implements Runnable {
 
             // reschedule command
             commandsToSchedule.add(c);
-            LOG.trace("===> commandsToSchedule(reschedule)=" + commandsToSchedule.size());
+            LOG.trace("===> commandsToSchedule(reschedule)={}", commandsToSchedule.size());
           }
         } else if (status.equals(HostRoleStatus.PENDING)) {
           // in case of DEPENDENCY_ORDERED stage command can be scheduled only if all of it's dependencies are
@@ -865,7 +894,7 @@ class ActionScheduler implements Runnable {
 
             //Need to schedule first time
             commandsToSchedule.add(c);
-            LOG.trace("===>commandsToSchedule(first_time)=" + commandsToSchedule.size());
+            LOG.trace("===>commandsToSchedule(first_time)={}", commandsToSchedule.size());
           }
         }
 
@@ -889,12 +918,17 @@ class ActionScheduler implements Runnable {
     boolean areCommandDependenciesFinished = true;
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(stage.getClusterId());
     if (rco != null) {
-      Set<RoleCommandPair> roleCommandDependencies = rco.getDependencies().get(new
-        RoleCommandPair(Role.valueOf(command.getRole()), command.getRoleCommand()));
+      RoleCommandPair roleCommand = new
+              RoleCommandPair(Role.valueOf(command.getRole()), command.getRoleCommand());
+      Set<RoleCommandPair> roleCommandDependencies = rco.getDependencies().get(roleCommand);
 
       // check if there are any dependencies IN_PROGRESS
-      if (roleCommandDependencies != null && CollectionUtils.containsAny(rolesCommandsInProgress, roleCommandDependencies)) {
-        areCommandDependenciesFinished = false;
+      if (roleCommandDependencies != null) {
+        // remove eventual references to the same RoleCommand
+        roleCommandDependencies.remove(roleCommand);
+        if (CollectionUtils.containsAny(rolesCommandsInProgress, roleCommandDependencies)) {
+          areCommandDependenciesFinished = false;
+        }
       }
     }
 
@@ -962,8 +996,7 @@ class ActionScheduler implements Runnable {
       }
 
     } catch (ServiceComponentNotFoundException scnex) {
-      LOG.debug(componentName + " associated with service " + serviceName +
-        " is not a service component, assuming it's an action.");
+      LOG.debug("{} associated with service {} is not a service component, assuming it's an action.", componentName, serviceName);
     } catch (ServiceComponentHostNotFoundException e) {
       String msg = String.format("Service component host %s not found, " +
               "unable to transition to failed state.", componentName);

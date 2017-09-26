@@ -18,17 +18,14 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_APPS_BLACKLIST;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_APPS_WHITELIST;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE_LOCATION_DEFAULT;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -36,9 +33,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_APPS_BLACKLIST;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_APPS_WHITELIST;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 public class TimelineMetricsFilter {
 
@@ -67,8 +67,8 @@ public class TimelineMetricsFilter {
     whitelistedApps = new HashSet<>();
     amshbaseWhitelist = new HashSet<>();
 
-    String whitelistFile = metricsConf.get(TIMELINE_METRICS_WHITELIST_FILE, "");
-    if (!StringUtils.isEmpty(whitelistFile)) {
+    if (configuration.isWhitelistingEnabled()) {
+      String whitelistFile = metricsConf.get(TIMELINE_METRICS_WHITELIST_FILE, TIMELINE_METRICS_WHITELIST_FILE_LOCATION_DEFAULT);
       readMetricWhitelistFromFile(whitelistFile);
     }
 

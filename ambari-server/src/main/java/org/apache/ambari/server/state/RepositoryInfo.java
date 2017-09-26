@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,9 +29,10 @@ public class RepositoryInfo {
   private String osType;
   private String repoId;
   private String repoName;
+  private String distribution;
+  private String components;
   private String mirrorsList;
   private String defaultBaseUrl;
-  private String latestBaseUrl;
   private boolean repoSaved = false;
   private boolean unique = false;
   private boolean ambariManagedRepositories = true;
@@ -92,6 +93,22 @@ public class RepositoryInfo {
     this.repoName = repoName;
   }
 
+  public String getDistribution() {
+    return distribution;
+  }
+
+  public void setDistribution(String distribution) {
+    this.distribution = distribution;
+  }
+
+  public String getComponents() {
+    return components;
+  }
+
+  public void setComponents(String components) {
+    this.components = components;
+  }
+
   /**
    * @return the mirrorsList
    */
@@ -118,20 +135,6 @@ public class RepositoryInfo {
    */
   public void setDefaultBaseUrl(String url) {
     defaultBaseUrl = url;
-  }
-
-  /**
-   * @return the latest determined base url
-   */
-  public String getLatestBaseUrl() {
-    return latestBaseUrl;
-  }
-
-  /**
-   * @param url the latest determined base url
-   */
-  public void setLatestBaseUrl(String url) {
-    latestBaseUrl = url;
   }
 
   /**
@@ -169,6 +172,8 @@ public class RepositoryInfo {
         + ", repoId=" + repoId
         + ", baseUrl=" + baseUrl
         + ", repoName=" + repoName
+        + ", distribution=" + distribution
+        + ", components=" + components
         + ", mirrorsList=" + mirrorsList
         + ", unique=" + unique
         + ", ambariManagedRepositories=" + ambariManagedRepositories
@@ -186,21 +191,23 @@ public class RepositoryInfo {
         Objects.equal(osType, that.osType) &&
         Objects.equal(repoId, that.repoId) &&
         Objects.equal(repoName, that.repoName) &&
+        Objects.equal(distribution, that.distribution) &&
+        Objects.equal(components, that.components) &&
         Objects.equal(mirrorsList, that.mirrorsList) &&
         Objects.equal(defaultBaseUrl, that.defaultBaseUrl) &&
-        Objects.equal(latestBaseUrl, that.latestBaseUrl) &&
         Objects.equal(ambariManagedRepositories, that.ambariManagedRepositories);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(baseUrl, osType, repoId, repoName, mirrorsList, defaultBaseUrl, latestBaseUrl, repoSaved, unique, ambariManagedRepositories);
+    return Objects.hashCode(baseUrl, osType, repoId, repoName, distribution, components, mirrorsList, defaultBaseUrl,
+           ambariManagedRepositories);
   }
 
   public RepositoryResponse convertToResponse()
   {
     return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
-        getRepoName(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl());
+            getRepoName(), getDistribution(), getComponents(), getMirrorsList(), getDefaultBaseUrl());
   }
 
   /**

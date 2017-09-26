@@ -112,6 +112,10 @@
                   <pattern>net.sf.ehcache</pattern>
                   <shadedPattern>org.apache.ambari.metrics.sink.relocated.ehcache</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.apache.http</shadedPattern>
+                </relocation>
               </relocations>
             </configuration>
           </execution>
@@ -197,6 +201,11 @@
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.2.5</version>
     </dependency>
   </dependencies>
 </project>

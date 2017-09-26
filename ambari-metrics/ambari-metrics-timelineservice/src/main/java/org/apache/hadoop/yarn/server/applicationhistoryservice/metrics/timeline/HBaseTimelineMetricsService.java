@@ -17,8 +17,29 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -43,35 +64,16 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricHostMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.SeriesAggregateFunction;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunction;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunctionFactory;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConditionBuilder;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.TopNCondition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.SeriesAggregateFunction;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunction;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunctionFactory;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.*;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 public class HBaseTimelineMetricsService extends AbstractService implements TimelineMetricStore {
 
@@ -86,7 +88,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
-//  private MetricKafkaProducer metricKafkaProducer;
+  private boolean containerMetricsDisabled = false;
 
   /**
    * Construct the service.
@@ -226,7 +228,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
         LOG.info("Started watchdog for timeline metrics store with initial " +
           "delay = " + initDelay + ", delay = " + delay);
       }
-
+      containerMetricsDisabled = configuration.isContainerMetricsDisabled();
       isInitialized = true;
     }
 
@@ -357,8 +359,12 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       if (prevTime != null) {
         step = currTime - prevTime;
         diff = currVal - prevVal;
-        Double rate = isDiff ? diff : (diff / TimeUnit.MILLISECONDS.toSeconds(step));
-        timeValueEntry.setValue(rate);
+        if (diff < 0) {
+          it.remove(); //Discard calculating rate when the metric counter has been reset.
+        } else {
+          Double rate = isDiff ? diff : (diff / TimeUnit.MILLISECONDS.toSeconds(step));
+          timeValueEntry.setValue(rate);
+        }
       } else {
         it.remove();
       }
@@ -421,6 +427,12 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   @Override
   public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
       throws SQLException, IOException {
+
+    if (containerMetricsDisabled) {
+      LOG.debug("Ignoring submitted container metrics according to configuration. Values will not be stored.");
+      return new TimelinePutResponse();
+    }
+
     hBaseAccessor.insertContainerMetrics(metrics);
     return new TimelinePutResponse();
   }
@@ -487,11 +499,12 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   }
 
   @Override
-  public Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId)
-          throws SQLException, IOException {
-
+  public Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId) throws SQLException, IOException {
     Map<String, Set<String>> hostedApps = getHostAppsMetadata();
     Map<String, Set<String>> instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    if (configuration.getTimelineMetricsMultipleClusterSupport()) {
+      instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    }
     Map<String, Map<String, Set<String>>> instanceAppHosts = new HashMap<>();
 
     if (MapUtils.isEmpty(instanceHosts)) {

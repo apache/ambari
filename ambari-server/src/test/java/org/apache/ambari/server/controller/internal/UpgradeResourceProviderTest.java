@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
@@ -26,9 +25,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,8 +48,8 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -65,7 +67,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -79,38 +80,44 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
+import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
+import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
-import org.easymock.Capture;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -125,22 +132,31 @@ import com.google.inject.util.Modules;
 /**
  * UpgradeResourceDefinition tests.
  */
-public class UpgradeResourceProviderTest {
+public class UpgradeResourceProviderTest extends EasyMockSupport {
 
   private UpgradeDAO upgradeDao = null;
   private RequestDAO requestDao = null;
   private RepositoryVersionDAO repoVersionDao = null;
   private Injector injector;
   private Clusters clusters;
-  private OrmTestHelper helper;
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
   private StackDAO stackDAO;
-  private AmbariMetaInfo ambariMetaInfo;
   private TopologyManager topologyManager;
   private ConfigFactory configFactory;
   private HostRoleCommandDAO hrcDAO;
 
+  RepositoryVersionEntity repoVersionEntity2110;
+  RepositoryVersionEntity repoVersionEntity2111;
+  RepositoryVersionEntity repoVersionEntity2112;
+  RepositoryVersionEntity repoVersionEntity2200;
+
+  /**
+   * Creates a single host cluster with ZOOKEEPER_SERVER and ZOOKEEPER_CLIENT on
+   * {@link #repoVersionEntity2110}.
+   *
+   * @throws Exception
+   */
   @Before
   public void before() throws Exception {
     SecurityContextHolder.getContext().setAuthentication(
@@ -156,25 +172,21 @@ public class UpgradeResourceProviderTest {
 
     expect(
         configHelper.getDefaultProperties(EasyMock.anyObject(StackId.class),
-            EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(
-        new HashMap<String, Map<String, String>>()).anyTimes();
+            EasyMock.anyString())).andReturn(
+      new HashMap<>()).anyTimes();
 
-
-    EasyMock.replay(configHelper);
+    replay(configHelper);
 
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
 
     // create an injector which will inject the mocks
-    injector = Guice.createInjector(Modules.override(module).with(new MockModule()));
+    injector = Guice.createInjector(
+        Modules.override(module).with(new MockModule()));
 
     H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
 
-
-    helper = injector.getInstance(OrmTestHelper.class);
-
     amc = injector.getInstance(AmbariManagementController.class);
-    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     configFactory = injector.getInstance(ConfigFactory.class);
 
     Field field = AmbariServer.class.getDeclaredField("clusterController");
@@ -187,7 +199,7 @@ public class UpgradeResourceProviderTest {
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
     hrcDAO = injector.getInstance(HostRoleCommandDAO.class);
 
-    AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
+    AmbariEventPublisher publisher = EasyMock.createNiceMock(AmbariEventPublisher.class);
     replay(publisher);
     ViewRegistry.initInstance(new ViewRegistry(publisher));
 
@@ -196,40 +208,42 @@ public class UpgradeResourceProviderTest {
     // For now, Ignore the tests that fail.
     StackEntity stackEntity211 = stackDAO.find("HDP", "2.1.1");
     StackEntity stackEntity220 = stackDAO.find("HDP", "2.2.0");
-    StackId stack211 = new StackId("HDP-2.1.1");
-    StackId stack220 = new StackId("HDP-2.2.0");
+    StackId stack211 = new StackId(stackEntity211);
 
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version 1");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity211);
-    repoVersionEntity.setVersion("2.1.1.0");
-    repoVersionDao.create(repoVersionEntity);
+    repoVersionEntity2110 = new RepositoryVersionEntity();
+    repoVersionEntity2110.setDisplayName("My New Version 1");
+    repoVersionEntity2110.setOperatingSystems("");
+    repoVersionEntity2110.setStack(stackEntity211);
+    repoVersionEntity2110.setVersion("2.1.1.0");
+    repoVersionDao.create(repoVersionEntity2110);
 
-    repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version 2 for patch upgrade");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity211);
-    repoVersionEntity.setVersion("2.1.1.1");
-    repoVersionDao.create(repoVersionEntity);
+    repoVersionEntity2111 = new RepositoryVersionEntity();
+    repoVersionEntity2111.setDisplayName("My New Version 2 for minor upgrade");
+    repoVersionEntity2111.setOperatingSystems("");
+    repoVersionEntity2111.setStack(stackEntity211);
+    repoVersionEntity2111.setVersion("2.1.1.1");
+    repoVersionDao.create(repoVersionEntity2111);
 
-    repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version 3 for major upgrade");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity220);
-    repoVersionEntity.setVersion("2.2.0.0");
-    repoVersionDao.create(repoVersionEntity);
+    repoVersionEntity2112 = new RepositoryVersionEntity();
+    repoVersionEntity2112.setDisplayName("My New Version 3 for patch upgrade");
+    repoVersionEntity2112.setOperatingSystems("");
+    repoVersionEntity2112.setStack(stackEntity211);
+    repoVersionEntity2112.setVersion("2.1.1.2");
+    repoVersionEntity2112.setType(RepositoryType.PATCH);
+    repoVersionEntity2112.setVersionXml("");
+    repoVersionDao.create(repoVersionEntity2112);
+
+    repoVersionEntity2200 = new RepositoryVersionEntity();
+    repoVersionEntity2200.setDisplayName("My New Version 4 for major upgrade");
+    repoVersionEntity2200.setOperatingSystems("");
+    repoVersionEntity2200.setStack(stackEntity220);
+    repoVersionEntity2200.setVersion("2.2.0.0");
+    repoVersionDao.create(repoVersionEntity2200);
 
     clusters = injector.getInstance(Clusters.class);
 
     clusters.addCluster("c1", stack211);
     Cluster cluster = clusters.getCluster("c1");
-
-    helper.getOrCreateRepositoryVersion(stack211, stack211.getStackVersion());
-    helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
-
-    cluster.createClusterVersion(stack211, stack211.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
-    cluster.transitionClusterVersion(stack211, stack211.getStackVersion(), RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -241,10 +255,8 @@ public class UpgradeResourceProviderTest {
 
     clusters.mapHostToCluster("h1", "c1");
 
-    // add a single ZK server
-    Service service = cluster.addService("ZOOKEEPER");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-
+    // add a single ZK server and client on 2.1.1.0
+    Service service = cluster.addService("ZOOKEEPER", repoVersionEntity2110);
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
@@ -288,7 +300,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.TRUE.toString());
@@ -351,7 +363,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.TRUE.toString());
@@ -395,7 +407,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.TRUE.toString());
@@ -552,7 +564,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2111.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
@@ -600,11 +612,6 @@ public class UpgradeResourceProviderTest {
     Cluster cluster = clusters.getCluster("c1");
     Service service = cluster.getService("ZOOKEEPER");
 
-    // this should get skipped
-    ServiceComponent component = service.getServiceComponent("ZOOKEEPER_SERVER");
-    ServiceComponentHost sch = component.addServiceComponentHost("h2");
-    sch.setVersion("2.2.2.2");
-
     // start out with 0 (sanity check)
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(0, upgrades.size());
@@ -614,28 +621,48 @@ public class UpgradeResourceProviderTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(2L);
     requestEntity.setClusterId(cluster.getClusterId());
-    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestEntity.setStages(new ArrayList<>());
     requestDao.create(requestEntity);
 
     UpgradeEntity upgradeEntity = new UpgradeEntity();
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setDirection(Direction.UPGRADE);
-    upgradeEntity.setFromVersion("2.1.1.1");
-    upgradeEntity.setToVersion("2.2.2.2");
+    upgradeEntity.setRepositoryVersion(repoVersionEntity2200);
     upgradeEntity.setUpgradePackage("upgrade_test");
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
     upgradeEntity.setRequestEntity(requestEntity);
 
+    UpgradeHistoryEntity history = new UpgradeHistoryEntity();
+    history.setUpgrade(upgradeEntity);
+    history.setFromRepositoryVersion(service.getDesiredRepositoryVersion());
+    history.setTargetRepositoryVersion(repoVersionEntity2200);
+    history.setServiceName(service.getName());
+    history.setComponentName("ZOKKEEPER_SERVER");
+    upgradeEntity.addHistory(history);
+
+    history = new UpgradeHistoryEntity();
+    history.setUpgrade(upgradeEntity);
+    history.setFromRepositoryVersion(service.getDesiredRepositoryVersion());
+    history.setTargetRepositoryVersion(repoVersionEntity2200);
+    history.setServiceName(service.getName());
+    history.setComponentName("ZOKKEEPER_CLIENT");
+    upgradeEntity.addHistory(history);
+
     upgradeDao.create(upgradeEntity);
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
+
+    // push a ZK server foward to the new repo version, leaving the old one on
+    // the old version
+    ServiceComponent component = service.getServiceComponent("ZOOKEEPER_SERVER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h2");
+    sch.setVersion(repoVersionEntity2200.getVersion());
 
     UpgradeEntity lastUpgrade = upgradeDao.findLastUpgradeForCluster(cluster.getClusterId(), Direction.UPGRADE);
     assertNotNull(lastUpgrade);
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
@@ -656,10 +683,11 @@ public class UpgradeResourceProviderTest {
     List<UpgradeGroupEntity> upgradeGroups = downgrade.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
 
+    // the ZK restart group should only have 3 entries since the ZK server on h1
+    // didn't get upgraded
     UpgradeGroupEntity group = upgradeGroups.get(1);
     assertEquals("ZOOKEEPER", group.getName());
-    assertEquals(4, group.getItems().size());
-
+    assertEquals(3, group.getItems().size());
   }
 
 
@@ -669,7 +697,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2111.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
@@ -690,7 +718,7 @@ public class UpgradeResourceProviderTest {
     // create another upgrade which should fail
     requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, "9999");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -703,10 +731,8 @@ public class UpgradeResourceProviderTest {
 
     // fix the properties and try again
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     Map<String, String> requestInfoProperties = new HashMap<>();
@@ -719,9 +745,14 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity entity = upgradeDao.findUpgrade(Long.parseLong(id));
     assertNotNull(entity);
-    assertEquals("2.1.1.0", entity.getFromVersion());
-    assertEquals("2.2.0.0", entity.getToVersion());
     assertEquals(Direction.DOWNGRADE, entity.getDirection());
+
+    // associated version is the FROM on DOWNGRADE
+    assertEquals(repoVersionEntity2111.getVersion(), entity.getRepositoryVersion().getVersion());
+
+    // target is by service
+    assertEquals(repoVersionEntity2110.getVersion(),
+        entity.getHistory().iterator().next().getTargetVersion());
 
     StageDAO dao = injector.getInstance(StageDAO.class);
     List<StageEntity> stages = dao.findByRequestId(entity.getRequestId());
@@ -745,8 +776,7 @@ public class UpgradeResourceProviderTest {
     Cluster cluster = clusters.getCluster("c1");
 
     // add additional service for the test
-    Service service = cluster.addService("HIVE");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    Service service = cluster.addService("HIVE", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -755,7 +785,7 @@ public class UpgradeResourceProviderTest {
     // create upgrade request
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, "NON_ROLLING");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
@@ -795,14 +825,11 @@ public class UpgradeResourceProviderTest {
     abortUpgrade(upgrade.getRequestId());
 
     // create downgrade with one upgraded service
-    StackId stackId = new StackId("HDP", "2.2.0");
-    cluster.setDesiredStackVersion(stackId, true);
+    service.setDesiredRepositoryVersion(repoVersionEntity2200);
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.0.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     Map<String, String> requestInfoProperties = new HashMap<>();
@@ -931,6 +958,7 @@ public class UpgradeResourceProviderTest {
     Cluster cluster = clusters.getCluster("c1");
 
     StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
+
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
     repoVersionEntity.setOperatingSystems("");
@@ -940,7 +968,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.3");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_direction");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
@@ -970,10 +998,8 @@ public class UpgradeResourceProviderTest {
     requestProps.clear();
     // Now perform a downgrade
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_direction");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.3");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -989,8 +1015,9 @@ public class UpgradeResourceProviderTest {
       }
     }
     assertNotNull(upgrade);
-    assertEquals("Downgrade groups reduced from 3 to 2", 2, upgrade.getUpgradeGroups().size());
-    group = upgrade.getUpgradeGroups().get(1);
+    List<UpgradeGroupEntity> groups = upgrade.getUpgradeGroups();
+    assertEquals("Downgrade groups reduced from 3 to 2", 1, groups.size());
+    group = upgrade.getUpgradeGroups().get(0);
     assertEquals("Execution items increased from 1 to 2", 2, group.getItems().size());
   }
 
@@ -1048,16 +1075,16 @@ public class UpgradeResourceProviderTest {
   @Test
   public void testCreateCrossStackUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
-    StackId oldStack = cluster.getDesiredStackVersion();
+    StackId oldStack = repoVersionEntity2110.getStackId();
 
     for (Service s : cluster.getServices().values()) {
-      assertEquals(oldStack, s.getDesiredStackVersion());
+      assertEquals(oldStack, s.getDesiredStackId());
 
       for (ServiceComponent sc : s.getServiceComponents().values()) {
-        assertEquals(oldStack, sc.getDesiredStackVersion());
+        assertEquals(oldStack, sc.getDesiredStackId());
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(oldStack, sch.getDesiredStackVersion());
+          assertEquals(repoVersionEntity2110.getVersion(), sch.getVersion());
         }
       }
     }
@@ -1066,15 +1093,15 @@ public class UpgradeResourceProviderTest {
     Config config = configFactory.createNew(cluster, "zoo.cfg", "abcdefg", Collections.singletonMap("a", "b"), null);
     cluster.addDesiredConfig("admin", Collections.singleton(config));
 
+    // create the upgrade across major versions
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
-
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     upgradeResourceProvider.createResources(request);
 
@@ -1092,132 +1119,13 @@ public class UpgradeResourceProviderTest {
 
     assertTrue(cluster.getDesiredConfigs().containsKey("zoo.cfg"));
 
-    StackId newStack = cluster.getDesiredStackVersion();
-
-    assertFalse(oldStack.equals(newStack));
-
     for (Service s : cluster.getServices().values()) {
-      assertEquals(newStack, s.getDesiredStackVersion());
+      assertEquals(repoVersionEntity2200, s.getDesiredRepositoryVersion());
 
       for (ServiceComponent sc : s.getServiceComponents().values()) {
-        assertEquals(newStack, sc.getDesiredStackVersion());
-
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(newStack, sch.getDesiredStackVersion());
-        }
+        assertEquals(repoVersionEntity2200, sc.getDesiredRepositoryVersion());
       }
     }
-  }
-
-  /**
-   * Tests merging configurations between existing and new stack values on
-   * upgrade.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testMergeConfigurations() throws Exception {
-    StackId stack211 = new StackId("HDP-2.1.1");
-    StackId stack220 = new StackId("HDP-2.2.0");
-
-    Map<String, Map<String, String>> stack211Configs = new HashMap<>();
-    Map<String, String> stack211FooType = new HashMap<>();
-    Map<String, String> stack211BarType = new HashMap<>();
-    Map<String, String> stack211BazType = new HashMap<>();
-    stack211Configs.put("foo-site", stack211FooType);
-    stack211Configs.put("bar-site", stack211BarType);
-    stack211Configs.put("baz-site", stack211BazType);
-    stack211FooType.put("1", "one");
-    stack211FooType.put("11", "one-one");
-    stack211BarType.put("2", "two");
-    stack211BazType.put("3", "three");
-
-    Map<String, Map<String, String>> stack220Configs = new HashMap<>();
-    Map<String, String> stack220FooType = new HashMap<>();
-    Map<String, String> stack220BazType = new HashMap<>();
-    Map<String, String> stack220FlumeEnvType = new HashMap<>();
-    stack220Configs.put("foo-site", stack220FooType);
-    stack220Configs.put("baz-site", stack220BazType);
-    stack220Configs.put("flume-env", stack220FlumeEnvType);
-    stack220FooType.put("1", "one-new");
-    stack220FooType.put("111", "one-one-one");
-    stack220BazType.put("3", "three-new");
-    stack220FlumeEnvType.put("flume_env_key", "flume-env-value");
-
-    Map<String, String> clusterFooType = new HashMap<>();
-    Map<String, String> clusterBarType = new HashMap<>();
-    Map<String, String> clusterBazType = new HashMap<>();
-
-    Config fooConfig = EasyMock.createNiceMock(Config.class);
-    Config barConfig = EasyMock.createNiceMock(Config.class);
-    Config bazConfig = EasyMock.createNiceMock(Config.class);
-
-    clusterFooType.put("1", "one");
-    clusterFooType.put("11", "one-one");
-    clusterBarType.put("2", "two");
-    clusterBazType.put("3", "three-changed");
-
-    expect(fooConfig.getProperties()).andReturn(clusterFooType);
-    expect(barConfig.getProperties()).andReturn(clusterBarType);
-    expect(bazConfig.getProperties()).andReturn(clusterBazType);
-
-    Map<String, DesiredConfig> desiredConfigurations = new HashMap<>();
-    desiredConfigurations.put("foo-site", null);
-    desiredConfigurations.put("bar-site", null);
-    desiredConfigurations.put("baz-site", null);
-
-    Cluster cluster = EasyMock.createNiceMock(Cluster.class);
-    expect(cluster.getCurrentStackVersion()).andReturn(stack211);
-    expect(cluster.getDesiredStackVersion()).andReturn(stack220);
-    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
-    expect(cluster.getDesiredConfigByType("foo-site")).andReturn(fooConfig);
-    expect(cluster.getDesiredConfigByType("bar-site")).andReturn(barConfig);
-    expect(cluster.getDesiredConfigByType("baz-site")).andReturn(bazConfig);
-
-    // setup the config helper for placeholder resolution
-    EasyMock.reset(configHelper);
-
-    expect(
-        configHelper.getDefaultProperties(EasyMock.eq(stack211), EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(
-        stack211Configs).anyTimes();
-
-    expect(
-        configHelper.getDefaultProperties(EasyMock.eq(stack220), EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(
-        stack220Configs).anyTimes();
-
-    Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
-
-    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
-        EasyMock.anyObject(AmbariManagementController.class),
-        EasyMock.capture(expectedConfigurationsCapture),
-        EasyMock.anyObject(String.class), EasyMock.anyObject(String.class));
-
-    EasyMock.expectLastCall().once();
-
-    EasyMock.replay(configHelper, cluster, fooConfig, barConfig, bazConfig);
-
-    UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
-
-    Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
-    UpgradePack upgrade = upgradePacks.get("upgrade_to_new_stack");
-    upgradeResourceProvider.applyStackAndProcessConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgrade, "admin");
-
-    Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
-    Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");
-    Map<String, String> expectedBarType = expectedConfigurations.get("bar-site");
-    Map<String, String> expectedBazType = expectedConfigurations.get("baz-site");
-
-    // As the upgrade pack did not have any Flume updates, its configs should not be updated.
-    assertFalse(expectedConfigurations.containsKey("flume-env"));
-
-    // the really important values are one-new and three-changed; one-new
-    // indicates that the new stack value is changed since it was not customized
-    // while three-changed represents that the customized value was preserved
-    // even though the stack value changed
-    assertEquals("one-new", expectedFooType.get("1"));
-    assertEquals("one-one", expectedFooType.get("11"));
-    assertEquals("two", expectedBarType.get("2"));
-    assertEquals("three-changed", expectedBazType.get("3"));
   }
 
   /**
@@ -1243,7 +1151,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2111.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
@@ -1348,7 +1256,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.TRUE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.FALSE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, "" + entity.getRequestId());
@@ -1373,7 +1281,7 @@ public class UpgradeResourceProviderTest {
 
     requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.FALSE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, "" + entity.getRequestId());
@@ -1397,7 +1305,7 @@ public class UpgradeResourceProviderTest {
 
     requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.FALSE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.FALSE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, "" + entity.getRequestId());
@@ -1423,7 +1331,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.FALSE.toString());
@@ -1461,7 +1369,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_host_ordered");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.HOST_ORDERED.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
@@ -1504,15 +1412,15 @@ public class UpgradeResourceProviderTest {
 
   /**
    * Exercises that a component that goes from upgrade->downgrade that switches
-   * {@code versionAdvertised} between will go to UKNOWN.  This exercises
-   * {@link UpgradeHelper#putComponentsToUpgradingState(String, Map, StackId)}
+   * {@code versionAdvertised} between will go to UKNOWN. This exercises
+   * {@link UpgradeHelper#updateDesiredRepositoriesAndConfigs(UpgradeContext)}
+   *
    * @throws Exception
    */
   @Test
   public void testCreateUpgradeDowngradeCycleAdvertisingVersion() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
-    Service service = cluster.addService("STORM");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    Service service = cluster.addService("STORM", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("DRPC_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -1522,10 +1430,9 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     Map<String, String> requestInfoProperties = new HashMap<>();
@@ -1550,10 +1457,8 @@ public class UpgradeResourceProviderTest {
 
     requestProps.clear();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.0.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
@@ -1561,7 +1466,7 @@ public class UpgradeResourceProviderTest {
 
     component = service.getServiceComponent("DRPC_SERVER");
     assertNotNull(component);
-    assertEquals("UNKNOWN", component.getDesiredVersion());
+    assertEquals(repoVersionEntity2110, component.getDesiredRepositoryVersion());
 
     hostComponent = component.getServiceComponentHost("h1");
     assertEquals(UpgradeState.NONE, hostComponent.getUpgradeState());
@@ -1603,7 +1508,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_host_ordered");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.HOST_ORDERED.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS,Boolean.TRUE.toString());
@@ -1622,6 +1527,319 @@ public class UpgradeResourceProviderTest {
       Assert.assertEquals(expectedStageId++, stage.getStageId().longValue());
     }
   }
+
+  /**
+   * Tests that from/to repository version history is created correctly on the
+   * upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpgradeHistory() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+    List<UpgradeHistoryEntity> histories = upgrade.getHistory();
+    assertEquals(2, histories.size());
+
+    for( UpgradeHistoryEntity history : histories){
+      assertEquals( "ZOOKEEPER", history.getServiceName() );
+      assertEquals(repoVersionEntity2110, history.getFromReposistoryVersion());
+      assertEquals(repoVersionEntity2200, history.getTargetRepositoryVersion());
+    }
+
+    // abort the upgrade and create the downgrade
+    abortUpgrade(upgrade.getRequestId());
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
+
+    Map<String, String> requestInfoProperties = new HashMap<>();
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps),
+        requestInfoProperties);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+    UpgradeEntity downgrade = upgradeDao.findUpgradeByRequestId(getRequestId(status));
+    assertEquals(Direction.DOWNGRADE, downgrade.getDirection());
+
+    // check from/to history
+    histories = downgrade.getHistory();
+    assertEquals(2, histories.size());
+
+    for (UpgradeHistoryEntity history : histories) {
+      assertEquals("ZOOKEEPER", history.getServiceName());
+      assertEquals(repoVersionEntity2200, history.getFromReposistoryVersion());
+      assertEquals(repoVersionEntity2110, history.getTargetRepositoryVersion());
+    }
+  }
+
+
+  /**
+   * Tests that from/to repository version history is created correctly on the
+   * upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCreatePatchRevertUpgrade() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    // add a single ZK server and client on 2.1.1.0
+    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.1.1.0");
+
+    File f = new File("src/test/resources/hbase_version_test.xml");
+    repoVersionEntity2112.setType(RepositoryType.PATCH);
+    repoVersionEntity2112.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersionEntity2112.setVersionXsd("version_definition.xsd");
+    repoVersionDao.merge(repoVersionEntity2112);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2112.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity upgradeEntity = upgrades.get(0);
+    assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    // should be false since only finalization actually sets this bit
+    assertEquals(false, upgradeEntity.isRevertAllowed());
+
+    // fake it now so the rest of the test passes
+    upgradeEntity.setRevertAllowed(true);
+    upgradeEntity = upgradeDao.merge(upgradeEntity);
+
+    // !!! make it look like the cluster is done
+    cluster.setUpgradeEntity(null);
+
+    requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, upgradeEntity.getId());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(2, upgrades.size());
+
+    boolean found = false;
+
+    Function<UpgradeHistoryEntity, String> function = new Function<UpgradeHistoryEntity, String>() {
+      @Override
+      public String apply(UpgradeHistoryEntity input) {
+        return input.getServiceName() + "/" + input.getComponentName();
+      };
+    };
+
+    for (UpgradeEntity upgrade : upgrades) {
+      if (upgrade.getId() != upgradeEntity.getId()) {
+        found = true;
+        assertEquals(upgradeEntity.getOrchestration(), upgrade.getOrchestration());
+
+        Collection<String> upgradeEntityStrings = Collections2.transform(upgradeEntity.getHistory(), function);
+        Collection<String> upgradeStrings = Collections2.transform(upgrade.getHistory(), function);
+
+        Collection<?> diff = CollectionUtils.disjunction(upgradeEntityStrings, upgradeStrings);
+        assertEquals("Verify the same set of components was orchestrated", 0, diff.size());
+      }
+    }
+
+    assertTrue(found);
+  }
+
+  /**
+   * Tests that when there is no revertable upgrade, a reversion of a specific
+   * ugprade ID is not allowed.
+   */
+  @Test(expected = SystemException.class)
+  public void testRevertFailsWhenNoRevertableUpgradeIsFound() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    // add a single ZK server and client on 2.1.1.0
+    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.1.1.0");
+
+    File f = new File("src/test/resources/hbase_version_test.xml");
+    repoVersionEntity2112.setType(RepositoryType.PATCH);
+    repoVersionEntity2112.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersionEntity2112.setVersionXsd("version_definition.xsd");
+    repoVersionDao.merge(repoVersionEntity2112);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID,String.valueOf(repoVersionEntity2112.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity upgradeEntity = upgrades.get(0);
+    assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    // !!! make it look like the cluster is done
+    cluster.setUpgradeEntity(null);
+
+    requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, upgradeEntity.getId());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+  }
+
+  @Test
+  public void testCreatePatchWithConfigChanges() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    File f = new File("src/test/resources/version_definition_test_patch_config.xml");
+    repoVersionEntity2112.setType(RepositoryType.PATCH);
+    repoVersionEntity2112.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersionEntity2112.setVersionXsd("version_definition.xsd");
+    repoVersionDao.merge(repoVersionEntity2112);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2112.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    // !!! test that a PATCH upgrade skips config changes
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+    Set<Resource> resources = status.getAssociatedResources();
+    assertEquals(1, resources.size());
+    Long requestId = (Long) resources.iterator().next().getPropertyValue("Upgrade/request_id");
+    assertNotNull(requestId);
+
+    UpgradeEntity upgradeEntity = upgradeDao.findUpgradeByRequestId(requestId);
+    assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    HostRoleCommandDAO hrcDAO = injector.getInstance(HostRoleCommandDAO.class);
+    List<HostRoleCommandEntity> commands = hrcDAO.findByRequest(upgradeEntity.getRequestId());
+
+    boolean foundConfigTask = false;
+    for (HostRoleCommandEntity command : commands) {
+      if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
+          command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
+        foundConfigTask = true;
+        break;
+      }
+    }
+    assertFalse(foundConfigTask);
+
+    // !!! test that a patch with a supported patch change gets picked up
+    cluster.setUpgradeEntity(null);
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_force_config_change");
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    status = upgradeResourceProvider.createResources(request);
+    resources = status.getAssociatedResources();
+    assertEquals(1, resources.size());
+    requestId = (Long) resources.iterator().next().getPropertyValue("Upgrade/request_id");
+    assertNotNull(requestId);
+
+    upgradeEntity = upgradeDao.findUpgradeByRequestId(requestId);
+    assertEquals(RepositoryType.PATCH, upgradeEntity.getOrchestration());
+
+    commands = hrcDAO.findByRequest(upgradeEntity.getRequestId());
+
+    foundConfigTask = false;
+    for (HostRoleCommandEntity command : commands) {
+      if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
+          command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
+        foundConfigTask = true;
+        break;
+      }
+    }
+    assertTrue(foundConfigTask);
+
+
+
+    // !!! test that a regular upgrade will pick up the config change
+    cluster.setUpgradeEntity(null);
+    repoVersionEntity2112.setType(RepositoryType.STANDARD);
+    repoVersionDao.merge(repoVersionEntity2112);
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    status = upgradeResourceProvider.createResources(request);
+    resources = status.getAssociatedResources();
+    assertEquals(1, resources.size());
+    requestId = (Long) resources.iterator().next().getPropertyValue("Upgrade/request_id");
+    assertNotNull(requestId);
+
+    upgradeEntity = upgradeDao.findUpgradeByRequestId(requestId);
+    assertEquals(RepositoryType.STANDARD, upgradeEntity.getOrchestration());
+
+    commands = hrcDAO.findByRequest(upgradeEntity.getRequestId());
+
+    foundConfigTask = false;
+    for (HostRoleCommandEntity command : commands) {
+      if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
+          command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
+        foundConfigTask = true;
+        break;
+      }
+    }
+    assertTrue(foundConfigTask);
+
+  }
+
+
 
   private String parseSingleMessage(String msgStr){
     JsonParser parser = new JsonParser();
@@ -1658,8 +1876,6 @@ public class UpgradeResourceProviderTest {
 
   @Test
   public void testTimeouts() throws Exception {
-    Cluster cluster = clusters.getCluster("c1");
-
     StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
@@ -1670,7 +1886,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.3");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
@@ -1708,6 +1924,57 @@ public class UpgradeResourceProviderTest {
 
     assertTrue("ZooKeeper timeout override was found", found);
 
+  }
+
+  /**
+   * Tests that commands created for {@link org.apache.ambari.server.state.stack.upgrade.StageWrapper.Type#UPGRADE_TASKS} set the
+   * service and component on the {@link ExecutionCommand}.
+   * <p/>
+   * Without this, commands of this type would not be able to determine which
+   * service/component repository they should use when the command is scheduled
+   * to run.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testExecutionCommandServiceAndComponent() throws Exception {
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_execute_task_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+
+    ActionManager am = injector.getInstance(ActionManager.class);
+    List<HostRoleCommand> commands = am.getRequestTasks(id);
+
+    boolean foundActionExecuteCommand = false;
+    for (HostRoleCommand command : commands) {
+      ExecutionCommand executionCommand = command.getExecutionCommandWrapper().getExecutionCommand();
+      if (StringUtils.equals(UpgradeResourceProvider.EXECUTE_TASK_ROLE,
+          executionCommand.getRole())) {
+        foundActionExecuteCommand = true;
+        assertNotNull(executionCommand.getServiceName());
+        assertNotNull(executionCommand.getComponentName());
+      }
+    }
+
+    assertTrue(
+        "There was no task found with the role of " + UpgradeResourceProvider.EXECUTE_TASK_ROLE,
+        foundActionExecuteCommand);
   }
 
   /**

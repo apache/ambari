@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,6 +30,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -131,7 +132,7 @@ public class GroupService extends BaseService {
    *
    * @deprecated Use requests to /groups instead.
    */
-   @POST
+   @POST @ApiIgnore // deprecated
    @Deprecated
    @Path("{groupName}")
    @Produces("text/plain")
@@ -161,7 +162,6 @@ public class GroupService extends BaseService {
                               @ApiParam(value = "group name", required = true) @PathParam("groupName") String groupName) {
     return handleRequest(headers, null, ui, Request.Type.DELETE, createGroupResource(groupName));
   }
-
 
   /**
    * Create a group resource instance.

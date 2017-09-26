@@ -19,8 +19,12 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/stackVersions">{{'common.versions' | translate}}</a></li>
-    <li class="active" ng-if="editController">{{displayName}}&nbsp;<span
-            class="sub-text">({{repoVersionFullName}})</span></li>
+    <li class="active" ng-if="editController">
+      {{displayName}}&nbsp;
+      <span class="sub-text">({{repoVersionFullName}})</span>
+      <span ng-if="isPatch" class="badge btn-warning">{{'versions.patch' | translate}}</span>
+      <span ng-if="isMaint" class="badge btn-warning">{{'versions.maint' | translate}}</span>
+    </li>
     <li class="active" ng-if="createController">{{'versions.register.title' | translate}}</li>
   </ol>
 
@@ -91,8 +95,8 @@
                 </span>
                 <span class="dot">.</span>
                 <div class="form-group" ng-class="{'has-error' : versionRegForm.version.$error.pattern}">
-                  <input class="form-control" name="version" type="text" ng-model="activeStackVersion.editableDisplayName" ng-pattern="subversionPattern"
-                         placeholder="{{'versions.placeholder' | translate}}" ng-change="updateCurrentVersionInput()" required/>
+                  <input class="form-control" name="version" type="text" ng-model="activeStackVersion.editableDisplayName" ng-pattern="activeStackVersion.subVersionPattern"
+                         placeholder="{{'versions.placeholder' | translate: '{pattern: activeStackVersion.pattern}'}}" ng-change="updateCurrentVersionInput()" required/>
                 </div>
                 <div class="text-danger" ng-show="versionRegForm.version.$error.pattern">
                   &nbsp{{'common.alerts.isInvalid' | translate: '{term: activeStackVersion.displayName}'}}

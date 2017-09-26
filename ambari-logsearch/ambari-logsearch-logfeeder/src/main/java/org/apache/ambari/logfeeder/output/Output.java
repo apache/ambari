@@ -28,14 +28,31 @@ import org.apache.ambari.logfeeder.common.ConfigBlock;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
+import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 
-public abstract class Output extends ConfigBlock {
+public abstract class Output extends ConfigBlock implements OutputConfigMonitor {
   private String destination = null;
 
   protected MetricData writeBytesMetric = new MetricData(getWriteBytesMetricName(), false);
   protected String getWriteBytesMetricName() {
     return null;
   }
+
+  public boolean monitorConfigChanges() {
+    return false;
+  };
+  
+  @Override
+  public String getOutputType() {
+    throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
+  }
+  
+  @Override
+  public void outputConfigChanged(OutputProperties outputProperties) {
+    throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
+  };
 
   @Override
   public String getShortDescription() {
@@ -50,14 +67,11 @@ public abstract class Output extends ConfigBlock {
     return super.getNameForThread();
   }
 
-  public abstract void write(String block, InputMarker inputMarker)
-      throws Exception;
+  public abstract void write(String block, InputMarker inputMarker) throws Exception;
   
-  public abstract void copyFile(File inputFile, InputMarker inputMarker)
-      throws UnsupportedOperationException;
+  public abstract void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException;
 
-  public void write(Map<String, Object> jsonObj, InputMarker inputMarker)
-    throws Exception {
+  public void write(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
     write(LogFeederUtil.getGson().toJson(jsonObj), inputMarker);
   }
 
@@ -90,6 +104,12 @@ public abstract class Output extends ConfigBlock {
     this.destination = destination;
   }
 
+  protected LogSearchConfigLogFeeder logSearchConfig;
+
+  public void setLogSearchConfig(LogSearchConfigLogFeeder logSearchConfig) {
+    this.logSearchConfig = logSearchConfig;
+  }
+
   @Override
   public void addMetricsContainers(List<MetricData> metricsList) {
     super.addMetricsContainers(metricsList);
@@ -99,7 +119,6 @@ public abstract class Output extends ConfigBlock {
   @Override
   public synchronized void logStat() {
     super.logStat();
-
     logStatForMetric(writeBytesMetric, "Stat: Bytes Written");
   }
   
@@ -115,5 +134,4 @@ public abstract class Output extends ConfigBlock {
       }
     }
   }
-
 }

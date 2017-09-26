@@ -84,7 +84,7 @@ public class MetricsCollectorHAManager {
   @Subscribe
   public void onMetricsCollectorHostDownEvent(MetricsCollectorHostDownEvent event) {
 
-    LOG.debug("MetricsCollectorHostDownEvent caught, Down collector : " + event.getCollectorHost());
+    LOG.debug("MetricsCollectorHostDownEvent caught, Down collector : {}", event.getCollectorHost());
 
     String clusterName = event.getClusterName();
     MetricsCollectorHAClusterState collectorHAClusterState = clusterCollectorHAState.get(clusterName);

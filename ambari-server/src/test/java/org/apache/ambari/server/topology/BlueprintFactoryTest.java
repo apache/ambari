@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -176,7 +176,7 @@ public class BlueprintFactoryTest {
 
     BlueprintFactory factoryUnderTest =
       new BlueprintFactory(mockStackFactory);
-    factoryUnderTest.createStack(new HashMap<String, Object>());
+    factoryUnderTest.createStack(new HashMap<>());
 
     mockSupport.verifyAll();
   }

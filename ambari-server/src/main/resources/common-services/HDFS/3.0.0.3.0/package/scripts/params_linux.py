@@ -51,6 +51,8 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+rolling_restart = default("/commandParams/rolling_restart", False)
+rolling_restart_safemode_exit_timeout = default("/configurations/cluster-env/namenode_rolling_restart_safemode_exit_timeout", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
@@ -156,7 +158,13 @@ falcon_user = config['configurations']['falcon-env']['falcon_user']
 #exclude file
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
-update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
+slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)
+hdfs_include_file = None
+manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  hdfs_include_file = slave_hosts
+update_files_only = default("/commandParams/update_files_only", False)
 command_phase = default("/commandParams/phase","")
 
 klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))

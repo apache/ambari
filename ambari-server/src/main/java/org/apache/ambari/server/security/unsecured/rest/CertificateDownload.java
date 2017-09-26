@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,21 +17,21 @@
  */
 package org.apache.ambari.server.security.unsecured.rest;
 
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.security.CertificateManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 @Path("/cert/ca")
 public class CertificateDownload {
-  private static Log LOG = LogFactory.getLog(CertificateDownload.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CertificateDownload.class);
   private static CertificateManager certMan;
 
   @Inject
@@ -39,11 +39,10 @@ public class CertificateDownload {
     certMan = instance;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces({MediaType.TEXT_PLAIN})
   public String downloadSrvrCrt() {
     return certMan.getServerCert();
   }
-
 
 }

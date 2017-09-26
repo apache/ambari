@@ -284,6 +284,7 @@ def get_audit_configs(config):
     previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
     audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
     jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+  else: raise Fail(format("'{xa_audit_db_flavor}' db flavor not supported."))
 
   return jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver
 

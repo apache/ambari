@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CredentialStoreInfo;
@@ -439,6 +438,37 @@ public class ServiceModuleTest {
   }
 
   @Test
+  public void testResolveServiceAdvisor() throws Exception {
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    ServiceModule child = createServiceModule(info);
+    ServiceModule parent = createServiceModule(parentInfo);
+
+    // Parent is NULL, Child is NULL => Child defaults to PYTHON
+    parent.getModuleInfo().setServiceAdvisorType(null);
+    child.getModuleInfo().setServiceAdvisorType(null);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.PYTHON, child.getModuleInfo().getServiceAdvisorType());
+
+    // Parent is NULL, Child is JAVA => Child is JAVA
+    child.getModuleInfo().setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.JAVA);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.JAVA, child.getModuleInfo().getServiceAdvisorType());
+
+    // Parent is JAVA, Child is NULL => Child inherits JAVA
+    parent.getModuleInfo().setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.JAVA);
+    child.getModuleInfo().setServiceAdvisorType(null);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.JAVA, child.getModuleInfo().getServiceAdvisorType());
+
+    // Parent is JAVA, Child is PYTHON => Child overrides and keeps PYTHON
+    parent.getModuleInfo().setServiceAdvisorType(null);
+    child.getModuleInfo().setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.PYTHON);
+    resolveService(child, parent);
+    assertEquals(ServiceInfo.ServiceAdvisorType.PYTHON, child.getModuleInfo().getServiceAdvisorType());
+  }
+
+  @Test
   public void testResolve_UpgradeCheckDirectory() throws Exception {
     File checks = new File("checks");
 
@@ -721,14 +751,14 @@ public class ServiceModuleTest {
     Map<String, Map<String, Map<String, String>>> parentAttributes = parent.getModuleInfo().getConfigTypeAttributes();
 
     assertEquals(3, childAttributes.size());
-    assertAttributes(childAttributes.get("FOO"), Collections.<String, String>emptyMap());
+    assertAttributes(childAttributes.get("FOO"), Collections.emptyMap());
     assertAttributes(childAttributes.get("BAR"), attributes);
-    assertAttributes(childAttributes.get("OTHER"), Collections.<String, String>emptyMap());
+    assertAttributes(childAttributes.get("OTHER"), Collections.emptyMap());
 
     assertEquals(3, parentAttributes.size());
-    assertAttributes(parentAttributes.get("FOO"), Collections.<String, String>emptyMap());
-    assertAttributes(parentAttributes.get("BAR"), Collections.<String, String>emptyMap());
-    assertAttributes(parentAttributes.get("OTHER"), Collections.<String, String>emptyMap());
+    assertAttributes(parentAttributes.get("FOO"), Collections.emptyMap());
+    assertAttributes(parentAttributes.get("BAR"), Collections.emptyMap());
+    assertAttributes(parentAttributes.get("OTHER"), Collections.emptyMap());
   }
 
   @Test
@@ -827,7 +857,7 @@ public class ServiceModuleTest {
 
     assertEquals(2, parentTypeAttributes.size());
     assertAttributes(parentTypeAttributes.get("FOO"), parentFooAttributes);
-    assertAttributes(parentTypeAttributes.get("BAR"), Collections.<String, String>emptyMap());
+    assertAttributes(parentTypeAttributes.get("BAR"), Collections.emptyMap());
   }
 
   @Test
@@ -1017,7 +1047,7 @@ public class ServiceModuleTest {
     info.setCommandScript(createNiceMock(CommandScriptDefinition.class));
 
     StackContext context = createStackContext(info.getName(), true);
-    ServiceModule service = createServiceModule(info, Collections.<ConfigurationModule>emptySet(), context);
+    ServiceModule service = createServiceModule(info, Collections.emptySet(), context);
     service.finalizeModule();
 
     verify(context);
@@ -1031,7 +1061,7 @@ public class ServiceModuleTest {
     info.setDeleted(true);
 
     StackContext context = createStackContext(info.getName(), false);
-    ServiceModule service = createServiceModule(info, Collections.<ConfigurationModule>emptySet(), context);
+    ServiceModule service = createServiceModule(info, Collections.emptySet(), context);
     service.finalizeModule();
 
     verify(context);
@@ -1193,8 +1223,8 @@ public class ServiceModuleTest {
 
     StackContext context = createStackContext(serviceInfo.getName(), true);
     // no config props
-    ConfigurationInfo configInfo = createConfigurationInfo(Collections.<PropertyInfo>emptyList(),
-        Collections.<String, String>emptyMap());
+    ConfigurationInfo configInfo = createConfigurationInfo(Collections.emptyList(),
+        Collections.emptyMap());
 
     ConfigurationModule module = createConfigurationModule(configType, configInfo);
     ConfigurationDirectory configDirectory = createConfigurationDirectory(Collections.singletonList(module));
@@ -1237,7 +1267,7 @@ public class ServiceModuleTest {
 
     ServiceDirectory serviceDirectory = createNiceMock(ServiceDirectory.class);
 
-    expect(serviceDirectory.getConfigurationDirectory(dir, AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME)).andReturn(configDir).anyTimes();
+    expect(serviceDirectory.getConfigurationDirectory(dir, StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME)).andReturn(configDir).anyTimes();
     expect(serviceDirectory.getMetricsFile(anyObject(String.class))).andReturn(new File("testMetricsFile")).anyTimes();
     expect(serviceDirectory.getWidgetsDescriptorFile(anyObject(String.class))).andReturn(new File("testWidgetsFile")).anyTimes();
     expect(serviceDirectory.getAlertsFile()).andReturn(new File("testAlertsFile")).anyTimes();
@@ -1262,7 +1292,7 @@ public class ServiceModuleTest {
   }
 
   private ConfigurationModule createConfigurationModule(String configType, Collection<PropertyInfo> properties) {
-    ConfigurationInfo info = new ConfigurationInfo(properties, Collections.<String, String>emptyMap());
+    ConfigurationInfo info = new ConfigurationInfo(properties, Collections.emptyMap());
     return new ConfigurationModule(configType, info);
   }
 
@@ -1300,7 +1330,7 @@ public class ServiceModuleTest {
   }
 
   private void resolveService(ServiceModule service, ServiceModule parent) throws AmbariException {
-    service.resolve(parent, Collections.<String, StackModule>emptyMap(), Collections.<String, ServiceModule>emptyMap(), Collections.<String, ExtensionModule>emptyMap());
+    service.resolve(parent, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
     // during runtime this would be called by the Stack module when it's resolve completed
     service.finalizeModule();
     parent.finalizeModule();

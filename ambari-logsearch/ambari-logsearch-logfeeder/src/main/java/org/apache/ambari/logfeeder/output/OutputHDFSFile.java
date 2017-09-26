@@ -25,7 +25,8 @@ import org.apache.ambari.logfeeder.output.spool.LogSpoolerContext;
 import org.apache.ambari.logfeeder.output.spool.RolloverCondition;
 import org.apache.ambari.logfeeder.output.spool.RolloverHandler;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logfeeder.util.LogfeederHDFSUtil;
+import org.apache.ambari.logfeeder.util.LogFeederHDFSUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.PlaceholderUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
@@ -87,7 +88,7 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
     HashMap<String, String> contextParam = buildContextParam();
     hdfsOutDir = PlaceholderUtil.replaceVariables(hdfsOutDir, contextParam);
     LOG.info("hdfs Output dir=" + hdfsOutDir);
-    String localFileDir = LogFeederUtil.getLogfeederTempDir() + "hdfs/service/";
+    String localFileDir = LogFeederPropertiesUtil.getLogFeederTempDir() + "hdfs/service/";
     logSpooler = new LogSpooler(localFileDir, filenamePrefix, this, this);
     this.startHDFSCopyThread();
   }
@@ -124,13 +125,13 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
             Iterator<File> localFileIterator = localReadyFiles.iterator();
             while (localFileIterator.hasNext()) {
               File localFile = localFileIterator.next();
-              fileSystem = LogfeederHDFSUtil.buildFileSystem(hdfsHost, hdfsPort);
+              fileSystem = LogFeederHDFSUtil.buildFileSystem(hdfsHost, hdfsPort);
               if (fileSystem != null && localFile.exists()) {
                 String destFilePath = hdfsOutDir + "/" + localFile.getName();
                 String localPath = localFile.getAbsolutePath();
                 boolean overWrite = true;
                 boolean delSrc = true;
-                boolean isCopied = LogfeederHDFSUtil.copyFromLocal(localFile.getAbsolutePath(), destFilePath, fileSystem,
+                boolean isCopied = LogFeederHDFSUtil.copyFromLocal(localFile.getAbsolutePath(), destFilePath, fileSystem,
                     overWrite, delSrc);
                 if (isCopied) {
                   LOG.debug("File copy to hdfs hdfspath :" + destFilePath + " and deleted local file :" + localPath);
@@ -179,7 +180,7 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
         LOG.error(" Current thread : '" + Thread.currentThread().getName() +
             "' does not have permission to interrupt the Thread: '" + hdfsCopyThread.getName() + "'");
       }
-      LogfeederHDFSUtil.closeFileSystem(fileSystem);
+      LogFeederHDFSUtil.closeFileSystem(fileSystem);
     }
   }
 

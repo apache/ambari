@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -82,7 +82,7 @@ public class ClusterConfigurationRequest {
     this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
     removeOrphanConfigTypes();
     if (setInitial) {
-      setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.<String>emptySet());
+      setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.emptySet());
     }
   }
 
@@ -240,7 +240,7 @@ public class ClusterConfigurationRequest {
         Collection<String> components = blueprint.getComponents(service);
         serviceComponents.put(service,
             (components == null)
-                ? Collections.<String>emptySet()
+                ? Collections.emptySet()
                 : new HashSet<>(blueprint.getComponents(service)));
       }
     }
@@ -304,7 +304,7 @@ public class ClusterConfigurationRequest {
 
       Configuration clusterConfiguration = clusterTopology.getConfiguration();
       Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
-      existingConfigurations.put(CLUSTER_HOST_INFO, new HashMap<String, String>());
+      existingConfigurations.put(CLUSTER_HOST_INFO, new HashMap<>());
 
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
@@ -332,9 +332,7 @@ public class ClusterConfigurationRequest {
         }
       }
 
-    } catch (KerberosInvalidConfigurationException e) {
-      LOG.error("An exception occurred while doing Kerberos related configuration update: " + e, e);
-    } catch (AmbariException e) {
+    } catch (KerberosInvalidConfigurationException | AmbariException e) {
       LOG.error("An exception occurred while doing Kerberos related configuration update: " + e, e);
     }
     return requiredHostGroups;

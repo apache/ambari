@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,8 +20,10 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -30,6 +32,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.utils.VersionUtils;
@@ -74,6 +77,7 @@ public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
    * <ul>
    * <li>Adds/Updates {@link ConfigHelper#CLUSTER_ENV_STACK_FEATURES_PROPERTY} from stack</li>
    * <li>Adds/Updates {@link ConfigHelper#CLUSTER_ENV_STACK_TOOLS_PROPERTY} from stack</li>
+   * <li>Adds/Updates {@link ConfigHelper#CLUSTER_ENV_STACK_PACKAGES_PROPERTY} from stack</li>
    * </ul>
    *
    * Note: Config properties stack_features and stack_tools should always be updated to latest values as defined
@@ -91,17 +95,25 @@ public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
     Clusters clusters = ambariManagementController.getClusters();
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
     for (final Cluster cluster : clusterMap.values()) {
-      Map<String, String> propertyMap = new HashMap<>();
-      StackId stackId = cluster.getCurrentStackVersion();
-      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-      List<PropertyInfo> properties = stackInfo.getProperties();
-      for(PropertyInfo property : properties) {
-        if(property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY) ||
-            property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY)) {
-          propertyMap.put(property.getName(), property.getValue());
-        }
+
+      Set<StackId> stackIds = new HashSet<>();
+      for (Service service : cluster.getServices().values()) {
+        stackIds.add(service.getDesiredStackId());
       }
-      updateConfigurationPropertiesForCluster(cluster, ConfigHelper.CLUSTER_ENV, propertyMap, true, true);
+
+      for (StackId stackId : stackIds) {
+        Map<String, String> propertyMap = new HashMap<>();
+        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+        List<PropertyInfo> properties = stackInfo.getProperties();
+        for(PropertyInfo property : properties) {
+          if(property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY) ||
+              property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY) ||
+              property.getName().equals(ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY)) {
+            propertyMap.put(property.getName(), property.getValue());
+          }
+        }
+        updateConfigurationPropertiesForCluster(cluster, ConfigHelper.CLUSTER_ENV, propertyMap, true, true);
+      }
     }
   }
 

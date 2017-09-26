@@ -37,11 +37,12 @@ import com.google.gson.Gson;
 
 import junit.framework.Assert;
 
-@Category({ category.KerberosTest.class})
+@Category({category.KerberosTest.class})
 public class KerberosServiceDescriptorTest {
-  public static final String JSON_VALUE =
+  static final String JSON_VALUE =
       "{" +
           "  \"name\": \"SERVICE_NAME\"," +
+          "  \"preconfigure\": \"true\"," +
           "  \"identities\": [" +
           KerberosIdentityDescriptorTest.JSON_VALUE +
           "]," +
@@ -61,11 +62,12 @@ public class KerberosServiceDescriptorTest {
           "  ]" +
           "}";
 
-  public static final String JSON_VALUE_SERVICES =
+  private static final String JSON_VALUE_SERVICES =
       "{ " +
           "\"services\" : [" +
           "{" +
           "  \"name\": \"SERVICE_NAME\"," +
+          "  \"preconfigure\": \"true\"," +
           "  \"identities\": [" +
           KerberosIdentityDescriptorTest.JSON_VALUE +
           "]," +
@@ -128,22 +130,22 @@ public class KerberosServiceDescriptorTest {
 
     MAP_VALUE = new TreeMap<>();
     MAP_VALUE.put("name", "A_DIFFERENT_SERVICE_NAME");
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), identitiesMap.values());
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.COMPONENT.getDescriptorPluralName(), componentsMap.values());
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), configurationsMap.values());
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), authToLocalRules);
+    MAP_VALUE.put(KerberosServiceDescriptor.KEY_IDENTITIES, identitiesMap.values());
+    MAP_VALUE.put(KerberosServiceDescriptor.KEY_COMPONENTS, componentsMap.values());
+    MAP_VALUE.put(KerberosServiceDescriptor.KEY_CONFIGURATIONS, configurationsMap.values());
+    MAP_VALUE.put(KerberosServiceDescriptor.KEY_AUTH_TO_LOCAL_PROPERTIES, authToLocalRules);
   }
 
   private static final KerberosServiceDescriptorFactory KERBEROS_SERVICE_DESCRIPTOR_FACTORY = new KerberosServiceDescriptorFactory();
 
-  public static void validateFromJSON(KerberosServiceDescriptor[] serviceDescriptors) {
+  private static void validateFromJSON(KerberosServiceDescriptor[] serviceDescriptors) {
     Assert.assertNotNull(serviceDescriptors);
     Assert.assertEquals(2, serviceDescriptors.length);
 
     validateFromJSON(serviceDescriptors[0]);
   }
 
-  public static void validateFromJSON(KerberosServiceDescriptor serviceDescriptor) {
+  static void validateFromJSON(KerberosServiceDescriptor serviceDescriptor) {
     Assert.assertNotNull(serviceDescriptor);
     Assert.assertTrue(serviceDescriptor.isContainer());
 
@@ -188,7 +190,7 @@ public class KerberosServiceDescriptorTest {
     Assert.assertEquals("service.name.rules1", authToLocalProperties.iterator().next());
   }
 
-  public static void validateFromMap(KerberosServiceDescriptor serviceDescriptor) {
+  static void validateFromMap(KerberosServiceDescriptor serviceDescriptor) {
     Assert.assertNotNull(serviceDescriptor);
     Assert.assertTrue(serviceDescriptor.isContainer());
 
@@ -233,7 +235,7 @@ public class KerberosServiceDescriptorTest {
     Assert.assertEquals("service.name.rules2", authToLocalProperties.iterator().next());
   }
 
-  public void validateUpdatedData(KerberosServiceDescriptor serviceDescriptor) {
+  private void validateUpdatedData(KerberosServiceDescriptor serviceDescriptor) {
     Assert.assertNotNull(serviceDescriptor);
 
     Assert.assertEquals("A_DIFFERENT_SERVICE_NAME", serviceDescriptor.getName());
@@ -385,8 +387,6 @@ public class KerberosServiceDescriptorTest {
 
   /**
    * Test a JSON object in which only only a Service and configs are defined, but no Components.
-   *
-   * @throws AmbariException
    */
   @Test
   public void testJSONWithOnlyServiceNameAndConfigurations() throws AmbariException {

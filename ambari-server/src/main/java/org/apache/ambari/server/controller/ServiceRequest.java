@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -29,17 +30,25 @@ public class ServiceRequest {
   private String credentialStoreEnabled; // CREATE/UPDATE/GET
   private String credentialStoreSupported; //GET
 
+  private Long desiredRepositoryVersionId;
+  /**
+   * Short-lived object that gets set while validating a request
+   */
+  private RepositoryVersionEntity resolvedRepository;
+
   public ServiceRequest(String clusterName, String serviceName,
-                        String desiredState) {
-    this(clusterName, serviceName, desiredState, null);
+      Long desiredRepositoryVersionId, String desiredState) {
+    this(clusterName, serviceName, desiredRepositoryVersionId, desiredState, null);
   }
 
   public ServiceRequest(String clusterName, String serviceName,
-                        String desiredState,
-                        String credentialStoreEnabled) {
+      Long desiredRepositoryVersionId, String desiredState, String credentialStoreEnabled) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.desiredState = desiredState;
+
+    this.desiredRepositoryVersionId = desiredRepositoryVersionId;
+
     this.credentialStoreEnabled = credentialStoreEnabled;
     // Credential store supported cannot be changed after
     // creation since it comes from the stack definition.
@@ -74,6 +83,10 @@ public class ServiceRequest {
    */
   public void setDesiredState(String desiredState) {
     this.desiredState = desiredState;
+  }
+
+  public Long getDesiredRepositoryVersionId() {
+    return desiredRepositoryVersionId;
   }
 
   /**
@@ -137,6 +150,7 @@ public class ServiceRequest {
     this.credentialStoreSupported = credentialStoreSupported;
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("clusterName=").append(clusterName)
@@ -147,4 +161,14 @@ public class ServiceRequest {
     return sb.toString();
   }
 
+  /**
+   * @param repositoryVersion
+   */
+  public void setResolvedRepository(RepositoryVersionEntity repositoryVersion) {
+    resolvedRepository = repositoryVersion;
+  }
+
+  public RepositoryVersionEntity getResolvedRepository() {
+    return resolvedRepository;
+  }
 }

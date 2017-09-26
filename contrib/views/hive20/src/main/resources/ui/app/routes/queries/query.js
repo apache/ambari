@@ -128,30 +128,23 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('worksheet', model);
     controller.set('selectedTablesModels',model.get('selectedTablesModels') || selectedTablesModels );
     controller.set('selectedMultiDb', model.get('selectedMultiDb') || selectedMultiDb);
-
     controller.set('isQueryRunning', model.get('isQueryRunning'));
     controller.set('currentQuery', model.get('query'));
-    controller.set('currentJobId', null);
+    controller.set('currentJobId', model.get('currentJobId'));
     controller.set('queryResult', model.get('queryResult'));
     controller.set('isJobSuccess', model.get('isJobSuccess'));
     controller.set('isJobCancelled', model.get('isJobCancelled'));
     controller.set('isJobCreated', model.get('isJobCreated'));
-
     controller.set('isExportResultSuccessMessege', false);
     controller.set('isExportResultFailureMessege', false);
     controller.set('showSaveHdfsModal', false);
-
     controller.set('logResults', model.get('logResults') || '');
-
     controller.set('isVisualExplainQuery', false);
     controller.set('visualExplainJson', model.get('visualExplainJson'));
-
     controller.set('showWorksheetModal',false);
     controller.set('worksheetModalSuccess',false);
     controller.set('worksheetModalFail',false);
-
     controller.set('tabs', tabs);
-
   },
   checkIfDeafultDatabaseExists(alldatabases){
     if(this.get('controller.model').get('selectedDb')) {
@@ -248,7 +241,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     executeQuery(isVisualExplainQuery){
 
       let self = this, ctrlr = self.get('controller'), ctrlrModel = self.get('controller.model');
-      this.get('controller').set('currentJobId', null);
+      this.get('controller.model').set('currentJobId', null);
       if(!Ember.isEmpty(isVisualExplainQuery)){
         isVisualExplainQuery = true;
         this.get('controller').set('isVisualExplainQuery', true);
@@ -325,7 +318,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('controller.model').set('currentJobData', data);
         self.get('controller.model').set('queryFile', data.job.queryFile);
         self.get('controller.model').set('logFile', data.job.logFile);
-        self.get('controller').set('currentJobId', data.job.id);
+        self.get('controller.model').set('currentJobId', data.job.id);
         ctrlrModel.set('isJobCreated',true);
         ctrlr.set('isJobCreated',true);
 
@@ -362,7 +355,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     stopQuery(){
-      let jobId = this.get('controller').get('currentJobId');
+      let jobId = this.get('controller.model').get('currentJobId');
       this.get('jobs').stopJob(jobId)
         .then( data => this.get('controller').set('isJobCancelled', true));
     },

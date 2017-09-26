@@ -19,6 +19,8 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldValueDescriptor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,11 +34,15 @@ public class LSServerMapFieldValue extends LSServerMapField {
     return "map_fieldvalue";
   }
 
+  @NotNull
   @JsonProperty("pre_value")
   private String preValue;
 
+  @NotNull
   @JsonProperty("post_value")
   private String postValue;
+
+  public LSServerMapFieldValue() {}
 
   public LSServerMapFieldValue(MapFieldValueDescriptor mapFieldValueDescriptor) {
     this.preValue = mapFieldValueDescriptor.getPreValue();

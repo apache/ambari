@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.pam.PamAuthenticationFactory;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
@@ -54,8 +55,10 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   protected UserDAO userDAO;
   @Inject
   protected GroupDAO groupDAO;
+  @Inject
+  private PamAuthenticationFactory pamAuthenticationFactory;
 
-  private static Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
 
   private final Configuration configuration;
 
@@ -85,7 +88,7 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
         try{
           //Set PAM configuration file (found under /etc/pam.d)
           String pamConfig = configuration.getPamConfigurationFile();
-          pam = new PAM(pamConfig);
+          pam = pamAuthenticationFactory.createInstance(pamConfig);
 
         } catch(PAMException ex) {
           LOG.error("Unable to Initialize PAM." + ex.getMessage());

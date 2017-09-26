@@ -272,6 +272,11 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
             kafkaLog4jContent+= '\n' + kafkaLog4jRangerLines[item]["name"] + '=' + kafkaLog4jRangerLines[item]["value"]
         putKafkaLog4jProperty("content",kafkaLog4jContent)
 
+      zookeeper_host_port = self.getZKHostPortString(services)
+      if zookeeper_host_port:
+        putRangerKafkaPluginProperty = self.putProperty(configurations, 'ranger-kafka-plugin-properties', services)
+        putRangerKafkaPluginProperty('zookeeper.connect', zookeeper_host_port)
+
 
   def recommendKAFKAConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
     if 'kafka-env' in services['configurations'] and 'kafka_user' in services['configurations']['kafka-env']['properties']:

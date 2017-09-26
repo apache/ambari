@@ -19,7 +19,7 @@
 
 package org.apache.ambari.logfeeder.metrics;
 
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.SSLUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
@@ -41,15 +41,15 @@ public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
   private final String collectorPath;
 
   public LogFeederAMSClient() {
-    String collectorHostsString = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.hosts");
+    String collectorHostsString = LogFeederPropertiesUtil.getMetricsCollectorHosts();
     if (!StringUtils.isBlank(collectorHostsString)) {
       collectorHostsString = collectorHostsString.trim();
       LOG.info("AMS collector Hosts=" + collectorHostsString);
       
       collectorHosts = Splitter.on(",").splitToList(collectorHostsString);
-      collectorProtocol = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.protocol");
-      collectorPort = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.port");
-      collectorPath = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.path");
+      collectorProtocol = LogFeederPropertiesUtil.getMetricsCollectorProtocol();
+      collectorPort = LogFeederPropertiesUtil.getMetricsCollectorPort();
+      collectorPath = LogFeederPropertiesUtil.getMetricsCollectorPath();
     } else {
       collectorHosts = null;
       collectorProtocol = null;

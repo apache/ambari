@@ -49,7 +49,24 @@
         "package_list": "[{\"name\":\"hadoop_${stack_version}\", \"condition\": \"\"},{\"name\":\"snappy\", \"condition\": \"\"},{\"name\":\"snappy-devel\", \"condition\": \"\"},{\"name\":\"lzo\", \"condition\": \"\"},{\"name\":\"hadooplzo_${stack_version}\", \"condition\": \"\"},{\"name\":\"hadoop_${stack_version}-libhdfs\", \"condition\": \"\"},{\"name\":\"ambari-log4j\", \"condition\": \"\"}]",
         "script": "install_packages.py"
     }, 
-    "commandId": "14-1", 
+    "commandId": "14-1",
+    "repositoryFile": {
+        "stackName": "HDP",
+        "repoVersionId": 1,
+        "repoVersion": "2.2.0.1-885",
+        "repositories": [
+            {
+                "repoName": "HDP-UTILS",
+                "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
+                "repoId": "HDP-UTILS-1.1.0.20"
+            },
+            {
+                "repoName": "HDP",
+                "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
+                "repoId": "HDP-2.2"
+            }
+        ]
+    },
     "clusterHostInfo": {
         "snamenode_host": [
             "0b3.vm"

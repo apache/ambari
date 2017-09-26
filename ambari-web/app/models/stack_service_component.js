@@ -35,6 +35,7 @@ App.StackServiceComponent = DS.Model.extend({
   dependencies: DS.attr('array'),
   serviceName: DS.attr('string'),
   componentCategory: DS.attr('string'),
+  rollingRestartSupported: DS.attr('boolean'),
   isMaster: DS.attr('boolean'),
   isClient: DS.attr('boolean'),
   stackName: DS.attr('string'),
@@ -84,7 +85,7 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isRollinRestartAllowed - component supports rolling restart action **/
   isRollinRestartAllowed: function() {
-    return this.get('isSlave') || this.get('componentName') === 'KAFKA_BROKER';
+    return this.get('isSlave') || this.get('rollingRestartSupported');
   }.property('componentName'),
 
   /** @property {Boolean} isDecommissionAllowed - component supports decommission action **/

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,12 +34,12 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ntp.TimeStamp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MasterKeyServiceImpl implements MasterKeyService {
-  private static final Log LOG = LogFactory.getLog(MasterKeyServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MasterKeyServiceImpl.class);
   private static final String MASTER_PASSPHRASE = "masterpassphrase";
   private static final String MASTER_PERSISTENCE_TAG_PREFIX = "#1.0# ";
   private static final AESEncryptor aes = new AESEncryptor(MASTER_PASSPHRASE);
@@ -138,7 +138,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @return true if the master key was written to the specified file; otherwise false
    */
   public static boolean initializeMasterKeyFile(File masterKeyFile, String masterKey) {
-    LOG.debug(String.format("Persisting master key into %s", masterKeyFile.getAbsolutePath()));
+    LOG.debug("Persisting master key into {}", masterKeyFile.getAbsolutePath());
 
     EncryptionResult atom = null;
 
@@ -286,9 +286,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
                 key = new String(master);
               }
               FileUtils.deleteQuietly(keyFile);
-            } catch (IOException e) {
-              LOG.error("Cannot read master key from file: " + keyPath);
-              e.printStackTrace();
             } catch (Exception e) {
               LOG.error("Cannot read master key from file: " + keyPath);
               e.printStackTrace();
@@ -310,9 +307,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       master = new String(aes.decrypt(Base64.decodeBase64(parts[0]),
           Base64.decodeBase64(parts[1]), Base64.decodeBase64(parts[2])),
           "UTF8").toCharArray();
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw e;
     } catch (Exception e) {
       e.printStackTrace();
       throw e;

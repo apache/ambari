@@ -22,6 +22,9 @@ package org.apache.ambari.logsearch.model.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapDateDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldCopyDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
@@ -29,30 +32,37 @@ import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldNameDesc
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldValueDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.PostMapValues;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import io.swagger.annotations.ApiModel;
 
 @ApiModel
-@JsonSerialize(using = LSServerPostMapValuesSerializer.class)
 public class LSServerPostMapValues {
+  @Valid
+  @NotNull
   private List<LSServerMapField> mappers;
+  
+  public LSServerPostMapValues() {}
   
   public LSServerPostMapValues(PostMapValues pmv) {
     mappers = new ArrayList<>();
     for (MapFieldDescriptor mapFieldDescriptor : pmv.getMappers()) {
-      if (mapFieldDescriptor instanceof MapDateDescriptor) {
-        mappers.add(new LSServerMapDate((MapDateDescriptor)mapFieldDescriptor));
-      } else if (mapFieldDescriptor instanceof MapFieldCopyDescriptor) {
-        mappers.add(new LSServerMapFieldCopy((MapFieldCopyDescriptor)mapFieldDescriptor));
-      } else if (mapFieldDescriptor instanceof MapFieldNameDescriptor) {
-        mappers.add(new LSServerMapFieldName((MapFieldNameDescriptor)mapFieldDescriptor));
-      } else if (mapFieldDescriptor instanceof MapFieldValueDescriptor) {
-        mappers.add(new LSServerMapFieldValue((MapFieldValueDescriptor)mapFieldDescriptor));
-      }
+      mappers.add(convert(mapFieldDescriptor));
     }
   }
 
+  private LSServerMapField convert(MapFieldDescriptor mapFieldDescriptor) {
+    if (mapFieldDescriptor instanceof MapDateDescriptor) {
+      return new LSServerMapDate((MapDateDescriptor)mapFieldDescriptor);
+    } else if (mapFieldDescriptor instanceof MapFieldCopyDescriptor) {
+      return new LSServerMapFieldCopy((MapFieldCopyDescriptor)mapFieldDescriptor);
+    } else if (mapFieldDescriptor instanceof MapFieldNameDescriptor) {
+      return new LSServerMapFieldName((MapFieldNameDescriptor)mapFieldDescriptor);
+    } else if (mapFieldDescriptor instanceof MapFieldValueDescriptor) {
+      return new LSServerMapFieldValue((MapFieldValueDescriptor)mapFieldDescriptor);
+    }
+    
+    throw new IllegalArgumentException("Unknown mapper: " + mapFieldDescriptor.getClass());
+  }
+  
   public List<LSServerMapField> getMappers() {
     return mappers;
   }

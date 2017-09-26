@@ -68,6 +68,7 @@
           "https_property": "yarn.resourcemanager.webapp.https.address",
           "https_default_port": "8090",
           "regex": "\\w*:(\\d+)",
+          "https_regex": "\\w*:(\\d+)",
           "site": "yarn-site"
         }
       }

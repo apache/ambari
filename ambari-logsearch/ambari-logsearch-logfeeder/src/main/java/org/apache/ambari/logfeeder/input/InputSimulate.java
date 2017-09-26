@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.filter.FilterJSON;
 import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterJsonDescriptorImpl;
@@ -44,7 +45,7 @@ import com.google.common.base.Joiner;
 
 public class InputSimulate extends Input {
   private static final String LOG_TEXT_PATTERN = "{ logtime=\"%d\", level=\"%s\", log_message=\"%s\", host=\"%s\"}";
-  
+
   private static final Map<String, String> typeToFilePath = new HashMap<>();
   private static final List<String> inputTypes = new ArrayList<>();
   public static void loadTypeToFilePath(List<InputDescriptor> inputList) {
@@ -75,11 +76,11 @@ public class InputSimulate extends Input {
   
   public InputSimulate() throws Exception {
     this.types = getSimulatedLogTypes();
-    this.level = LogFeederUtil.getStringProperty("logfeeder.simulate.log_level", "WARN");
-    this.numberOfWords = LogFeederUtil.getIntProperty("logfeeder.simulate.number_of_words", 1000, 50, 1000000);
-    this.minLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.min_log_words", 5, 1, 10);
-    this.maxLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.max_log_words", 10, 10, 20);
-    this.sleepMillis = LogFeederUtil.getIntProperty("logfeeder.simulate.sleep_milliseconds", 10000);
+    this.level = LogFeederPropertiesUtil.getSimulateLogLevel();
+    this.numberOfWords = LogFeederPropertiesUtil.getSimulateNumberOfWords();
+    this.minLogWords = LogFeederPropertiesUtil.getSimulateMinLogWords();
+    this.maxLogWords = LogFeederPropertiesUtil.getSimulateMaxLogWords();
+    this.sleepMillis = LogFeederPropertiesUtil.getSimulateSleepMilliseconds();
     this.host = "#" + hostNumber.incrementAndGet() + "-" + LogFeederUtil.hostName;
     
     Filter filter = new FilterJSON();
@@ -89,7 +90,7 @@ public class InputSimulate extends Input {
   }
   
   private List<String> getSimulatedLogTypes() {
-    String logsToSimulate = LogFeederUtil.getStringProperty("logfeeder.simulate.log_ids");
+    String logsToSimulate = LogFeederPropertiesUtil.getSimulateLogIds();
     return (logsToSimulate == null) ?
       inputTypes :
       Arrays.asList(logsToSimulate.split(","));
@@ -101,6 +102,7 @@ public class InputSimulate extends Input {
       Class<? extends Output> clazz = output.getClass();
       Output outputCopy = clazz.newInstance();
       outputCopy.loadConfig(output.getConfigs());
+      outputCopy.setDestination(output.getDestination());
       simulateOutputs.add(outputCopy);
       super.addOutput(outputCopy);
     } catch (Exception e) {

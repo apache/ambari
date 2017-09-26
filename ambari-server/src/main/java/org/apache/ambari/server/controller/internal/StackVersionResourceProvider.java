@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,10 +19,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,12 +39,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
-import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
-
-import com.google.inject.Inject;
 
 @StaticallyInject
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
@@ -67,18 +58,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   private static Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID}));
 
-  /**
-   * KerberosDescriptorFactory used to create KerberosDescriptor instances
-   */
-  @Inject
-  private static KerberosDescriptorFactory kerberosDescriptorFactory;
-
-  /**
-   * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
-   */
-  @Inject
-  private static KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory;
-
   protected StackVersionResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
       AmbariManagementController managementController) {
@@ -93,7 +72,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
     final Set<StackVersionRequest> requests = new HashSet<>();
 
     if (predicate == null) {
-      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+      requests.add(getRequest(Collections.emptyMap()));
     } else {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));
@@ -151,51 +130,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
     }
 
     return resources;
-  }
-
-  /**
-   * Given data from a StackVersionResponse build a complete Kerberos descriptor hierarchy.
-   *
-   * @param stackVersionResponse the StackVersionResponse instance containing the details of the
-   *                             stack and the relevant Kerberos descriptor files
-   * @return a KerberosDescriptor containing the complete hierarchy for the stack
-   * @throws IOException     if the specified File is not found or not a readable
-   * @throws AmbariException if the specified File does not contain valid JSON-encoded Kerberos
-   *                         descriptor
-   */
-  private KerberosDescriptor buildKerberosDescriptor(StackVersionResponse stackVersionResponse)
-      throws IOException {
-    KerberosDescriptor kerberosDescriptor = null;
-
-    // Process the stack-level Kerberos descriptor file
-    File stackKerberosDescriptorFile = stackVersionResponse.getStackKerberosDescriptorFile();
-    if (stackKerberosDescriptorFile != null) {
-      kerberosDescriptor = kerberosDescriptorFactory.createInstance(stackKerberosDescriptorFile);
-    }
-
-    // Process the service-level Kerberos descriptor files
-    Collection<File> serviceDescriptorFiles = stackVersionResponse.getServiceKerberosDescriptorFiles();
-    if ((serviceDescriptorFiles != null) && !serviceDescriptorFiles.isEmpty()) {
-      // Make sure kerberosDescriptor is not null. This will be the case if there is no stack-level
-      // Kerberos descriptor file.
-      if (kerberosDescriptor == null) {
-        kerberosDescriptor = new KerberosDescriptor();
-      }
-
-      // For each service-level Kerberos descriptor file, parse into an array of KerberosServiceDescriptors
-      // and then append each to the KerberosDescriptor hierarchy.
-      for (File file : serviceDescriptorFiles) {
-        KerberosServiceDescriptor[] serviceDescriptors = kerberosServiceDescriptorFactory.createInstances(file);
-
-        if (serviceDescriptors != null) {
-          for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors) {
-            kerberosDescriptor.putService(serviceDescriptor);
-          }
-        }
-      }
-    }
-
-    return kerberosDescriptor;
   }
 
   private StackVersionRequest getRequest(Map<String, Object> properties) {

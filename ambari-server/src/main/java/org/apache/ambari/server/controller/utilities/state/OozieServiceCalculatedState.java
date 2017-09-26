@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,6 +29,7 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 
@@ -45,7 +46,9 @@ public final class OozieServiceCalculatedState extends DefaultServiceCalculatedS
       Cluster cluster = getCluster(clusterName);
       if (cluster != null && managementControllerProvider != null) {
         AmbariMetaInfo ambariMetaInfo = managementControllerProvider.get().getAmbariMetaInfo();
-        StackId stackId = cluster.getDesiredStackVersion();
+        Service service = cluster.getService(serviceName);
+        StackId stackId = service.getDesiredStackId();
+
 
         ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
           serviceName, null, null, null);

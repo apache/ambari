@@ -50,6 +50,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
    * @type {App.ServiceConfigProperty[]}
    */
   serviceConfigs: null,
+  isUIDGIDVisible: true,
 
   /**
    * This is array of all the properties which apply
@@ -429,6 +430,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
   createProperty: function (propertyObj) {
     var config;
     var selectedConfigGroup = this.get('controller.selectedConfigGroup');
+    var categoryConfigsAll = this.get('categoryConfigsAll');
     if (selectedConfigGroup.get('isDefault')) {
       config = App.config.createDefaultConfig(propertyObj.name, propertyObj.filename, false, {
         value: propertyObj.value,
@@ -446,7 +448,13 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
         isNotSaved: true
       }, selectedConfigGroup);
     }
-    this._appendConfigToCollection(App.ServiceConfigProperty.create(config));
+    var serviceConfigProperty = App.ServiceConfigProperty.create(config);
+    var duplicatedProperty = categoryConfigsAll.findProperty('name', config.name);
+    if (duplicatedProperty && duplicatedProperty.get('isUndefinedLabel')) {
+      serviceConfigProperty.set('overrides', duplicatedProperty.get('overrides'));
+      categoryConfigsAll.removeAt(categoryConfigsAll.indexOf(duplicatedProperty));
+    }
+    this._appendConfigToCollection(serviceConfigProperty);
   },
 
   /**
@@ -456,6 +464,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
   _appendConfigToCollection: function (serviceConfigProperty) {
     this.get('serviceConfigs').pushObject(serviceConfigProperty);
     this.get('categoryConfigsAll').pushObject(serviceConfigProperty);
+    this.setVisibleCategoryConfigs();
   },
 
   /**
@@ -470,7 +479,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
     var serviceName = service.get('serviceName');
 
     var configsOfFile = service.get('configs').filterProperty('filename', siteFileName);
-    return configsOfFile.findProperty('name', name);
+    var duplicatedProperty = configsOfFile.findProperty('name', name);
+    return duplicatedProperty && !duplicatedProperty.get('isUndefinedLabel');
   },
 
   /**
@@ -483,7 +493,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
     var configFiles = service.get('configs').mapProperty('filename').uniq();
     configFiles.forEach(function (configFile) {
       var configsOfFile = service.get('configs').filterProperty('filename', configFile);
-      if (configsOfFile.findProperty('name', name)) {
+      var duplicatedProperty = configsOfFile.findProperty('name', name);
+      if (duplicatedProperty && !duplicatedProperty.get('isUndefinedLabel')) {
         files.push(configFile);
       }
     }, this);
@@ -744,6 +755,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
   setRecommendedValue: function (event) {
     var serviceConfigProperty = event.contexts[0];
     serviceConfigProperty.set('value', serviceConfigProperty.get('recommendedValue'));
+
+    //in case of USER/GROUP fields, if they have uid/gid set, then these need to be reset to the recommended value as well
+    if (serviceConfigProperty.get('ugid')) {
+      serviceConfigProperty.set('ugid.value', serviceConfigProperty.get('ugid.recommendedValue'));
+    }
     serviceConfigProperty = null;
   },
 

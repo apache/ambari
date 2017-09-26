@@ -123,6 +123,13 @@
         </logs>
       </components>
 
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
@@ -147,6 +154,14 @@
             </package>
             <package>
               <name>gcc</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7,redhat6,centos6,centos7</osFamily>
+          <packages>
+            <package>
+              <name>python-kerberos</name>
             </package>
           </packages>
         </osSpecific>

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,10 +58,10 @@ public class ClusterTopologyImplTest {
   @Before
   public void setUp() throws Exception {
 
-    configuration = new Configuration(new HashMap<String, Map<String, String>>(),
-      new HashMap<String, Map<String, Map<String, String>>>());
-    bpconfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
-      new HashMap<String, Map<String, Map<String, String>>>());
+    configuration = new Configuration(new HashMap<>(),
+      new HashMap<>());
+    bpconfiguration = new Configuration(new HashMap<>(),
+      new HashMap<>());
 
     HostGroupInfo group1Info = new HostGroupInfo("group1");
     HostGroupInfo group2Info = new HostGroupInfo("group2");

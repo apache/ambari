@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterJsonDescriptorImpl;
@@ -131,13 +131,15 @@ public class FilterJSONTest {
   @Test
   public void testJSONFilterCode_invalidJson() throws Exception {
     LOG.info("testJSONFilterCode_invalidJson()");
+    
     init(new FilterJsonDescriptorImpl());
-    String inputStr="invalid json";
+    
+    String inputStr = "invalid json";
     try{
-    filterJson.apply(inputStr,new InputMarker(null, null, 0));
-    fail("Expected LogfeederException was not occured");
-    }catch(LogfeederException logfeederException){
-      assertEquals("Json parsing failed for inputstr = "+inputStr, logfeederException.getLocalizedMessage());
+      filterJson.apply(inputStr,new InputMarker(null, null, 0));
+      fail("Expected LogFeederException was not occured");
+    } catch(LogFeederException logFeederException) {
+      assertEquals("Json parsing failed for inputstr = " + inputStr, logFeederException.getLocalizedMessage());
     }
   }
 

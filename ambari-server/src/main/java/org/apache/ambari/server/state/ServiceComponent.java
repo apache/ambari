@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface ServiceComponent {
 
@@ -51,13 +52,18 @@ public interface ServiceComponent {
 
   void setDesiredState(State state);
 
-  StackId getDesiredStackVersion();
+  /**
+   * Gets the desired repository for this service component.
+   *
+   * @return
+   */
+  RepositoryVersionEntity getDesiredRepositoryVersion();
 
-  void setDesiredStackVersion(StackId stackVersion);
+  StackId getDesiredStackId();
 
   String getDesiredVersion();
 
-  void setDesiredVersion(String version);
+  void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity);
 
   /**
    * Refresh Component info due to current stack

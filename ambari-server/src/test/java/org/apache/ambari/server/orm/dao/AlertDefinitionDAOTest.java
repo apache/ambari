@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -276,6 +276,12 @@ public class AlertDefinitionDAOTest {
     List<AlertDefinitionEntity> definitions = dao.findAgentScoped(clusterId);
     assertNotNull(definitions);
     assertEquals(3, definitions.size());
+  }
+
+  @Test
+  public void testFindBySourceType() throws Exception {
+    assertEquals(15, dao.findBySourceType(clusterId, SourceType.SCRIPT).size());
+    assertEquals(0, dao.findBySourceType(clusterId, SourceType.METRIC).size());
   }
 
   @Test

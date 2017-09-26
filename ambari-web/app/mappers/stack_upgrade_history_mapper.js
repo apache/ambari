@@ -24,10 +24,11 @@ App.stackUpgradeHistoryMapper = App.QuickDataMapper.create({
   config: {
     "id": "Upgrade.request_id",
     "request_id": "Upgrade.request_id",
+    "upgrade_id": "Upgrade.upgrade_id",
     "cluster_name": "Upgrade.cluster_name",
     "direction": "Upgrade.direction",
-    "from_version": "Upgrade.from_version",
-    "to_version": "Upgrade.to_version",
+    "associated_version": "Upgrade.associated_version",
+    "versions" : "Upgrade.versions",
     "end_time":"Upgrade.end_time",
     "start_time":"Upgrade.start_time",
     "create_time": "Upgrade.create_time",
@@ -44,6 +45,12 @@ App.stackUpgradeHistoryMapper = App.QuickDataMapper.create({
     var result = [];
     json.items.forEach(function(item) {
       var parseResult = this.parseIt(item, this.get('config'));
+      if (parseResult.direction === 'UPGRADE') {
+        parseResult.to_version = parseResult.associated_version;
+      }
+      else {
+        parseResult.from_version = parseResult.associated_version;
+      }
       result.push(parseResult);
     }, this);
 

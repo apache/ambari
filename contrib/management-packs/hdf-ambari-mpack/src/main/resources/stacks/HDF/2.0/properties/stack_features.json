@@ -98,12 +98,6 @@
       "min_version": "0.2.0.0"
     },
     {
-      "name": "create_kafka_broker_id",
-      "description": "Ambari should create Kafka Broker Id (AMBARI-12678)",
-      "min_version": "0.2.0.0",
-      "max_version": "0.3.0.0"
-    },
-    {
       "name": "kafka_listeners",
       "description": "Kafka listeners (AMBARI-10984)",
       "min_version": "0.3.0.0"

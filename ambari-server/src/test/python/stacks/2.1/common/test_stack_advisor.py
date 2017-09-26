@@ -557,3 +557,31 @@ class TestHDP21StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
+
+  def test_modifyComponentLayoutSchemes(self):
+    res_expected = {}
+    res_expected.update({
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+      'METRICS_COLLECTOR': {3: 2, 6: 2, 31: 3, "else": 5},
+    })
+
+    res_expected.update({
+      'APP_TIMELINE_SERVER': {31: 1, "else": 2},
+      'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
+    })
+
+    self.stackAdvisor.modifyComponentLayoutSchemes()
+    res = self.stackAdvisor.getComponentLayoutSchemes()
+
+    self.assertEquals(res, res_expected)

@@ -51,7 +51,7 @@ import io.swagger.annotations.ApiResponses;
 /**
  * Service responsible for services resource requests.
  */
-@Api(value = "Services", description = "Endpoint for service specific operations")
+@Api(value = "Cluster Services", description = "Endpoint for service specific operations")
 public class ServiceService extends BaseService {
   private static final String SERVICE_REQUEST_TYPE = "org.apache.ambari.server.controller.ServiceRequestSwagger";
   private static final String ARTIFACT_REQUEST_TYPE = "org.apache.ambari.server.controller.ClusterServiceArtifactRequest";
@@ -112,6 +112,7 @@ public class ServiceService extends BaseService {
    * @return service collection resource representation
    */
   @GET
+  @Path("") // This is needed if class level path is not present otherwise no Swagger docs will be generated for this method
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get all services",
       nickname = "ServiceService#getServices",

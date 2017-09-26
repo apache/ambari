@@ -126,13 +126,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @type {Em.Array}
    */
   repoVersions: App.RepositoryVersion.find(),
-
-  repoVersionsDisplay: function () {
-    return this.get('repoVersions').toArray().sort(function (a, b) {
-      return (a.get('repositoryVersion') > b.get('repositoryVersion')) ? 1 : ((b.get('repositoryVersion') > a.get('repositoryVersion')) ? -1 : 0);
-    });
-  }.property('repoVersions'),
-
+  
   /**
    * @type {Em.Array}
    */
@@ -160,17 +154,21 @@ App.MainAdminStackVersionsView = Em.View.extend({
             return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) < 1;
           }
         } else if (filter.get('value') === 'NOT_INSTALLED') {
-          return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(status);
+          return ['NOT_REQUIRED', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(status);
         } else {
           return status === filter.get('value');
         }
       }, this);
     }
     if (App.get('supports.displayOlderVersions') || Em.isNone(currentVersion)) {
-      return versions.toArray();
+      return versions.filterProperty('hidden', false).toArray();
     } else {
-      return versions.filter(function(v) {
-        return stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
+      return versions.filterProperty('hidden', false).filter(function(v) {
+        if (v.get('stackVersionType') === Em.get(currentVersion, 'stack_name')) {
+          // PATCH or MAINT version should be visible even if patch number lower than current
+          return v.get('isPatch') || v.get('isMaint') || stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
+        }
+        return v.get('isCompatible');
       }).toArray();
     }
   },

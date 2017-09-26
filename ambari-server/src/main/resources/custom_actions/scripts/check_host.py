@@ -27,7 +27,6 @@ import socket
 import getpass
 import tempfile
 
-from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.functions.default import default
 from ambari_commons import os_utils
 from ambari_commons.os_check import OSCheck, OSConst
@@ -40,6 +39,7 @@ from resource_management.core.exceptions import Fail
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
 from resource_management.core.logger import Logger
+from resource_management.core.providers import get_provider
 
 # WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
 # It is used by HostCleanup.py
@@ -113,6 +113,7 @@ class CheckHost(Script):
   
   def __init__(self):
     self.reportFileHandler = HostCheckReportFileHandler()
+    self.pkg_provider = get_provider("Package")
   
   def actionexecute(self, env):
     Logger.info("Host checks started.")
@@ -229,21 +230,18 @@ class CheckHost(Script):
   def execute_existing_repos_and_installed_packages_check(self, config):
       Logger.info("Installed packages and existing repos checks started.")
 
-      installedPackages = []
-      availablePackages = []
-      packages_analyzer.allInstalledPackages(installedPackages)
-      packages_analyzer.allAvailablePackages(availablePackages)
+      installedPackages = self.pkg_provider.all_installed_packages()
+      availablePackages = self.pkg_provider.all_available_packages()
 
-      repos = []
-      packages_analyzer.getInstalledRepos(self.PACKAGES, installedPackages + availablePackages,
-                                      self.IGNORE_PACKAGES_FROM_REPOS, repos)
-      packagesInstalled = packages_analyzer.getInstalledPkgsByRepo(repos, self.IGNORE_PACKAGES, installedPackages)
-      additionalPkgsInstalled = packages_analyzer.getInstalledPkgsByNames(
-        self.ADDITIONAL_PACKAGES, installedPackages)
+      repos = self.pkg_provider.get_installed_repos(self.PACKAGES, installedPackages + availablePackages,
+                                                    self.IGNORE_PACKAGES_FROM_REPOS)
+
+      packagesInstalled = self.pkg_provider.get_installed_pkgs_by_repo(repos, self.IGNORE_PACKAGES, installedPackages)
+      additionalPkgsInstalled = self.pkg_provider.get_installed_pkgs_by_names(self.ADDITIONAL_PACKAGES, installedPackages)
       allPackages = list(set(packagesInstalled + additionalPkgsInstalled))
       
-      installedPackages = packages_analyzer.getPackageDetails(installedPackages, allPackages)
-      repos = packages_analyzer.getReposToRemove(repos, self.IGNORE_REPOS)
+      installedPackages = self.pkg_provider.get_package_details(installedPackages, allPackages)
+      repos = self.pkg_provider.get_repos_to_remove(repos, self.IGNORE_REPOS)
 
       Logger.info("Installed packages and existing repos checks completed.")
       return installedPackages, repos
@@ -321,6 +319,7 @@ class CheckHost(Script):
         jdbc_url = jdk_location + jdbc_driver_sqla_name
         jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
         jdbc_name = jdbc_driver_sqla_name
+    else: no_jdbc_error_message = format("'{db_name}' database type not supported.")
 
     if no_jdbc_error_message:
       Logger.warning(no_jdbc_error_message)

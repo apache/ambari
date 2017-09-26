@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.internal;
 
 
+import static java.util.stream.Collectors.groupingBy;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +38,9 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
 import org.apache.ambari.server.topology.Blueprint;
@@ -46,6 +50,7 @@ import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,6 +144,11 @@ public class BlueprintConfigurationProcessor {
   private static Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
 
   /**
+   * Compiled regex for placeholder
+   */
+  private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{.*\\}\\}");
+
+  /**
    * Special network address
    */
   private static String BIND_ALL_IP_ADDRESS = "0.0.0.0";
@@ -194,7 +204,7 @@ public class BlueprintConfigurationProcessor {
   private static final PropertyFilter[] clusterUpdatePropertyFilters =
     { new DependencyEqualsFilter("hbase.security.authorization", "hbase-site", "true"),
       new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE"),
-      /** Temporary solution related to HBASE/Phoenix issue PHOENIX-3360, to remove hbase.rpc.controllerfactory
+      /* Temporary solution related to HBASE/Phoenix issue PHOENIX-3360, to remove hbase.rpc.controllerfactory
        * .class from hbase-site. */
       new ConditionalPropertyFilter("hbase-site", "hbase.rpc.controllerfactory.class",
         "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"),
@@ -351,7 +361,7 @@ public class BlueprintConfigurationProcessor {
             final String originalValue = typeMap.get(propertyName);
             final String updatedValue =
               updater.updateForClusterCreate(propertyName, originalValue, clusterProps, clusterTopology);
-            
+
             if(updatedValue == null ) {
               continue;
             }
@@ -414,6 +424,7 @@ public class BlueprintConfigurationProcessor {
     }
 
     // Explicitly set any properties that are required but not currently provided in the stack definition.
+    setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
     setRetryConfiguration(clusterConfig, configTypesUpdated);
     setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
     addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getStack());
@@ -445,8 +456,7 @@ public class BlueprintConfigurationProcessor {
       String newValue = trimmingStrategy.trim(oldValue);
 
       if (!newValue.equals(oldValue)){
-        LOG.debug(String.format("Changing value for config %s property %s from [%s] to [%s]",
-          configType, propertyName, oldValue, newValue));
+        LOG.debug("Changing value for config {} property {} from [{}] to [{}]", configType, propertyName, oldValue, newValue);
         clusterConfig.setProperty(configType, propertyName, newValue);
       }
     }
@@ -527,8 +537,8 @@ public class BlueprintConfigurationProcessor {
     try {
       String clusterName = clusterTopology.getAmbariContext().getClusterName(clusterTopology.getClusterId());
       Cluster cluster = clusterTopology.getAmbariContext().getController().getClusters().getCluster(clusterName);
-      authToLocalPerClusterMap = new HashMap<Long, Set<String>>();
-      authToLocalPerClusterMap.put(Long.valueOf(clusterTopology.getClusterId()), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster).getAllAuthToLocalProperties());
+      authToLocalPerClusterMap = new HashMap<>();
+      authToLocalPerClusterMap.put(Long.valueOf(clusterTopology.getClusterId()), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster, false).getAllAuthToLocalProperties());
       } catch (AmbariException e) {
         LOG.error("Error while getting authToLocal properties. ", e);
     }
@@ -907,14 +917,14 @@ public class BlueprintConfigurationProcessor {
     Map<String, String> yarnSiteConfig = clusterTopology.getConfiguration().getFullProperties().get("yarn-site");
     // generate the property names based on the current HA config for the ResourceManager deployments
     for (String resourceManager : parseResourceManagers(yarnSiteConfig)) {
-      final String rmHostPropertyName = "yarn.resourcemanager.hostname." + resourceManager;
-      yarnSiteUpdatersForAvailability.put(rmHostPropertyName, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-
-      final String rmHTTPAddress = "yarn.resourcemanager.webapp.address." + resourceManager;
-      yarnSiteUpdatersForAvailability.put(rmHTTPAddress, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-
-      final String rmHTTPSAddress = "yarn.resourcemanager.webapp.https.address." + resourceManager;
-      yarnSiteUpdatersForAvailability.put(rmHTTPSAddress, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
+      SingleHostTopologyUpdater updater = new SingleHostTopologyUpdater("RESOURCEMANAGER");
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.hostname." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.admin.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.resource-tracker.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.scheduler.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.webapp.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.webapp.https.address." + resourceManager, updater);
     }
 
     return highAvailabilityUpdaters;
@@ -1133,13 +1143,25 @@ public class BlueprintConfigurationProcessor {
           if (! matchedHost &&
               ! isNameServiceProperty(propertyName) &&
               ! isSpecialNetworkAddress(propValue)  &&
-              ! isUndefinedAddress(propValue)) {
+              ! isUndefinedAddress(propValue) &&
+              ! isPlaceholder(propValue)) {
 
             configuration.removeProperty(type, propertyName);
           }
         }
       }
     }
+  }
+
+  /**
+   * Determine if a property is a placeholder
+   *
+   * @param propertyValue  property value
+   *
+   * @return true if the property has format "{{%s}}"
+   */
+  private static boolean isPlaceholder(String propertyValue) {
+    return PLACEHOLDER.matcher(propertyValue).find();
   }
 
   /**
@@ -1276,12 +1298,16 @@ public class BlueprintConfigurationProcessor {
    *         elements in this property
    */
   private static String[] splitAndTrimStrings(String propertyName) {
-    List<String> namesWithoutWhitespace = new LinkedList<>();
-    for (String service : propertyName.split(",")) {
-      namesWithoutWhitespace.add(service.trim());
-    }
+    if(propertyName != null) {
+      List<String> namesWithoutWhitespace = new LinkedList<>();
+      for (String service : propertyName.split(",")) {
+        namesWithoutWhitespace.add(service.trim());
+      }
 
-    return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
+      return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
+    } else {
+      return new String[0];
+    }
   }
 
   /**
@@ -1349,7 +1375,7 @@ public class BlueprintConfigurationProcessor {
     /**
      * Component name
      */
-    private String component;
+    private final String component;
 
     /**
      * Constructor.
@@ -2022,39 +2048,6 @@ public class BlueprintConfigurationProcessor {
   }
 
   /**
-   * Updater which appends "m" to the original property value.
-   * For example, "1024" would be updated to "1024m".
-   */
-  private static class MPropertyUpdater implements PropertyUpdater {
-    /**
-     * Append 'm' to the original property value if it doesn't already exist.
-     *
-     * @param propertyName  property name
-     * @param origValue     original value of property
-     * @param properties    all properties
-     * @param topology      cluster topology
-     *
-     * @return property with 'm' appended
-     */
-    @Override
-    public String updateForClusterCreate(String propertyName,
-                                         String origValue,
-                                         Map<String, Map<String, String>> properties,
-                                         ClusterTopology topology) {
-
-      return origValue.endsWith("m") ? origValue : origValue + 'm';
-    }
-
-    @Override
-    public Collection<String> getRequiredHostGroups(String propertyName,
-                                                    String origValue,
-                                                    Map<String, Map<String, String>> properties,
-                                                    ClusterTopology topology) {
-      return Collections.emptySet();
-    }
-  }
-
-  /**
    * Class to facilitate special formatting needs of property values.
    */
   private abstract static class AbstractPropertyValueDecorator implements PropertyUpdater {
@@ -2170,8 +2163,9 @@ public class BlueprintConfigurationProcessor {
       StringBuilder sb = new StringBuilder();
 
       Matcher m = REGEX_IN_BRACKETS.matcher(origValue);
-      if (m.matches())
+      if (m.matches()) {
         origValue = m.group("INNER");
+      }
 
       if (origValue != null) {
         sb.append("[");
@@ -2179,8 +2173,9 @@ public class BlueprintConfigurationProcessor {
         for (String value : origValue.split(",")) {
 
           m = REGEX_IN_QUOTES.matcher(value);
-          if (m.matches())
+          if (m.matches()) {
             value = m.group("INNER");
+          }
 
           if (!isFirst) {
             sb.append(",");
@@ -2214,6 +2209,7 @@ public class BlueprintConfigurationProcessor {
    */
   private static class OriginalValuePropertyUpdater implements PropertyUpdater {
 
+    @Override
     public String updateForClusterCreate(String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
@@ -2345,9 +2341,7 @@ public class BlueprintConfigurationProcessor {
   }
 
 
-  /**
-   * Register updaters for configuration properties.
-   */
+  // Register updaters for configuration properties.
   static {
 
     allUpdaters.add(singleHostTopologyUpdaters);
@@ -2736,7 +2730,7 @@ public class BlueprintConfigurationProcessor {
     atlasPropsMap.put("atlas.kafka.bootstrap.servers", new MultipleHostTopologyUpdater("KAFKA_BROKER"));
     atlasPropsMap.put("atlas.kafka.zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.graph.index.search.solr.zookeeper-url", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER", ',', false, true, true));
-    atlasPropsMap.put("atlas.graph.storage.hostname", new MultipleHostTopologyUpdater("HBASE_MASTER"));
+    atlasPropsMap.put("atlas.graph.storage.hostname", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.audit.hbase.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // RANGER_ADMIN
@@ -2764,20 +2758,7 @@ public class BlueprintConfigurationProcessor {
       new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
-    mHadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_newsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_maxnewsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_permsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("namenode_opt_maxpermsize", new MPropertyUpdater());
-    mHadoopEnvMap.put("dtnode_heapsize", new MPropertyUpdater());
-    mapredEnvMap.put("jtnode_opt_newsize", new MPropertyUpdater());
-    mapredEnvMap.put("jtnode_opt_maxnewsize", new MPropertyUpdater());
-    mapredEnvMap.put("jtnode_heapsize", new MPropertyUpdater());
-    hbaseEnvMap.put("hbase_master_heapsize", new MPropertyUpdater());
-    hbaseEnvMap.put("hbase_regionserver_heapsize", new MPropertyUpdater());
-    oozieEnvHeapSizeMap.put("oozie_heapsize", new MPropertyUpdater());
-    oozieEnvHeapSizeMap.put("oozie_permsize", new MPropertyUpdater());
-    zookeeperEnvMap.put("zk_server_heapsize", new MPropertyUpdater());
+    addUnitPropertyUpdaters();
 
     hawqSiteMap.put("hawq_master_address_host", new SingleHostTopologyUpdater("HAWQMASTER"));
     hawqSiteMap.put("hawq_standby_address_host", new SingleHostTopologyUpdater("HAWQSTANDBY"));
@@ -2794,6 +2775,19 @@ public class BlueprintConfigurationProcessor {
         }
       }
     });
+  }
+
+  private static void addUnitPropertyUpdaters() {
+    Map<String, List<UnitValidatedProperty>> propsPerConfigType = UnitValidatedProperty.ALL
+      .stream()
+      .collect(groupingBy(UnitValidatedProperty::getConfigType));
+    for (String configType : propsPerConfigType.keySet()) {
+      Map<String, PropertyUpdater> unitUpdaters = new HashMap<>();
+      for (UnitValidatedProperty each : propsPerConfigType.get(configType)) {
+        unitUpdaters.put(each.getPropertyName(), new UnitUpdater(each.getServiceName(), each.getConfigType()));
+      }
+      mPropertyUpdaters.put(configType, unitUpdaters);
+    }
   }
 
   private Collection<String> setupHDFSProxyUsers(Configuration configuration, Set<String> configTypesUpdated) {
@@ -2835,8 +2829,8 @@ public class BlueprintConfigurationProcessor {
             ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "*", configTypesUpdated);
           }
         } else {
-          LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType +
-                  ".  This may be caused by an error in the blueprint configuration.");
+          LOG.debug("setMissingConfigurations: no user configuration found for type = {}.  This may be caused by an error in the blueprint configuration.",
+            configType);
         }
 
       }
@@ -2893,7 +2887,7 @@ public class BlueprintConfigurationProcessor {
 
         Map<String, String> configProperties = stack.getConfigurationProperties(blueprintService, configType);
         for(Map.Entry<String, String> entry: configProperties.entrySet()) {
-          LOG.debug("ADD property " + configType + " " + entry.getKey() + " " + entry.getValue());
+          LOG.debug("ADD property {} {} {}", configType, entry.getKey(), entry.getValue());
           ensureProperty(configuration, configType, entry.getKey(), entry.getValue(), configTypesUpdated);
         }
       }
@@ -2934,6 +2928,50 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
+
+  /**
+   * Sets the read-only properties for stack features & tools, overriding
+   * anything provided in the blueprint.
+   *
+   * @param configuration
+   *          the configuration to update with values from the stack.
+   * @param configTypesUpdated
+   *          the list of configuration types updated (cluster-env will be added
+   *          to this).
+   * @throws ConfigurationTopologyException
+   */
+  private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
+      throws ConfigurationTopologyException {
+    ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
+    Stack stack = clusterTopology.getBlueprint().getStack();
+    String stackName = stack.getName();
+    String stackVersion = stack.getVersion();
+
+    StackId stackId = new StackId(stackName, stackVersion);
+
+    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
+
+    try {
+      Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
+      Map<String,String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
+
+      for( String property : properties ){
+        if (clusterEnvDefaultProperties.containsKey(property)) {
+          configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
+              clusterEnvDefaultProperties.get(property));
+
+          // make sure to include the configuration type as being updated
+          configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+        }
+      }
+    } catch( AmbariException ambariException ){
+      throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features",
+          ambariException);
+    }
+  }
 
   /**
    * Ensure that the specified property exists.
@@ -3085,7 +3123,7 @@ public class BlueprintConfigurationProcessor {
 
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-      return !(this.propertyConfigType.equals(configType) &&
+      return !(propertyConfigType.equals(configType) &&
              this.propertyName.equals(propertyName));
     }
   }

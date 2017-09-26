@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,15 +20,15 @@ package org.apache.ambari.server.agent;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The purpose of this class is to simulate the agent.
  */
 public class LocalAgentSimulator implements Runnable {
 
-  private static Log LOG = LogFactory.getLog(HeartBeatHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HeartBeatHandler.class);
 
   private Thread agentThread = null;
   private volatile boolean shouldRun = true;
@@ -103,10 +103,7 @@ public class LocalAgentSimulator implements Runnable {
     RegistrationResponse response;
     try {
       response = handler.handleRegistration(reg);
-    } catch (AmbariException e) {
-      LOG.info("Registration failed", e);
-      return;
-    } catch (InvalidStateTransitionException e) {
+    } catch (AmbariException | InvalidStateTransitionException e) {
       LOG.info("Registration failed", e);
       return;
     }

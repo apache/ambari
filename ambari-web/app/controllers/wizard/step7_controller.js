@@ -307,6 +307,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       isRecommendedLoaded: false,
       initialRecommendations: []
     });
+    App.ServiceConfigGroup.find().filterProperty('isDefault', false).forEach(function (record) {
+      App.configGroupsMapper.deleteRecord(record);
+    });
     this.get('stepConfigs').clear();
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
@@ -528,6 +531,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }
     var stepConfigs = this.createStepConfigs();
     var serviceConfigs = this.renderConfigs(stepConfigs, configs);
+    this.addUidAndGidRepresentations(serviceConfigs);
     // if HA is enabled -> Make some reconfigurations
     if (this.get('wizardController.name') === 'addServiceController') {
       this.updateComponentActionConfigs(configs, serviceConfigs);
@@ -799,6 +803,38 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
+   * Set the uid property for user properties. The uid is later used to help map the user and uid values in adjacent columns
+   * @param {object} miscSvc
+   * @param {string} svcName
+   * @private
+   */
+  _setUID: function (miscSvc, svcName) {
+    var user = miscSvc.configs.findProperty('name', svcName + '_user');
+    if (user) {
+      var uid = miscSvc.configs.findProperty('name', user.value + '_uid');
+      if (uid) {
+        user.set('ugid', uid);
+      }
+    }
+  },
+
+  /**
+   * Set the gid property for group properties. The gid is later used to help map the group and gid values in adjacent columns
+   * @param {object} miscSvc
+   * @param {string} svcName
+   * @private
+   */
+  _setGID: function (miscSvc, svcName) {
+    var group = miscSvc.configs.findProperty('name', svcName + '_group');
+    if (group) {
+      var gid = miscSvc.configs.findProperty('name', group.value + '_gid');
+      if (gid) {
+        group.set('ugid', gid);
+      }
+    }
+  },
+
+  /**
    * render configs, distribute them by service
    * and wrap each in ServiceConfigProperty object
    * @param stepConfigs
@@ -838,6 +874,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       this.updateHostOverrides(serviceConfigProperty, _config);
       if (this.get('wizardController.name') === 'addServiceController') {
         this._updateIsEditableFlagForConfig(serviceConfigProperty, true);
+        //since the override_uid and ignore_groupusers_create changes are not saved to the database post install, they should be editable only
+        //during initial cluster installation
+        if (['override_uid', 'ignore_groupsusers_create'].contains(serviceConfigProperty.get('name'))) {
+          serviceConfigProperty.set('isEditable', false);
+        }
       }
       if (!this.get('content.serviceConfigProperties.length') && !serviceConfigProperty.get('hasInitialValue')) {
         App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
@@ -855,6 +896,35 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }, this);
     return stepConfigs;
+  },
+
+  addUidAndGidRepresentations: function(serviceConfigs) {
+    //map the uids to the corresponding users
+    var miscSvc = serviceConfigs.findProperty('serviceName', 'MISC');
+    if (miscSvc) {
+      //iterate through the list of users and groups and assign the uid/gid accordingly
+      //user properties are servicename_user
+      //uid properties are value of servicename_user + _uid
+      //group properties are servicename_group
+      //gid properties are value of servicename_group + _gid
+      //we will map the users/uids and groups/gids based on this assumption
+      this.get('selectedServiceNames').forEach(function (serviceName) {
+        this._setUID(miscSvc, serviceName.toLowerCase());
+        this._setGID(miscSvc, serviceName.toLowerCase());
+      }, this);
+
+      //for zookeeper, the user property name does not follow the convention that users for other services do. i.e. the user property name is not servicename_user as is the case with other services
+      //the user property name is zk_user and not zookeeper_user, hence set the uid for zk_user separately
+      this._setUID(miscSvc, 'zk');
+      //the user property name is mapred_user and not mapreduce2_user for mapreduce2 service, hence set the uid for mapred_user separately
+      this._setUID(miscSvc, 'mapred');
+      //for haddop, the group property name does not follow the convention that groups for other services do. i.e. the group property name is not servicename_group as is the case with other services
+      //the group property name is user_group and not zookeeper_group, hence set the gid for user_group separately
+      this._setGID(miscSvc, 'user');
+
+      // uid/gid properties are displayed in a separate column, hence prevent the properties from showing up on a separate line
+      miscSvc.configs.filterProperty('displayType', 'uid_gid').setEach('isVisible', false);
+    }
   },
 
   /**
@@ -1307,10 +1377,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @param parentProperties
    * @param name
    * @param fileName
+   * @param configGroup
+   * @param savedValue
    * @returns {*}
    * @override
    */
-  allowUpdateProperty: function(parentProperties, name, fileName) {
+  allowUpdateProperty: function(parentProperties, name, fileName, configGroup, savedValue) {
     if (name.contains('proxyuser')) return true;
     if (['installerController'].contains(this.get('wizardController.name')) || !!(parentProperties && parentProperties.length)) {
       return true;
@@ -1319,12 +1391,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!stackProperty || !this.get('installedServices')[stackProperty.serviceName]) {
         return true;
       } else if (stackProperty.propertyDependsOn.length) {
-        return !!stackProperty.propertyDependsOn.filter(function (p) {
+        return stackProperty.propertyDependsOn.some(function (p) {
           var service = App.config.get('serviceByConfigTypeMap')[p.type];
           return service && !this.get('installedServices')[service.get('serviceName')];
-        }, this).length;
+        }, this);
       } else {
-        return false;
+        return !Em.isNone(savedValue) && stackProperty.recommendedValue === savedValue;
       }
     }
     return true;

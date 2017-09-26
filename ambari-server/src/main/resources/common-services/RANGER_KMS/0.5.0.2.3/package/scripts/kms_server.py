@@ -27,19 +27,22 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from resource_management.libraries.functions.default import default
-from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin, setup_kms_jce
+from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin, setup_kms_jce, update_password_configs
 from kms_service import kms_service
-import upgrade
 
 class KmsServer(Script):
-
-  def get_component_name(self):
-    return "ranger-kms"
 
   def install(self, env):
     self.install_packages(env)
     import params
     env.set_params(params)
+
+    # taking backup of install.properties file
+    Execute(('cp', '-f', format('{kms_home}/install.properties'), format('{kms_home}/install-backup.properties')),
+      not_if = format('ls {kms_home}/install-backup.properties'),
+      only_if = format('ls {kms_home}/install.properties'),
+      sudo = True
+    )
 
     setup_kms_db()
     self.configure(env)
@@ -62,6 +65,7 @@ class KmsServer(Script):
     self.configure(env)
     enable_kms_plugin()
     setup_kms_jce()
+    update_password_configs()
     kms_service(action = 'start', upgrade_type=upgrade_type)
 
   def status(self, env):
@@ -89,7 +93,7 @@ class KmsServer(Script):
     import params
     env.set_params(params)
 
-    upgrade.prestart(env, "ranger-kms")
+    stack_select.select_packages(params.version)
     kms(upgrade_type=upgrade_type)
     setup_java_patch()
 

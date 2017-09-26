@@ -18,9 +18,6 @@
  */
 package org.apache.ambari.infra.conf.batch;
 
-import org.apache.ambari.infra.job.dummy.DummyItemProcessor;
-import org.apache.ambari.infra.job.dummy.DummyItemWriter;
-import org.apache.ambari.infra.job.dummy.DummyObject;
 import org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao;
 import org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao;
 import org.springframework.batch.admin.service.JdbcSearchableStepExecutionDao;
@@ -29,45 +26,31 @@ import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
 import org.springframework.batch.admin.service.SimpleJobService;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobOperator;
+import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.repository.dao.DefaultExecutionContextSerializer;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
+import org.springframework.batch.core.repository.dao.Jackson2ExecutionContextStringSerializer;
 import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.LineMapper;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.mapping.FieldSetMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.batch.item.file.transform.LineTokenizer;
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -78,6 +61,7 @@ import java.net.MalformedURLException;
 @Configuration
 @EnableBatchProcessing
 @EnableScheduling
+@EnableAsync
 public class InfraManagerBatchConfig {
 
   @Value("classpath:org/springframework/batch/core/schema-drop-sqlite.sql")
@@ -97,12 +81,6 @@ public class InfraManagerBatchConfig {
 
   @Value("${infra-manager.batch.db.password}")
   private String databasePassword;
-
-  @Inject
-  private StepBuilderFactory steps;
-
-  @Inject
-  private JobBuilderFactory jobs;
 
   @Inject
   private JobRegistry jobRegistry;
@@ -139,10 +117,16 @@ public class InfraManagerBatchConfig {
   }
 
   @Bean
+  public ExecutionContextSerializer executionContextSerializer() {
+    return new Jackson2ExecutionContextStringSerializer();
+  }
+
+  @Bean
   public JobRepository jobRepository() throws Exception {
     JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
     factory.setDataSource(dataSource());
     factory.setTransactionManager(getTransactionManager());
+    factory.setSerializer(executionContextSerializer());
     factory.afterPropertiesSet();
     return factory.getObject();
   }
@@ -209,7 +193,7 @@ public class InfraManagerBatchConfig {
   @Bean
   public ExecutionContextDao executionContextDao() {
     JdbcExecutionContextDao dao = new JdbcExecutionContextDao();
-    dao.setSerializer(new DefaultExecutionContextSerializer());
+    dao.setSerializer(executionContextSerializer());
     dao.setJdbcTemplate(jdbcTemplate());
     return dao;
   }
@@ -220,63 +204,4 @@ public class InfraManagerBatchConfig {
       SimpleJobService(searchableJobInstanceDao(), searchableJobExecutionDao(), searchableStepExecutionDao(),
       jobRepository(), jobLauncher(), jobRegistry, executionContextDao());
   }
-
-  @Bean(name = "dummyStep")
-  protected Step dummyStep(ItemReader<DummyObject> reader,
-                       ItemProcessor<DummyObject, String> processor,
-                       ItemWriter<String> writer) {
-    return steps.get("dummyStep").<DummyObject, String> chunk(2)
-      .reader(reader).processor(processor).writer(writer).build();
-  }
-
-  @Bean(name = "dummyJob")
-  public Job job(@Qualifier("dummyStep") Step dummyStep) {
-    return jobs.get("dummyJob").start(dummyStep).build();
-  }
-
-  @Bean
-  public ItemReader<DummyObject> dummyItemReader() {
-    FlatFileItemReader<DummyObject> csvFileReader = new FlatFileItemReader<>();
-    csvFileReader.setResource(new ClassPathResource("dummy/dummy.txt"));
-    csvFileReader.setLinesToSkip(1);
-    LineMapper<DummyObject> lineMapper = dummyLineMapper();
-    csvFileReader.setLineMapper(lineMapper);
-    return csvFileReader;
-  }
-
-  @Bean
-  public ItemProcessor<DummyObject, String> dummyItemProcessor() {
-    return new DummyItemProcessor();
-  }
-
-  @Bean
-  public ItemWriter<String> dummyItemWriter() {
-    return new DummyItemWriter();
-  }
-
-  private LineMapper<DummyObject> dummyLineMapper() {
-    DefaultLineMapper<DummyObject> lineMapper = new DefaultLineMapper<>();
-
-    LineTokenizer dummyTokenizer = dummyTokenizer();
-    lineMapper.setLineTokenizer(dummyTokenizer);
-
-    FieldSetMapper<DummyObject> dummyFieldSetMapper = dummyFieldSetMapper();
-    lineMapper.setFieldSetMapper(dummyFieldSetMapper);
-
-    return lineMapper;
-  }
-
-  private FieldSetMapper<DummyObject> dummyFieldSetMapper() {
-    BeanWrapperFieldSetMapper<DummyObject> studentInformationMapper = new BeanWrapperFieldSetMapper<>();
-    studentInformationMapper.setTargetType(DummyObject.class);
-    return studentInformationMapper;
-  }
-
-  private LineTokenizer dummyTokenizer() {
-    DelimitedLineTokenizer studentLineTokenizer = new DelimitedLineTokenizer();
-    studentLineTokenizer.setDelimiter(",");
-    studentLineTokenizer.setNames(new String[]{"f1", "f2"});
-    return studentLineTokenizer;
-  }
-
 }

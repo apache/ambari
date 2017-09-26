@@ -41,13 +41,14 @@ public class DeathWatch extends HiveActor {
             this.getContext().watch(actorRef);
             LOG.info("Registered new actor "+ actorRef);
             LOG.info("Registration for {} at {}", actorRef,new Date());
-        }
-        if(message instanceof Terminated){
+        }else if(message instanceof Terminated){
             Terminated terminated = (Terminated) message;
             ActorRef actor = terminated.actor();
-            LOG.info("Received terminate for actor "+ actor);
+            LOG.info("Received terminate for actor {} with message : {}", actor, terminated);
             LOG.info("Termination for {} at {}", actor,new Date());
 
+        }else{
+            LOG.info("received unknown message : {}", hiveMessage);
         }
 
     }

@@ -80,7 +80,7 @@ public class PermissionHelper {
 
         if(key != null) {
           if(!permissionLabels.containsKey(key)) {
-            permissionLabels.put(key, new LinkedList<String>());
+            permissionLabels.put(key, new LinkedList<>());
           }
           permissionLabels.get(key).add(privilegeEntity.getPermission().getPermissionLabel());
         }

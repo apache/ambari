@@ -260,7 +260,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     Assert.assertEquals("\\/\\,\\\\\\#\\+\\<\\>\\;\\\"\\=\\ ", handler.escapeCharacters("/,\\#+<>;\"= ", specialCharacters, '\\'));
 
     Assert.assertEquals("nothing<>special#here!", handler.escapeCharacters("nothing<>special#here!", null, '\\'));
-    Assert.assertEquals("nothing<>special#here!", handler.escapeCharacters("nothing<>special#here!", Collections.<Character>emptySet(), '\\'));
+    Assert.assertEquals("nothing<>special#here!", handler.escapeCharacters("nothing<>special#here!", Collections.emptySet(), '\\'));
     Assert.assertEquals("nothing<>special#here!", handler.escapeCharacters("nothing<>special#here!", Collections.singleton('?'), '\\'));
     Assert.assertEquals("\\A's are special!", handler.escapeCharacters("A's are special!", Collections.singleton('A'), '\\'));
   }

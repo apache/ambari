@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class MetricsServiceImpl implements MetricsService {
-  private static Logger LOG = LoggerFactory.getLogger(MetricsServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsServiceImpl.class);
   private static Map<String, MetricsSource> sources = new HashMap<>();
   private static MetricsSink sink = null;
   private MetricsConfiguration configuration = null;
@@ -61,9 +61,12 @@ public class MetricsServiceImpl implements MetricsService {
         Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(new Runnable() {
           @Override
           public void run() {
-            LOG.info("Checking for metrics sink initialization");
             if (!sink.isInitialized()) {
+              LOG.info("Attempting to initialize metrics sink");
               initializeMetricsSink();
+              if (sink.isInitialized()) {
+                LOG.info("Metric sink initialization successful");
+              }
             }
           }
         }, 5, 5, TimeUnit.MINUTES);

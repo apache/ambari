@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       throw new AmbariException("Missing cluster object");
     }
 
-    KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
+    KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster, false);
     Collection<String> identityFilter = getIdentityFilter();
     List<ServiceComponentHost> schToProcess = getServiceComponentHostsToProcess(cluster, kerberosDescriptor, identityFilter);
 
@@ -84,7 +85,6 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
     }
 
     KerberosHelper kerberosHelper = getKerberosHelper();
-    Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
     Set<String> services = cluster.getServices().keySet();
     Map<String, Set<String>> propertiesToRemove = new HashMap<>();
     Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
@@ -92,16 +92,17 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
 
     // Calculate the current host-specific configurations. These will be used to replace
     // variables within the Kerberos descriptor data
-    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptorProperties);
+    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
+        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore, !CollectionUtils.isEmpty(getHostFilter()));
 
     kerberosHelper.applyStackAdvisorUpdates(cluster, services, configurations, kerberosConfigurations,
-        propertiesToIgnore,  propertiesToRemove, true);
+        propertiesToIgnore, propertiesToRemove, true);
 
     if ("true".equalsIgnoreCase(getCommandParameterValue(commandParameters, UPDATE_CONFIGURATIONS))) {
-      processAuthToLocalRules(cluster, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters));
+      Map<String, Map<String, String>> calculatedConfigurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
+      processAuthToLocalRules(cluster, calculatedConfigurations, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters), false);
       processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToRemove);
     }
 
@@ -147,34 +148,38 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
   }
 
   /**
-   * Calls {@link KerberosHelper#getKerberosDescriptor(Cluster)}
+   * Calls {@link KerberosHelper#getKerberosDescriptor(Cluster, boolean)}
    *
-   * @param cluster cluster instance
+   * @param cluster                 cluster instance
+   * @param includePreconfigureData <code>true</code> to include the preconfigure data; <code>false</code> otherwise
    * @return the kerberos descriptor associated with the specified cluster
    * @throws AmbariException if unable to obtain the descriptor
-   * @see KerberosHelper#getKerberosDescriptor(Cluster)
+   * @see KerberosHelper#getKerberosDescriptor(Cluster, boolean)
    */
-  protected KerberosDescriptor getKerberosDescriptor(Cluster cluster)
+  protected KerberosDescriptor getKerberosDescriptor(Cluster cluster, boolean includePreconfigureData)
       throws AmbariException {
-    return getKerberosHelper().getKerberosDescriptor(cluster);
+    return getKerberosHelper().getKerberosDescriptor(cluster, includePreconfigureData);
   }
 
   /**
-   * Conditionally calls {@link KerberosHelper#setAuthToLocalRules(KerberosDescriptor, String, Map, Map, Map)}
+   * Conditionally calls {@link KerberosHelper#setAuthToLocalRules(Cluster, KerberosDescriptor, String, Map, Map, Map, boolean)}
    * if there are ServiceComponentHosts to process
    *
-   * @param cluster                cluster instance
-   * @param kerberosDescriptor     the current Kerberos descriptor
-   * @param schToProcess           a list of ServiceComponentHosts to process
-   * @param kerberosConfigurations the Kerberos-specific configuration map
-   * @param defaultRealm           the default realm
+   * @param cluster                  the cluster
+   * @param calculatedConfiguration  the configurations for the current cluster, used for replacements
+   * @param kerberosDescriptor       the current Kerberos descriptor
+   * @param schToProcess             a list of ServiceComponentHosts to process
+   * @param kerberosConfigurations   the Kerberos-specific configuration map
+   * @param defaultRealm             the default realm
+   * @param includePreconfiguredData true to include services flagged to be pre-configured; false otherwise
    * @throws AmbariException
-   * @see KerberosHelper#setAuthToLocalRules(KerberosDescriptor, String, Map, Map, Map)
+   * @see KerberosHelper#setAuthToLocalRules(Cluster, KerberosDescriptor, String, Map, Map, Map, boolean)
    */
-  protected void processAuthToLocalRules(Cluster cluster, KerberosDescriptor kerberosDescriptor,
-                                         List<ServiceComponentHost> schToProcess,
-                                         Map<String, Map<String, String>> kerberosConfigurations,
-                                         String defaultRealm)
+  void processAuthToLocalRules(Cluster cluster, Map<String, Map<String, String>> calculatedConfiguration,
+                               KerberosDescriptor kerberosDescriptor,
+                               List<ServiceComponentHost> schToProcess,
+                               Map<String, Map<String, String>> kerberosConfigurations,
+                               String defaultRealm, boolean includePreconfiguredData)
       throws AmbariException {
     if (!schToProcess.isEmpty()) {
       actionLog.writeStdOut("Creating auth-to-local rules");
@@ -191,9 +196,8 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       }
 
       KerberosHelper kerberosHelper = getKerberosHelper();
-      kerberosHelper.setAuthToLocalRules(kerberosDescriptor, defaultRealm, services,
-          kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor.getProperties()),
-          kerberosConfigurations);
+      kerberosHelper.setAuthToLocalRules(cluster, kerberosDescriptor, defaultRealm, services,
+          calculatedConfiguration, kerberosConfigurations, includePreconfiguredData);
     }
   }
 }

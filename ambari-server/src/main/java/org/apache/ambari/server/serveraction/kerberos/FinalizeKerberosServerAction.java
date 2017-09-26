@@ -18,10 +18,7 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -29,14 +26,8 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.audit.event.kerberos.ChangeSecurityStateKerberosAuditEvent;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.SecurityState;
-import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,39 +158,6 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
     String dataDirectoryPath = getCommandParameterValue(DATA_DIRECTORY);
-
-    // Set the ServiceComponentHost from a transitional state to the desired endpoint state
-    Map<String, Host> hosts = getClusters().getHostsForCluster(getClusterName());
-    if ((hosts != null) && !hosts.isEmpty()) {
-      Cluster cluster = getCluster();
-      for (String hostname : hosts.keySet()) {
-        List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostname);
-
-        for (ServiceComponentHost sch : serviceComponentHosts) {
-          SecurityState securityState = sch.getSecurityState();
-          if (securityState.isTransitional()) {
-            String message = String.format("Setting securityState for %s/%s on host %s to state %s",
-                sch.getServiceName(), sch.getServiceComponentName(), sch.getHostName(),
-                sch.getDesiredSecurityState().toString());
-            LOG.info(message);
-            actionLog.writeStdOut(message);
-
-            sch.setSecurityState(sch.getDesiredSecurityState());
-            ChangeSecurityStateKerberosAuditEvent auditEvent = ChangeSecurityStateKerberosAuditEvent.builder()
-                .withTimestamp(System.currentTimeMillis())
-                .withService(sch.getServiceName())
-                .withComponent(sch.getServiceComponentName())
-                .withHostName(sch.getHostName())
-                .withState(sch.getDesiredSecurityState().toString())
-                .withRequestId(getHostRoleCommand().getRequestId())
-                .withTaskId(getHostRoleCommand().getTaskId())
-                .build();
-            auditLog(auditEvent);
-          }
-        }
-      }
-    }
-
     if(getKDCType(getCommandParameters()) != KDCType.NONE) {
       // Ensure the keytab files for the Ambari identities have the correct permissions
       // This is important in the event a secure cluster was created via Blueprints since some
@@ -208,29 +166,9 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
       processIdentities(requestSharedDataContext);
       requestSharedDataContext.remove(this.getClass().getName() + "_visited");
     }
-
-    // Make sure this is a relevant directory. We don't want to accidentally allow _ANY_ directory
-    // to be deleted.
-    if ((dataDirectoryPath != null) && dataDirectoryPath.contains("/" + DATA_DIRECTORY_PREFIX)) {
-      File dataDirectory = new File(dataDirectoryPath);
-      File dataDirectoryParent = dataDirectory.getParentFile();
-
-      // Make sure this directory has a parent and it is writeable, else we wont be able to
-      // delete the directory
-      if ((dataDirectoryParent != null) && dataDirectory.isDirectory() &&
-          dataDirectoryParent.isDirectory() && dataDirectoryParent.canWrite()) {
-        try {
-          FileUtils.deleteDirectory(dataDirectory);
-        } catch (IOException e) {
-          // We should log this exception, but don't let it fail the process since if we got to this
-          // KerberosServerAction it is expected that the the overall process was a success.
-          String message = String.format("The data directory (%s) was not deleted due to an error condition - {%s}",
-              dataDirectory.getAbsolutePath(), e.getMessage());
-          LOG.warn(message, e);
-        }
-      }
-    }
+    deleteDataDirectory(dataDirectoryPath);
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }
+
 }

@@ -27,6 +27,7 @@ def main(args):
   vb.set_os("redhat6", package_version="2_4_2_0_12345")
 
   vb.add_manifest("HDFS-271", "HDFS", "2.7.1.2.4.0")
+  vb.add_manifest("YARN-271", "HDFS", "2.7.1.2.4.0", version_id = "1", release_version = "2.4.1.0")
 
   vb.add_repo("redhat6", "HDP-2.4", "HDP", "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.2.0", "true")
   vb.add_repo("redhat6", "HDP-UTILS-1.1.0.20", "HDP-UTILS", "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6", "false")

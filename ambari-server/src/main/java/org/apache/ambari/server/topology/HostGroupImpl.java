@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -206,7 +206,7 @@ public class HostGroupImpl implements HostGroup {
   public Collection<String> getComponents(String service) {
     return componentsForService.containsKey(service) ?
       new HashSet<>(componentsForService.get(service)) :
-        Collections.<String>emptySet();
+        Collections.emptySet();
   }
 
   /**

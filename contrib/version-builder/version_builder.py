@@ -122,7 +122,7 @@ class VersionBuilder:
       pv_element.text = package_version
 
 
-  def add_manifest(self, id, service_name, version, version_id = None):
+  def add_manifest(self, id, service_name, version, version_id=None, release_version=None):
     """
     Add a manifest service.  A manifest lists all services in a repo, whether they are to be
     upgraded or not.
@@ -142,6 +142,9 @@ class VersionBuilder:
     service_element.set('version', version)
     if version_id:
       service_element.set('version-id', version_id)
+
+    if release_version:
+      service_element.set('release-version', release_version)
 
   def add_available(self, manifest_id, available_components=None):
     """
@@ -296,7 +299,8 @@ def process_manifest(vb, options):
   if not options.manifest:
     return
 
-  vb.add_manifest(options.manifest_id, options.manifest_service, options.manifest_version, options.manifest_version_id)
+  vb.add_manifest(options.manifest_id, options.manifest_service, options.manifest_version, options.manifest_version_id,
+    options.manifest_release_version)
 
 def process_available(vb, options):
   """
@@ -393,8 +397,8 @@ def main(argv):
   parser.add_option('--xsd', dest='xsd_file',
     help="The XSD location when finalizing")
 
-  parser.add_option('--release-type', type='choice', choices=['STANDARD', 'PATCH'], dest='release_type' ,
-    help="Indicate the release type: i.e. STANDARD or PATCH")
+  parser.add_option('--release-type', type='choice', choices=['STANDARD', 'PATCH', 'MAINT'], dest='release_type' ,
+    help="Indicate the release type: i.e. STANDARD, PATCH, MAINT")
   parser.add_option('--release-stack', dest='release_stack',
     help="The stack id: e.g. HDP-2.4")
   parser.add_option('--release-version', dest='release_version',
@@ -411,15 +415,16 @@ def main(argv):
     help="Identifier to use when installing packages, generally a part of the package name")
 
   parser.add_option('--manifest', action='store_true', dest='manifest',
-    help="Add a manifest service with other options: --manifest-id, --manifest-service, --manifest-version, --manifest-version-id")
+    help="Add a manifest service with other options: --manifest-id, --manifest-service, --manifest-version, --manifest-version-id, --manifest-release-version")
   parser.add_option('--manifest-id', dest='manifest_id',
     help="Unique ID for a service in a manifest.  Required when specifying --manifest and --available")
   parser.add_option('--manifest-service', dest='manifest_service')
   parser.add_option('--manifest-version', dest='manifest_version')
   parser.add_option('--manifest-version-id', dest='manifest_version_id')
+  parser.add_option('--manifest-release-version', dest='manifest_release_version')
 
   parser.add_option('--available', action='store_true', dest='available',
-    help="Add an available service with other options: --manifest-id, --available-components")
+    help="Add an available service with other options: --manifest-id, --available-components --service-release-version")
   parser.add_option('--available-components', dest='available_components',
     help="A CSV of service components that are intended to be upgraded via patch. \
       Omitting this implies the entire service should be upgraded")

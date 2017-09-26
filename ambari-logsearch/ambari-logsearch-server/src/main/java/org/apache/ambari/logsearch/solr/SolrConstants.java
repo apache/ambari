@@ -98,8 +98,8 @@ public class SolrConstants {
     public static final String AUDIT_TAGS_STR = "tags_str";
   }
 
-  public class UserConfigConstants {
-    private UserConfigConstants() {
+  public class EventHistoryConstants {
+    private EventHistoryConstants() {
     }
 
     public static final String ID = "id";

@@ -42,7 +42,6 @@ public class SSLUtil {
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
 
-  private static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
   private static final String LOGFEEDER_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
   private static final String LOGFEEDER_STORE_DEFAULT_PASSWORD = "bigdata";
   
@@ -102,13 +101,13 @@ public class SSLUtil {
   
   private static String getPasswordFromCredentialStore(String propertyName) {
     try {
-      String providerPath = LogFeederUtil.getStringProperty(CREDENTIAL_STORE_PROVIDER_PATH);
+      String providerPath = LogFeederPropertiesUtil.getCredentialStoreProviderPath();
       if (providerPath == null) {
         return null;
       }
       
       Configuration config = new Configuration();
-      config.set(CREDENTIAL_STORE_PROVIDER_PATH, providerPath);
+      config.set(LogFeederPropertiesUtil.CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY, providerPath);
       char[] passwordChars = config.getPassword(propertyName);
       return (ArrayUtils.isNotEmpty(passwordChars)) ? new String(passwordChars) : null;
     } catch (Exception e) {

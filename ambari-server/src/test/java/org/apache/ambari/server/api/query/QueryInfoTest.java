@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -43,7 +43,7 @@ public class QueryInfoTest {
   @Test
   public void testGetResource() {
     ResourceDefinition resource = new ClusterResourceDefinition();
-    QueryInfo info = new QueryInfo(resource, new HashSet<String>());
+    QueryInfo info = new QueryInfo(resource, new HashSet<>());
 
     assertSame(resource, info.getResource());
   }

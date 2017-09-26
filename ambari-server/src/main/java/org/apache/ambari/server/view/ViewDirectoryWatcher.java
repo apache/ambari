@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -40,8 +40,8 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.Closeables;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -68,7 +68,7 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
 
   private Future<?> watchTask;
 
-  private static Log LOG = LogFactory.getLog(ViewDirectoryWatcher.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewDirectoryWatcher.class);
 
   // Callbacks to hook into file processing
   private List<Function<Path, Boolean>> hooks = Lists.newArrayList(Collections.singleton(loggingHook()));

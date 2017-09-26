@@ -35,8 +35,8 @@
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
     <simplejson.install.dir>/usr/lib/ambari-server/lib/ambari_simplejson</simplejson.install.dir>
-    <swagger.spec.dir>docs/api/generated/</swagger.spec.dir>
-    <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger</swagger.generated.resources.dir>
+    <swagger.spec.dir>${basedir}/docs/api/generated/</swagger.spec.dir>
+    <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger/</swagger.generated.resources.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
@@ -48,10 +48,10 @@
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.2</hadoop.version>
-    <swagger.version>1.5.10</swagger.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
     <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
+    <jdk.version>1.8</jdk.version>
   </properties>
   <build>
     <plugins>
@@ -112,6 +112,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
           <useIncrementalCompilation>false</useIncrementalCompilation>
           <compilerArgs>
             <arg>-Xlint:${xlint}</arg>
@@ -171,6 +173,30 @@
               </target>
             </configuration>
           </execution>
+          <execution>
+            <id>clean-sample-upgrade-check-jar</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <delete dir="target/test-classes/checks" includeemptydirs="true"/>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-test-oozie2-checks-dir</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="target/test-classes/extensions/EXT/0.1/services/OOZIE2/checks/tmp"/>
+              </target>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -183,7 +209,7 @@
         </configuration>
         <executions>
           <execution>
-            <id>build-tarball</id>
+            <id>make-assembly</id>
             <phase>${assemblyPhase}</phase>
             <goals>
               <goal>single</goal>
@@ -268,27 +294,9 @@
               <outputDirectory>${ambari-web-dir}/api-docs</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${swagger.spec.dir}/</directory>
+                  <directory>${swagger.generated.resources.dir}</directory>
                   <includes>
                     <include>swagger.json</include>
-                  </includes>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>copy-swagger-generated-html</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${swagger.spec.dir}</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${swagger.generated.resources.dir}/</directory>
-                  <includes>
-                    <include>index.html</include>
                   </includes>
                 </resource>
               </resources>
@@ -391,12 +399,32 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.3.9,)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>com.github.kongchen</groupId>
         <artifactId>swagger-maven-plugin</artifactId>
-        <version>3.1.4</version>
         <configuration>
           <apiSources>
             <apiSource>
+              <swaggerApiReader>org.apache.ambari.swagger.AmbariSwaggerReader</swaggerApiReader>
               <springmvc>false</springmvc>
               <locations>org.apache.ambari.server.api.services</locations>
               <schemes>http,https</schemes>
@@ -410,9 +438,10 @@
                   <name>Apache License, Version 2.0</name>
                 </license>
               </info>
-              <swaggerDirectory>${swagger.spec.dir}</swaggerDirectory>
+              <swaggerDirectory>${swagger.generated.resources.dir}</swaggerDirectory>
             </apiSource>
           </apiSources>
+          <skipSwaggerGeneration>${swagger.skip}</skipSwaggerGeneration>
         </configuration>
         <executions>
           <execution>
@@ -690,30 +719,11 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipSurefireTests}</skip>
-          <argLine>-Xmx1024m -XX:MaxPermSize=512m -Xms512m</argLine>
+          <argLine>${surefire.argLine}</argLine>
 
           <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
           <groups>${testcase.groups}</groups>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>clean-sample-upgrade-check-jar</id>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <delete dir="target/test-classes/checks" includeemptydirs="true"/>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -728,23 +738,6 @@
             </goals>
             <configuration>
               <outputDirectory>target/test-classes/checks</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate-test-oozie2-checks-dir</id>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <mkdir dir="target/test-classes/extensions/EXT/0.1/services/OOZIE2/checks/tmp"/>
-              </target>
             </configuration>
           </execution>
         </executions>
@@ -787,6 +780,20 @@
               <goal>exec</goal>
             </goals>
           </execution>
+          <execution>
+            <id>configuration-markdown</id>
+            <phase>site</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.apache.ambari.server.configuration.Configuration</mainClass>
+              <arguments>
+                <argument>-output</argument>
+                <argument>${basedir}/../ambari-server/docs/configuration/index.md</argument>
+              </arguments>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -817,30 +824,13 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
       </plugin>
+      <!-- Checkstyle binds to phase "validate" by default.
+      Run independently as, cd ambari-server ; mvn checkstyle:checkstyle
+      Or can skip as, mvn ... -Dcheckstyle.skip
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <id>configuration-markdown</id>
-            <phase>site</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.apache.ambari.server.configuration.Configuration</mainClass>
-          <arguments>
-            <argument>-output</argument>
-            <argument>${basedir}/../ambari-server/docs/configuration/index.md</argument>
-          </arguments>
-        </configuration>
       </plugin>
     </plugins>
     <resources>
@@ -897,6 +887,41 @@
       <properties>
         <skipPythonTests>true</skipPythonTests>
       </properties>
+    </profile>
+    <profile>
+      <id>copy-swagger-generated-resources</id>
+      <activation>
+        <property><name>generate.swagger.resources</name></property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.6</version>
+            <executions>
+              <execution>
+                <id>copy-swagger-generated-html</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${swagger.spec.dir}</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${swagger.generated.resources.dir}/</directory>
+                      <includes>
+                        <include>index.html</include>
+                        <include>swagger.json</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>windows</id>
@@ -1273,6 +1298,14 @@
       <artifactId>slf4j-log4j12</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
+    <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
     </dependency>
@@ -1328,16 +1361,18 @@
       <version>${jetty.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-    </dependency>
-    <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.1</version>
     </dependency>
     <dependency>
       <groupId>commons-net</groupId>
@@ -1398,17 +1433,14 @@
     <dependency>
       <groupId>io.swagger</groupId>
       <artifactId>swagger-annotations</artifactId>
-      <version>${swagger.version}</version>
     </dependency>
     <dependency>
       <groupId>io.swagger</groupId>
       <artifactId>swagger-core</artifactId>
-      <version>${swagger.version}</version>
     </dependency>
     <dependency>
       <groupId>io.swagger</groupId>
       <artifactId>swagger-jaxrs</artifactId>
-      <version>${swagger.version}</version>
       <exclusions>
         <exclusion>
           <!-- Because it is already in the jersey one and causes the shade plugin to be confused -->
@@ -1420,7 +1452,6 @@
     <dependency>
       <groupId>io.swagger</groupId>
       <artifactId>swagger-models</artifactId>
-      <version>${swagger.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
@@ -1449,7 +1480,6 @@
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
-      <version>3.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -1567,7 +1597,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.1.4</version>
+      <version>2.8.0</version>
     </dependency>
     <dependency>
       <groupId>net.sf.ehcache</groupId>
@@ -1623,11 +1653,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jul-to-slf4j</artifactId>
-      <version>1.7.2</version>
-    </dependency>
-    <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
       <version>3.1.0</version>
@@ -1638,10 +1663,16 @@
       <version>3.1.0</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-serviceadvisor</artifactId>
+      <version>1.0.0.0-SNAPSHOT</version>
+    </dependency>
+
     <!-- Dependency in order to annotate unit tests with a category. -->
     <dependency>
-      <groupId>utility</groupId>
-      <artifactId>utility</artifactId>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-utility</artifactId>
       <version>1.0.0.0-SNAPSHOT</version>
       <scope>provided</scope> <!-- for @ApiIgnore -->
     </dependency>
@@ -1653,7 +1684,13 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>4.1.0</version>
+      <version>4.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>0.1.10</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

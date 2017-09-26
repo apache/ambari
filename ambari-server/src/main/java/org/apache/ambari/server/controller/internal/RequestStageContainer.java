@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -97,7 +97,7 @@ public class RequestStageContainer {
   public RequestStageContainer(Long id, List<Stage> stages, RequestFactory factory, ActionManager manager,
                                ExecuteActionRequest actionRequest) {
     this.id = id;
-    this.stages = stages == null ? new ArrayList<Stage>() : stages;
+    this.stages = stages == null ? new ArrayList<>() : stages;
     this.requestFactory = factory;
     this.actionManager = manager;
     this.actionRequest = actionRequest;
@@ -218,7 +218,7 @@ public class RequestStageContainer {
 
       if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("Triggering Action Manager, request=%s", request));
+          LOG.debug("Triggering Action Manager, request={}", request);
         }
         actionManager.sendActions(request, actionRequest);
       }

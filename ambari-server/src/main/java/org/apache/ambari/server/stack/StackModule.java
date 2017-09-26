@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,8 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -240,7 +241,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     }
 
     // Generate list of services that have no config types
-    List<String> servicesWithNoConfigs = new ArrayList<String>();
+    List<String> servicesWithNoConfigs = new ArrayList<>();
     for(ServiceModule serviceModule: serviceModules.values()){
       if (!serviceModule.hasConfigs()){
         servicesWithNoConfigs.add(serviceModule.getId());
@@ -290,6 +291,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     // grab stack level kerberos.json from parent stack
     if (stackInfo.getKerberosDescriptorFileLocation() == null) {
       stackInfo.setKerberosDescriptorFileLocation(parentStack.getModuleInfo().getKerberosDescriptorFileLocation());
+    }
+
+    // grab stack level kerberos_preconfigure.json from parent stack
+    if (stackInfo.getKerberosDescriptorPreConfigurationFileLocation() == null) {
+      stackInfo.setKerberosDescriptorPreConfigurationFileLocation(parentStack.getModuleInfo().getKerberosDescriptorPreConfigurationFileLocation());
     }
 
     if (stackInfo.getWidgetsDescriptorFileLocation() == null) {
@@ -554,9 +560,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     id = String.format("%s:%s", stackInfo.getName(), stackInfo.getVersion());
 
-    LOG.debug("Adding new stack to known stacks"
-        + ", stackName = " + stackInfo.getName()
-        + ", stackVersion = " + stackInfo.getVersion());
+    LOG.debug("Adding new stack to known stacks, stackName = {}, stackVersion = {}", stackInfo.getName(), stackInfo.getVersion());
 
     //todo: give additional thought on handling missing metainfo.xml
     StackMetainfoXml smx = stackDirectory.getMetaInfoFile();
@@ -573,6 +577,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setStackHooksFolder(stackDirectory.getHooksDir());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
       stackInfo.setKerberosDescriptorFileLocation(stackDirectory.getKerberosDescriptorFilePath());
+      stackInfo.setKerberosDescriptorPreConfigurationFileLocation(stackDirectory.getKerberosDescriptorPreconfigureFilePath());
       stackInfo.setWidgetsDescriptorFileLocation(stackDirectory.getWidgetsDescriptorFilePath());
       stackInfo.setUpgradesFolder(stackDirectory.getUpgradesDir());
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
@@ -654,7 +659,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private void populateConfigurationModules() {
     //todo: can't exclude types in stack config
     ConfigurationDirectory configDirectory = stackDirectory.getConfigurationDirectory(
-        AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME, AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME);
+        StackDirectory.SERVICE_CONFIG_FOLDER_NAME, StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME);
 
     if (configDirectory != null) {
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {
@@ -680,7 +685,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       StackModule parent, Map<String,StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     stackInfo.getProperties().clear();
-    stackInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
+    stackInfo.setAllConfigAttributes(new HashMap<>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
@@ -1014,7 +1019,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         String name = groups.get(index).name;
         if (name.equals(group.addAfterGroup)) {
           groups.add(index + 1, group);
-          LOG.debug("Added group/after: " + group.name + "/" + group.addAfterGroup);
+          LOG.debug("Added group/after: {}/{}", group.name, group.addAfterGroup);
           return true;
         }
       }
@@ -1126,16 +1131,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     if (null != rxml) {
       stackInfo.setRepositoryXml(rxml);
 
-      LOG.debug("Adding repositories to stack" +
-          ", stackName=" + stackInfo.getName() +
-          ", stackVersion=" + stackInfo.getVersion() +
-          ", repoFolder=" + stackDirectory.getRepoDir());
+      LOG.debug("Adding repositories to stack, stackName={}, stackVersion={}, repoFolder={}",
+        stackInfo.getName(), stackInfo.getVersion(), stackDirectory.getRepoDir());
 
       stackRepos = rxml.getRepositories();
 
-      for (RepositoryInfo ri : stackRepos) {
-        processRepository(ri);
-      }
 
       stackInfo.getRepositories().addAll(stackRepos);
     }
@@ -1145,8 +1145,50 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     stackInfo.getRepositories().addAll(serviceRepos);
 
     if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0) {
-      stackContext.registerRepoUpdateTask(rxml.getLatestURI(), this);
+      registerRepoUpdateTask(rxml);
     }
+  }
+
+  private void registerRepoUpdateTask(RepositoryXml rxml) {
+    String latest = rxml.getLatestURI();
+    if (StringUtils.isBlank(latest)) {
+      return;
+    }
+
+    URI uri = getURI(this, latest);
+
+    if (null == uri) {
+      LOG.warn("Could not determine how to load stack {}-{} latest definition for {}",
+          stackInfo.getName(), stackInfo.getVersion(), latest);
+      return;
+    }
+
+    stackContext.registerRepoUpdateTask(uri, this);
+  }
+
+  /**
+   * @param module
+   *          the stack module
+   * @param uriString
+   *          the uri string
+   * @return  a repo URI, even if it is relative-file based
+   */
+  public static URI getURI(StackModule module, String uriString) {
+
+    URI uri = null;
+    if (uriString.startsWith("http")) {
+      try {
+        uri = new URI(uriString);
+      } catch (URISyntaxException e) {
+        // should be logged later
+      }
+    } else if ('.' == uriString.charAt(0)) {
+      uri = new File(module.getStackDirectory().getRepoDir(), uriString).toURI();
+    } else {
+      uri = new File(uriString).toURI();
+    }
+
+    return uri;
   }
 
   /**
@@ -1169,7 +1211,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     // Uniqueness is checked for each os type
     for (String osType: serviceReposByOsType.keySet()) {
-      List<RepositoryInfo> stackReposForOsType = stackReposByOsType.containsKey(osType) ? stackReposByOsType.get(osType) : Collections.<RepositoryInfo>emptyList();
+      List<RepositoryInfo> stackReposForOsType = stackReposByOsType.containsKey(osType) ? stackReposByOsType.get(osType) : Collections.emptyList();
       List<RepositoryInfo> serviceReposForOsType = serviceReposByOsType.get(osType);
       Set<String> stackRepoNames = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.GET_REPO_NAME_FUNCTION));
       Set<String> stackRepoUrls = ImmutableSet.copyOf(Lists.transform(stackReposForOsType, RepositoryInfo.SAFE_GET_BASE_URL_FUNCTION));
@@ -1234,42 +1276,15 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         RepositoryXml serviceRepoXml = ssd.getRepoFile();
         if (null != serviceRepoXml) {
           repos.addAll(serviceRepoXml.getRepositories());
+          if (null != serviceRepoXml.getLatestURI()) {
+            registerRepoUpdateTask(serviceRepoXml);
+          }
         }
       }
     }
     return repos;
   }
 
-  /**
-   * Process a repository associated with the stack.
-   *
-   * @param ri The RespositoryInfo to process
-   */
-  private RepositoryInfo processRepository(RepositoryInfo ri) {
-
-    LOG.debug("Checking for override for base_url and mirrors list");
-    String updatedUrl = stackContext.getUpdatedRepoUrl(stackInfo.getName(), stackInfo.getVersion(),
-        ri.getOsType(), ri.getRepoId());
-
-    if (null != updatedUrl) {
-      ri.setBaseUrl(updatedUrl);
-      ri.setRepoSaved(true);
-    }
-
-    String updatedMirrList = stackContext.getUpdatedMirrorsList(stackInfo.getName(), stackInfo.getVersion(),
-        ri.getOsType(), ri.getRepoId());
-
-    if (null != updatedMirrList) {
-      ri.setMirrorsList(updatedMirrList);
-      ri.setRepoSaved(true);
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding repo to stack"
-          + ", repoInfo=" + ri.toString());
-    }
-    return ri;
-  }
 
 
   /**
@@ -1293,8 +1308,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     stackInfo.getRoleCommandOrder().merge(service.getModuleInfo().getRoleCommandOrder(), true);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Role Command Order for " + stackInfo.getName() + "-" + stackInfo.getVersion() +
-        " service " + service.getModuleInfo().getName());
+      LOG.debug("Role Command Order for {}-{} service {}", stackInfo.getName(), stackInfo.getVersion(), service.getModuleInfo().getName());
       stackInfo.getRoleCommandOrder().printRoleCommandOrder(LOG);
     }
   }
@@ -1306,7 +1320,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private void validateBulkCommandComponents(Map<String, StackModule> allStacks){
     if (null != stackInfo) {
       String currentStackId = stackInfo.getName() + StackManager.PATH_DELIMITER + stackInfo.getVersion();
-      LOG.debug("Validate bulk command components for: " + currentStackId);
+      LOG.debug("Validate bulk command components for: {}", currentStackId);
       StackModule currentStack = allStacks.get(currentStackId);
       if (null != currentStack){
         for (ServiceModule serviceModule : currentStack.getServiceModules().values()) {

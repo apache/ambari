@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -38,12 +38,15 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorC
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * StackAdvisorHelper unit tests.
  */
 public class StackAdvisorHelperTest {
+
   @Test
   @SuppressWarnings("unchecked")
   public void testValidate_returnsCommandResult() throws StackAdvisorException, IOException {
@@ -51,19 +54,21 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<ValidationResponse> command = mock(StackAdvisorCommand.class);
     ValidationResponse expected = mock(ValidationResponse.class);
+
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
 
-    when(command.invoke(request)).thenReturn(expected);
-    doReturn(command).when(helper).createValidationCommand(requestType);
-
+    when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenReturn(expected);
+    doReturn(command).when(helper).createValidationCommand("ZOOKEEPER", request);
     ValidationResponse response = helper.validate(request);
-
     assertEquals(expected, response);
   }
 
@@ -75,6 +80,9 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<ValidationResponse> command = mock(StackAdvisorCommand.class);
@@ -82,8 +90,8 @@ public class StackAdvisorHelperTest {
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
 
-    when(command.invoke(request)).thenThrow(new StackAdvisorException("message"));
-    doReturn(command).when(helper).createValidationCommand(requestType);
+    when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenThrow(new StackAdvisorException("message"));
+    doReturn(command).when(helper).createValidationCommand("ZOOKEEPER", request);
     helper.validate(request);
 
     assertTrue(false);
@@ -96,6 +104,9 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<RecommendationResponse> command = mock(StackAdvisorCommand.class);
@@ -104,8 +115,8 @@ public class StackAdvisorHelperTest {
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
 
-    when(command.invoke(request)).thenReturn(expected);
-    doReturn(command).when(helper).createRecommendationCommand(requestType);
+    when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenReturn(expected);
+    doReturn(command).when(helper).createRecommendationCommand("ZOOKEEPER", request);
     RecommendationResponse response = helper.recommend(request);
 
     assertEquals(expected, response);
@@ -119,6 +130,9 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
 
     StackAdvisorCommand<RecommendationResponse> command = mock(StackAdvisorCommand.class);
@@ -126,8 +140,8 @@ public class StackAdvisorHelperTest {
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .ofType(requestType).build();
 
-    when(command.invoke(request)).thenThrow(new StackAdvisorException("message"));
-    doReturn(command).when(helper).createRecommendationCommand(requestType);
+    when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenThrow(new StackAdvisorException("message"));
+    doReturn(command).when(helper).createRecommendationCommand("ZOOKEEPER", request);
     helper.recommend(request);
 
     assertTrue(false);
@@ -140,11 +154,16 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+        .ofType(requestType).build();
 
     StackAdvisorCommand<RecommendationResponse> command = helper
-        .createRecommendationCommand(requestType);
+        .createRecommendationCommand("ZOOKEEPER", request);
 
     assertEquals(ComponentLayoutRecommendationCommand.class, command.getClass());
   }
@@ -156,10 +175,15 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+        .ofType(requestType).build();
 
-    StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
+    StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand("ZOOKEEPER", request);
 
     assertEquals(ComponentLayoutValidationCommand.class, command.getClass());
   }
@@ -171,10 +195,15 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATIONS;
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+        .ofType(requestType).build();
 
-    StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
+    StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand("ZOOKEEPER", request);
 
     assertEquals(ConfigurationValidationCommand.class, command.getClass());
   }
@@ -186,12 +215,16 @@ public class StackAdvisorHelperTest {
     when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES;
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
+        .ofType(requestType).build();
 
-    StackAdvisorCommand<RecommendationResponse> command = helper.createRecommendationCommand(requestType);
+    StackAdvisorCommand<RecommendationResponse> command = helper.createRecommendationCommand("ZOOKEEPER", request);
 
     assertEquals(ConfigurationDependenciesRecommendationCommand.class, command.getClass());
   }
-
 }

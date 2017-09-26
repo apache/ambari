@@ -134,12 +134,13 @@ public class ResponseDataGenerator {
     return dataList;
   }
 
+  @SuppressWarnings("rawtypes")
   public List<NameValueData> generateNameValueDataList(List<RangeFacet> rangeFacet) {
     List<NameValueData> nameValues = new ArrayList<>();
     if (rangeFacet == null) {
       return nameValues;
     }
-    RangeFacet range = rangeFacet.get(0);
+    RangeFacet<?, ?> range = rangeFacet.get(0);
 
     if (range == null) {
       return nameValues;

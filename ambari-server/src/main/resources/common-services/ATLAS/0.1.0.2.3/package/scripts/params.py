@@ -30,6 +30,7 @@ from resource_management.libraries.functions.default import default
 # Local Imports
 from status_params import *
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
@@ -77,7 +78,7 @@ def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled, metadata_pro
     additional_props["atlas.server.ha.enabled"] = "true"
 
   return additional_props
-  
+
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
@@ -100,6 +101,7 @@ if security_enabled:
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
+version_for_stack_feature_checks = get_stack_feature_version(config)
 
 # stack version
 stack_version_unformatted = config['hostLevelParams']['stack_version']
@@ -126,6 +128,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 
 # metadata env
 java64_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/commandParams/ambari_java_home", java64_home)
 java_exec = format("{java64_home}/bin/java")
 env_sh_template = config['configurations']['atlas-env']['content']
 
@@ -202,7 +205,7 @@ smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 security_check_status_file = format('{log_dir}/security_check.status')
 
 # hbase
-hbase_conf_dir = "/etc/hbase/conf"
+hbase_conf_dir = default('configurations/atlas-env/atlas.hbase.conf.dir','/etc/hbase/conf')
 
 atlas_search_backend = default("/configurations/application-properties/atlas.graph.index.search.backend", "")
 search_backend_solr = atlas_search_backend.startswith('solr')
@@ -211,7 +214,9 @@ search_backend_solr = atlas_search_backend.startswith('solr')
 infra_solr_znode = default("/configurations/infra-solr-env/infra_solr_znode", None)
 infra_solr_hosts = default("/clusterHostInfo/infra_solr_hosts", [])
 infra_solr_replication_factor = 2 if len(infra_solr_hosts) > 1 else 1
-atlas_solr_shards = default("/configurations/atlas-env/atlas_solr-shards", 1)
+if 'atlas_solr_replication_factor' in config['configurations']['atlas-env']:
+  infra_solr_replication_factor = int(default("/configurations/atlas-env/atlas_solr_replication_factor", 1))
+atlas_solr_shards = default("/configurations/atlas-env/atlas_solr_shards", 1)
 has_infra_solr = len(infra_solr_hosts) > 0
 infra_solr_role_atlas = default('configurations/infra-solr-security-json/infra_solr_role_atlas', 'atlas_user')
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
@@ -235,6 +240,7 @@ for host in zookeeper_hosts:
     zookeeper_quorum += ","
 
 stack_supports_atlas_hdfs_site_on_namenode_ha = check_stack_feature(StackFeature.ATLAS_HDFS_SITE_ON_NAMENODE_HA, version_for_stack_feature_checks)
+stack_supports_atlas_core_site = check_stack_feature(StackFeature.ATLAS_CORE_SITE_SUPPORT,version_for_stack_feature_checks)
 
 atlas_server_xmx = default("configurations/atlas-env/atlas_server_xmx", 2048)
 atlas_server_max_new_size = default("configurations/atlas-env/atlas_server_max_new_size", 614)

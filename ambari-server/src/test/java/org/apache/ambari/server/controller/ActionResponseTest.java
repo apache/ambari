@@ -1,6 +1,4 @@
-package org.apache.ambari.server.controller;
-
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +15,7 @@ package org.apache.ambari.server.controller;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.controller;
 
 import org.junit.Assert;
 import org.junit.Test;

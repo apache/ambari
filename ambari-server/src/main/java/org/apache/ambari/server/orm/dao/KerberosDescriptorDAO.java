@@ -1,19 +1,4 @@
-package org.apache.ambari.server.orm.dao;
-
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-
-import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
-
-import com.google.inject.persist.Transactional;
-
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,10 +15,21 @@ import com.google.inject.persist.Transactional;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.orm.dao;
 
-/**
- *
- */
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
+
+import com.google.inject.persist.Transactional;
+
 @Singleton
 public class KerberosDescriptorDAO {
 

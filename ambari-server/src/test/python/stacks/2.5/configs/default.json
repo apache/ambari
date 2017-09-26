@@ -304,34 +304,35 @@
     "zeppelin-shiro-ini": {
       "shiro_ini_content": "\n[users]\n# List of users with their password allowed to access Zeppelin.\n# To use a different strategy (LDAP / Database / ...) check the shiro doc at http://shiro.apache.org/configuration.html#Configuration-INISections\n#admin = password1\n#user1 = password2, role1, role2\n#user2 = password3, role3\n#user3 = password4, role2\n\n# Sample LDAP configuration, for user Authentication, currently tested for single Realm\n[main]\n#ldapRealm = org.apache.shiro.realm.ldap.JndiLdapRealm\n#ldapRealm.userDnTemplate = uid={0},cn=users,cn=accounts,dc=hortonworks,dc=com\n#ldapRealm.contextFactory.url = ldap://ldaphost:389\n#ldapRealm.contextFactory.authenticationMechanism = SIMPLE\n#sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager\n#securityManager.sessionManager = $sessionManager\n# 86,400,000 milliseconds = 24 hour\n#securityManager.sessionManager.globalSessionTimeout = 86400000\nshiro.loginUrl = /api/login\n\n[urls]\n# anon means the access is anonymous.\n# authcBasic means Basic Auth Security\n# To enfore security, comment the line below and uncomment the next one\n/api/version = anon\n/** = anon\n#/** = authc"
     },
-    "zeppelin-log4j-properties":{
+    "zeppelin-log4j-properties": {
       "log4j_properties_content": "log4j.rootLogger = INFO, dailyfile"
     },
-"zeppelin-config": {
-            "zeppelin.server.port": "9995", 
-            "zeppelin.ssl.truststore.password": "change me", 
-            "zeppelin.interpreters": "org.apache.zeppelin.spark.SparkInterpreter,org.apache.zeppelin.spark.PySparkInterpreter,org.apache.zeppelin.spark.SparkSqlInterpreter,org.apache.zeppelin.spark.DepInterpreter,org.apache.zeppelin.markdown.Markdown,org.apache.zeppelin.angular.AngularInterpreter,org.apache.zeppelin.shell.ShellInterpreter,org.apache.zeppelin.jdbc.JDBCInterpreter,org.apache.zeppelin.phoenix.PhoenixInterpreter,org.apache.zeppelin.livy.LivySparkInterpreter,org.apache.zeppelin.livy.LivyPySparkInterpreter,org.apache.zeppelin.livy.LivySparkRInterpreter,org.apache.zeppelin.livy.LivySparkSQLInterpreter", 
-            "zeppelin.ssl.truststore.path": "conf/truststore", 
-            "zeppelin.notebook.dir": "notebook", 
-            "zeppelin.ssl.keystore.password": "change me", 
-            "zeppelin.ssl.keystore.path": "conf/keystore", 
-            "zeppelin.server.addr": "0.0.0.0", 
-            "zeppelin.ssl.client.auth": "false", 
-            "zeppelin.notebook.homescreen": " ", 
-            "zeppelin.interpreter.dir": "interpreter", 
-            "zeppelin.ssl.keystore.type": "JKS", 
-            "zeppelin.notebook.s3.user": "user", 
-            "zeppelin.ssl.key.manager.password": "change me", 
-            "zeppelin.anonymous.allowed": "true", 
-            "zeppelin.ssl.truststore.type": "JKS", 
-            "zeppelin.ssl": "false", 
-            "zeppelin.notebook.storage": "org.apache.zeppelin.notebook.repo.VFSNotebookRepo", 
-            "zeppelin.websocket.max.text.message.size": "1024000", 
-            "zeppelin.interpreter.connect.timeout": "30000", 
-            "zeppelin.notebook.s3.bucket": "zeppelin", 
-            "zeppelin.notebook.homescreen.hide": "false", 
-            "zeppelin.server.allowed.origins": "*"
-        },
+    "zeppelin-config": {
+      "zeppelin.server.port": "9995",
+      "zeppelin.ssl.truststore.password": "change me",
+      "zeppelin.interpreters": "org.apache.zeppelin.spark.SparkInterpreter,org.apache.zeppelin.spark.PySparkInterpreter,org.apache.zeppelin.spark.SparkSqlInterpreter,org.apache.zeppelin.spark.DepInterpreter,org.apache.zeppelin.markdown.Markdown,org.apache.zeppelin.angular.AngularInterpreter,org.apache.zeppelin.shell.ShellInterpreter,org.apache.zeppelin.jdbc.JDBCInterpreter,org.apache.zeppelin.phoenix.PhoenixInterpreter,org.apache.zeppelin.livy.LivySparkInterpreter,org.apache.zeppelin.livy.LivyPySparkInterpreter,org.apache.zeppelin.livy.LivySparkRInterpreter,org.apache.zeppelin.livy.LivySparkSQLInterpreter",
+      "zeppelin.ssl.truststore.path": "conf/truststore",
+      "zeppelin.notebook.dir": "notebook",
+      "zeppelin.ssl.keystore.password": "change me",
+      "zeppelin.ssl.keystore.path": "conf/keystore",
+      "zeppelin.server.addr": "0.0.0.0",
+      "zeppelin.ssl.client.auth": "false",
+      "zeppelin.notebook.homescreen": " ",
+      "zeppelin.interpreter.dir": "interpreter",
+      "zeppelin.ssl.keystore.type": "JKS",
+      "zeppelin.notebook.s3.user": "user",
+      "zeppelin.ssl.key.manager.password": "change me",
+      "zeppelin.anonymous.allowed": "true",
+      "zeppelin.ssl.truststore.type": "JKS",
+      "zeppelin.ssl": "false",
+      "zeppelin.notebook.storage": "org.apache.zeppelin.notebook.repo.VFSNotebookRepo",
+      "zeppelin.websocket.max.text.message.size": "1024000",
+      "zeppelin.interpreter.connect.timeout": "30000",
+      "zeppelin.notebook.s3.bucket": "zeppelin",
+      "zeppelin.notebook.homescreen.hide": "false",
+      "zeppelin.server.allowed.origins": "*",
+      "zeppelin.interpreter.config.upgrade": "true"
+    },
     "zoo.cfg": {
       "clientPort": "2181"
     },

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -82,7 +82,7 @@ public class PersistenceManagerImpl implements PersistenceManager {
 
       Set<NamedPropertySet> setProperties = requestBody.getNamedPropertySets();
       if (setProperties.isEmpty()) {
-        requestBody.addPropertySet(new NamedPropertySet("", new HashMap<String, Object>()));
+        requestBody.addPropertySet(new NamedPropertySet("", new HashMap<>()));
       }
 
       for (NamedPropertySet propertySet : setProperties) {

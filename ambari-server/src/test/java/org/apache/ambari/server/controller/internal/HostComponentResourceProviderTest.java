@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -50,7 +50,6 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -116,8 +115,8 @@ public class HostComponentResourceProviderTest {
         AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
             "Cluster100", "Service100", "Component100", "Host100", null, null));
 
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(hostComponentResourceProvider).anyTimes();
 
@@ -183,23 +182,33 @@ public class HostComponentResourceProviderTest {
     Set<ServiceComponentHostResponse> allResponse = new HashSet<>();
     StackId stackId = new StackId("HDP-0.1");
     StackId stackId2 = new StackId("HDP-0.2");
-    allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component100", "Component 100", "Host100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), null));
-    allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component101", "Component 101", "Host100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), null));
+
+    String repositoryVersion2 = "0.2-1234";
 
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component102", "Component 102", "Host100","Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), null));
+        "Cluster100", "Service100", "Component100", "Component 100", "Host100", "Host100",
+        State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId(), repositoryVersion2, null));
+
+    allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", "Component101", "Component 101", "Host100", "Host100",
+        State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId(), repositoryVersion2, null));
+
+    allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", "Component102", "Component 102", "Host100", "Host100",
+        State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId(), repositoryVersion2, null));
+
     Map<String, String> expectedNameValues = new HashMap<>();
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.toString());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
+    expectedNameValues.put(
+        HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.toString());
     expectedNameValues.put(
@@ -209,8 +218,8 @@ public class HostComponentResourceProviderTest {
 
 
     // set expectations
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(hostComponentResourceProvider).anyTimes();
 
@@ -219,7 +228,8 @@ public class HostComponentResourceProviderTest {
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID);
 
@@ -236,9 +246,11 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
+    hostsComponentResource1.setProperty(
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     Resource hostsComponentResource2 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -247,9 +259,11 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component101");
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
+    hostsComponentResource2.setProperty(
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     Resource hostsComponentResource3 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -258,9 +272,11 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component102");
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
+    hostsComponentResource3.setProperty(
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     hostsComponentResources.add(hostsComponentResource1);
     hostsComponentResources.add(hostsComponentResource2);
@@ -337,7 +353,8 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100","INSTALLED", "", "", "", null));
+        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100",
+        "INSTALLED", "", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -356,7 +373,7 @@ public class HostComponentResourceProviderTest {
     expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
 
     expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse).once();
+        EasyMock.anyObject())).andReturn(nameResponse).once();
 
     Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<>();
     List<ServiceComponentHost> changedComponentHosts = new ArrayList<>();
@@ -364,7 +381,7 @@ public class HostComponentResourceProviderTest {
     changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
 
     expect(managementController.addStages(null, cluster, mapRequestProps, null, null, null, changedHosts,
-        Collections.<ServiceComponentHost>emptyList(), false, false)).andReturn(stageContainer).once();
+        Collections.emptyList(), false, false)).andReturn(stageContainer).once();
 
     stageContainer.persist();
     expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
@@ -376,8 +393,8 @@ public class HostComponentResourceProviderTest {
     provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
     provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(provider).anyTimes();
 
@@ -538,7 +555,8 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100","INSTALLED", "", "", "", null));
+        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100",
+        "INSTALLED", "", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -555,7 +573,7 @@ public class HostComponentResourceProviderTest {
     expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
 
     expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(Collections.<ServiceComponentHostResponse>emptySet()).once();
+        EasyMock.anyObject())).andReturn(Collections.emptySet()).once();
 
     Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<>();
     List<ServiceComponentHost> changedComponentHosts = new ArrayList<>();
@@ -569,8 +587,8 @@ public class HostComponentResourceProviderTest {
     provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
     provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
-    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Type,String>>anyObject(),
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
+        EasyMock.anyObject(),
         eq(managementController))).
         andReturn(provider).anyTimes();
 

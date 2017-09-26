@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -33,7 +33,7 @@ import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchServiceLogsStateFilter;
-import org.apache.ambari.logsearch.web.filters.LogsearchUserConfigStateFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchEventHistoryStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter;
 import org.apache.ambari.logsearch.web.security.LogsearchAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
@@ -71,7 +71,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private SolrAuditLogPropsConfig solrAuditLogPropsConfig;
 
   @Inject
-  private SolrUserPropsConfig solrUserPropsConfig;
+  private SolrEventHistoryPropsConfig solrEventHistoryPropsConfig;
 
   @Inject
   @Named("solrServiceLogsState")
@@ -82,8 +82,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private SolrCollectionState solrAuditLogsState;
 
   @Inject
-  @Named("solrUserConfigState")
-  private SolrCollectionState solrUserConfigState;
+  @Named("solrEventHistoryState")
+  private SolrCollectionState solrEventHistoryState;
 
   @Inject
   private LogSearchConfigState logSearchConfigState;
@@ -102,29 +102,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/**").authenticated()
       .and()
       .authenticationProvider(logsearchAuthenticationProvider())
-        .formLogin()
-        .loginPage("/login.html")
-      .and()
       .httpBasic()
         .authenticationEntryPoint(logsearchAuthenticationEntryPoint())
       .and()
       .addFilterBefore(logsearchUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
       .addFilterBefore(logsearchKRBAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
       .addFilterAfter(securityContextFormationFilter(), FilterSecurityInterceptor.class)
-      .addFilterAfter(logsearchUserConfigFilter(), LogsearchSecurityContextFormationFilter.class)
+      .addFilterAfter(logsearchEventHistoryFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchAuditLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchServiceLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logSearchConfigStateFilter(), LogsearchSecurityContextFormationFilter.class)
-      .addFilterBefore(corsFilter(), LogsearchSecurityContextFormationFilter.class)
+      .addFilterBefore(logsearchCorsFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterBefore(logsearchJwtFilter(), LogsearchSecurityContextFormationFilter.class)
       .logout()
-        .logoutUrl("/logout.html")
+        .logoutUrl("/logout")
         .deleteCookies(LOGSEARCH_SESSION_ID)
         .logoutSuccessHandler(new LogsearchLogoutSuccessHandler());
   }
 
   @Bean
-  public LogsearchCorsFilter corsFilter() {
+  public LogsearchCorsFilter logsearchCorsFilter() {
     return new LogsearchCorsFilter(logSearchHttpHeaderConfig);
   }
 
@@ -154,7 +151,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogsearchAuthenticationEntryPoint logsearchAuthenticationEntryPoint() {
-    LogsearchAuthenticationEntryPoint entryPoint = new LogsearchAuthenticationEntryPoint("/login.html");
+    LogsearchAuthenticationEntryPoint entryPoint = new LogsearchAuthenticationEntryPoint("/login");
     entryPoint.setForceHttps(false);
     return entryPoint;
   }
@@ -179,10 +176,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public LogsearchUserConfigStateFilter logsearchUserConfigFilter() {
-    return new LogsearchUserConfigStateFilter(userConfigRequestMatcher(), solrUserConfigState, solrUserPropsConfig);
+  public LogsearchEventHistoryStateFilter logsearchEventHistoryFilter() {
+    return new LogsearchEventHistoryStateFilter(eventHistoryRequestMatcher(), solrEventHistoryState, solrEventHistoryPropsConfig);
   }
-  
+
+  @Bean
   public LogSearchConfigStateFilter logSearchConfigStateFilter() {
     return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState);
   }
@@ -190,15 +188,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   public RequestMatcher requestMatcher() {
     List<RequestMatcher> matchers = Lists.newArrayList();
-    matchers.add(new AntPathRequestMatcher("/login.html"));
-    matchers.add(new AntPathRequestMatcher("/logout.html"));
-    matchers.add(new AntPathRequestMatcher("/styles/**"));
-    matchers.add(new AntPathRequestMatcher("/fonts/**"));
-    matchers.add(new AntPathRequestMatcher("/scripts/**"));
-    matchers.add(new AntPathRequestMatcher("/libs/**"));
-    matchers.add(new AntPathRequestMatcher("/templates/**"));
-    matchers.add(new AntPathRequestMatcher("/images/**"));
+    matchers.add(new AntPathRequestMatcher("/docs/**"));
+    matchers.add(new AntPathRequestMatcher("/swagger-ui/**"));
+    matchers.add(new AntPathRequestMatcher("/swagger.html"));
+    matchers.add(new AntPathRequestMatcher("/"));
+    matchers.add(new AntPathRequestMatcher("/login"));
+    matchers.add(new AntPathRequestMatcher("/logout"));
+    matchers.add(new AntPathRequestMatcher("/resources/**"));
+    matchers.add(new AntPathRequestMatcher("/index.html"));
     matchers.add(new AntPathRequestMatcher("/favicon.ico"));
+    matchers.add(new AntPathRequestMatcher("/assets/**"));
+    matchers.add(new AntPathRequestMatcher("/templates/**"));
+    matchers.add(new AntPathRequestMatcher("/api/v1/info/**"));
     matchers.add(new AntPathRequestMatcher("/api/v1/public/**"));
     matchers.add(new AntPathRequestMatcher("/api/v1/swagger.json"));
     matchers.add(new AntPathRequestMatcher("/api/v1/swagger.yaml"));
@@ -213,8 +214,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     return new AntPathRequestMatcher("/api/v1/audit/logs/**");
   }
 
-  public RequestMatcher userConfigRequestMatcher() {
-    return new AntPathRequestMatcher("/api/v1/userconfig/**");
+  public RequestMatcher eventHistoryRequestMatcher() {
+    return new AntPathRequestMatcher("/api/v1/history/**");
   }
 
   public RequestMatcher logsearchConfigRequestMatcher() {

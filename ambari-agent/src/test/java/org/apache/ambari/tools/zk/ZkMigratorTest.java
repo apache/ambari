@@ -23,6 +23,7 @@ import static org.apache.zookeeper.ZooDefs.Perms.READ;
 import static org.apache.zookeeper.ZooDefs.Perms.WRITE;
 import static org.apache.zookeeper.ZooDefs.Perms.ALL;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -32,6 +33,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryOneTime;
 import org.apache.curator.test.TestingServer;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
 import org.junit.After;
@@ -66,6 +68,38 @@ public class ZkMigratorTest {
     assertHasAcl("/parent", "ip", "127.0.0.1", READ | DELETE);
     assertHasAcl("/parent/a", "ip", "127.0.0.1", READ | DELETE);
     assertHasAcl("/parent/b", "ip", "127.0.0.1", READ | DELETE);
+  }
+
+  @Test
+  public void testDeleteRecursive() throws Exception {
+    // Given
+    path("/parent");
+    path("/parent/a");
+    path("/parent/b");
+    path("/parent/b/q");
+    // When
+    deleteZnode("/parent");
+    // Then
+    assertRemoved("/parent");
+    assertRemoved("/parent/a");
+    assertRemoved("/parent/b");
+    assertRemoved("/parent/b/q");
+  }
+
+  @Test
+  public void testDeleteRecursiveWildcard() throws Exception {
+    // Given
+    path("/parent");
+    path("/parent/a");
+    path("/parent/b");
+    path("/parent/b/q");
+    // When
+    deleteZnode("/parent/*");
+    // Then
+    assertHasNode("/parent");
+    assertRemoved("/parent/a");
+    assertRemoved("/parent/b");
+    assertRemoved("/parent/b/q");
   }
 
   @Test
@@ -179,11 +213,35 @@ public class ZkMigratorTest {
     });
   }
 
+  private void deleteZnode(String path) throws Exception {
+    ZkMigrator.main(new String[] {
+      "-connection-string", zkTestServer.getConnectString(),
+      "-znode", path,
+      "-delete"
+    });
+  }
+
   private void assertHasAcl(String path, String scheme, String id, int permission) throws Exception {
     List<ACL> acls = cli.getACL().forPath(path);
     assertEquals("expected 1 acl on " + path, 1, acls.size());
     assertEquals("acl on " + path, new Id(scheme, id), acls.get(0).getId());
     assertEquals(permission, acls.get(0).getPerms());
+  }
+
+  private void assertRemoved(String path) throws Exception {
+    try {
+      cli.getACL().forPath(path);
+      assertTrue(false);
+    } catch (KeeperException.NoNodeException e) {
+      //expected
+    }
+  }
+  private void assertHasNode(String path) throws Exception {
+    try {
+      cli.getACL().forPath(path);
+    } catch (KeeperException.NoNodeException e) {
+      assertTrue(false);
+    }
   }
 
   static class Port {

@@ -25,6 +25,8 @@ import io.swagger.annotations.ApiModel;
 
 @ApiModel
 public class LSServerInputFile extends LSServerInputFileBase {
+  public LSServerInputFile() {}
+
   public LSServerInputFile(InputDescriptor inputDescriptor) {
     super(inputDescriptor);
   }

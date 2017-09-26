@@ -229,6 +229,30 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.Persist, App.TimeRangeMixin,
 
   service: null,
 
+  svc: function () {
+    var svc = this.get('controller.content');
+    var svcName = svc.get('serviceName');
+    if (svcName) {
+      switch (svcName.toLowerCase()) {
+        case 'hdfs':
+          svc = App.HDFSService.find().objectAt(0);
+          break;
+        case 'yarn':
+          svc = App.YARNService.find().objectAt(0);
+          break;
+        case 'hbase':
+          svc = App.HBaseService.find().objectAt(0);
+          break;
+        case 'flume':
+          svc = App.FlumeService.find().objectAt(0);
+          break;
+        default:
+          break;
+      }
+    }
+    return svc;
+  }.property('controller.content.serviceName').volatile(),
+
   getServiceModel: function (serviceName) {
     var extended = App.Service.extendedModel[serviceName];
     if (extended) {

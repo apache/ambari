@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
@@ -257,13 +256,13 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
     calculateDirectories(getStack(), getService());
     parseMetaInfoFile();
 
-    File af = new File(directory, AmbariMetaInfo.SERVICE_ALERT_FILE_NAME);
+    File af = new File(directory, StackDirectory.SERVICE_ALERT_FILE_NAME);
     alertsFile = af.exists() ? af : null;
 
-    File kdf = new File(directory, AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME);
+    File kdf = new File(directory, StackDirectory.KERBEROS_DESCRIPTOR_FILE_NAME);
     kerberosDescriptorFile = kdf.exists() ? kdf : null;
 
-    File rco = new File(directory, AmbariMetaInfo.RCO_FILE_NAME);
+    File rco = new File(directory, StackDirectory.RCO_FILE_NAME);
     if (rco.exists()) {
       rcoFile = rco;
       parseRoleCommandOrder();
@@ -279,13 +278,10 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
       }
     }
 
-    File advFile = new File(directory, AmbariMetaInfo.SERVICE_ADVISOR_FILE_NAME);
+    File advFile = new File(directory, StackDirectory.SERVICE_ADVISOR_FILE_NAME);
     advisorFile = advFile.exists() ? advFile : null;
 
-    File themeFile = new File(directory, AmbariMetaInfo.SERVICE_THEME_FILE_NAME);
-    this.themeFile = themeFile.exists() ? themeFile : null;
-
-    File checksFile = new File(directory, AmbariMetaInfo.SERVICE_THEME_FILE_NAME);
+    File themeFile = new File(directory, StackDirectory.SERVICE_THEME_FILE_NAME);
     this.themeFile = themeFile.exists() ? themeFile : null;
   }
 
@@ -421,7 +417,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
       roleCommandOrder = new StackRoleCommandOrder(result);
 
       if (LOG.isDebugEnabled() && rcoFile != null) {
-        LOG.debug("Role Command Order for " + rcoFile.getAbsolutePath());
+        LOG.debug("Role Command Order for {}", rcoFile.getAbsolutePath());
         roleCommandOrder.printRoleCommandOrder(LOG);
       }
     } catch (IOException e) {

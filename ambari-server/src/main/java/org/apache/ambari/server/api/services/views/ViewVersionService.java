@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,6 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -46,7 +47,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 
 /**
  * Service responsible for view version resource requests.
@@ -83,7 +83,6 @@ public class ViewVersionService extends BaseService {
 
     return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, null));
   }
-
 
   /**
    * Handles: GET /views/{viewName}/versions/{version}
@@ -124,7 +123,7 @@ public class ViewVersionService extends BaseService {
    *
    * @return information regarding the created view
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{version}")
   @Produces("text/plain")
   public Response createVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -145,7 +144,7 @@ public class ViewVersionService extends BaseService {
    *
    * @return information regarding the updated view
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{version}")
   @Produces("text/plain")
   public Response updateVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -166,7 +165,7 @@ public class ViewVersionService extends BaseService {
    *
    * @return information regarding the deleted view version
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{version}")
   @Produces("text/plain")
   public Response deleteVersions(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -174,7 +173,6 @@ public class ViewVersionService extends BaseService {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(viewName, version));
   }
-
 
   /**
    * Get the permissions sub-resource
@@ -188,7 +186,6 @@ public class ViewVersionService extends BaseService {
 
     return new ViewPermissionService(viewName, version);
   }
-
 
   // ----- helper methods ----------------------------------------------------
 

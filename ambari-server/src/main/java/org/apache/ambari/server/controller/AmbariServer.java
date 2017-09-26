@@ -76,6 +76,7 @@ import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvide
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -170,7 +171,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   public static final String VIEWS_URL_PATTERN = "/api/v1/views/*";
-  private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
 
   /**
    * The thread name prefix for threads handling agent requests.
@@ -941,6 +942,9 @@ public class AmbariServer {
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
 
     RetryHelper.init(injector.getInstance(Clusters.class), configs.getOperationsRetryAttempts());
+
+    KerberosIdentityCleaner identityCleaner = injector.getInstance(KerberosIdentityCleaner.class);
+    identityCleaner.register();
   }
 
   /**

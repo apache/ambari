@@ -20,7 +20,6 @@ limitations under the License.
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
@@ -29,22 +28,26 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
-from setup_ranger_xml import setup_ranger_audit_solr, setup_ranger_admin_passwd_change
+from setup_ranger_xml import setup_ranger_audit_solr, setup_ranger_admin_passwd_change, update_password_configs
 from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
-import upgrade
 import os, errno
 
 class RangerAdmin(Script):
-
-  def get_component_name(self):
-    return "ranger-admin"
 
   def install(self, env):
     self.install_packages(env)
     import params
     env.set_params(params)
+
+    # taking backup of install.properties file
+    Execute(('cp', '-f', format('{ranger_home}/install.properties'), format('{ranger_home}/install-backup.properties')),
+      not_if = format('ls {ranger_home}/install-backup.properties'),
+      only_if = format('ls {ranger_home}/install.properties'),
+      sudo = True
+    )
+
     # call config and setup db only in case of HDP version < 2.6
     if not params.stack_supports_ranger_setup_db_on_start:
       self.configure(env, setup_db=True)
@@ -70,7 +73,7 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
 
-    upgrade.prestart(env, "ranger-admin")
+    stack_select.select_packages(params.version)
 
     self.set_ru_rangeradmin_in_progress(params.upgrade_marker_file)
 
@@ -92,6 +95,7 @@ class RangerAdmin(Script):
       solr_cloud_util.setup_solr_client(params.config, custom_log4j = params.custom_log4j)
       setup_ranger_audit_solr()
 
+    update_password_configs()
     ranger_service('ranger_admin')
 
 
@@ -198,11 +202,7 @@ class RangerAdmin(Script):
     if upgrade_stack is None:
       raise Fail('Unable to determine the stack and stack version')
 
-    stack_name = upgrade_stack[0]
-    stack_version = upgrade_stack[1]
-
-    stack_select.select("ranger-admin", stack_version)
-    conf_select.select(stack_name, "ranger-admin", stack_version)
+    stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

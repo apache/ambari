@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,6 +16,15 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.utils;
+
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JDK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -56,12 +65,12 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
@@ -74,7 +83,7 @@ public class StageUtils {
   public static final String DEFAULT_RACK = "/default-rack";
   public static final String DEFAULT_IPV4_ADDRESS = "127.0.0.1";
 
-  private static final Log LOG = LogFactory.getLog(StageUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StageUtils.class);
   protected static final String AMBARI_SERVER_HOST = "ambari_server_host";
   protected static final String AMBARI_SERVER_PORT = "ambari_server_port";
   protected static final String AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl";
@@ -82,6 +91,7 @@ public class StageUtils {
   protected static final String PORTS = "all_ping_ports";
   protected static final String RACKS = "all_racks";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
+
   private static Map<String, String> componentToClusterInfoKeyMap =
     new HashMap<>();
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
@@ -260,8 +270,12 @@ public class StageUtils {
     return mapper.readValue(is, clazz);
   }
 
-  public static Map<String, String> getCommandParamsStage(ActionExecutionContext actionExecContext) throws AmbariException {
-    return actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<String, String>();
+  public static Map<String, String> getCommandParamsStage(ActionExecutionContext actionExecContext, String requestContext) throws AmbariException {
+    Map<String, String> commandParams = actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<>();
+    if (StringUtils.isNotEmpty(requestContext) && requestContext.toLowerCase().contains("rolling-restart")) {
+      commandParams.put("rolling_restart", "true");
+    }
+    return commandParams;
   }
 
   public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) throws AmbariException {
@@ -593,5 +607,49 @@ public class StageUtils {
         endOfRange.toString() :
         startOfRange + separator + endOfRange;
     return rangeItem;
+  }
+
+  /**
+   * Add ambari specific JDK details to command parameters.
+   */
+  public static void useAmbariJdkInCommandParams(Map<String, String> commandParams, Configuration configuration) {
+    if (StringUtils.isNotEmpty(configuration.getJavaHome()) && !configuration.getJavaHome().equals(configuration.getStackJavaHome())) {
+      commandParams.put(AMBARI_JAVA_HOME, configuration.getJavaHome());
+      commandParams.put(AMBARI_JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));
+      if (StringUtils.isNotEmpty(configuration.getJDKName())) { // if not custom jdk
+        commandParams.put(AMBARI_JDK_NAME, configuration.getJDKName());
+      }
+      if (StringUtils.isNotEmpty(configuration.getJCEName())) { // if not custom jdk
+        commandParams.put(AMBARI_JCE_NAME, configuration.getJCEName());
+      }
+    }
+  }
+
+  /**
+   * Fill hots level parameters with Jdk details, override them with the stack JDK data, in case of stack JAVA_HOME exists
+   */
+  public static void useStackJdkIfExists(Map<String, String> hostLevelParams, Configuration configuration) {
+    // set defaults first
+    hostLevelParams.put(JAVA_HOME, configuration.getJavaHome());
+    hostLevelParams.put(JDK_NAME, configuration.getJDKName());
+    hostLevelParams.put(JCE_NAME, configuration.getJCEName());
+    hostLevelParams.put(JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));
+    if (StringUtils.isNotEmpty(configuration.getStackJavaHome())
+      && !configuration.getStackJavaHome().equals(configuration.getJavaHome())) {
+      hostLevelParams.put(JAVA_HOME, configuration.getStackJavaHome());
+      if (StringUtils.isNotEmpty(configuration.getStackJavaVersion())) {
+        hostLevelParams.put(JAVA_VERSION, configuration.getStackJavaVersion());
+      }
+      if (StringUtils.isNotEmpty(configuration.getStackJDKName())) {
+        hostLevelParams.put(JDK_NAME, configuration.getStackJDKName());
+      } else {
+        hostLevelParams.put(JDK_NAME, null); // custom jdk for stack
+      }
+      if (StringUtils.isNotEmpty(configuration.getStackJCEName())) {
+        hostLevelParams.put(JCE_NAME, configuration.getStackJCEName());
+      } else {
+        hostLevelParams.put(JCE_NAME, null); // custom jdk for stack
+      }
+    }
   }
 }

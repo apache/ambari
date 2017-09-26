@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -63,7 +63,7 @@ public class LdapSyncEventEntityTest {
   public void testSetGetSpecs() throws Exception {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
     LdapSyncSpecEntity spec = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.GROUPS,
-        LdapSyncSpecEntity.SyncType.ALL, Collections.<String>emptyList());
+        LdapSyncSpecEntity.SyncType.ALL, Collections.emptyList());
 
     event.setSpecs(Collections.singletonList(spec));
 

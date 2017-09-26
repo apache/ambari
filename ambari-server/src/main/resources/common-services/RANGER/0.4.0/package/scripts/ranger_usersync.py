@@ -22,12 +22,12 @@ from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import stack_select
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
-import upgrade
 import os
 
 class RangerUsersync(Script):
@@ -107,10 +107,7 @@ class RangerUsersync(Script):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env, "ranger-usersync")
-
-  def get_component_name(self):
-    return "ranger-usersync"
+    stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

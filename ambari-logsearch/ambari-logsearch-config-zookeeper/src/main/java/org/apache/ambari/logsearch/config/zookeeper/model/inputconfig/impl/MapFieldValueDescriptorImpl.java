@@ -19,21 +19,39 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldValueDescriptor;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class MapFieldValueDescriptorImpl implements MapFieldValueDescriptor {
+@ShipperConfigTypeDescription(
+    name = "Map Field Value",
+    description = "The name of the mapping element should be map_fieldvalue. The value json element should contain the following parameter:"
+)
+public class MapFieldValueDescriptorImpl extends MapFieldDescriptorImpl implements MapFieldValueDescriptor {
   @Override
   public String getJsonName() {
     return "map_fieldvalue";
   }
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_fieldvalue/pre_value",
+    type = "string",
+    description = "The value that the field must match (ignoring case) to be mapped",
+    examples = {"old_value"}
+  )
   @Expose
   @SerializedName("pre_value")
   private String preValue;
 
+  @ShipperConfigElementDescription(
+      path = "/filter/[]/post_map_values/{field_name}/[]/map_fieldvalue/post_value",
+      type = "string",
+      description = "The value to which the field is modified to",
+      examples = {"new_value"}
+    )
   @Expose
   @SerializedName("post_value")
   private String postValue;

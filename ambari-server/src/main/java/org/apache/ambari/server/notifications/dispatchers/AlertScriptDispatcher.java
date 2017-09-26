@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -74,6 +75,13 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
   public static final String DISPATCH_PROPERTY_SCRIPT_CONFIG_KEY = "ambari.dispatch-property.script";
 
   /**
+   * A dispatch property that instructs this dispatcher to lookup script by filename
+   * from {@link org.apache.ambari.server.state.alert.AlertTarget}.
+   */
+  public static final String DISPATCH_PROPERTY_SCRIPT_FILENAME_KEY  = "ambari.dispatch-property.script.filename";
+
+
+  /**
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(AlertScriptDispatcher.class);
@@ -105,7 +113,7 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
    * The executor responsible for dispatching.
    */
   private final Executor m_executor = new ThreadPoolExecutor(0, 1, 5L, TimeUnit.MINUTES,
-      new LinkedBlockingQueue<Runnable>(), new ScriptDispatchThreadFactory(),
+    new LinkedBlockingQueue<>(), new ScriptDispatchThreadFactory(),
       new ThreadPoolExecutor.CallerRunsPolicy());
 
   /**
@@ -166,8 +174,13 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
    */
   @Override
   public void dispatch(Notification notification) {
-    String scriptKey = getScriptConfigurationKey(notification);
-    String script = m_configuration.getProperty(scriptKey);
+    String scriptKey = null;
+    String script = getScriptLocation(notification);
+
+    if( null == script){ // Script filename is null.
+        scriptKey = getScriptConfigurationKey(notification);
+        script = m_configuration.getProperty(scriptKey);
+    }
 
     // this dispatcher requires a script to run
     if (null == script) {
@@ -206,6 +219,34 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
 
     m_executor.execute(runnable);
   }
+
+  /**
+   * Gets the dispatch script location from ambari.properties and notification.
+   *
+   * @param notification
+   * @return the dispatch script location.If script filename is {@code null},
+   *         {@code null} will be returned.
+   */
+
+  String getScriptLocation(Notification notification){
+    String scriptName = null;
+    String scriptDir = null;
+
+    if( null == notification || null == notification.DispatchProperties )
+        return null;
+
+    scriptName = notification.DispatchProperties.get(DISPATCH_PROPERTY_SCRIPT_FILENAME_KEY);
+    if( null == scriptName) {
+        LOG.warn("the {} configuration property was not found for dispatching notification",
+                DISPATCH_PROPERTY_SCRIPT_FILENAME_KEY);
+        return null;
+    }
+
+    scriptDir = m_configuration.getDispatchScriptDirectory();
+
+    return scriptDir + File.separator + scriptName;
+  }
+
 
   /**
    * {@inheritDoc}

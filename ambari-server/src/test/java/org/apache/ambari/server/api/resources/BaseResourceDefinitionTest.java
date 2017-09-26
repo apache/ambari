@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.handlers.BaseManagementHandler;
@@ -50,11 +49,10 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.view.ViewRegistry;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,25 +86,26 @@ public class BaseResourceDefinitionTest {
     TreeNode<Resource> serviceNode = new TreeNodeImpl<>(parentNode, service, "service1");
 
     parentNode.setProperty("isCollection", "true");
-    
+
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
             anyObject(Service.class))).andReturn(true).anyTimes();
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
-        .getPropertyIds(Resource.Type.Service),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Service),
-        managementController, maintenanceStateHelper);
-    
-    expect(factory.getServiceResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Resource.Type, String>>anyObject(),
+
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController,
+        maintenanceStateHelper, repositoryVersionDAO);
+
+    expect(
+        factory.getServiceResourceProvider(
         anyObject(AmbariManagementController.class))).andReturn(serviceResourceProvider);
-    
+
     AbstractControllerResourceProvider.init(factory);
-    
+
     replay(factory, managementController, maintenanceStateHelper);
-    
+
     processor.process(null, serviceNode, "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services");
 
     String href = serviceNode.getStringProperty("href");
@@ -181,7 +180,7 @@ public class BaseResourceDefinitionTest {
 
   private BaseResourceDefinition getResourceDefinition(Map<BaseResourceDefinition.DirectiveType, ? extends Collection<String>> directives) {
     return new BaseResourceDefinition(Resource.Type.Service,
-        Collections.<Resource.Type>emptySet(), directives) {
+        Collections.emptySet(), directives) {
       @Override
       public String getPluralName() {
         return "pluralName";

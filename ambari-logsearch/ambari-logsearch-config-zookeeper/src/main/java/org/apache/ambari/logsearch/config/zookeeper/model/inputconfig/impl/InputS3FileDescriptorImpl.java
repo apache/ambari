@@ -19,16 +19,32 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+@ShipperConfigTypeDescription(
+  name = "S3 File Input",
+  description = "S3 file inputs have the following parameters in addition to the general file parameters:"
+)
 public class InputS3FileDescriptorImpl extends InputFileBaseDescriptorImpl implements InputS3FileDescriptor {
+  @ShipperConfigElementDescription(
+    path = "/input/[]/s3_access_key",
+    type = "string",
+    description = "The access key used for AWS credentials."
+  )
   @Expose
   @SerializedName("s3_access_key")
   private String s3AccessKey;
 
+  @ShipperConfigElementDescription(
+    path = "/input/[]/s3_secret_key",
+    type = "string",
+    description = "The secret key used for AWS credentials."
+  )
   @Expose
   @SerializedName("s3_secret_key")
   private String s3SecretKey;

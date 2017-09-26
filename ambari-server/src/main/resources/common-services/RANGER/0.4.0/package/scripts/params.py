@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.is_empty import is_empty
@@ -29,6 +29,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
+from resource_management.core.exceptions import Fail
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
@@ -49,6 +50,7 @@ version = default("/commandParams/version", None)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
 
@@ -75,7 +77,6 @@ stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature
 stack_supports_ranger_solr_configs = check_stack_feature(StackFeature.RANGER_SOLR_CONFIG_SUPPORT, version_for_stack_feature_checks)
 stack_supports_secure_ssl_password = check_stack_feature(StackFeature.SECURE_RANGER_SSL_PASSWORD, version_for_stack_feature_checks)
 
-downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 ranger_conf    = '/etc/ranger/admin/conf'
@@ -123,6 +124,7 @@ if stack_supports_ranger_tagsync:
 usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 
 java_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/commandParams/ambari_java_home", java_home)
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
 ranger_pid_dir = default("/configurations/ranger-env/ranger_pid_dir", "/var/run/ranger")
@@ -198,6 +200,7 @@ elif db_flavor.lower() == 'sqla':
   previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
+else: raise Fail(format("'{db_flavor}' db flavor not supported."))
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
@@ -286,6 +289,17 @@ has_namenode = len(namenode_hosts) > 0
 ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.alias"]
 ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.keystore"]
 
+# get comma separated list of zookeeper hosts
+zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
+zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
+index = 0
+zookeeper_quorum = ""
+for host in zookeeper_hosts:
+  zookeeper_quorum += host + ":" + str(zookeeper_port)
+  index += 1
+  if index < len(zookeeper_hosts):
+    zookeeper_quorum += ","
+
 # ranger solr
 audit_solr_enabled = default('/configurations/ranger-env/xasecure.audit.destination.solr', False)
 ranger_solr_config_set = config['configurations']['ranger-env']['ranger_solr_config_set']
@@ -299,12 +313,11 @@ is_solrCloud_enabled = default('/configurations/ranger-env/is_solrCloud_enabled'
 is_external_solrCloud_enabled = default('/configurations/ranger-env/is_external_solrCloud_enabled', False)
 solr_znode = '/ranger_audits'
 if stack_supports_infra_client and is_solrCloud_enabled:
-  solr_znode = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', 'NONE')
-  if solr_znode != '' and solr_znode.upper() != 'NONE':
-    solr_znode = solr_znode.split('/')
-    if len(solr_znode) > 1 and len(solr_znode) == 2:
-      solr_znode = solr_znode[1]
-      solr_znode = format('/{solr_znode}')
+  solr_zookeeper_connect_string = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', 'NONE')
+  if solr_zookeeper_connect_string != '' and solr_zookeeper_connect_string.upper() != 'NONE':
+    pos = solr_zookeeper_connect_string.index("/")
+    solr_znode = solr_zookeeper_connect_string[pos:]
+    zookeeper_quorum = solr_zookeeper_connect_string[:pos]
   if has_infra_solr and not is_external_solrCloud_enabled:
     solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']
 solr_user = unix_user
@@ -318,17 +331,6 @@ custom_log4j = has_infra_solr and not is_external_solrCloud_enabled
 ranger_audit_max_retention_days = config['configurations']['ranger-solr-configuration']['ranger_audit_max_retention_days']
 ranger_audit_logs_merge_factor = config['configurations']['ranger-solr-configuration']['ranger_audit_logs_merge_factor']
 ranger_solr_config_content = config['configurations']['ranger-solr-configuration']['content']
-
-# get comma separated list of zookeeper hosts
-zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
-index = 0
-zookeeper_quorum = ""
-for host in zookeeper_hosts:
-  zookeeper_quorum += host + ":" + str(zookeeper_port)
-  index += 1
-  if index < len(zookeeper_hosts):
-    zookeeper_quorum += ","
 
 # solr kerberised
 solr_jaas_file = None
@@ -446,3 +448,5 @@ truststore_password = config['configurations']['ranger-admin-site']['ranger.trus
 
 # need this to capture cluster name for ranger tagsync
 cluster_name = config['clusterName']
+ranger_ldap_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.bind.password']
+ranger_ad_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.ad.bind.password']

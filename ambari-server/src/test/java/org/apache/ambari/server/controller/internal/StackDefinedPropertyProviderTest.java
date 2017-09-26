@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -57,12 +57,13 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.stack.Metric;
@@ -137,9 +138,24 @@ public class StackDefinedPropertyProviderTest {
     Cluster cluster = clusters.getCluster("c2");
 
     cluster.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-      RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    Service service = cluster.addService("HDFS", repositoryVersion);
+    service.addServiceComponent("NAMENODE");
+    service.addServiceComponent("DATANODE");
+    service.addServiceComponent("JOURNALNODE");
+
+    service = cluster.addService("YARN", repositoryVersion);
+    service.addServiceComponent("RESOURCEMANAGER");
+
+    service = cluster.addService("HBASE", repositoryVersion);
+    service.addServiceComponent("HBASE_MASTER");
+    service.addServiceComponent("HBASE_REGIONSERVER");
+
+    stackId = new StackId("HDP-2.1.1");
+    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+
+    service = cluster.addService("STORM", repositoryVersion);
+    service.addServiceComponent("STORM_REST_API");
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -284,7 +300,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty("HostRoles/state", "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet(), new HashMap<>());
 
     Set<Resource> set = sdpp.populateResources(Collections.singleton(resource), request, null);
     Assert.assertEquals(1, set.size());
@@ -315,7 +331,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty("HostRoles/state", "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet(), new HashMap<>());
 
     Set<Resource> set = sdpp.populateResources(Collections.singleton(resource), request, null);
     Assert.assertEquals(1, set.size());
@@ -483,7 +499,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -511,7 +527,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
   }
@@ -543,7 +559,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -742,7 +758,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -866,7 +882,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -910,7 +926,7 @@ public class StackDefinedPropertyProviderTest {
     int preSize = resource.getPropertiesMap().size();
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
@@ -945,7 +961,7 @@ public class StackDefinedPropertyProviderTest {
 
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     Set<Resource> res = propertyProvider.populateResources(Collections.singleton(resource), request, null);
     Assert.assertEquals(1, res.size());

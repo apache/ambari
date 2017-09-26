@@ -92,7 +92,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_HOSTS;
   public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HEALTH_REPORT;
   public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CREDENTIAL_STORE_PROPERTIES;
-  public static final String CLUSTER_REPO_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + REPO_VERSION;
 
   static final String BLUEPRINT = "blueprint";
   private static final String SECURITY = "security";
@@ -165,7 +164,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(SESSION_ATTRIBUTES);
     propertyIds.add(SECURITY);
     propertyIds.add(CREDENTIALS);
-    propertyIds.add(CLUSTER_REPO_VERSION);
     propertyIds.add(QUICKLINKS_PROFILE);
   }
 
@@ -209,7 +207,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("config_recommendation_strategy");
     baseUnsupported.remove("provision_action");
     baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_PROPERTY);
-
+    baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY);
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 
@@ -253,7 +251,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     final Set<ClusterRequest> requests = new HashSet<>();
 
     if (predicate == null) {
-      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+      requests.add(getRequest(Collections.emptyMap()));
     } else {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));
@@ -272,8 +270,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     Set<Resource> resources = new HashSet<>();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Found clusters matching getClusters request"
-          + ", clusterResponseCount=" + responses.size());
+      LOG.debug("Found clusters matching getClusters request, clusterResponseCount={}", responses.size());
     }
 
     // Allow internal call to bypass permissions check.
@@ -291,8 +288,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, CLUSTER_VERSION_PROPERTY_ID, response.getDesiredStackVersion(), requestedIds);
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding ClusterResponse to resource"
-            + ", clusterResponse=" + response.toString());
+        LOG.debug("Adding ClusterResponse to resource, clusterResponse={}", response);
       }
 
       resources.add(resource);
@@ -426,10 +422,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null,
         getSessionAttributes(properties));
-
-    if (properties.containsKey(CLUSTER_REPO_VERSION)) {
-      cr.setRepositoryVersion(properties.get(CLUSTER_REPO_VERSION).toString());
-    }
 
     List<ConfigurationRequest> configRequests = getConfigurationRequests(RESPONSE_KEY, properties);
     if (!configRequests.isEmpty()) {

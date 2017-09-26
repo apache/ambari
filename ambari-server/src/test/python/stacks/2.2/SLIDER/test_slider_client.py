@@ -27,6 +27,8 @@ class TestSliderClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SLIDER/0.60.0.2.2/package"
   STACK_VERSION = "2.2"
 
+  CONFIG_OVERRIDES = {"serviceName":"SLIDER", "role":"SLIDER"}
+
   def test_configure_default(self):
     self.maxDiff = None
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/slider_client.py",
@@ -168,6 +170,7 @@ class TestSliderClient(RMFTestCase):
                        classname = "SliderClient",
                        command = "pre_upgrade_restart",
                        config_file="default.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -187,26 +190,12 @@ class TestSliderClient(RMFTestCase):
                        classname = "SliderClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'slider-client', '2.3.0.0-1234'), sudo=True)
     self.assertResourceCalledIgnoreEarlier("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.3.0.0-1234'), sudo=True)
-    self.assertNoMoreResources()
 
-    self.assertEquals(2, mocks_dict['call'].call_count)
-    self.assertEquals(2, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'slider', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'slider', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[1][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[1][0][0])
+    self.assertNoMoreResources()

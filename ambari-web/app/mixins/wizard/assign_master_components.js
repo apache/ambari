@@ -521,16 +521,17 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     if (this._additionalClearSteps) {
       this._additionalClearSteps();
     }
-    this.renderHostInfo();
-    //when returning from step Assign Slaves and Clients, recommendations are already available
-    //set the flag so that recommendations AJAX call is not made unnecessarily
-    if (this.get('recommendations')) {
-      this.set('backFromNextStep',true);
-    }
-    this.getRecommendedHosts({
-      hosts: this.getHosts()
-    }).then(function() {
-      self.loadStepCallback(self.createComponentInstallationObjects(), self);
+    this.renderHostInfo().done(function () {
+      //when returning from step Assign Slaves and Clients, recommendations are already available
+      //set the flag so that recommendations AJAX call is not made unnecessarily
+      if (self.get('recommendations')) {
+        self.set('backFromNextStep', true);
+      }
+      self.getRecommendedHosts({
+        hosts: self.getHosts()
+      }).then(function () {
+        self.loadStepCallback(self.createComponentInstallationObjects(), self);
+      });
     });
   },
 
@@ -597,7 +598,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    */
   renderHostInfo: function () {
     var isInstaller = (this.get('wizardController.name') === 'installerController' || this.get('content.controllerName') === 'installerController');
-    App.ajax.send({
+    return App.ajax.send({
       name: isInstaller ? 'hosts.info.install' : 'hosts.high_availability.wizard',
       sender: this,
       data: {

@@ -25,6 +25,8 @@ import io.swagger.annotations.ApiModel;
 
 @ApiModel
 public class LSServerFilterJson extends LSServerFilter {
+  public LSServerFilterJson() {}
+  
   public LSServerFilterJson(FilterDescriptor filterDescriptor) {
     super(filterDescriptor);
   }

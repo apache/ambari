@@ -58,7 +58,7 @@ App.TableServerViewMixin = Em.Mixin.create({
     return content.sort(function (a, b) {
       return a.get('index') - b.get('index');
     });
-  }.property('filteredContent'),
+  }.property('filteredContent.length'),
 
   /**
    * compute applied filter and run content update from server

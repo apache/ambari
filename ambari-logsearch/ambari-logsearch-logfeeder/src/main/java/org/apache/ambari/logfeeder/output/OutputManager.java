@@ -33,6 +33,7 @@ import org.apache.ambari.logfeeder.loglevelfilter.FilterLogData;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.MurmurHash;
+import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -54,6 +55,16 @@ public class OutputManager {
 
   public List<Output> getOutputs() {
     return outputs;
+  }
+
+  public List<? extends OutputConfigMonitor> getOutputsToMonitor() {
+    List<Output> outputsToMonitor = new ArrayList<>();
+    for (Output output : outputs) {
+      if (output.monitorConfigChanges()) {
+        outputsToMonitor.add(output);
+      }
+    }
+    return outputsToMonitor;
   }
 
   public void add(Output output) {

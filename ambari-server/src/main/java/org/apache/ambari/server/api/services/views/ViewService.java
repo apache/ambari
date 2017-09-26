@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,6 +32,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
@@ -45,7 +46,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 
 /**
  * Service responsible for view resource requests.
@@ -106,7 +106,6 @@ public class ViewService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.GET, createViewResource(viewName));
   }
 
-
   /**
    * Handles: POST /views/{viewID}
    * Create a specific view.
@@ -117,7 +116,7 @@ public class ViewService extends BaseService {
    *
    * @return information regarding the created view
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{viewName}")
   @Produces("text/plain")
   public Response createView(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -136,7 +135,7 @@ public class ViewService extends BaseService {
    *
    * @return information regarding the updated view
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{viewName}")
   @Produces("text/plain")
   public Response updateView(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -155,7 +154,7 @@ public class ViewService extends BaseService {
    *
    * @return information regarding the deleted view
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{viewName}")
   @Produces("text/plain")
   public Response deleteView(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -163,7 +162,6 @@ public class ViewService extends BaseService {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE, createViewResource(viewName));
   }
-
 
   // ----- helper methods ----------------------------------------------------
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -45,12 +45,14 @@ import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Masked;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.PropertyKeyState;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.apache.commons.lang.StringUtils;
@@ -82,9 +84,9 @@ import com.google.inject.Provider;
  * property value</li>
  * </ul>
  */
-public class ConfigureAction extends AbstractServerAction {
+public class ConfigureAction extends AbstractUpgradeServerAction {
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
 
   /**
    * Used to lookup the cluster.
@@ -182,9 +184,16 @@ public class ConfigureAction extends AbstractServerAction {
 
     String clusterName = commandParameters.get("clusterName");
     Cluster cluster = m_clusters.getCluster(clusterName);
+    UpgradeContext upgradeContext = getUpgradeContext(cluster);
 
     // such as hdfs-site or hbase-env
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
+    String serviceName = cluster.getServiceByConfigType(configType);
+
+    RepositoryVersionEntity sourceRepoVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
+    RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
+    StackId sourceStackId = sourceRepoVersion.getStackId();
+    StackId targetStackId = targetRepoVersion.getStackId();
 
     // extract setters
     List<ConfigurationKeyValue> keyValuePairs = Collections.emptyList();
@@ -252,13 +261,12 @@ public class ConfigureAction extends AbstractServerAction {
     if (desiredConfig == null) {
       throw new AmbariException("Could not find desired config type with name " + configType);
     }
+
     Config config = cluster.getConfig(configType, desiredConfig.getTag());
     if (config == null) {
       throw new AmbariException("Could not find config type with name " + configType);
     }
 
-    StackId currentStack = cluster.getCurrentStackVersion();
-    StackId targetStack = cluster.getDesiredStackVersion();
     StackId configStack = config.getStackId();
 
     // !!! initial reference values
@@ -405,8 +413,8 @@ public class ConfigureAction extends AbstractServerAction {
           String oldValue = base.get(key);
 
           // !!! values are not changing, so make this a no-op
-          if (null != oldValue && value.equals(oldValue)) {
-            if (currentStack.equals(targetStack) && !changedValues) {
+          if (StringUtils.equals(value, oldValue)) {
+            if (sourceStackId.equals(targetStackId) && !changedValues) {
               updateBufferWithMessage(outputBuffer,
                   MessageFormat.format(
                   "{0}/{1} for cluster {2} would not change, skipping setting", configType, key,
@@ -519,7 +527,7 @@ public class ConfigureAction extends AbstractServerAction {
     // !!! check to see if we're going to a new stack and double check the
     // configs are for the target.  Then simply update the new properties instead
     // of creating a whole new history record since it was already done
-    if (!targetStack.equals(currentStack) && targetStack.equals(configStack)) {
+    if (!targetStackId.equals(sourceStackId) && targetStackId.equals(configStack)) {
       config.setProperties(newValues);
       config.save();
 
@@ -528,7 +536,9 @@ public class ConfigureAction extends AbstractServerAction {
 
     // !!! values are different and within the same stack.  create a new
     // config and service config version
-    String serviceVersionNote = "Stack Upgrade";
+    Direction direction = upgradeContext.getDirection();
+    String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
+        direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
 
     String auditName = getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);
 
@@ -536,12 +546,10 @@ public class ConfigureAction extends AbstractServerAction {
       auditName = m_configuration.getAnonymousAuditName();
     }
 
-    m_configHelper.createConfigType(cluster, m_controller, configType,
+    m_configHelper.createConfigType(cluster, targetStackId, m_controller, configType,
         newValues, auditName, serviceVersionNote);
 
-    String message = "Finished updating configuration ''{0}''";
-    message = MessageFormat.format(message, configType);
-    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", message, "");
+    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputBuffer.toString(), "");
   }
 
 

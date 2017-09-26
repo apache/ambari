@@ -22,5 +22,5 @@ package org.apache.ambari.logsearch.config.api.model.inputconfig;
 public interface MapDateDescriptor extends MapFieldDescriptor {
   String getSourceDatePattern();
 
-  public String getTargetDatePattern();
+  String getTargetDatePattern();
 }

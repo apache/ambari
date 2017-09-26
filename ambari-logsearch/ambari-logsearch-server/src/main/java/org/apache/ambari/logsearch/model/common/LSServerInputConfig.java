@@ -22,6 +22,9 @@ package org.apache.ambari.logsearch.model.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterJsonDescriptor;
@@ -31,16 +34,26 @@ import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
 public class LSServerInputConfig {
+  @Valid
+  @NotNull
   @ApiModelProperty
+  @JsonDeserialize(using = LSServerInputDeserializer.class)
   private List<LSServerInput> input;
   
+  @Valid
+  @NotNull
   @ApiModelProperty
+  @JsonDeserialize(using = LSServerFilterDeserializer.class)
   private List<LSServerFilter> filter;
+  
+  public LSServerInputConfig() {}
   
   public LSServerInputConfig(InputConfig inputConfig) {
     input = new ArrayList<>();

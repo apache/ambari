@@ -37,6 +37,8 @@ public abstract class LSServerInputFileBase extends LSServerInput {
   @JsonProperty("copy_file")
   private Boolean copyFile;
   
+  public LSServerInputFileBase() {}
+  
   public LSServerInputFileBase(InputDescriptor inputDescriptor) {
     super(inputDescriptor);
     

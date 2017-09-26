@@ -133,7 +133,7 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
             // If a cached  keytabs file exists for this principal, delete it.
             if (cachedKeytabPath != null) {
               if (!new File(cachedKeytabPath).delete()) {
-                LOG.debug(String.format("Failed to remove cached keytab for %s", evaluatedPrincipal));
+                LOG.debug("Failed to remove cached keytab for {}", evaluatedPrincipal);
               }
             }
           }

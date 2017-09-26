@@ -98,7 +98,7 @@ public class JobResource {
 
   @GET
   @Produces({"application/json"})
-  @Path("/info/{jobName}")
+  @Path("{jobName}/info")
   @ApiOperation("Get job details by job name.")
   public JobDetailsResponse getJobDetails(@BeanParam @Valid JobRequest jobRequest) throws NoSuchJobException {
     return jobManager.getJobDetails(jobRequest.getJobName(), jobRequest.getPage(), jobRequest.getSize());

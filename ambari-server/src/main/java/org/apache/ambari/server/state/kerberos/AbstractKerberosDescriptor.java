@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +18,13 @@
 
 package org.apache.ambari.server.state.kerberos;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * AbstractKerberosDescriptor is the base class for all Kerberos*Descriptor and associated classes.
@@ -28,6 +33,8 @@ import java.util.TreeMap;
  * It also provides utility and helper methods.
  */
 public abstract class AbstractKerberosDescriptor {
+
+  static final String KEY_NAME = "name";
 
   /**
    * An AbstractKerberosDescriptor serving as the parent (or container) for this
@@ -69,7 +76,7 @@ public abstract class AbstractKerberosDescriptor {
     String name = getName();
 
     if (name != null) {
-      dataMap.put("name", name);
+      dataMap.put(KEY_NAME, name);
     }
 
     return dataMap;
@@ -151,6 +158,38 @@ public abstract class AbstractKerberosDescriptor {
   }
 
   /**
+   * Safely retrieves the requested value (converted to a Boolean) from the supplied Map
+   * <p/>
+   * The found value will be converted to a Boolean using {@link Boolean#valueOf(String)}.
+   * If not found, <code>null</code> will be returned
+   *
+   * @param map a Map containing the relevant data
+   * @param key a String declaring the item to retrieve
+   * @return a Boolean representing the requested data; or null if not found
+   * @see Boolean#valueOf(String)
+   * @see #getBooleanValue(Map, String, Boolean)
+   */
+  protected static Boolean getBooleanValue(Map<?, ?> map, String key) {
+    return getBooleanValue(map, key, null);
+  }
+
+  /**
+   * Safely retrieves the requested value (converted to a Boolean) from the supplied Map
+   * <p/>
+   * The found value will be converted to a Boolean using {@link Boolean#valueOf(String)}.
+   *
+   * @param map          a Map containing the relevant data
+   * @param key          a String declaring the item to retrieve
+   * @param defaultValue a Boolean value to return if the data is not found
+   * @return a Boolean representing the requested data; or the specified default value if not found
+   * @see Boolean#valueOf(String)
+   */
+  protected static Boolean getBooleanValue(Map<?, ?> map, String key, Boolean defaultValue) {
+    String value = getStringValue(map, key);
+    return (StringUtils.isEmpty(value)) ? defaultValue : Boolean.valueOf(value);
+  }
+
+  /**
    * Gets the requested AbstractKerberosDescriptor implementation using a type name and a relevant
    * descriptor name.
    * <p/>
@@ -179,6 +218,18 @@ public abstract class AbstractKerberosDescriptor {
     }
 
     return root;
+  }
+
+  public static <T> Collection<T> nullToEmpty(Collection<T> collection) {
+    return collection == null ? Collections.emptyList() : collection;
+  }
+
+  public static <T> List<T> nullToEmpty(List<T> list) {
+    return list == null ? Collections.emptyList() : list;
+  }
+
+  public static <K, V> Map<K, V> nullToEmpty(Map<K, V> collection) {
+    return collection == null ? Collections.emptyMap() : collection;
   }
 
   @Override

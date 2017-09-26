@@ -321,15 +321,16 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @private
    */
   _loadHostsFromServerSuccessCallback: function (data) {
-    var wrappedHosts = [];
+    var wrappedHosts = [],
+        newlyAddedHostComponentsMap = this.getNewlyAddedHostComponentsMap();
 
     data.items.forEach(function (host) {
       var hostComponents = [];
-      var diskInfo = host.Hosts.disk_info.filter(function(item) {
+      var diskInfo = host.Hosts.disk_info.filter(function (item) {
         return /^ext|^ntfs|^fat|^xfs/i.test(item.type);
       });
       if (diskInfo.length) {
-        diskInfo = diskInfo.reduce(function(a, b) {
+        diskInfo = diskInfo.reduce(function (a, b) {
           return {
             available: parseInt(a.available) + parseInt(b.available),
             size: parseInt(a.size) + parseInt(b.size)
@@ -342,6 +343,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           displayName: App.format.role(hostComponent.HostRoles.component_name, false)
         }));
       }, this);
+      if (this.get('isAddService') && newlyAddedHostComponentsMap[host.Hosts.host_name]) {
+        hostComponents.pushObjects(newlyAddedHostComponentsMap[host.Hosts.host_name]);
+      }
       wrappedHosts.pushObject(Em.Object.create({
           id: host.Hosts.host_name,
           ip: host.Hosts.ip,
@@ -369,6 +373,55 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    */
   _loadHostsFromServerErrorCallback: function () {
     this.set('clusterHosts', []);
+  },
+
+  /**
+   *
+   * @returns {{}}
+   */
+  getNewlyAddedHostComponentsMap: function () {
+    var newlyAddedHostComponentsMap = {};
+    var masters = App.router.get('addServiceController.content.masterComponentHosts') || [];
+    var slaves = App.router.get('addServiceController.content.slaveComponentHosts') || [];
+    var clients = (App.router.get('addServiceController.content.clients') || []);
+
+    clients = clients.filterProperty('isInstalled', false).map(function (component) {
+      return Em.Object.create({
+        componentName: component.component_name,
+        displayName: component.display_name
+      });
+    });
+
+    masters.forEach(function (component) {
+      if (!component.isInstalled) {
+        if (!newlyAddedHostComponentsMap[component.hostName]) {
+          newlyAddedHostComponentsMap[component.hostName] = [];
+        }
+        newlyAddedHostComponentsMap[component.hostName].push(Em.Object.create({
+          componentName: component.component,
+          displayName: component.display_name
+        }));
+      }
+    });
+
+    slaves.forEach(function (component) {
+      component.hosts.forEach(function (host) {
+        if (!host.isInstalled) {
+          if (!newlyAddedHostComponentsMap[host.hostName]) {
+            newlyAddedHostComponentsMap[host.hostName] = [];
+          }
+          if (component.componentName === 'CLIENT') {
+            newlyAddedHostComponentsMap[host.hostName].pushObjects(clients);
+          } else {
+            newlyAddedHostComponentsMap[host.hostName].push(Em.Object.create({
+              componentName: component.componentName,
+              displayName: component.displayName
+            }));
+          }
+        }
+      });
+    });
+    return newlyAddedHostComponentsMap;
   },
 
   /**
@@ -956,8 +1009,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
               if (errors.length > 0) {
                 self.get('subViewController').set('errorMessage', errors.join(". "));
               } else {
-                if (!self.get('isAddService') && !self.get('isInstaller') && !modifiedConfigGroups.toCreate.everyProperty('properties.length', 0)) {
-                  //update service config versions only if it is service configs page and at least one newly created group had properties
+                if (!self.get('isAddService') && !self.get('isInstaller')) {
+                  //update service config versions only if it is service configs page
                   App.router.get('mainServiceInfoConfigsController').loadServiceConfigVersions().done(function () {
                     self.updateConfigGroupOnServicePage();
                     self.hide();

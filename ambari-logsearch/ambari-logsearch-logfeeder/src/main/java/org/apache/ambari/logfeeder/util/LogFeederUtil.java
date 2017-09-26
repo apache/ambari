@@ -19,18 +19,13 @@
 
 package org.apache.ambari.logfeeder.util;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Properties;
 
-import org.apache.ambari.logfeeder.LogFeeder;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -75,133 +70,6 @@ public class LogFeederUtil {
       LOG.error("Error getting hostname.", e);
     }
   }
-  
-  private static Properties props;
-  public static Properties getProperties() {
-    return props;
-  }
-
-  /**
-   * This method will read the properties from System, followed by propFile and finally from the map
-   */
-  public static void loadProperties(String propFile, String[] propNVList) throws Exception {
-    LOG.info("Loading properties. propFile=" + propFile);
-    props = new Properties(System.getProperties());
-    boolean propLoaded = false;
-
-    // First get properties file path from environment value
-    String propertiesFilePath = System.getProperty("properties");
-    if (StringUtils.isNotEmpty(propertiesFilePath)) {
-      File propertiesFile = new File(propertiesFilePath);
-      if (propertiesFile.exists() && propertiesFile.isFile()) {
-        LOG.info("Properties file path set in environment. Loading properties file=" + propertiesFilePath);
-        try (FileInputStream fis = new FileInputStream(propertiesFile)) {
-          props.load(fis);
-          propLoaded = true;
-        } catch (Throwable t) {
-          LOG.error("Error loading properties file. properties file=" + propertiesFile.getAbsolutePath());
-        }
-      } else {
-        LOG.error("Properties file path set in environment, but file not found. properties file=" + propertiesFilePath);
-      }
-    }
-
-    if (!propLoaded) {
-      try (BufferedInputStream bis = (BufferedInputStream) LogFeeder.class.getClassLoader().getResourceAsStream(propFile)) {
-        // Properties not yet loaded, let's try from class loader
-        if (bis != null) {
-          LOG.info("Loading properties file " + propFile + " from classpath");
-          props.load(bis);
-          propLoaded = true;
-        } else {
-          LOG.fatal("Properties file not found in classpath. properties file name= " + propFile);
-        }
-      }
-    }
-
-    if (!propLoaded) {
-      LOG.fatal("Properties file is not loaded.");
-      throw new Exception("Properties not loaded");
-    } else {
-      updatePropertiesFromMap(propNVList);
-    }
-  }
-
-  private static void updatePropertiesFromMap(String[] nvList) {
-    if (nvList == null) {
-      return;
-    }
-    LOG.info("Trying to load additional proeprties from argument paramters. nvList.length=" + nvList.length);
-    for (String nv : nvList) {
-      LOG.info("Passed nv=" + nv);
-      if (nv.startsWith("-") && nv.length() > 1) {
-        nv = nv.substring(1);
-        LOG.info("Stripped nv=" + nv);
-        int i = nv.indexOf("=");
-        if (nv.length() > i) {
-          LOG.info("Candidate nv=" + nv);
-          String name = nv.substring(0, i);
-          String value = nv.substring(i + 1);
-          LOG.info("Adding property from argument to properties. name=" + name + ", value=" + value);
-          props.put(name, value);
-        }
-      }
-    }
-  }
-
-  public static String getStringProperty(String key) {
-    return props == null ? null : props.getProperty(key);
-  }
-
-  public static String getStringProperty(String key, String defaultValue) {
-    return props == null ? defaultValue : props.getProperty(key, defaultValue);
-  }
-
-  public static boolean getBooleanProperty(String key, boolean defaultValue) {
-    String value = getStringProperty(key);
-    return toBoolean(value, defaultValue);
-  }
-
-  private static boolean toBoolean(String value, boolean defaultValue) {
-    if (StringUtils.isEmpty(value)) {
-      return defaultValue;
-    }
-    
-    return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
-  }
-
-  public static int getIntProperty(String key, int defaultValue) {
-    return getIntProperty(key, defaultValue, null, null);
-  }
-
-  public static int getIntProperty(String key, int defaultValue, Integer minValue, Integer maxValue) {
-    String value = getStringProperty(key);
-    int retValue = objectToInt(value, defaultValue, ", key=" + key);
-    if (minValue != null && retValue < minValue) {
-      LOG.info("Minimum rule was applied for " + key + ": " + retValue + " < " + minValue);
-      retValue = minValue;
-    }
-    if (maxValue != null && retValue > maxValue) {
-      LOG.info("Maximum rule was applied for " + key + ": " + retValue + " > " + maxValue);
-      retValue = maxValue;
-    }
-    return retValue;
-  }
-
-  public static int objectToInt(Object objValue, int retValue, String errMessage) {
-    if (objValue == null) {
-      return retValue;
-    }
-    String strValue = objValue.toString();
-    if (StringUtils.isNotEmpty(strValue)) {
-      try {
-        retValue = Integer.parseInt(strValue);
-      } catch (Throwable t) {
-        LOG.error("Error parsing integer value. str=" + strValue + ", " + errMessage);
-      }
-    }
-    return retValue;
-  }
 
   public static void logStatForMetric(MetricData metric, String prefixStr, String postFix) {
     long currStat = metric.value;
@@ -231,6 +99,21 @@ public class LogFeederUtil {
     return gson.fromJson(jsonStr, type);
   }
 
+  public static int objectToInt(Object objValue, int retValue, String errMessage) {
+    if (objValue == null) {
+      return retValue;
+    }
+    String strValue = objValue.toString();
+    if (StringUtils.isNotEmpty(strValue)) {
+      try {
+        retValue = Integer.parseInt(strValue);
+      } catch (Throwable t) {
+        LOG.error("Error parsing integer value. str=" + strValue + ", " + errMessage);
+      }
+    }
+    return retValue;
+  }
+
   private static class LogHistory {
     private long lastLogTime = 0;
     private int counter = 0;
@@ -258,18 +141,5 @@ public class LogFeederUtil {
       log.counter++;
       return false;
     }
-  }
-  
-  private static String logfeederTempDir = null;
-  
-  public synchronized static String getLogfeederTempDir() {
-    if (logfeederTempDir == null) {
-      String tempDirValue = getStringProperty("logfeeder.tmp.dir", "/tmp/$username/logfeeder/");
-      HashMap<String, String> contextParam = new HashMap<String, String>();
-      String username = System.getProperty("user.name");
-      contextParam.put("username", username);
-      logfeederTempDir = PlaceholderUtil.replaceVariables(tempDirValue, contextParam);
-    }
-    return logfeederTempDir;
   }
 }

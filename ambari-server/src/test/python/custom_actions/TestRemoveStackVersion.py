@@ -28,17 +28,20 @@ from stacks.utils.RMFTestCase import *
 OLD_VERSION_STUB = '2.1.0.0-400'
 VERSION_STUB = '2.2.0.1-885'
 
+
 @patch.object(Logger, 'logger', new=MagicMock())
 class TestRemoveStackVersion(RMFTestCase):
 
   @staticmethod
-  def _add_packages(arg):
-    arg.append(["pkg12_1_0_0_400", "1.0", "repo"])
-    arg.append(["pkg22_1_0_1_885", "2.0", "repo2"])
-    arg.append(["hdp-select2_1_0_1_885", "2.0", "repo2"])
+  def _add_packages():
+    return [
+      ["pkg12_1_0_0_400", "1.0", "repo"],
+      ["pkg22_1_0_1_885", "2.0", "repo2"],
+      ["hdp-select2_1_0_1_885", "2.0", "repo2"]
+    ]
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.core.providers.get_provider")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
@@ -49,10 +52,11 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock, ):
-
+                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock):
+    m = MagicMock()
+    m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
+    get_provider_mock.return_value = m
     stack_versions_mock.return_value = [VERSION_STUB, OLD_VERSION_STUB]
-    allInstalledPackages_mock.side_effect = TestRemoveStackVersion._add_packages
     list_ambari_managed_repos_mock.return_value = []
 
     self.executeScript("scripts/remove_previous_stacks.py",
@@ -76,7 +80,7 @@ class TestRemoveStackVersion(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.core.providers.get_provider")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
@@ -87,10 +91,14 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock ):
+                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock ):
 
     stack_versions_mock.return_value = [VERSION_STUB]
-    allInstalledPackages_mock.side_effect = TestRemoveStackVersion._add_packages
+
+    m = MagicMock()
+    m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
+    get_provider_mock.return_value = m
+
     list_ambari_managed_repos_mock.return_value = []
 
     self.executeScript("scripts/remove_previous_stacks.py",
@@ -105,7 +113,7 @@ class TestRemoveStackVersion(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.core.providers.get_provider")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
@@ -116,10 +124,14 @@ class TestRemoveStackVersion(RMFTestCase):
                        write_actual_version_to_history_file_mock,
                        read_actual_version_from_history_file_mock,
                        stack_versions_mock,
-                       put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock, ):
+                       put_structured_out_mock, get_provider_mock, list_ambari_managed_repos_mock, ):
 
     stack_versions_mock.return_value = [VERSION_STUB, OLD_VERSION_STUB]
-    allInstalledPackages_mock.side_effect = TestRemoveStackVersion._add_packages
+
+    m = MagicMock()
+    m.all_installed_packages.side_effect = TestRemoveStackVersion._add_packages
+    get_provider_mock.return_value = m
+
     list_ambari_managed_repos_mock.return_value = []
 
     try:

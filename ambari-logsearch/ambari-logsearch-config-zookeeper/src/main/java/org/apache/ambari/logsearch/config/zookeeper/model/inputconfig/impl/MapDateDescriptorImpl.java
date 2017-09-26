@@ -19,21 +19,39 @@
 
 package org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl;
 
+import org.apache.ambari.logsearch.config.api.ShipperConfigElementDescription;
+import org.apache.ambari.logsearch.config.api.ShipperConfigTypeDescription;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapDateDescriptor;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class MapDateDescriptorImpl implements MapDateDescriptor {
+@ShipperConfigTypeDescription(
+    name = "Map Date",
+    description = "The name of the mapping element should be map_date. The value json element may contain the following parameters:"
+)
+public class MapDateDescriptorImpl extends MapFieldDescriptorImpl implements MapDateDescriptor {
   @Override
   public String getJsonName() {
     return "map_date";
   }
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_date/src_date_pattern",
+    type = "string",
+    description = "If it is specified than the mapper converts from this format to the target, and also adds missing year",
+    examples = {"MMM dd HH:mm:ss"}
+  )
   @Expose
-  @SerializedName("source_date_pattern")
+  @SerializedName("src_date_pattern")
   private String sourceDatePattern;
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/post_map_values/{field_name}/[]/map_date/target_date_pattern",
+    type = "string",
+    description = "If 'epoch' then the field is parsed as seconds from 1970, otherwise the content used as pattern",
+    examples = {"yyyy-MM-dd HH:mm:ss,SSS", "epoch"}
+  )
   @Expose
   @SerializedName("target_date_pattern")
   private String targetDatePattern;

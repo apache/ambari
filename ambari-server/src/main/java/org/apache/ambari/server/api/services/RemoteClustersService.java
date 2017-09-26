@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,9 +32,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-
 
 /**
  * Service responsible for Remote Cluster resource requests.
@@ -48,12 +48,11 @@ public class RemoteClustersService extends BaseService {
    * @param ui
    * @return collections of all remote clusters
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getRemoteClusters(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createRemoteClusterResource(null));
   }
-
 
   /**
    * Create a new RemoteAmbariCluster
@@ -63,14 +62,13 @@ public class RemoteClustersService extends BaseService {
    * @param clusterName
    * @return
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{clusterName}")
   @Produces("text/plain")
   public Response createRemoteCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
     return handleRequest(headers, body, ui, Request.Type.POST, createRemoteClusterResource(clusterName));
   }
-
 
   /**
    * Update a Remote Cluster
@@ -80,7 +78,7 @@ public class RemoteClustersService extends BaseService {
    * @param clusterName
    * @return
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{clusterName}")
   @Produces("text/plain")
   public Response updateRemoteCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -96,14 +94,13 @@ public class RemoteClustersService extends BaseService {
    * @param clusterName
    * @return
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{clusterName}")
   @Produces("text/plain")
   public Response deleteRemoteCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                             @PathParam("clusterName") String clusterName) {
     return handleRequest(headers, body, ui, Request.Type.DELETE, createRemoteClusterResource(clusterName));
   }
-
 
   /**
    * Get information about a Remote Cluster
@@ -112,16 +109,13 @@ public class RemoteClustersService extends BaseService {
    * @param clusterName
    * @return
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{clusterName}")
   @Produces("text/plain")
   public Response getRemoteCluster(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
     return handleRequest(headers, null, ui, Request.Type.GET, createRemoteClusterResource(clusterName));
   }
-
-
-
 
   // ----- helper methods ----------------------------------------------------
 

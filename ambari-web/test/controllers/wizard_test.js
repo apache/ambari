@@ -857,14 +857,14 @@ describe('App.WizardController', function () {
 
   describe('#loadConfirmedHosts', function () {
     beforeEach(function(){
-      sinon.stub(App.db, 'getHosts').returns(Em.A([
+      sinon.stub(wizardController, 'getDBProperty').returns(Em.A([
         Em.Object.create({
           name: 'h1'
         })
       ]));
     });
     afterEach(function(){
-      App.db.getHosts.restore();
+      wizardController.getDBProperty.restore();
     });
     it('should load hosts from db', function () {
       wizardController.loadConfirmedHosts();
@@ -1692,10 +1692,6 @@ describe('App.WizardController', function () {
 
     it("finish should be called", function () {
       expect(ctrl.finish.calledOnce).to.be.true;
-    });
-
-    it("isWorking should be true", function () {
-      expect(mock.get('isWorking')).to.be.true;
     });
 
     it("App.clusterStatus.setClusterStatus should be called", function () {

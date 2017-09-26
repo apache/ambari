@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,6 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -72,7 +73,7 @@ public class InstanceService extends BaseService {
    *
    * @return instance resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{instanceID}")
   @Produces("text/plain")
   public Response getInstance(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -90,7 +91,7 @@ public class InstanceService extends BaseService {
    * @param ui      uri info
    * @return instance collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getInstances(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -108,7 +109,7 @@ public class InstanceService extends BaseService {
    *
    * @return instance resource representation
    */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{instanceID}")
   @Produces("text/plain")
   public Response createInstance(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -129,7 +130,7 @@ public class InstanceService extends BaseService {
    *
    * @return information regarding updated instance
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{instanceID}")
   @Produces("text/plain")
   public Response updateInstance(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -149,7 +150,7 @@ public class InstanceService extends BaseService {
    *
    * @return instance resource representation
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{instanceID}")
   @Produces("text/plain")
   public Response deleteInstance(@Context HttpHeaders headers, @Context UriInfo ui,

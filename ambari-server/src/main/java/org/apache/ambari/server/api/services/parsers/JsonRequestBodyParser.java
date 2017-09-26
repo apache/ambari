@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -98,7 +98,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
       } catch (IOException e) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Caught exception parsing msg body.");
-          LOG.debug("Message Body: " + body, e);
+          LOG.debug("Message Body: {}", body, e);
         }
         throw new BodyParseException(e);
       }
@@ -129,8 +129,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
             // All remain nodes will be also primitives
             primitives.add(next.asText());
           } else {
-            NamedPropertySet arrayPropertySet = new NamedPropertySet(name,
-                new HashMap<String, Object>());
+            NamedPropertySet arrayPropertySet = new NamedPropertySet(name, new HashMap<>());
             processNode(next, "", arrayPropertySet, requestInfoProps);
             arraySet.add(arrayPropertySet.getProperties());
           }

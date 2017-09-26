@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -110,7 +110,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
       }
       if (containsSecretReferences) {
         throw new InvalidTopologyException("Secret references are not allowed in blueprints, " +
-          "replace following properties with real passwords:\n" + errorMessage.toString());
+          "replace following properties with real passwords:\n" + errorMessage);
       }
     }
 

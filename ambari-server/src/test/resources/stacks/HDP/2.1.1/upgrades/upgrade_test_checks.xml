@@ -68,6 +68,7 @@
         <component>ZOOKEEPER_CLIENT</component>
       </service>
     </group>
+    
     <group name="CORE_MASTER" title="Core Masters">
       <service name="HDFS">
         <component>JOURNALNODE</component>
@@ -108,9 +109,16 @@
     
     <group name="SERVICE_CHECK_2" title="Post-Slave Service Checks" xsi:type="service-check">
       <priority>
+        <service>ZOOKEEPER</service>
         <service>HDFS</service>
         <service>YARN</service>
       </priority>
+    </group>
+    
+    <group name="OOZIE" title="Oozie">
+      <service name="OOZIE">
+        <component>OOZIE_SERVER</component>
+      </service>
     </group>
     
     
@@ -213,5 +221,12 @@
         <upgrade />
       </component>
     </service>
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+	</service>
   </processing>
 </upgrade>

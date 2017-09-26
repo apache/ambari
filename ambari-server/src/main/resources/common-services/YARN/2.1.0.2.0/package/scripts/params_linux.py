@@ -30,7 +30,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
@@ -66,20 +66,21 @@ tarball_map = default("/configurations/cluster-env/tarball_map", None)
 config_path = os.path.join(stack_root, "current/hadoop-client/conf")
 config_dir = os.path.realpath(config_path)
 
+# get the correct version to use for checking stack features
+version_for_stack_feature_checks = get_stack_feature_version(config)
+
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanager')
+major_stack_version = get_major_version(stack_version_formatted_major)
 
-stack_supports_ru = stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)
-stack_supports_timeline_state_store = stack_version_formatted_major and check_stack_feature(StackFeature.TIMELINE_STATE_STORE, stack_version_formatted_major)
+stack_supports_ru = check_stack_feature(StackFeature.ROLLING_UPGRADE, version_for_stack_feature_checks)
+stack_supports_timeline_state_store = check_stack_feature(StackFeature.TIMELINE_STATE_STORE, version_for_stack_feature_checks)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
 version = default("/commandParams/version", None)
-
-# get the correct version to use for checking stack features
-version_for_stack_feature_checks = get_stack_feature_version(config)
 
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
@@ -168,9 +169,6 @@ rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = default('/configurations/yarn-site/yarn.resourcemanager.webapp.https.address', ":8090").split(':')[-1]
-# TODO UPGRADE default, update site during upgrade
-rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
-rm_nodes_exclude_dir = os.path.dirname(rm_nodes_exclude_path)
 
 java64_home = config['hostLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
@@ -240,14 +238,25 @@ user_group = config['configurations']['cluster-env']['user_group']
 #exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
+rm_nodes_exclude_dir = os.path.dirname(exclude_file_path)
+
+nm_hosts = default("/clusterHostInfo/nm_hosts", [])
+#incude file
+include_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.include-path", None)
+include_hosts = None
+manage_include_files = default("/configurations/yarn-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  rm_nodes_include_dir = os.path.dirname(include_file_path)
+  include_hosts = list(set(nm_hosts) - set(exclude_hosts))
 
 ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0
 
-nm_hosts = default("/clusterHostInfo/nm_hosts", [])
-
 # don't using len(nm_hosts) here, because check can take too much time on large clusters
 number_of_nm = 1
+
+hs_host = default("/clusterHostInfo/hs_host", [])
+has_hs = not len(hs_host) == 0
 
 # default kinit commands
 rm_kinit_cmd = ""
@@ -272,19 +281,26 @@ if security_enabled:
 
   # YARN timeline security options
   if has_ats:
-    _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
-    _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
-    _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
-    yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
+    yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
+    yarn_timelineservice_principal_name = yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
+    yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
+    yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {yarn_timelineservice_keytab} {yarn_timelineservice_principal_name};")
+    yarn_ats_jaas_file = os.path.join(config_dir, 'yarn_ats_jaas.conf')
 
   if 'yarn.nodemanager.principal' in config['configurations']['yarn-site']:
-    _nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
-    if _nodemanager_principal_name:
-      _nodemanager_principal_name = _nodemanager_principal_name.replace('_HOST', hostname.lower())
+    nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
+    if nodemanager_principal_name:
+      nodemanager_principal_name = nodemanager_principal_name.replace('_HOST', hostname.lower())
 
-    _nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
-    nodemanager_kinit_cmd = format("{kinit_path_local} -kt {_nodemanager_keytab} {_nodemanager_principal_name};")
+    nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
+    nodemanager_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
+    yarn_nm_jaas_file = os.path.join(config_dir, 'yarn_nm_jaas.conf')
 
+  if has_hs:
+    mapred_jhs_principal_name = config['configurations']['mapred-site']['mapreduce.jobhistory.principal']
+    mapred_jhs_principal_name = mapred_jhs_principal_name.replace('_HOST', hostname.lower())
+    mapred_jhs_keytab = config['configurations']['mapred-site']['mapreduce.jobhistory.keytab']
+    mapred_jaas_file = os.path.join(config_dir, 'mapred_jaas.conf')
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
@@ -335,7 +351,7 @@ HdfsResource = functools.partial(
   immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
  )
-update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
+update_files_only = default("/commandParams/update_files_only",False)
 
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 

@@ -505,7 +505,7 @@ public class ClusterService extends BaseService {
    * @return the services service
    */
   @Path("{clusterName}/services")
-  public ServiceService getServiceHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public ServiceService getServiceHandler(@Context javax.ws.rs.core.Request request, @ApiParam @PathParam("clusterName") String clusterName) {
     return new ServiceService(clusterName);
   }
 

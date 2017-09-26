@@ -336,7 +336,11 @@ def do_keystore_setup(upgrade_type=None):
     )
 
   if params.ranger_auth_method.upper() == "LDAP":
-    ranger_credential_helper(params.cred_lib_path, params.ranger_ldap_password_alias, params.ranger_usersync_ldap_ldapbindpassword, params.ranger_credential_provider_path)
+    ranger_ldap_auth_password = params.ranger_usersync_ldap_ldapbindpassword
+    if params.ranger_ldap_bind_auth_password != "{{ranger_usersync_ldap_ldapbindpassword}}":
+      ranger_ldap_auth_password = params.ranger_ldap_bind_auth_password
+
+    ranger_credential_helper(params.cred_lib_path, params.ranger_ldap_password_alias, ranger_ldap_auth_password, params.ranger_credential_provider_path)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
@@ -345,7 +349,11 @@ def do_keystore_setup(upgrade_type=None):
     )
 
   if params.ranger_auth_method.upper() == "ACTIVE_DIRECTORY":
-    ranger_credential_helper(params.cred_lib_path, params.ranger_ad_password_alias, params.ranger_usersync_ldap_ldapbindpassword, params.ranger_credential_provider_path)
+    ranger_ad_auth_password = params.ranger_usersync_ldap_ldapbindpassword
+    if params.ranger_ad_bind_auth_password != "{{ranger_usersync_ldap_ldapbindpassword}}":
+      ranger_ad_auth_password = params.ranger_ad_bind_auth_password
+
+    ranger_credential_helper(params.cred_lib_path, params.ranger_ad_password_alias, ranger_ad_auth_password, params.ranger_credential_provider_path)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
@@ -543,6 +551,12 @@ def setup_usersync(upgrade_type=None):
     mode = 0755,
   )
 
+  if upgrade_type is not None and params.stack_supports_config_versioning:
+    if os.path.islink('/usr/bin/ranger-usersync'):
+      Link('/usr/bin/ranger-usersync', action="delete")
+
+    Link('/usr/bin/ranger-usersync', to=params.usersync_services_file)
+
   Execute(('ln','-sf', format('{usersync_services_file}'),'/usr/bin/ranger-usersync'),
     not_if=format("ls /usr/bin/ranger-usersync"),
     only_if=format("ls {usersync_services_file}"),
@@ -703,7 +717,7 @@ def setup_ranger_audit_solr():
         config_set = params.ranger_solr_config_set,
         config_set_dir = params.ranger_solr_conf,
         tmp_dir = params.tmp_dir,
-        java64_home = params.java_home,
+        java64_home = params.ambari_java_home,
         solrconfig_content = InlineTemplate(params.ranger_solr_config_content),
         jaas_file=params.solr_jaas_file,
         retry=30, interval=5
@@ -717,7 +731,7 @@ def setup_ranger_audit_solr():
         config_set = params.ranger_solr_config_set,
         config_set_dir = params.ranger_solr_conf,
         tmp_dir = params.tmp_dir,
-        java64_home = params.java_home,
+        java64_home = params.ambari_java_home,
         jaas_file=params.solr_jaas_file,
         retry=30, interval=5)
 
@@ -740,7 +754,7 @@ def setup_ranger_audit_solr():
       solr_znode = params.solr_znode,
       collection = params.ranger_solr_collection_name,
       config_set = params.ranger_solr_config_set,
-      java64_home = params.java_home,
+      java64_home = params.ambari_java_home,
       shards = params.ranger_solr_shards,
       replication_factor = int(params.replication_factor),
       jaas_file = params.solr_jaas_file)
@@ -766,14 +780,14 @@ def check_znode():
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.solr_znode,
-    java64_home=params.java_home)
+    java64_home=params.ambari_java_home)
 
 def secure_znode(znode, jaasFile):
   import params
   solr_cloud_util.secure_znode(config=params.config, zookeeper_quorum=params.zookeeper_quorum,
                                solr_znode=znode,
                                jaas_file=jaasFile,
-                               java64_home=params.java_home, sasl_users=[params.ranger_admin_jaas_principal])
+                               java64_home=params.ambari_java_home, sasl_users=[params.ranger_admin_jaas_principal])
 
 def get_ranger_plugin_principals(services_defaults_tuple_list):
   """
@@ -851,3 +865,16 @@ def setup_tagsync_ssl_configs():
        mode = 0640
        )
   Logger.info("Configuring tagsync-ssl configurations done successfully.")
+
+def update_password_configs():
+  import params
+
+  password_configs = {'db_root_password': '_', 'db_password': '_'}
+
+  if params.stack_supports_ranger_audit_db:
+    password_configs['audit_db_password'] = '_'
+
+  ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+    properties = password_configs,
+    owner = params.unix_user,
+  )

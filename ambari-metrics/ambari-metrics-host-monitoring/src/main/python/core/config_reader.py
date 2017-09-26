@@ -115,6 +115,8 @@ enable_value_threshold = false
 
 [emitter]
 send_interval = 60
+kinit_cmd = /usr/bin/kinit -kt /etc/security/keytabs/ams.monitor.keytab amsmon/localhost
+klist_cmd = /usr/bin/klist
 
 [collector]
 collector_sleep_interval = 5
@@ -217,6 +219,12 @@ class Configuration:
 
   def get_send_interval(self):
     return int(self.get("emitter", "send_interval", 60))
+
+  def get_kinit_cmd(self):
+    return self.get("emitter", "kinit_cmd")
+
+  def get_klist_cmd(self):
+    return self.get("emitter", "klist_cmd")
 
   def get_collector_sleep_interval(self):
     return int(self.get("collector", "collector_sleep_interval", 10))

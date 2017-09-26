@@ -47,7 +47,7 @@ from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_direct
 
 import namenode_upgrade
 
-def wait_for_safemode_off(hdfs_binary, afterwait_sleep=0, execute_kinit=False):
+def wait_for_safemode_off(hdfs_binary, afterwait_sleep=0, execute_kinit=False, retries=115, sleep_seconds=10):
   """
   During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
   all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
@@ -55,8 +55,6 @@ def wait_for_safemode_off(hdfs_binary, afterwait_sleep=0, execute_kinit=False):
   """
   import params
 
-  retries = 115
-  sleep_seconds = 10
   sleep_minutes = int(sleep_seconds * retries / 60)
 
   Logger.info("Waiting up to {0} minutes for the NameNode to leave Safemode...".format(sleep_minutes))
@@ -216,7 +214,11 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
 
     # wait for Safemode to end
     if ensure_safemode_off:
-      wait_for_safemode_off(hdfs_binary)
+      if params.rolling_restart and params.rolling_restart_safemode_exit_timeout:
+        calculated_retries = int(params.rolling_restart_safemode_exit_timeout) / 30
+        wait_for_safemode_off(hdfs_binary, afterwait_sleep=30, retries=calculated_retries, sleep_seconds=30)
+      else:
+        wait_for_safemode_off(hdfs_binary)
 
     # Always run this on the "Active" NN unless Safemode has been ignored
     # in the case where safemode was ignored (like during an express upgrade), then
@@ -434,7 +436,15 @@ def decommission():
        group=user_group
   )
 
-  if not params.update_exclude_file_only:
+  if params.hdfs_include_file:
+    File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user,
+         group=params.user_group
+         )
+    pass
+
+  if not params.update_files_only:
     Execute(nn_kinit_cmd,
             user=hdfs_user
     )
@@ -460,6 +470,13 @@ def decommission():
        content=Template("exclude_hosts_list.j2"),
        owner=hdfs_user
   )
+
+  if params.hdfs_include_file:
+    File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user
+         )
+    pass
 
   if params.dfs_ha_enabled:
     # due to a bug in hdfs, refreshNodes will not run on both namenodes so we

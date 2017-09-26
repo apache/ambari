@@ -133,7 +133,7 @@ public class ServerActionExecutorTest {
     stage.addServerActionCommand(ManualStageAction.class.getName(),
         null, Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        Collections.<String, String> emptyMap(), null, null, 1200, false, false);
+        Collections.emptyMap(), null, null, 1200, false, false);
 
     final List<Stage> stages = new ArrayList<Stage>() {
       {

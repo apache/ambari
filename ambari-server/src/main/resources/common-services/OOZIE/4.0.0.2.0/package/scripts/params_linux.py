@@ -19,8 +19,10 @@ limitations under the License.
 """
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions import conf_select, stack_select
-from resource_management.libraries.functions.constants import StackFeature
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -33,6 +35,9 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
+from resource_management.libraries.functions.stack_tools import get_stack_name
+from resource_management.libraries.functions.version import get_major_version
+
 
 from resource_management.core.utils import PasswordString
 from ambari_commons.credential_store_helper import get_password_from_credential_store
@@ -52,6 +57,8 @@ architecture = get_architecture()
 
 # Needed since this writes out the Atlas Hive Hook config file.
 cluster_name = config['clusterName']
+serviceName = config['serviceName']
+role = config['role']
 
 hostname = config["hostname"]
 
@@ -64,8 +71,19 @@ agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_ret
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 stack_root = status_params.stack_root
+
+# The source stack will be present during a cross-stack upgrade.
+# E.g., BigInsights-4.2.5 or HDP-2.6
+source_stack = default("/commandParams/source_stack", None)
+if source_stack is None:
+  source_stack = upgrade_summary.get_source_stack("OOZIE")
+
+# This variable name is important, do not change
+source_stack_name = get_stack_name(source_stack)
+
 stack_version_unformatted =  status_params.stack_version_unformatted
 stack_version_formatted =  status_params.stack_version_formatted
+major_stack_version = get_major_version(stack_version_formatted)
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

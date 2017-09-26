@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -88,7 +88,7 @@ public class GangliaMetricTest {
     listTemporalMetrics.add(new GangliaMetric.TemporalMetric("0.0", new Long(17)));
     listTemporalMetrics.add(new GangliaMetric.TemporalMetric("0.0", new Long(18)));
     instance.setDatapointsFromList(listTemporalMetrics);
-    System.out.println(instance.toString());
+    System.out.println(instance);
     assertTrue(instance.getDatapoints().length == 11);
   }  
   

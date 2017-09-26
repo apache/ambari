@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -52,9 +52,11 @@ import org.apache.ambari.server.state.repository.Release;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -71,14 +73,30 @@ import com.google.inject.Provider;
     initialValue = 0
     )
 @NamedQueries({
-    @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
-    @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
-    @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
-    @NamedQuery(name = "repositoryVersionsFromDefinition", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL")
-})
+    @NamedQuery(
+        name = "repositoryVersionByDisplayName",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
+    @NamedQuery(
+        name = "repositoryVersionByStack",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
+    @NamedQuery(
+        name = "repositoryVersionByStackAndType",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion AND repoversion.type=:type"),
+    @NamedQuery(
+        name = "repositoryVersionByStackNameAndVersion",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
+    @NamedQuery(
+        name = "repositoryVersionsFromDefinition",
+        query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL"),
+    @NamedQuery(
+        name = "findRepositoryByVersion",
+        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC"),
+    @NamedQuery(
+        name = "findByServiceDesiredVersion",
+        query = "SELECT DISTINCT sd.desiredRepositoryVersion from ServiceDesiredStateEntity sd WHERE sd.desiredRepositoryVersion IN ?1") })
 @StaticallyInject
 public class RepositoryVersionEntity {
-  private static Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
 
   @Inject
   private static Provider<RepositoryVersionHelper> repositoryVersionHelperProvider;
@@ -105,10 +123,6 @@ public class RepositoryVersionEntity {
   @Column(name = "repositories")
   private String operatingSystems;
 
-
-  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
-  private Set<ClusterVersionEntity> clusterVersionEntities;
-
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<HostVersionEntity> hostVersionEntities;
 
@@ -130,12 +144,26 @@ public class RepositoryVersionEntity {
   @Column(name="version_xsd", insertable = true, updatable = true)
   private String versionXsd;
 
+  @Column(name = "hidden", nullable = false, insertable = true, updatable = true)
+  private short isHidden = 0;
+
+  /**
+   * Repositories can't be trusted until they have been deployed and we've
+   * detected their actual version. Most of the time, things match up, but
+   * editing a VDF could causes the version to be misrepresented. Once we have
+   * received the correct version of the repository (normally after it's been
+   * installed), then we can set this flag to {@code true}.
+   */
+  @Column(name = "resolved", nullable = false)
+  private short resolved = 0;
+
   @ManyToOne
   @JoinColumn(name = "parent_id")
   private RepositoryVersionEntity parent;
 
   @OneToMany(mappedBy = "parent")
   private List<RepositoryVersionEntity> children;
+
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -158,13 +186,6 @@ public class RepositoryVersionEntity {
     if (version.startsWith(stackName)) {
       version = version.substring(stackName.length() + 1);
     }
-  }
-  /**
-   * Update one-to-many relation without rebuilding the whole entity
-   * @param entity many-to-one entity
-   */
-  public void updateClusterVersionEntityRelation(ClusterVersionEntity entity){
-    clusterVersionEntities.add(entity);
   }
 
   /**
@@ -206,6 +227,13 @@ public class RepositoryVersionEntity {
     return version;
   }
 
+  /**
+   * Sets the version on this repository version entity. If the version is
+   * confirmed as correct, then the called should also set
+   * {@link #setResolved(boolean)}.
+   *
+   * @param version
+   */
   public void setVersion(String version) {
     this.version = version;
   }
@@ -286,37 +314,6 @@ public class RepositoryVersionEntity {
     this.type = type;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    RepositoryVersionEntity that = (RepositoryVersionEntity) o;
-
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (stack != null ? !stack.equals(that.stack) : that.stack != null) {
-      return false;
-    }
-    if (version != null ? !version.equals(that.version) : that.version != null) {
-      return false;
-    }
-    if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
-      return false;
-    }
-
-    if (operatingSystems != null ? !operatingSystems.equals(that.operatingSystems) : that.operatingSystems != null) {
-      return false;
-    }
-
-    return true;
-  }
-
   /**
    * @return the XML that is the basis for the version
    */
@@ -377,14 +374,39 @@ public class RepositoryVersionEntity {
     return versionDefinition;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    RepositoryVersionEntity that = (RepositoryVersionEntity) o;
+    return new EqualsBuilder().append(id, that.id).append(stack, that.stack).append(version,
+        that.version).append(displayName, that.displayName).isEquals();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (stack != null ? stack.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
-    result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
-    result = 31 * result + (operatingSystems != null ? operatingSystems.hashCode() : 0);
-    return result;
+    return Objects.hashCode(id, stack, version, displayName);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("id", id).add("stack", stack).add("version",
+        version).add("type", type).add("hidden", isHidden == 1).toString();
   }
 
   /**
@@ -433,4 +455,45 @@ public class RepositoryVersionEntity {
     return null == parent ? null : parent.getId();
   }
 
+  /**
+   * Gets whether this repository is hidden.
+   *
+   * @return
+   */
+  public boolean isHidden() {
+    return isHidden != 0;
+  }
+
+  /**
+   * Sets whether this repository is hidden. A repository can be hidden for
+   * several reasons, including if it has been removed (but needs to be kept
+   * around for foreign key relationships) or if it just is not longer desired
+   * to see it.
+   *
+   * @param isHidden
+   */
+  public void setHidden(boolean isHidden) {
+    this.isHidden = (short) (isHidden ? 1 : 0);
+  }
+
+  /**
+   * Gets whether this repository has been installed and has reported back its
+   * actual version.
+   *
+   * @return {@code true} if the version for this repository can be trusted,
+   *         {@code false} otherwise.
+   */
+  public boolean isResolved() {
+    return resolved == 1;
+  }
+
+  /**
+   * Sets whether this repository has been installed and has reported back its
+   * actual version.
+   *
+   * @param resolved
+   */
+  public void setResolved(boolean resolved) {
+    this.resolved = resolved ? (short) 1 : (short) 0;
+  }
 }

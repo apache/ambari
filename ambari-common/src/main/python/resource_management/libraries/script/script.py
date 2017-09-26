@@ -47,18 +47,18 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
-from resource_management.libraries.functions.version_select_util import get_component_version
+from resource_management.libraries.functions.version_select_util import get_component_version_from_symlink
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
 from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -183,12 +183,6 @@ class Script(object):
     except IOError, err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 
-  def get_component_name(self):
-    """
-    To be overridden by subclasses.
-     Returns a string with the component name used in selecting the version.
-    """
-    pass
 
   def get_config_dir_during_stack_upgrade(self, env, base_dir, conf_select_name):
     """
@@ -213,16 +207,40 @@ class Script(object):
       return os.path.realpath(config_path)
     return None
 
-  def save_component_version_to_structured_out(self):
+  def save_component_version_to_structured_out(self, command_name):
     """
-    :param stack_name: One of HDP, HDPWIN, PHD, BIGTOP.
-    :return: Append the version number to the structured out.
+    Saves the version of the component for this command to the structured out file. If the
+    command is an install command and the repository is trusted, then it will use the version of
+    the repository. Otherwise, it will consult the stack-select tool to read the symlink version.
+    :param command_name: command name
+    :return: None
     """
-    stack_name = Script.get_stack_name()
-    component_name = self.get_component_name()
+    from resource_management.libraries.functions.default import default
+    from resource_management.libraries.functions import stack_select
 
-    if component_name and stack_name:
-      component_version = get_component_version(stack_name, component_name)
+    repository_resolved = default("repositoryFile/resolved", False)
+    repository_version = default("repositoryFile/repoVersion", None)
+    is_install_command = command_name is not None and command_name.lower() == "install"
+
+    # start out with no version
+    component_version = None
+
+    # install command + trusted repo means use the repo version and don't consult stack-select
+    # this is needed in cases where an existing symlink is on the system and stack-select can't
+    # change it on installation (because it's scared to in order to support parallel installs)
+    if is_install_command and repository_resolved and repository_version is not None:
+      Logger.info("The repository with version {0} for this command has been marked as resolved."\
+        " It will be used to report the version of the component which was installed".format(repository_version))
+
+      component_version = repository_version
+
+    stack_name = Script.get_stack_name()
+    stack_select_package_name = stack_select.get_package_name()
+
+    if stack_select_package_name and stack_name:
+      # only query for the component version from stack-select if we can't trust the repository yet
+      if component_version is None:
+        component_version = get_component_version_from_symlink(stack_name, stack_select_package_name)
 
       if component_version:
         self.put_structured_out({"version": component_version})
@@ -232,6 +250,9 @@ class Script(object):
         repo_version_id = default("/hostLevelParams/repository_version_id", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
+      else:
+        if not self.is_hook():
+          Logger.error("Component '{0}' did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
 
 
   def should_expose_component_version(self, command_name):
@@ -337,7 +358,7 @@ class Script(object):
       raise
     finally:
       if self.should_expose_component_version(self.command_name):
-        self.save_component_version_to_structured_out()
+        self.save_component_version_to_structured_out(self.command_name)
 
   def execute_prefix_function(self, command_name, afix, env):
     """
@@ -411,7 +432,7 @@ class Script(object):
     status_method = getattr(self, 'status')
     component_is_stopped = False
     counter = 0
-    while not component_is_stopped :
+    while not component_is_stopped:
       try:
         if counter % 100 == 0:
           Logger.logger.info("Waiting for actual component stop")
@@ -446,11 +467,12 @@ class Script(object):
 
     :return: stack version including the build number. e.g.: 2.3.4.0-1234.
     """
+    from resource_management.libraries.functions import stack_select
+
     # preferred way is to get the actual selected version of current component
-    component_name = self.get_component_name()
-    if not Script.stack_version_from_distro_select and component_name:
-      from resource_management.libraries.functions import stack_select
-      Script.stack_version_from_distro_select = stack_select.get_stack_version_before_install(component_name)
+    stack_select_package_name = stack_select.get_package_name()
+    if not Script.stack_version_from_distro_select and stack_select_package_name:
+      Script.stack_version_from_distro_select = stack_select.get_stack_version_before_install(stack_select_package_name)
 
     # If <stack-selector-tool> has not yet been done (situations like first install),
     # we can use <stack-selector-tool> version itself.
@@ -458,25 +480,59 @@ class Script(object):
     if not Script.stack_version_from_distro_select or '*' in Script.stack_version_from_distro_select:
       # FIXME: this method is not reliable to get stack-selector-version
       # as if there are multiple versions installed with different <stack-selector-tool>, we won't detect the older one (if needed).
-      Script.stack_version_from_distro_select = packages_analyzer.getInstalledPackageVersion(
+      pkg_provider = get_provider("Package")
+
+      Script.stack_version_from_distro_select = pkg_provider.get_installed_package_version(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
 
     return Script.stack_version_from_distro_select
 
-  def format_package_name(self, name):
+
+  def get_package_from_available(self, name, available_packages_in_repos):
+    """
+    This function matches package names with ${stack_version} placeholder to actual package names from
+    Ambari-managed repository.
+    Package names without ${stack_version} placeholder are returned as is.
+    """
+    if STACK_VERSION_PLACEHOLDER not in name:
+      return name
+    package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+    package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter)) + "$"
+    for package in available_packages_in_repos:
+      if re.match(package_regex, package):
+        return package
+    Logger.warning("No package found for {0}({1})".format(name, package_regex))
+
+
+  def format_package_name(self, name, repo_version=None):
     from resource_management.libraries.functions.default import default
     """
-    This function replaces ${stack_version} placeholder into actual version.  If the package
+    This function replaces ${stack_version} placeholder with actual version.  If the package
     version is passed from the server, use that as an absolute truth.
+    
+    :param name name of the package
+    :param repo_version actual version of the repo currently installing
     """
+    stack_version_package_formatted = ""
 
-    # two different command types put things in different objects.  WHY.
-    # package_version is the form W_X_Y_Z_nnnn
-    package_version = default("roleParams/package_version", None)
-    if not package_version:
-      package_version = default("hostLevelParams/package_version", None)
+    if not repo_version:
+      repo_version = self.get_stack_version_before_packages_installed()
 
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+
+    # repositoryFile is the truth
+    # package_version should be made to the form W_X_Y_Z_nnnn
+    package_version = default("repositoryFile/repoVersion", None)
+    if package_version is not None:
+      package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
+
+    # TODO remove legacy checks
+    if package_version is None:
+      package_version = default("roleParams/package_version", None)
+
+    # TODO remove legacy checks
+    if package_version is None:
+      package_version = default("hostLevelParams/package_version", None)
 
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but
@@ -496,7 +552,7 @@ class Script(object):
 
     # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we try to specify it.
     if not package_version or '*' in package_version:
-      stack_version_package_formatted = self.get_stack_version_before_packages_installed().replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
+      stack_version_package_formatted = repo_version.replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
 
     package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
 
@@ -573,7 +629,11 @@ class Script(object):
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    return default("/hostLevelParams/stack_name", "HDP")
+    stack_name = default("/hostLevelParams/stack_name", None)
+    if stack_name is None:
+      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
+
+    return stack_name
 
   @staticmethod
   def get_stack_root():
@@ -583,7 +643,18 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
     stack_name = Script.get_stack_name()
-    return default("/configurations/cluster-env/stack_root", "/usr/{0}".format(stack_name.lower()))
+    stack_root_json = default("/configurations/cluster-env/stack_root", None)
+
+    if stack_root_json is None:
+      return "/usr/{0}".format(stack_name.lower())
+
+    stack_root = json.loads(stack_root_json)
+
+    if stack_name not in stack_root:
+      Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
+      return "/usr/{0}".format(stack_name.lower())
+
+    return stack_root[stack_name]
 
   @staticmethod
   def get_stack_version():
@@ -687,7 +758,7 @@ class Script(object):
 
     if 'host_sys_prepped' in config['hostLevelParams']:
       # do not install anything on sys-prepped host
-      if config['hostLevelParams']['host_sys_prepped'] == True:
+      if config['hostLevelParams']['host_sys_prepped'] is True:
         Logger.info("Node has all packages pre-installed. Skipping.")
         return
       pass
@@ -695,12 +766,17 @@ class Script(object):
       package_list_str = config['hostLevelParams']['package_list']
       agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
       agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
-
+      pkg_provider = get_provider("Package")
+      try:
+        available_packages_in_repos = pkg_provider.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+      except Exception as err:
+        Logger.exception("Unable to load available packages")
+        available_packages_in_repos = []
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           if self.check_package_condition(package):
-            name = self.format_package_name(package['name'])
+            name = self.get_package_from_available(package['name'], available_packages_in_repos)
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.
@@ -884,7 +960,7 @@ class Script(object):
           self.post_rolling_restart(env)
 
     if self.should_expose_component_version("restart"):
-      self.save_component_version_to_structured_out()
+      self.save_component_version_to_structured_out("restart")
 
 
   # TODO, remove after all services have switched to post_upgrade_restart

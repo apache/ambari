@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,9 +24,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -89,6 +91,18 @@ public class QuickLinksConfigurationModuleTest {
     assertNotNull(links);
     assertEquals(7, links.size());
     assertEquals(4, parentQuickLinks.getQuickLinksConfiguration().getLinks().size());
+    Link threadStacks = getLink(links, "thread_stacks");
+    assertNotNull("https_regex property should have been inherited",
+        threadStacks.getPort().getHttpsRegex());
+  }
+
+  private Link getLink(Collection<Link> links, String name) {
+    for (Link link: links) {
+      if (name.equals(link.getName())) {
+        return link;
+      }
+    }
+    throw new NoSuchElementException("name");
   }
 
   @Test

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
 
 public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private static final Logger LOG = Logger.getLogger(LogLevelFilterHandler.class);
-  
+
   private static final String TIMEZONE = "GMT";
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
   
@@ -52,15 +52,14 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   };
   
   private static LogSearchConfig config;
-  private static String clusterName = LogFeederUtil.getStringProperty("cluster.name");
   private static boolean filterEnabled;
   private static List<String> defaultLogLevels;
   private static Map<String, LogLevelFilter> filters = new HashMap<>();
 
   public static void init(LogSearchConfig config_) {
     config = config_;
-    filterEnabled = LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false);
-    defaultLogLevels = Arrays.asList(LogFeederUtil.getStringProperty("logfeeder.include.default.level").split(","));
+    filterEnabled = LogFeederPropertiesUtil.isLogFilterEnabled();
+    defaultLogLevels = Arrays.asList(LogFeederPropertiesUtil.getIncludeDefaultLevel().split(","));
     TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
   }
 
@@ -100,7 +99,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     defaultFilter.setDefaultLevels(defaultLogLevels);
 
     try {
-      config.createLogLevelFilter(clusterName, logId, defaultFilter);
+      config.createLogLevelFilter(LogFeederPropertiesUtil.getClusterName(), logId, defaultFilter);
       filters.put(logId, defaultFilter);
     } catch (Exception e) {
       LOG.warn("Could not persist the default filter for log " + logId, e);

@@ -249,6 +249,10 @@ refresh_topology = False
 command_params = config["commandParams"] if "commandParams" in config else None
 if command_params is not None:
   refresh_topology = bool(command_params["refresh_topology"]) if "refresh_topology" in command_params else False
+
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+ambari_jdk_name = default("/commandParams/ambari_jdk_name", None)
+ambari_jce_name = default("/commandParams/ambari_jce_name", None)
   
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']
@@ -275,7 +279,6 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
@@ -315,7 +318,15 @@ if dfs_ha_enabled:
    pass
  pass
 else:
- namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
+  namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', default_fs)
+
+# if HDFS is not installed in the cluster, then don't try to access namenode_rpc
+if "core-site" in config['configurations'] and namenode_rpc:
+  port_str = namenode_rpc.split(':')[-1].strip()
+  try:
+    nn_rpc_client_port = int(port_str)
+  except ValueError:
+    nn_rpc_client_port = None
 
 if namenode_rpc:
  nn_rpc_client_port = namenode_rpc.split(':')[1].strip()

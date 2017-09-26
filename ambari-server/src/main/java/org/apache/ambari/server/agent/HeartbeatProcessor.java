@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.agent;
 
+
+import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -293,13 +297,13 @@ public class HeartbeatProcessor extends AbstractService{
         int slaveCount = 0;
         int slavesRunning = 0;
 
-        StackId stackId;
         Cluster cluster = clusterFsm.getCluster(clusterName);
-        stackId = cluster.getDesiredStackVersion();
 
 
         List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(heartbeat.getHostname());
         for (ServiceComponentHost scHost : scHosts) {
+          StackId stackId = scHost.getDesiredStackId();
+
           ComponentInfo componentInfo =
               ambariMetaInfo.getComponent(stackId.getStackName(),
                   stackId.getStackVersion(), scHost.getServiceName(),
@@ -374,9 +378,10 @@ public class HeartbeatProcessor extends AbstractService{
         }
       }
 
-      LOG.debug("Received command report: " + report);
+      LOG.debug("Received command report: {}", report);
+
+      // get this locally; don't touch the database
       Host host = clusterFsm.getHost(hostname);
-//      HostEntity hostEntity = hostDAO.findByName(hostname); //don't touch database
       if (host == null) {
         LOG.error("Received a command report and was unable to retrieve Host for hostname = " + hostname);
         continue;
@@ -419,8 +424,8 @@ public class HeartbeatProcessor extends AbstractService{
 
         String customCommand = report.getCustomCommand();
 
-        boolean adding = "SET_KEYTAB".equalsIgnoreCase(customCommand);
-        if (adding || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
+        boolean adding = SET_KEYTAB.equalsIgnoreCase(customCommand);
+        if (adding || REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
           WriteKeytabsStructuredOut writeKeytabsStructuredOut;
           try {
             writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
@@ -444,6 +449,12 @@ public class HeartbeatProcessor extends AbstractService{
               }
             }
           }
+        } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
+          ListKeytabsStructuredOut structuredOut = gson.fromJson(report.getStructuredOut(), ListKeytabsStructuredOut.class);
+          for (MissingKeytab each : structuredOut.missingKeytabs){
+            LOG.info("Missing keytab: {} on host: {} principal: {}", each.keytabFilePath, hostname, each.principal);
+            kerberosPrincipalHostDAO.remove(each.principal, host.getHostId());
+          }
         }
       }
 
@@ -462,7 +473,7 @@ public class HeartbeatProcessor extends AbstractService{
         throw new AmbariException("Invalid command report, service: " + service);
       }
       if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
-        LOG.debug(report.getRole() + " is an action - skip component lookup");
+        LOG.debug("{} is an action - skip component lookup", report.getRole());
       } else {
         try {
           Service svc = cl.getService(service);
@@ -473,7 +484,8 @@ public class HeartbeatProcessor extends AbstractService{
           if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
 
             // Reading component version if it is present
-            if (StringUtils.isNotBlank(report.getStructuredOut())) {
+            if (StringUtils.isNotBlank(report.getStructuredOut())
+                && !StringUtils.equals("{}", report.getStructuredOut())) {
               ComponentVersionStructuredOut structuredOutput = null;
               try {
                 structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
@@ -491,10 +503,7 @@ public class HeartbeatProcessor extends AbstractService{
               versionEventPublisher.publish(event);
             }
 
-            // Updating stack version, if needed (this is not actually for express/rolling upgrades!)
-            if (scHost.getState().equals(org.apache.ambari.server.state.State.UPGRADING)) {
-              scHost.setStackVersion(scHost.getDesiredStackVersion());
-            } else if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
+            if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
                 (report.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND.toString()) &&
                     ("START".equals(report.getCustomCommand()) ||
                         "RESTART".equals(report.getCustomCommand()))))
@@ -616,10 +625,6 @@ public class HeartbeatProcessor extends AbstractService{
                 }
               }
 
-              if (null != status.getStackVersion() && !status.getStackVersion().isEmpty()) {
-                scHost.setStackVersion(gson.fromJson(status.getStackVersion(), StackId.class));
-              }
-
               if (null != status.getConfigTags()) {
                 scHost.updateActualConfigs(status.getConfigTags());
               }
@@ -707,6 +712,26 @@ public class HeartbeatProcessor extends AbstractService{
     }
   }
 
+  private static class ListKeytabsStructuredOut {
+    @SerializedName("missing_keytabs")
+    private final List<MissingKeytab> missingKeytabs;
+
+    public ListKeytabsStructuredOut(List<MissingKeytab> missingKeytabs) {
+      this.missingKeytabs = missingKeytabs;
+    }
+  }
+
+  private static class MissingKeytab {
+    @SerializedName("principal")
+    private final String principal;
+    @SerializedName("keytab_file_path")
+    private final String keytabFilePath;
+
+    public MissingKeytab(String principal, String keytabFilePath) {
+      this.principal = principal;
+      this.keytabFilePath = keytabFilePath;
+    }
+  }
 
   /**
    * This class is used for mapping json of structured output for component START action.

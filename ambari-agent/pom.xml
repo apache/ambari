@@ -103,8 +103,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>utility</groupId>
-      <artifactId>utility</artifactId>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-utility</artifactId>
       <scope>test</scope>
       <version>1.0.0.0-SNAPSHOT</version>
     </dependency>
@@ -270,17 +270,6 @@
               <sources>
                 <source>
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/etc</location>
-                </source>
-              </sources>
-            </mapping>
-           <mapping>
-              <directory>/usr/sbin</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded> <!-- avoid managing /usr/sbin -->
-              <sources>
-                <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/sbin</location>
                 </source>
               </sources>
             </mapping>
@@ -453,7 +442,7 @@
         </configuration>
         <executions>
           <execution>
-            <id>build-tarball</id>
+            <id>make-assembly</id>
             <phase>${assemblyPhase}</phase>
             <goals>
               <goal>single</goal>

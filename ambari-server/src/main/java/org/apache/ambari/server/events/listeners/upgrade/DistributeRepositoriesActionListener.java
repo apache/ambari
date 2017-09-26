@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,26 +19,23 @@ package org.apache.ambari.server.events.listeners.upgrade;
 
 import java.util.List;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.bootstrap.DistributeRepositoriesStructuredOutput;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -62,11 +59,10 @@ public class DistributeRepositoriesActionListener {
   private Provider<HostVersionDAO> hostVersionDAO;
 
   @Inject
-  private Provider<Clusters> clusters;
-
-  @Inject
   private RepositoryVersionDAO repoVersionDAO;
 
+  @Inject
+  private Gson gson;
 
   /**
    * Constructor.
@@ -89,7 +85,6 @@ public class DistributeRepositoriesActionListener {
       LOG.debug(event.toString());
     }
 
-    RepositoryVersionState newHostState = RepositoryVersionState.INSTALL_FAILED;
     Long clusterId = event.getClusterId();
     if (clusterId == null) {
       LOG.error("Distribute Repositories expected a cluster Id for host " + event.getHostname());
@@ -97,6 +92,7 @@ public class DistributeRepositoriesActionListener {
     }
 
     String repositoryVersion = null;
+    RepositoryVersionState newHostState = RepositoryVersionState.INSTALL_FAILED;
 
     if (event.getCommandReport() == null) {
       LOG.error(
@@ -107,55 +103,39 @@ public class DistributeRepositoriesActionListener {
           "Distribute repositories did not complete, will set all INSTALLING versions for host {} to INSTALL_FAILED.",
           event.getHostname());
     } else {
-      // Parse structured output
+
+      DistributeRepositoriesStructuredOutput structuredOutput = null;
       try {
+        structuredOutput = gson.fromJson(event.getCommandReport().getStructuredOut(),
+            DistributeRepositoriesStructuredOutput.class);
+      } catch (JsonSyntaxException e) {
+        LOG.error("Cannot parse structured output %s", e);
+      }
+
+      if (null == structuredOutput || null == structuredOutput.repositoryVersionId) {
+        LOG.error("Received an installation reponse, but it did not contain a repository version id");
+      } else {
         newHostState = RepositoryVersionState.INSTALLED;
-        DistributeRepositoriesStructuredOutput structuredOutput = StageUtils.getGson().fromJson(
-                event.getCommandReport().getStructuredOut(),
-                DistributeRepositoriesStructuredOutput.class);
 
-        repositoryVersion = structuredOutput.getInstalledRepositoryVersion();
+        String actualVersion = structuredOutput.actualVersion;
 
-        // Handle the case in which the version to install did not contain the build number,
-        // but the structured output does contain the build number.
-        if (null != structuredOutput.getActualVersion() && !structuredOutput.getActualVersion().isEmpty() &&
-            null != structuredOutput.getInstalledRepositoryVersion() && !structuredOutput.getInstalledRepositoryVersion().isEmpty() &&
-            null != structuredOutput.getStackId() && !structuredOutput.getStackId().isEmpty() &&
-            !structuredOutput.getActualVersion().equals(structuredOutput.getInstalledRepositoryVersion())) {
+        RepositoryVersionEntity repoVersion = repoVersionDAO.findByPK(structuredOutput.repositoryVersionId);
 
-          // !!! getInstalledRepositoryVersion() from the agent is the one
-          // entered in the UI.  getActualVersion() is computed.
-
-          StackId stackId = new StackId(structuredOutput.getStackId());
-          RepositoryVersionEntity version = repoVersionDAO.findByStackAndVersion(
-              stackId, structuredOutput.getInstalledRepositoryVersion());
-
-          if (null != version) {
-            LOG.info("Repository version {} was found, but {} is the actual value",
-                structuredOutput.getInstalledRepositoryVersion(),
-                structuredOutput.getActualVersion());
-            // !!! the entered version is not correct
-            version.setVersion(structuredOutput.getActualVersion());
-            repoVersionDAO.merge(version);
-            repositoryVersion = structuredOutput.getActualVersion();
+        if (null != repoVersion && StringUtils.isNotBlank(actualVersion)) {
+          if (!StringUtils.equals(repoVersion.getVersion(), actualVersion)) {
+            repoVersion.setVersion(actualVersion);
+            repoVersion.setResolved(true);
+            repoVersionDAO.merge(repoVersion);
+            repositoryVersion = actualVersion;
           } else {
-            // !!! extra check that the actual version is correct
-            stackId = new StackId(structuredOutput.getStackId());
-            version = repoVersionDAO.findByStackAndVersion(stackId,
-                structuredOutput.getActualVersion());
-
-            LOG.debug("Repository version {} was not found, check for {}.  Found={}",
-                structuredOutput.getInstalledRepositoryVersion(),
-                structuredOutput.getActualVersion(),
-                Boolean.valueOf(null != version));
-
-            if (null != version) {
-              repositoryVersion = structuredOutput.getActualVersion();
+            // the reported versions are the same - we should ensure that the
+            // repo is resolved
+            if (!repoVersion.isResolved()) {
+              repoVersion.setResolved(true);
+              repoVersionDAO.merge(repoVersion);
             }
           }
         }
-      } catch (JsonSyntaxException e) {
-        LOG.error("Cannot parse structured output %s", e);
       }
     }
 
@@ -176,14 +156,31 @@ public class DistributeRepositoriesActionListener {
       if (hostVersion.getState() == RepositoryVersionState.INSTALLING) {
         hostVersion.setState(newHostState);
         hostVersionDAO.get().merge(hostVersion);
-        // Update state of a cluster stack version
-        try {
-          Cluster cluster = clusters.get().getClusterById(clusterId);
-          cluster.recalculateClusterVersionState(hostVersion.getRepositoryVersion());
-        } catch (AmbariException e) {
-          LOG.error("Cannot get cluster with Id " + clusterId.toString() + " to recalculate its ClusterVersion.", e);
-        }
       }
     }
   }
+
+  /**
+   * Used only to parse the structured output of a distribute versions call
+   */
+  private static class DistributeRepositoriesStructuredOutput {
+    /**
+     * Either SUCCESS or FAIL
+     */
+    @SerializedName("package_installation_result")
+    private String packageInstallationResult;
+
+    /**
+     * The actual version returned, even when a failure during install occurs.
+     */
+    @SerializedName("actual_version")
+    private String actualVersion;
+
+    /**
+     * The repository id that is returned in structured output.
+     */
+    @SerializedName("repository_version_id")
+    private Long repositoryVersionId = null;
+  }
+
 }

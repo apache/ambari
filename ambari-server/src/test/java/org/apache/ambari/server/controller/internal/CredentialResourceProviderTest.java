@@ -385,7 +385,7 @@ public class CredentialResourceProviderTest {
       } else if ("alias3".equals(alias)) {
         Assert.assertEquals(CredentialStoreType.TEMPORARY.name().toLowerCase(), type);
       } else {
-        Assert.fail("Unexpected alias in list: " + alias.toString());
+        Assert.fail("Unexpected alias in list: " + alias);
       }
     }
 
@@ -462,7 +462,7 @@ public class CredentialResourceProviderTest {
       if ("alias1".equals(alias)) {
         Assert.assertEquals(CredentialStoreType.TEMPORARY.name().toLowerCase(), type);
       } else {
-        Assert.fail("Unexpected alias in list: " + alias.toString());
+        Assert.fail("Unexpected alias in list: " + alias);
       }
     }
 
@@ -658,7 +658,7 @@ public class CredentialResourceProviderTest {
       if ("alias1".equals(alias)) {
         Assert.assertEquals(CredentialStoreType.TEMPORARY.name().toLowerCase(), type);
       } else {
-        Assert.fail("Unexpected alias in list: " + alias.toString());
+        Assert.fail("Unexpected alias in list: " + alias);
       }
     }
 
@@ -674,7 +674,7 @@ public class CredentialResourceProviderTest {
       if ("alias1".equals(alias)) {
         Assert.assertEquals(CredentialStoreType.PERSISTED.name().toLowerCase(), type);
       } else {
-        Assert.fail("Unexpected alias in list: " + alias.toString());
+        Assert.fail("Unexpected alias in list: " + alias);
       }
     }
 
@@ -821,7 +821,7 @@ public class CredentialResourceProviderTest {
       if ("alias1".equals(alias)) {
         Assert.assertEquals(CredentialStoreType.TEMPORARY.name().toLowerCase(), type);
       } else {
-        Assert.fail("Unexpected alias in list: " + alias.toString());
+        Assert.fail("Unexpected alias in list: " + alias);
       }
     }
 

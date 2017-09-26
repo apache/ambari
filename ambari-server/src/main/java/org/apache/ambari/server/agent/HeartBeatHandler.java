@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.agent;
+
+import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -44,10 +48,9 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -85,9 +88,6 @@ public class HeartBeatHandler {
   private final ActionManager actionManager;
   private HeartbeatMonitor heartbeatMonitor;
   private HeartbeatProcessor heartbeatProcessor;
-
-  @Inject
-  private Injector injector;
 
   @Inject
   private Configuration config;
@@ -159,16 +159,23 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    LOG.debug("Received heartbeat from host"
-        + ", hostname=" + hostname
-        + ", currentResponseId=" + currentResponseId
-        + ", receivedResponseId=" + heartbeat.getResponseId());
+    LOG.debug("Received heartbeat from host, hostname={}, currentResponseId={}, receivedResponseId={}", hostname, currentResponseId, heartbeat.getResponseId());
 
     if (heartbeat.getResponseId() == currentResponseId - 1) {
-      LOG.warn("Old responseId received - response was lost - returning cached response");
-      return hostResponses.get(hostname);
+      HeartBeatResponse heartBeatResponse = hostResponses.get(hostname);
+
+      LOG.warn("Old responseId={} received form host {} - response was lost - returning cached response with responseId={}",
+        heartbeat.getResponseId(),
+        hostname,
+        heartBeatResponse.getResponseId());
+
+      return heartBeatResponse;
     } else if (heartbeat.getResponseId() != currentResponseId) {
-      LOG.error("Error in responseId sequence - sending agent restart command");
+      LOG.error("Error in responseId sequence - received responseId={} from host {} - sending agent restart command with responseId={}",
+        heartbeat.getResponseId(),
+        hostname,
+        currentResponseId);
+
       return createRestartCommand(currentResponseId);
     }
 
@@ -190,7 +197,7 @@ public class HeartBeatHandler {
 
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
       // After loosing heartbeat agent should reregister
-      LOG.warn("Host is in HEARTBEAT_LOST state - sending register command");
+      LOG.warn("Host {} is in HEARTBEAT_LOST state - sending register command", hostname);
       return createRegisterCommand();
     }
 
@@ -227,10 +234,9 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
-     *
      *
      * TODO: Handle the case when a host is a part of multiple clusters.
      */
@@ -244,7 +250,7 @@ public class HeartBeatHandler {
         response.setRecoveryConfig(rc);
 
         if (response.getRecoveryConfig() != null) {
-          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig().toString());
+          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig());
         }
       }
     }
@@ -263,7 +269,7 @@ public class HeartBeatHandler {
 
 
   protected void processRecoveryReport(RecoveryReport recoveryReport, String hostname) throws AmbariException {
-    LOG.debug("Received recovery report: " + recoveryReport.toString());
+    LOG.debug("Received recovery report: {}", recoveryReport);
     Host host = clusterFsm.getHost(hostname);
     host.setRecoveryReport(recoveryReport);
   }
@@ -278,7 +284,7 @@ public class HeartBeatHandler {
       for (AgentCommand ac : cmds) {
         try {
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Sending command string = " + StageUtils.jaxbToString(ac));
+            LOG.debug("Sending command string = {}", StageUtils.jaxbToString(ac));
           }
         } catch (Exception e) {
           throw new AmbariException("Could not get jaxb string for command", e);
@@ -292,7 +298,7 @@ public class HeartBeatHandler {
             Map<String, String> hlp = ec.getHostLevelParams();
             if (hlp != null) {
               String customCommand = hlp.get("custom_command");
-              if ("SET_KEYTAB".equalsIgnoreCase(customCommand) || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
+              if (SET_KEYTAB.equalsIgnoreCase(customCommand) || REMOVE_KEYTAB.equalsIgnoreCase(customCommand) || CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
                 LOG.info(String.format("%s called", customCommand));
                 try {
                   injectKeytab(ec, customCommand, hostname);
@@ -441,10 +447,10 @@ public class HeartBeatHandler {
 
     response.setAgentConfig(config.getAgentConfigsMap());
     if(response.getAgentConfig() != null) {
-      LOG.debug("Agent configuration map set to " + response.getAgentConfig());
+      LOG.debug("Agent configuration map set to {}", response.getAgentConfig());
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
      *
@@ -459,7 +465,7 @@ public class HeartBeatHandler {
       response.setRecoveryConfig(rc);
 
       if(response.getRecoveryConfig() != null) {
-        LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
+        LOG.info("Recovery configuration set to " + response.getRecoveryConfig());
       }
     }
 
@@ -490,7 +496,7 @@ public class HeartBeatHandler {
     }
 
     if(actionQueue.hasPendingTask(hostname)) {
-      LOG.debug("Host " + hostname + " has pending tasks");
+      LOG.debug("Host {} has pending tasks", hostname);
       response.setHasPendingTasks(true);
     }
   }
@@ -506,36 +512,26 @@ public class HeartBeatHandler {
     ComponentsResponse response = new ComponentsResponse();
 
     Cluster cluster = clusterFsm.getCluster(clusterName);
-    StackId stackId = cluster.getCurrentStackVersion();
-    if (stackId == null) {
-      throw new AmbariException("Cannot provide stack components map. " +
-        "Stack hasn't been selected yet.");
+
+    Map<String, Map<String, String>> componentsMap = new HashMap<>();
+
+    for (org.apache.ambari.server.state.Service service : cluster.getServices().values()) {
+      componentsMap.put(service.getName(), new HashMap<>());
+
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        StackId stackId = component.getDesiredStackId();
+
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+            stackId.getStackName(), stackId.getStackVersion(), service.getName(), component.getName());
+
+        componentsMap.get(service.getName()).put(component.getName(), componentInfo.getCategory());
+      }
     }
-    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
 
     response.setClusterName(clusterName);
-    response.setStackName(stackId.getStackName());
-    response.setStackVersion(stackId.getStackVersion());
-    response.setComponents(getComponentsMap(stack));
+    response.setComponents(componentsMap);
 
     return response;
-  }
-
-  private Map<String, Map<String, String>> getComponentsMap(StackInfo stack) {
-    Map<String, Map<String, String>> result = new HashMap<>();
-
-    for (ServiceInfo service : stack.getServices()) {
-      Map<String, String> components = new HashMap<>();
-
-      for (ComponentInfo component : service.getComponents()) {
-        components.put(component.getName(), component.getCategory());
-      }
-
-      result.put(service.getName(), components);
-    }
-
-    return result;
   }
 
   /**
@@ -565,8 +561,10 @@ public class HeartBeatHandler {
           clusterName, hostname);
 
       String hash = alertDefinitionHash.getHash(clusterName, hostname);
+      Host host = cluster.getHost(hostname);
+      String publicHostName = host == null? hostname : host.getPublicHostName();
       AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
-          hostname, hash, definitions);
+          hostname, publicHostName, hash, definitions);
 
       command.addConfigs(configHelper, cluster);
       commands.add(command);
@@ -599,7 +597,7 @@ public class HeartBeatHandler {
 
           if (targetHost.equalsIgnoreCase(hostName)) {
 
-            if ("SET_KEYTAB".equalsIgnoreCase(command)) {
+            if (SET_KEYTAB.equalsIgnoreCase(command)) {
               String keytabFilePath = record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
 
               if (keytabFilePath != null) {
@@ -635,7 +633,7 @@ public class HeartBeatHandler {
                   kcp.add(keytabMap);
                 }
               }
-            } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
+            } else if (REMOVE_KEYTAB.equalsIgnoreCase(command) || CHECK_KEYTABS.equalsIgnoreCase(command)) {
               Map<String, String> keytabMap = new HashMap<>();
 
               keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);

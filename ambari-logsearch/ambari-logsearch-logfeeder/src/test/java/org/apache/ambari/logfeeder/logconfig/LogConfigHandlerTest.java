@@ -29,7 +29,7 @@ import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.loglevelfilter.FilterLogData;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.commons.lang.time.DateUtils;
@@ -61,7 +61,7 @@ public class LogConfigHandlerTest {
   
   @BeforeClass
   public static void init() throws Exception {
-    LogFeederUtil.loadProperties("logfeeder.properties", null);
+    LogFeederPropertiesUtil.loadProperties("logfeeder.properties");
     
     LogSearchConfig config = strictMock(LogSearchConfig.class);
     config.createLogLevelFilter(anyString(), anyString(), anyObject(LogLevelFilter.class));

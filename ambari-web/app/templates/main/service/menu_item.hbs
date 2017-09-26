@@ -17,14 +17,13 @@
 }}
 
 <a class="services-menu-blocks" {{bindAttr href="view.link" data-href="view.dataHref"}}>
-  {{#if view.alertsCount}}
-    <span {{bindAttr class=":label :alerts-count view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count :pull-right"}}>
-      {{view.alertsCount}}
-    </span>
+  {{#if view.content.alertsCount}}
+    <span {{bindAttr class=":icon-circle view.hasCriticalAlerts:service-alerts-critical:service-alerts-warning"}}></span>
   {{/if}}
   <span class="pull-right">
     <i rel="tooltip" {{action goToConfigs target="view"}} {{bindAttr class=":glyphicon :glyphicon-refresh :restart-required-service view.content.isRestartRequired::hidden" data-original-title="view.restartRequiredMessage"}}></i>
   </span>
-  {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
-  <span class="menu-item-name">{{unbound view.content.displayName}}</span>
+  <span {{bindAttr class=":menu-item-name view.content.workStatus" data-original-title="view.content.toolTipContent"}} rel="serviceHealthTooltip">
+      {{unbound view.content.displayName}}
+  </span>
 </a>

@@ -675,3 +675,11 @@ def check_ranger_service_support_kerberos(user, keytab, principal):
   else:
     Logger.error('Ranger service is not reachable')
     return False
+
+def update_password_configs():
+  import params
+
+  ModifyPropertiesFile(format("{kms_home}/install.properties"),
+    properties = {'db_root_password': '_', 'db_password': '_', 'KMS_MASTER_KEY_PASSWD': '_', 'REPOSITORY_CONFIG_PASSWORD': '_'},
+    owner = params.kms_user,
+  )

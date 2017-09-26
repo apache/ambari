@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,11 +23,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STA
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
@@ -89,6 +85,8 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
@@ -224,15 +222,20 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       try {
         cluster = clusters.getCluster(response.getClusterName());
 
-        StackId stackId = cluster.getCurrentStackVersion();
         String serviceName = response.getServiceName();
         String componentName = response.getComponentName();
         String hostName = response.getHostname();
+        String publicHostName = response.getPublicHostname();
         ComponentInfo componentInfo = null;
         String packageFolder = null;
 
+        Service service = cluster.getService(serviceName);
+        ServiceComponent component = service.getServiceComponent(componentName);
+        StackId stackId = component.getDesiredStackId();
+
         componentInfo = managementController.getAmbariMetaInfo().
           getComponent(stackId.getStackName(), stackId.getStackVersion(), serviceName, componentName);
+
         packageFolder = managementController.getAmbariMetaInfo().
           getService(stackId.getStackName(), stackId.getStackVersion(), serviceName).getServicePackageFolder();
 
@@ -243,7 +246,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           if (componentMap.size() == 1) {
             throw new SystemException("No configuration files defined for the component " + componentInfo.getName());
           } else {
-            LOG.debug(String.format("No configuration files defined for the component %s",componentInfo.getName()));
+            LOG.debug("No configuration files defined for the component {}", componentInfo.getName());
             continue;
           }
         }
@@ -357,11 +360,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         osFamily = clusters.getHost(hostName).getOsFamily();
 
         TreeMap<String, String> hostLevelParams = new TreeMap<>();
+        StageUtils.useStackJdkIfExists(hostLevelParams, configs);
         hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
-        hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
-        hostLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
-        hostLevelParams.put(JDK_NAME, managementController.getJDKName());
-        hostLevelParams.put(JCE_NAME, managementController.getJCEName());
         hostLevelParams.put(STACK_NAME, stackId.getStackName());
         hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
         hostLevelParams.put(DB_NAME, managementController.getServerDB());
@@ -407,7 +407,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         String groupList = gson.toJson(groupSet);
         hostLevelParams.put(GROUP_LIST, groupList);
 
-        Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredClusterConfigs);
+        Map<org.apache.ambari.server.state.PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredClusterConfigs);
+        Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
         String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
         hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -442,7 +443,10 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("clusterHostInfo", clusterHostInfo);
         jsonContent.put("hostLevelParams", hostLevelParams);
         jsonContent.put("hostname", hostName);
+        jsonContent.put("public_hostname", publicHostName);
         jsonContent.put("clusterName", cluster.getClusterName());
+        jsonContent.put("serviceName", serviceName);
+        jsonContent.put("role", componentName);
         jsonConfigurations = gson.toJson(jsonContent);
 
         File tmpDirectory = new File(TMP_PATH);
@@ -478,8 +482,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         commandFiles.add(jsonFile);
         pythonCompressFilesCmds.add(cmd);
 
-      } catch (AmbariException e) {
-        throw new SystemException("Controller error ", e);
       } catch (IOException e) {
         throw new SystemException("Controller error ", e);
       }

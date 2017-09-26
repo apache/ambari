@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -123,7 +123,7 @@ public class Configuration {
     }
 
     Map<String, Map<String, String>> mergedProperties = parentConfiguration == null ?
-        new HashMap<String, Map<String, String>>() :
+      new HashMap<>() :
       new HashMap<>(parentConfiguration.getFullProperties(--depthLimit));
 
     for (Map.Entry<String, Map<String, String>> entry : properties.entrySet()) {
@@ -158,7 +158,7 @@ public class Configuration {
    */
   public Map<String, Map<String, Map<String, String>>> getFullAttributes() {
     Map<String, Map<String, Map<String, String>>> mergedAttributeMap = parentConfiguration == null ?
-        new HashMap<String, Map<String, Map<String, String>>>() :
+      new HashMap<>() :
       new HashMap<>(parentConfiguration.getFullAttributes());
 
     for (Map.Entry<String, Map<String, Map<String, String>>> typeEntry : attributes.entrySet()) {

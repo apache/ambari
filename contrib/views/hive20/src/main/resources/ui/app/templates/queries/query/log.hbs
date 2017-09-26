@@ -23,7 +23,13 @@
 {{/unless}}
 
 {{#if hasJobAssociated}}
-  <div>
-    <pre class="prettyprint">{{logResults}}</pre>
-  </div>
+  {{#if logResults}}
+    <div>
+      <pre class="prettyprint">{{logResults}}</pre>
+    </div>
+  {{else}}
+    <div class="explain--error">
+      <div>No Log available.</div>
+    </div>
+  {{/if}}
 {{/if}}

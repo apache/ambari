@@ -19,24 +19,26 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapDateDescriptor;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-@JsonInclude(Include.NON_NULL)
 public class LSServerMapDate extends LSServerMapField {
   @Override
   public String getName() {
     return "map_date";
   }
 
-  @JsonProperty("source_date_pattern")
+  @JsonProperty("src_date_pattern")
   private String sourceDatePattern;
 
+  @NotNull
   @JsonProperty("target_date_pattern")
   private String targetDatePattern;
+
+  public LSServerMapDate() {}
 
   public LSServerMapDate(MapDateDescriptor mapDateDescriptor) {
     this.sourceDatePattern = mapDateDescriptor.getSourceDatePattern();

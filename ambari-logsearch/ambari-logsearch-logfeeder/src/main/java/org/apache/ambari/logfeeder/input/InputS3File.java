@@ -59,18 +59,17 @@ public class InputS3File extends AbstractInputFile {
       return;
     }
 
-    if (tail) {
-      processFile(logFiles[0]);
-    } else {
-      for (File s3FilePath : logFiles) {
+    for (int i = logFiles.length - 1; i >= 0; i--) {
+      File file = logFiles[i];
+      if (i == 0 || !tail) {
         try {
-          processFile(s3FilePath);
+          processFile(file, i == 0);
           if (isClosed() || isDrain()) {
             LOG.info("isClosed or isDrain. Now breaking loop.");
             break;
           }
         } catch (Throwable t) {
-          LOG.error("Error processing file=" + s3FilePath, t);
+          LOG.error("Error processing file=" + file.getAbsolutePath(), t);
         }
       }
     }
@@ -91,5 +90,11 @@ public class InputS3File extends AbstractInputFile {
   @Override
   protected Object getFileKey(File logFile) {
     return logFile.getPath();
+  }
+  
+  @Override
+  public void close() {
+    super.close();
+    isClosed = true;
   }
 }

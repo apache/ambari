@@ -193,7 +193,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     } else {
       createResources(new Command<Void>() {
         @Override
-        public Void invoke() throws AmbariException {
+        public Void invoke() throws AmbariException, AuthorizationException {
           createHosts(request);
           return null;
         }
@@ -428,7 +428,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
    * @param request Request that must contain registered hosts, and optionally a cluster.
    */
   public synchronized void createHosts(Request request)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     Set<Map<String, Object>> propertySet = request.getProperties();
     if (propertySet == null || propertySet.isEmpty()) {
@@ -465,7 +465,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
       throw new IllegalArgumentException("Invalid request contains"
           + " duplicate hostnames"
-          + ", hostnames=" + names.toString());
+          + ", hostnames=" + names);
     }
 
     if (!unknowns.isEmpty()) {
@@ -480,7 +480,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
 
       throw new IllegalArgumentException("Attempted to add unknown hosts to a cluster.  " +
-          "These hosts have not been registered with the server: " + names.toString());
+          "These hosts have not been registered with the server: " + names);
     }
 
     Map<String, Set<String>> hostClustersMap = new HashMap<>();
@@ -501,9 +501,74 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
 
-    for (String clusterName : allClusterSet) {
-      clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
+    updateHostRackInfoIfChanged(clusters, hostRequests);
+
+  }
+
+  /**
+   * Iterates through the provided host request and checks if there is rack info provided.
+   * If the rack info differs from the rack info of the host than updates it with the value from
+   * the host request.
+   * @param clusters
+   * @param hostRequests 
+   * @throws AmbariException
+   * @throws AuthorizationException
+   */
+  private void updateHostRackInfoIfChanged(Clusters clusters, Set<HostRequest> hostRequests)
+    throws AmbariException, AuthorizationException {
+
+    HashSet<String> rackChangeAffectedClusters = new HashSet<>();
+
+    for (HostRequest hostRequest : hostRequests) {
+      String clusterName = hostRequest.getClusterName();
+
+      if (StringUtils.isNotBlank(clusterName)) {
+        Cluster cluster = clusters.getCluster(clusterName);
+        Host host = clusters.getHost(hostRequest.getHostname());
+
+        if (updateHostRackInfoIfChanged(cluster, host, hostRequest))
+          rackChangeAffectedClusters.add(clusterName);
+      }
     }
+
+    for (String clusterName: rackChangeAffectedClusters) {
+      getManagementController().registerRackChange(clusterName);
+    }
+  }
+
+
+
+  /**
+   * If the rack info provided in the request differs from the rack info of the host
+   * update the rack info of the host with the value from the host request
+   *
+   * @param cluster The cluster to check user privileges against. User is required
+   *                to have {@link RoleAuthorization#HOST_ADD_DELETE_HOSTS} rights on the cluster.
+   * @param host The host of which rack information is to be updated
+   * @param hostRequest
+   * @return true is host was updated otherwise false
+   * @throws AmbariException
+   * @throws AuthorizationException
+   */
+  private boolean updateHostRackInfoIfChanged(Cluster cluster, Host host, HostRequest hostRequest)
+    throws AmbariException, AuthorizationException {
+
+    Long resourceId = cluster.getResourceId();
+
+    String hostRackInfo = host.getRackInfo();
+    String requestRackInfo = hostRequest.getRackInfo();
+
+    boolean rackChange = requestRackInfo != null && !requestRackInfo.equals(hostRackInfo);
+
+    if (rackChange) {
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
+        throw new AuthorizationException("The authenticated user is not authorized to update host rack information");
+      }
+
+      host.setRackInfo(requestRackInfo);
+    }
+
+    return rackChange;
   }
 
   private void createHostResource(Clusters clusters, Set<String> duplicates,
@@ -519,9 +584,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createHost request"
-          + ", hostname=" + request.getHostname()
-          + ", request=" + request);
+      LOG.debug("Received a createHost request, hostname={}, request={}", request.getHostname(), request);
     }
 
     if (allHosts.contains(request.getHostname())) {
@@ -692,9 +755,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     for (HostRequest request : requests) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received an updateHost request"
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
+        LOG.debug("Received an updateHost request, hostname={}, request={}", request.getHostname(), request);
       }
 
       Host host = clusters.getHost(request.getHostname());
@@ -712,16 +773,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         // do nothing
       }
 
-      String  rackInfo        = host.getRackInfo();
-      String  requestRackInfo = request.getRackInfo();
-      boolean rackChange      = requestRackInfo != null && !requestRackInfo.equals(rackInfo);
+      boolean rackChange = updateHostRackInfoIfChanged(cluster, host, request);
 
-      if (rackChange) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
-          throw new AuthorizationException("The authenticated user is not authorized to update host rack information");
-        }
-        host.setRackInfo(requestRackInfo);
-      }
 
       if (null != request.getPublicHostName()) {
         if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
@@ -769,7 +822,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
               if (host.addDesiredConfig(clusterId, cr.isSelected(), authName,  baseConfig)) {
                 Logger logger = LoggerFactory.getLogger("configchange");
-                logger.info("cluster '" + cluster.getClusterName() + "', "
+                logger.info("(configchange) cluster '" + cluster.getClusterName() + "', "
                     + "host '" + host.getHostName() + "' "
                     + "changed by: '" + authName + "'; "
                     + "type='" + baseConfig.getType() + "' "
@@ -782,12 +835,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
-      if (clusterName != null && !clusterName.isEmpty()) {
-        clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
-        if (rackChange) {
-          // Authorization check for this update was performed before we got to this point.
-          controller.registerRackChange(clusterName);
-        }
+      if (StringUtils.isNotBlank(clusterName) && rackChange) {
+        // Authorization check for this update was performed before we got to this point.
+        controller.registerRackChange(clusterName);
       }
 
       //todo: if attempt was made to update a property other than those
@@ -905,14 +955,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         deleteStatusMetaData.addException(hostname, ex);
       }
       removeHostFromClusterTopology(clusters, hostRequest);
-      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
+      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.emptyList())) {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
     }
     clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
-    for (String clustername : hostsClusters) {
-      clusters.getCluster(clustername).recalculateAllClusterVersionStates();
-    }
   }
 
   private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters, boolean forceDelete) throws AmbariException {
@@ -959,6 +1006,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             throw new AmbariException(reason.toString());
           }
         } else {
+//          TODO why host with all components stopped can't be deleted? This functional is implemented and only this validation stops the request.
           if (!componentsToRemove.isEmpty()) {
             StringBuilder reason = new StringBuilder("Cannot remove host ")
                 .append(hostName)

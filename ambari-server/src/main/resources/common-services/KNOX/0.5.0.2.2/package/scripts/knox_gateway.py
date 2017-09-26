@@ -22,7 +22,7 @@ import os
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -48,9 +48,6 @@ from setup_ranger_knox import setup_ranger_knox
 
 
 class KnoxGateway(Script):
-  def get_component_name(self):
-    return "knox-server"
-
   def install(self, env):
     import params
     env.set_params(params)
@@ -119,9 +116,7 @@ class KnoxGatewayDefault(KnoxGateway):
       absolute_backup_dir = upgrade.backup_data()
       Logger.info("Knox data was successfully backed up to {0}".format(absolute_backup_dir))
 
-    # <conf-selector-tool> will change the symlink to the conf folder.
-    conf_select.select(params.stack_name, "knox", params.version)
-    stack_select.select("knox-server", params.version)
+    stack_select.select_packages(params.version)
 
     # seed the new Knox data directory with the keystores of yesteryear
     if params.upgrade_direction == Direction.UPGRADE:

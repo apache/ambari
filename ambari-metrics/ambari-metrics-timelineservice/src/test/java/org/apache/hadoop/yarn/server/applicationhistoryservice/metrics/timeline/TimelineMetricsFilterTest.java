@@ -61,6 +61,7 @@ public class TimelineMetricsFilterTest {
     Configuration metricsConf = new Configuration();
     TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
     expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+    expect(configuration.isWhitelistingEnabled()).andReturn(true).anyTimes();
     replay(configuration);
 
     URL fileUrl = ClassLoader.getSystemResource("test_data/metric_whitelist.dat");
@@ -169,6 +170,8 @@ public class TimelineMetricsFilterTest {
     whitelist.add("regionserver.Server.Delete_max");
     whitelist.add("regionserver.Server.Delete_mean");
     expect(configuration.getAmshbaseWhitelist()).andReturn(whitelist).once();
+
+    expect(configuration.isWhitelistingEnabled()).andReturn(true).anyTimes();
 
     replay(configuration);
 

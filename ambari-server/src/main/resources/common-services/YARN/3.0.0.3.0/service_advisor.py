@@ -1008,11 +1008,15 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
 
     if not llap_concurrency_in_changed_configs:
       min_llap_concurrency = 1
-      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', llap_concurrency)
-      putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum",
-                                              min_llap_concurrency)
+      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', long(llap_concurrency))
+      putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", min_llap_concurrency)
 
-    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", max_llap_concurreny)
+    # Check if 'max_llap_concurreny' < 'llap_concurrency'.
+    if max_llap_concurreny < llap_concurrency:
+      self.logger.info("DBG: Adjusting 'max_llap_concurreny' to : {0}, based on 'llap_concurrency' : {1} and "
+                       "earlier 'max_llap_concurreny' : {2}. ".format(llap_concurrency, llap_concurrency, max_llap_concurreny))
+      max_llap_concurreny = llap_concurrency
+    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", long(max_llap_concurreny))
 
     num_llap_nodes = long(num_llap_nodes)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", min_nodes_required)
@@ -1796,7 +1800,7 @@ class YARNValidator(service_advisor.ServiceAdvisor):
 
     self.validators = [("yarn-site", self.validateYARNSiteConfigurationsFromHDP206),
                        ("yarn-site", self.validateYARNSiteConfigurationsFromHDP25),
-                       ("yarn-ste" , self.validateYarnSiteConfigurationsFromHDP26),
+                       ("yarn-site" , self.validateYARNSiteConfigurationsFromHDP26),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP206),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP22),
                        ("ranger-yarn-plugin-properties", self.validateYARNRangerPluginConfigurationsFromHDP22)]
@@ -1853,7 +1857,7 @@ class YARNValidator(service_advisor.ServiceAdvisor):
     validationProblems = self.toConfigurationValidationProblems(validationItems, "yarn-site")
     return validationProblems
 
-  def validateYarnSiteConfigurationsFromHDP26(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateYARNSiteConfigurationsFromHDP26(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     siteProperties = services["configurations"]["yarn-site"]["properties"]
     if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':

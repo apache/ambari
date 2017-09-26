@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -100,8 +100,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
     if (predicate != null) {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         ActionRequest actionReq = getRequest(propertyMap);
-        LOG.debug("Received a get request for Action with"
-            + ", actionName = " + actionReq.getActionName());
+        LOG.debug("Received a get request for Action with, actionName = {}", actionReq.getActionName());
         requests.add(actionReq);
       }
     } else {
