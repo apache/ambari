@@ -18,7 +18,10 @@
 
 import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
+import {Subject} from 'rxjs/Subject';
 import {TranslateService} from '@ngx-translate/core';
+import {ListItem} from '@app/classes/list-item.class';
+import {CommonEntry} from '@app/models/common-entry.model';
 import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -42,7 +45,13 @@ export class FiltersPanelComponent {
               };
             }),
             labelKeys = items.map(item => item.name);
-          translate.get(labelKeys).first().subscribe(translation => this.searchBoxItems = items.map(item => {
+          this.searchBoxItems = items.map(item => {
+            return {
+              label: item.name,
+              value: item.value
+            };
+          });
+          translate.get(labelKeys).first().subscribe(translation => this.searchBoxItemsTranslated = items.map(item => {
             return {
               name: translation[item.name],
               value: item.value
@@ -60,7 +69,9 @@ export class FiltersPanelComponent {
 
   private logsType: string; // TODO implement setting the parameter depending on user's navigation
 
-  searchBoxItems: any[] = [];
+  searchBoxItems: ListItem[] = [];
+
+  searchBoxItemsTranslated: CommonEntry[] = [];
 
   get filters(): any {
     return this.filtering.filters;
@@ -68,6 +79,18 @@ export class FiltersPanelComponent {
 
   get filtersForm(): FormGroup {
     return this.filtering.filtersForm;
+  }
+
+  get queryParameterNameChange(): Subject<any> {
+    return this.filtering.queryParameterNameChange;
+  }
+
+  get queryParameterAdd(): Subject<any> {
+    return this.filtering.queryParameterAdd;
+  }
+
+  get captureSeconds(): number {
+    return this.filtering.captureSeconds;
   }
 
 }

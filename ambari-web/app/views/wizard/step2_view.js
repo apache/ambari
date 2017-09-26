@@ -108,6 +108,27 @@ App.WizardStep2View = Em.View.extend({
   }),
 
   /**
+   * Checkbox to skip Host Checks
+   * @type {App.CheckboxView}
+   */
+  skipHostsCheckBox: App.CheckboxView.extend({
+    classNames: ['display-inline-block'],
+    classNameBindings: ['containerClassName'],
+    containerClassName: 'checkbox',
+
+    showConfirmPopup: function() {
+      if(this.get('controller.content.installOptions.skipHostChecks')) {
+        App.ModalPopup.show({
+          header: Em.I18n.t('installer.step2.skipHostChecks.popup.header'),
+          body: Em.I18n.t('installer.step2.skipHostChecks.popup.body'),
+          primary: Em.I18n.t('ok'),
+          secondary: false
+        });
+      }
+    }.observes('controller.content.installOptions.skipHostChecks')
+  }),
+
+  /**
    * Textarea with ssh-key
    * @type {Ember.TextField}
    */

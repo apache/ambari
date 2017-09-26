@@ -19,6 +19,8 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1145,8 +1147,50 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     stackInfo.getRepositories().addAll(serviceRepos);
 
     if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0 && stackContext != null) {
-      stackContext.registerRepoUpdateTask(rxml.getLatestURI(), this);
+      registerRepoUpdateTask(rxml);
     }
+  }
+
+  private void registerRepoUpdateTask(RepositoryXml rxml) {
+    String latest = rxml.getLatestURI();
+    if (StringUtils.isBlank(latest)) {
+      return;
+    }
+
+    URI uri = getURI(this, latest);
+
+    if (null == uri) {
+      LOG.warn("Could not determine how to load stack {}-{} latest definition for {}",
+          stackInfo.getName(), stackInfo.getVersion(), latest);
+      return;
+    }
+
+    stackContext.registerRepoUpdateTask(uri, this);
+  }
+
+  /**
+   * @param module
+   *          the stack module
+   * @param uriString
+   *          the uri string
+   * @return  a repo URI, even if it is relative-file based
+   */
+  public static URI getURI(StackModule module, String uriString) {
+
+    URI uri = null;
+    if (uriString.startsWith("http")) {
+      try {
+        uri = new URI(uriString);
+      } catch (URISyntaxException e) {
+        // should be logged later
+      }
+    } else if ('.' == uriString.charAt(0)) {
+      uri = new File(module.getStackDirectory().getRepoDir(), uriString).toURI();
+    } else {
+      uri = new File(uriString).toURI();
+    }
+
+    return uri;
   }
 
   /**
@@ -1235,7 +1279,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         if (null != serviceRepoXml) {
           repos.addAll(serviceRepoXml.getRepositories());
           if (null != serviceRepoXml.getLatestURI() && stackContext != null) {
-            stackContext.registerRepoUpdateTask(serviceRepoXml.getLatestURI(), this);
+            registerRepoUpdateTask(serviceRepoXml);
           }
         }
       }

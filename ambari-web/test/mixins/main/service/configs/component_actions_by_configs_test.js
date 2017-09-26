@@ -344,7 +344,7 @@ describe('App.ComponentActionsByConfigs', function () {
     it("App.ajax.send should be called", function() {
       expect(mixin.getCreateHostComponentsRequest('host1', ['C1'])).to.be.eql({
         "type": 'POST',
-        "uri": "/api/v1/clusters/mycluster/hosts",
+        "uri": "/clusters/mycluster/hosts",
         "RequestBodyInfo": {
           "RequestInfo": {
             "query": "Hosts/host_name.in(host1)"
@@ -406,7 +406,7 @@ describe('App.ComponentActionsByConfigs', function () {
     it("should return request object", function() {
       expect(mixin.getUpdateHostComponentsRequest('host1', ['C1', 'C2'], 'INSTALLED', 'context')).to.be.eql({
         "type": 'PUT',
-        "uri": "/api/v1/clusters/mycluster/hosts/host1/host_components",
+        "uri": "/clusters/mycluster/hosts/host1/host_components",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": 'context',
@@ -432,7 +432,7 @@ describe('App.ComponentActionsByConfigs', function () {
     it("should return request object", function() {
       expect(mixin.getDeleteHostComponentRequest('host1', 'C1')).to.be.eql({
         "type": 'DELETE',
-        "uri": "/api/v1/clusters/mycluster/hosts/host1/host_components/C1"
+        "uri": "/clusters/mycluster/hosts/host1/host_components/C1"
       });
     });
   });
@@ -461,7 +461,7 @@ describe('App.ComponentActionsByConfigs', function () {
       expect(batches).to.be.eql([
         {
           "type": 'POST',
-          "uri": "/api/v1/clusters/mycluster/services/S1/components/C1"
+          "uri": "/clusters/mycluster/services/S1/components/C1"
         }
       ]);
 
@@ -500,7 +500,7 @@ describe('App.ComponentActionsByConfigs', function () {
       mixin.setRefreshYarnQueueRequest(batches);
       expect(batches).to.be.eql([{
         "type": 'POST',
-        "uri": "/api/v1/clusters/mycluster/requests",
+        "uri": "/clusters/mycluster/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),

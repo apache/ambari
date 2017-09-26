@@ -189,6 +189,8 @@ public class RepoUtil {
     re.setBaseUrl(repoInfo.getBaseUrl());
     re.setName(repoInfo.getRepoName());
     re.setRepositoryId(repoInfo.getRepoId());
+    re.setDistribution(repoInfo.getDistribution());
+    re.setComponents(repoInfo.getComponents());
     return re;
   }
 

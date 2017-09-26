@@ -21,8 +21,8 @@
     <services>
         <service>
             <name>ZEPPELIN</name>
-            <version>0.6.0.2.5</version>
-            <extends>common-services/ZEPPELIN/0.6.0.2.5</extends>
+            <version>0.6.0</version>
+            <extends>common-services/ZEPPELIN/0.6.0</extends>
             <osSpecifics>
                 <osSpecific>
                     <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>

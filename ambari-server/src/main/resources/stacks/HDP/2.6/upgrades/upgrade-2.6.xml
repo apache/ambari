@@ -33,6 +33,7 @@
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
     <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
+    <check>org.apache.ambari.server.checks.DruidHighAvailabilityCheck</check>
 
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
@@ -554,6 +555,14 @@
       </component>
 
       <component name="RANGER_USERSYNC">
+        <pre-upgrade>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerUsersyncConfigCalculation">
+            <summary>Enabling Nested Group Sync for Ranger</summary>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -801,6 +810,10 @@
       </component>
 
       <component name="HIVE_SERVER_INTERACTIVE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -1036,6 +1049,7 @@
           <task xsi:type="configure" id="atlas_env_gc_worker"/>
           <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
           <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
+          <task xsi:type="configure" id="atlas_hbase_conf_dir"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>

@@ -16,5 +16,11 @@
 
 JVM="java"
 sdir="`dirname \"$0\"`"
+ldir="`dirname "$(readlink -f "$0")"`"
 
-PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir:$sdir/libs/*" org.apache.ambari.infra.solr.AmbariSolrCloudCLI ${1+"$@"}
+DIR="$sdir"
+if [ "$sdir" != "$ldir" ]; then
+  DIR="$ldir"
+fi
+
+PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR:$DIR/libs/*" org.apache.ambari.infra.solr.AmbariSolrCloudCLI ${1+"$@"}

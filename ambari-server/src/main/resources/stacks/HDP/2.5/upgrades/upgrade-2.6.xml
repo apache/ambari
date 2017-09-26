@@ -34,6 +34,7 @@
     <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
+    <check>org.apache.ambari.server.checks.DruidHighAvailabilityCheck</check>
 
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
@@ -860,6 +861,8 @@
           <task xsi:type="configure" id="llap_update_shuffle_parallel_copies"/>
           <task xsi:type="configure" id="llap_update_settings"/>
           <task xsi:type="configure" id="llap_update_tez_settings"/>
+          <task xsi:type="configure" id="hdp_2_6_maint_llap_config"/>
+          <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable"/>
         </pre-upgrade>
         
         <pre-downgrade />
@@ -951,8 +954,13 @@
 
     <service name="ZEPPELIN">
       <component name="ZEPPELIN_MASTER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
+        </pre-upgrade>
+        <pre-downgrade/>
+
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>

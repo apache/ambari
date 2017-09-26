@@ -145,7 +145,7 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
         
         recommendedMinShards = len(infraSolrHosts)
         recommendedShards = 2 * len(infraSolrHosts)
-        recommendedMaxShards = 3 * len(infraSolrHosts)
+        recommendedMaxShards = max(3 * len(infraSolrHosts), 5)
       # if there is no AMBARI_INFRA (i.e. external solr is used), use default values for min/max shards and recommendations
       else:
         recommendedReplicationFactor = 2

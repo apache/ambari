@@ -656,7 +656,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var batches = [{
       "order_id": 1,
       "type": "POST",
-      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {
           "context": "Refresh YARN Capacity Scheduler",
@@ -672,7 +672,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }, {
       "order_id": 2,
       "type": "POST",
-      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {"context": "Restart LLAP", "command": "RESTART_LLAP"},
         "Requests/resource_filters": [{
@@ -1493,7 +1493,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @return {Boolean}
    * @override
    */
-  allowUpdateProperty: function (parentProperties, name, fileName) {
+  allowUpdateProperty: function (parentProperties, name, fileName, configGroup, savedValue) {
     var stackProperty = App.configsCollection.getConfigByName(name, fileName);
     if (!stackProperty || (stackProperty.serviceName === this.get('content.serviceName'))) {
       /**
@@ -1506,12 +1506,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       /**
        * update properties that depends on current service
        */
-      return !!stackProperty.propertyDependsOn.filter(function (p) {
+      return stackProperty.propertyDependsOn.some(function (p) {
         var service = App.config.get('serviceByConfigTypeMap')[p.type];
         return service && (this.get('content.serviceName') === service.get('serviceName'));
-      }, this).length;
+      }, this);
     }
-    return false;
+    return !Em.isNone(savedValue) && stackProperty.recommendedValue === savedValue;
   },
 
   /**

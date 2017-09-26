@@ -102,4 +102,14 @@ export class LogsContainerComponent implements OnInit {
     return this.filtering.filtersForm;
   }
 
+  get autoRefreshRemainingSeconds(): number {
+    return this.filtering.autoRefreshRemainingSeconds;
+  }
+
+  get autoRefreshMessageParams(): any {
+    return {
+      remainingSeconds: this.autoRefreshRemainingSeconds
+    };
+  }
+
 }

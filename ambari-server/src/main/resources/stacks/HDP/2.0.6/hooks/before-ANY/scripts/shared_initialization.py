@@ -139,11 +139,19 @@ def set_uid(user, user_dirs):
        content=StaticFile("changeToSecureUid.sh"),
        mode=0555)
   ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
-  uid = get_uid(user)
+  uid = get_uid(user, return_existing=True)
   Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {new_uid}", new_uid=0 if uid is None else uid),
           not_if = format("(test $(id -u {user}) -gt 1000) || ({ignore_groupsusers_create_str})"))
 
-def get_uid(user):
+def get_uid(user, return_existing=False):
+  """
+  Tries to get UID for username. It will try to find UID in custom properties in *cluster_env* and, if *return_existing=True*,
+  it will try to return UID of existing *user*.
+
+  :param user: username to get UID for
+  :param return_existing: return UID for existing user
+  :return:
+  """
   import params
   user_str = str(user) + "_uid"
   service_env = [ serviceEnv for serviceEnv in params.config['configurations'] if user_str in params.config['configurations'][serviceEnv]]
@@ -155,13 +163,18 @@ def get_uid(user):
       Logger.warning("Multiple values found for %s, using %s"  % (user_str, uid))
     return uid
   else:
-    if user == params.smoke_user:
+    if return_existing:
+      # pick up existing UID or try to find available UID in /etc/passwd, see changeToSecureUid.sh for more info
+      if user == params.smoke_user:
+        return None
+      File(format("{tmp_dir}/changeUid.sh"),
+           content=StaticFile("changeToSecureUid.sh"),
+           mode=0555)
+      code, newUid = shell.call(format("{tmp_dir}/changeUid.sh {user}"))
+      return int(newUid)
+    else:
+      # do not return UID for existing user, used in User resource call to let OS to choose UID for us
       return None
-    File(format("{tmp_dir}/changeUid.sh"),
-         content=StaticFile("changeToSecureUid.sh"),
-         mode=0555)
-    code, newUid = shell.call(format("{tmp_dir}/changeUid.sh {user}"))
-    return int(newUid)
 
 def setup_hadoop_env():
   import params

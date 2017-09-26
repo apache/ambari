@@ -276,6 +276,11 @@
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
 
+      <!-- ZEPPELIN -->
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply external depedency config 3">
+        <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
+      </execute-stage>
+
       <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs NameNode">
         <task xsi:type="configure" id="hdfs_securitylogger_additivity"/>
@@ -582,6 +587,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable">
+          <summary>Update tez.runtime.shuffle.ssl.enable property</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update JVM stack size for LLAP">
         <task xsi:type="configure" id="llap_append_stack_size_java_opts">
           <summary>Updating JVM stack size for LLAP</summary>
@@ -635,6 +646,11 @@
           <summary>Updating hive atlas application properties</summary>
         </task>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Updating DFS related LLAP configurations">
+        <task xsi:type="configure" id="hdp_2_6_maint_llap_config"/>
+      </execute-stage>
+
       <!-- SPARK -->
       <execute-stage service="SPARK" component="LIVY_SERVER" title="Apply config changes for Livy Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs"/>

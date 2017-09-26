@@ -18,6 +18,8 @@
 
 import {Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {Subject} from 'rxjs/Subject';
+import {CommonEntry} from '@app/models/common-entry.model';
 import {UtilsService} from '@app/services/utils.service';
 
 @Component({
@@ -46,6 +48,8 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.parameterInput.addEventListener('focus', this.onParameterInputFocus);
     this.parameterInput.addEventListener('blur', this.onParameterInputBlur);
     this.valueInput.addEventListener('blur', this.onValueInputBlur);
+    this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
+    this.parameterAddSubject.subscribe(this.onParameterAdd);
   }
 
   ngOnDestroy() {
@@ -54,9 +58,15 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.parameterInput.removeEventListener('focus', this.onParameterInputFocus);
     this.parameterInput.removeEventListener('blur', this.onParameterInputBlur);
     this.valueInput.removeEventListener('blur', this.onValueInputBlur);
+    this.parameterNameChangeSubject.unsubscribe();
+    this.parameterAddSubject.unsubscribe();
   }
 
   private currentId: number = 0;
+
+  private isExclude: boolean = false;
+
+  private defaultSubject: Subject<any> = new Subject();
 
   isActive: boolean = false;
 
@@ -67,7 +77,13 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   currentValue: string;
 
   @Input()
-  items: any[] = [];
+  items: CommonEntry[] = [];
+
+  @Input()
+  parameterNameChangeSubject: Subject<any> = this.defaultSubject;
+
+  @Input()
+  parameterAddSubject: Subject<any> = this.defaultSubject;
 
   @ViewChild('parameterInput')
   parameterInputRef: ElementRef;
@@ -75,11 +91,11 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   @ViewChild('valueInput')
   valueInputRef: ElementRef;
 
-  rootElement: HTMLElement;
+  private rootElement: HTMLElement;
 
-  parameterInput: HTMLElement;
+  private parameterInput: HTMLElement;
 
-  valueInput: HTMLElement;
+  private valueInput: HTMLElement;
 
   activeItem?: any;
 
@@ -117,24 +133,32 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     }
   };
 
+  private getItem(name: string): CommonEntry {
+    return this.items.find(field => field.value === name);
+  }
+
   clear(): void {
     this.isActive = false;
     this.activeItem = null;
     this.currentValue = null;
   }
 
-  itemsListFormatter(item: any): string {
+  itemsListFormatter(item: CommonEntry): string {
     return item.name;
   }
 
-  onParameterNameChange(item: any): void {
-    if (item) {
-      this.isParameterInput = false;
-      this.isValueInput = true;
-      this.activeItem = item;
-      this.currentValue = '';
-      setTimeout(() => this.valueInput.focus(), 0);
-    }
+  changeParameterName(item: any): void {
+    this.parameterNameChangeSubject.next(item);
+  }
+
+  onParameterNameChange = (options: any): void => {
+    this.activeItem = typeof options.item === 'string' ? this.getItem(options.item) : options.item;
+    this.isExclude = options.isExclude;
+    this.isActive = true;
+    this.isParameterInput = false;
+    this.isValueInput = true;
+    this.currentValue = '';
+    setTimeout(() => this.valueInput.focus(), 0);
   }
 
   onParameterValueChange(event: KeyboardEvent): void {
@@ -144,13 +168,25 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
         name: this.activeItem.value,
         label: this.activeItem.name,
         value: this.currentValue,
-        isExclude: false
+        isExclude: this.isExclude
       });
       this.currentValue = '';
       this.activeItem = null;
       this.isValueInput = false;
       this.updateValue();
     }
+  }
+
+  onParameterAdd = (options: any): void => {
+    const item = this.getItem(options.name);
+    this.parameters.push({
+      id: this.currentId++,
+      name: options.name,
+      label: item.name,
+      value: options.value,
+      isExclude: options.isExclude
+    });
+    this.updateValue();
   }
 
   removeParameter(event: MouseEvent, id: number): void {

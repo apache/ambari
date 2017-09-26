@@ -184,6 +184,11 @@
           </div>
         {{/if}}
       </div>
+      {{#if isAddHostWizard}}
+        <br>
+        {{view view.skipHostsCheckBox checkedBinding="content.installOptions.skipHostChecks"}}
+        {{t installer.step2.skipHostChecks.label}}
+      {{/if}}
     </div>
   </div>
 </div>

@@ -23,9 +23,18 @@ import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
+import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
+import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
+import {HttpClientService} from '@app/services/http-client.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
 
 import {FilterButtonComponent} from './filter-button.component';
 
@@ -40,7 +49,14 @@ describe('FilterButtonComponent', () => {
         StoreModule.provideStore({
           appSettings,
           clusters,
-          components
+          components,
+          appState,
+          hosts,
+          auditLogs,
+          auditLogsFields,
+          serviceLogs,
+          serviceLogsFields,
+          serviceLogsHistogramData
         }),
         ...TranslationModules
       ],
@@ -48,9 +64,18 @@ describe('FilterButtonComponent', () => {
         AppSettingsService,
         ClustersService,
         ComponentsService,
+        AppStateService,
+        HostsService,
+        AuditLogsService,
+        AuditLogsFieldsService,
+        ServiceLogsService,
+        ServiceLogsFieldsService,
+        ServiceLogsHistogramDataService,
         ComponentActionsService,
         FilteringService,
-        UtilsService
+        UtilsService,
+        HttpClientService,
+        LogsContainerService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

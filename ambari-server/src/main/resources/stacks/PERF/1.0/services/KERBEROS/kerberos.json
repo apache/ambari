@@ -4,7 +4,8 @@
       "name": "KERBEROS",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "kerberos_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "components": [

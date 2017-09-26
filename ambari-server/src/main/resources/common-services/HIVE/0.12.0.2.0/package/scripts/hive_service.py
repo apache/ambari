@@ -168,6 +168,10 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
 def check_fs_root(conf_dir, execution_path):
   import params
 
+  if not params.manage_hive_fsroot:
+    Logger.info("Skipping fs root check as cluster-env/manage_hive_fsroot is disabled")
+    return
+
   if not params.fs_root.startswith("hdfs://"):
     Logger.info("Skipping fs root check as fs_root does not start with hdfs://")
     return

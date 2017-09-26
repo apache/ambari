@@ -20,27 +20,31 @@
     <filter-dropdown [label]="filters.clusters.label" formControlName="clusters" [options]="filters.clusters.options"
                      [defaultLabel]="filters.clusters.defaultLabel" [isMultipleChoice]="true"
                      class="filter-input"></filter-dropdown>
-    <search-box formControlName="query" [items]="searchBoxItems" class="filter-input"></search-box>
-    <filter-dropdown formControlName="timeRange" [options]="filters.timeRange.options"
-                     [defaultLabel]="filters.timeRange.defaultLabel" class="filter-input"></filter-dropdown>
+    <search-box formControlName="query" [items]="searchBoxItemsTranslated" class="filter-input"
+                [parameterNameChangeSubject]="queryParameterNameChange"
+                [parameterAddSubject]="queryParameterAdd"></search-box>
+    <time-range-picker formControlName="timeRange" [defaultLabel]="filters.timeRange.defaultLabel"
+                       class="filter-input"></time-range-picker>
     <timezone-picker class="filter-input"></timezone-picker>
     <!--button class="btn btn-success" type="button">
       <span class="fa fa-search"></span>
     </button-->
   </div>
   <div class="default-flex col-md-4">
-    <a href="#">
-      <span class="fa fa-search-minus"></span> {{'filter.excluded' | translate}}
-    </a>
-    <filter-button formControlName="hosts" [label]="filters.hosts.label"
+    <dropdown-button [options]="searchBoxItems" iconClass="fa fa-search-minus" label="filter.excluded"
+                     [hideCaret]="true" [showSelectedValue]="false" action="proceedWithExclude"></dropdown-button>
+    <filter-button formControlName="hosts" label="{{filters.hosts.label | translate}}"
                    [iconClass]="filters.hosts.iconClass" [subItems]="filters.hosts.options"
                    [isMultipleChoice]="true" [isRightAlign]="true"
                    additionalLabelComponentSetter="getDataForHostsNodeBar"></filter-button>
-    <filter-button formControlName="components" [label]="filters.components.label"
+    <filter-button formControlName="components" label="{{filters.components.label | translate}}"
                    [iconClass]="filters.components.iconClass" [subItems]="filters.components.options"
                    [isMultipleChoice]="true" [isRightAlign]="true"></filter-button>
-    <filter-button formControlName="levels" [label]="filters.levels.label" [iconClass]="filters.levels.iconClass"
+    <filter-button formControlName="levels" label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
                    [subItems]="filters.levels.options" [isMultipleChoice]="true" [isRightAlign]="true"></filter-button>
-    <menu-button label="filter.capture" iconClass="fa fa-caret-right"></menu-button>
+    <menu-button *ngIf="!captureSeconds" label="{{'filter.capture' | translate}}" iconClass="fa fa-caret-right"
+                 action="startCapture"></menu-button>
+    <menu-button *ngIf="captureSeconds" label="{{captureSeconds | timerSeconds}}" iconClass="fa fa-stop stop-icon"
+                 action="stopCapture"></menu-button>
   </div>
 </form>

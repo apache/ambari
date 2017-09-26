@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.inject.Provider;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
@@ -59,6 +60,8 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.State;
@@ -92,6 +95,10 @@ public class DatabaseConsistencyCheckHelper {
   private static StageDAO stageDAO;
 
   private static DatabaseConsistencyCheckResult checkResult = DatabaseConsistencyCheckResult.DB_CHECK_SUCCESS;
+  public static final String GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY = "select c.cluster_name, cc.type_name from clusterconfig cc " +
+      "join clusters c on cc.cluster_id=c.cluster_id " +
+      "group by c.cluster_name, cc.type_name " +
+      "having sum(cc.selected) > 1";
 
   /**
    * @return The result of the DB cheks run so far.
@@ -174,6 +181,7 @@ public class DatabaseConsistencyCheckHelper {
       if (fixIssues) {
         fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
         fixClusterConfigsNotMappedToAnyService();
+        fixConfigsSelectedMoreThanOnce();
       }
       checkSchemaName();
       checkMySQLEngine();
@@ -317,7 +325,7 @@ public class DatabaseConsistencyCheckHelper {
             warning("Unable to get size for table {}!", tableName);
           }
         } catch (SQLException ex) {
-          error(String.format("Failed to get %s row count: ", tableName), e);
+          warning(String.format("Failed to get %s row count: ", tableName), e);
         }
       } finally {
         if (rs != null) {
@@ -376,7 +384,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      error("Exception occurred during check for config selected more than once procedure: ", e);
+      warning("Exception occurred during check for config selected more than once procedure: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -420,12 +428,12 @@ public class DatabaseConsistencyCheckHelper {
         }
 
         if (!hostsWithoutStatus.isEmpty()) {
-          error("You have host(s) without state (in hoststate table): " + StringUtils.join(hostsWithoutStatus, ","));
+          warning("You have host(s) without state (in hoststate table): " + StringUtils.join(hostsWithoutStatus, ","));
         }
       }
 
     } catch (SQLException e) {
-      error("Exception occurred during check for host without state procedure: ", e);
+      warning("Exception occurred during check for host without state procedure: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -458,7 +466,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
     } catch (SQLException e) {
-      error("Exception occurred during topology request tables check: ", e);
+      warning("Exception occurred during topology request tables check: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -525,7 +533,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       if (hostComponentStateCount != hostComponentDesiredStateCount || hostComponentStateCount != mergedCount) {
-        error("Your host component states (hostcomponentstate table) count not equals host component desired states (hostcomponentdesiredstate table) count!");
+        warning("Your host component states (hostcomponentstate table) count not equals host component desired states (hostcomponentdesiredstate table) count!");
       }
 
 
@@ -537,11 +545,11 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       for (Map.Entry<String, String> component : hostComponentStateDuplicates.entrySet()) {
-        error("Component {} on host with id {}, has more than one host component state (hostcomponentstate table)!", component.getKey(), component.getValue());
+        warning("Component {} on host with id {}, has more than one host component state (hostcomponentstate table)!", component.getKey(), component.getValue());
       }
 
     } catch (SQLException e) {
-      error("Exception occurred during check for same count of host component states and host component desired states: ", e);
+      warning("Exception occurred during check for same count of host component states and host component desired states: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -776,11 +784,11 @@ public class DatabaseConsistencyCheckHelper {
           tablesInfo.add(rs.getString("TABLE_NAME"));
         }
         if (!tablesInfo.isEmpty()){
-          error("Found tables with engine type that is not InnoDB : {}", tablesInfo);
+          warning("Found tables with engine type that is not InnoDB : {}", tablesInfo);
         }
       }
     } catch (SQLException e) {
-      error("Exception occurred during checking MySQL engine to be innodb: ", e);
+      warning("Exception occurred during checking MySQL engine to be innodb: ", e);
     } finally {
       if (rs != null) {
         try {
@@ -793,12 +801,102 @@ public class DatabaseConsistencyCheckHelper {
   }
 
   /**
+   * Fix inconsistencies found by {@code checkForConfigsSelectedMoreThanOnce}
+   * selecting latest one by selectedTimestamp
+   */
+  @Transactional
+  static void fixConfigsSelectedMoreThanOnce() {
+    LOG.info("Fix configs selected more than once");
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+
+    Multimap<String, String> clusterConfigTypeMap = HashMultimap.create();
+    ResultSet rs = null;
+    Statement statement = null;
+
+    ensureConnection();
+
+    try {
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      rs = statement.executeQuery(GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY);
+      if (rs != null) {
+        while (rs.next()) {
+          clusterConfigTypeMap.put(rs.getString("cluster_name"), rs.getString("type_name"));
+        }
+      }
+
+    } catch (SQLException e) {
+      warning("Exception occurred during check for config selected more than once procedure: ", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during result set closing procedure: ", e);
+        }
+      }
+
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during statement closing procedure: ", e);
+        }
+      }
+    }
+
+    for (String clusterName : clusterConfigTypeMap.keySet()) {
+      Cluster cluster = null;
+      try {
+        cluster = clusters.getCluster(clusterName);
+
+        Collection<String> typesWithMultipleSelectedConfigs = clusterConfigTypeMap.get(clusterName);
+
+        for (String type: typesWithMultipleSelectedConfigs) {
+          List<ClusterConfigEntity> enabledConfigsByType = getEnabledConfigsByType(cluster.getClusterId(), type);
+          ClusterConfigEntity latestConfig = enabledConfigsByType.get(0);
+          for (ClusterConfigEntity entity : enabledConfigsByType){
+            entity.setSelected(false);
+            if (latestConfig.getSelectedTimestamp() < entity.getSelectedTimestamp()){
+              latestConfig = entity;
+            }
+            clusterDAO.merge(entity, true);
+          }
+          latestConfig.setSelected(true);
+          clusterDAO.merge(latestConfig, true);
+        }
+      } catch (AmbariException e) {
+        warning("Exception occurred during fix for config selected more than once procedure: ", e);
+      }
+    }
+  }
+
+  /**
+   * Find ClusterConfigs with selected = 1
+   * @return ClusterConfigs that are not mapped to Service by type
+   */
+  private static List<ClusterConfigEntity> getEnabledConfigsByType(long clusterId, String type) {
+
+    Provider<EntityManager> entityManagerProvider = injector.getProvider(EntityManager.class);
+    EntityManager entityManager = entityManagerProvider.get();
+
+    Query query = entityManager.createNamedQuery("ClusterConfigEntity.findEnabledConfigByType",ClusterConfigEntity.class);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("type", type);
+
+    return (List<ClusterConfigEntity>) query.getResultList();
+  }
+
+  /**
   * This method checks several potential problems for services:
   * 1) Check if we have services in cluster which doesn't have service config id(not available in serviceconfig table).
   * 2) Check if service has no mapped configs to it's service config id.
   * 3) Check if service has all required configs mapped to it.
   * 4) Check if service has config which is not selected(has no actual config version)
-  * If any issue was discovered, we are showing error message for user.
+  * If any issue was discovered, we are showing warning message for user.
   * */
   static void checkServiceConfigs()  {
     LOG.info("Checking services and their configs");
@@ -877,7 +975,7 @@ public class DatabaseConsistencyCheckHelper {
         for (String clName : clusterServiceVersionMap.keySet()) {
           Multimap<String, String> serviceVersion = clusterServiceVersionMap.get(clName);
           for (String servName : serviceVersion.keySet()) {
-            error("In cluster {}, service config mapping is unavailable (in table serviceconfigmapping) for service {} with version(s) {}! ", clName, servName, StringUtils.join(serviceVersion.get(servName), ","));
+            warning("In cluster {}, service config mapping is unavailable (in table serviceconfigmapping) for service {} with version(s) {}! ", clName, servName, StringUtils.join(serviceVersion.get(servName), ","));
           }
         }
 
@@ -988,7 +1086,7 @@ public class DatabaseConsistencyCheckHelper {
                   }
 
                   if (!serviceConfigsFromStack.isEmpty()) {
-                    error("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
+                    warning("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
                             StringUtils.join(serviceConfigsFromStack, ","), serviceName, Integer.toString(serviceVersion), clusterName);
                   }
                 }
@@ -1026,11 +1124,11 @@ public class DatabaseConsistencyCheckHelper {
       for (String clusterName : clusterServiceConfigType.keySet()) {
         Multimap<String, String> serviceConfig = clusterServiceConfigType.get(clusterName);
         for (String serviceName : serviceConfig.keySet()) {
-          error("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
+          warning("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
         }
       }
     } catch (SQLException | AmbariException e) {
-      error("Exception occurred during complex service check procedure: ", e);
+      warning("Exception occurred during complex service check procedure: ", e);
     } finally {
       if (rs != null) {
         try {

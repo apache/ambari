@@ -57,73 +57,33 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
         name: service.get('serviceName'),
         latestVersion: stackService ? stackService.get('latestVersion') : '',
         isVersionInvisible: !stackService,
-        notUpgradable: !this.get('content.isStandard')  && isAvailable && !stackService.get('isUpgradable'),
+        notUpgradable: this.getNotUpgradable(isAvailable, stackService.get('isUpgradable')),
         isAvailable: isAvailable
       });
     }, this);
   }.property(),
 
-  /**
-   * map of properties which correspond to particular state of Upgrade version
-   * @type {object}
-   */
-  statePropertiesMap: {
-    'CURRENT': {
-      isLabel: true,
-      text: Em.I18n.t('common.current'),
-      class: 'label label-success'
-    },
-    'NOT_REQUIRED': {
-      isButton: true,
-      text: Em.I18n.t('common.install'),
-      action: 'installRepoVersionConfirmation'
-    },
-    'LOADING': {
-      isSpinner: true,
-      class: 'spinner'
-    },
-    'INSTALLING': {
-      iconClass: 'glyphicon glyphicon-cog',
-      isLink: true,
-      text: Em.I18n.t('hosts.host.stackVersions.status.installing'),
-      action: 'showProgressPopup'
-    },
-    'INSTALLED': {
-      iconClass: 'glyphicon glyphicon-ok',
-      isLink: true,
-      text: Em.I18n.t('common.installed'),
-      action: null
-    },
-    'SUSPENDED': {
-      isButton: true,
-      text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
-      action: 'resumeUpgrade'
-    }
+  getNotUpgradable: function(isAvailable, isUpgradable) {
+    return this.get('content.isMaint') && this.get('content.status') !== 'CURRENT' && isAvailable && !isUpgradable;
   },
+
 
   /**
    * @param {Em.Object} stackService
    * @returns {boolean}
    */
   isStackServiceAvailable: function(stackService) {
+    var self = this;
     if (!stackService) {
       return false;
     }
     if ( this.get('content.isCurrent') ){
-      // if version is current, check whether this service is available and the version itself is the newest version of all versions that contain the same service
-      var serviceWithHigherVersion =  App.RepositoryVersion.find().filterProperty('isCurrent').find(function ( version ) {
-        var service = version.get('stackServices').toArray().find( function (service) {
-          return service.get('name') === stackService.get('name') && service.get('isAvailable')
-        });
-        return Boolean(service && stringUtils.compareVersions(version.get('repositoryVersion'), this.get('content.repositoryVersion')) === 1);
-      }, this);
-      return stackService.get('isAvailable') && !serviceWithHigherVersion;
+      var originalService = App.Service.find(stackService.get('name'));
+      return stackService.get('isAvailable') && originalService.get('desiredRepositoryVersionId') === this.get('content.id');
     }
     else{
       return stackService.get('isAvailable')
     }
-
-
   },
 
   /**

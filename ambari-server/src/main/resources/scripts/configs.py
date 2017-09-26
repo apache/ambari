@@ -18,11 +18,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import optparse
+from optparse import OptionGroup
 import sys
 import urllib2
 import time
 import json
 import base64
+import xml
+import xml.etree.ElementTree as ET
+import os
+import logging
+
+logger = logging.getLogger('AmbariConfig')
 
 HTTP_PROTOCOL = 'http'
 HTTPS_PROTOCOL = 'https'
@@ -106,14 +114,14 @@ def create_new_desired_config(cluster, config_type, properties, attributes, acce
     new_config[CLUSTERS][DESIRED_CONFIGS][ATTRIBUTES] = attributes
   request_body = json.dumps(new_config)
   new_file = 'doSet_{0}.json'.format(new_tag)
-  print '### PUTting json into: {0}'.format(new_file)
+  logger.info('### PUTting json into: {0}'.format(new_file))
   output_to_file(new_file)(new_config)
   accessor(CLUSTERS_URL.format(cluster), PUT_REQUEST_TYPE, request_body)
-  print '### NEW Site:{0}, Tag:{1}'.format(config_type, new_tag)
+  logger.info('### NEW Site:{0}, Tag:{1}'.format(config_type, new_tag))
 
 def get_current_config(cluster, config_type, accessor):
   config_tag = get_config_tag(cluster, config_type, accessor)
-  print "### on (Site:{0}, Tag:{1})".format(config_type, config_tag)
+  logger.info("### on (Site:{0}, Tag:{1})".format(config_type, config_tag))
   response = accessor(CONFIGURATION_URL.format(cluster, config_type, config_tag))
   config_by_tag = json.loads(response)
   current_config = config_by_tag[ITEMS][0]
@@ -130,6 +138,41 @@ def update_specific_property(config_name, config_value):
     return properties, attributes
   return update
 
+def update_from_xml(config_file):
+  def update(cluster, config_type, accessor):
+    return read_xml_data_to_map(config_file)
+  return update
+
+# Used DOM parser to read data into a map
+def read_xml_data_to_map(path):
+  configurations = {}
+  properties_attributes = {}
+  tree = ET.parse(path)
+  root = tree.getroot()
+  for properties in root.getiterator('property'):
+    name = properties.find('name')
+    value = properties.find('value')
+    final = properties.find('final')
+
+    if name != None:
+      name_text = name.text if name.text else ""
+    else:
+      logger.warn("No name is found for one of the properties in {0}, ignoring it".format(path))
+      continue
+
+    if value != None:
+      value_text = value.text if value.text else ""
+    else:
+      logger.warn("No value is found for \"{0}\" in {1}, using empty string for it".format(name_text, path))
+      value_text = ""
+
+    if final != None:
+      final_text = final.text if final.text else ""
+      properties_attributes[name_text] = final_text
+
+    configurations[name_text] = value_text
+  return configurations, {"final" : properties_attributes}
+
 def update_from_file(config_file):
   def update(cluster, config_type, accessor):
     try:
@@ -138,12 +181,12 @@ def update_from_file(config_file):
     except Exception as e:
       raise Exception('Cannot find file "{0}" to PUT'.format(config_file))
     try:
-      file_properties = json.loads('{' + file_content + '}')
+      file_properties = json.loads(file_content)
     except Exception as e:
       raise Exception('File "{0}" should be in the following JSON format ("properties_attributes" is optional):\n{1}'.format(config_file, FILE_FORMAT))
     new_properties = file_properties.get(PROPERTIES, {})
     new_attributes = file_properties.get(ATTRIBUTES, {})
-    print '### PUTting file: "{0}"'.format(config_file)
+    logger.info('### PUTting file: "{0}"'.format(config_file))
     return new_properties, new_attributes
   return update
 
@@ -156,26 +199,14 @@ def delete_specific_property(config_name):
     return properties, attributes
   return update
 
-def format_json(dictionary, tab_level=0):
-  output = ''
-  tab = ' ' * 2 * tab_level
-  for key, value in dictionary.iteritems():
-    output += ',\n{0}"{1}": '.format(tab, key)
-    if isinstance(value, dict):
-      output += '{\n' + format_json(value, tab_level + 1) + tab + '}'
-    else:
-      output += '"{0}"'.format(value)
-  output += '\n'
-  return output[2:]
-
 def output_to_file(filename):
   def output(config):
     with open(filename, 'w') as out_file:
-      out_file.write(format_json(config))
+      json.dump(config, out_file, indent=2)
   return output
 
 def output_to_console(config):
-  print format_json(config)
+  print json.dumps(config, indent=2)
 
 def get_config(cluster, config_type, accessor, output):
   properties, attributes = get_current_config(cluster, config_type, accessor)
@@ -185,70 +216,152 @@ def get_config(cluster, config_type, accessor, output):
   output(config)
 
 def set_properties(cluster, config_type, args, accessor):
-  print '### Performing "set" content:'
-  if len(args) == 0:
-    raise UsageException("Not enough arguments. Expected config key and value or filename.")
+  logger.info('### Performing "set":')
 
   if len(args) == 1:
     config_file = args[0]
-    updater = update_from_file(config_file)
-    print '### from file "{0}"'.format(config_file)
+    root, ext = os.path.splitext(config_file)
+    if ext == ".xml":
+      updater = update_from_xml(config_file)
+    elif ext == ".json":
+      updater = update_from_file(config_file)
+    else:
+      logger.error("File extension {0} doesn't supported".format(ext))
+      return -1
+    logger.info('### from file {0}'.format(config_file))
   else:
     config_name = args[0]
     config_value = args[1]
     updater = update_specific_property(config_name, config_value)
-    print '### new property - "{0}":"{1}"'.format(config_name, config_value)
+    logger.info('### new property - "{0}":"{1}"'.format(config_name, config_value))
   update_config(cluster, config_type, updater, accessor)
+  return 0
 
 def delete_properties(cluster, config_type, args, accessor):
-  print '### Performing "delete":'
+  logger.info('### Performing "delete":')
   if len(args) == 0:
-    raise UsageException("Not enough arguments. Expected config key.")
+    logger.error("Not enough arguments. Expected config key.")
+    return -1
 
   config_name = args[0]
-  print '### on property "{0}"'.format(config_name)
+  logger.info('### on property "{0}"'.format(config_name))
   update_config(cluster, config_type, delete_specific_property(config_name), accessor)
+  return 0
+
 
 def get_properties(cluster, config_type, args, accessor):
-  print '### Performing "get" content:'
+  logger.info("### Performing \"get\" content:")
   if len(args) > 0:
     filename = args[0]
     output = output_to_file(filename)
-    print '### to file "{0}"'.format(filename)
+    logger.info('### to file "{0}"'.format(filename))
   else:
     output = output_to_console
   get_config(cluster, config_type, accessor, output)
+  return 0
 
 def main():
-  if len(sys.argv) < 9:
-    raise UsageException('Not enough arguments.')
-  args = sys.argv[1:]
-  user = args[0]
-  password = args[1]
-  port = args[2]
-  protocol = args[3]
-  action = args[4]
-  host = args[5]
-  cluster = args[6]
-  config_type = args[7]
-  action_args = args[8:]
+
+  parser = optparse.OptionParser(usage="usage: %prog [options]")
+
+  login_options_group = OptionGroup(parser, "To specify credentials please use \"-e\" OR \"-u\" and \"-p'\"")
+  login_options_group.add_option("-u", "--user", dest="user", default="admin", help="Optional user ID to use for authentication. Default is 'admin'")
+  login_options_group.add_option("-p", "--password", dest="password", default="admin", help="Optional password to use for authentication. Default is 'admin'")
+  login_options_group.add_option("-e", "--credentials-file", dest="credentials_file", help="Optional file with user credentials separated by new line.")
+  parser.add_option_group(login_options_group)
+
+  parser.add_option("-t", "--port", dest="port", default="8080", help="Optional port number for Ambari server. Default is '8080'. Provide empty string to not use port.")
+  parser.add_option("-s", "--protocol", dest="protocol", default="http", help="Optional support of SSL. Default protocol is 'http'")
+  parser.add_option("-a", "--action", dest="action", help="Script action: <get>, <set>, <delete>")
+  parser.add_option("-l", "--host", dest="host", help="Server external host name")
+  parser.add_option("-n", "--cluster", dest="cluster", help="Name given to cluster. Ex: 'c1'")
+  parser.add_option("-c", "--config-type", dest="config_type", help="One of the various configuration types in Ambari. Ex: core-site, hdfs-site, mapred-queue-acls, etc.")
+
+  config_options_group = OptionGroup(parser, "To specify property(s) please use \"-f\" OR \"-k\" and \"-v'\"")
+  config_options_group.add_option("-f", "--file", dest="file", help="File where entire configurations are saved to, or read from. Supported extensions (.xml, .json>)")
+  config_options_group.add_option("-k", "--key", dest="key", help="Key that has to be set or deleted. Not necessary for 'get' action.")
+  config_options_group.add_option("-v", "--value", dest="value", help="Optional value to be set. Not necessary for 'get' or 'delete' actions.")
+  parser.add_option_group(config_options_group)
+
+  (options, args) = parser.parse_args()
+
+  logger.setLevel(logging.INFO)
+  formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+  stdout_handler = logging.StreamHandler(sys.stdout)
+  stdout_handler.setLevel(logging.INFO)
+  stdout_handler.setFormatter(formatter)
+  logger.addHandler(stdout_handler)
+
+  # options with default value
+
+  if not options.credentials_file and (not options.user or not options.password):
+    parser.error("You should use option (-e) to set file with Ambari user credentials OR use (-u) username and (-p) password")
+
+  if options.credentials_file:
+    if os.path.isfile(options.credentials_file):
+      try:
+        with open(options.credentials_file) as credentials_file:
+          file_content = credentials_file.read()
+          login_lines = filter(None, file_content.splitlines())
+          if len(login_lines) == 2:
+            user = login_lines[0]
+            password = login_lines[1]
+          else:
+            logger.error("Incorrect content of {0} file. File should contain Ambari username and password separated by new line.".format(options.credentials_file))
+            return -1
+      except Exception as e:
+        logger.error("You don't have permissions to {0} file".format(options.credentials_file))
+        return -1
+    else:
+      logger.error("File {0} doesn't exist or you don't have permissions.".format(options.credentials_file))
+      return -1
+  else:
+    user = options.user
+    password = options.password
+
+  port = options.port
+  protocol = options.protocol
+
+  #options without default value
+  if None in [options.action, options.host, options.cluster, options.config_type]:
+    parser.error("One of required options is not passed")
+
+  action = options.action
+  host = options.host
+  cluster = options.cluster
+  config_type = options.config_type
+
   accessor = api_accessor(host, user, password, protocol, port)
   if action == SET_ACTION:
-    set_properties(cluster, config_type, action_args, accessor)
+
+    if not options.file and (not options.key or not options.value):
+      parser.error("You should use option (-f) to set file where entire configurations are saved OR (-k) key and (-v) value for one property")
+    if options.file:
+      action_args = [options.file]
+    else:
+      action_args = [options.key, options.value]
+    return set_properties(cluster, config_type, action_args, accessor)
+
   elif action == GET_ACTION:
-    get_properties(cluster, config_type, action_args, accessor)
+    if options.file:
+      action_args = [options.file]
+    else:
+      action_args = []
+    return get_properties(cluster, config_type, action_args, accessor)
+
   elif action == DELETE_ACTION:
-    delete_properties(cluster, config_type, action_args, accessor)
+    if not options.key:
+      parser.error("You should use option (-k) to set property name witch will be deleted")
+    else:
+      action_args = [options.key]
+    return delete_properties(cluster, config_type, action_args, accessor)
   else:
-    raise UsageException('Action "{0}" is not supported. Supported actions: "get", "set", "delete".'.format(action))
+    logger.error('Action "{0}" is not supported. Supported actions: "get", "set", "delete".'.format(action))
+    return -1
 
 if __name__ == "__main__":
   try:
-    main()
-  except UsageException as usage_exc:
-    print '[ERROR]   {0}'.format(usage_exc)
-    sys.exit(2)
-  except Exception as exc:
-    for line in str(exc).split('\n'):
-      print '[ERROR]   {0}'.format(line)
+    sys.exit(main())
+  except (KeyboardInterrupt, EOFError):
+    print("\nAborting ... Keyboard Interrupt.")
     sys.exit(1)

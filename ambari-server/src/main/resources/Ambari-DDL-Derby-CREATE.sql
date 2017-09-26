@@ -185,6 +185,7 @@ CREATE TABLE repo_version (
   repositories VARCHAR(3000) NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
+  resolved SMALLINT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml CLOB,
   version_xsd VARCHAR(512),
@@ -877,7 +878,7 @@ CREATE TABLE upgrade_item (
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   hosts VARCHAR(3000),
   tasks VARCHAR(3000),
-  item_text VARCHAR(1024),
+  item_text VARCHAR(3000),
   CONSTRAINT PK_upgrade_item PRIMARY KEY (upgrade_item_id),
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );

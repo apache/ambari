@@ -36,11 +36,7 @@ export class AuditLogsQueryParams extends QueryParams {
   startIndex: string;
   sortBy?: string;
   sortType?: string;
-  start_time?: string;
-  end_time?: string;
   clusters?: string;
-  iMessage?: string;
-  eMessage?: string;
   mustBe?: string;
   mustNot?: string;
   includeQuery?: string;

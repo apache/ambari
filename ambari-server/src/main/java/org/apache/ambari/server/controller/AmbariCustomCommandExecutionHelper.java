@@ -1285,6 +1285,7 @@ public class AmbariCustomCommandExecutionHelper {
       public Void apply(RepositoryVersionEntity rve) {
         command.setRepositoryVersionId(rve.getId());
         command.setRepositoryVersion(rve.getVersion());
+        command.setResolved(rve.isResolved());
         command.setStackName(rve.getStackName());
 
         // !!! a repository version entity has all the repos worked out.  We shouldn't use
@@ -1523,14 +1524,18 @@ public class AmbariCustomCommandExecutionHelper {
     if (actionName.equals(START_COMMAND_NAME) || actionName.equals(RESTART_COMMAND_NAME)) {
       Cluster cluster = clusters.getCluster(clusterName);
       StackId stackId = null;
-      try {
-        Service service = cluster.getService(serviceName);
-        stackId = service.getDesiredStackId();
-      } catch (AmbariException e) {
-        LOG.debug("Could not load service {}, skipping topology check", serviceName);
-        stackId = cluster.getDesiredStackVersion();
+      if (serviceName != null) {
+        try {
+          Service service = cluster.getService(serviceName);
+          stackId = service.getDesiredStackId();
+        } catch (AmbariException e) {
+          LOG.debug("Could not load service {}, skipping topology check", serviceName);
+        }
       }
 
+      if (stackId == null) {
+        stackId = cluster.getDesiredStackVersion();
+      }
 
       AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
 

@@ -18,7 +18,13 @@
 
 import {Injectable} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
+import {Subject} from 'rxjs/Subject';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/timer';
+import 'rxjs/add/operator/takeUntil';
+import {Moment} from 'moment';
 import * as moment from 'moment-timezone';
+import {ListItem} from '@app/classes/list-item.class';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
@@ -46,7 +52,7 @@ export class FilteringService {
     });
   }
 
-  private getListItem(name: string): any {
+  private getListItem(name: string): ListItem {
     return {
       label: name,
       value: name
@@ -65,78 +71,217 @@ export class FilteringService {
       options: [],
       defaultValue: ''
     },
-    text: {
-      label: 'filter.message',
-      defaultValue: ''
-    },
     timeRange: {
       options: [
-        {
-          label: 'filter.timeRange.1hr',
-          value: {
-            type: 'LAST',
-            unit: 'h',
-            interval: 1
+        [
+          {
+            label: 'filter.timeRange.7d',
+            value: {
+              type: 'LAST',
+              unit: 'd',
+              interval: 7
+            }
+          },
+          {
+            label: 'filter.timeRange.30d',
+            value: {
+              type: 'LAST',
+              unit: 'd',
+              interval: 30
+            }
+          },
+          {
+            label: 'filter.timeRange.60d',
+            value: {
+              type: 'LAST',
+              unit: 'd',
+              interval: 60
+            }
+          },
+          {
+            label: 'filter.timeRange.90d',
+            value: {
+              type: 'LAST',
+              unit: 'd',
+              interval: 90
+            }
+          },
+          {
+            label: 'filter.timeRange.6m',
+            value: {
+              type: 'LAST',
+              unit: 'M',
+              interval: 6
+            }
+          },
+          {
+            label: 'filter.timeRange.1y',
+            value: {
+              type: 'LAST',
+              unit: 'Y',
+              interval: 1
+            }
+          },
+          {
+            label: 'filter.timeRange.2y',
+            value: {
+              type: 'LAST',
+              unit: 'Y',
+              interval: 2
+            }
+          },
+          {
+            label: 'filter.timeRange.5y',
+            value: {
+              type: 'LAST',
+              unit: 'Y',
+              interval: 5
+            }
           }
-        },
-        {
-          label: 'filter.timeRange.24hr',
-          value: {
-            type: 'LAST',
-            unit: 'h',
-            interval: 24
+        ],
+        [
+          {
+            label: 'filter.timeRange.yesterday',
+            value: {
+              type: 'PAST',
+              unit: 'd'
+            }
+          },
+          // TODO implement time range calculation
+          /*
+          {
+            label: 'filter.timeRange.beforeYesterday',
+            value: {
+              type: 'PAST',
+              unit: 'd'
+            }
+          },
+          {
+            label: 'filter.timeRange.thisDayLastWeek',
+            value: {
+              type: 'PAST',
+              unit: 'd'
+            }
+          },
+          */
+          {
+            label: 'filter.timeRange.previousWeek',
+            value: {
+              type: 'PAST',
+              unit: 'w'
+            }
+          },
+          {
+            label: 'filter.timeRange.previousMonth',
+            value: {
+              type: 'PAST',
+              unit: 'M'
+            }
+          },
+          {
+            label: 'filter.timeRange.previousYear',
+            value: {
+              type: 'PAST',
+              unit: 'Y'
+            }
           }
-        },
-        {
-          label: 'filter.timeRange.today',
-          value: {
-            type: 'CURRENT',
-            unit: 'd'
+        ],
+        [
+          {
+            label: 'filter.timeRange.today',
+            value: {
+              type: 'CURRENT',
+              unit: 'd'
+            }
+          },
+          {
+            label: 'filter.timeRange.thisWeek',
+            value: {
+              type: 'CURRENT',
+              unit: 'w'
+            }
+          },
+          {
+            label: 'filter.timeRange.thisMonth',
+            value: {
+              type: 'CURRENT',
+              unit: 'M'
+            }
+          },
+          {
+            label: 'filter.timeRange.thisYear',
+            value: {
+              type: 'CURRENT',
+              unit: 'Y'
+            }
           }
-        },
-        {
-          label: 'filter.timeRange.yesterday',
-          value: {
-            type: 'PAST',
-            unit: 'd'
-          }
-        },
-        {
-          label: 'filter.timeRange.7d',
-          value: {
-            type: 'LAST',
-            unit: 'd',
-            interval: 7
-          }
-        },
-        {
-          label: 'filter.timeRange.30d',
-          value: {
-            type: 'LAST',
-            unit: 'd',
-            interval: 30
-          }
-        },
-        {
-          label: 'filter.timeRange.thisMonth',
-          value: {
-            type: 'CURRENT',
-            unit: 'M'
-          }
-        },
-        {
-          label: 'filter.timeRange.lastMonth',
-          value: {
-            type: 'PAST',
-            unit: 'M'
-          }
-        },
-        {
-          label: 'filter.timeRange.custom',
-          value: {
-            type: 'CUSTOM'
-          }
-        }
+        ],
+        [
+          {
+            label: 'filter.timeRange.5min',
+            value: {
+              type: 'LAST',
+              unit: 'm',
+              interval: 5
+            }
+          },
+          {
+            label: 'filter.timeRange.15min',
+            value: {
+              type: 'LAST',
+              unit: 'm',
+              interval: 15
+            }
+          },
+          {
+            label: 'filter.timeRange.30min',
+            value: {
+              type: 'LAST',
+              unit: 'm',
+              interval: 30
+            }
+          },
+          {
+            label: 'filter.timeRange.1hr',
+            value: {
+              type: 'LAST',
+              unit: 'h',
+              interval: 1
+            }
+          },
+          {
+            label: 'filter.timeRange.3hr',
+            value: {
+              type: 'LAST',
+              unit: 'h',
+              interval: 3
+            }
+          },
+          {
+            label: 'filter.timeRange.6hr',
+            value: {
+              type: 'LAST',
+              unit: 'h',
+              interval: 6
+            }
+          },
+          {
+            label: 'filter.timeRange.12hr',
+            value: {
+              type: 'LAST',
+              unit: 'h',
+              interval: 12
+            }
+          },
+          {
+            label: 'filter.timeRange.24hr',
+            value: {
+              type: 'LAST',
+              unit: 'h',
+              interval: 24
+            }
+          },
+        ]
       ],
       defaultValue: {
         type: 'LAST',
@@ -196,34 +341,6 @@ export class FilteringService {
       label: 'sorting.title',
       options: [
         {
-          label: 'sorting.level.asc',
-          value: {
-            key: 'level',
-            type: 'asc'
-          }
-        },
-        {
-          label: 'sorting.level.desc',
-          value: {
-            key: 'level',
-            type: 'desc'
-          }
-        },
-        {
-          label: 'sorting.component.asc',
-          value: {
-            key: 'type',
-            type: 'asc'
-          }
-        },
-        {
-          label: 'sorting.component.desc',
-          value: {
-            key: 'type',
-            type: 'desc'
-          }
-        },
-        {
           label: 'sorting.time.asc',
           value: {
             key: 'logtime',
@@ -269,6 +386,47 @@ export class FilteringService {
 
   filtersForm = new FormGroup(this.filtersFormItems);
 
+  queryParameterNameChange: Subject<any> = new Subject();
+
+  queryParameterAdd: Subject<any> = new Subject();
+
+  private stopTimer: Subject<any> = new Subject();
+
+  private stopAutoRefreshCountdown: Subject<any> = new Subject();
+
+  captureSeconds: number = 0;
+
+  private readonly autoRefreshInterval: number = 30000;
+
+  autoRefreshRemainingSeconds: number = 0;
+
+  private startCaptureMoment: Moment;
+
+  private stopCaptureMoment: Moment;
+
+  startCaptureTimer(): void {
+    this.startCaptureMoment = moment();
+    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => this.captureSeconds = seconds);
+  }
+
+  stopCaptureTimer(): void {
+    const autoRefreshIntervalSeconds = this.autoRefreshInterval / 1000;
+    this.stopCaptureMoment = moment();
+    this.captureSeconds = 0;
+    this.stopTimer.next();
+    Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe(seconds => {
+      this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
+      if (!this.autoRefreshRemainingSeconds) {
+        this.stopAutoRefreshCountdown.next();
+        this.filtersForm.controls.timeRange.setValue({
+          type: 'CUSTOM',
+          start: this.startCaptureMoment,
+          end: this.stopCaptureMoment
+        });
+      }
+    });
+  }
+
   loadClusters(): void {
     this.httpClient.get('clusters').subscribe(response => {
       const clusterNames = response.json();
@@ -313,6 +471,9 @@ export class FilteringService {
         case 'PAST':
           time = endTime.startOf(value.unit);
           break;
+        case 'CUSTOM':
+          time = value.start;
+          break;
         default:
           break;
       }
@@ -332,6 +493,9 @@ export class FilteringService {
           break;
         case 'PAST':
           time = moment().tz(this.timeZone).startOf(value.unit).millisecond(-1);
+          break;
+        case 'CUSTOM':
+          time = value.end;
           break;
         default:
           break;
@@ -355,8 +519,6 @@ export class FilteringService {
   }
 
   readonly valueGetters = {
-    end_time: this.getEndTime,
-    start_time: this.getStartTime,
     to: this.getEndTime,
     from: this.getStartTime,
     sortType: value => value && value.type,

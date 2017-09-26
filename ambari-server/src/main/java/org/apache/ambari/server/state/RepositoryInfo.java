@@ -29,6 +29,8 @@ public class RepositoryInfo {
   private String osType;
   private String repoId;
   private String repoName;
+  private String distribution;
+  private String components;
   private String mirrorsList;
   private String defaultBaseUrl;
   private boolean repoSaved = false;
@@ -89,6 +91,22 @@ public class RepositoryInfo {
    */
   public void setRepoName(String repoName) {
     this.repoName = repoName;
+  }
+
+  public String getDistribution() {
+    return distribution;
+  }
+
+  public void setDistribution(String distribution) {
+    this.distribution = distribution;
+  }
+
+  public String getComponents() {
+    return components;
+  }
+
+  public void setComponents(String components) {
+    this.components = components;
   }
 
   /**
@@ -154,6 +172,8 @@ public class RepositoryInfo {
         + ", repoId=" + repoId
         + ", baseUrl=" + baseUrl
         + ", repoName=" + repoName
+        + ", distribution=" + distribution
+        + ", components=" + components
         + ", mirrorsList=" + mirrorsList
         + ", unique=" + unique
         + ", ambariManagedRepositories=" + ambariManagedRepositories
@@ -171,6 +191,8 @@ public class RepositoryInfo {
         Objects.equal(osType, that.osType) &&
         Objects.equal(repoId, that.repoId) &&
         Objects.equal(repoName, that.repoName) &&
+        Objects.equal(distribution, that.distribution) &&
+        Objects.equal(components, that.components) &&
         Objects.equal(mirrorsList, that.mirrorsList) &&
         Objects.equal(defaultBaseUrl, that.defaultBaseUrl) &&
         Objects.equal(ambariManagedRepositories, that.ambariManagedRepositories);
@@ -178,13 +200,14 @@ public class RepositoryInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(baseUrl, osType, repoId, repoName, mirrorsList, defaultBaseUrl, repoSaved, unique, ambariManagedRepositories);
+    return Objects.hashCode(baseUrl, osType, repoId, repoName, distribution, components, mirrorsList, defaultBaseUrl,
+           ambariManagedRepositories);
   }
 
   public RepositoryResponse convertToResponse()
   {
     return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
-        getRepoName(), getMirrorsList(), getDefaultBaseUrl());
+            getRepoName(), getDistribution(), getComponents(), getMirrorsList(), getDefaultBaseUrl());
   }
 
   /**

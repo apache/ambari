@@ -452,15 +452,34 @@ describe('App.UpgradeVersionBoxView', function () {
         inputData: {
           'content.status': 'CURRENT',
           'content.isPatch': true,
-          'isUpgrading': false
+          'isUpgrading': false,
+          'content.stackVersion': Em.Object.create({
+            'supportsRevert': false
+          })
+        },
+        expected: {
+          isLabel: true,
+          text: Em.I18n.t('common.current'),
+          class: 'label label-success',
+          canBeReverted: false
+        },
+        title: 'current no-revertable patch version'
+      },
+      {
+        inputData: {
+          'content.status': 'CURRENT',
+          'content.isPatch': true,
+          'isUpgrading': false,
+          'content.stackVersion': Em.Object.create({
+            'supportsRevert': true
+          })
         },
         expected: {
           status: 'CURRENT',
-          isButton: true,
-          text: Em.I18n.t('common.revert'),
+          text: Em.I18n.t('common.current'),
           action: 'confirmRevertPatchUpgrade'
         },
-        title: 'current patch version'
+        title: 'current revertable patch version'
       },
       {
         inputData: {
@@ -484,7 +503,7 @@ describe('App.UpgradeVersionBoxView', function () {
             {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": false,
-              "text": "Discard"
+              "text": Em.I18n.t('common.hide')
             }
           ],
           isDisabled: true
@@ -513,7 +532,7 @@ describe('App.UpgradeVersionBoxView', function () {
             {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": true,
-              "text": "Discard"
+              "text": Em.I18n.t('common.hide')
             }
           ],
           isDisabled: true
@@ -547,7 +566,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'INSTALL_FAILED',
           isButton: true,
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
         },
         title: 'INSTALL_FAILED state, no admin access, request in progress, another installation running'
       },
@@ -578,7 +597,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'INSTALL_FAILED',
           isButton: true,
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
         },
         title: 'INSTALL_FAILED state, no admin access, no requests in progress, another installation running'
       },
@@ -612,7 +631,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: false
           }],
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
           isDisabled: false
         },
         title: 'OUT_OF_SYNC state, admin access, no requests in progress, no installation'
@@ -645,7 +664,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: true
           }],
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
           isDisabled: true
         },
         title: 'OUT_OF_SYNC state, admin access, request in progress, no installation'
@@ -699,7 +718,7 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation',
+              action: 'installRepoVersionPopup',
               isDisabled: true
             },
             {
@@ -710,7 +729,7 @@ describe('App.UpgradeVersionBoxView', function () {
             {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": true,
-              "text": "Discard"
+              "text": Em.I18n.t('common.hide')
             }
           ],
           isDisabled: true
@@ -745,7 +764,7 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation',
+              action: 'installRepoVersionPopup',
               isDisabled: true
             },
             {
@@ -1389,7 +1408,7 @@ describe('App.UpgradeVersionBoxView', function () {
         ],
         "isButtonGroup": true,
         "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
-        "action": 'installRepoVersionConfirmation',
+        "action": 'installRepoVersionPopup',
         "isDisabled": false
       })));
     });
@@ -1415,7 +1434,7 @@ describe('App.UpgradeVersionBoxView', function () {
         "buttons": [
           {
             "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
-            "action": "installRepoVersionConfirmation",
+            "action": "installRepoVersionPopup",
             "isDisabled": false
           },
           {
@@ -1424,7 +1443,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: false
           },
           {
-            "text": Em.I18n.t('common.discard'),
+            "text": Em.I18n.t('common.hide'),
             "action": "confirmDiscardRepoVersion",
             "isDisabled": false
           }
@@ -1460,7 +1479,7 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
         "buttons": [
           {
-            "text": Em.I18n.t('common.discard'),
+            "text": Em.I18n.t('common.hide'),
             "action": "confirmDiscardRepoVersion",
             "isDisabled": false
           }
@@ -1488,14 +1507,14 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
         "buttons": [
           {
-            "text": Em.I18n.t('common.discard'),
+            "text": Em.I18n.t('common.hide'),
             "action": "confirmDiscardRepoVersion",
             "isDisabled": false
           }
         ],
         "isButton": false,
         "text": Em.I18n.t('admin.stackVersions.version.installNow'),
-        "action": 'installRepoVersionConfirmation',
+        "action": 'installRepoVersionPopup',
         "isDisabled": false,
         "isButtonGroup": true
       })));

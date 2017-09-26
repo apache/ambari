@@ -18,6 +18,7 @@
 
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {TranslationModules} from '@app/test-config.spec';
 
 import {TopMenuComponent} from './top-menu.component';
 
@@ -27,6 +28,7 @@ describe('TopMenuComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: TranslationModules,
       declarations: [TopMenuComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

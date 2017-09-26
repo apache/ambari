@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from mock.mock import patch
+from mock.mock import MagicMock
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -43,13 +44,15 @@ class TestStackSelect(TestCase):
 
     self.assertRaises(Fail, stack_select.select_packages, version)
 
-
+  @patch.object(stack_select, "get_supported_packages")
   @patch("resource_management.libraries.functions.stack_select.select")
-  def test_select_package_for_standard_orchestration(self, stack_select_select_mock):
+  def test_select_package_for_standard_orchestration(self, stack_select_select_mock, get_supported_packages_mock):
     """
     Tests that missing the service & role throws an excpetion
     :return:
     """
+    get_supported_packages_mock.return_value = TestStackSelect._get_supported_packages()
+
     version = "2.5.9.9-9999"
 
     command_json = TestStackSelect._get_cluster_simple_upgrade_json()
@@ -66,13 +69,15 @@ class TestStackSelect(TestCase):
     self.assertEqual(stack_select_select_mock.call_args_list[0][0], ("foo-master", version))
     self.assertEqual(stack_select_select_mock.call_args_list[1][0], ("foo-client", version))
 
-
+  @patch.object(stack_select, "get_supported_packages")
   @patch("resource_management.libraries.functions.stack_select.select")
-  def test_select_package_for_patch_orchestration(self, stack_select_select_mock):
+  def test_select_package_for_patch_orchestration(self, stack_select_select_mock, get_supported_packages_mock):
     """
     Tests that missing the service & role throws an excpetion
     :return:
     """
+    get_supported_packages_mock.return_value = TestStackSelect._get_supported_packages()
+
     version = "2.5.9.9-9999"
 
     command_json = TestStackSelect._get_cluster_simple_upgrade_json()
@@ -97,6 +102,31 @@ class TestStackSelect(TestCase):
     self.assertEqual(len(stack_select_select_mock.call_args_list), 1)
     self.assertEqual(stack_select_select_mock.call_args_list[0][0], ("foo-master", version))
 
+
+  @patch.object(stack_select, "get_supported_packages")
+  @patch("resource_management.libraries.functions.stack_select.select")
+  def test_legacy_package_fallback(self, stack_select_select_mock, get_supported_packages_mock):
+    """
+    Tests that if the package specified by the JSON isn't support by the stack-select tool,
+    the the fallback legacy value is used.
+    :return:
+    """
+    get_supported_packages_mock.return_value = ["foo-legacy"]
+
+    version = "2.5.9.9-9999"
+
+    command_json = TestStackSelect._get_cluster_simple_upgrade_json()
+
+    Script.config = dict()
+    Script.config.update(command_json)
+    Script.config.update( { "configurations" : { "cluster-env" : {} }, "hostLevelParams": {} } )
+    Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages_with_legacy()
+    Script.config["hostLevelParams"] = { "stack_name" : "HDP" }
+
+    stack_select.select_packages(version)
+
+    self.assertEqual(len(stack_select_select_mock.call_args_list), 1)
+    self.assertEqual(stack_select_select_mock.call_args_list[0][0], ("foo-legacy", version))
 
   @staticmethod
   def _get_incomplete_cluster_simple_upgrade_json():
@@ -197,3 +227,32 @@ class TestStackSelect(TestCase):
         }
       }
     } )
+
+  @staticmethod
+  def _get_stack_packages_with_legacy():
+    import json
+    return json.dumps( {
+      "HDP": {
+        "stack-select": {
+          "FOO_SERVICE": {
+            "FOO_MASTER": {
+              "LEGACY":"foo-legacy",
+              "STACK-SELECT-PACKAGE": "foo-master",
+              "INSTALL": [
+                "foo-master"
+              ],
+              "PATCH": [
+                "foo-master"
+              ],
+              "STANDARD": [
+                "foo-master"
+              ]
+            }
+          }
+        }
+      }
+    } )
+
+  @staticmethod
+  def _get_supported_packages():
+    return ["foo-master", "foo-client"]

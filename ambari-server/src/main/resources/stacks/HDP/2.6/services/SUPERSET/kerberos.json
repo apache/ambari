@@ -25,7 +25,8 @@
           }
         },
         {
-          "name": "/smokeuser"
+          "name": "superset_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "components": [
@@ -33,7 +34,8 @@
           "name": "SUPERSET",
           "identities": [
             {
-              "name": "/superset"
+              "name": "superset_superset_superset",
+              "reference": "/superset"
             }
           ]
         }

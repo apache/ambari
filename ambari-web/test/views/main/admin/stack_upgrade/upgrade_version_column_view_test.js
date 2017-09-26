@@ -22,8 +22,23 @@ require('views/main/admin/stack_upgrade/upgrade_version_column_view');
 
 describe('App.UpgradeVersionColumnView', function () {
   var view =  App.UpgradeVersionColumnView.create({});
+  var services = [
+    Em.Object.create({
+      id: 'zk',
+      desiredRepositoryVersionId: 1
+    }),
+    Em.Object.create({
+      id: 'storm',
+      desiredRepositoryVersionId: 2
+    }),
+    Em.Object.create({
+      id: 'hdfs',
+      desiredRepositoryVersionId: 1
+    })
+  ];
   var versions = [
     Em.Object.create({
+      id: 1,
       status: "CURRENT",
       repositoryVersion: "2.3.1.1",
       stackVersionType: 'HDP',
@@ -45,6 +60,7 @@ describe('App.UpgradeVersionColumnView', function () {
       ]
     }),
     Em.Object.create({
+      id: 2,
       status: "CURRENT",
       repositoryVersion: "2.2.0.1",
       stackVersionType: 'HDP',
@@ -66,11 +82,36 @@ describe('App.UpgradeVersionColumnView', function () {
       ]
     }),
     Em.Object.create({
+      id: 3,
       status: "INSTALLED",
       repositoryVersion: "2.0.2.1",
       stackVersionType: 'HCP',
       isCompatible: true,
       hidden: false,
+      isMaint: false,
+      stackServices: [
+        Em.Object.create({
+          name: 'zk',
+          isAvailable: true
+        }),
+        Em.Object.create({
+          name: 'storm',
+          isAvailable: false
+        }),
+        Em.Object.create({
+          name: 'hdfs',
+          isAvailable: true
+        })
+      ]
+    }),
+    Em.Object.create({
+      id: 4,
+      status: "INSTALLED",
+      repositoryVersion: "2.0.2.1",
+      stackVersionType: 'HCP',
+      isCompatible: true,
+      hidden: false,
+      isMaint: true,
       stackServices: [
         Em.Object.create({
           name: 'zk',
@@ -88,14 +129,16 @@ describe('App.UpgradeVersionColumnView', function () {
     })
   ];
 
-
-  
   describe("#isStackServiceAvailable", function () {
     beforeEach(function() {
-      sinon.stub(App.RepositoryVersion, 'find').returns(versions);
+      sinon.stub(App.Service, 'find', function (id) {
+        return services.find(function (service) {
+          return id === service.get('id');
+        })
+      })
     });
     afterEach(function() {
-      App.RepositoryVersion.find.restore();
+      App.Service.find.restore();
     });
     it('Current upgrade with invalid service', function () {
       view.set('content', versions[0]);
@@ -122,4 +165,23 @@ describe('App.UpgradeVersionColumnView', function () {
       expect(view.isStackServiceAvailable(versions[1].get('stackServices')[1])).to.be.true;
     });
   });
+
+  describe("#getNotUpgradable", function () {
+    it ('Should return false for not maint', function () {
+      view.set('content', versions[2]);
+      expect(view.getNotUpgradable(true, false)).to.be.false;
+    });
+    it ('Should return true for maint, when service is available and not upgradable', function () {
+      view.set('content', versions[3]);
+      expect(view.getNotUpgradable(true, false)).to.be.true;
+    });
+    it ('Should return false for maint, when service is available and upgradable', function () {
+      view.set('content', versions[3]);
+      expect(view.getNotUpgradable(true, true)).to.be.false;
+    });
+    it ('Should return false for maint, when service is not available and upgradable', function () {
+      view.set('content', versions[3]);
+      expect(view.getNotUpgradable(false, true)).to.be.false;
+    })
+  })
 });

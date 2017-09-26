@@ -15,6 +15,11 @@
   limitations under the License.
 -->
 
+<div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
+  <div class="auto-refresh-message pull-right">
+    {{'filter.capture.triggeringRefresh' | translate: autoRefreshMessageParams}}
+  </div>
+</div>
 <time-histogram class="col-md-12" [data]="histogramData" [customOptions]="histogramOptions"></time-histogram>
 <dropdown-button class="pull-right" label="logs.columns" [options]="availableColumns | async" [isRightAlign]="true"
                  isMultipleChoice="true" action="updateSelectedColumns"

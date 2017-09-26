@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.agent;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -38,6 +40,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -58,6 +61,8 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,6 +94,8 @@ public class TestHeartbeatMonitor {
     injector.getInstance(GuiceJpaInitializer.class);
     helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
   }
 
   @After
@@ -200,6 +207,8 @@ public class TestHeartbeatMonitor {
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
 
+    hm.getAgentRequests().setExecutionDetailsRequest(hostname1, "DATANODE", Boolean.TRUE.toString());
+
     List<StatusCommand> cmds = hm.generateStatusCommands(hostname1);
     assertTrue("HeartbeatMonitor should generate StatusCommands for host1", cmds.size() == 3);
     assertEquals("HDFS", cmds.get(0).getServiceName());
@@ -208,10 +217,19 @@ public class TestHeartbeatMonitor {
     boolean  containsSECONDARY_NAMENODEStatus = false;
 
     for (StatusCommand cmd : cmds) {
-      containsDATANODEStatus |= cmd.getComponentName().equals("DATANODE");
+      boolean isDataNode = cmd.getComponentName().equals("DATANODE");
+      containsDATANODEStatus |= isDataNode;
       containsNAMENODEStatus |= cmd.getComponentName().equals("NAMENODE");
       containsSECONDARY_NAMENODEStatus |= cmd.getComponentName().equals("SECONDARY_NAMENODE");
       assertTrue(cmd.getConfigurations().size() > 0);
+
+      ExecutionCommand execCmd = cmd.getExecutionCommand();
+      assertEquals(isDataNode, execCmd != null);
+      if (execCmd != null) {
+        Map<String, String> commandParams = execCmd.getCommandParams();
+        assertTrue(SERVICE_PACKAGE_FOLDER + " should be included", commandParams.containsKey(SERVICE_PACKAGE_FOLDER));
+        assertTrue(HOOKS_FOLDER + " should be included", commandParams.containsKey(HOOKS_FOLDER));
+      }
     }
 
     assertEquals(true, containsDATANODEStatus);

@@ -127,6 +127,7 @@ Em.I18n.translations = {
   'common.generate.blueprint':'Generate Blueprint',
   'common.message':'Message',
   'common.tasks':'Tasks',
+  'common.taskLog':'Task Log',
   'common.open':'Open',
   'common.copy':'Copy',
   'common.complete':'Complete',
@@ -216,6 +217,7 @@ Em.I18n.translations = {
   'common.notAvailable': 'Not Available',
   'common.na': 'n/a',
   'common.operations': 'Operations',
+  'common.backgroundOperations': 'Background Operations',
   'common.startTime': 'Start Time',
   'common.duration': 'Duration',
   'common.reinstall': 'Re-Install',
@@ -731,6 +733,9 @@ Em.I18n.translations = {
   'installer.step2.bootStrap.error':'Errors were encountered while setting up Ambari Agents on the hosts.',
   'installer.step2.bootStrap.inProgress':'Please wait while Ambari Agents are being set up on the hosts. This can take several minutes depending on the number of hosts.',
   'installer.step2.bootStrap.header':'Setting Up Ambari Agents',
+  'installer.step2.skipHostChecks.label': 'Skip host checks',
+  'installer.step2.skipHostChecks.popup.header': 'Warning',
+  'installer.step2.skipHostChecks.popup.body': 'By skipping host checks, Ambari will not check and warn if any issues with the host are identified and the host will be added to the cluster as is.',
 
   'installer.step3.header':'Confirm Hosts',
   'installer.step3.body':'Registering your hosts.<br>' +
@@ -1728,6 +1733,7 @@ Em.I18n.translations = {
   'admin.stackVersions.upgrade.start.fail.title':'Upgrade could not be started',
   'admin.stackVersions.upgrade.installPackage.fail.title':'Packages could not be installed',
   'admin.stackVersions.upgrade.installPackage.fail.timeout':'Request timed out.',
+  'admin.stackVersions.upgrade.installPackage.fail.noAvailableServices':"Version {0} does not contain services that are installed.",
 
   'admin.stackVersions.upgrade.patch.revert.confirmation':'Are you sure you want to revert the following services:',
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring.',
@@ -1761,7 +1767,7 @@ Em.I18n.translations = {
   'admin.stackDowngrade.state.paused.fail.header': "Pause Downgrade failed",
   'admin.stackDowngrade.state.paused.fail.body': "Downgrade could not be paused. Try again later.",
 
-  'admin.stackVersions.version.service.notUpgradable': "Update available, but already installed.",
+  'admin.stackVersions.version.service.notUpgradable': "The version of this service included in this repository is already installed in the cluster.",
 
   'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
@@ -1852,6 +1858,8 @@ Em.I18n.translations = {
   'admin.stackUpgrade.failedHosts.options.first': "<b>Pause Upgrade</b>, delete the unhealthy hosts and return to the Upgrade Wizard to Proceed.",
   'admin.stackUpgrade.failedHosts.options.second': "Perform a <b>Downgrade</b>, which will revert all hosts to the previous stack version.",
   'admin.stackUpgrade.failedHosts.options.third': "Ignore these failures and <b>Proceed</b> for now (reconcile the failures later).",
+  'admin.stackUpgrade.failedHosts.isOutOfSync.options.first' : '<b>Pause Upgrade</b> and restart the component',
+  'admin.stackUpgrade.failedHosts.isOutOfSync.options.second' : '<b>Restart</b> the Ambari Agent',
   'admin.stackUpgrade.failedHosts.header': "Failed Hosts",
   'admin.stackUpgrade.failedHosts.subHeader': "Upgrade failed on {0} hosts",
   'admin.stackUpgrade.failedHosts.details': "Open Details",
@@ -1876,6 +1884,8 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.aborted': "Upgrade Aborted",
   'admin.stackUpgrade.state.completed': "Upgrade Finished",
   'admin.stackUpgrade.state.inProgress.downgrade': "Downgrade in Progress",
+  'admin.stackUpgrade.state.init': "Upgrade Initializing",
+  'admin.stackUpgrade.state.init.downgrade': "Downgrade Initializing",
   'admin.stackUpgrade.state.paused.downgrade': "Downgrade Paused",
   'admin.stackUpgrade.state.aborted.downgrade': "Downgrade Aborted",
   'admin.stackUpgrade.state.completed.downgrade': "Downgrade Finished",
@@ -2308,8 +2318,8 @@ Em.I18n.translations = {
   'services.reassign.step1.message1': 'This wizard will walk you through moving {0}.<br/>',
   'services.reassign.step1.message2': 'The process to reassign {0} involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
       '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>',
-  'services.reassign.step1.message3': '<br/><b>All required services will be restarted as part of the wizard. You should plan a cluster maintenance window and prepare ' +
-    'for cluster downtime when moving {0}.</b>',
+  'services.reassign.step1.message3': '<br/><p class="restart-services-alert">Following services will be restarted as part of the wizard: <b>{0}</b>. You should plan a cluster maintenance window and prepare ' +
+    'for cluster downtime when moving {1}.</p>',
 
   'services.reassign.step2.header':'Assign Master',
   'services.reassign.step2.currentHost':'Current:',
@@ -2695,6 +2705,7 @@ Em.I18n.translations = {
   'hosts.host.details.refreshConfigs':'Refresh configs',
   'hosts.host.details.for.postfix':'{0} for host',
   'hosts.host.details.setRackId':'Set Rack',
+  'hosts.host.details.recoverHost': 'Recover Host',
   'host.host.details.installClients': 'Install clients',
   'host.host.details.reinstallClients': 'Reinstall clients',
   'host.host.details.checkHost': 'Check host',
@@ -2760,6 +2771,9 @@ Em.I18n.translations = {
   'hosts.host.maintainance.stopAllComponents.context': 'Stop All Host Components',
   'hosts.host.maintainance.startAllComponents.context': 'Start All Host Components',
   'hosts.host.maintainance.reinstallFailedComponents.context': 'Reinstall Failed Components',
+  'hosts.host.recover.initAllComponents.context': 'Init All Host Components',
+  'hosts.host.recover.installAllComponents.context': 'Install All Host Components',
+  'hosts.host.recover.regenerateKeytabs.context': 'Regenerate keytabs',
   'hosts.host.alerts.st':'&nbsp;!&nbsp;',
   'hosts.decommission.popup.body':'Are you sure?',
   'hosts.decommission.popup.header':'Confirmation',
@@ -2775,6 +2789,10 @@ Em.I18n.translations = {
   'hosts.delete.popup.header':'Confirmation',
   'hosts.delete.popup.title':'Delete Host',
   'hosts.delete.popup.unknownComponents':'The following components have unknown status:',
+  'hosts.recover.popup.title': 'Confirmation',
+  'hosts.recover.popup.body': 'This action will completely re-install all components on this host. <strong>Are you sure you want to continue?<strong>',
+  'hosts.recover.error.popup.title': 'Cannot Recover Host',
+  'hosts.recover.error.popup.body': 'This host cannot be recovered unless every component is Stopped. Please stop all components and try again.',
   'hosts.cant.do.popup.title':'Unable to Delete Host',
   'hosts.cant.do.popup.masterList.body':'This host cannot be deleted since it has the following master components:',
   'hosts.cant.do.popup.masterList.body.end':'To delete this host, you must first move all the master components listed above.',

@@ -55,5 +55,15 @@
       border-right-width: @input-border-width;
       margin-right: -1 * (@input-border-width);
     }
+
+    time-range-picker {
+      /deep/ .dropdown-menu {
+        left: @col-padding;
+      }
+    }
+  }
+
+  /deep/ .stop-icon {
+    color: @error-color;
   }
 }

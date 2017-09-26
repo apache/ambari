@@ -21,7 +21,26 @@
   <services>
     <service>
       <name>ZEPPELIN</name>
-      <version>0.7.2</version>
+      <version>0.7.0</version>
+      <extends>common-services/ZEPPELIN/0.7.0</extends>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>zeppelin_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>zeppelin-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
     </service>
   </services>
 </metainfo>

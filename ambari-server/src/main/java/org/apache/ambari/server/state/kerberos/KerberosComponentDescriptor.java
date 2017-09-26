@@ -20,7 +20,7 @@ package org.apache.ambari.server.state.kerberos;
 import java.util.Collection;
 import java.util.Map;
 
-/**
+/*
  * KerberosComponentDescriptor implements AbstractKerberosDescriptorContainer. It contains the data
  * related to a component which include the following properties:
  * <ul>

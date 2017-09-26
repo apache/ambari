@@ -16,14 +16,15 @@
 -->
 
 <label class="parameter-label" *ngFor="let parameter of parameters">
+  <span *ngIf="parameter.isExclude" class="fa fa-search-minus exclude-icon"></span>
   {{parameter.label | translate}}:
   <span class="parameter-value">{{parameter.value}}</span>
-  <span class="remove-parameter" (click)="removeParameter($event, parameter.id)">&times;</span>
+  <span class="fa fa-times remove-parameter" (click)="removeParameter($event, parameter.id)"></span>
 </label>
 <span class="active-parameter-label" *ngIf="isActive && activeItem">{{activeItem.name | translate}}:</span>
 <div [ngClass]="{'search-item-container': true, 'active': isActive, 'value': isValueInput}">
   <input #parameterInput auto-complete [(ngModel)]="currentValue" [source]="items" [list-formatter]="itemsListFormatter"
-         display-property-name="name" (valueChanged)="onParameterNameChange($event)"
+         display-property-name="name" (valueChanged)="changeParameterName({item: $event, isExclude: false})"
          class="search-item-input parameter-input form-control">
   <input #valueInput type="text" [(ngModel)]="currentValue" class="search-item-input value-input form-control"
          (keyup)="onParameterValueChange($event)">

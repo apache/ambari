@@ -206,7 +206,7 @@ public class AmbariContext {
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
     RepositoryVersionEntity repoVersion = null;
-    if (null == repoVersionString && null == repoVersionId) {
+    if (StringUtils.isEmpty(repoVersionString) && null == repoVersionId) {
       List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
 
       if (stackRepoVersions.isEmpty()) {

@@ -43,7 +43,7 @@ describe('App.BackgroundOperationsController', function () {
     var tests = Em.A([
       {
         levelInfo: Em.Object.create({
-          name: 'REQUESTS_LIST',
+          name: 'OPS_LIST',
           requestId: null,
           taskId: null,
           sync: false
@@ -539,7 +539,7 @@ describe('App.BackgroundOperationsController', function () {
 
     it("should return false when not on HOSTS_LIST level", function() {
       controller.set('levelInfo', Em.Object.create({
-        name: 'SERVICES_LIST'
+        name: 'OPS_LIST'
       }));
       expect(controller.isInitLoading()).to.be.false;
     });

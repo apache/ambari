@@ -31,6 +31,21 @@
       2) distributed: HBase daemons writing to HDFS
     </description>
     <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>embedded</value>
+          <label>Embedded</label>
+        </entry>
+        <entry>
+          <value>distributed</value>
+          <label>Distributed</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.service.webapp.address</name>
@@ -510,6 +525,11 @@
       List of application ids to use for aggregating host level metrics for
       an application. Example: bytes_read across Yarn Nodemanagers.
     </description>
+    <display-name>AppIds for aggregating System metrics</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -586,14 +606,6 @@
       <type>int</type>
       <unit>s</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>timeline.metrics.sink.collection.period</name>
-    <value>10</value>
-    <description>
-      The interval between two service metrics data exports.
-    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -675,7 +687,7 @@
     <name>timeline.metrics.cache.size</name>
     <value>150</value>
     <description>
-      Size of array blocking queue used to cache metrics
+      Size of array blocking queue used to cache metrics before flush to DB
     </description>
     <value-attributes>
       <type>int</type>
@@ -791,11 +803,49 @@
     <name>timeline.metrics.host.inmemory.aggregation</name>
     <value>false</value>
     <description>if set to "true" host metrics will be aggregated in memory on each host</description>
+    <display-name>Enable in-memory aggreation on monitors</display-name>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.host.inmemory.aggregation.port</name>
     <value>61888</value>
     <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.whitelisting.enabled</name>
+    <value>false</value>
+    <description>Enable/Disable metric whitelisting</description>
+    <display-name>Enable only whitelisted metrics</display-name>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 </configuration>

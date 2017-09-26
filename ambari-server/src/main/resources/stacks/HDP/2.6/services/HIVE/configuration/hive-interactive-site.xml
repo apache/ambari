@@ -110,4 +110,18 @@ limitations under the License.
     <on-ambari-upgrade add="false"/>
   </property>
 
+  <property>
+    <name>dfs.client.mmap.enabled</name>
+    <value>false</value>
+    <description>Disable HDFS caching fo LLAP</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>dfs.short.circuit.shared.memory.watcher.interrupt.check.ms</name>
+    <value>0</value>
+    <description>Disable HDFS caching fo LLAP</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
 </configuration>

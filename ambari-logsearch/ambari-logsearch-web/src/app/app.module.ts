@@ -74,15 +74,18 @@ import {ModalComponent} from '@app/components/modal/modal.component';
 import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
 import {SearchBoxComponent} from '@app/components/search-box/search-box.component';
+import {TimeRangePickerComponent} from '@app/components/time-range-picker/time-range-picker.component';
+import {DatePickerComponent} from '@app/components/date-picker/date-picker.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
+import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
 
-export function HttpLoaderFactory(http: Http) {
+export function HttpLoaderFactory(http: Http): TranslateHttpLoader {
   // adding 'static' parameter to step over mock data request
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json?static=true');
+  return new TranslateHttpLoader(http, 'resources/assets/i18n/', '.json?static=true');
 }
 
-export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions): any {
+export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions): XHRBackend | InMemoryBackendService {
   if (environment.production) {
     return new XHRBackend(browser, options, xsrf);
   } else {
@@ -119,7 +122,10 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     TimeZonePickerComponent,
     NodeBarComponent,
     SearchBoxComponent,
-    TimeZoneAbbrPipe
+    TimeRangePickerComponent,
+    DatePickerComponent,
+    TimeZoneAbbrPipe,
+    TimerSecondsPipe
   ],
   imports: [
     BrowserModule,

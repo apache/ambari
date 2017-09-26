@@ -121,7 +121,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'NOT_REQUIRED': {
       isButton: true,
       text: Em.I18n.t('admin.stackVersions.version.installNow'),
-      action: 'installRepoVersionConfirmation'
+      action: 'installRepoVersionPopup'
     },
     'LOADING': {
       isSpinner: true,
@@ -145,9 +145,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
       action: 'resumeUpgrade'
     },
     'CURRENT_PATCH': {
-      isButton: true,
-      text: Em.I18n.t('common.revert'),
-      action: 'confirmRevertPatchUpgrade'
+      isLabel: true,
+      text: Em.I18n.t('common.current'),
+      class: 'label label-success'
     }
   },
 
@@ -169,6 +169,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
     if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
       element.setProperties(statePropertiesMap['CURRENT_PATCH']);
+      element.set('canBeReverted', this.get('content.stackVersion').get('supportsRevert'));
+      element.set('action', 'confirmRevertPatchUpgrade');
+      element.set('actionText', Em.I18n.t('common.revert'));
     }
     else if (['INSTALLING', 'CURRENT'].contains(status) && !this.get('content.isPatch')) {
       element.setProperties(statePropertiesMap[status]);
@@ -265,7 +268,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         case 'OUT_OF_SYNC':
           element.set('isButtonGroup', true);
           element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
-          element.set('action', 'installRepoVersionConfirmation');
+          element.set('action', 'installRepoVersionPopup');
           element.get('buttons').pushObject({
             text: this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'),
             action: 'confirmUpgrade',
@@ -275,7 +278,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         case 'INSTALL_FAILED':
           element.set('isButton', true);
           element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
-          element.set('action', 'installRepoVersionConfirmation');
+          element.set('action', 'installRepoVersionPopup');
           break;
         default:
           var isVersionColumnView = this.get('isVersionColumnView');
@@ -284,7 +287,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
           element.set('action', 'confirmUpgrade');
           element.get('buttons').pushObject({
             text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionConfirmation',
+            action: 'installRepoVersionPopup',
             isDisabled: isDisabled
           });
 
@@ -296,7 +299,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
           if (this.get('content.isPatch')) {
             element.get('buttons').pushObject({
-              text: Em.I18n.t('common.discard'),
+              text: Em.I18n.t('common.hide'),
               action: 'confirmDiscardRepoVersion',
               isDisabled: isDisabled
             });
@@ -326,7 +329,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     element.set('isButtonGroup', true);
     element.set('isButton', false);
     element.get('buttons').pushObject({
-      text: Em.I18n.t('common.discard'),
+      text: Em.I18n.t('common.hide'),
       action: 'confirmDiscardRepoVersion',
       isDisabled: isDisabledOnInit
     });

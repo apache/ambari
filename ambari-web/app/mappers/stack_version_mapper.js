@@ -36,7 +36,9 @@ App.stackVersionMapper = App.QuickDataMapper.create({
     "upgrading_hosts": "host_states.UPGRADING",
     "upgraded_hosts": "host_states.UPGRADED",
     "upgrade_failed_hosts": "host_states.UPGRADE_FAILED",
-    "current_hosts": "host_states.CURRENT"
+    "current_hosts": "host_states.CURRENT",
+    "supports_revert": "supports_revert",
+    "revert_upgrade_id": "revert_upgrade_id"
   },
 
   map: function (json) {
@@ -79,7 +81,7 @@ App.stackVersionMapper = App.QuickDataMapper.create({
           item.repository_versions[0].RepositoryVersions.stackVersionId = item.ClusterStackVersions.id;
           App.repoVersionMapper.map({
             "items": item.repository_versions,
-            "stackServices": item.ClusterStackVersions.repository_summary.services
+            "stackServices": item.ClusterStackVersions.repository_summary && item.ClusterStackVersions.repository_summary.services
           }, true, true);
         }
         resultStack.push(this.parseIt(stack, this.get('modelStack')));

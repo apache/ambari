@@ -313,6 +313,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable">
+          <summary>Update tez.runtime.shuffle.ssl.enable property</summary>
+        </task>
+      </execute-stage>
+
       <!-- HBASE -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for Ranger Hbase plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hbase_plugin_cluster_name"/>
@@ -366,6 +372,10 @@
         <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Adding configuration for hbase conf directory">
+        <task xsi:type="configure" id="atlas_hbase_conf_dir"/>
+      </execute-stage>
+
       <!-- KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger Kms plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>
@@ -379,6 +389,13 @@
       <!--SPARK2-->
       <execute-stage service="SPARK2" component="SPARK2_THRIFTSERVER" title="Apply config changes for Spark2 ThriftServer">
         <task xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver"/>
+      </execute-stage>
+
+      <!-- RANGER -->
+      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Enabling Nested Group Sync for Ranger">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerUsersyncConfigCalculation">
+          <summary>Enabling Nested Group Sync for Ranger</summary>
+        </task>
       </execute-stage>
 
     </group>

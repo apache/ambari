@@ -4,7 +4,8 @@
     "name": "MAHOUT",
     "identities": [
       {
-        "name": "/smokeuser"
+        "name": "mahout_smokeuser",
+        "reference": "/smokeuser"
       }
     ],
     "components": [
@@ -12,7 +13,8 @@
         "name": "MAHOUT",
         "identities": [
           {
-            "name": "/HDFS/NAMENODE/hdfs"
+            "name": "mahout_mahout_hdfs",
+            "reference": "/HDFS/NAMENODE/hdfs"
           }
         ]
       }

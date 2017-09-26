@@ -54,7 +54,9 @@
             <span class="help-block validation-block pull-right" {{QAAttr "validation-block"}}>{{view.overriddenSCP.errorMessage}}</span>
           {{/if}}
         {{else}}
-          <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a>
+            {{#unless controller.isHostsConfigsPage}}
+              <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a>
+            {{/unless}}
         {{/if}}
       {{/if}}
     </div>

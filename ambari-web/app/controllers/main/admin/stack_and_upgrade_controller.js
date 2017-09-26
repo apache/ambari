@@ -391,7 +391,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     } else if (this.get('upgradeData.Upgrade')){
       return this.get('upgradeData.Upgrade.request_status');
     } else {
-      return '';
+      return 'INIT';
     }
   }.property('upgradeData.Upgrade.request_status', 'App.upgradeSuspended'),
 
@@ -1509,14 +1509,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * confirmation popup before install repository version
    */
-  installRepoVersionConfirmation: function (repo) {
+  installRepoVersionPopup: function (repo) {
+    var availableServices = repo.get('stackServices').filter(function(service) {
+      return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable') && service.get('isUpgradable');
+    }, this);
+    if (!availableServices.length && !repo.get('isStandard')){
+      return App.showAlertPopup( Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title'), Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.noAvailableServices').format(repo.get('displayName')) );
+    }
     var self = this;
     var bodyContent = repo.get('isPatch')
       ? Em.I18n.t('admin.stackVersions.version.install.patch.confirm')
       : Em.I18n.t('admin.stackVersions.version.install.confirm');
-    var availableServices = repo.get('stackServices').filter(function(service) {
-      return App.Service.find(service.get('name')).get('isLoaded') && service.get('isAvailable') && service.get('isUpgradable');
-    }, this);
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       popupBody: bodyContent.format(repo.get('displayName')),
@@ -1732,7 +1735,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param data
    * @method installStackVersionSuccess
    */
-  installRepoVersionError: function (data) {
+  installRepoVersionError: function (data, opt, params) {
     var header = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title');
     var body = "";
     if (data && data.responseText) {
@@ -1743,6 +1746,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     }
     if (data && data.statusText === "timeout") {
       body = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.timeout');
+    }
+    var version = App.RepositoryVersion.find(params.id);
+    version.set('defaultStatus', 'INSTALL_FAILED');
+    if (version.get('stackVersion')) {
+      version.set('stackVersion.state', 'INSTALL_FAILED');
     }
     App.showAlertPopup(header, body);
   },
@@ -1766,11 +1774,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var lastRepoVersionInstall = App.router.get('backgroundOperationsController.services').find(function(request) {
       return request.get('name').startsWith('Install version');
     });
-    if (!requestIds ||
-      (lastRepoVersionInstall && !requestIds.contains(lastRepoVersionInstall.get('id')))) {
+    if (lastRepoVersionInstall &&
+      (!requestIds || !requestIds.contains(lastRepoVersionInstall.get('id')))) {
       requestIds = [lastRepoVersionInstall.get('id')];
     }
-    return requestIds;
+    return requestIds || [];
   },
 
   /**
@@ -2064,7 +2072,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   revertPatchUpgrade: function (version) {
     this.set('requestInProgress', true);
-    var upgrade = App.StackUpgradeHistory.find().findProperty('associatedVersion', version.get('repositoryVersion'));
     return App.ajax.send({
       name: 'admin.upgrade.revert',
       sender: this,
@@ -2074,7 +2081,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         this.sender.set('requestInProgress', false);
       },
       data: {
-        upgradeId: upgrade && upgrade.get('upgradeId'),
+        upgradeId: version.get('stackVersion').get('revertUpgradeId'),
         id: version.get('id'),
         value: version.get('repositoryVersion'),
         label: version.get('displayName'),

@@ -107,7 +107,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       this.mock.returns(false);
       controller.set('upgradeData', null);
       controller.propertyDidChange('requestStatus');
-      expect(controller.get('requestStatus')).to.be.empty;
+      expect(controller.get('requestStatus')).to.equal('INIT');
     });
   });
 
@@ -1167,16 +1167,36 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#installRepoVersionConfirmation()", function () {
+  describe("#installRepoVersionPopup()", function () {
     before(function () {
       sinon.stub(controller, 'installRepoVersion', Em.K);
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({
+        isLoaded: true
+      }));
     });
     after(function () {
       controller.installRepoVersion.restore();
+      App.Service.find.restore();
     });
-    it("show popup", function () {
-      var repo = Em.Object.create({'displayName': 'HDP-2.2', stackServices: []});
-      var popup = controller.installRepoVersionConfirmation(repo);
+    it("show confirmation popup for non standart and available services", function () {
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', isStandard: false, stackServices: [Em.Object.create({
+        name: 'HDFS',
+        isUpgradable: true,
+        isAvailable: true
+      })]});
+      var popup = controller.installRepoVersionPopup(repo);
+      popup.onPrimary();
+      expect(controller.installRepoVersion.calledWith(repo)).to.be.true;
+    });
+    it("show pre-check popup for non standard and empty available services", function () {
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', isStandard: false, stackServices: []});
+      var popup = controller.installRepoVersionPopup(repo);
+      popup.onPrimary();
+      expect(controller.installRepoVersion.calledWith(repo)).to.be.false;
+    });
+    it("show confirmation popup for standart", function () {
+      var repo = Em.Object.create({'displayName': 'HDP-2.2', isStandard: true, stackServices: []});
+      var popup = controller.installRepoVersionPopup(repo);
       popup.onPrimary();
       expect(controller.installRepoVersion.calledWith(repo)).to.be.true;
     });
@@ -3054,20 +3074,27 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#installRepoVersionError()", function () {
     var header = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title');
+    var mock = Em.Object.create({
+      id: 1,
+      defaultStatus: 'NOT_REQUIRED',
+      stackVersion: {}
+    });
 
     beforeEach(function() {
       sinon.stub(App, 'showAlertPopup');
+      sinon.stub(App.RepositoryVersion, 'find').returns(mock);
     });
 
     afterEach(function() {
       App.showAlertPopup.restore();
+      App.RepositoryVersion.find.restore();
     });
 
     it("responseText is incorrect", function() {
       var data = {
         responseText: null
       };
-      controller.installRepoVersionError(data);
+      controller.installRepoVersionError(data, null, mock);
       expect(App.showAlertPopup.calledWith(header, "")).to.be.true;
     });
 
@@ -3076,7 +3103,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         responseText: '',
         statusText: 'timeout'
       };
-      controller.installRepoVersionError(data);
+      controller.installRepoVersionError(data, null, mock);
       expect(App.showAlertPopup.calledWith(header, Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.timeout'))).to.be.true;
     });
 
@@ -3084,7 +3111,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       var data = {
         responseText: '{"message":"msg"}'
       };
-      controller.installRepoVersionError(data);
+      controller.installRepoVersionError(data, null, mock);
       expect(App.showAlertPopup.calledWith(header, 'msg')).to.be.true;
     });
   });
@@ -3476,24 +3503,15 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe('#revertPatchUpgrade', function() {
-    beforeEach(function() {
-      sinon.stub(App.StackUpgradeHistory, 'find').returns([
-        Em.Object.create({
-          associatedVersion: '1.1',
-          upgradeId: 1
-        })
-      ]);
-    });
-    afterEach(function() {
-      App.StackUpgradeHistory.find.restore();
-    });
-
     it('App.ajax.send should be called', function() {
       var version = Em.Object.create({
         repositoryVersion: '1.1',
         id: 2,
         displayName: '1.2',
-        upgradeType: 'EXPRESS'
+        upgradeType: 'EXPRESS',
+        stackVersion: Em.Object.create({
+          revertUpgradeId: 1
+        })
       });
       controller.revertPatchUpgrade(version);
       expect(controller.get('requestInProgress')).to.be.true;

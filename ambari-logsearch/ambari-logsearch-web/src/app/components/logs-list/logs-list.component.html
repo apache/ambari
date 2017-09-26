@@ -25,30 +25,41 @@
     <div class="col-md-11">{{'logs.details' | translate}}</div>
   </div>
 </div>
-<accordion-panel *ngFor="let log of logs; let i = index" [toggleId]="'details-' + i" class="col-md-12">
-  <ng-template>
-    <div *ngIf="isColumnDisplayed('level')" [ngClass]="'hexagon ' + log.className"></div>
-    <div *ngIf="isColumnDisplayed('level')" [ngClass]="'col-md-1 log-status ' + log.className">{{log.level}}</div>
-    <div *ngIf="isColumnDisplayed('type') || isColumnDisplayed('logtime')" class="col-md-3">
-      <div *ngIf="isColumnDisplayed('type')" class="log-type">{{log.type}}</div>
-      <time *ngIf="isColumnDisplayed('logtime')" class="log-time">
-        {{log.logtime | amTz: timeZone | amDateFormat: timeFormat}}
-      </time>
-    </div>
-    <div class="col-md-6 log-content-wrapper">
-      <div class="collapse log-actions" attr.id="details-{{i}}">
-        <span class="action-icon fa fa-search"></span>
-        <span class="action-icon fa fa-external-link"></span>
-        <span class="action-icon fa fa-bullseye"></span>
+<div *ngFor="let log of logs; let i = index">
+  <div *ngIf="i === 0 || isDifferentDates(log.logtime, logs[i - 1].logtime)" class="col-md-12">
+    <div class="logs-header">{{log.logtime | amTz: timeZone | amDateFormat: dateFormat}}</div>
+  </div>
+  <accordion-panel [toggleId]="'details-' + i" class="col-md-12">
+    <ng-template>
+      <div *ngIf="isColumnDisplayed('level')" [ngClass]="'hexagon ' + log.className"></div>
+      <div *ngIf="isColumnDisplayed('level')" [ngClass]="'col-md-1 log-status ' + log.className">{{log.level}}</div>
+      <div *ngIf="isColumnDisplayed('type') || isColumnDisplayed('logtime')" class="col-md-3">
+        <div *ngIf="isColumnDisplayed('type')" class="log-type">{{log.type}}</div>
+        <time *ngIf="isColumnDisplayed('logtime')" class="log-time">
+          {{log.logtime | amTz: timeZone | amDateFormat: timeFormat}}
+        </time>
       </div>
-      <div class="log-content-inner-wrapper">
-        <div class="log-content" *ngIf="isColumnDisplayed('log_message')">{{log.log_message}}</div>
+      <div class="col-md-6 log-content-wrapper">
+        <div class="collapse log-actions" attr.id="details-{{i}}">
+          <span class="action-icon fa fa-search"></span>
+          <span class="action-icon fa fa-external-link"></span>
+          <span class="action-icon fa fa-crosshairs"></span>
+        </div>
+        <div class="log-content-inner-wrapper">
+          <div class="log-content" *ngIf="isColumnDisplayed('log_message')"
+               (contextmenu)="openMessageContextMenu($event)">
+            {{log.log_message}}
+          </div>
+        </div>
       </div>
-    </div>
-    <div *ngFor="let column of displayedColumns">
-      <div *ngIf="customStyledColumns.indexOf(column.name) === -1" [innerHTML]="log[column.name]" class="col-md-1"></div>
-    </div>
-  </ng-template>
-</accordion-panel>
+      <div *ngFor="let column of displayedColumns">
+        <div *ngIf="customStyledColumns.indexOf(column.name) === -1" [innerHTML]="log[column.name]"
+             class="col-md-1"></div>
+      </div>
+    </ng-template>
+  </accordion-panel>
+</div>
+<ul #contextmenu data-component="dropdown-list" class="dropdown-menu context-menu" [items]="contextMenuItems"
+    (selectedItemChange)="updateQuery($event)"></ul>
 <pagination class="col-md-12" *ngIf="logs && logs.length" [totalCount]="totalCount" [filtersForm]="filtersForm"
             [filterInstance]="filters.pageSize" [currentCount]="logs.length"></pagination>

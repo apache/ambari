@@ -322,7 +322,7 @@ export const mockData = {
               path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
               host: 'h1',
               level: 'ERROR',
-              logtime: moment().subtract(2, 'd'),
+              logtime: moment().subtract(2, 'd').valueOf(),
               ip: '192.168.0.2',
               type: 'ams_collector',
               _version_: 14,
