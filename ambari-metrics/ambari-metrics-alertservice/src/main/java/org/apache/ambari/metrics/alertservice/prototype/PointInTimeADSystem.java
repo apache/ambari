@@ -49,7 +49,7 @@ public class PointInTimeADSystem implements Serializable {
   private AmbariServerInterface ambariServerInterface;
   private int sensitivity = 50;
   private int minSensitivity = 0;
-  private int maxSensitivity = 10;
+  private int maxSensitivity = 100;
 
   public PointInTimeADSystem(MetricsCollectorInterface metricsCollectorInterface, double defaultTukeysN,
                              long testIntervalMillis, long trainIntervalMillis, String ambariServerHost, String clusterName) {
@@ -73,13 +73,13 @@ public class PointInTimeADSystem implements Serializable {
       if (requiredSensivity > sensitivity) {
         int targetSensitivity = Math.min(maxSensitivity, requiredSensivity);
         while (sensitivity < targetSensitivity) {
-          defaultTukeysN = defaultTukeysN + defaultTukeysN * 0.1;
+          defaultTukeysN = defaultTukeysN + defaultTukeysN * 0.05;
           sensitivity++;
         }
       } else {
         int targetSensitivity = Math.max(minSensitivity, requiredSensivity);
         while (sensitivity > targetSensitivity) {
-          defaultTukeysN = defaultTukeysN - defaultTukeysN * 0.1;
+          defaultTukeysN = defaultTukeysN - defaultTukeysN * 0.05;
           sensitivity--;
         }
       }
@@ -201,10 +201,10 @@ public class PointInTimeADSystem implements Serializable {
 
       if (recall < 0.5) {
         LOG.info("Increasing EMA sensitivity by 10%");
-        emaModel.updateModel(true, 10);
+        emaModel.updateModel(true, 5);
       } else if (precision < 0.5) {
         LOG.info("Decreasing EMA sensitivity by 10%");
-        emaModel.updateModel(false, 10);
+        emaModel.updateModel(false, 5);
       }
 
     }
@@ -233,7 +233,7 @@ public class PointInTimeADSystem implements Serializable {
       double[] anomalyScore = result.resultset.get(2);
       for (int i = 0; i < ts.length; i++) {
         TimelineMetric timelineMetric = new TimelineMetric();
-        timelineMetric.setMetricName(metricName + "_" + appId + "_" + hostname);
+        timelineMetric.setMetricName(metricName + ":" + appId + ":" + hostname);
         timelineMetric.setHostName(MetricsCollectorInterface.getDefaultLocalHostName());
         timelineMetric.setAppId(MetricsCollectorInterface.serviceName + "-tukeys");
         timelineMetric.setInstanceId(null);
@@ -243,7 +243,11 @@ public class PointInTimeADSystem implements Serializable {
 
         HashMap<String, String> metadata = new HashMap<>();
         metadata.put("method", "tukeys");
-        metadata.put("anomaly-score", String.valueOf(anomalyScore[i]));
+        if (String.valueOf(anomalyScore[i]).equals("infinity")) {
+          LOG.info("Got anomalyScore = infinity for " + metricName + ":" + appId + ":" + hostname);
+        } else {
+          metadata.put("anomaly-score", String.valueOf(anomalyScore[i]));
+        }
         timelineMetric.setMetadata(metadata);
 
         timelineMetric.setMetricValues(metricValues);

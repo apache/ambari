@@ -31,11 +31,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class TrendADSystem implements Serializable {
@@ -57,8 +57,7 @@ public class TrendADSystem implements Serializable {
   public TrendADSystem(MetricsCollectorInterface metricsCollectorInterface,
                        long ksTestIntervalMillis,
                        long ksTrainIntervalMillis,
-                       int hsdevNumHistoricalPeriods,
-                       String inputFileName) {
+                       int hsdevNumHistoricalPeriods) {
 
     this.metricsCollectorInterface = metricsCollectorInterface;
     this.ksTestIntervalMillis = ksTestIntervalMillis;
@@ -69,11 +68,9 @@ public class TrendADSystem implements Serializable {
     this.hsdevTechnique = new HsdevTechnique();
 
     trendMetrics = new ArrayList<>();
-    this.inputFile = inputFileName;
-    readInputFile(inputFileName);
   }
 
-  public void runKSTest(long currentEndTime) {
+  public void runKSTest(long currentEndTime, Set<TrendMetric> trendMetrics) {
     readInputFile(inputFile);
 
     long ksTestIntervalStartTime = currentEndTime - ksTestIntervalMillis;
@@ -85,7 +82,7 @@ public class TrendADSystem implements Serializable {
       String metricName = metric.metricName;
       String appId = metric.appId;
       String hostname = metric.hostname;
-      String key = metricName + "_" + appId + "_" + hostname;
+      String key = metricName + ":" + appId + ":" + hostname;
 
       TimelineMetrics ksData = metricsCollectorInterface.fetchMetrics(metricName, appId, hostname, ksTestIntervalStartTime - ksTrainIntervalMillis,
         currentEndTime);
@@ -112,6 +109,7 @@ public class TrendADSystem implements Serializable {
         }
       }
 
+      LOG.info("Train Data size : " + trainDataList.size() + ", Test Data Size : " + testDataList.size());
       if (trainDataList.isEmpty() || testDataList.isEmpty() || trainDataList.size() < testDataList.size()) {
         LOG.info("Not enough train/test data to perform KS analysis.");
         continue;
@@ -184,6 +182,7 @@ public class TrendADSystem implements Serializable {
     return timelineMetric;
 
   }
+
   public void runHsdevMethod() {
 
     List<TimelineMetric> hsdevMetricAnomalies = new ArrayList<>();
@@ -315,17 +314,4 @@ public class TrendADSystem implements Serializable {
       this.hostname = hostname;
     }
   }
-
-  /*
-          boolean isPresent = false;
-        for (TrendMetric trendMetric : trendMetrics) {
-          if (trendMetric.metricName.equalsIgnoreCase(splits[0])) {
-            isPresent = true;
-          }
-        }
-        if (!isPresent) {
-          LOG.info("Adding a new metric to track in Trend AD system : " + splits[0]);
-          trendMetrics.add(new TrendMetric(splits[0], splits[1], splits[2]));
-        }
-   */
 }

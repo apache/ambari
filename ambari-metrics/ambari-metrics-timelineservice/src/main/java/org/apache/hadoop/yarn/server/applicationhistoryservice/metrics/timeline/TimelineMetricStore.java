@@ -107,4 +107,6 @@ public interface TimelineMetricStore {
      * @return [ hostname ]
      */
   List<String> getLiveInstances();
+
+  TimelineMetrics getAnomalyMetrics(String method, long startTime, long endTime, Integer limit) throws SQLException;
 }
