@@ -87,7 +87,7 @@ public class MetricsRequestHelper {
           uriBuilder.setParameter("precision", higherPrecision);
           String newSpec = uriBuilder.toString();
           connection = streamProvider.processURL(newSpec, HttpMethod.GET, (String) null,
-            Collections.<String, List<String>emptyMap());
+            Collections.<String, List<String>>emptyMap());
           if (!checkConnectionForPrecisionException(connection)) {
             throw new IOException("Encountered Precision exception : Higher precision request also failed.");
           }
