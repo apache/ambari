@@ -141,6 +141,12 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String NOT_REQUIRED = "NOT_REQUIRED";
   public static final String CURRENT = "CURRENT";
   public static final String SELECTED = "1";
+  public static final String VIEWURL_TABLE = "viewurl";
+  public static final String PK_VIEWURL = "PK_viewurl";
+  public static final String URL_ID_COLUMN = "url_id";
+  public static final String STALE_POSTGRESS_VIEWURL_PKEY = "viewurl_pkey";
+  public static final String USERS_TABLE = "users";
+  public static final String STALE_POSTGRESS_USERS_LDAP_USER_KEY = "users_ldap_user_key";
 
 
   /**
@@ -187,6 +193,25 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     updateRepositoryVersionTable();
     renameServiceDeletedColumn();
     expandUpgradeItemItemTextColumn();
+    addViewUrlPKConstraint();
+    removeStaleConstraints();
+  }
+
+
+  /**
+   * Updates {@value #VIEWURL_TABLE} table.
+   * Adds the {@value #PK_VIEWURL} constraint.
+   */
+  private void addViewUrlPKConstraint() throws SQLException {
+    dbAccessor.dropPKConstraint(VIEWURL_TABLE, STALE_POSTGRESS_VIEWURL_PKEY);
+    dbAccessor.addPKConstraint(VIEWURL_TABLE, PK_VIEWURL, URL_ID_COLUMN);
+  }
+
+  /**
+   * remove stale unnamed constraints
+   */
+  private void removeStaleConstraints() throws SQLException {
+    dbAccessor.dropUniqueConstraint(USERS_TABLE, STALE_POSTGRESS_USERS_LDAP_USER_KEY);
   }
 
   /**
