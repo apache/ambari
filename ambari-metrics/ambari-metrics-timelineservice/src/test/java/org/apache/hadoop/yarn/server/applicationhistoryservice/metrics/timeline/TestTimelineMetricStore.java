@@ -119,6 +119,11 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
     return null;
   }
 
+  @Override
+  public TimelineMetrics getAnomalyMetrics(String method, long startTime, long endTime, Integer limit) {
+    return null;
+  }
+
 }
 
 

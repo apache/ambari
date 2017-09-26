@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.metrics2.annotation.Metric;
 import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
@@ -37,6 +36,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.TestMetricSeriesGenerator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.EntityIdentifier;
@@ -50,6 +50,7 @@ import org.apache.hadoop.yarn.webapp.BadRequestException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -75,6 +76,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.yarn.util.StringHelper.CSV_JOINER;
 
@@ -389,7 +394,7 @@ public class TimelineWebServices {
       }
 
       return timelineMetricStore.getTimelineMetrics(
-        parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, instanceId,
+        parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, parseStr(instanceId),
         parseLongStr(startTime), parseLongStr(endTime),
         Precision.getPrecision(precision), parseIntStr(limit),
         parseBoolean(grouped), parseTopNConfig(topN, topNFunction, isBottomN),
@@ -411,6 +416,25 @@ public class TimelineWebServices {
     }
   }
 
+  @GET
+  @Path("/metrics/anomalies")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public TimelineMetrics getAnomalyMetrics(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res,
+    @QueryParam("method") String method,
+    @QueryParam("startTime") String startTime,
+    @QueryParam("endTime") String endTime,
+    @QueryParam("limit") String limit
+    ) {
+    init(res);
+
+    try {
+      return timelineMetricStore.getAnomalyMetrics(method, parseLongStr(startTime), parseLongStr(endTime), parseIntStr(limit));
+    } catch (Exception e) {
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
   @GET
   @Path("/metrics/metadata")
   @Produces({ MediaType.APPLICATION_JSON })
@@ -660,6 +684,12 @@ public class TimelineWebServices {
   }
 
   private static String parseStr(String str) {
-    return str == null ? null : str.trim();
+    String trimmedInstance = (str == null) ? null : str.trim();
+    if (trimmedInstance != null) {
+      if (trimmedInstance.isEmpty() || trimmedInstance.equalsIgnoreCase("undefined")) {
+        trimmedInstance = null;
+      }
+    }
+    return trimmedInstance;
   }
 }

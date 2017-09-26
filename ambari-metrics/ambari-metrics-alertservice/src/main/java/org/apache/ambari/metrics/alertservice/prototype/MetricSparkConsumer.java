@@ -37,6 +37,12 @@ import org.apache.spark.streaming.kafka.KafkaUtils;
 import scala.Tuple2;
 
 import java.util.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MetricSparkConsumer {
 
@@ -47,38 +53,75 @@ public class MetricSparkConsumer {
   private static long pitStartTime = System.currentTimeMillis();
   private static long ksStartTime = pitStartTime;
   private static long hdevStartTime = ksStartTime;
+  private static Set<Pattern> includeMetricPatterns = new HashSet<>();
+  private static Set<String> includedHosts = new HashSet<>();
+  private static Set<TrendMetric> trendMetrics = new HashSet<>();
 
   public MetricSparkConsumer() {
   }
 
+  public static Properties readProperties(String propertiesFile) {
+    try {
+      Properties properties = new Properties();
+      InputStream inputStream = ClassLoader.getSystemResourceAsStream(propertiesFile);
+      if (inputStream == null) {
+        inputStream = new FileInputStream(propertiesFile);
+      }
+      properties.load(inputStream);
+      return properties;
+    } catch (IOException ioEx) {
+      LOG.error("Error reading properties file for jmeter");
+      return null;
+    }
+  }
+
   public static void main(String[] args) throws InterruptedException {
 
-    if (args.length < 5) {
-      System.err.println("Usage: MetricSparkConsumer <appid1,appid2> <collector_host> <port> <protocol> <zkQuorum>");
+    if (args.length < 1) {
+      System.err.println("Usage: MetricSparkConsumer <input-config-file>");
       System.exit(1);
     }
 
-    List<String> appIds = Arrays.asList(args[0].split(","));
-    String collectorHost = args[1];
-    String collectorPort = args[2];
-    String collectorProtocol = args[3];
-    String zkQuorum = args[4];
+    Properties properties = readProperties(args[0]);
 
-    double emaW = StringUtils.isNotEmpty(args[5]) ? Double.parseDouble(args[5]) : 0.5;
-    double emaN = StringUtils.isNotEmpty(args[8]) ? Double.parseDouble(args[6]) : 3;
-    double tukeysN = StringUtils.isNotEmpty(args[7]) ? Double.parseDouble(args[7]) : 3;
+    List<String> appIds = Arrays.asList(properties.getProperty("appIds").split(","));
 
-    long pitTestInterval = StringUtils.isNotEmpty(args[8]) ? Long.parseLong(args[8]) : 5 * 60 * 1000;
-    long pitTrainInterval = StringUtils.isNotEmpty(args[9]) ? Long.parseLong(args[9]) : 15 * 60 * 1000;
+    String collectorHost = properties.getProperty("collectorHost");
+    String collectorPort = properties.getProperty("collectorPort");
+    String collectorProtocol = properties.getProperty("collectorProtocol");
 
-    String fileName = args[10];
-    long ksTestInterval = StringUtils.isNotEmpty(args[11]) ? Long.parseLong(args[11]) : 10 * 60 * 1000;
-    long ksTrainInterval = StringUtils.isNotEmpty(args[12]) ? Long.parseLong(args[12]) : 10 * 60 * 1000;
-    int hsdevNhp = StringUtils.isNotEmpty(args[13]) ? Integer.parseInt(args[13]) : 3;
-    long hsdevInterval = StringUtils.isNotEmpty(args[14]) ? Long.parseLong(args[14]) : 30 * 60 * 1000;
+    String zkQuorum = properties.getProperty("zkQuorum");
 
-    String ambariServerHost = args[15];
-    String clusterName = args[16];
+    double emaW = Double.parseDouble(properties.getProperty("emaW"));
+    double emaN = Double.parseDouble(properties.getProperty("emaN"));
+    int emaThreshold = Integer.parseInt(properties.getProperty("emaThreshold"));
+    double tukeysN = Double.parseDouble(properties.getProperty("tukeysN"));
+
+    long pitTestInterval = Long.parseLong(properties.getProperty("pointInTimeTestInterval"));
+    long pitTrainInterval = Long.parseLong(properties.getProperty("pointInTimeTrainInterval"));
+
+    long ksTestInterval = Long.parseLong(properties.getProperty("ksTestInterval"));
+    long ksTrainInterval = Long.parseLong(properties.getProperty("ksTrainInterval"));
+    int hsdevNhp = Integer.parseInt(properties.getProperty("hsdevNhp"));
+    long hsdevInterval = Long.parseLong(properties.getProperty("hsdevInterval"));
+
+    String ambariServerHost = properties.getProperty("ambariServerHost");
+    String clusterName = properties.getProperty("clusterName");
+
+    String includeMetricPatternStrings = properties.getProperty("includeMetricPatterns");
+    if (includeMetricPatternStrings != null && !includeMetricPatternStrings.isEmpty()) {
+      String[] patterns = includeMetricPatternStrings.split(",");
+      for (String p : patterns) {
+        LOG.info("Included Pattern : " + p);
+        includeMetricPatterns.add(Pattern.compile(p));
+      }
+    }
+
+    String includedHostList = properties.getProperty("hosts");
+    if (includedHostList != null && !includedHostList.isEmpty()) {
+      String[] hosts = includedHostList.split(",");
+      includedHosts.addAll(Arrays.asList(hosts));
+    }
 
     MetricsCollectorInterface metricsCollectorInterface = new MetricsCollectorInterface(collectorHost, collectorProtocol, collectorPort);
 
@@ -86,7 +129,7 @@ public class MetricSparkConsumer {
 
     JavaStreamingContext jssc = new JavaStreamingContext(sparkConf, new Duration(10000));
 
-    EmaTechnique emaTechnique = new EmaTechnique(emaW, emaN);
+    EmaTechnique emaTechnique = new EmaTechnique(emaW, emaN, emaThreshold);
     PointInTimeADSystem pointInTimeADSystem = new PointInTimeADSystem(metricsCollectorInterface,
       tukeysN,
       pitTestInterval,
@@ -97,13 +140,14 @@ public class MetricSparkConsumer {
     TrendADSystem trendADSystem = new TrendADSystem(metricsCollectorInterface,
       ksTestInterval,
       ksTrainInterval,
-      hsdevNhp,
-      fileName);
+      hsdevNhp);
 
     Broadcast<EmaTechnique> emaTechniqueBroadcast = jssc.sparkContext().broadcast(emaTechnique);
     Broadcast<PointInTimeADSystem> pointInTimeADSystemBroadcast = jssc.sparkContext().broadcast(pointInTimeADSystem);
     Broadcast<TrendADSystem> trendADSystemBroadcast = jssc.sparkContext().broadcast(trendADSystem);
     Broadcast<MetricsCollectorInterface> metricsCollectorInterfaceBroadcast = jssc.sparkContext().broadcast(metricsCollectorInterface);
+    Broadcast<Set<Pattern>> includePatternBroadcast = jssc.sparkContext().broadcast(includeMetricPatterns);
+    Broadcast<Set<String>> includedHostBroadcast = jssc.sparkContext().broadcast(includedHosts);
 
     JavaPairReceiverInputDStream<String, String> messages =
       KafkaUtils.createStream(jssc, zkQuorum, groupId, Collections.singletonMap(topicName, numThreads));
@@ -150,7 +194,7 @@ public class MetricSparkConsumer {
 
           if (currentTime > ksStartTime + ksTestInterval) {
             LOG.info("Running KS Test....");
-            trendADSystemBroadcast.getValue().runKSTest(currentTime);
+            trendADSystemBroadcast.getValue().runKSTest(currentTime, trendMetrics);
             ksStartTime = ksStartTime + ksTestInterval;
           }
 
@@ -162,8 +206,27 @@ public class MetricSparkConsumer {
 
           TimelineMetrics metrics = tuple2._2();
           for (TimelineMetric timelineMetric : metrics.getMetrics()) {
-            List<MetricAnomaly> anomalies = ema.test(timelineMetric);
-            metricsCollectorInterfaceBroadcast.getValue().publish(anomalies);
+
+            boolean includeHost = includedHostBroadcast.getValue().contains(timelineMetric.getHostName());
+            boolean includeMetric = false;
+            if (includeHost) {
+              if (includePatternBroadcast.getValue().isEmpty()) {
+                includeMetric = true;
+              }
+              for (Pattern p : includePatternBroadcast.getValue()) {
+                Matcher m = p.matcher(timelineMetric.getMetricName());
+                if (m.find()) {
+                  includeMetric = true;
+                }
+              }
+            }
+
+            if (includeMetric) {
+              trendMetrics.add(new TrendMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(),
+                timelineMetric.getHostName()));
+              List<MetricAnomaly> anomalies = ema.test(timelineMetric);
+              metricsCollectorInterfaceBroadcast.getValue().publish(anomalies);
+            }
           }
         });
     });

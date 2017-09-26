@@ -21,13 +21,33 @@ import org.apache.ambari.metrics.alertservice.prototype.methods.MetricAnomaly;
 import org.apache.ambari.metrics.alertservice.prototype.methods.ema.EmaTechnique;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.TreeMap;
 
+import static org.apache.ambari.metrics.alertservice.prototype.TestRFunctionInvoker.getTS;
+
 public class TestEmaTechnique {
+
+  private static double[] ts;
+  private static String fullFilePath;
+
+  @BeforeClass
+  public static void init() throws URISyntaxException {
+
+    Assume.assumeTrue(System.getenv("R_HOME") != null);
+    ts = getTS(1000);
+    URL url = ClassLoader.getSystemResource("R-scripts");
+    fullFilePath = new File(url.toURI()).getAbsolutePath();
+    RFunctionInvoker.setScriptsDir(fullFilePath);
+  }
 
   @Test
   public void testEmaInitialization() {
@@ -35,7 +55,7 @@ public class TestEmaTechnique {
     EmaTechnique ema = new EmaTechnique(0.5, 3);
     Assert.assertTrue(ema.getTrackedEmas().isEmpty());
     Assert.assertTrue(ema.getStartingWeight() == 0.5);
-    Assert.assertTrue(ema.getStartTimesSdev() == 3);
+    Assert.assertTrue(ema.getStartTimesSdev() == 2);
   }
 
   @Test

@@ -510,6 +510,13 @@ public class TimelineMetricConfiguration {
     return defaultRpcAddress;
   }
 
+  public String getKafkaServers() {
+    if (metricsConf != null) {
+      return metricsConf.get("timeline.metrics.kafka.servers", null);
+    }
+    return null;
+  }
+
   public boolean isDistributedCollectorModeDisabled() {
     try {
       if (getMetricsConf() != null) {

@@ -76,7 +76,6 @@ public class AmbariServerInterface implements Serializable{
       JSONArray array = jsonObject.getJSONArray("items");
       for(int i = 0 ; i < array.length() ; i++){
         JSONObject alertDefn = array.getJSONObject(i).getJSONObject("AlertDefinition");
-        LOG.info("alertDefn : " + alertDefn.get("name"));
         if (alertDefn.get("name") != null && alertDefn.get("name").equals("point_in_time_metrics_anomalies")) {
           JSONObject sourceNode = alertDefn.getJSONObject("source");
           JSONArray params = sourceNode.getJSONArray("parameters");

@@ -142,6 +142,76 @@
             "value": "{0} * 100"
           }
         }
+      },
+      {
+        "name": "point_in_time_metrics_anomalies",
+        "label": "Point in Time metric anomalies",
+        "description": "This service-level alert if there are metric anomalies in the last 10 mins or configured interval.",
+        "interval": 10,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "AMBARI_METRICS/0.1.0/package/alerts/alert_point_in_time_metric_anomalies.py",
+          "parameters": [
+            {
+              "name": "num_anomalies",
+              "display_name": "Value of N in Top 'N' anomalies to be reported.",
+              "value": 5,
+              "type": "NUMERIC",
+              "description": "Report only this amount of anomalies."
+            },
+            {
+              "name": "interval",
+              "display_name": "Query Time interval in minutes",
+              "value": 10,
+              "type": "NUMERIC",
+              "description": "Query Time interval in minutes."
+            },
+            {
+              "name": "sensitivity",
+              "display_name": "Alert Sensitivity",
+              "value": 50,
+              "type": "NUMERIC",
+              "description": "Sensitivity of the alert. Scale of 1 - 100. Default = 50."
+            }
+          ]
+        }
+      },
+      {
+        "name": "trend_metrics_anomalies",
+        "label": "Trend metric anomalies",
+        "description": "This service-level alert if there are metric anomalies in the last 10 mins or configured interval.",
+        "interval": 10,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "AMBARI_METRICS/0.1.0/package/alerts/alert_trend_metric_anomalies.py",
+          "parameters": [
+            {
+              "name": "num_anomalies",
+              "display_name": "Value of N in Top 'N' anomalies to be reported.",
+              "value": 5,
+              "type": "NUMERIC",
+              "description": "Report only this amount of anomalies."
+            },
+            {
+              "name": "interval",
+              "display_name": "Query Time interval in minutes",
+              "value": 10,
+              "type": "NUMERIC",
+              "description": "Query Time interval in minutes."
+            },
+            {
+              "name": "sensitivity",
+              "display_name": "Alert Sensitivity",
+              "value": 50,
+              "type": "NUMERIC",
+              "description": "Sensitivity of the alert. Scale of 1 - 100. Default = 50."
+            }
+          ]
+        }
       }
     ],
     "METRICS_MONITOR": [

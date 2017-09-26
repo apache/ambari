@@ -86,6 +86,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
+//  private MetricKafkaProducer metricKafkaProducer;
 
   /**
    * Construct the service.
@@ -155,6 +156,10 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
               "start cache node", e);
         }
       }
+//      String kafkaServers = configuration.getKafkaServers();
+//      if (kafkaServers != null) {
+//        metricKafkaProducer = new MetricKafkaProducer(kafkaServers);
+//      }
 
       defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
@@ -230,6 +235,11 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   @Override
   protected void serviceStop() throws Exception {
     super.serviceStop();
+  }
+
+  @Override
+  public TimelineMetrics getAnomalyMetrics(String method, long startTime, long endTime, Integer limit) throws SQLException {
+    return hBaseAccessor.getAnomalyMetricRecords(method, startTime, endTime, limit);
   }
 
   @Override
@@ -397,9 +407,16 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       cache.putMetrics(metrics.getMetrics(), metricMetadataManager);
     }
 
+//    try {
+//      metricKafkaProducer.sendMetrics(metrics);
+////      if (metrics.getMetrics().size() != 0 && metrics.getMetrics().get(0).getAppId().equals("anomaly-engine-test-metric")) {
+////      }
+//    } catch (Exception e) {
+//      LOG.error(e);
+//    }
+
     return response;
   }
-
 
   @Override
   public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)

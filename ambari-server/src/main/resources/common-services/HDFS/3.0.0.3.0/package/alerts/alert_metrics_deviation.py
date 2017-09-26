@@ -325,10 +325,12 @@ def execute(configurations={}, parameters={}, host_name=None):
     response = conn.getresponse()
     data = response.read()
     conn.close()
-  except Exception:
+  except Exception, e:
+    logger.info(str(e))
     return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from the Ambari Metrics service."])
 
   if response.status != 200:
+    logger.info(str(data))
     return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from the Ambari Metrics service."])
 
   data_json = json.loads(data)

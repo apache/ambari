@@ -49,6 +49,15 @@ public class EmaTechnique extends AnomalyDetectionTechnique implements Serializa
   private double startingWeight = 0.5;
   private double startTimesSdev = 3.0;
   private String methodType = "ema";
+  public static int suppressAnomaliesTheshold = 100;
+
+  public EmaTechnique(double startingWeight, double startTimesSdev, int suppressAnomaliesTheshold) {
+    trackedEmas = new HashMap<>();
+    this.startingWeight = startingWeight;
+    this.startTimesSdev = startTimesSdev;
+    EmaTechnique.suppressAnomaliesTheshold = suppressAnomaliesTheshold;
+    LOG.info("New EmaTechnique......");
+  }
 
   public EmaTechnique(double startingWeight, double startTimesSdev) {
     trackedEmas = new HashMap<>();
@@ -61,16 +70,16 @@ public class EmaTechnique extends AnomalyDetectionTechnique implements Serializa
     String metricName = metric.getMetricName();
     String appId = metric.getAppId();
     String hostname = metric.getHostName();
-    String key = metricName + "_" + appId + "_" + hostname;
+    String key = metricName + ":" + appId + ":" + hostname;
 
     EmaModel emaModel = trackedEmas.get(key);
     if (emaModel == null) {
-      LOG.info("EmaModel not present for " + key);
-      LOG.info("Number of tracked Emas : " + trackedEmas.size());
+      LOG.debug("EmaModel not present for " + key);
+      LOG.debug("Number of tracked Emas : " + trackedEmas.size());
       emaModel  = new EmaModel(metricName, hostname, appId, startingWeight, startTimesSdev);
       trackedEmas.put(key, emaModel);
     } else {
-      LOG.info("EmaModel already present for " + key);
+      LOG.debug("EmaModel already present for " + key);
     }
 
     List<MetricAnomaly> anomalies = new ArrayList<>();
@@ -79,11 +88,11 @@ public class EmaTechnique extends AnomalyDetectionTechnique implements Serializa
       double metricValue = metric.getMetricValues().get(timestamp);
       double anomalyScore = emaModel.testAndUpdate(metricValue);
       if (anomalyScore > 0.0) {
-        LOG.info("Found anomaly for : " + key);
+        LOG.info("Found anomaly for : " + key + ", anomalyScore = " + anomalyScore);
         MetricAnomaly metricAnomaly = new MetricAnomaly(key, timestamp, metricValue, methodType, anomalyScore);
         anomalies.add(metricAnomaly);
       } else {
-        LOG.info("Discarding non-anomaly for : " + key);
+        LOG.debug("Discarding non-anomaly for : " + key);
       }
     }
     return anomalies;

@@ -23,6 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
+import static org.apache.ambari.metrics.alertservice.prototype.methods.ema.EmaTechnique.suppressAnomaliesTheshold;
+
 @XmlRootElement
 public class EmaModel implements Serializable {
 
@@ -35,7 +37,6 @@ public class EmaModel implements Serializable {
   private double timessdev;
 
   private int ctr = 0;
-  private static final int suppressAnomaliesTheshold = 30;
 
   private static final Log LOG = LogFactory.getLog(EmaModel.class);
 
@@ -64,30 +65,36 @@ public class EmaModel implements Serializable {
   public double testAndUpdate(double metricValue) {
 
     double anomalyScore = 0.0;
+    LOG.info("Before Update ->" + metricName + ":" + appId + ":" + hostname + " - " + "ema = " + ema + ", ems = " + ems + ", timessdev = " + timessdev);
+    update(metricValue);
     if (ctr > suppressAnomaliesTheshold) {
       anomalyScore = test(metricValue);
-    }
-    if (Math.abs(anomalyScore) < 2 * timessdev) {
-      update(metricValue);
+      if (anomalyScore > 0.0) {
+        LOG.info("Anomaly ->" + metricName + ":" + appId + ":" + hostname + " - " + "ema = " + ema + ", ems = " + ems +
+          ", timessdev = " + timessdev + ", metricValue = " + metricValue);
+      } else {
+        LOG.info("Not an Anomaly ->" + metricName + ":" + appId + ":" + hostname + " - " + "ema = " + ema + ", ems = " + ems +
+          ", timessdev = " + timessdev + ", metricValue = " + metricValue);
+      }
     } else {
-      LOG.info("Not updating model for this value");
+      ctr++;
+      if (ctr > suppressAnomaliesTheshold) {
+        LOG.info("Ema Model for " + metricName + ":" + appId + ":" + hostname + " is ready for testing data.");
+      }
     }
-    ctr++;
-    LOG.info("Counter : " + ctr);
-    LOG.info("Anomaly Score for " + metricValue + " : " + anomalyScore);
     return anomalyScore;
   }
 
   public void update(double metricValue) {
     ema = weight * ema + (1 - weight) * metricValue;
     ems = Math.sqrt(weight * Math.pow(ems, 2.0) + (1 - weight) * Math.pow(metricValue - ema, 2.0));
-    LOG.info("In update : ema = " + ema + ", ems = " + ems);
+    LOG.debug("In update : ema = " + ema + ", ems = " + ems);
   }
 
   public double test(double metricValue) {
-    LOG.info("In test : ema = " + ema + ", ems = " + ems);
+    LOG.debug("In test : ema = " + ema + ", ems = " + ems);
     double diff = Math.abs(ema - metricValue) - (timessdev * ems);
-    LOG.info("diff = " + diff);
+    LOG.debug("diff = " + diff);
     if (diff > 0) {
       return Math.abs((metricValue - ema) / ems); //Z score
     } else {
@@ -102,7 +109,7 @@ public class EmaModel implements Serializable {
       delta = delta * -1;
     }
     this.timessdev = timessdev + delta * timessdev;
-    this.weight = Math.min(1.0, weight + delta * weight);
+    //this.weight = Math.min(1.0, weight + delta * weight);
     LOG.info("New model parameters " + metricName + " : timessdev = " + timessdev + ", weight = " + weight);
   }
 

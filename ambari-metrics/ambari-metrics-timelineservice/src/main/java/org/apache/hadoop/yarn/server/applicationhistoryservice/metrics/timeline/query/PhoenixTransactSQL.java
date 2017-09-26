@@ -27,6 +27,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,6 +37,27 @@ import java.util.concurrent.TimeUnit;
 public class PhoenixTransactSQL {
 
   public static final Log LOG = LogFactory.getLog(PhoenixTransactSQL.class);
+
+  public static final String CREATE_ANOMALY_METRICS_TABLE_SQL =
+    "CREATE TABLE IF NOT EXISTS %s " +
+      "(UUID BINARY(20) NOT NULL, " +
+      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
+      "METRICS VARCHAR, " +
+      "METHOD VARCHAR, " +
+      "ANOMALY_SCORE DOUBLE CONSTRAINT pk " +
+      "PRIMARY KEY (UUID, SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, TTL=%s, COMPRESSION='%s'";
+
+  public static final String CREATE_TREND_ANOMALY_METRICS_TABLE_SQL =
+    "CREATE TABLE IF NOT EXISTS %s " +
+      "(UUID BINARY(20) NOT NULL, " +
+      "TEST_START_TIME UNSIGNED_LONG NOT NULL, " +
+      "TEST_END_TIME UNSIGNED_LONG NOT NULL, " +
+      "TRAIN_START_TIME UNSIGNED_LONG, " +
+      "TRAIN_END_TIME UNSIGNED_LONG, " +
+      "METRICS VARCHAR, " +
+      "METHOD VARCHAR, " +
+      "ANOMALY_SCORE DOUBLE CONSTRAINT pk " +
+      "PRIMARY KEY (UUID, TEST_START_TIME, TEST_END_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, TTL=%s, COMPRESSION='%s'";
 
   /**
    * Create table to store individual metric records.
@@ -146,6 +168,25 @@ public class PhoenixTransactSQL {
    */
   public static final String ALTER_SQL = "ALTER TABLE %s SET TTL=%s";
 
+  public static final String UPSERT_ANOMALY_METRICS_SQL = "UPSERT INTO %s " +
+    "(UUID, " +
+    "SERVER_TIME, " +
+    "METRICS, " +
+    "METHOD, " +
+    "ANOMALY_SCORE) VALUES " +
+    "(?, ?, ?, ?, ?)";
+
+  public static final String UPSERT_TREND_ANOMALY_METRICS_SQL = "UPSERT INTO %s " +
+    "(UUID, " +
+    "TEST_START_TIME, " +
+    "TEST_END_TIME, " +
+    "TRAIN_START_TIME, " +
+    "TRAIN_END_TIME, " +
+    "METRICS, " +
+    "METHOD, " +
+    "ANOMALY_SCORE) VALUES " +
+    "(?, ?, ?, ?, ?, ?, ?, ?)";
+
   /**
    * Insert into metric records table.
    */
@@ -220,6 +261,22 @@ public class PhoenixTransactSQL {
 
   public static final String UPSERT_INSTANCE_HOST_METADATA_SQL =
     "UPSERT INTO INSTANCE_HOST_METADATA (INSTANCE_ID, HOSTNAME) VALUES (?, ?)";
+
+  public static final String GET_ANOMALY_METRIC_SQL = "SELECT UUID, SERVER_TIME, " +
+    "METRICS, " +
+    "METHOD, " +
+    "ANOMALY_SCORE " +
+    "FROM %s " +
+    "WHERE METHOD = ? AND SERVER_TIME > ? AND SERVER_TIME <= ? ORDER BY ANOMALY_SCORE DESC";
+
+  public static final String GET_TREND_ANOMALY_METRIC_SQL = "SELECT UUID, " +
+    "TEST_START_TIME, TEST_END_TIME, " +
+    "TRAIN_START_TIME, TRAIN_END_TIME, " +
+    "METRICS, " +
+    "METHOD, " +
+    "ANOMALY_SCORE " +
+    "FROM %s " +
+    "WHERE METHOD = ? AND TEST_END_TIME > ? AND TEST_END_TIME <= ? ORDER BY ANOMALY_SCORE DESC";
 
   /**
    * Retrieve a set of rows from metrics records table.
@@ -333,6 +390,9 @@ public class PhoenixTransactSQL {
     "%s AS SERVER_TIME, %s, 1, %s, %s FROM %s WHERE UUID IN %s AND SERVER_TIME > %s AND SERVER_TIME <= %s " +
     "GROUP BY UUID ORDER BY %s DESC LIMIT %s";
 
+  public static final String ANOMALY_METRICS_TABLE_NAME = "METRIC_ANOMALIES";
+  public static final String TREND_ANOMALY_METRICS_TABLE_NAME = "TREND_METRIC_ANOMALIES";
+
   public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD";
 
   public static final String CONTAINER_METRICS_TABLE_NAME = "CONTAINER_METRICS";
@@ -394,6 +454,40 @@ public class PhoenixTransactSQL {
   public static void setSortMergeJoinEnabled(boolean sortMergeJoinEnabled) {
     PhoenixTransactSQL.sortMergeJoinEnabled = sortMergeJoinEnabled;
   }
+
+  public static PreparedStatement prepareAnomalyMetricsGetSqlStatement(Connection connection, String method,
+                                                                       long startTime, long endTime, Integer limit) throws SQLException {
+    StringBuilder sb = new StringBuilder();
+    if (method.equals("ema") || method.equals("tukeys")) {
+      sb.append(String.format(GET_ANOMALY_METRIC_SQL, ANOMALY_METRICS_TABLE_NAME));
+    } else {
+      sb.append(String.format(GET_TREND_ANOMALY_METRIC_SQL, TREND_ANOMALY_METRICS_TABLE_NAME));
+    }
+    if (limit != null) {
+      sb.append(" LIMIT " + limit);
+    }
+    PreparedStatement stmt = null;
+    try {
+      stmt = connection.prepareStatement(sb.toString());
+      int pos = 1;
+
+      stmt.setString(pos++, method);
+      stmt.setLong(pos++, startTime);
+      stmt.setLong(pos, endTime);
+      if (limit != null) {
+        stmt.setFetchSize(limit);
+      }
+
+    } catch (SQLException e) {
+      if (stmt != null) {
+        stmt.close();
+      }
+      throw e;
+    }
+
+    return stmt;
+  }
+
 
   public static PreparedStatement prepareGetMetricsSqlStmt(Connection connection,
                                                            Condition condition) throws SQLException {

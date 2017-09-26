@@ -96,7 +96,7 @@ public class MetricsCollectorInterface implements Serializable {
         emitMetrics(timelineMetrics);
       }
     } else {
-      LOG.info("No anomalies to send.");
+      LOG.debug("No anomalies to send.");
     }
   }
 
@@ -130,7 +130,7 @@ public class MetricsCollectorInterface implements Serializable {
   public boolean emitMetrics(TimelineMetrics metrics) {
     String connectUrl = constructTimelineMetricUri();
     String jsonData = null;
-    LOG.info("EmitMetrics connectUrl = " + connectUrl);
+    LOG.debug("EmitMetrics connectUrl = " + connectUrl);
     try {
       jsonData = mapper.writeValueAsString(metrics);
       LOG.info(jsonData);
@@ -202,7 +202,7 @@ public class MetricsCollectorInterface implements Serializable {
 
     String url = constructTimelineMetricUri() + "?metricNames=" + metricName + "&appId=" + appId +
       "&hostname=" + hostname + "&startTime=" + startime + "&endTime=" + endtime;
-    LOG.info("Fetch metrics URL : " + url);
+    LOG.debug("Fetch metrics URL : " + url);
 
     URL obj = null;
     BufferedReader in = null;
@@ -213,8 +213,8 @@ public class MetricsCollectorInterface implements Serializable {
       HttpURLConnection con = (HttpURLConnection) obj.openConnection();
       con.setRequestMethod("GET");
       int responseCode = con.getResponseCode();
-      LOG.info("Sending 'GET' request to URL : " + url);
-      LOG.info("Response Code : " + responseCode);
+      LOG.debug("Sending 'GET' request to URL : " + url);
+      LOG.debug("Response Code : " + responseCode);
 
       in = new BufferedReader(
         new InputStreamReader(con.getInputStream()));

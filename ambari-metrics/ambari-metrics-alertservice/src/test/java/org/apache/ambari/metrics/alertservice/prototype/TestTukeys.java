@@ -21,7 +21,6 @@ import org.apache.ambari.metrics.alertservice.prototype.methods.MetricAnomaly;
 import org.apache.ambari.metrics.alertservice.prototype.methods.ema.EmaTechnique;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
