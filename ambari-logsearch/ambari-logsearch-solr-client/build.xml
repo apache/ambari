@@ -41,12 +41,15 @@
       <fileset file="src/main/resources/log4j.properties"/>
     </copy>
     <chmod file="target/package/*.sh" perm="755"/>
+    <chmod file="target/package/*.py" perm="755"/>
     <tar compression="gzip" destfile="target/ambari-logsearch-solr-client.tar.gz">
       <tarfileset mode="755" dir="target/package">
         <include name="*.sh"/>
+        <include name="*.py"/>
       </tarfileset>
       <tarfileset mode="664" dir="target/package">
         <exclude name="*.sh"/>
+        <exclude name="*.py"/>
       </tarfileset>
     </tar>
 
