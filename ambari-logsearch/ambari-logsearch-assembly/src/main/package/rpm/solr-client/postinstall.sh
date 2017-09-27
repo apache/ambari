@@ -12,15 +12,9 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
+# limitations under the License
 
-JVM="java"
-sdir="`dirname \"$0\"`"
-ldir="`dirname "$(readlink -f "$0")"`"
+SOLR_CLOUD_CLI_LINK_NAME="/usr/bin/infra-solr-cloud-cli"
+SOLR_CLOUD_CLI_SOURCE="/usr/lib/ambari-infra-solr-client/solrCloudCli.sh"
 
-DIR="$sdir"
-if [ "$sdir" != "$ldir" ]; then
-  DIR="$ldir"
-fi
-
-PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR:$DIR/libs/*" org.apache.ambari.infra.solr.AmbariSolrCloudCLI ${1+"$@"}
+rm -f $SOLR_CLOUD_CLI_LINK_NAME ; ln -s $SOLR_CLOUD_CLI_SOURCE $SOLR_CLOUD_CLI_LINK_NAME

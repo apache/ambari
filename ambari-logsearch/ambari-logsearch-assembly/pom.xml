@@ -112,6 +112,10 @@
                   <name>${solr.client.package.name}</name>
                   <needarch>noarch</needarch>
                   <targetOS>linux</targetOS>
+                  <postinstallScriptlet>
+                     <scriptFile>${project.basedir}/src/main/package/rpm/solr-client/postinstall.sh</scriptFile>
+                     <fileEncoding>utf-8</fileEncoding>
+                   </postinstallScriptlet>
                   <mappings>
                     <mapping>
                       <directory>${solr.client.mapping.path}</directory>
