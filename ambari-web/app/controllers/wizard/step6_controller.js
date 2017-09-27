@@ -708,8 +708,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
    * @override App.HostComponentRecommendationMixin
    */
   updateValidationsSuccessCallback: function (data) {
-    var self = this;
-
     var clientComponents = App.get('components.clients');
 
     this.set('generalErrorMessages', []);
@@ -729,7 +727,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     }).forEach(function (item) {
       var checkboxWithIssue = null;
       var isGeneralClientValidationItem = clientComponents.contains(item['component-name']); // it is an error/warning for any client component (under "CLIENT" alias)
-      var host = self.get('hosts').find(function (h) {
+      var host = this.get('hosts').find(function (h) {
         return h.hostName === item.host && h.checkboxes.some(function (checkbox) {
           var isClientComponent = checkbox.component === "CLIENT" && isGeneralClientValidationItem;
           if (checkbox.component === item['component-name'] || isClientComponent) {
@@ -753,6 +751,11 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
           }
       }
       else {
+        var componentHeader = this.get('headers').findProperty('name', item['component-name']);
+        if (componentHeader && componentHeader.get('isDisabled')) {
+          // skip validation messages for components which disabled for editing
+          return;
+        }
         var component;
         if (isGeneralClientValidationItem) {
           if (!anyGeneralClientErrors) {
@@ -771,15 +774,15 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
           }
 
           if (item.level === 'ERROR') {
-            self.get('generalErrorMessages').push(item.message + details);
+            this.get('generalErrorMessages').push(item.message + details);
           }
           else
             if (item.level === 'WARN') {
-              self.get('generalWarningMessages').push(item.message + details);
+              this.get('generalWarningMessages').push(item.message + details);
             }
         }
       }
-    });
+    }, this);
   },
 
   /**
