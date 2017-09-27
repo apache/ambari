@@ -29,13 +29,12 @@
     <module>ambari-metrics-kafka-sink</module>
     <module>ambari-metrics-storm-sink</module>
     <module>ambari-metrics-storm-sink-legacy</module>
-    <module>ambari-metrics-alertservice</module>
     <module>ambari-metrics-timelineservice</module>
     <module>ambari-metrics-host-monitoring</module>
     <module>ambari-metrics-grafana</module>
     <module>ambari-metrics-assembly</module>
     <module>ambari-metrics-host-aggregator</module>
-    <module>ambari-metrics-spark</module>
+    <module>ambari-metrics-anomaly-detector</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
