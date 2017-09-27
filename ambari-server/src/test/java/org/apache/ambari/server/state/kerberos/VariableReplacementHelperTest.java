@@ -35,7 +35,7 @@ import java.util.Map;
 
 @Category({category.KerberosTest.class})
 public class VariableReplacementHelperTest {
-  VariableReplacementHelper helper = new VariableReplacementHelper();
+  private VariableReplacementHelper helper = new VariableReplacementHelper();
 
   @Test
   public void testReplaceVariables() throws AmbariException {
@@ -134,6 +134,37 @@ public class VariableReplacementHelperTest {
       Assert.fail(String.format("%s expected to be thrown", AmbariException.class.getName()));
     } catch (AmbariException e) {
       // This is expected...
+    }
+  }
+  @Test
+  public void testReplaceVariablesRecursive() throws AmbariException {
+    Map<String, Map<String, String>> configurations = new HashMap<String, Map<String, String>>() {
+      {
+        put("", new HashMap<String, String>());
+
+        put("data", new HashMap<String, String>() {{
+          put("data_host1.example.com", "host 1 data");
+          put("data_host2.example.com", "host 2 data");
+          put("data_host3.example.com", "host 3 data");
+        }});
+      }
+    };
+
+    configurations.get("").put("h", "host");
+
+    // Shows ${h} was replaced
+    assertEquals("${data/data_${host}}", helper.replaceVariables("${data/data_${${h}}}", configurations));
+
+    // data_host.example.com does not exist in the data configuration
+    configurations.get("").put("host", "host.example.com");
+
+    // Shows ${host} was replaced
+    assertEquals("${data/data_host.example.com}", helper.replaceVariables("${data/data_${${h}}}", configurations));
+
+
+    for (int i = 1; i <= 3; i++) {
+      configurations.get("").put("host", String.format("host%d.example.com", i));
+      assertEquals(String.format("host %d data", i), helper.replaceVariables("${data/data_${${h}}}", configurations));
     }
   }
 
