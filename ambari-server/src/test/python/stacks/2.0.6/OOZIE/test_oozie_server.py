@@ -1177,6 +1177,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_upgrade(self, glob_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1228,6 +1229,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_upgrade_23(self, glob_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1252,6 +1254,7 @@ class TestOozieServer(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = "2.3"
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
@@ -1287,6 +1290,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value=True))
   def test_upgrade_23_with_type(self, glob_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1311,6 +1315,7 @@ class TestOozieServer(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['upgradeSummary'] = {
       'services': { 'OOZIE': { 'sourceStackId': 'HDP-2.3' }},
       'direction': 'UPGRADE',
@@ -1353,6 +1358,7 @@ class TestOozieServer(RMFTestCase):
   @patch("os.remove")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_downgrade_no_compression_library_copy(self, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1397,6 +1403,7 @@ class TestOozieServer(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = "HDP"
+    json_content['hostLevelParams']['stack_version'] = "2.3"
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server_upgrade.py",
       classname = "OozieUpgrade", command = "upgrade_oozie_database_and_sharelib",
@@ -1459,6 +1466,7 @@ class TestOozieServer(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = "HDP"
+    json_content['hostLevelParams']['stack_version'] = "2.3"
 
     # use mysql external database
     json_content['configurations']['oozie-site']['oozie.service.JPAService.jdbc.driver'] = "com.mysql.jdbc.Driver"
@@ -1525,6 +1533,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_upgrade_23_ensure_falcon_copied(self, glob_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 

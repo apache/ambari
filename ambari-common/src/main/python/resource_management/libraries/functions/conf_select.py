@@ -34,9 +34,11 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import Link
+from resource_management.libraries.functions import component_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import stack_tools
 from resource_management.core.exceptions import Fail
+from resource_management.core import sudo
 from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
@@ -215,79 +217,28 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
 
 
 
-def get_hadoop_conf_dir(force_latest_on_upgrade=False):
+def get_hadoop_conf_dir():
   """
-  Gets the shared hadoop conf directory using:
-  1.  Start with /etc/hadoop/conf
-  2.  When the stack is greater than HDP-2.2, use <stack-root>/current/hadoop-client/conf
-  3.  Only when doing a RU and HDP-2.3 or higher, use the value as computed
-      by <conf-selector-tool>.  This is in the form <stack-root>/VERSION/hadoop/conf to make sure
-      the configs are written in the correct place. However, if the component itself has
-      not yet been upgraded, it should use the hadoop configs from the prior version.
-      This will perform an <stack-selector-tool> status to determine which version to use.
-  :param force_latest_on_upgrade:  if True, then force the returned path to always
-  be that of the upgrade target version, even if <stack-selector-tool> has not been called. This
-  is primarily used by hooks like before-ANY to ensure that hadoop environment
-  configurations are written to the correct location since they are written out
-  before the <stack-selector-tool>/<conf-selector-tool> would have been called.
+  Return the hadoop shared conf directory which should be used for the command's component. The
+  directory including the component's version is tried first, but if that doesn't exist,
+  this will fallback to using "current".
   """
-  hadoop_conf_dir = "/etc/hadoop/conf"
-  stack_name = None
   stack_root = Script.get_stack_root()
   stack_version = Script.get_stack_version()
-  version = None
 
-  if not Script.in_stack_upgrade():
-    # During normal operation, the HDP stack must be 2.3 or higher
-    if stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version):
-      hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
-
-    if stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version):
-      hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
-      stack_name = default("/hostLevelParams/stack_name", None)
+  hadoop_conf_dir = os.path.join(os.path.sep, "etc", "hadoop", "conf")
+  if check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version):
+    # read the desired version from the component map and use that for building the hadoop home
+    version = component_version.get_component_repository_version()
+    if version is None:
       version = default("/commandParams/version", None)
 
-      if not os.path.islink(hadoop_conf_dir) and stack_name and version:
-        version = str(version)
-  else:
-    # The "stack_version" is the desired stack, e.g., 2.2 or 2.3
-    # In an RU, it is always the desired stack, and doesn't change even during the Downgrade!
-    # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is
-    # rm /etc/[component]/conf and then mv /etc/[component]/conf.backup /etc/[component]/conf
-    if stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version):
+    hadoop_conf_dir = os.path.join(stack_root, str(version), "hadoop", "conf")
+    if version is None or sudo.path_isdir(hadoop_conf_dir) is False:
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
 
-      # This contains the "version", including the build number, that is actually used during a stack upgrade and
-      # is the version upgrading/downgrading to.
-      stack_info = stack_select._get_upgrade_stack()
+    Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
 
-      if stack_info is None:
-        raise Fail("Unable to retrieve the upgrade/downgrade stack information from the request")
-
-      stack_name = stack_info[0]
-      version = stack_info[1]
-
-      Logger.info(
-        "An upgrade/downgrade for {0}-{1} is in progress, determining which hadoop conf dir to use.".format(
-          stack_name, version))
-
-      # This is the version either upgrading or downgrading to.
-      if version and check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
-        # Determine if <stack-selector-tool> has been run and if not, then use the current
-        # hdp version until this component is upgraded.
-        if not force_latest_on_upgrade:
-          current_stack_version = stack_select.get_role_component_current_stack_version()
-          if current_stack_version is not None and version != current_stack_version:
-            version = current_stack_version
-            stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
-            Logger.info("{0} has not yet been called to update the symlink for this component, "
-                        "keep using version {1}".format(stack_selector_name, current_stack_version))
-
-        # Only change the hadoop_conf_dir path, don't <conf-selector-tool> this older version
-        hadoop_conf_dir = os.path.join(stack_root, version, "hadoop", "conf")
-        Logger.info("Hadoop conf dir: {0}".format(hadoop_conf_dir))
-
-  Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
   return hadoop_conf_dir
 
 

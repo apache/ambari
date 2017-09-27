@@ -50,7 +50,7 @@ class TestMahoutClient(RMFTestCase):
       owner = "yarn",
       group = 'hadoop',
       mode = 0644,
-      conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      conf_dir = '/usr/hdp/2.2.1.0-2067/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
     )
