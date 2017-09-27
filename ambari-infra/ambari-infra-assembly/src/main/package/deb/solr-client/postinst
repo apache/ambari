@@ -20,5 +20,9 @@ SOLR_CLOUD_CLI_SOURCE="/usr/lib/ambari-infra-solr-client/solrCloudCli.sh"
 SOLR_INDEX_TOOL_LINK_NAME="/usr/bin/infra-lucene-index-tool"
 SOLR_INDEX_TOOL_SOURCE="/usr/lib/ambari-infra-solr-client/solrIndexHelper.sh"
 
+SOLR_DATA_MANAGER_LINK_NAME="/usr/bin/infra-solr-data-manager"
+SOLR_DATA_MANAGER_SOURCE="/usr/lib/ambari-infra-solr-client/solrDataManager.py"
+
 rm -f $SOLR_CLOUD_CLI_LINK_NAME ; ln -s $SOLR_CLOUD_CLI_SOURCE $SOLR_CLOUD_CLI_LINK_NAME
 rm -f $SOLR_INDEX_TOOL_LINK_NAME ; ln -s $SOLR_INDEX_TOOL_SOURCE $SOLR_INDEX_TOOL_LINK_NAME
+rm -f $SOLR_DATA_MANAGER_LINK_NAME ; ln -s $SOLR_DATA_MANAGER_SOURCE $SOLR_DATA_MANAGER_LINK_NAME
