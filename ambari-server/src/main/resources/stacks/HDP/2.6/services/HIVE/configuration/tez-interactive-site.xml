@@ -75,6 +75,12 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>tez.history.logging.log.level</name>
+    <value>TASK_ATTEMPT</value>
+    <description>Set the log level to TASK_ATTEMPT.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>tez.history.logging.taskattempt-filters</name>
     <value>SERVICE_BUSY,EXTERNAL_PREEMPTION</value>
     <description>TASK_ATTEMPT events to be ignored.</description>
