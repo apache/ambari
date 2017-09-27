@@ -678,7 +678,7 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         owner = 'hbase',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
@@ -694,7 +694,7 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         owner = 'hbase',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0711,
@@ -711,7 +711,7 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-master/conf start master',

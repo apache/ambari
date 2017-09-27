@@ -28,16 +28,18 @@ import ambari_simplejson as json
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions import component_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_tools
 from resource_management.core import shell
+from resource_management.core import sudo
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
-from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import stack_features
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import upgrade_summary
 
@@ -352,17 +354,13 @@ def get_role_component_current_stack_version():
   return current_stack_version
 
 
-def get_hadoop_dir(target, force_latest_on_upgrade=False):
+def get_hadoop_dir(target):
   """
-  Return the hadoop shared directory in the following override order
-  1. Use default for 2.1 and lower
-  2. If 2.2 and higher, use <stack-root>/current/hadoop-client/{target}
-  3. If 2.2 and higher AND for an upgrade, use <stack-root>/<version>/hadoop/{target}.
-  However, if the upgrade has not yet invoked <stack-selector-tool>, return the current
-  version of the component.
+  Return the hadoop shared directory which should be used for the command's component. The
+  directory including the component's version is tried first, but if that doesn't exist,
+  this will fallback to using "current".
+
   :target: the target directory
-  :force_latest_on_upgrade: if True, then this will return the "current" directory
-  without the stack version built into the path, such as <stack-root>/current/hadoop-client
   """
   stack_root = Script.get_stack_root()
   stack_version = Script.get_stack_version()
@@ -373,34 +371,25 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False):
   hadoop_dir = HADOOP_DIR_DEFAULTS[target]
 
   formatted_stack_version = format_stack_version(stack_version)
-  if formatted_stack_version and  check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
+
+  if stack_features.check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
+    # read the desired version from the component map and use that for building the hadoop home
+    version = component_version.get_component_repository_version()
+    if version is None:
+      version = default("/commandParams/version", None)
+
     # home uses a different template
     if target == "home":
-      hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", "hadoop-client")
+      hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, version, "hadoop")
+      if version is None or sudo.path_isdir(hadoop_dir) is False:
+        hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", "hadoop-client")
     else:
-      hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, "current", "hadoop-client", target)
-
-    # if we are not forcing "current" for HDP 2.2, then attempt to determine
-    # if the exact version needs to be returned in the directory
-    if not force_latest_on_upgrade:
-      stack_info = _get_upgrade_stack()
-
-      if stack_info is not None:
-        stack_version = stack_info[1]
-
-        # determine if <stack-selector-tool> has been run and if not, then use the current
-        # hdp version until this component is upgraded
-        current_stack_version = get_role_component_current_stack_version()
-        if current_stack_version is not None and stack_version != current_stack_version:
-          stack_version = current_stack_version
-
-        if target == "home":
-          # home uses a different template
-          hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop")
-        else:
-          hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop", target)
+      hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, version, "hadoop", target)
+      if version is None or sudo.path_isdir(hadoop_dir) is False:
+        hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, "current", "hadoop-client", target)
 
   return hadoop_dir
+
 
 def get_hadoop_dir_for_stack_version(target, stack_version):
   """
@@ -414,15 +403,11 @@ def get_hadoop_dir_for_stack_version(target, stack_version):
   if not target in HADOOP_DIR_DEFAULTS:
     raise Fail("Target {0} not defined".format(target))
 
-  hadoop_dir = HADOOP_DIR_DEFAULTS[target]
-
-  formatted_stack_version = format_stack_version(stack_version)
-  if formatted_stack_version and  check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
-    # home uses a different template
-    if target == "home":
-      hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop")
-    else:
-      hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop", target)
+  # home uses a different template
+  if target == "home":
+    hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop")
+  else:
+    hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop", target)
 
   return hadoop_dir
 

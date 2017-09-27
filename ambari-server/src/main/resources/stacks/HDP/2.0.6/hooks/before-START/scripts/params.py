@@ -68,20 +68,13 @@ hadoop_metrics2_properties_content = None
 if 'hadoop-metrics2.properties' in config['configurations']:
   hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
 
-# hadoop default params
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
-hadoop_home = '/usr'
-create_lib_snappy_symlinks = True
 
-# HDP 2.2+ params
-if Script.is_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_home = stack_select.get_hadoop_dir("home")
-  create_lib_snappy_symlinks = False
+mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+hadoop_home = stack_select.get_hadoop_dir("home")
+create_lib_snappy_symlinks = False
   
 current_service = config['serviceName']
 
@@ -189,7 +182,7 @@ if has_zk_host:
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']

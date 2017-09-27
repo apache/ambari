@@ -82,7 +82,7 @@ def webhcat():
             )
 
   # if we're in an upgrade of a secure cluster, make sure hive-site and yarn-site are created
-  if params.stack_version_formatted_major  and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version_formatted_major) and \
+  if check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version_formatted_major) and \
        params.version and params.stack_root:
     XmlConfig("hive-site.xml",
       conf_dir = format("{stack_root}/{version}/hive/conf"),

@@ -23,11 +23,22 @@ import os
 
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.constants import Direction, StackFeature
+
+# used for faking out stack features when the config files used by unit tests use older stacks
+def mock_stack_feature(stack_feature, stack_version):
+  if stack_feature == StackFeature.ROLLING_UPGRADE:
+    return True
+  if stack_feature == StackFeature.CONFIG_VERSIONING:
+    return True
+  if stack_feature == StackFeature.HIVE_METASTORE_UPGRADE_SCHEMA:
+    return True
+
+  return False
 
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0,'123','')))
+@patch("resource_management.libraries.functions.stack_features.check_stack_feature", new=MagicMock(side_effect=mock_stack_feature))
 class TestHiveMetastore(RMFTestCase):
 
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
@@ -58,13 +69,13 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
     self.assert_init_schema('aaa')
 
-    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
+        environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2067/hadoop',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/2.2.1.0-2067/hadoop/bin'],
     )
 
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive aaa com.mysql.jdbc.Driver',
@@ -89,13 +100,13 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
     self.assert_init_schema('aaa')
 
-    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
+        environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2067/hadoop',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/2.2.1.0-2067/hadoop/bin'],
     )
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive aaa com.mysql.jdbc.Driver',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -152,13 +163,13 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assert_configure_secured()
     self.assert_init_schema('asd')
-    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
     )
 
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive asd com.mysql.jdbc.Driver',
@@ -223,7 +234,7 @@ class TestHiveMetastore(RMFTestCase):
                               )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
-                              conf_dir = '/etc/hive/conf.server',
+                              conf_dir = '/usr/hdp/current/hive-server2/conf/conf.server',
                               mode = 0600,
                               configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                      u'javax.jdo.option.ConnectionDriverName': u'true',
@@ -231,7 +242,7 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hive-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
@@ -262,7 +273,7 @@ class TestHiveMetastore(RMFTestCase):
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
         mode = 0644,
     )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
                               owner = 'hive',
                               group = 'hadoop',
                               content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
@@ -325,7 +336,7 @@ class TestHiveMetastore(RMFTestCase):
                               )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
-                              conf_dir = '/etc/hive/conf.server',
+                              conf_dir = '/usr/hdp/current/hive-server2/conf/conf.server',
                               mode = 0600,
                               configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                      u'javax.jdo.option.ConnectionDriverName': u'true',
@@ -333,7 +344,7 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hive-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
@@ -350,7 +361,7 @@ class TestHiveMetastore(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/zkmigrator_jaas.conf',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/zkmigrator_jaas.conf',
                               content = Template('zkmigrator_jaas.conf.j2'),
                               owner = 'hive',
                               group = 'hadoop',
@@ -370,7 +381,7 @@ class TestHiveMetastore(RMFTestCase):
         mode = 0644,
     )
 
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
                               owner = 'hive',
                               group = 'hadoop',
                               content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
@@ -404,8 +415,8 @@ class TestHiveMetastore(RMFTestCase):
                               )
 
   def assert_init_schema(self, password):
-    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord {password} -verbose'.format(password = password),
-        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord {password} -verbose'".format(password = password),
+    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/usr/hdp/current/hive-server2/conf/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord {password} -verbose'.format(password = password),
+        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/usr/hdp/current/hive-server2/conf/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord {password} -verbose'".format(password = password),
         user = 'hive',
     )
 
@@ -450,7 +461,7 @@ class TestHiveMetastore(RMFTestCase):
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
     self.assertNoMoreResources()
 
-
+  @patch("resource_management.libraries.functions.stack_select.get_hadoop_dir", new = MagicMock(return_value="/usr/hdp/current/hadoop-client"))
   def test_pre_upgrade_restart_ims(self):
     """
     Tests the state of the init_metastore_schema property on update
@@ -577,7 +588,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
       mode = 0755, create_parents = True, cd_access = 'a')
 
-    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
+    self.assertResourceCalledIgnoreEarlier('Execute', ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True)
 
@@ -614,6 +625,7 @@ class TestHiveMetastore(RMFTestCase):
   @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
   @patch("resource_management.libraries.functions.get_stack_version")
+  @patch("resource_management.libraries.functions.stack_select.get_hadoop_dir", new = MagicMock(return_value = "/usr/hdp/current/hadoop-client"))
   def test_upgrade_metastore_schema_using_new_db(self, get_stack_version_mock, call_mock, os_path_exists_mock):
     get_stack_version_mock.return_value = '2.3.0.0-1234'
 

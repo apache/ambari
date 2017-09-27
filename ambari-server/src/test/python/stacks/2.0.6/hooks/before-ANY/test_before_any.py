@@ -182,15 +182,6 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hadoop',
                               mode = 0755,
                               )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
-                              owner = 'root',
-                              create_parents = True,
-                              group = 'hadoop',
-                              )
-    self.assertResourceCalled('Link', '/etc/hadoop/conf',
-                              not_if = 'ls /etc/hadoop/conf',
-                              to = '/etc/hadoop/conf.empty',
-                              )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
                               owner = 'hdfs',

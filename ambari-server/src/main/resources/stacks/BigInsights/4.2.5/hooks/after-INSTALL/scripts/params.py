@@ -90,7 +90,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 link_configs_lock_file = os.path.join(tmp_dir, "link_configs_lock_file")
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")

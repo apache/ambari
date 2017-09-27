@@ -120,7 +120,7 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 
 if has_namenode:
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
   
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']

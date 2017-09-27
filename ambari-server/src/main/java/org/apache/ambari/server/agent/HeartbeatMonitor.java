@@ -210,7 +210,7 @@ public class HeartbeatMonitor implements Runnable {
    * @return list of commands to get status of service components on a concrete host
    */
   public List<StatusCommand> generateStatusCommands(String hostname) throws AmbariException {
-    List<StatusCommand> cmds = new ArrayList<StatusCommand>();
+    List<StatusCommand> cmds = new ArrayList<>();
 
     for (Cluster cl : clusters.getClustersForHost(hostname)) {
       Map<String, DesiredConfig> desiredConfigs = cl.getDesiredConfigs();
@@ -249,8 +249,8 @@ public class HeartbeatMonitor implements Runnable {
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
-    Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
-    Map<String, Map<String,  Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> configurations = new TreeMap<>();
+    Map<String, Map<String,  Map<String, String>>> configurationAttributes = new TreeMap<>();
 
     // get the cluster config for type '*-env'
     // apply config group overrides

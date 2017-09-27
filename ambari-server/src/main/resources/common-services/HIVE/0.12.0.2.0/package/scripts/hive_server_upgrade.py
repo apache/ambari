@@ -58,11 +58,6 @@ def deregister():
   if current_hiveserver_version is None:
     raise Fail('Unable to determine the current HiveServer2 version to deregister.')
 
-  # fallback when upgrading because <stack-root>/current/hive-server2/conf/conf.server may not exist
-  hive_server_conf_dir = params.hive_server_conf_dir
-  if not os.path.exists(hive_server_conf_dir):
-    hive_server_conf_dir = "/etc/hive/conf.server"
-
   # deregister
   hive_execute_path = params.execute_path
   # If upgrading, the upgrade-target hive binary should be used to call the --deregister command.

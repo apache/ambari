@@ -85,4 +85,4 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_host) == 0
 
 if has_namenode:
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

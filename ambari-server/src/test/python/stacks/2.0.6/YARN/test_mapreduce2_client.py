@@ -421,6 +421,7 @@ class TestMapReduce2Client(RMFTestCase):
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_stack_upgrade_save_new_config(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/client-upgrade.json"
     with open(config_file, "r") as f:

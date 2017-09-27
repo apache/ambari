@@ -756,6 +756,7 @@ class TestHistoryServer(RMFTestCase):
 
   @patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -784,13 +785,13 @@ class TestHistoryServer(RMFTestCase):
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
     )
 
     self.assertNoMoreResources()

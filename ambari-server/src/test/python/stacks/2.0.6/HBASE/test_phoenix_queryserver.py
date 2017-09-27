@@ -34,6 +34,7 @@ class TestPhoenixQueryServer(RMFTestCase):
 
   CONFIG_OVERRIDES = {"serviceName":"HBASE", "role":"PHOENIX_QUERY_SERVER"}
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_configure_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -48,6 +49,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_start_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -67,6 +69,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_stop_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -90,6 +93,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_configure_secured(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -104,6 +108,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_start_secured(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -123,6 +128,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_stop_secured(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -422,6 +428,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       content = InlineTemplate('log4jproperties\nline2')
     )
 
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.3/configs/hbase_default.json"
     with open(config_file, "r") as f:

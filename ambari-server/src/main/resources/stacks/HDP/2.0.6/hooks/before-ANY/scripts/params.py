@@ -101,49 +101,38 @@ def is_secure_port(port):
   else:
     return False
 
-# hadoop default params
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-
 # upgrades would cause these directories to have a version instead of "current"
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
-hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
-hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
-versioned_stack_root = '/usr/hdp/current'
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 datanode_max_locked_memory = config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory']
 is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory'])
 
-# HDP 2.2+ params
-if Script.is_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 
-  # not supported in HDP 2.2+
-  hadoop_conf_empty_dir = None
-
-  if not security_enabled:
-    hadoop_secure_dn_user = '""'
+if not security_enabled:
+  hadoop_secure_dn_user = '""'
+else:
+  dfs_dn_port = get_port(dfs_dn_addr)
+  dfs_dn_http_port = get_port(dfs_dn_http_addr)
+  dfs_dn_https_port = get_port(dfs_dn_https_addr)
+  # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
+  if dfs_http_policy == "HTTPS_ONLY":
+    secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_https_port)
+  elif dfs_http_policy == "HTTP_AND_HTTPS":
+    secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port) or is_secure_port(dfs_dn_https_port)
+  else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
+    secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port)
+  if secure_dn_ports_are_in_use:
+    hadoop_secure_dn_user = hdfs_user
   else:
-    dfs_dn_port = get_port(dfs_dn_addr)
-    dfs_dn_http_port = get_port(dfs_dn_http_addr)
-    dfs_dn_https_port = get_port(dfs_dn_https_addr)
-    # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
-    if dfs_http_policy == "HTTPS_ONLY":
-      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_https_port)
-    elif dfs_http_policy == "HTTP_AND_HTTPS":
-      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port) or is_secure_port(dfs_dn_https_port)
-    else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
-      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port)
-    if secure_dn_ports_are_in_use:
-      hadoop_secure_dn_user = hdfs_user
-    else:
-      hadoop_secure_dn_user = '""'
+    hadoop_secure_dn_user = '""'
 
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
@@ -219,7 +208,7 @@ if dfs_ha_namenode_ids:
     dfs_ha_enabled = True
 
 if has_namenode or dfs_type == 'HCFS':
-    hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"

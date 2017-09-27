@@ -95,8 +95,8 @@ mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 # upgrades would cause these directories to have a version instead of "current"
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
-hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hadoop_secure_dn_user = hdfs_user
@@ -186,7 +186,7 @@ has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 
 if has_namenode:
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
