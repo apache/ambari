@@ -1459,11 +1459,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createConfigurations
    */
   createConfigurations: function () {
-    var tag = this.getServiceConfigVersion();
-
     if (this.get('isInstaller')) {
       /** add cluster-env **/
-      this.get('serviceConfigTags').pushObject(this.createDesiredConfig('cluster-env', tag, this.get('configs').filterProperty('filename', 'cluster-env.xml')));
+      this.get('serviceConfigTags').pushObject(this.createDesiredConfig('cluster-env', this.get('configs').filterProperty('filename', 'cluster-env.xml')));
     }
 
     this.get('selectedServices').forEach(function (service) {
@@ -1471,20 +1469,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
           var configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(type));
           var serviceConfigNote = this.getServiceConfigNote(type, service.get('displayName'));
-          this.get('serviceConfigTags').pushObject(this.createDesiredConfig(type, tag, configs, serviceConfigNote));
+          this.get('serviceConfigTags').pushObject(this.createDesiredConfig(type, configs, serviceConfigNote));
         }
       }, this);
     }, this);
     this.createNotification();
-  },
-
-  /**
-   * Get config version tag
-   *
-   * @returns {string}
-   */
-  getServiceConfigVersion: function() {
-    return 'version' + (this.get('isAddService') ? (new Date).getTime() : '1');
   },
 
   /**

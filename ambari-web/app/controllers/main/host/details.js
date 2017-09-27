@@ -1338,14 +1338,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (groups.length) {
       groups.forEach(function (group) {
         var desiredConfigs = [],
-          tag = 'version' + (new Date).getTime(),
           properties = group.properties;
 
         for (var site in properties) {
           if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
           desiredConfigs.push({
             "type": site,
-            "tag": tag,
             "properties": properties[site],
             "properties_attributes": group.properties_attributes[site],
             "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName, false))

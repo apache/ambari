@@ -64,7 +64,6 @@ describe('App.HighAvailabilityProgressPageController', function () {
         result: [
           {
             type: "site1",
-            tag: "version1",
             properties: {
               site1_property1: "site1_property1_value",
               site1_property2: "site1_property2_value"
@@ -78,7 +77,6 @@ describe('App.HighAvailabilityProgressPageController', function () {
           },
           {
             type: "site2",
-            tag: "version1",
             properties: {
               site2_property1: "site2_property1_value",
               site2_property2: "site2_property2_value"
@@ -109,7 +107,6 @@ describe('App.HighAvailabilityProgressPageController', function () {
         result: [
           {
             type: "site1",
-            tag: "version1",
             properties: {
               site1_property1: "site1_property1_value",
               site1_property2: "site1_property2_value"

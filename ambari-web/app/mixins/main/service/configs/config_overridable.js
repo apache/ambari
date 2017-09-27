@@ -246,7 +246,6 @@ App.ConfigOverridable = Em.Mixin.create({
           var type = Em.get(cst, 'site') || Em.get(cst, 'type');
           return {
             type: type,
-            tag: 'version' + (new Date).getTime(),
             properties: typeToPropertiesMap[type]
           };
         }),

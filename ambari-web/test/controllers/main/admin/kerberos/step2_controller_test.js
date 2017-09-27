@@ -632,9 +632,8 @@ describe('App.KerberosWizardStep2Controller', function() {
           filename: 'site.xml'
         }]
       })]);
-      expect(controller.createKerberosSiteObj('site', 'tag')).to.be.eql({
+      expect(controller.createKerberosSiteObj('site')).to.be.eql({
         "type": 'site',
-        "tag": 'tag',
         "properties": {}
       });
     });
@@ -647,9 +646,8 @@ describe('App.KerberosWizardStep2Controller', function() {
           filename: 'site.xml'
         }]
       })]);
-      expect(controller.createKerberosSiteObj('site', 'tag')).to.be.eql({
+      expect(controller.createKerberosSiteObj('site')).to.be.eql({
         "type": 'site',
-        "tag": 'tag',
         "properties": {
           'kdc_hosts': {
             displayType: 'host',
@@ -667,9 +665,8 @@ describe('App.KerberosWizardStep2Controller', function() {
           filename: 'site.xml'
         }]
       })]);
-      expect(controller.createKerberosSiteObj('site', 'tag')).to.be.eql({
+      expect(controller.createKerberosSiteObj('site')).to.be.eql({
         "type": 'site',
-        "tag": 'tag',
         "properties": {
           'n1': {
             name: 'n1',

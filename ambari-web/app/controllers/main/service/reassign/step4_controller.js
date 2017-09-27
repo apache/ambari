@@ -315,11 +315,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   getServiceConfigData: function (configs, attributes) {
     var componentName = this.get('content.reassign.component_name');
-    var tagName = 'version' + (new Date).getTime();
     var configData = Object.keys(configs).map(function (_siteName) {
       return {
         type: _siteName,
-        tag: tagName,
         properties: configs[_siteName],
         properties_attributes: attributes[_siteName] || {},
         service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName, false))
