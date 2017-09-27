@@ -326,6 +326,7 @@ class Master(Script):
                               type="file",
                               action="download_on_execute",
                               source=self.getZeppelinConfFS(params),
+                              user=params.zeppelin_user,
                               group=params.zeppelin_group,
                               owner=params.zeppelin_user)
         except Fail as fail:
@@ -456,6 +457,9 @@ class Master(Script):
             interpreter['properties']['hive.url'] = 'jdbc:hive2://' + \
                                                  params.hive_server_host + \
                                                      ':' + params.hive_server_port
+          if 'hive.splitQueries' not in interpreter['properties']:
+            interpreter['properties']["hive.splitQueries"] = "true"
+
         if params.hive_server_interactive_hosts:
           interpreter['properties'][hive_interactive_properties_key + '.driver'] = 'org.apache.hive.jdbc.HiveDriver'
           interpreter['properties'][hive_interactive_properties_key + '.user'] = 'hive'
@@ -470,6 +474,8 @@ class Master(Script):
             interpreter['properties'][hive_interactive_properties_key + '.url'] = 'jdbc:hive2://' + \
                                                     params.hive_server_interactive_hosts + \
                                                     ':' + params.hive_server_port
+          if hive_interactive_properties_key + '.splitQueries' not in interpreter['properties']:
+            interpreter['properties'][hive_interactive_properties_key + '.splitQueries'] = "true"
 
         if params.spark_thrift_server_hosts:
           interpreter['properties']['spark.driver'] = 'org.apache.hive.jdbc.HiveDriver'
@@ -480,6 +486,8 @@ class Master(Script):
               params.spark_thrift_server_hosts + ':' + params.spark_hive_thrift_port + '/'
           if params.spark_hive_principal:
             interpreter['properties']['spark.url'] += ';principal=' + params.spark_hive_principal
+          if 'spark.splitQueries' not in interpreter['properties']:
+            interpreter['properties']['spark.splitQueries'] = "true"
 
         if params.spark2_thrift_server_hosts:
           interpreter['properties']['spark2.driver'] = 'org.apache.hive.jdbc.HiveDriver'
@@ -490,6 +498,8 @@ class Master(Script):
               params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
           if params.spark_hive_principal:
             interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
+          if 'spark2.splitQueries' not in interpreter['properties']:
+            interpreter['properties']['spark2.splitQueries'] = "true"
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
@@ -500,6 +510,9 @@ class Master(Script):
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
+            if 'phoenix.splitQueries' not in interpreter['properties']:
+              interpreter['properties']['phoenix.splitQueries'] = "true"
+
 
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy':
         if params.livy_livyserver_host:
