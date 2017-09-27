@@ -101,9 +101,6 @@ public class TopologyManager {
   public static final String TOPOLOGY_RESOLVED_TAG = "TOPOLOGY_RESOLVED";
   public static final String KDC_ADMIN_CREDENTIAL = "kdc.admin.credential";
 
-  private static final String CLUSTER_ENV_CONFIG_TYPE_NAME = "cluster-env";
-  private static final String CLUSTER_CONFIG_TASK_MAX_TIME_IN_MILLIS_PROPERTY_NAME = "cluster_configure_task_timeout";
-
   private PersistedState persistedState;
 
   /**
@@ -1122,27 +1119,8 @@ public class TopologyManager {
    * @param configurationRequest  configuration request to be executed
    */
   private void addClusterConfigRequest(ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
-
-    String timeoutStr = topology.getConfiguration().getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME,
-        CLUSTER_CONFIG_TASK_MAX_TIME_IN_MILLIS_PROPERTY_NAME);
-
-    long timeout = 1000 * 60 * 30; // 30 minutes
-    long delay = 1000; //ms
-
-    if (timeoutStr != null) {
-      timeout = Long.parseLong(timeoutStr);
-      LOG.debug("ConfigureClusterTask timeout set to: {}", timeout);
-    } else {
-      LOG.debug("No timeout constraints found in configuration. Wired defaults will be applied.");
-    }
-
-    ConfigureClusterTask configureClusterTask = configureClusterTaskFactory.createConfigureClusterTask(topology,
-      configurationRequest, ambariEventPublisher);
-
-    AsyncCallableService<Boolean> asyncCallableService = new AsyncCallableService<>(configureClusterTask, timeout, delay,
-        Executors.newScheduledThreadPool(1));
-
-    executor.submit(asyncCallableService);
+    ConfigureClusterTask task = configureClusterTaskFactory.createConfigureClusterTask(topology, configurationRequest, ambariEventPublisher);
+    executor.submit(new AsyncCallableService<>(task, task.getTimeout(), task.getRepeatDelay(),"ConfigureClusterTask"));
   }
 
   /**

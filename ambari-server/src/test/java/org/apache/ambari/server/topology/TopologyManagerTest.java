@@ -59,6 +59,7 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.RequestFinishedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -66,6 +67,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
@@ -156,7 +158,8 @@ public class TopologyManagerTest {
   private ClusterTopology clusterTopologyMock;
   @Mock(type = MockType.NICE)
   private ConfigureClusterTaskFactory configureClusterTaskFactory;
-
+  @Mock(type = MockType.NICE)
+  private ConfigureClusterTask configureClusterTask;
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
@@ -342,9 +345,14 @@ public class TopologyManagerTest {
 
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
 
-    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture);
-
-    expectLastCall().anyTimes();
+    expect(configureClusterTaskFactory.createConfigureClusterTask(
+      anyObject(ClusterTopology.class),
+      anyObject(ClusterConfigurationRequest.class),
+      anyObject(AmbariEventPublisher.class)
+    )).andReturn(configureClusterTask);
+    expect(configureClusterTask.getTimeout()).andReturn(1000L);
+    expect(configureClusterTask.getRepeatDelay()).andReturn(50L);
+    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).anyTimes();
 
     expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).anyTimes();
     persistedState.persistLogicalRequest(logicalRequest, 1);
@@ -530,7 +538,8 @@ public class TopologyManagerTest {
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
-            clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO);
+            clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO,
+            configureClusterTaskFactory, configureClusterTask);
   }
 
   @Test(expected = InvalidTopologyException.class)

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,41 +19,28 @@
 package org.apache.ambari.server.topology;
 
 import static org.easymock.EasyMock.anyObject;
-
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
 
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.easymock.EasyMockRule;
+import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.MockType;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import junit.framework.Assert;
 
 /**
  * Unit test for the ConfigureClusterTask class.
  * As business methods of this class don't return values, the assertions are made by verifying method calls on mocks.
  * Thus having strict mocks is essential!
  */
-public class ConfigureClusterTaskTest {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ConfigureClusterTaskTest.class);
+public class ConfigureClusterTaskTest extends EasyMockSupport {
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -74,71 +61,45 @@ public class ConfigureClusterTaskTest {
 
   @Before
   public void before() {
-    reset(clusterConfigurationRequest, clusterTopology, ambariContext, ambariEventPublisher);
+    resetAll();
     testSubject = new ConfigureClusterTask(clusterTopology, clusterConfigurationRequest, ambariEventPublisher);
   }
 
   @Test
-  public void testShouldConfigureClusterTaskLogicBeExecutedWhenRequiredHostgroupsAreResolved() throws
-      Exception {
+  public void taskShouldBeExecutedIfRequiredHostgroupsAreResolved() throws Exception {
     // GIVEN
-    // is it OK to handle the non existence of hostgroups as a success?!
-
-    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.EMPTY_LIST);
-    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.EMPTY_MAP);
+    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.<String>emptyList());
+    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
     expect(clusterTopology.getClusterId()).andReturn(1L).anyTimes();
     expect(clusterTopology.getAmbariContext()).andReturn(ambariContext);
     expect(ambariContext.getClusterName(1L)).andReturn("testCluster");
-
-    // this is only called if the "prerequisites" are satisfied
     clusterConfigurationRequest.process();
     ambariEventPublisher.publish(anyObject(AmbariEvent.class));
-
-    replay(clusterConfigurationRequest, clusterTopology, ambariContext, ambariEventPublisher);
+    replayAll();
 
     // WHEN
     Boolean result = testSubject.call();
 
     // THEN
-    verify();
+    verifyAll();
     Assert.assertTrue(result);
   }
 
   @Test
   public void testsShouldConfigureClusterTaskExecuteWhenCalledFromAsyncCallableService() throws Exception {
     // GIVEN
-    // is it OK to handle the non existence of hostgroups as a success?!
-    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.EMPTY_LIST);
-    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.EMPTY_MAP);
-
-    // this is only called if the "prerequisites" are satisfied
+    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.<String>emptyList());
+    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
     clusterConfigurationRequest.process();
+    replayAll();
 
-    replay(clusterConfigurationRequest, clusterTopology);
-
-    AsyncCallableService<Boolean> asyncService = new AsyncCallableService<>(testSubject, 5000, 500, Executors
-        .newScheduledThreadPool(3));
+    AsyncCallableService<Boolean> asyncService = new AsyncCallableService<>(testSubject, 5000, 500, "test");
 
     // WHEN
     asyncService.call();
+
     // THEN
-
-
+    verifyAll();
   }
-
-  private Collection<String> mockRequiredHostGroups() {
-    return Arrays.asList("test-hostgroup-1");
-  }
-
-  private Map<String, HostGroupInfo> mockHostGroupInfo() {
-    Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
-    HostGroupInfo hostGroupInfo = new HostGroupInfo("test-hostgroup-1");
-    hostGroupInfo.addHost("test-host-1");
-    hostGroupInfo.setRequestedCount(2);
-
-    hostGroupInfoMap.put("test-hostgroup-1", hostGroupInfo);
-    return hostGroupInfoMap;
-  }
-
 
 }
