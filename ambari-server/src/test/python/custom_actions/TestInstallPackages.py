@@ -139,7 +139,7 @@ class TestInstallPackages(RMFTestCase):
                                 mirror_list=None,
                                 append_to_file=True,
       )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -190,7 +190,7 @@ class TestInstallPackages(RMFTestCase):
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
 
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=[], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', None, action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -254,7 +254,7 @@ class TestInstallPackages(RMFTestCase):
                                 mirror_list=None,
                                 append_to_file=True,
                                 )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -319,7 +319,7 @@ class TestInstallPackages(RMFTestCase):
                                 mirror_list=None,
                                 append_to_file=True,
       )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -464,7 +464,7 @@ class TestInstallPackages(RMFTestCase):
                                 mirror_list=None,
                                 append_to_file=True,
                                 )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -539,7 +539,7 @@ class TestInstallPackages(RMFTestCase):
                                 mirror_list=None,
                                 append_to_file=True,
                                 )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20-repo-4', 'HDP-2.2-repo-4'], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5,
                                 retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -1177,7 +1177,7 @@ class TestInstallPackages(RMFTestCase):
                                 mirror_list=None,
                                 append_to_file=True,
       )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20-repo-4', 'HDP-2.2-repo-4'], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5,
                                 retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)

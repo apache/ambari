@@ -318,19 +318,28 @@ class InstallPackages(Script):
     packages_were_checked = False
     packages_installed_before = []
     stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
+
     try:
+      # install the stack-selector; we need to supply the action as "upgrade" here since the normal
+      # install command will skip if the package is already installed in the system.
+      # This is required for non-versioned components, like stack-select, since each version of
+      # the stack comes with one. Also, scope the install by repository since we need to pick a
+      # specific repo that the stack-select tools are coming out of in case there are multiple
+      # patches installed
+      repositories = config['repositoryFile']['repositories']
+      repository_ids = [repository['repoId'] for repository in repositories]
       Package(stack_selector_package,
-              action="upgrade",
-              retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-              retry_count=agent_stack_retry_count
-      )
+        action="upgrade",
+        use_repos=repository_ids,
+        retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+        retry_count=agent_stack_retry_count)
 
       packages_installed_before = self.pkg_provider.all_installed_packages()
       packages_installed_before = [package[0] for package in packages_installed_before]
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       try:
-        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(repositories)
       except Exception:
         available_packages_in_repos = []
       for package in filtered_package_list:

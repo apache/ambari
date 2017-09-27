@@ -216,7 +216,7 @@ class YumProvider(RPMBasedPackageProvider):
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(use_repos)
-        disable_repo_option = '--disablerepo=' + "*,".join(skip_repos)
+        disable_repo_option = '--disablerepo=' + "*" if len(skip_repos) == 0 else ','.join(skip_repos)
         cmd = cmd + [disable_repo_option, enable_repo_option]
       cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
