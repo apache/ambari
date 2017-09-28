@@ -25,7 +25,7 @@ import java.util.HashMap;
 /**
  * Represents the state of an mpack.
  */
-public class Mpacks {
+public class Mpack {
 
   private Long mpackId;
 
@@ -160,7 +160,7 @@ public class Mpacks {
       return false;
     }
 
-    Mpacks other = (Mpacks) obj;
+    Mpack other = (Mpack) obj;
 
     if (name != other.name) {
       return false;
@@ -249,7 +249,7 @@ public class Mpacks {
     return sb.toString();
   }
 
-  public void copyFrom(Mpacks mpack) {
+  public void copyFrom(Mpack mpack) {
     if (this.name == null)
       this.name = mpack.getName();
     if (this.mpackId == null)

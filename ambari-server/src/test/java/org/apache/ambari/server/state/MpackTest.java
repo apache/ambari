@@ -28,7 +28,7 @@ import com.google.gson.Gson;
 public class MpackTest {
   @Test
   public void testMpacks() {
-    Mpacks mpack = new Mpacks();
+    Mpack mpack = new Mpack();
     mpack.setName("name");
     mpack.setMpackId((long)100);
     mpack.setDescription("desc");

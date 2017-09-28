@@ -18,7 +18,7 @@
 package org.apache.ambari.server.controller;
 
 
-import org.apache.ambari.server.state.Mpacks;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -35,7 +35,7 @@ public class MpackResponse {
   private Long registryId;
   private String stackId;
 
-  public MpackResponse(Mpacks mpacks) {
+  public MpackResponse(Mpack mpacks) {
     this.mpackId = mpacks.getMpackId();
     this.mpackVersion = mpacks.getVersion();
     this.mpackUri = mpacks.getMpacksUri();
