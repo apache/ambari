@@ -456,7 +456,8 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
 
   private static void collectFromIdentities(String service, String component, Collection<KerberosIdentityDescriptor> identities, Map<String, String> result) {
     for (KerberosIdentityDescriptor each : identities) {
-      if (each.getPrincipalDescriptor() != null && !each.getReferencedServiceName().isPresent()) {
+      if (each.getPrincipalDescriptor() != null && !each.getReferencedServiceName().isPresent() &&
+          !each.getName().startsWith("/")) {
         String path = StringUtils.isBlank(component)
             ? String.format("%s/%s", service, each.getName())
             : String.format("%s/%s/%s", service, component, each.getName());
