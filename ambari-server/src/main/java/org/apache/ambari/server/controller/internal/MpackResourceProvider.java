@@ -57,11 +57,9 @@ import org.apache.ambari.server.registry.RegistryMpack;
 import org.apache.ambari.server.registry.RegistryMpackVersion;
 import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 
 import com.google.inject.Inject;
-
 
 /**
  * ResourceProvider for Mpack instances
@@ -78,10 +76,11 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   public static final String MPACK_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_uri";
   public static final String PACKLETS = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "packlets";
   public static final String STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
-  public static final String STACK_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
+  public static final String STACK_VERSION_PROPERTY_ID =
+    RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-          Arrays.asList(MPACK_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID));
+    Arrays.asList(MPACK_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID));
 
   /**
    * The property ids for an mpack resource.
@@ -129,8 +128,6 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     return pkPropertyIds;
   }
 
-
-
   @Override
   public RequestStatus createResourcesAuthorized(final Request request)
     throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException,
@@ -169,6 +166,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   /***
    * Validates the request body for the required properties in order to create an Mpack resource.
+   *
    * @param mpackRequest
    */
   private void validateCreateRequest(MpackRequest mpackRequest) {
@@ -177,24 +175,24 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     final Long registryId = mpackRequest.getRegistryId();
     final String mpackVersion = mpackRequest.getMpackVersion();
 
-    if(registryId == null) {
+    if (registryId == null) {
       Validate.isTrue(mpackUrl != null);
       LOG.info("Received a createMpack request"
-              + ", mpackUrl=" + mpackUrl);
+        + ", mpackUrl=" + mpackUrl);
     } else {
       Validate.notNull(mpackName, "MpackName should not be null");
       Validate.notNull(mpackVersion, "MpackVersion should not be null");
       LOG.info("Received a createMpack request"
-              + ", mpackName=" + mpackName
-              + ", mpackVersion=" + mpackVersion
-              + ", registryId=" + registryId);
+        + ", mpackName=" + mpackName
+        + ", mpackVersion=" + mpackVersion
+        + ", registryId=" + registryId);
     }
     try {
       URI uri = new URI(mpackUrl);
       URL url = uri.toURL();
-      String jsonString = IOUtils.toString(url);
-    }catch(Exception e){
-      Validate.isTrue(e == null, e.getMessage() + " is an invalid mpack uri. Please check the download link for the mpack again.");
+    } catch (Exception e) {
+      Validate.isTrue(e == null,
+        e.getMessage() + " is an invalid mpack uri. Please check the download link for the mpack again.");
     }
   }
 
@@ -207,7 +205,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         return null;
         //Fetch Mpack Download Url using the given registry id
       else if (!propertyMap.containsKey(MPACK_URI)) {
-        mpackRequest.setRegistryId(Long.valueOf ((String) propertyMap.get(REGISTRY_ID)));
+        mpackRequest.setRegistryId(Long.valueOf((String) propertyMap.get(REGISTRY_ID)));
         mpackRequest.setMpackName((String) propertyMap.get(MPACK_NAME));
         mpackRequest.setMpackVersion((String) propertyMap.get(MPACK_VERSION));
         mpackRequest.setMpackUri(getMpackUri(mpackRequest));
@@ -222,6 +220,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   /***
    * Uses the Registries functions to get the mpack uri.
+   *
    * @param mpackRequest
    * @return
    * @throws AmbariException
@@ -235,8 +234,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
-          throws SystemException, UnsupportedPropertyException,
-          NoSuchResourceException, NoSuchParentResourceException {
+    throws SystemException, UnsupportedPropertyException,
+    NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Resource> results = new LinkedHashSet<>();
     Long mpackId = null;
@@ -299,7 +298,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       }
       if (results.isEmpty()) {
         throw new NoSuchResourceException(
-                "The requested resource doesn't exist: " + predicate);
+          "The requested resource doesn't exist: " + predicate);
       }
     }
     return results;
@@ -307,15 +306,16 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected RequestStatus deleteResourcesAuthorized(final Request request, Predicate predicate)
-          throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Long mpackId;
     Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
     DeleteStatusMetaData deleteStatusMetaData = null;
 
-    //Allow deleting mpack only if there are no cluster services deploying using this mpack. Support deleting mpacks only if no cluster has been deployed
+    // Allow deleting mpack only if there are no cluster services deploying using this mpack.
+    // Support deleting mpacks only if no cluster has been deployed
     // (i.e. you should be able to delete an mpack during install wizard only).
-    //Todo : Relax the rule
+    // TODO : Relax the rule
     if (getManagementController().getClusters().getClusters().size() > 0) {
       throw new SystemException("Delete request cannot be completed since there is a cluster deployed");
     } else {
@@ -335,7 +335,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
                 @Override
                 public DeleteStatusMetaData invoke() throws AmbariException {
                   if (stackEntity != null) {
-                    repositoryVersionDAO.removeByStack(new StackId(stackEntity.getStackName() + "-" + stackEntity.getStackVersion()));
+                    repositoryVersionDAO
+                      .removeByStack(new StackId(stackEntity.getStackName() + "-" + stackEntity.getStackVersion()));
                     stackDAO.removeByMpack(mpackId);
                     notifyDelete(Resource.Type.Stack, predicate);
                   }
@@ -360,6 +361,5 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       return getRequestStatus(null, null, deleteStatusMetaData);
     }
   }
-
 }
 
