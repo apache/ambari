@@ -394,22 +394,30 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   /**
+   * previous item request
+   */
+  prevItemRequest: null,
+
+  /**
    * poll for tasks when item is expanded
    */
   doUpgradeItemPolling: function () {
     var self = this;
     var item = this.get('runningItem') || this.get('failedItem');
-
+    var request = this.get('prevItemRequest');
+    if ( request ) request.abort();
     if (item && this.get('isDetailsOpened')) {
-      this.get('controller').getUpgradeItem(item).complete(function () {
+      request = this.get('controller').getUpgradeItem(item).complete(function () {
         self.set('upgradeItemTimer', setTimeout(function () {
           self.doUpgradeItemPolling();
         }, App.bgOperationsUpdateInterval));
       });
+
+      this.set('prevItemRequest', request);
     } else {
       clearTimeout(this.get('upgradeItemTimer'));
     }
-  }.observes('isDetailsOpened'),
+  }.observes('isDetailsOpened', 'runningItem', 'failedItem'),
 
   /**
    * set current upgrade item state to FAILED (for HOLDING_FAILED) or TIMED_OUT (for HOLDING_TIMED_OUT)
