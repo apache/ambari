@@ -91,7 +91,9 @@ class PortAlert(BaseAlert):
     # if not parameterized, this will return the static value
     uri_value = self._get_configuration_value(self.uri)
 
+    host_not_specified = False
     if uri_value is None:
+      host_not_specified = True
       uri_value = self.host_name
       logger.debug("[Alert][{0}] Setting the URI to this host since it wasn't specified".format(
         self.get_name()))
@@ -112,6 +114,16 @@ class PortAlert(BaseAlert):
     host = BaseAlert.get_host_from_url(uri_value)
     if host is None or host == "localhost" or host == "0.0.0.0":
       host = self.host_name
+      host_not_specified = True
+
+    hosts = [host]
+    # If host is not specified in the uri, hence we are using current host name
+    # then also add public host name as a fallback.  
+    if host_not_specified and host.lower() == self.host_name.lower() \
+      and self.host_name.lower() != self.public_host_name.lower():
+      hosts.append(self.public_host_name)
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug("[Alert][{0}] List of hosts = {1}".format(self.get_name(), hosts))
 
     try:
       port = int(get_port_from_url(uri_value))
@@ -122,51 +134,56 @@ class PortAlert(BaseAlert):
 
       port = self.default_port
 
+    exceptions = []
 
-    if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("[Alert][{0}] Checking {1} on port {2}".format(
-        self.get_name(), host, str(port)))
+    for host in hosts:
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("[Alert][{0}] Checking {1} on port {2}".format(
+          self.get_name(), host, str(port)))
 
-    s = None
-    try:
-      s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      s.settimeout(self.critical_timeout)
+      s = None
+      try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(self.critical_timeout)
 
-      if OSCheck.is_windows_family():
-        # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
-        host = resolve_address(host)
+        if OSCheck.is_windows_family():
+          # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
+          host = resolve_address(host)
 
-      start_time = time.time()
-      s.connect((host, port))
-      if self.socket_command is not None:
-        s.sendall(self.socket_command)
-        data = s.recv(1024)
-        if self.socket_command_response is not None and data != self.socket_command_response:
-          raise Exception("Expected response {0}, Actual response {1}".format(
-            self.socket_command_response, data))
-      end_time = time.time()
-      milliseconds = end_time - start_time
-      seconds = milliseconds / 1000.0
+        start_time = time.time()
+        s.connect((host, port))
+        if self.socket_command is not None:
+          s.sendall(self.socket_command)
+          data = s.recv(1024)
+          if self.socket_command_response is not None and data != self.socket_command_response:
+            raise Exception("Expected response {0}, Actual response {1}".format(
+              self.socket_command_response, data))
+        end_time = time.time()
+        milliseconds = end_time - start_time
+        seconds = milliseconds / 1000.0
 
-      # not sure why this happens sometimes, but we don't always get a
-      # socket exception if the connect() is > than the critical threshold
-      if seconds >= self.critical_timeout:
-        return (self.RESULT_CRITICAL, ['Socket Timeout', host, port])
+        # not sure why this happens sometimes, but we don't always get a
+        # socket exception if the connect() is > than the critical threshold
+        if seconds >= self.critical_timeout:
+          return (self.RESULT_CRITICAL, ['Socket Timeout', host, port])
 
-      result = self.RESULT_OK
-      if seconds >= self.warning_timeout:
-        result = self.RESULT_WARNING
+        result = self.RESULT_OK
+        if seconds >= self.warning_timeout:
+          result = self.RESULT_WARNING
 
-      return (result, [seconds, port])
-    except Exception as e:
-      return (self.RESULT_CRITICAL, [str(e), host, port])
-    finally:
-      if s is not None:
-        try:
-          s.close()
-        except:
-          # no need to log a close failure
-          pass
+        return (result, [seconds, port])
+      except Exception as e:
+        exceptions.append(e)
+      finally:
+        if s is not None:
+          try:
+            s.close()
+          except:
+            # no need to log a close failure
+            pass
+
+    if exceptions:
+      return (self.RESULT_CRITICAL, [str(exceptions[0]), hosts[0], port])
 
   def _get_reporting_text(self, state):
     '''

@@ -48,7 +48,7 @@ abstract class DelegatedSinglePredicateContainer extends Predicate implements Pr
 
   @Override
   public Map<String, Object> toMap() {
-    return Collections.<String, Object>singletonMap(getName(), containedPredicateToMap());
+    return Collections.singletonMap(getName(), containedPredicateToMap());
   }
 
   @Override

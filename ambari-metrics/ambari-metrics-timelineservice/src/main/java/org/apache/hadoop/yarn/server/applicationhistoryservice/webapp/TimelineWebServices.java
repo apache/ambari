@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.metrics2.annotation.Metric;
+import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
@@ -285,6 +286,36 @@ public class TimelineWebServices {
     }
   }
 
+  /**
+   * Store the given metrics into the timeline store, and return errors that
+   * happened during storing.
+   */
+  @Path("/metrics/aggregated")
+  @POST
+  @Consumes({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
+  public TimelinePutResponse postAggregatedMetrics(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res,
+    AggregationResult metrics) {
+
+    init(res);
+    if (metrics == null) {
+      return new TimelinePutResponse();
+    }
+
+    try {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Storing aggregated metrics: " +
+                TimelineUtils.dumpTimelineRecordtoJSON(metrics, true));
+      }
+
+      return timelineMetricStore.putHostAggregatedMetrics(metrics);
+    } catch (Exception e) {
+      LOG.error("Error saving metrics.", e);
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Path("/containermetrics")
   @POST
   @Consumes({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
@@ -415,14 +446,16 @@ public class TimelineWebServices {
   @GET
   @Path("/metrics/instances")
   @Produces({ MediaType.APPLICATION_JSON })
-  public Map<String, Set<String>> getClusterHostsMetadata(
+  public Map<String, Map<String, Set<String>>> getClusterHostsMetadata(
     @Context HttpServletRequest req,
-    @Context HttpServletResponse res
+    @Context HttpServletResponse res,
+    @QueryParam("appId") String appId,
+    @QueryParam("instanceId") String instanceId
   ) {
     init(res);
 
     try {
-      return timelineMetricStore.getInstanceHostsMetadata();
+      return timelineMetricStore.getInstanceHostsMetadata(instanceId, appId);
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }

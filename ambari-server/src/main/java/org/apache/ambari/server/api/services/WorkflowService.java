@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,6 +30,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -60,7 +61,7 @@ public class WorkflowService extends BaseService {
    *          workflow id
    * @return workflow instance representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{workflowId}")
   @Produces("text/plain")
   public Response getWorkflow(String body, @Context HttpHeaders headers,
@@ -78,7 +79,7 @@ public class WorkflowService extends BaseService {
    *          uri info
    * @return workflow collection resource representation
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getWorkflows(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,

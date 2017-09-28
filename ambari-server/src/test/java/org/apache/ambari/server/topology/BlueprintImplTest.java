@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -128,16 +128,6 @@ public class BlueprintImplTest {
     assertTrue(entity.getSecurityDescriptorReference().equals("testRef"));
   }
 
-  @Test(expected = InvalidTopologyException.class)
-  public void testValidateConfigurations__basic_negative() throws Exception {
-    expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
-    replay(stack, group1, group2);
-
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
-    blueprint.validateRequiredProperties();
-    verify(stack, group1, group2);
-  }
-
   @Test
   public void testValidateConfigurations__hostGroupConfig() throws Exception {
     Map<String, Map<String, String>> group2Props = new HashMap<>();
@@ -157,7 +147,6 @@ public class BlueprintImplTest {
     category2Props.put("prop2", "val");
     group1Components.add("NAMENODE");
     group2Components.add("NAMENODE");
-    expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
     Map<String, String> hdfsProps = new HashMap<>();
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
@@ -195,8 +184,6 @@ public class BlueprintImplTest {
     group1Components.add("ZKFC");
     group2Components.add("NAMENODE");
     group2Components.add("ZKFC");
-    expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
-    expect(stack.getServiceForComponent("ZKFC")).andReturn("SERVICE2").atLeastOnce();
     Map<String, String> hdfsProps = new HashMap<>();
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");

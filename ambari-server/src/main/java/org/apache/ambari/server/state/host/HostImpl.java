@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -332,7 +332,7 @@ public class HostImpl implements Host {
         agentVersion = e.agentVersion.getVersion();
       }
       LOG.info("Received host registration, host="
-        + e.hostInfo.toString()
+        + e.hostInfo
         + ", registrationTime=" + e.registrationTime
         + ", agentVersion=" + agentVersion);
 
@@ -360,9 +360,7 @@ public class HostImpl implements Host {
     public void transition(HostImpl host, HostEvent event) {
       HostStatusUpdatesReceivedEvent e = (HostStatusUpdatesReceivedEvent)event;
       // TODO Audit logs
-      LOG.debug("Host transition to host status updates received state"
-          + ", host=" + e.getHostName()
-          + ", heartbeatTime=" + e.getTimestamp());
+      LOG.debug("Host transition to host status updates received state, host={}, heartbeatTime={}", e.getHostName(), e.getTimestamp());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY,
         host.getHealthStatus().getHealthReport()));
     }
@@ -409,9 +407,7 @@ public class HostImpl implements Host {
       HostHealthyHeartbeatEvent e = (HostHealthyHeartbeatEvent) event;
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.debug("Host transitioned to a healthy state"
-              + ", host=" + e.getHostName()
-              + ", heartbeatTime=" + e.getHeartbeatTime());
+      LOG.debug("Host transitioned to a healthy state, host={}, heartbeatTime={}", e.getHostName(), e.getHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY, host.getHealthStatus().getHealthReport()));
     }
   }
@@ -424,10 +420,8 @@ public class HostImpl implements Host {
       HostUnhealthyHeartbeatEvent e = (HostUnhealthyHeartbeatEvent) event;
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.debug("Host transitioned to an unhealthy state"
-          + ", host=" + e.getHostName()
-          + ", heartbeatTime=" + e.getHeartbeatTime()
-          + ", healthStatus=" + e.getHealthStatus());
+      LOG.debug("Host transitioned to an unhealthy state, host={}, heartbeatTime={}, healthStatus={}",
+        e.getHostName(), e.getHeartbeatTime(), e.getHealthStatus());
       host.setHealthStatus(e.getHealthStatus());
     }
   }
@@ -439,9 +433,7 @@ public class HostImpl implements Host {
     public void transition(HostImpl host, HostEvent event) {
       HostHeartbeatLostEvent e = (HostHeartbeatLostEvent) event;
       // TODO Audit logs
-      LOG.debug("Host transitioned to heartbeat lost state"
-          + ", host=" + e.getHostName()
-          + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
+      LOG.debug("Host transitioned to heartbeat lost state, host={}, lastHeartbeatTime={}", e.getHostName(), host.getLastHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
 
       host.topologyManager.onHostHeartBeatLost(host);
@@ -574,8 +566,7 @@ public class HostImpl implements Host {
   public void handleEvent(HostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Handling Host event, eventType=" + event.getType().name()
-          + ", event=" + event.toString());
+      LOG.debug("Handling Host event, eventType={}, event={}", event.getType().name(), event);
     }
     HostState oldState = getState();
     try {
@@ -597,12 +588,8 @@ public class HostImpl implements Host {
     if (oldState != getState()) {
       ambariEventPublisher.publish(new HostStateUpdateEvent(getHostName(), getState()));
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Host transitioned to a new state"
-            + ", host=" + getHostName()
-            + ", oldState=" + oldState
-            + ", currentState=" + getState()
-            + ", eventType=" + event.getType().name()
-            + ", event=" + event);
+        LOG.debug("Host transitioned to a new state, host={}, oldState={}, currentState={}, eventType={}, event={}",
+          getHostName(), oldState, getState(), event.getType().name(), event);
       }
     }
   }
@@ -949,24 +936,22 @@ public class HostImpl implements Host {
     HostResponse r = new HostResponse(getHostName());
 
     r.setAgentVersion(getAgentVersion());
-    r.setAvailableMemBytes(getAvailableMemBytes());
     r.setPhCpuCount(getPhCpuCount());
     r.setCpuCount(getCpuCount());
     r.setDisksInfo(getDisksInfo());
     r.setHealthStatus(getHealthStatus());
     r.setHostAttributes(getHostAttributes());
     r.setIpv4(getIPv4());
-    r.setIpv6(getIPv6());
     r.setLastHeartbeatTime(getLastHeartbeatTime());
     r.setLastAgentEnv(lastAgentEnv);
     r.setLastRegistrationTime(getLastRegistrationTime());
     r.setOsArch(getOsArch());
-    r.setOsInfo(getOsInfo());
     r.setOsType(getOsType());
+    r.setOsFamily(getOsFamily());
     r.setRackInfo(getRackInfo());
     r.setTotalMemBytes(getTotalMemBytes());
     r.setPublicHostName(getPublicHostName());
-    r.setHostState(getState().toString());
+    r.setHostState(getState());
     r.setStatus(getStatus());
     r.setRecoveryReport(getRecoveryReport());
     r.setRecoverySummary(getRecoveryReport().getSummary());
@@ -1074,7 +1059,7 @@ public class HostImpl implements Host {
       }
     }
 
-    Map<Long, ConfigGroup> configGroups = (cluster == null) ? new HashMap<Long, ConfigGroup>() : cluster.getConfigGroupsByHostname(getHostName());
+    Map<Long, ConfigGroup> configGroups = (cluster == null) ? new HashMap<>() : cluster.getConfigGroupsByHostname(getHostName());
 
     if (configGroups != null && !configGroups.isEmpty()) {
       for (ConfigGroup configGroup : configGroups.values()) {

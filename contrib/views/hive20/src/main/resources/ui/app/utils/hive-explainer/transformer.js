@@ -28,7 +28,7 @@ export default function doTransform(data) {
     getFetchVertex(fetch),
   ];
 
-  let edges = [];
+  let edges = [], verticesData;
   if(tez) {
     edges = getEdges(tez, vertices);
     edges = getEdgesWithCorrectedUnion(edges);
@@ -38,7 +38,7 @@ export default function doTransform(data) {
   vertices = doEnhance(vertices);
 
   vertices = getProcessedVertices(vertices, edges);
-
+  verticesData = vertices;
   const {adjustedVertices, adjustedEdges} = getAdjustedVerticesAndEdges(vertices, edges);
   vertices = adjustedVertices;
   edges = adjustedEdges;
@@ -60,6 +60,7 @@ export default function doTransform(data) {
     tree,
     nodes,
     connections,
+    verticesData
   });
 }
 
@@ -506,10 +507,10 @@ function findAllOperatorsInTargetVertex(node, resultsAggregator, targetNode) {
 }
 
 function findAllOperatorsInSourceVertex(node, resultsAggregator, srcNode) {
-  let outputOperator = node["OutputOperators:"];
+  let outputOperator = node["outputOperator:"];
   if(outputOperator) {
-    resultsAggregator.push(outputOperator.substring(1, outputOperator.length-1));
-    srcNode[outputOperator.substring(1, outputOperator.length-1)] = node;
+    resultsAggregator.push(outputOperator[0]);
+    srcNode[outputOperator[0]] = node;
   }
   node._children.forEach(cChild => findAllOperatorsInSourceVertex(cChild, resultsAggregator, srcNode));
   if(!node._children) {

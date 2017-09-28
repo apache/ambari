@@ -119,6 +119,8 @@ public class AlertReceivedListener {
 
   /**
    * Constructor.
+   *
+   * @param publisher
    */
   @Inject
   public AlertReceivedListener(AlertEventPublisher publisher) {

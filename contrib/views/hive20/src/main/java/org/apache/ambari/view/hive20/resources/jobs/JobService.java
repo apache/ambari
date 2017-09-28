@@ -181,11 +181,11 @@ public class JobService extends BaseService {
    * Get job results in csv format
    */
   @GET
-  @Path("{jobId}/results/csv")
+  @Path("{jobId}/results/csv/{fileName}")
   @Produces("text/csv")
   public Response getResultsCSV(@PathParam("jobId") String jobId,
                                 @Context HttpServletResponse response,
-                                @QueryParam("fileName") String fileName,
+                                @PathParam("fileName") String fileName,
                                 @QueryParam("columns") final String requestedColumns) {
     try {
 
@@ -228,18 +228,12 @@ public class JobService extends BaseService {
         }
       };
 
-      if (fileName == null || fileName.isEmpty()) {
-        fileName = "results.csv";
-      }
-
-      return Response.ok(stream).
-          header("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName)).
-          build();
-
-
+      return Response.ok(stream).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Error occurred while downloading result with fileName : {}", fileName ,ex);
       throw ex;
     }  catch (Throwable ex) {
+      LOG.error("Error occurred while downloading result with fileName : {}", fileName ,ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }

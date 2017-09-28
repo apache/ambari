@@ -24,14 +24,20 @@
 
 .service-metrics-block {
 
+  clear: both;
+
   #add-widget-action-box {
     background-color: @add-widget-btn-color;
-    width: 98%;
+    width: 97%;
+    height: 100%;
     padding: 43px;
     border: 1px solid @border-color;
-    border-radius: 0;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
+    -moz-box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
+    box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
     background-image: none;
     .glyphicon-plus {
       font-size: 70px;
@@ -50,6 +56,10 @@
       right: -5px;
     }
   }
+
+  .actions {
+    margin-right: 5px;
+  }
 }
 
 #widget_layout,
@@ -59,7 +69,8 @@
     width: 93%;
   }
   .span2p4 {
-    width: 19.3%;
+    width: 22.7%;
+    height: 100%;
     background-color: white;
     margin: 5px 0 5px 5px;
     float: left;
@@ -74,8 +85,8 @@
     }
     .title {
       padding: 4px 0 0 1px;
-      font-weight: bold;
-      font-size: 13px;
+      font-size: 14px;
+      color: #666666;
       line-height: 17px;
       text-align: left;
       height: 40px;
@@ -88,9 +99,8 @@
     }
     .content {
       text-align: center;
-      color: @health-status-green;
-      font-weight: bold;
-      font-size: 35px;
+      color: #666666;
+      font-size: 30px;
       width: 95%;
     }
     .template-widget {
@@ -170,10 +180,10 @@
       color: @health-status-orange;
     }
     .green {
-      color: @health-status-green;
+      color: #666666;
     }
     .grey {
-      color: #D6DDDF;
+      color: #999999;
     }
   }
 }
@@ -183,9 +193,6 @@
   margin: auto;
   margin-bottom: 20px;
   .widget {
-    .img-thumbnail .corner-icon {
-      display: none;
-    }
     .graph-widget {
       .chart-container {
         cursor: default;
@@ -198,8 +205,11 @@
   .widget {
     .img-thumbnail {
       box-sizing: content-box;
+      border-radius: 2px;
+      -webkit-box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
+      -moz-box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
+      box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
       .corner-icon {
-        display: none;
         .glyphicon-remove-sign{
           color: #000;
           text-shadow: #fff 0 0 15px;
@@ -212,18 +222,31 @@
         position: absolute;
         right: 5px;
         top: 6px;
-        .corner-icon {
-          i {
-            position: relative;
-            color: #555;
-            font-weight: bold;
-            text-shadow: #fff -8px 8px 8px, #fff 8px 8px 8px, #fff -8px -8px 8px, #fff 8px -8px 8px;
-            background-color: rgba(255,255,255,0.6);
-            padding: 5px 5px 5px 2px;
-          }
-          &.hidden i {
-            display: none;
-          }
+        ul {
+          display: none;
+          border-radius: 2px;
+        }
+        a {
+          padding: 3px 5px;
+          cursor: pointer;
+          color: #666666;
+        }
+        li:hover {
+          background-color: #f5f5f5;
+        }
+        i {
+          position: relative;
+          text-shadow: #fff -8px 8px 8px, #fff 8px 8px 8px, #fff -8px -8px 8px, #fff 8px -8px 8px;
+          background-color: rgba(255,255,255,0.6);
+          padding: 5px 5px 5px 2px;
+        }
+      }
+      .widget-icons:hover {
+        .ellipsis-menu::after {
+          color: #666666;
+        }
+        ul {
+          display: block;
         }
       }
       .export-graph-list {

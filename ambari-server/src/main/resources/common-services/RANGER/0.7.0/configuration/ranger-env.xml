@@ -25,4 +25,49 @@
     <deleted>true</deleted>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>ranger-nifi-plugin-enabled</name>
+    <value>No</value>
+    <display-name>NIFI Ranger Plugin</display-name>
+    <description>Enable NIFI Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>is_nested_groupsync_enabled</name>
+    <display-name>Sync Nested Groups</display-name>
+    <description/>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

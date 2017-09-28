@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -443,17 +443,25 @@ public class CalculatedStatus {
     // summary might be empty due to delete host have cleared all
     // HostRoleCommands or due to hosts haven't registered yet with the cluster
     // when the cluster is provisioned with a Blueprint
+    final CalculatedStatus status;
     LogicalRequest logicalRequest = topologyManager.getRequest(requestId);
     if (summary.isEmpty() && null != logicalRequest) {
-      // in this case, it appears that there are no tasks but this is a logical
+      // In this case, it appears that there are no tasks but this is a logical
       // topology request, so it's a matter of hosts simply not registering yet
-      // for tasks to be created
-      return CalculatedStatus.PENDING;
+      // for tasks to be created ==> status = PENDING.
+      // For a new LogicalRequest there should be at least one HostRequest,
+      // while if they were removed already ==> status = COMPLETED.
+      if (logicalRequest.getHostRequests().isEmpty()) {
+        status = CalculatedStatus.COMPLETED;
+      } else {
+        status = CalculatedStatus.PENDING;
+      }
     } else {
       // there are either tasks or this is not a logical request, so do normal
       // status calculations
-      return CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+      status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
     }
+    return status;
   }
 
   /**

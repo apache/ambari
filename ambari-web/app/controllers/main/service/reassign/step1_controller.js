@@ -93,8 +93,7 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
       databaseTypeMatch,
       properties = {},
       configs = {},
-      dbPropertyMapItem = Em.getWithDefault(this.get('dbPropertyMap'), this.get('content.reassign.component_name'), null),
-      serviceDbProp = this.get('content.reassign.service_id').toLowerCase() + '_database';
+      dbPropertyMapItem = Em.getWithDefault(this.get('dbPropertyMap'), this.get('content.reassign.component_name'), null);
 
     data.items.forEach(function(item) {
       configs[item.type] = item.properties;
@@ -118,8 +117,7 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
       App.router.reassignMasterController.set('content.hasManualSteps', false);
     }
 
-    properties['is_remote_db'] = /Existing/ig.test(properties[serviceDbProp]);
-
+    properties['is_remote_db'] = this.isExistingDb(configs);
     properties['database_hostname'] = this.getDatabaseHost();
 
     this.saveDatabaseType(databaseType);
@@ -143,6 +141,13 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
     if (configs) {
       App.router.get(this.get('content.controllerName')).saveConfigs(configs);
     }
+  },
+
+  isExistingDb: function(configs) {
+    var serviceName =  this.get('content.reassign.service_id').toLowerCase();
+    var serviceDbSite = serviceName + '-env';
+    var serviceDbConfig = serviceName + '_database';
+    return  /Existing/ig.test(configs[serviceDbSite][serviceDbConfig]);
   },
 
   getDatabaseHost: function() {

@@ -20,7 +20,7 @@ limitations under the License.
 import os
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -29,6 +29,10 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.setup_ranger_plugin_xml import generate_ranger_service_config
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.core.exceptions import Fail
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -40,6 +44,7 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -159,6 +164,7 @@ elif db_flavor == 'sqla':
   db_jdbc_url = format('jdbc:sqlanywhere:database={db_name};host={db_host}')
   db_jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
+else: raise Fail(format("'{db_flavor}' db flavor not supported."))
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
@@ -206,6 +212,7 @@ if has_ranger_admin:
       xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+    else: raise Fail(format("'{xa_audit_db_flavor}' db flavor not supported."))
 
   downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
   driver_source = format("{jdk_location}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
@@ -297,3 +304,32 @@ namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 
 # need this to capture cluster name from where ranger kms plugin is enabled
 cluster_name = config['clusterName']
+
+has_namenode = len(namenode_host) > 0
+
+hdfs_user = default("/configurations/hadoop-env/hdfs_user", None)
+hdfs_user_keytab = default("/configurations/hadoop-env/hdfs_user_keytab", None)
+hdfs_principal_name = default("/configurations/hadoop-env/hdfs_principal_name", None)
+default_fs = default("/configurations/core-site/fs.defaultFS", None)
+hdfs_site = config['configurations']['hdfs-site'] if has_namenode else None
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin") if has_namenode else None
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+
+import functools
+# create partial functions with common arguments for every HdfsResource call
+# to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local,
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir,
+  principal_name = hdfs_principal_name,
+  hdfs_site = hdfs_site,
+  default_fs = default_fs
+)
+
+local_component_list = default("/localComponents", [])
+has_hdfs_client_on_node = 'HDFS_CLIENT' in local_component_list

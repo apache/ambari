@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ExtensionRequest;
 import org.apache.ambari.server.controller.ExtensionResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -52,7 +51,7 @@ public class ExtensionResourceProviderTest {
     allResponse.add(new ExtensionResponse("Extension2"));
 
     // set expectations
-    expect(managementController.getExtensions(EasyMock.<Set<ExtensionRequest>>anyObject())).andReturn(allResponse).once();
+    expect(managementController.getExtensions(EasyMock.anyObject())).andReturn(allResponse).once();
 
     // replay
     replay(managementController);

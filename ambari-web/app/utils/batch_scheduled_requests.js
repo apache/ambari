@@ -347,7 +347,7 @@ module.exports = {
         batches.push({
           "order_id" : count + 1,
           "type" : "POST",
-          "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+          "uri" : "/clusters/" + App.get('clusterName') + "/requests",
           "RequestBodyInfo" : {
             "RequestInfo" : {
               "context" : "_PARSE_.ROLLING-RESTART." + componentName + "." + (count + 1) + "." + batchCount,

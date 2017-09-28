@@ -219,6 +219,13 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   taskCategory: null,
 
   /**
+   * Indicates current level displayed.
+   *
+   * @type {string}
+   */
+  currentLevel: "",
+
+  /**
    * flag to indicate whether level data has already been loaded
    * applied only to HOSTS_LIST and TASK_DETAILS levels, whereas async query used to obtain data
    *
@@ -309,8 +316,11 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method resizeHandler
    */
   resizeHandler: function() {
-    if (this.get('state') === 'destroyed' || !this.get('parentView.isOpen')) return;
-    var modal = this.get('parentView').$().find('.modal'),
+    const parentView = this.get('parentView');
+
+    if (!parentView || !parentView.$ || !parentView.$() || this.get('state') === 'destroyed' || !parentView.get('isOpen')) return;
+
+    var modal = parentView.$().find('.modal'),
         headerHeight = $(modal).find('.modal-header').outerHeight(true),
         modalFooterHeight = $(modal).find('.modal-footer').outerHeight(true),
         taskTopWrapHeight = $(modal).find('.top-wrap:visible').outerHeight(true),
@@ -318,7 +328,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
         contentPaddingBottom = parseFloat($(modal).find('.modal-dialog').css('marginBottom')) || 0,
         hostsPageBarHeight = $(modal).find('#host-info tfoot').outerHeight(true),
         logComponentFileNameHeight = $(modal).find('#host-info tfoot').outerHeight(true),
-        levelName = this.get('currentLevelName'),
+        levelName = this.get('currentLevel'),
         boLevelHeightMap = {
           'REQUESTS_LIST': {
             height: window.innerHeight - 2*modalTopOffset - headerHeight - taskTopWrapHeight - modalFooterHeight - contentPaddingBottom,
@@ -355,8 +365,6 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     }
   },
 
-  currentLevelName: Em.computed.alias('controller.dataSourceController.levelInfo.name'),
-
   /**
    * Preset values on init
    *
@@ -364,13 +372,12 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    */
   setOnStart: function () {
     this.set('serviceCategory', this.get('categories').findProperty('value', 'all'));
+
     if (this.get("controller.isBackgroundOperations")) {
       this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
       this.updateHostInfo();
-    }
-    else {
-      this.set("parentView.isHostListHidden", false);
-      this.set("parentView.isServiceListHidden", true);
+    } else {
+      this.get('parentView').switchView("HOSTS_LIST");
     }
   },
 
@@ -381,12 +388,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    */
   resetState: function () {
     if (this.get('parentView.isOpen')) {
-      this.get('parentView').setProperties({
-        isLogWrapHidden: true,
-        isTaskListHidden: true,
-        isHostListHidden: true,
-        isServiceListHidden: false
-      });
+      this.get('parentView').switchView("OPS_LIST");
       this.get("controller").setBackgroundOperationHeader(false);
       this.get('controller.hosts').clear();
       this.setOnStart();
@@ -526,63 +528,148 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     this.set('isPaginate', !!isPaginate);
   }.observes('tasks.@each.status', 'hosts.@each.status', 'parentView.isTaskListHidden', 'parentView.isHostListHidden', 'services.@each.status'),
 
+  setBreadcrumbs: function (level) {
+    const breadcrumbs = [];
+    const self = this;
+    const opsCrumb = this.get("controller.rootBreadcrumb");
+
+    if (opsCrumb) {
+      opsCrumb.action = function () { self.switchLevel("OPS_LIST"); }
+
+      const opCrumb = {
+        label: this.get("controller.serviceName"),
+        action: function () { self.switchLevel("HOSTS_LIST", self.get('controller.servicesInfo').findProperty('id', self.get('controller.currentServiceId'))); }
+      }
+
+      const hostCrumb = {
+        label: this.get("controller.currentHostName"),
+        action: function () { self.switchLevel("TASKS_LIST", self.get('currentHost')); }
+      }
+
+      const taskCrumb = {
+        itemView: Em.View.extend({
+          tagName: "span",
+          controller: self,
+          template: Em.Handlebars.compile('<i style="margin-left: 20px;" {{bindAttr class="openedTask.status :task-detail-status-ico openedTask.icon"}}></i>{{openedTask.commandDetail}}')
+        })
+      }
+
+      switch (level) {
+        case "OPS_LIST":
+          breadcrumbs.push(opsCrumb);
+          break;
+        case "HOSTS_LIST":
+          breadcrumbs.push(opsCrumb);
+          if (opCrumb.label === breadcrumbs[0].label) {
+            breadcrumbs.pop();
+          }
+          breadcrumbs.push(opCrumb);
+          break;
+        case "TASKS_LIST":
+          breadcrumbs.push(opsCrumb);
+          if (opCrumb.label === breadcrumbs[0].label) {
+            breadcrumbs.pop();
+          }
+          breadcrumbs.push(opCrumb);
+          breadcrumbs.push(hostCrumb);
+          break;
+        case "TASK_DETAILS":
+          breadcrumbs.push(opsCrumb);
+          if (opCrumb.label === breadcrumbs[0].label) {
+            breadcrumbs.pop();
+          }
+          breadcrumbs.push(opCrumb);
+          breadcrumbs.push(hostCrumb);
+          breadcrumbs.push(taskCrumb);
+          break;
+      }
+
+      this.set('controller.breadcrumbs', breadcrumbs);
+    }
+  },
+
   /**
-   * control data uploading, depending on which display level is showed
+   * Sets up and tears down the different views in the modal when switching.
+   * Calls switchView() on the controller to perform the actual view switch.
    *
    * @param {string} levelName
    * @method switchLevel
    */
-  switchLevel: function (levelName) {
-    var dataSourceController = this.get('controller.dataSourceController');
-    var args = [].slice.call(arguments);
-    this.get('hostComponentLogs').clear();
-    if (this.get("controller.isBackgroundOperations")) {
-      var levelInfo = dataSourceController.get('levelInfo');
-      levelInfo.set('taskId', this.get('openedTaskId'));
-      levelInfo.set('requestId', this.get('controller.currentServiceId'));
-      levelInfo.set('name', levelName);
-      if (levelName === 'HOSTS_LIST') {
-        this.set('isLevelLoaded', dataSourceController.requestMostRecent());
-        this.set('hostCategory', this.get('categories').findProperty('value', 'all'));
-      }
-      else {
-        if (levelName === 'TASK_DETAILS') {
-          dataSourceController.requestMostRecent();
-          this.set('isLevelLoaded', false);
-        }
-        else {
-          if (levelName === 'REQUESTS_LIST') {
-            this.set('serviceCategory', this.get('categories').findProperty('value', 'all'));
-            this.get('controller.hosts').clear();
-            dataSourceController.requestMostRecent();
-          }
-          else {
-            this.set('taskCategory', this.get('categories').findProperty('value', 'all'));
-          }
-        }
-      }
+  switchLevel: function (levelName, context) {
+    const prevLevel = this.get('controller.dataSourceController.levelInfo.name');
+
+    //leaving level - do any cleanup here
+    switch (prevLevel) {
+      case "OPS_LIST":
+        break;
+      case "HOSTS_LIST":
+        break;
+      case "TASKS_LIST":
+        break;
+      case "TASK_DETAILS":
+        this.destroyClipBoard();
+        break;
     }
-    else {
+
+    //entering level - do any setup here
+    switch (levelName) {
+      case "OPS_LIST":
+        this.gotoOps();
+        break;
+      case "HOSTS_LIST":
+        this.gotoHosts(context);
+        break;
+      case "TASKS_LIST":
+        this.gotoTasks(context);
+        break;
+      case "TASK_DETAILS":
+        this.goToTaskDetails(context);
+        break;
+    }
+
+    if (!this.get("controller.isBackgroundOperations")) {
       var customControllersSwitchLevelMap = this.get('customControllersSwitchLevelMap');
-      Em.tryInvoke(this, customControllersSwitchLevelMap[dataSourceController.get('name')], args);
+      var args = [].slice.call(arguments);
+      Em.tryInvoke(this, customControllersSwitchLevelMap[this.get('controller.dataSourceController.name')], args);
     }
   },
 
+  changeLevel: function(levelName) {
+    if (this.get("controller.isBackgroundOperations")) {
+      var dataSourceController = this.get('controller.dataSourceController');
+      var levelInfo = dataSourceController.get('levelInfo');
+
+      levelInfo.set('taskId', this.get('openedTaskId'));
+      levelInfo.set('requestId', this.get('controller.currentServiceId'));
+      levelInfo.set('name', levelName);
+      this.set('isLevelLoaded', dataSourceController.requestMostRecent());
+    }
+
+    this.set('currentLevel', levelName); //NOTE: setting this triggers levelDidChange() which updates the breadcrumbs
+  },
+
+  //This is triggered by changeLevel() -- (and probably some other things) --
+  //when "controller.dataSourceController.levelInfo.name" is set
   levelDidChange: function() {
-    var levelName = this.get('controller.dataSourceController.levelInfo.name'),
+    var levelName = this.get('currentLevel'),
         self = this;
+
+    if (this.get("parentView.isOpen")) {
+      self.setBreadcrumbs(levelName);
+    }
 
     if (levelName && this.get('isLevelLoaded')) {
       Em.run.next(this, function() {
         self.resizeHandler();
       });
     }
-  }.observes('controller.dataSourceController.levelInfo.name', 'isLevelLoaded'),
-
+  }.observes('currentLevel', 'isLevelLoaded'),
 
   popupIsOpenDidChange: function() {
-    if (!this.get('isOpen')) {
-      this.get('hostComponentLogs').clear();
+    const hostComponentLogs = this.get('hostComponentLogs');
+
+    if (!this.get('parentView.isOpen') && hostComponentLogs) {
+      hostComponentLogs.clear();
     }
   }.observes('parentView.isOpen'),
 
@@ -600,8 +687,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       Em.keys(this.get('parentView.detailedProperties')).forEach(function (key) {
         dataSourceController.addObserver('taskInfo.' + this.get('parentView.detailedProperties')[key], this, 'updateTaskInfo');
       }, this);
-    }
-    else {
+    } else {
       dataSourceController.stopTaskPolling();
     }
   },
@@ -626,11 +712,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method backToTaskList
    */
   backToTaskList: function () {
-    this.destroyClipBoard();
-    this.set("openedTaskId", 0);
-    this.set("parentView.isLogWrapHidden", true);
-    this.set("parentView.isTaskListHidden", false);
-    this.switchLevel("TASKS_LIST");
+    this.switchLevel("TASKS_LIST", true);
   },
 
   /**
@@ -639,27 +721,17 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method backToHostList
    */
   backToHostList: function () {
-    this.set("parentView.isHostListHidden", false);
-    this.set("parentView.isTaskListHidden", true);
-    this.get("controller").set("popupHeaderName", this.get("controller.serviceName"));
-    this.get("controller").set("operationInfo", this.get('controller.servicesInfo').findProperty('name', this.get('controller.serviceName')));
-    this.switchLevel("HOSTS_LIST");
+    this.switchLevel("HOSTS_LIST", true);
   },
 
   /**
-   * Onclick handler for button <-Services
+   * Onclick handler for button <-Operations
+   * TODO: This is still used somewhere outside the Background Operations heirarchy.
    *
    * @method backToServiceList
    */
   backToServiceList: function () {
-    this.get("controller").set("serviceName", "");
-    this.set("parentView.isHostListHidden", true);
-    this.set("parentView.isServiceListHidden", false);
-    this.set("parentView.isTaskListHidden", true);
-    this.set("parentView.isLogWrapHidden", true);
-    this.set("hosts", null);
-    this.get("controller").setBackgroundOperationHeader(false);
-    this.switchLevel("REQUESTS_LIST");
+    this.switchLevel("OPS_LIST", true);
   },
 
   /**
@@ -683,27 +755,40 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     }
   }.observes('parentView.isOpen', 'App.router.backgroundOperationsController.isShowMoreAvailable'),
 
+  gotoOps: function () {
+    this.get('controller.hosts').clear();
+    var dataSourceController = this.get('controller.dataSourceController');
+    dataSourceController.requestMostRecent();
+    this.get("controller").setBackgroundOperationHeader(false);
+
+    this.changeLevel("OPS_LIST");
+    this.get("parentView").switchView("OPS_LIST");
+  },
+
   /**
-   * Onclick handler for selected Service
+   * Onclick handler for selected Service (Operation)
    *
    * @param {{context: wrappedService}} event
    * @method gotoHosts
    */
-  gotoHosts: function (event) {
-    this.get("controller").set("serviceName", event.context.get("name"));
-    this.get("controller").set("currentServiceId", event.context.get("id"));
+  onOpClick: function(event) {
+    this.switchLevel("HOSTS_LIST", event.context);
+  },
+
+  gotoHosts: function (service) {
+    this.get("controller").set("serviceName", service.get("name"));
+    this.get("controller").set("currentServiceId", service.get("id"));
     this.get("controller").set("currentHostName", null);
     this.get("controller").onHostUpdate();
-    this.switchLevel("HOSTS_LIST");
+    this.get('hostComponentLogs').clear();
+
+    this.changeLevel("HOSTS_LIST");
+
     var servicesInfo = this.get("controller.hosts");
-    this.set("controller.popupHeaderName", event.context.get("name"));
-    this.set("controller.operationInfo", event.context);
+    this.set("controller.operationInfo", service);
 
     //apply lazy loading on cluster with more than 100 nodes
     this.set('hosts', servicesInfo.length > 100 ? servicesInfo.slice(0, 50) : servicesInfo);
-    this.set("parentView.isServiceListHidden", true);
-    this.set("parentView.isHostListHidden", false);
-    this.set("parentView.isTaskListHidden", true);
     $(".modal").scrollTop(0);
     $(".modal-body").scrollTop(0);
     if (servicesInfo.length > 100) {
@@ -712,9 +797,13 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       });
     }
     // Determine if source request schedule is present
-    this.set('sourceRequestScheduleId', event.context.get("sourceRequestScheduleId"));
-    this.set('sourceRequestScheduleCommand', event.context.get('contextCommand'));
+    this.set('sourceRequestScheduleId', service.get("sourceRequestScheduleId"));
+    this.set('sourceRequestScheduleCommand', service.get('contextCommand'));
     this.refreshRequestScheduleInfo();
+
+    this.set('hostCategory', this.get('categories').findProperty('value', 'all'));
+
+    this.get("parentView").switchView("HOSTS_LIST");
   },
 
   /**
@@ -845,22 +934,34 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @param {{context: wrappedHost}} event
    * @method gotoTasks
    */
-  gotoTasks: function (event) {
+  onHostClick: function (event) {
+    this.switchLevel("TASKS_LIST", event.context);
+  },
+
+  gotoTasks: function (host) {
     var tasksInfo = [];
-    this.get('pageContent').findProperty('name', event.context.get('name')).get('logTasks').forEach(function (_task) {
-      tasksInfo.pushObject(this.get("controller").createTask(_task));
-    }, this);
-    if (tasksInfo.length) {
-      this.get("controller").set("popupHeaderName", event.context.publicName);
-      this.get("controller").set("currentHostName", event.context.publicName);
+
+    if (host.logTasks) {
+      host.logTasks.forEach(function (_task) {
+        tasksInfo.pushObject(this.get("controller").createTask(_task));
+      }, this);
     }
-    this.switchLevel("TASKS_LIST");
-    this.set('currentHost.tasks', tasksInfo);
-    this.set("parentView.isHostListHidden", true);
-    this.set("parentView.isTaskListHidden", false);
-    this.preloadHostModel(Em.getWithDefault(event.context || {}, 'name', false));
+
+    if (tasksInfo.length) {
+      this.get("controller").set("currentHostName", host.publicName);
+    }
+
+    const currentHost = this.get("currentHost");
+    if (currentHost) {
+      currentHost.set("tasks", tasksInfo);
+    }
+    this.preloadHostModel(Em.getWithDefault(host || {}, 'name', false));
+    this.set('taskCategory', this.get('categories').findProperty('value', 'all'));
     $(".modal").scrollTop(0);
     $(".modal-body").scrollTop(0);
+
+    this.changeLevel("TASKS_LIST");
+    this.get("parentView").switchView("TASKS_LIST");
   },
 
   /**
@@ -933,31 +1034,42 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     newDocument.close();
   },
 
+  onTaskClick: function (event) {
+    this.switchLevel("TASK_DETAILS", event.context);
+  },
+
   /**
    * Onclick event for show task detail info
    *
    * @param {{context: wrappedTask}} event
-   * @method toggleTaskLog
+   * @method goToTaskDetails
    */
-  toggleTaskLog: function (event) {
-    var taskInfo = event.context;
-    this.set("parentView.isLogWrapHidden", false);
+  goToTaskDetails: function (taskInfo) {
     const self = this;
     var taskLogsClipboard = new Clipboard('.btn.copy-clipboard', {
       text: function() {
         return self.get('textAreaValue');
       }
     });
+
     this.set('taskLogsClipboard', taskLogsClipboard);
     if (this.get('isClipBoardActive')) {
       this.destroyClipBoard();
     }
-    this.set("parentView.isHostListHidden", true);
-    this.set("parentView.isTaskListHidden", true);
+
     this.set('openedTaskId', taskInfo.id);
-    this.switchLevel("TASK_DETAILS");
+
+    if (this.get("controller.isBackgroundOperations")) {
+      var dataSourceController = this.get('controller.dataSourceController');
+      dataSourceController.requestMostRecent();
+      this.set('isLevelLoaded', false);
+    }
+
     $(".modal").scrollTop(0);
     $(".modal-body").scrollTop(0);
+
+    this.changeLevel("TASK_DETAILS");
+    this.get("parentView").switchView("TASK_DETAILS");
   },
 
   /**

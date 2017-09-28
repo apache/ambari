@@ -59,6 +59,10 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private String port;
   private String topologyName;
   private String applicationId;
+  private boolean setInstanceId;
+  private String instanceId;
+  private boolean hostInMemoryAggregationEnabled;
+  private int hostInMemoryAggregationPort;
 
   @Override
   protected String getCollectorUri(String host) {
@@ -96,6 +100,16 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   @Override
+  protected boolean isHostInMemoryAggregationEnabled() {
+    return hostInMemoryAggregationEnabled;
+  }
+
+  @Override
+  protected int getHostInMemoryAggregationPort() {
+    return hostInMemoryAggregationPort;
+  }
+
+  @Override
   public void prepare(Map map, Object o, TopologyContext topologyContext, IErrorReporter iErrorReporter) {
     LOG.info("Preparing Storm Metrics Sink");
     try {
@@ -122,6 +136,10 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
     port = configuration.getProperty(COLLECTOR_PORT, "6188");
 
+    instanceId = configuration.getProperty(INSTANCE_ID_PROPERTY, null);
+    setInstanceId = Boolean.valueOf(configuration.getProperty(SET_INSTANCE_ID_PROPERTY, "false"));
+    hostInMemoryAggregationEnabled = Boolean.valueOf(configuration.getProperty(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY));
+    hostInMemoryAggregationPort = Integer.valueOf(configuration.getProperty(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY));
     // Initialize the collector write strategy
     super.init();
 
@@ -243,6 +261,9 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostName);
+    if (setInstanceId) {
+      timelineMetric.setInstanceId(instanceId);
+    }
     timelineMetric.setAppId(applicationId);
     timelineMetric.setStartTime(currentTimeMillis);
     timelineMetric.setType(ClassUtils.getShortCanonicalName(

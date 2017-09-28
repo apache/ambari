@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,40 +22,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.state.SecurityType;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Used for create Cluster
  */
 public class ClusterRequest {
 
-  private Long clusterId; // for GET
-
-  private String clusterName; // for GET/CREATE/UPDATE
-
-  private String stackVersion; // for CREATE/UPDATE
-
-  private String provisioningState; // for GET/CREATE/UPDATE
-
-  /**
-   * The cluster's security type
-   * <p/>
-   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
-   */
+  private final Long clusterId; // for GET
+  private final String clusterName; // for GET/CREATE/UPDATE
+  private final String stackVersion; // for CREATE/UPDATE
+  private final String provisioningState; // for GET/CREATE/UPDATE
   private SecurityType securityType; // for GET/CREATE/UPDATE
-
-  Set<String> hostNames; // CREATE/UPDATE
-
-  private List<ConfigurationRequest> configs = null;
-
-  private ServiceConfigVersionRequest serviceConfigVersionRequest = null;
-
-  /**
-   * The cluster session attributes.
-   */
+  private Set<String> hostNames; // CREATE/UPDATE
+  private List<ConfigurationRequest> configs;
+  private ServiceConfigVersionRequest serviceConfigVersionRequest;
   private final Map<String, Object> sessionAttributes;
-
-  private String repositoryVersion = null;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -70,10 +55,13 @@ public class ClusterRequest {
     this(clusterId, clusterName, provisioningState, securityType, stackVersion, hostNames, null);
   }
 
+  /**
+   * @param provisioningState whether the cluster is still initializing or has finished with its deployment requests:
+   *                          either {@code INIT} or {@code INSTALLED}, or {@code null} if not set on the request.
+   */
   public ClusterRequest(Long clusterId, String clusterName,
                         String provisioningState, SecurityType securityType, String stackVersion,
                         Set<String> hostNames, Map<String, Object> sessionAttributes) {
-    super();
     this.clusterId         = clusterId;
     this.clusterName       = clusterName;
     this.provisioningState = provisioningState;
@@ -86,16 +74,12 @@ public class ClusterRequest {
 
   // ----- ClusterRequest ----------------------------------------------------
 
-  /**
-   * @return the clusterId
-   */
+  @ApiModelProperty(name = ClusterResourceProvider.CLUSTER_ID)
   public Long getClusterId() {
     return clusterId;
   }
 
-  /**
-   * @return the clusterName
-   */
+  @ApiModelProperty(name = ClusterResourceProvider.CLUSTER_NAME)
   public String getClusterName() {
     return clusterName;
   }
@@ -107,79 +91,29 @@ public class ClusterRequest {
    * @return either {@code INIT} or {@code INSTALLED} or {@code null} if not set
    *         on the request.
    */
+  @ApiModelProperty(name = ClusterResourceProvider.PROVISIONING_STATE)
   public String getProvisioningState(){
     return provisioningState;
   }
 
   /**
-   * Sets whether the cluster is still initializing or has finished with its
-   * deployment requests.
-   *
-   * @param provisioningState
-   *          either {@code INIT} or {@code INSTALLED}, or {@code null} if not
-   *          set on the request.
-   */
-  public void setProvisioningState(String provisioningState) {
-    this.provisioningState = provisioningState;
-  }
-
-  /**
    * Gets the cluster's security type.
-   * <p/>
-   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
    *
    * @return a SecurityType declaring the security type; or {@code null} if not set set on the request
    */
+  @ApiModelProperty(name = ClusterResourceProvider.SECURITY_TYPE)
   public SecurityType getSecurityType() {
     return securityType;
   }
 
-  /**
-   * Sets the cluster's security type.
-   * <p/>
-   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
-   *
-   * @param securityType a SecurityType declaring the cluster's security type; or {@code null} if not
-   *                     set on the request
-   */
-  public void setSecurityType(SecurityType securityType) {
-    this.securityType = securityType;
-  }
-
-  /**
-   * @return the stackVersion
-   */
+  @ApiModelProperty(name = ClusterResourceProvider.VERSION)
   public String getStackVersion() {
     return stackVersion;
   }
 
-  /**
-   * @param clusterId the clusterId to set
-   */
-  public void setClusterId(Long clusterId) {
-    this.clusterId = clusterId;
-  }
-
-  /**
-   * @param clusterName the clusterName to set
-   */
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-
-  /**
-   * @param stackVersion the stackVersion to set
-   */
-  public void setStackVersion(String stackVersion) {
-    this.stackVersion = stackVersion;
-  }
-
+  @ApiModelProperty(hidden = true)
   public Set<String> getHostNames() {
     return hostNames;
-  }
-
-  public void setHostNames(Set<String> hostNames) {
-    this.hostNames = hostNames;
   }
 
   /**
@@ -196,6 +130,7 @@ public class ClusterRequest {
    * @return the list of configuration requests,
    * or <code>null</code> if none is set.
    */
+  @ApiModelProperty(name = ClusterResourceProvider.DESIRED_CONFIGS)
   public List<ConfigurationRequest> getDesiredConfig() {
     return configs;
   }
@@ -224,6 +159,7 @@ public class ClusterRequest {
     return sb.toString();
   }
 
+  @ApiModelProperty(name = ClusterResourceProvider.DESIRED_SERVICE_CONFIG_VERSIONS)
   public ServiceConfigVersionRequest getServiceConfigVersionRequest() {
     return serviceConfigVersionRequest;
   }
@@ -233,26 +169,13 @@ public class ClusterRequest {
    *
    * @return the session attributes; may be null
    */
+  @ApiModelProperty(hidden = true)
   public Map<String, Object> getSessionAttributes() {
     return sessionAttributes;
   }
 
   public void setServiceConfigVersionRequest(ServiceConfigVersionRequest serviceConfigVersionRequest) {
     this.serviceConfigVersionRequest = serviceConfigVersionRequest;
-  }
-
-  /**
-   * @param version the repo version to use
-   */
-  public void setRepositoryVersion(String version) {
-    repositoryVersion = version;
-  }
-
-  /**
-   * @return the repo version to use
-   */
-  public String getRepositoryVersion() {
-    return repositoryVersion;
   }
 
 }

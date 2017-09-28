@@ -193,7 +193,7 @@
         <name>yarn_cgroups_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
@@ -205,7 +205,7 @@
         <name>yarn_cgroups_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
@@ -217,7 +217,7 @@
         <name>yarn_cgroups_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
@@ -229,7 +229,7 @@
         <name>yarn_cgroups_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.strict-resource-usage</name>

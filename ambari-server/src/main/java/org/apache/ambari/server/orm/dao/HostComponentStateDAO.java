@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -27,7 +26,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.state.UpgradeState;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -180,31 +178,22 @@ public class HostComponentStateDAO {
   }
 
   /**
-   * Marks hosts components to the specified version that are NOT already set or "UNKNOWN".
-   * Also marks all host components as not being in an upgrade state.  This method
-   * invokes {@code clear()} on the entity manager to force entities to be refreshed.
-   *
-   * @param version the version
+   * @param serviceName
+   * @param componentName
+   * @param version
+   * @return a list of host components whose version that does NOT match the give version
    */
-  @Transactional
-  public void updateVersions(String version) {
-    EntityManager em = entityManagerProvider.get();
+  @RequiresSession
+  public List<HostComponentStateEntity> findByServiceAndComponentAndNotVersion(String serviceName,
+      String componentName, String version) {
 
-    // !!! first the version
-    StringBuilder sb = new StringBuilder("UPDATE HostComponentStateEntity hostComponent");
-    sb.append(" SET hostComponent.version = ?1 ");
-    sb.append(" WHERE hostComponent.version NOT IN ?2");
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostComponentStateEntity.findByServiceAndComponentAndNotVersion", HostComponentStateEntity.class);
 
-    TypedQuery<Long> query = em.createQuery(sb.toString(), Long.class);
-    daoUtils.executeUpdate(query, version, Arrays.asList(version, "UNKNOWN"));
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+    query.setParameter("version", version);
 
-    // !!! now the upgrade state
-    sb = new StringBuilder("UPDATE HostComponentStateEntity hostComponent");
-    sb.append(" SET hostComponent.upgradeState = ?1");
-
-    query = em.createQuery(sb.toString(), Long.class);
-    daoUtils.executeUpdate(query, UpgradeState.NONE);
-
-    em.clear();
+    return daoUtils.selectList(query);
   }
 }

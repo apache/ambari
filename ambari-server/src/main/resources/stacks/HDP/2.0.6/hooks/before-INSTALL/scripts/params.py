@@ -111,3 +111,5 @@ if has_hbase_masters:
 #repo params
 repo_info = config['hostLevelParams']['repoInfo']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
+
+repo_file = default("/repositoryFile", None)

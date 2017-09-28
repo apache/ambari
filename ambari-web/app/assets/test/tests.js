@@ -286,6 +286,7 @@ var files = [
   'test/views/main/alerts/add_alert_definition/step3_view_test',
   'test/views/main/alerts/manage_alert_groups/select_definitions_popup_body_view_test',
   'test/views/main/admin/stack_upgrade/upgrade_version_box_view_test',
+  'test/views/main/admin/stack_upgrade/upgrade_version_column_view_test',
   'test/views/main/admin/stack_upgrade/upgrade_group_view_test',
   'test/views/main/admin/stack_upgrade/upgrade_task_view_test',
   'test/views/main/admin/stack_upgrade/upgrade_wizard_view_test',

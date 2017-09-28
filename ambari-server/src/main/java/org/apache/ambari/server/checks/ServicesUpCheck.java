@@ -91,10 +91,9 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     List<String> errorMessages = new ArrayList<>();
     Set<String> failedServiceNames = new HashSet<>();
 
-    StackId stackId = cluster.getCurrentStackVersion();
-
-    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
-      final Service service = serviceEntry.getValue();
+    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
+    for (String serviceName : servicesInUpgrade) {
+      final Service service = cluster.getService(serviceName);
 
       // Ignore services like Tez that are clientOnly.
       if (service.isClientOnlyService()) {
@@ -132,6 +131,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
         // non-master, "true" slaves with cardinality 1+
         boolean checkThreshold = false;
         if (!serviceComponent.isMasterComponent()) {
+          StackId stackId = service.getDesiredStackId();
           ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(stackId.getStackName(),
               stackId.getStackVersion(), serviceComponent.getServiceName(),
               serviceComponent.getName());

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,12 +26,29 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
 
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
+
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class ValueAttributesInfo {
+public class ValueAttributesInfo implements ApiModel {
+  public static final String EMPTY_VALUE_VALID = "empty_value_valid";
+  public static final String UI_ONLY_PROPERTY = "ui_only_property";
+  public static final String READ_ONLY = "read_only";
+  public static final String EDITABLE_ONLY_AT_INSTALL = "editable_only_at_install";
+  public static final String SHOW_PROPERTY_NAME = "show_property_name";
+  public static final String INCREMENT_STEP = "increment_step";
+  public static final String SELECTION_CARDINALITY = "selection_cardinality";
+  public static final String PROPERTY_FILE_NAME = "property-file-name";
+  public static final String PROPERTY_FILE_TYPE = "property-file-type";
+  public static final String ENTRIES = "entries";
+  public static final String HIDDEN = "hidden";
+  public static final String ENTRIES_EDITABLE = "entries_editable";
+  public static final String USER_GROUPS = "user-groups";
+  public static final String KEYSTORE = "keystore";
   private String type;
   private String maximum;
   private String minimum;
@@ -42,62 +59,63 @@ public class ValueAttributesInfo {
   private String copy;
 
   @XmlElement(name = "empty-value-valid")
-  @JsonProperty("empty_value_valid")
+  @JsonProperty(EMPTY_VALUE_VALID)
   private Boolean emptyValueValid;
 
   @XmlElement(name = "ui-only-property")
-  @JsonProperty("ui_only_property")
+  @JsonProperty(UI_ONLY_PROPERTY)
   private Boolean uiOnlyProperty;
 
   @XmlElement(name = "read-only")
-  @JsonProperty("read_only")
+  @JsonProperty(READ_ONLY)
   private Boolean readOnly;
 
   @XmlElement(name = "editable-only-at-install")
-  @JsonProperty("editable_only_at_install")
+  @JsonProperty(EDITABLE_ONLY_AT_INSTALL)
   private Boolean editableOnlyAtInstall;
 
   @XmlElement(name = "show-property-name")
-  @JsonProperty("show_property_name")
+  @JsonProperty(SHOW_PROPERTY_NAME)
   private Boolean showPropertyName;
 
   @XmlElement(name = "increment-step")
-  @JsonProperty("increment_step")
+  @JsonProperty(INCREMENT_STEP)
   private String incrementStep;
 
-  @XmlElementWrapper(name = "entries")
+  @XmlElementWrapper(name = ENTRIES)
   @XmlElements(@XmlElement(name = "entry"))
   private Collection<ValueEntryInfo> entries;
 
-  @XmlElement(name = "hidden")
+  @XmlElement(name = HIDDEN)
   private String hidden;
 
-  @XmlElement(name = "entries_editable")
+  @XmlElement(name = ENTRIES_EDITABLE)
   private Boolean entriesEditable;
 
   @XmlElement(name = "selection-cardinality")
-  @JsonProperty("selection_cardinality")
+  @JsonProperty(SELECTION_CARDINALITY)
   private String selectionCardinality;
 
-  @XmlElement(name = "property-file-name")
-  @JsonProperty("property-file-name")
+  @XmlElement(name = PROPERTY_FILE_NAME)
+  @JsonProperty(PROPERTY_FILE_NAME)
   private String propertyFileName;
 
-  @XmlElement(name = "property-file-type")
-  @JsonProperty("property-file-type")
+  @XmlElement(name = PROPERTY_FILE_TYPE)
+  @JsonProperty(PROPERTY_FILE_TYPE)
   private String propertyFileType;
 
-  @XmlElementWrapper(name = "user-groups")
+  @XmlElementWrapper(name = USER_GROUPS)
   @XmlElements(@XmlElement(name = "property"))
   private Collection<UserGroupInfo> userGroupEntries;
 
-  @XmlElement(name = "keystore")
+  @XmlElement(name = KEYSTORE)
   private boolean keyStore;
 
   public ValueAttributesInfo() {
 
   }
 
+  @ApiModelProperty(name = "type")
   public String getType() {
     return type;
   }
@@ -106,6 +124,7 @@ public class ValueAttributesInfo {
     this.type = type;
   }
 
+  @ApiModelProperty(name = "maximum")
   public String getMaximum() {
     return maximum;
   }
@@ -114,6 +133,7 @@ public class ValueAttributesInfo {
     this.maximum = maximum;
   }
 
+  @ApiModelProperty(name = "minimum")
   public String getMinimum() {
     return minimum;
   }
@@ -122,6 +142,7 @@ public class ValueAttributesInfo {
     this.minimum = minimum;
   }
 
+  @ApiModelProperty(name = "unit")
   public String getUnit() {
     return unit;
   }
@@ -130,6 +151,7 @@ public class ValueAttributesInfo {
     this.unit = unit;
   }
 
+  @ApiModelProperty(name = ENTRIES)
   public Collection<ValueEntryInfo> getEntries() {
     return entries;
   }
@@ -138,6 +160,7 @@ public class ValueAttributesInfo {
     this.entries = entries;
   }
 
+  @ApiModelProperty(name = "user-group-entries")
   public Collection<UserGroupInfo> getUserGroupEntries() {
     return userGroupEntries;
   }
@@ -146,6 +169,7 @@ public class ValueAttributesInfo {
     this.userGroupEntries = userGroupEntries;
   }
 
+  @ApiModelProperty(name = HIDDEN)
   public String getHidden() {
     return hidden;
   }
@@ -154,6 +178,7 @@ public class ValueAttributesInfo {
     this.hidden = hidden;
   }
 
+  @ApiModelProperty(name = ENTRIES_EDITABLE)
   public Boolean getEntriesEditable() {
     return entriesEditable;
   }
@@ -162,6 +187,7 @@ public class ValueAttributesInfo {
     this.entriesEditable = entriesEditable;
   }
 
+  @ApiModelProperty(name = SELECTION_CARDINALITY)
   public String getSelectionCardinality() {
     return selectionCardinality;
   }
@@ -170,6 +196,7 @@ public class ValueAttributesInfo {
     this.selectionCardinality = selectionCardinality;
   }
 
+  @ApiModelProperty(name = PROPERTY_FILE_NAME)
   public String getPropertyFileName() {
     return propertyFileName;
   }
@@ -178,6 +205,7 @@ public class ValueAttributesInfo {
     this.propertyFileName = propertyFileName;
   }
 
+  @ApiModelProperty(name = PROPERTY_FILE_TYPE)
   public String getPropertyFileType() {
     return propertyFileType;
   }
@@ -186,6 +214,7 @@ public class ValueAttributesInfo {
     this.propertyFileType = propertyFileType;
   }
 
+  @ApiModelProperty(name = INCREMENT_STEP)
   public String getIncrementStep() {
     return incrementStep;
   }
@@ -194,6 +223,7 @@ public class ValueAttributesInfo {
     this.incrementStep = incrementStep;
   }
 
+  @ApiModelProperty(name = "delete")
   public String getDelete() {
     return delete;
   }
@@ -202,6 +232,7 @@ public class ValueAttributesInfo {
     this.delete = delete;
   }
 
+  @ApiModelProperty(name = EMPTY_VALUE_VALID)
   public Boolean getEmptyValueValid() {
     return emptyValueValid;
   }
@@ -210,6 +241,7 @@ public class ValueAttributesInfo {
     this.emptyValueValid = isEmptyValueValid;
   }
 
+  @ApiModelProperty(name = "visible")
   public Boolean getVisible() {
     return visible;
   }
@@ -218,6 +250,7 @@ public class ValueAttributesInfo {
     this.visible = isVisible;
   }
 
+  @ApiModelProperty(name = READ_ONLY)
   public Boolean getReadOnly() {
     return readOnly;
   }
@@ -226,6 +259,7 @@ public class ValueAttributesInfo {
     this.readOnly = isReadOnly;
   }
 
+  @ApiModelProperty(name = EDITABLE_ONLY_AT_INSTALL)
   public Boolean getEditableOnlyAtInstall() {
     return editableOnlyAtInstall;
   }
@@ -234,6 +268,7 @@ public class ValueAttributesInfo {
     this.editableOnlyAtInstall = isEditableOnlyAtInstall;
   }
 
+  @ApiModelProperty(name = "overridable")
   public Boolean getOverridable() {
     return overridable;
   }
@@ -242,6 +277,7 @@ public class ValueAttributesInfo {
     this.overridable = isOverridable;
   }
 
+  @ApiModelProperty(name = SHOW_PROPERTY_NAME)
   public Boolean getShowPropertyName() {
     return showPropertyName;
   }
@@ -250,6 +286,7 @@ public class ValueAttributesInfo {
     this.showPropertyName = isPropertyNameVisible;
   }
 
+  @ApiModelProperty(name = UI_ONLY_PROPERTY)
   public Boolean getUiOnlyProperty() {
     return uiOnlyProperty;
   }
@@ -258,6 +295,7 @@ public class ValueAttributesInfo {
     this.uiOnlyProperty = isUiOnlyProperty;
   }
 
+  @ApiModelProperty(name = "copy")
   public String getCopy() {
     return copy;
   }
@@ -273,6 +311,7 @@ public class ValueAttributesInfo {
    *
    * @return "true", "false"
    */
+  @ApiModelProperty(name = KEYSTORE)
   public boolean isKeyStore() {
     return keyStore;
   }
@@ -306,7 +345,7 @@ public class ValueAttributesInfo {
       return false;
     if (overridable != null ? !overridable.equals(that.overridable) : that.overridable != null)
       return false;
-    if (hidden != null ? !hidden.equals(that.overridable) : that.hidden != null)
+    if (hidden != null ? !hidden.equals(that.hidden) : that.hidden != null)
       return false;
     if (showPropertyName != null ? !showPropertyName.equals(that.showPropertyName) : that.showPropertyName != null)
       return false;

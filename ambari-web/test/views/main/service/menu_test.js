@@ -115,18 +115,6 @@ describe('App.MainServiceMenuView', function () {
       });
     });
 
-    describe('#alertsCount', function() {
-
-      it('should return 99 ', function() {
-        itemView.set('content.alertsCount', 99);
-        expect(itemView.get('alertsCount')).to.be.equal(99);
-      });
-      it('should return 99+ when more than 99', function() {
-        itemView.set('content.alertsCount', 100);
-        expect(itemView.get('alertsCount')).to.be.equal('99+');
-      });
-    });
-
     describe('#link', function() {
       beforeEach(function() {
         this.mock = sinon.stub(App.router, 'get');

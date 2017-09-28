@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="false">
+   <property>
+    <name>knox_gateway_log_maxfilesize</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Knox Gateway Log: backup file size</display-name>
+   <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>knox_gateway_log_maxbackupindex</name>
+    <value>20</value>
+    <description>The number of backup files</description>
+    <display-name>Knox Gateway Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>gateway-log4j template</display-name>
+    <value>
+
+      # Licensed to the Apache Software Foundation (ASF) under one
+      # or more contributor license agreements. See the NOTICE file
+      # distributed with this work for additional information
+      # regarding copyright ownership. The ASF licenses this file
+      # to you under the Apache License, Version 2.0 (the
+      # "License"); you may not use this file except in compliance
+      # with the License. You may obtain a copy of the License at
+      #
+      # http://www.apache.org/licenses/LICENSE-2.0
+      #
+      # Unless required by applicable law or agreed to in writing, software
+      # distributed under the License is distributed on an "AS IS" BASIS,
+      # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      # See the License for the specific language governing permissions and
+      # limitations under the License.
+
+      app.log.dir=${launcher.dir}/../logs
+      app.log.file=${launcher.name}.log
+      app.audit.file=${launcher.name}-audit.log
+
+      log4j.rootLogger=ERROR, drfa
+
+      log4j.logger.org.apache.hadoop.gateway=INFO
+      #log4j.logger.org.apache.hadoop.gateway=DEBUG
+
+      #log4j.logger.org.eclipse.jetty=DEBUG
+      #log4j.logger.org.apache.shiro=DEBUG
+      #log4j.logger.org.apache.http=DEBUG
+      #log4j.logger.org.apache.http.client=DEBUG
+      #log4j.logger.org.apache.http.headers=DEBUG
+      #log4j.logger.org.apache.http.wire=DEBUG
+
+      log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+      log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+      log4j.appender.stdout.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
+
+      log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender
+      log4j.appender.drfa.File=${app.log.dir}/${app.log.file}
+      log4j.appender.drfa.DatePattern=.yyyy-MM-dd
+      log4j.appender.drfa.layout=org.apache.log4j.PatternLayout
+      log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
+      log4j.appender.drfa.MaxFileSize = {{knox_gateway_log_maxfilesize}}MB
+      log4j.appender.drfa.MaxBackupIndex = {{knox_gateway_log_maxbackupindex}}
+
+      log4j.logger.audit=INFO, auditfile
+      log4j.appender.auditfile=org.apache.log4j.DailyRollingFileAppender
+      log4j.appender.auditfile.File=${app.log.dir}/${app.audit.file}
+      log4j.appender.auditfile.Append = true
+      log4j.appender.auditfile.DatePattern = '.'yyyy-MM-dd
+      log4j.appender.auditfile.layout = org.apache.hadoop.gateway.audit.log4j.layout.AuditLayout
+
+    </value>
+    <description>
+      content for log4j.properties file for Knox.
+    </description>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

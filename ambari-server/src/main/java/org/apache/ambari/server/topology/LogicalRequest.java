@@ -44,7 +44,7 @@ import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
-import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.state.Host;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +95,7 @@ public class LogicalRequest extends Request {
     createHostRequests(topology, requestEntity);
   }
 
-  public HostOfferResponse offer(HostImpl host) {
+  public HostOfferResponse offer(Host host) {
     // attempt to match to a host request with an explicit host reservation first
     synchronized (requestsWithReservedHosts) {
       LOG.info("LogicalRequest.offer: attempting to match a request to a request for a reserved host to hostname = {}", host.getHostName());
@@ -164,8 +164,8 @@ public class LogicalRequest extends Request {
     return requestsWithReservedHosts.keySet();
   }
 
-  public boolean hasCompleted() {
-    return requestsWithReservedHosts.isEmpty() && outstandingHostRequests.isEmpty();
+  public boolean hasPendingHostRequests() {
+    return !(requestsWithReservedHosts.isEmpty() && outstandingHostRequests.isEmpty());
   }
 
   public Collection<HostRequest> getCompletedHostRequests() {
@@ -176,9 +176,45 @@ public class LogicalRequest extends Request {
     return completedHostRequests;
   }
 
+  public int getPendingHostRequestCount() {
+    return outstandingHostRequests.size() + requestsWithReservedHosts.size();
+  }
+
   //todo: this is only here for toEntity() functionality
   public Collection<HostRequest> getHostRequests() {
     return new ArrayList<>(allHostRequests);
+  }
+
+  /**
+   * Removes pending host requests (outstanding requests not picked up by any host, where hostName is null) for a host group.
+   * @param hostGroupName
+   * @return
+   */
+  public Collection<HostRequest> removePendingHostRequests(String hostGroupName) {
+    Collection<HostRequest> pendingHostRequests = new ArrayList<>();
+    for(HostRequest hostRequest : outstandingHostRequests) {
+      if(hostGroupName == null || hostRequest.getHostgroupName().equals(hostGroupName)) {
+        pendingHostRequests.add(hostRequest);
+      }
+    }
+    if (hostGroupName == null) {
+      outstandingHostRequests.clear();
+    } else {
+      outstandingHostRequests.removeAll(pendingHostRequests);
+    }
+
+    Collection<String> pendingReservedHostNames = new ArrayList<>();
+    for(String reservedHostName : requestsWithReservedHosts.keySet()) {
+      HostRequest hostRequest = requestsWithReservedHosts.get(reservedHostName);
+      if(hostGroupName == null || hostRequest.getHostgroupName().equals(hostGroupName)) {
+        pendingHostRequests.add(hostRequest);
+        pendingReservedHostNames.add(reservedHostName);
+      }
+    }
+    requestsWithReservedHosts.keySet().removeAll(pendingReservedHostNames);
+
+    allHostRequests.removeAll(pendingHostRequests);
+    return pendingHostRequests;
   }
 
   public Map<String, Collection<String>> getProjectedTopology() {
@@ -337,31 +373,36 @@ public class LogicalRequest extends Request {
    * Removes all HostRequest associated with the passed host name from internal collections
    * @param hostName name of the host
    */
-  public void removeHostRequestByHostName(String hostName) {
+  public Set<HostRequest> removeHostRequestByHostName(String hostName) {
+    Set<HostRequest> removed = new HashSet<>();
     synchronized (requestsWithReservedHosts) {
       synchronized (outstandingHostRequests) {
         requestsWithReservedHosts.remove(hostName);
 
         Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
         while (hostRequestIterator.hasNext()) {
-          if (Objects.equals(hostRequestIterator.next().getHostName(), hostName)) {
+          HostRequest hostRequest = hostRequestIterator.next();
+          if (Objects.equals(hostRequest.getHostName(), hostName)) {
             hostRequestIterator.remove();
+            removed.add(hostRequest);
             break;
           }
         }
 
         //todo: synchronization
-        Iterator<HostRequest> allHostRequesIterator = allHostRequests.iterator();
-        while (allHostRequesIterator.hasNext()) {
-          if (Objects.equals(allHostRequesIterator.next().getHostName(), hostName)) {
-            allHostRequesIterator.remove();
+        Iterator<HostRequest> allHostRequestIterator = allHostRequests.iterator();
+        while (allHostRequestIterator.hasNext()) {
+          HostRequest hostRequest = allHostRequestIterator.next();
+          if (Objects.equals(hostRequest.getHostName(), hostName)) {
+            allHostRequestIterator.remove();
+            removed.add(hostRequest);
             break;
           }
         }
       }
     }
 
-
+    return removed;
   }
 
   private void createHostRequests(TopologyRequest request, ClusterTopology topology) {
@@ -465,7 +506,7 @@ public class LogicalRequest extends Request {
       String hostGroupName = hostGroupEntity.getName();
 
       if ( !reservedHostNamesByHostGroups.containsKey(hostGroupName) )
-        reservedHostNamesByHostGroups.put(hostGroupName, new HashSet<String>());
+        reservedHostNamesByHostGroups.put(hostGroupName, new HashSet<>());
 
       for (TopologyHostInfoEntity hostInfoEntity: hostGroupEntity.getTopologyHostInfoEntities()) {
         if (StringUtils.isNotEmpty(hostInfoEntity.getFqdn())) {

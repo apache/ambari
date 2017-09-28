@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<td class="no-sort first-col">
+<!--td class="no-sort first-col">
   <input id="{{job.id}}" name="{{job.appName}}"  data-status ="{{job.status}}" class="cbox" type="checkbox" value="" {{action 'rowSelected' job.status on="change"}}>
   {{#if job.parentId}}
      {{#link-to 'design.jobtab' (query-params id=targetParentId jobType="coords")}}
@@ -25,7 +25,7 @@
      <a class="padding15pcnt" href="javascript:void(0);"></a>
   {{/if}}
 
-</td>
+</td-->
 <td {{action 'showJobDetails' job.id}} class="pointer action-link"> {{job.appName}}
 </td>
 <td class="{{job.status}}"> {{job.status}} </td>

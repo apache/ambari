@@ -23,6 +23,7 @@ import socket
 import sys
 import urllib2
 import tempfile
+import random
 from alerts.ams_alert import AmsAlert
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
@@ -615,6 +616,21 @@ class TestAlerts(TestCase):
     # SSL assertion
     self.assertEquals('CRITICAL', alerts[0]['state'])
     self.assertEquals('(Unit Tests) critical: https://c6401.ambari.apache.org:443/test/path. error message', alerts[0]['text'])
+
+    # test custom codes
+    code = random.choice((600, 700, 800))
+    wa_make_web_request_mock.return_value = WebResponse(code, 1.234 , "Custom Code")
+    collector = AlertCollector()
+    alert = WebAlert(definition_json, definition_json['source'], self.config)
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.collect()
+
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEquals('(Unit Tests) ok: {code}'.format(code=code), alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -1559,7 +1575,8 @@ class TestAlerts(TestCase):
           "https": "{{hdfs-site/dfs.datanode.https.address}}",
           "https_property": "{{hdfs-site/dfs.http.policy}}",
           "https_property_value": "HTTPS_ONLY",
-          "connection_timeout": 5.678
+          "connection_timeout": 5.678,
+          "acceptable_codes": [600, 700, 800]
         },
         "reporting": {
           "ok": {

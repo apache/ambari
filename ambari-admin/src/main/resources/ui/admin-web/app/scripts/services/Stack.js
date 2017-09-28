@@ -88,8 +88,10 @@ angular.module('ambariAdminConsole')
     },
 
     allPublicStackVersions: function() {
-      var url = '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
-        '&VersionDefinition/show_available=true';
+      var self = this;
+      var url = '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/type,' +
+        'VersionDefinition/stack_repo_update_link_exists,operating_systems/repositories/Repositories/*,' +
+        'VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true';
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
         .success(function (data) {
@@ -104,7 +106,6 @@ angular.module('ambariAdminConsole')
               stackNameVersion:  version.VersionDefinition.stack_name + '-' + version.VersionDefinition.stack_version,
               displayName: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version.split('-')[0], //HDP-2.3.4.0
               displayNameFull: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version, //HDP-2.3.4.0-23
-              editableDisplayName: version.VersionDefinition.repository_version.substring(4),
               isNonXMLdata: true,
               repositoryVersion: version.VersionDefinition.repository_version,
               stackNameRepositoryVersion: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version,
@@ -112,6 +113,7 @@ angular.module('ambariAdminConsole')
               osList: version.operating_systems,
               updateObj: version
             };
+            self.setVersionNumberProperties(version.VersionDefinition.repository_version, versionObj);
             //hard code to not show stack name box for ECS stack
             if (isNaN(versionObj.editableDisplayName.charAt(0))) {
               versionObj.isNonXMLdata = false;
@@ -144,9 +146,39 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
+    setVersionNumberProperties: function(version, versionObj) {
+      var length = version.split(".").length;
+      switch (length) {
+        //when the stackVersion is single digit e.g. "2"
+        case 1:
+           versionObj.pattern = "(0.0.0)";
+           versionObj.subVersionPattern = new RegExp(/^\d+\.\d+(-\d+)?\.\d+$/);
+           versionObj.editableDisplayName = "";
+           break;
+        //when the stackVersion has two digits e.g. "2.5"
+        case 2:
+           versionObj.pattern = "(0.0)";
+           versionObj.subVersionPattern = new RegExp(/^\d+\.\d+(-\d+)?$/);
+           versionObj.editableDisplayName = version.substring(4);
+           break;
+        //when the stackVersion has three digits e.g. "2.5.1"
+        case 3:
+           versionObj.pattern = "(0)";
+           versionObj.subVersionPattern = new RegExp(/^[0-9]\d*$/);
+           versionObj.editableDisplayName = "";
+           break;
+        default:
+           versionObj.pattern = "(0.0)";
+           versionObj.subVersionPattern = new RegExp(/^\d+\.\d+(-\d+)?$/);
+           versionObj.editableDisplayName = version.substring(4);
+           break;
+      }
+    },
+
     allRepos: function (filter, pagination) {
       var versionFilter = filter.version;
       var nameFilter = filter.name;
+      var typeFilter = filter.type;
       var stackFilter = filter.stack && filter.stack.current && filter.stack.current.value;
       var url = '/stacks?fields=versions/repository_versions/RepositoryVersions';
       if (versionFilter) {
@@ -154,6 +186,9 @@ angular.module('ambariAdminConsole')
       }
       if (nameFilter) {
         url += '&versions/repository_versions/RepositoryVersions/display_name.matches(.*' + nameFilter + '.*)';
+      }
+      if (typeFilter){
+        url += '&versions/repository_versions/RepositoryVersions/type.matches(.*' + typeFilter.toUpperCase() + '.*)';
       }
       if (stackFilter) {
         var stack = filter.stack.current.value.split('-'),
@@ -175,6 +210,8 @@ angular.module('ambariAdminConsole')
           });
         });
         repos = repos.map(function (stack) {
+          stack.RepositoryVersions.isPatch = stack.RepositoryVersions.type === 'PATCH';
+          stack.RepositoryVersions.isMaint = stack.RepositoryVersions.type === 'MAINT';
           return stack.RepositoryVersions;
         });
         // prepare response data with client side pagination
@@ -408,6 +445,18 @@ angular.module('ambariAdminConsole')
         return 0
       }
       return lId1 > lId2 ? 1 : -1;
+    },
+
+    filterAvailableServices: function (response) {
+      var stackVersion = response.updateObj.RepositoryVersions || response.updateObj.VersionDefinition;
+      var nonStandardVersion = stackVersion.type !== 'STANDARD';
+      var availableServices = (nonStandardVersion ? stackVersion.services : response.services).map(function (s) {
+        return s.name;
+      });
+      return response.services.filter(function (service) {
+        var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
+        return skipServices.indexOf(service.name) === -1 && availableServices.indexOf(service.name) !== -1;
+      }) || [];
     }
 
   };

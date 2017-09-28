@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,6 +25,8 @@ import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -34,7 +36,6 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
-import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -157,7 +158,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost1Matched.setId(1L);
     hostRequestEntityHost1Matched.setHostName(host1.getFqdn()); //host request matched host1
     hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host1.getFqdn()))).andReturn(true).anyTimes();
 
 
@@ -165,20 +166,20 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost2Matched.setId(2L);
     hostRequestEntityHost2Matched.setHostName(host2.getFqdn()); // host request matched host2
     hostRequestEntityHost2Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host2.getFqdn()))).andReturn(true).anyTimes();
 
     // host request that hasn't been matched to any registered host yet
     TopologyHostRequestEntity hostRequestEntityHost3NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost3NotMatched.setId(3L);
     hostRequestEntityHost3NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host3.getFqdn()))).andReturn(false).anyTimes();
 
     TopologyHostRequestEntity hostRequestEntityHost4NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost4NotMatched.setId(4L);
     hostRequestEntityHost4NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host4.getFqdn()))).andReturn(false).anyTimes();
 
     Collection<TopologyHostRequestEntity> reservedHostRequestEntities = ImmutableSet.of(
@@ -260,7 +261,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost1Matched.setId(1L);
     hostRequestEntityHost1Matched.setHostName("host1"); //host request matched host1
     hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host1"))).andReturn(true).anyTimes();
 
 
@@ -268,20 +269,20 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost2Matched.setId(2L);
     hostRequestEntityHost2Matched.setHostName("host2"); // host request matched host2
     hostRequestEntityHost2Matched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host2"))).andReturn(true).anyTimes();
 
     // host request that hasn't been matched to any registered host yet
     TopologyHostRequestEntity hostRequestEntityHost3NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost3NotMatched.setId(3L);
     hostRequestEntityHost3NotMatched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host3"))).andReturn(false).anyTimes();
 
     TopologyHostRequestEntity hostRequestEntityHost4NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost4NotMatched.setId(4L);
     hostRequestEntityHost4NotMatched.setTopologyHostGroupEntity(hostGroupEntity2);
-    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost4NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq("host4"))).andReturn(false).anyTimes();
 
     Collection<TopologyHostRequestEntity> reservedHostRequestEntities = ImmutableSet.of(
@@ -370,7 +371,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost1Matched.setId(1L);
     hostRequestEntityHost1Matched.setHostName(host1.getFqdn()); //host request matched host1
     hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host1.getFqdn()))).andReturn(true).anyTimes();
 
 
@@ -378,14 +379,14 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost2Matched.setId(2L);
     hostRequestEntityHost2Matched.setHostName(host2.getFqdn()); // host request matched host2
     hostRequestEntityHost2Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost2Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host2.getFqdn()))).andReturn(true).anyTimes();
 
     // host request that hasn't been matched to any registered host yet
     TopologyHostRequestEntity hostRequestEntityHost3NotMatched = new TopologyHostRequestEntity();
     hostRequestEntityHost3NotMatched.setId(3L);
     hostRequestEntityHost3NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost3NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host3.getFqdn()))).andReturn(false).anyTimes();
 
 
@@ -393,7 +394,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     hostRequestEntityHost4Matched.setId(4L);
     hostRequestEntityHost4Matched.setHostName(host4.getFqdn()); // host request matched host4
     hostRequestEntityHost4Matched.setTopologyHostGroupEntity(hostGroupEntity1);
-    hostRequestEntityHost4Matched.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+    hostRequestEntityHost4Matched.setTopologyHostTaskEntities(Collections.emptySet());
     expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host4.getFqdn()))).andReturn(true).anyTimes();
 
     Collection<TopologyHostRequestEntity> reservedHostRequestEntities = ImmutableSet.of(
@@ -460,5 +461,145 @@ public class LogicalRequestTest extends EasyMockSupport {
 
 
     assertTrue(hostReqHost1.isPresent() && hostReqHost2.isPresent() && hostReqHost3.isPresent() && !hostReqHost4.isPresent());
+  }
+
+  @Test
+  public void testRemovePendingHostRequests() throws Exception {
+    // Given
+    Long requestId = 1L;
+
+    final TopologyHostInfoEntity host1 = new TopologyHostInfoEntity();
+    host1.setId(100L);
+    host1.setFqdn("host1");
+
+    final TopologyHostInfoEntity host2 = new TopologyHostInfoEntity();
+    host2.setId(102L);
+    host2.setFqdn("host2");
+
+    TopologyHostGroupEntity hostGroupEntity1 = new TopologyHostGroupEntity();
+    hostGroupEntity1.setTopologyHostInfoEntities(ImmutableSet.of(host1, host2));
+    hostGroupEntity1.setName("host_group_1");
+
+    // host request matched to a registered host
+    TopologyHostRequestEntity hostRequestEntityHost1Matched = new TopologyHostRequestEntity();
+    hostRequestEntityHost1Matched.setId(1L);
+    hostRequestEntityHost1Matched.setHostName(host1.getFqdn()); //host request matched host1
+    hostRequestEntityHost1Matched.setTopologyHostGroupEntity(hostGroupEntity1);
+    hostRequestEntityHost1Matched.setTopologyHostTaskEntities(Collections.emptySet());
+    expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host1.getFqdn()))).andReturn(true).anyTimes();
+
+
+    // host request that hasn't been matched to any registered host yet
+    TopologyHostRequestEntity hostRequestEntityHost2NotMatched = new TopologyHostRequestEntity();
+    hostRequestEntityHost2NotMatched.setId(2L);
+    hostRequestEntityHost2NotMatched.setTopologyHostGroupEntity(hostGroupEntity1);
+    hostRequestEntityHost2NotMatched.setTopologyHostTaskEntities(Collections.emptySet());
+    expect(ambariContext.isHostRegisteredWithCluster(eq(clusterId), eq(host2.getFqdn()))).andReturn(false).anyTimes();
+
+
+    Collection<TopologyHostRequestEntity> reservedHostRequestEntities = ImmutableSet.of(
+            hostRequestEntityHost1Matched,
+            hostRequestEntityHost2NotMatched);
+
+    hostGroupEntity1.setTopologyHostRequestEntities(reservedHostRequestEntities);
+
+    TopologyRequestEntity topologyRequestEntity = new TopologyRequestEntity();
+    topologyRequestEntity.setTopologyHostGroupEntities(Collections.singleton(hostGroupEntity1));
+
+
+    expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).atLeastOnce();
+    expect(logicalRequestEntity.getTopologyHostRequestEntities()).andReturn(reservedHostRequestEntities).atLeastOnce();
+    expect(blueprint.getHostGroup(eq("host_group_1"))).andReturn(hostGroup1).atLeastOnce();
+    expect(hostGroup1.containsMasterComponent()).andReturn(false).atLeastOnce();
+
+    replayAll();
+
+    // When
+
+    LogicalRequest req = new LogicalRequest(requestId, replayedTopologyRequest, clusterTopology, logicalRequestEntity);
+    req.removePendingHostRequests(null);
+
+    // Then
+    verifyAll();
+
+    assertEquals(1, req.getHostRequests().size());
+    assertEquals(0, req.getPendingHostRequestCount());
+  }
+
+  @Test
+  public void testRemovePendingHostRequestsByHostCount() throws Exception {
+    // Given
+    int hostCount = 3;
+    LogicalRequest req = createTopologyRequestByHostCount(hostCount, "host_group");
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+
+    // When
+    req.removePendingHostRequests(null);
+
+    // Then
+    assertEquals(0, req.getPendingHostRequestCount());
+    verifyAll();
+  }
+
+  @Test
+  public void testRemovePendingHostRequestsOfSpecificHostGroupByHostCount() throws Exception {
+    // Given
+    int hostCount = 3;
+    String hostGroupName = "host_group";
+    LogicalRequest req = createTopologyRequestByHostCount(hostCount, hostGroupName);
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+
+    // When
+    req.removePendingHostRequests(hostGroupName);
+
+    // Then
+    assertEquals(0, req.getPendingHostRequestCount());
+    verifyAll();
+  }
+
+  @Test
+  public void testRemovePendingHostRequestsOfNonexistentHostGroupByHostCount() throws Exception {
+    // Given
+    int hostCount = 3;
+    LogicalRequest req = createTopologyRequestByHostCount(hostCount, "host_group");
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+
+    // When
+    req.removePendingHostRequests("no_such_host_group");
+
+    // Then
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+    verifyAll();
+  }
+
+  private LogicalRequest createTopologyRequestByHostCount(int hostCount, String hostGroupName) throws Exception {
+    final TopologyHostInfoEntity hostInfo = new TopologyHostInfoEntity();
+    hostInfo.setId(100L);
+    hostInfo.setHostCount(hostCount);
+
+    TopologyHostGroupEntity hostGroupEntity = new TopologyHostGroupEntity();
+    hostGroupEntity.setTopologyHostInfoEntities(ImmutableSet.of(hostInfo));
+    hostGroupEntity.setName(hostGroupName);
+
+    TopologyRequestEntity topologyRequestEntity = new TopologyRequestEntity();
+    topologyRequestEntity.setTopologyHostGroupEntities(Collections.singleton(hostGroupEntity));
+
+    Set<TopologyHostRequestEntity> hostRequests = new HashSet<>();
+    for (long i = 0; i < hostCount; ++i) {
+      TopologyHostRequestEntity hostRequestEntity = new TopologyHostRequestEntity();
+      hostRequestEntity.setId(i);
+      hostRequestEntity.setTopologyHostGroupEntity(hostGroupEntity);
+      hostRequestEntity.setTopologyHostTaskEntities(Collections.emptySet());
+      hostRequests.add(hostRequestEntity);
+    }
+
+    expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).anyTimes();
+    expect(logicalRequestEntity.getTopologyHostRequestEntities()).andReturn(hostRequests).anyTimes();
+    expect(blueprint.getHostGroup(eq(hostGroupEntity.getName()))).andReturn(hostGroup1).anyTimes();
+    expect(hostGroup1.containsMasterComponent()).andReturn(false).anyTimes();
+
+    replayAll();
+
+    return new LogicalRequest(1L, replayedTopologyRequest, clusterTopology, logicalRequestEntity);
   }
 }

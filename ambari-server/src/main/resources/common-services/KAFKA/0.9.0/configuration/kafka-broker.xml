@@ -126,7 +126,7 @@
   </property>
   <property>
     <name>delete.topic.enable</name>
-    <value>false</value>
+    <value>true</value>
     <description>Enables delete topic. Delete topic through the admin tool will have no effect if this config is turned off</description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -138,7 +138,7 @@
   </property>
   <property>
     <name>external.kafka.metrics.exclude.prefix</name>
-    <value>kafka.network.RequestMetrics,kafka.server.DelayedOperationPurgatory,kafka.server.BrokerTopicMetrics.BytesRejectedPerSec</value>
+    <value>kafka.network.RequestMetrics,kafka.server.DelayedOperationPurgatory,kafka.server.BrokerTopicMetrics.BytesRejectedPerSec,kafka.server.KafkaServer.ClusterId</value>
     <description>
       Exclude metrics starting with these prefixes from being collected.
     </description>

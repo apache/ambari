@@ -24,7 +24,7 @@ import status_params
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions import conf_select, stack_select
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
@@ -53,6 +53,7 @@ stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 
@@ -198,7 +199,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 # livy for spark2 is only supported from HDP 2.6
 has_livyserver = False
 
-if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted):
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted) and "livy2-env" in config['configurations']:
   livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY2_SERVER")
   livy2_conf = format("{stack_root}/current/{livy2_component_directory}/conf")
   livy2_log_dir = config['configurations']['livy2-env']['livy2_log_dir']
@@ -229,6 +230,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, sta
     livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.launch.kerberos.principal']
 
   livy2_livyserver_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
+  livy2_http_scheme = 'https' if 'livy.keystore' in config['configurations']['livy2-conf'] else 'http'
 
   # ats 1.5 properties
   entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']

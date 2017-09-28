@@ -59,7 +59,7 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
       invalidConfigTypes.removeAll(configTypeIntersection);
 
       LOGGER.error("The following config typess are wrong: {}", invalidConfigTypes);
-      throw new InvalidTopologyException("The following configuration types are invalid: " + invalidConfigTypes.toString());
+      throw new InvalidTopologyException("The following configuration types are invalid: " + invalidConfigTypes);
     }
   }
 }

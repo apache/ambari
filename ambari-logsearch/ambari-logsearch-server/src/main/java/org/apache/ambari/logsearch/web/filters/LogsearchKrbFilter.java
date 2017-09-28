@@ -150,13 +150,13 @@ public class LogsearchKrbFilter implements Filter {
         * 1000; //10 hours
     initializeSecretProvider(filterConfig);
 
-    initializeAuthHandler(authHandlerClassName, filterConfig);
+    initializeAuthHandler(authHandlerClassName);
 
     cookieDomain = config.getProperty(COOKIE_DOMAIN, null);
     cookiePath = config.getProperty(COOKIE_PATH, null);
   }
 
-  protected void initializeAuthHandler(String authHandlerClassName, FilterConfig filterConfig)
+  private void initializeAuthHandler(String authHandlerClassName)
       throws ServletException {
     try {
       Class<?> klass = Thread.currentThread().getContextClassLoader().loadClass(authHandlerClassName);
@@ -168,7 +168,7 @@ public class LogsearchKrbFilter implements Filter {
     }
   }
 
-  protected void initializeSecretProvider(FilterConfig filterConfig)
+  private void initializeSecretProvider(FilterConfig filterConfig)
       throws ServletException {
     secretProvider = (SignerSecretProvider) filterConfig.getServletContext().
         getAttribute(SIGNER_SECRET_PROVIDER_ATTRIBUTE);
@@ -184,20 +184,20 @@ public class LogsearchKrbFilter implements Filter {
     signer = new Signer(secretProvider);
   }
 
-  public static SignerSecretProvider constructSecretProvider(
+  private static SignerSecretProvider constructSecretProvider(
       ServletContext ctx, Properties config,
       	boolean disallowFallbackToRandomSecretProvider) throws Exception {
     long validity = Long.parseLong(config.getProperty(AUTH_TOKEN_VALIDITY,
         "36000")) * 1000;
 
-		String name = config.getProperty(SIGNER_SECRET_PROVIDER);
-		if (StringUtils.isEmpty(name)) {
-			if (!disallowFallbackToRandomSecretProvider) {
-				name = "random";
-			} else {
-				name = "file";
-			}
-		}
+    String name = config.getProperty(SIGNER_SECRET_PROVIDER);
+    if (StringUtils.isEmpty(name)) {
+      if (!disallowFallbackToRandomSecretProvider) {
+        name = "random";
+      } else {
+        name = "file";
+      }
+    }
 
     SignerSecretProvider provider;
     if ("file".equals(name)) {
@@ -263,7 +263,7 @@ public class LogsearchKrbFilter implements Filter {
    * @return if a custom implementation of a SignerSecretProvider is being used.
    */
   protected boolean isCustomSignerSecretProvider() {
-	Class<?> clazz = secretProvider != null ? secretProvider.getClass() : null;
+    Class<?> clazz = secretProvider != null ? secretProvider.getClass() : null;
     return clazz != FileSignerSecretProvider.class && clazz !=
         RandomSignerSecretProvider.class && clazz != ZKSignerSecretProvider
         .class;
@@ -327,16 +327,16 @@ public class LogsearchKrbFilter implements Filter {
   protected Properties getConfiguration(String configPrefix, FilterConfig filterConfig) throws ServletException {
     Properties props = new Properties();
     if(filterConfig != null){
-	    Enumeration<?> names = filterConfig.getInitParameterNames();
-	    if(names != null){
-		    while (names.hasMoreElements()) {
-		      String name = (String) names.nextElement();
-		      if (name != null && configPrefix != null && name.startsWith(configPrefix)) {
-		        String value = filterConfig.getInitParameter(name);
-		        props.put(name.substring(configPrefix.length()), value);
-		      }
-		    }
-	    }
+      Enumeration<?> names = filterConfig.getInitParameterNames();
+      if(names != null){
+        while (names.hasMoreElements()) {
+          String name = (String) names.nextElement();
+          if (name != null && configPrefix != null && name.startsWith(configPrefix)) {
+            String value = filterConfig.getInitParameter(name);
+            props.put(name.substring(configPrefix.length()), value);
+          }
+        }
+      }
     }
     return props;
   }
@@ -395,12 +395,12 @@ public class LogsearchKrbFilter implements Filter {
     if (tokenStr != null) {
       token = AuthenticationToken.parse(tokenStr);
       if(token != null){
-	      if (!token.getType().equals(authHandler.getType())) {
-        	throw new AuthenticationException("Invalid AuthenticationToken type");
-	      }
-	      if (token.isExpired()) {
-        	throw new AuthenticationException("AuthenticationToken expired");
-	      }
+        if (!token.getType().equals(authHandler.getType())) {
+          throw new AuthenticationException("Invalid AuthenticationToken type");
+        }
+        if (token.isExpired()) {
+          throw new AuthenticationException("AuthenticationToken expired"); 
+        }
       }
     }
     return token;
@@ -434,7 +434,7 @@ public class LogsearchKrbFilter implements Filter {
         token = getToken(httpRequest);
       }
       catch (AuthenticationException ex) {
-    	ex.printStackTrace();
+        ex.printStackTrace();
         logger.warn("AuthenticationToken ignored: " + ex.getMessage());
         // will be sent back in a 401 unless filter authenticates
         authenticationEx = ex;
@@ -546,7 +546,7 @@ public class LogsearchKrbFilter implements Filter {
    * because of the fact that Hadoop is stuck at servlet 2.5 and jetty 6
    * right now.
    */
-  public static void createAuthCookie(HttpServletResponse resp, String token,
+  private static void createAuthCookie(HttpServletResponse resp, String token,
                                       String domain, String path, long expires,
                                       boolean isSecure) {
     StringBuilder sb = new StringBuilder(AuthenticatedURL.AUTH_COOKIE)

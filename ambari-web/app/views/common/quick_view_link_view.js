@@ -39,6 +39,11 @@ App.QuickLinksView = Em.View.extend({
   showQuickLinks: false,
 
   /**
+   * @type {boolean}
+   */
+  showNoLinks: false,
+
+  /**
    * @type {string}
    */
   quickLinksErrorMessage: '',
@@ -187,7 +192,7 @@ App.QuickLinksView = Em.View.extend({
     if (!Em.isNone(quickLinksConfig)) {
       var protocolConfig = Em.get(quickLinksConfig, 'protocol');
       var checks = Em.get(protocolConfig, 'checks');
-      var sites = ['core-site', 'hdfs-site'];
+      var sites = ['core-site', 'hdfs-site', 'admin-properties'];
       if (checks) {
         checks.forEach(function (check) {
           var protocolConfigSiteProp = Em.get(check, 'site');
@@ -211,6 +216,9 @@ App.QuickLinksView = Em.View.extend({
         this.set('requiredSiteNames', this.get('requiredSiteNames').pushObjects(sites).uniq());
         this.setQuickLinks();
       }
+    } else {
+      this.set('showNoLinks', true);
+
     }
   },
 
@@ -260,7 +268,11 @@ App.QuickLinksView = Em.View.extend({
     // no need to set quicklinks if
     // 1)current service does not have quick links configured
     // 2)No host component present for the configured quicklinks
-    this.set('showQuickLinks', hasQuickLinks && hasHosts);
+    if(hasQuickLinks && hasHosts) {
+      this.set('showQuickLinks', true);
+    } else {
+      this.set('showNoLinks', true);
+    }
 
     var isMultipleComponentsInLinks = componentNames.uniq().length > 1;
 
@@ -359,6 +371,11 @@ App.QuickLinksView = Em.View.extend({
           host = hostObj.Hosts.public_host_name;
         }
       }
+    } else if (serviceName === 'RANGER') {
+      var siteConfigs = this.get('configProperties').findProperty('type', 'admin-properties').properties;
+      if (siteConfigs['policymgr_external_url']) {
+        host = siteConfigs['policymgr_external_url'].split('://')[1].split(':')[0];
+      }
     }
 
     var linkPort = this.setPort(Em.get(link, 'port'), protocol, configProperties);
@@ -404,24 +421,20 @@ App.QuickLinksView = Em.View.extend({
       var quickLinks = [];
       var configProperties = this.get('configProperties');
       var protocol = this.setProtocol(configProperties, quickLinksConfig.get('protocol'));
-      var publicHostName = hosts[0].publicHostName;
 
       var links = Em.get(quickLinksConfig, 'links');
       links.forEach(function (link) {
         var componentName = link.component_name;
         var hostNameForComponent = hosts.findProperty('componentName',componentName);
         if (hostNameForComponent) {
-            publicHostName = hostNameForComponent.publicHostName;
+          var publicHostName = hostNameForComponent.publicHostName;
           if (link.protocol) {
             protocol = this.setProtocol(configProperties, link.protocol);
           }
-        }
-        if (componentName && !hostNameForComponent) {
-          return;
-        }
-        var newItem = this.getHostLink(link, publicHostName, protocol, configProperties, response); //quicklink generated for the hbs template
-        if (!Em.isNone(newItem)) {
-          quickLinks.push(newItem);
+          var newItem = this.getHostLink(link, publicHostName, protocol, configProperties, response); //quicklink generated for the hbs template
+          if (!Em.isNone(newItem)) {
+            quickLinks.push(newItem);
+          }
         }
       }, this);
       this.set('quickLinks', quickLinks);
@@ -637,9 +650,6 @@ App.QuickLinksView = Em.View.extend({
             }
           default:
             hosts = hosts.concat(componentHosts);
-            if(hosts.length < 1 && this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
-              hosts = this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);
-            }
             break;
         }
       }, this);
@@ -787,6 +797,12 @@ App.QuickLinksView = Em.View.extend({
     }
 
     var regexValue = Em.get(portConfigs, 'regex');
+    if (protocol === 'https') {
+      var httpsRegex = Em.get(portConfigs, 'https_regex');
+      if (httpsRegex) {
+        regexValue = httpsRegex;
+      }
+    }
     regexValue = regexValue.trim();
     if (regexValue) {
       var re = new RegExp(regexValue);

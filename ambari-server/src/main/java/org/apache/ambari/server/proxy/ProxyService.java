@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -41,6 +41,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.view.ImpersonatorSettingImpl;
 import org.slf4j.Logger;
@@ -66,24 +67,24 @@ public class ProxyService {
 
   private final static Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 
-  @GET
+  @GET @ApiIgnore // until documented
   public Response processGetRequestForwarding(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(REQUEST_TYPE_GET, ui, null, headers);
   }
 
-  @POST
+  @POST @ApiIgnore // until documented
   @Consumes({MediaType.WILDCARD, MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON})
   public Response processPostRequestForwarding(InputStream body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(REQUEST_TYPE_POST, ui, body, headers);
   }
 
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Consumes({MediaType.WILDCARD, MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON})
   public Response processPutRequestForwarding(InputStream body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(REQUEST_TYPE_PUT, ui, body, headers);
   }
 
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   public Response processDeleteRequestForwarding(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(REQUEST_TYPE_DELETE, ui, null, headers);
   }

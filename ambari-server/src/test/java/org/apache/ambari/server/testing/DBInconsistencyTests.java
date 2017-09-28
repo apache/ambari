@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -56,7 +56,7 @@ import com.google.inject.persist.PersistService;
 
 public class DBInconsistencyTests {
 
-  private static Logger LOG = LoggerFactory.getLogger(DBInconsistencyTests.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DBInconsistencyTests.class);
 
   @Inject
   private Injector injector;
@@ -98,6 +98,8 @@ public class DBInconsistencyTests {
     Assert.assertNotNull(cluster);
 
     helper.addHost(clusters, cluster, "h1");
+
+    helper.initializeClusterWithStack(cluster);
 
     helper.installHdfsService(cluster, serviceFactory,
       serviceComponentFactory, serviceComponentHostFactory, "h1");

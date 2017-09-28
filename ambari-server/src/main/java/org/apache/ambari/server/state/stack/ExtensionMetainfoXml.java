@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -76,6 +76,9 @@ public class ExtensionMetainfoXml implements Validable{
 
   @XmlTransient
   private boolean valid = true;
+
+  @XmlElement(name="auto-link")
+  private boolean autoLink = false;
 
   /**
    *
@@ -199,6 +202,14 @@ public class ExtensionMetainfoXml implements Validable{
     public String getVersion() {
       return version;
     }
+  }
+
+  public boolean isAutoLink() {
+    return autoLink;
+  }
+
+  public void setAutoLink(boolean autoLink) {
+    this.autoLink = autoLink;
   }
 
 }

@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 from ambari_commons import OSCheck
+from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -26,6 +27,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.default import default
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 import status_params
 
@@ -50,10 +52,14 @@ stack_name = default("/clusterLevelParams/stack_name", None)
 # stack version
 stack_version = default("/commandParams/version", None)
 
+# un-formatted stack version
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
+
 # default role to coordinator needed for service checks
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "DRUID_COORDINATOR")
 
 hostname = config['agentLevelParams']['hostname']
+sudo = AMBARI_SUDO_BINARY
 
 # default druid parameters
 druid_home = format("{stack_root}/current/{component_directory}")
@@ -125,6 +131,7 @@ hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 dfs_type = default("/commandParams/dfs_type", "")
+hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 
 # Kerberos
 druid_principal_name = default('/configurations/druid-common/druid.hadoop.security.kerberos.principal',
@@ -185,47 +192,9 @@ if has_metric_collector:
         metric_collector_protocol = 'http'
     pass
 
-superset_home_dir = format("{stack_root}/current/druid-superset")
-superset_bin_dir = format("{superset_home_dir}/bin")
-superset_log_dir = default("/configurations/druid-superset-env/superset_log_dir", '/var/log/superset')
-superset_pid_dir = status_params.superset_pid_dir
-superset_config_dir = '/etc/superset/conf'
-superset_admin_user = config['configurations']['druid-superset-env']['superset_admin_user']
-superset_admin_password = config['configurations']['druid-superset-env']['superset_admin_password']
-superset_admin_firstname = config['configurations']['druid-superset-env']['superset_admin_firstname']
-superset_admin_lastname = config['configurations']['druid-superset-env']['superset_admin_lastname']
-superset_admin_email = config['configurations']['druid-superset-env']['superset_admin_email']
-superset_env_sh_template = config['configurations']['druid-superset-env']['content']
-superset_protocol = "http"
-superset_webserver_address=config['configurations']['druid-superset']['SUPERSET_WEBSERVER_ADDRESS']
-superset_webserver_port = config['configurations']['druid-superset']['SUPERSET_WEBSERVER_PORT']
-superset_timeout = config['configurations']['druid-superset']['SUPERSET_TIMEOUT']
-superset_workers =  config['configurations']['druid-superset']['SUPERSET_WORKERS']
-superset_hosts = default('/clusterHostInfo/superset_hosts', None)
-
-# superset database configs
-superset_db_type = config['configurations']['druid-superset']['SUPERSET_DATABASE_TYPE']
-superset_db_name = config['configurations']['druid-superset']['SUPERSET_DATABASE_NAME']
-superset_db_password = config['configurations']['druid-superset']['SUPERSET_DATABASE_PASSWORD']
-superset_db_user = config['configurations']['druid-superset']['SUPERSET_DATABASE_USER']
-superset_db_port = config['configurations']['druid-superset']['SUPERSET_DATABASE_PORT']
-superset_db_host = config['configurations']['druid-superset']['SUPERSET_DATABASE_HOSTNAME']
-
-superset_db_uri = None
-if superset_db_type == "sqlite":
-  superset_db_uri = format("sqlite:///{superset_config_dir}/{superset_db_name}.db")
-elif superset_db_type == "postgresql":
-  superset_db_uri = format("postgresql+pygresql://{superset_db_user}:{superset_db_password}@{superset_db_host}:{superset_db_port}/{superset_db_name}")
-elif superset_db_type == "mysql":
-  superset_db_uri = format("mysql+pymysql://{superset_db_user}:{superset_db_password}@{superset_db_host}:{superset_db_port}/{superset_db_name}")
-
-druid_coordinator_hosts = default("/clusterHostInfo/druid_coordinator_hosts", [])
-druid_coordinator_host = ""
-if not len(druid_coordinator_hosts) == 0:
-  druid_coordinator_host = druid_coordinator_hosts[0]
-druid_router_hosts = default("/clusterHostInfo/druid_router_hosts", [])
-druid_router_host = ""
-if not len(druid_router_hosts) == 0:
-  druid_router_host = druid_router_hosts[0]
-druid_coordinator_port = config['configurations']['druid-coordinator']['druid.port']
-druid_router_port = config['configurations']['druid-router']['druid.port']
+# Create current Hadoop Clients  Libs
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
+io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
+lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
+lzo_packages = get_lzo_packages(stack_version_unformatted)
+hadoop_lib_home = stack_root + '/' + stack_version + '/hadoop/lib'

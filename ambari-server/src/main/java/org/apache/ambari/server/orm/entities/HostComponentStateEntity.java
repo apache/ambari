@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,11 +30,9 @@ import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 
@@ -67,7 +65,12 @@ import com.google.common.base.Objects;
         query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostEntity.hostName=:hostName"),
     @NamedQuery(
         name = "HostComponentStateEntity.findByIndex",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId AND hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostId=:hostId") })
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId AND hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostId=:hostId"),
+    @NamedQuery(
+        name = "HostComponentStateEntity.findByServiceAndComponentAndNotVersion",
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.version != :version")
+})
+
 public class HostComponentStateEntity {
 
   @Id
@@ -100,17 +103,6 @@ public class HostComponentStateEntity {
   @Enumerated(value = EnumType.STRING)
   @Column(name = "upgrade_state", nullable = false, insertable = true, updatable = true)
   private UpgradeState upgradeState = UpgradeState.NONE;
-
-  @Enumerated(value = EnumType.STRING)
-  @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
-  private SecurityState securityState = SecurityState.UNSECURED;
-
-  /**
-   * Unidirectional one-to-one association to {@link StackEntity}
-   */
-  @OneToOne
-  @JoinColumn(name = "current_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
-  private StackEntity currentStack;
 
   @ManyToOne
   @JoinColumns({
@@ -167,28 +159,12 @@ public class HostComponentStateEntity {
     this.currentState = currentState;
   }
 
-  public SecurityState getSecurityState() {
-    return securityState;
-  }
-
-  public void setSecurityState(SecurityState securityState) {
-    this.securityState = securityState;
-  }
-
   public UpgradeState getUpgradeState() {
     return upgradeState;
   }
 
   public void setUpgradeState(UpgradeState upgradeState) {
     this.upgradeState = upgradeState;
-  }
-
-  public StackEntity getCurrentStack() {
-    return currentStack;
-  }
-
-  public void setCurrentStack(StackEntity currentStack) {
-    this.currentStack = currentStack;
   }
 
   public String getVersion() {
@@ -221,11 +197,6 @@ public class HostComponentStateEntity {
 
     if (componentName != null ? !componentName.equals(that.componentName)
         : that.componentName != null) {
-      return false;
-    }
-
-    if (currentStack != null ? !currentStack.equals(that.currentStack)
-        : that.currentStack != null) {
       return false;
     }
 
@@ -262,7 +233,6 @@ public class HostComponentStateEntity {
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);
-    result = 31 * result + (currentStack != null ? currentStack.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
     return result;

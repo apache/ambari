@@ -19,7 +19,6 @@
 
 package org.apache.ambari.logfeeder.metrics;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +33,6 @@ public class MetricsManager {
   private static final Logger LOG = Logger.getLogger(MetricsManager.class);
 
   private boolean isMetricsEnabled = false;
-  private String nodeHostName = null;
   private String appId = "logfeeder";
 
   private long lastPublishTimeMS = 0; // Let's do the first publish immediately
@@ -50,8 +48,7 @@ public class MetricsManager {
     amsClient = new LogFeederAMSClient();
 
     if (amsClient.getCollectorUri(null) != null) {
-      findNodeHostName();
-      if (nodeHostName == null) {
+      if (LogFeederUtil.hostName == null) {
         isMetricsEnabled = false;
         LOG.error("Failed getting hostname for node. Disabling publishing LogFeeder metrics");
       } else {
@@ -60,24 +57,6 @@ public class MetricsManager {
       }
     } else {
       LOG.info("LogFeeder Metrics publish is disabled");
-    }
-  }
-
-  private void findNodeHostName() {
-    nodeHostName = LogFeederUtil.getStringProperty("node.hostname");
-    if (nodeHostName == null) {
-      try {
-        nodeHostName = InetAddress.getLocalHost().getHostName();
-      } catch (Throwable e) {
-        LOG.warn("Error getting hostname using InetAddress.getLocalHost().getHostName()", e);
-      }
-    }
-    if (nodeHostName == null) {
-      try {
-        nodeHostName = InetAddress.getLocalHost().getCanonicalHostName();
-      } catch (Throwable e) {
-        LOG.warn("Error getting hostname using InetAddress.getLocalHost().getCanonicalHostName()", e);
-      }
     }
   }
 
@@ -117,7 +96,7 @@ public class MetricsManager {
         LOG.debug("Creating new metric obbject for " + metric.metricsName);
         timelineMetric = new TimelineMetric();
         timelineMetric.setMetricName(metric.metricsName);
-        timelineMetric.setHostName(nodeHostName);
+        timelineMetric.setHostName(LogFeederUtil.hostName);
         timelineMetric.setAppId(appId);
         timelineMetric.setStartTime(currMS);
         timelineMetric.setType("Long");

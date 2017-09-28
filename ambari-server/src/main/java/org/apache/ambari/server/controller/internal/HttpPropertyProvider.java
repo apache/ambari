@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -48,6 +48,7 @@ public class HttpPropertyProvider extends BaseProvider implements PropertyProvid
   private final StreamProvider streamProvider;
   private final String clusterNamePropertyId;
   private final String hostNamePropertyId;
+  private final String publicHostNamePropertyId;
   private final String componentNamePropertyId;
   private final Clusters clusters;
   private final Map<String, List<HttpPropertyRequest>> httpPropertyRequests;
@@ -60,6 +61,7 @@ public class HttpPropertyProvider extends BaseProvider implements PropertyProvid
       Clusters clusters,
       String clusterNamePropertyId,
       String hostNamePropertyId,
+      String publicHostNamePropertyId,
       String componentNamePropertyId,
       Map<String, List<HttpPropertyRequest>> httpPropertyRequests) {
 
@@ -67,6 +69,7 @@ public class HttpPropertyProvider extends BaseProvider implements PropertyProvid
     this.streamProvider = stream;
     this.clusterNamePropertyId = clusterNamePropertyId;
     this.hostNamePropertyId = hostNamePropertyId;
+    this.publicHostNamePropertyId = publicHostNamePropertyId;
     this.componentNamePropertyId = componentNamePropertyId;
     this.clusters = clusters;
     this.httpPropertyRequests = httpPropertyRequests;
@@ -103,6 +106,7 @@ public class HttpPropertyProvider extends BaseProvider implements PropertyProvid
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
       String hostName = (String) resource.getPropertyValue(hostNamePropertyId);
+      String publicHostName = (String) resource.getPropertyValue(publicHostNamePropertyId);
       String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
 
       if (clusterName != null && hostName != null && componentName != null &&
@@ -114,7 +118,7 @@ public class HttpPropertyProvider extends BaseProvider implements PropertyProvid
           List<HttpPropertyRequest> httpPropertyRequestList = httpPropertyRequests.get(componentName);
 
           for (HttpPropertyRequest httpPropertyRequest : httpPropertyRequestList) {
-            populateResource(httpPropertyRequest, resource, cluster, hostName);
+            populateResource(httpPropertyRequest, resource, cluster, hostName, publicHostName);
           }
         } catch (AmbariException e) {
           String msg = String.format("Could not load cluster with name %s.", clusterName);
@@ -128,7 +132,7 @@ public class HttpPropertyProvider extends BaseProvider implements PropertyProvid
 
   // populate the given resource from the given HTTP property request.
   private void populateResource(HttpPropertyRequest httpPropertyRequest, Resource resource,
-                                Cluster cluster, String hostName) throws SystemException {
+                                Cluster cluster, String hostName, String publicHostName) throws SystemException {
 
     String url = httpPropertyRequest.getUrl(cluster, hostName);
 
@@ -146,6 +150,25 @@ public class HttpPropertyProvider extends BaseProvider implements PropertyProvid
       }
     } catch (Exception e) {
       LOG.debug(String.format("Error reading HTTP response from %s", url), e);
+      if(publicHostName != null && !publicHostName.equalsIgnoreCase(hostName)) {
+        String publicUrl = httpPropertyRequest.getUrl(cluster, publicHostName);
+        LOG.debug(String.format("Retry using public host name url %s", publicUrl));
+        try {
+          InputStream inputStream = streamProvider.readFrom(publicUrl);
+
+          try {
+            httpPropertyRequest.populateResource(resource, inputStream);
+          } finally {
+            try {
+              inputStream.close();
+            } catch (IOException ioe) {
+              LOG.error(String.format("Error closing HTTP response stream %s", url), ioe);
+            }
+          }
+        } catch (Exception ex) {
+          LOG.debug(String.format("Error reading HTTP response from public host name url %s", url), ex);
+        }
+      }
     }
   }
 

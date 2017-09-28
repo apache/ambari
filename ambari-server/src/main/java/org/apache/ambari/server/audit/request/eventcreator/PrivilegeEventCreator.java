@@ -133,7 +133,7 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
         String role = String.valueOf(propertyMap.get(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
         String name = String.valueOf(propertyMap.get(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
         if (!entities.containsKey(role)) {
-          entities.put(role, new LinkedList<String>());
+          entities.put(role, new LinkedList<>());
         }
 
         entities.get(role).add(name);

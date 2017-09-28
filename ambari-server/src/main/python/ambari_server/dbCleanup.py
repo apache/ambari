@@ -37,7 +37,7 @@ DB_CLEANUP_CMD = "{0} -cp {1} org.apache.ambari.server.cleanup.CleanupDriver --c
 #
 # Run the db cleanup process
 #
-def run_db_cleanup(options):
+def run_db_purge(options):
 
     if validate_args(options):
         return 1
@@ -50,18 +50,18 @@ def run_db_cleanup(options):
       confirmBackup = get_YN_input("Ambari Server configured for {0}. Confirm you have made a backup of the Ambari Server database [y/n]".format(
               db_title), True)
       if not confirmBackup:
-          print_info_msg("Ambari Server Database cleanup aborted")
+          print_info_msg("Ambari Server Database purge aborted")
           return 0
 
       if status:
-          print_error_msg("The database cleanup cannot proceed while Ambari Server is running. Please shut down Ambari first.")
+          print_error_msg("The database purge historical data cannot proceed while Ambari Server is running. Please shut down Ambari first.")
           return 1
 
       confirm = get_YN_input(
-          "Ambari server is using db type {0}. Cleanable database entries older than {1} will be cleaned up. Proceed [y/n]".format(
-              db_title, options.cleanup_from_date), True)
+          "Ambari server is using db type {0}. Cleanable database entries older than {1} will be purged. Proceed [y/n]".format(
+              db_title, options.purge_from_date), True)
       if not confirm:
-          print_info_msg("Ambari Server Database cleanup aborted")
+          print_info_msg("Ambari Server Database purge aborted")
           return 0
 
 
@@ -81,31 +81,31 @@ def run_db_cleanup(options):
     current_user = ensure_can_start_under_current_user(ambari_user)
     environ = generate_env(options, ambari_user, current_user)
 
-    print "Cleaning up the database ..."
-    command = DB_CLEANUP_CMD.format(jdk_path, class_path, options.cluster_name, options.cleanup_from_date)
+    print "Purging historical data from the database ..."
+    command = DB_CLEANUP_CMD.format(jdk_path, class_path, options.cluster_name, options.purge_from_date)
     (retcode, stdout, stderr) = run_os_command(command, env=environ)
 
     print_info_msg("Return code from database cleanup command, retcode = " + str(retcode))
 
     if stdout:
-        print "Console output from database cleanup command:"
+        print "Console output from database purge-history command:"
         print stdout
         print
     if stderr:
-        print "Error output from database cleanup command:"
+        print "Error output from database purge-history command:"
         print stderr
         print
     if retcode > 0:
-        print_error_msg("Error wncountered while cleaning up the Ambari Server Database. Check the ambari-server.log for details.")
+        print_error_msg("Error encountered while purging the Ambari Server Database. Check the ambari-server.log for details.")
     else:
-        print "Cleanup completed. Check the ambari-server.log for details."
+        print "Purging historical data completed. Check the ambari-server.log for details."
     return retcode
 
 #
-# Database cleanup
+# Database purge
 #
-def db_cleanup(options):
-    return run_db_cleanup(options)
+def db_purge(options):
+    return run_db_purge(options)
 
 
 def validate_args(options):
@@ -113,12 +113,12 @@ def validate_args(options):
         print_error_msg("Please provide the --cluster-name argument.")
         return 1
 
-    if not options.cleanup_from_date:
+    if not options.purge_from_date:
         print_error_msg("Please provide the --from-date argument.")
         return 1
 
     try:
-        datetime.datetime.strptime(options.cleanup_from_date, "%Y-%m-%d")
+        datetime.datetime.strptime(options.purge_from_date, "%Y-%m-%d")
     except ValueError as e:
         print_error_msg("The --from-date argument has an invalid format. {0}".format(e.args[0]))
         return 1;

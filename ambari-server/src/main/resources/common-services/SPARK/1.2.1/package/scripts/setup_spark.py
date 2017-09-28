@@ -118,11 +118,11 @@ def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
       mode=0644
     )
 
-  effective_version = params.version if upgrade_type is not None else params.stack_version_formatted
+  effective_version = params.version if upgrade_type is not None else params.version_for_stack_feature_checks
   if effective_version:
     effective_version = format_stack_version(effective_version)
 
-  if effective_version and check_stack_feature(StackFeature.SPARK_JAVA_OPTS_SUPPORT, effective_version):
+  if check_stack_feature(StackFeature.SPARK_JAVA_OPTS_SUPPORT, effective_version):
     File(os.path.join(params.spark_conf, 'java-opts'),
       owner=params.spark_user,
       group=params.spark_group,
@@ -134,7 +134,7 @@ def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
       action="delete"
     )
 
-  if params.spark_thrift_fairscheduler_content and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
+  if params.spark_thrift_fairscheduler_content and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
     # create spark-thrift-fairscheduler.xml
     File(os.path.join(config_dir,"spark-thrift-fairscheduler.xml"),
       owner=params.spark_user,

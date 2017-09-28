@@ -19,16 +19,27 @@
 <div class="cluster-metrics">
   <ul class="list-unstyled">
     <li class="img-thumbnail row">
-      <a {{bindAttr class=":corner-icon :col-md-1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
-          <i class="glyphicon-remove-sign glyphicon glyphicon-large"></i>
-      </a>
       <div class="caption col-md-10">{{view.title}}</div>
+      <div class="corner-icon col-md-1">
+        <button class="dropdown-toggle ellipsis-menu button-border" data-toggle="dropdown" href="#"></button>
+        <ul class="dropdown-menu">
+          <li>
+            <button type="button" href="#" {{bindAttr class="view.isExportButtonHidden:hidden :button-border"}}
+              {{action exportGraphData view.exportToCSVArgument target="view"}}>
+              <i class="icon-file-text"></i>&nbsp;{{t common.csv}}</button>
+          </li>
+          <li>
+            <button type="button" href="#" {{bindAttr class="view.isExportButtonHidden:hidden :button-border"}}
+              {{action exportGraphData target="view"}}><i class="icon-file-text-alt"></i>&nbsp;{{t common.json}}</button>
+          </li>
+          <li><button type="button" href="#" class="button-border"
+            {{action deleteWidget target="view"}}>
+            <i class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
+          </li>
+        </ul>
+      </div>
       {{#if view.isDataLoaded}}
         {{#if view.childViews.lastObject.hasData}}
-          <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :col-md-1"}} href="#" {{action toggleFormatsList target="view"}}>
-            <i class="glyphicon glyphicon-save"></i>
-          </a>
-          {{view view.exportMetricsMenuView}}
         {{/if}}
       {{/if}}
 

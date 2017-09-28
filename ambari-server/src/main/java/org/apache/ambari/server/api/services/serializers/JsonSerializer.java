@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -191,8 +191,7 @@ public class JsonSerializer implements ResultSerializer {
   }
 
   private TreeNode<Map<String, Object>> getTreeProperties (Map<String, Map<String, Object>> propertiesMap) {
-    TreeNode<Map<String, Object>> treeProperties =
-        new TreeNodeImpl<Map<String, Object>>(null, new LinkedHashMap<String, Object>(), null);
+    TreeNode<Map<String, Object>> treeProperties = new TreeNodeImpl<>(null, new LinkedHashMap<>(), null);
 
     for (Map.Entry<String, Map<String, Object>> entry : propertiesMap.entrySet()) {
       String category = entry.getKey();
@@ -207,7 +206,7 @@ public class JsonSerializer implements ResultSerializer {
           for (String t : tokens) {
             TreeNode<Map<String, Object>> child = node.getChild(t);
             if (child == null) {
-              child = node.addChild(new LinkedHashMap<String, Object>(), t);
+              child = node.addChild(new LinkedHashMap<>(), t);
             }
             node = child;
           }

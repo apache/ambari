@@ -43,6 +43,13 @@ dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
 #decomission
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
+include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)
+hdfs_include_file = None
+manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+  hdfs_include_file = slave_hosts
+update_files_only = default("/commandParams/update_files_only",False)
 # HDFS High Availability properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.internal.nameservices", None)

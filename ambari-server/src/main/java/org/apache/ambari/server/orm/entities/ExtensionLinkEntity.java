@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,6 +42,7 @@ import javax.persistence.UniqueConstraint;
 @TableGenerator(name = "link_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "link_id_seq", initialValue = 0)
 @NamedQueries({
     @NamedQuery(name = "ExtensionLinkEntity.findAll", query = "SELECT link FROM ExtensionLinkEntity link"),
+    @NamedQuery(name = "ExtensionLinkEntity.findByStackAndExtensionName", query = "SELECT link FROM ExtensionLinkEntity link WHERE link.stack.stackName = :stackName AND link.stack.stackVersion = :stackVersion AND link.extension.extensionName = :extensionName"),
     @NamedQuery(name = "ExtensionLinkEntity.findByStackAndExtension", query = "SELECT link FROM ExtensionLinkEntity link WHERE link.stack.stackName = :stackName AND link.stack.stackVersion = :stackVersion AND link.extension.extensionName = :extensionName AND link.extension.extensionVersion = :extensionVersion"),
     @NamedQuery(name = "ExtensionLinkEntity.findByStack", query = "SELECT link FROM ExtensionLinkEntity link WHERE link.stack.stackName = :stackName AND link.stack.stackVersion = :stackVersion"),
     @NamedQuery(name = "ExtensionLinkEntity.findByExtension", query = "SELECT link FROM ExtensionLinkEntity link WHERE link.extension.extensionName = :extensionName AND link.extension.extensionVersion = :extensionVersion") })

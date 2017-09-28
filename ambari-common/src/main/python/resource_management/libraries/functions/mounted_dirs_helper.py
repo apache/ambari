@@ -115,6 +115,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
   dirs_unmounted = set()         # set of dirs that have become unmounted
   valid_existing_dirs = []
 
+  dirs_string = dirs_string.replace("file:///","/")
   dirs_string = ",".join([re.sub(r'^\[.+\]', '', dfs_dir.strip()) for dfs_dir in dirs_string.split(",")])
   for dir in dirs_string.split(","):
     if dir is None or dir.strip() == "":

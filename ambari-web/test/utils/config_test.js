@@ -1469,7 +1469,7 @@ describe('App.config', function() {
       },
       {
         value: 'hive.metastore.local=false',
-        result: 'hive.metastore.local=false',
+        result: [],
         message: 'no hosts list'
       }
     ];

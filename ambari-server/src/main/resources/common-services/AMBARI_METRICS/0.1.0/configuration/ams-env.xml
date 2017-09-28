@@ -74,9 +74,13 @@
     <name>metrics_collector_heapsize</name>
     <value>512</value>
     <description>Metrics Collector Heap Size</description>
+    <display-name>Metrics Collector Heap Size</display-name>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
+      <minimum>512</minimum>
+      <maximum>16384</maximum>
+      <increment-step>256</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -97,6 +101,14 @@
     <description>
       Comma separated list of disk patterns to be ignored while collecting aggregate disk usage and counter metrics.
       For example, volume groups managed by docker can be ignored by using the pattern "dm-[0-9]+"
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation.jvm.arguments</name>
+    <value>-Xmx256m -Xms128m -XX:PermSize=68m</value>
+    <description>
+      Local aggregator jvm extra arguments separated with spaces
     </description>
     <on-ambari-upgrade add="true"/>
   </property>

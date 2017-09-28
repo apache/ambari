@@ -424,7 +424,7 @@ public class CredentialUtil extends Configured implements Tool {
           // prompt the user to confirm or reject the overwrite
           overwrite = ToolRunner
                   .confirmPrompt("You are about to OVERWRITE the credential " +
-                          alias + " from CredentialProvider " + provider.toString() +
+                          alias + " from CredentialProvider " + provider +
                           ". Continue? ");
         }
 

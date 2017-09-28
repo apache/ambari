@@ -80,7 +80,7 @@ App.WizardStep1View = Em.View.extend({
    *
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress'),
+  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete'),
 
   /**
    * Show warning message flag
@@ -202,10 +202,10 @@ App.WizardStep1View = Em.View.extend({
    * @type {bool}
    */
   isNoOsFilled: function () {
-    if (this.get('controller.selectedStack.useRedhatSatellite')) {
+    var operatingSystems = this.get('controller.selectedStack.operatingSystems');
+    if (this.get('controller.selectedStack.useRedhatSatellite') || Em.isNone(operatingSystems)) {
       return false;
     }
-    var operatingSystems = this.get('controller.selectedStack.operatingSystems');
     var selectedOS = operatingSystems.filterProperty('isSelected', true);
     return selectedOS.everyProperty('isNotFilled', true);
   }.property('controller.selectedStack.operatingSystems.@each.isSelected', 'controller.selectedStack.operatingSystems.@each.isNotFilled', 'controller.selectedStack.useRedhatSatellite'),

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -91,6 +91,21 @@ public class Grouping {
    */
   @XmlElement(name = "condition")
   public Condition condition;
+
+  /**
+   * @return {@code true} when the grouping is used to upgrade services and that it is
+   * appropriate to run service checks after orchestration.
+   */
+  public final boolean isProcessingGroup() {
+    return serviceCheckAfterProcessing();
+  }
+
+  /**
+   * Overridable function to indicate if full service checks can be run
+   */
+  protected boolean serviceCheckAfterProcessing() {
+    return true;
+  }
 
   /**
    * Gets the default builder.
@@ -251,7 +266,7 @@ public class Grouping {
       List<String> displays = new ArrayList<>();
       for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
-            service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+            service, "", Collections.emptySet(), new ServiceCheckTask()));
 
         displays.add(upgradeContext.getServiceDisplay(service));
       }
@@ -310,7 +325,7 @@ public class Grouping {
           type = StageWrapper.Type.SERVER_SIDE_ACTION;
           break;
         case EXECUTE:
-          type = StageWrapper.Type.RU_TASKS;
+          type = StageWrapper.Type.UPGRADE_TASKS;
           break;
         case CONFIGURE_FUNCTION:
           type = StageWrapper.Type.CONFIGURE;

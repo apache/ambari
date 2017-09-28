@@ -231,7 +231,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * make server call to stop services
    */
   stopRequiredServices: function () {
-    this.stopServices(this.get('wizardController.relatedServicesMap')[this.get('content.reassign.component_name')], true);
+    var componentName = this.get('content.reassign.component_name');
+    var servicesToStop = this.get('wizardController.relatedServicesMap')[componentName];
+    if (this.get('content.componentsToStopAllServices').contains(componentName)) {
+      this.stopServices(servicesToStop, true, true);
+    } else {
+      this.stopServices(servicesToStop, true);
+    }
   },
 
   createHostComponents: function () {

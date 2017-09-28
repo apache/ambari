@@ -60,6 +60,14 @@ App.BreadcrumbItem = Em.Object.extend({
   labelBindingPath: '',
 
   /**
+   * View shown as breadcrumb.
+   * If provied, <code>itemView</code> supersedes <code>label</code> and <code>labelBindingPath</code>.
+   *
+   * @type {object}
+   */
+  itemView: null,
+
+  /**
    * Determines if breadcrumb is disabled
    *
    * @type {boolean}
@@ -74,7 +82,16 @@ App.BreadcrumbItem = Em.Object.extend({
   isLast: false,
 
   /**
+   * Invoke this action when click on breadcrumb item
+   * If provided, <code>action</code> supersedes <code>route</code>.
+   *
+   * @type {Function}
+   */
+  action: null,
+
+  /**
    * Move user to this route when click on breadcrumb item (don't add prefix <code>main</code>)
+   * This is used if an action is not defined.
    *
    * @type {string}
    */
@@ -116,7 +133,12 @@ App.BreadcrumbItem = Em.Object.extend({
   },
 
   transition: function () {
-    return App.router.route('main/' + this.get('route'));
+    const action = this.get('action');
+    if (action) {
+      return action();
+    } else {
+      return App.router.route('main/' + this.get('route'));
+    }
   },
 
   /**

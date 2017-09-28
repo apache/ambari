@@ -41,6 +41,20 @@
   background-color: #999;
 }
 
+.nav-pills .service-alerts-critical {
+  font-size: 8px;
+  line-height: 1.7em;
+  margin-left: -12px;
+  color: @health-status-red;
+}
+
+.nav-pills .service-alerts-warning {
+  font-size: 8px;
+  line-height: 1.7em;
+  margin-left: -12px;
+  color: @health-status-orange;
+}
+
 .alert-state-single-host {
   display: inline-block;
   width: 115px;
@@ -104,14 +118,14 @@
   .col0,
   td:first-child,
   th:first-child {
-    width: 35%;
+    width: 15%;
 
   }
 
   .col1,
   td:first-child + td,
   th:first-child + th {
-    width: 15%;
+    width: 35%;
   }
 
   .col2,
@@ -361,9 +375,38 @@
 
 .service-block .summary-box-header {
   .alerts-crit-count, .alerts-warn-count, .no-alerts-label {
-    padding: 4px 5px;
-    margin: 4px;
-    font-size: 14px;
+    padding: 3px 5px;
+    font-size: 10px;
+    border-radius: 50%;
+    min-width: 16px;
+    height: 16px;
+    color: #ffffff;
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    top: -3px;
+  }
+  .glyphicon {
+    color: #999999;
+    cursor: pointer;
+    font-size: 16px;
+    top: 3px;
+    left: 4px;
+  }
+}
+
+.summary-value {
+  .alerts-crit-count, .alerts-warn-count, .no-alerts-label {
+    padding: 2px 3px 2px 3px;
+    font-size: 9px;
+    border-radius: 50%;
+    width: 13px;
+    height: 13px;
+    color: #ffffff;
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    top: -2px;
   }
 }
 
@@ -387,6 +430,30 @@
     .status-icon {
       padding-right: 5px;
       min-width: 20px;
+    }
+    .row {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+}
+
+.service-alerts-popup {
+  .modal {
+    .modal-dialog{
+      width: 800px;
+      .modal-content {
+        height: 500px;
+        .modal-body {
+          padding-left: 0;
+          padding-right: 0;
+          height: 70%;
+          font-size: 14px;
+          .definition-latest-text {
+            font-size: 12px;
+          }
+        }
+      }
     }
   }
 }

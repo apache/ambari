@@ -176,20 +176,9 @@ public class SchemaUpgradeHelper {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
-      catalogBinder.addBinding().to(UpgradeCatalog200.class);
-      catalogBinder.addBinding().to(UpgradeCatalog210.class);
-      catalogBinder.addBinding().to(UpgradeCatalog211.class);
-      catalogBinder.addBinding().to(UpgradeCatalog212.class);
-      catalogBinder.addBinding().to(UpgradeCatalog2121.class);
-      catalogBinder.addBinding().to(UpgradeCatalog220.class);
-      catalogBinder.addBinding().to(UpgradeCatalog221.class);
-      catalogBinder.addBinding().to(UpgradeCatalog222.class);
-      catalogBinder.addBinding().to(UpgradeCatalog230.class);
-      catalogBinder.addBinding().to(UpgradeCatalog240.class);
-      catalogBinder.addBinding().to(UpgradeCatalog2402.class);
-      catalogBinder.addBinding().to(UpgradeCatalog242.class);
-      catalogBinder.addBinding().to(UpgradeCatalog250.class);
       catalogBinder.addBinding().to(UpgradeCatalog251.class);
+      catalogBinder.addBinding().to(UpgradeCatalog252.class);
+      catalogBinder.addBinding().to(UpgradeCatalog260.class);
       catalogBinder.addBinding().to(UpgradeCatalog300.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 
@@ -402,7 +391,7 @@ public class SchemaUpgradeHelper {
       UpgradeCatalog targetUpgradeCatalog = AbstractUpgradeCatalog
         .getUpgradeCatalog(targetVersion);
 
-      LOG.debug("Target upgrade catalog. " + targetUpgradeCatalog);
+      LOG.debug("Target upgrade catalog. {}", targetUpgradeCatalog);
 
       // Read source version from DB
       String sourceVersion = schemaUpgradeHelper.readSourceVersion();

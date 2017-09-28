@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<html>
+<head>
+    <title>Infra Manager REST API</title>
+    <link rel="icon" type="image/png" href="swagger-ui/2.1.0/images/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="swagger-ui/2.1.0/images/favicon-16x16.png" sizes="16x16" />
+    <link href='swagger-ui/2.1.0/css/typography.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='swagger-ui/2.1.0/css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='swagger-ui/2.1.0/css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='swagger-ui/2.1.0/css/reset.css' media='print' rel='stylesheet' type='text/css'/>
+    <link href='swagger-ui/2.1.0/css/print.css' media='print' rel='stylesheet' type='text/css'/>
+    <script src='swagger-ui/2.1.0/lib/jquery-1.8.0.min.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/jquery.slideto.min.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/jquery.wiggle.min.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/handlebars-2.0.0.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/underscore-min.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/backbone-min.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/swagger-ui.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/highlight.7.3.pack.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/marked.js' type='text/javascript'></script>
+    <script src='swagger-ui/2.1.0/lib/swagger-oauth.js' type='text/javascript'></script>
+
+    <script type="text/javascript">
+        $(function () {
+            var url = window.location.search.match(/url=([^&]+)/);
+            if (url && url.length > 1) {
+                url = decodeURIComponent(url[1]);
+            } else {
+                var urlPrefix = location.protocol +'//'+ location.hostname+(location.port ? ':'+location.port: '');
+                url = urlPrefix + "/api/v1/swagger.yaml";
+            }
+            window.swaggerUi = new SwaggerUi({
+                url: url,
+                dom_id: "swagger-ui-container",
+                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+                onComplete: function(swaggerApi, swaggerUi){
+                    if(typeof initOAuth == "function") {
+                        initOAuth({
+                            clientId: "your-client-id",
+                            realm: "your-realms",
+                            appName: "your-app-name"
+                        });
+                    }
+
+                    $('pre code').each(function(i, e) {
+                        hljs.highlightBlock(e)
+                    });
+
+                    addApiKeyAuthorization();
+                },
+                onFailure: function(data) {
+                    log("Unable to Load SwaggerUI");
+                },
+                docExpansion: "none",
+                apisSorter: "alpha",
+                showRequestHeaders: false
+            });
+
+            function addApiKeyAuthorization(){
+                var username = encodeURIComponent($('#input_username')[0].value);
+                var password = encodeURIComponent($('#input_password')[0].value);
+                if (username && username.trim() != "" && password && password != "") {
+                    var apiKeyAuth = new SwaggerClient.PasswordAuthorization("Authorization", username, password);
+                    window.swaggerUi.api.clientAuthorizations.add("key", apiKeyAuth);
+                    log("added authorization header: " + 'Basic ' + btoa(username + ':' + password));
+                }
+            }
+
+            $('#input_username, #input_password').change(addApiKeyAuthorization);
+
+            window.swaggerUi.load();
+
+            function log() {
+                if ('console' in window) {
+                    console.log.apply(console, arguments);
+                }
+            }
+        });
+    </script>
+</head>
+
+<body class="swagger-section">
+<div id='header'>
+    <div class="swagger-ui-wrap">
+        <a id="logo" href="http://swagger.io">swagger</a>
+        <form id='api_selector'>
+            <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div>
+            <div class="input"><input placeholder="username" id="input_username" name="username" type="text" size="10"></div>
+            <div class="input"><input placeholder="password" id="input_password" name="password" type="password" size="10"></div>
+            <div class='input'><a id="explore" href="#">Explore</a></div>
+        </form>
+    </div>
+</div>
+
+<div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
+<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+</body>
+</html>

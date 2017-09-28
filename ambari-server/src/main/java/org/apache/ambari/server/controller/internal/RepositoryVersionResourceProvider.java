@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -43,10 +44,10 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -55,7 +56,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -64,14 +64,14 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 
 /**
@@ -86,6 +86,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID      = PropertyHelper.getPropertyId("RepositoryVersions", "stack_version");
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("RepositoryVersions", "repository_version");
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
+  public static final String REPOSITORY_VERSION_HIDDEN_PROPERTY_ID             = PropertyHelper.getPropertyId("RepositoryVersions", "hidden");
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
@@ -101,17 +102,14 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_HAS_CHILDREN                   = "RepositoryVersions/has_children";
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(REPOSITORY_VERSION_ID_PROPERTY_ID);
-    }
-  };
+  private static Set<String> pkPropertyIds = Sets.newHashSet(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
   @SuppressWarnings("serial")
   public static Set<String> propertyIds = Sets.newHashSet(
       REPOSITORY_VERSION_ID_PROPERTY_ID,
       REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
       REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+      REPOSITORY_VERSION_HIDDEN_PROPERTY_ID,
       REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
       REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
       SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
@@ -126,13 +124,11 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_STACK_SERVICES);
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
-      put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
-      put(Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID);
-    }
-  };
+  public static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
+      .put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)
+      .put(Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID)
+      .build();
 
   @Inject
   private Gson gson;
@@ -141,16 +137,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   private RepositoryVersionDAO repositoryVersionDAO;
 
   @Inject
-  private ClusterVersionDAO clusterVersionDAO;
-
-  @Inject
   private AmbariMetaInfo ambariMetaInfo;
 
   @Inject
   private RepositoryVersionHelper repositoryVersionHelper;
-
-  @Inject
-  private Provider<Clusters> clusters;
 
   /**
    * Data access object used for lookup up stacks.
@@ -158,12 +148,15 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   @Inject
   private StackDAO stackDAO;
 
+  @Inject
+  HostVersionDAO hostVersionDAO;
+
   /**
    * Create a new resource provider.
    *
    */
   public RepositoryVersionResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+    super(Resource.Type.RepositoryVersion, propertyIds, keyPropertyIds);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
@@ -261,6 +254,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       setResourceProperty(resource, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, entity.getStackName(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, entity.getStackVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_HIDDEN_PROPERTY_ID, entity.isHidden(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_TYPE_PROPERTY_ID, entity.getType(), requestedIds);
 
@@ -333,8 +327,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             throw new ObjectNotFoundException("There is no repository version with id " + id);
           }
 
-          List<OperatingSystemEntity> operatingSystemEntities = null;
-
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID)))) {
             if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_EDIT_STACK_REPOS)) {
               throw new AuthorizationException("The authenticated user does not have authorization to modify stack repositories");
@@ -343,7 +335,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
             final String operatingSystemsJson = gson.toJson(operatingSystems);
             try {
-              operatingSystemEntities = repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+              repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
             } catch (Exception ex) {
               throw new AmbariException("Json structure for operating systems is incorrect", ex);
             }
@@ -354,23 +346,14 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             entity.setDisplayName(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
           }
 
+          if(StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_HIDDEN_PROPERTY_ID)))){
+            boolean isHidden = Boolean.valueOf(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_HIDDEN_PROPERTY_ID)));
+            entity.setHidden(isHidden);
+          }
+
           validateRepositoryVersion(repositoryVersionDAO, ambariMetaInfo, entity);
 
           repositoryVersionDAO.merge(entity);
-
-          //
-          // Update metaInfo table as well
-          //
-          if (operatingSystemEntities != null) {
-            String entityStackName = entity.getStackName();
-            String entityStackVersion = entity.getStackVersion();
-            for (OperatingSystemEntity osEntity : operatingSystemEntities) {
-              List<RepositoryEntity> repositories = osEntity.getRepositories();
-              for (RepositoryEntity repository : repositories) {
-                ambariMetaInfo.updateRepo(entityStackName, entityStackVersion, osEntity.getOsType(), repository.getRepositoryId(), repository.getBaseUrl(), repository.getMirrorsList());
-              }
-            }
-          }
         }
         return null;
       }
@@ -398,22 +381,34 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
         throw new NoSuchResourceException("There is no repository version with id " + id);
       }
 
-      StackEntity stackEntity = entity.getStack();
-      String stackName = stackEntity.getStackName();
-      String stackVersion = stackEntity.getStackVersion();
-
-      final List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByStackAndVersion(
-          stackName, stackVersion, entity.getVersion());
-
-      final List<RepositoryVersionState> forbiddenToDeleteStates = Lists.newArrayList(
+      final Set<RepositoryVersionState> forbiddenToDeleteStates = Sets.newHashSet(
           RepositoryVersionState.CURRENT,
           RepositoryVersionState.INSTALLED,
           RepositoryVersionState.INSTALLING);
-      for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
-        if (clusterVersionEntity.getRepositoryVersion().getId().equals(id) && forbiddenToDeleteStates.contains(clusterVersionEntity.getState())) {
-          throw new SystemException("Repository version can't be deleted as it is " +
-              clusterVersionEntity.getState().name() + " on cluster " + clusterVersionEntity.getClusterEntity().getClusterName());
+
+      List<HostVersionEntity> hostVersions = hostVersionDAO.findByRepositoryAndStates(
+          entity, forbiddenToDeleteStates);
+
+      if (CollectionUtils.isNotEmpty(hostVersions)) {
+        Map<RepositoryVersionState, Set<String>> hostsInUse = new HashMap<>();
+
+        for (HostVersionEntity hostVersion : hostVersions) {
+          if (!hostsInUse.containsKey(hostVersion.getState())) {
+            hostsInUse.put(hostVersion.getState(), new HashSet<>());
+          }
+
+          hostsInUse.get(hostVersion.getState()).add(hostVersion.getHostName());
         }
+
+        Set<String> errors = new HashSet<>();
+        for (Entry<RepositoryVersionState, Set<String>> entry : hostsInUse.entrySet()) {
+          errors.add(String.format("%s on %s", entry.getKey(), StringUtils.join(entry.getValue(), ", ")));
+        }
+
+
+        throw new SystemException(
+            String.format("Repository version can't be deleted as it is used by the following hosts: %s",
+                StringUtils.join(errors, ';')));
       }
 
       entitiesToBeRemoved.add(entity);

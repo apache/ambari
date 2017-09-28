@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -51,7 +51,7 @@ public class ServiceCalculatedStateFactory {
     try {
       serviceType = Service.Type.valueOf(service);
     } catch (Exception e){
-      LOG.debug(String.format("Could not parse service name \"%s\", will use default state provider", service));
+      LOG.debug("Could not parse service name \"{}\", will use default state provider", service);
     }
 
     if (serviceType == null) {  // service is unknown, return default service state provider

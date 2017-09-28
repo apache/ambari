@@ -177,9 +177,20 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
   },
 
   /**
-   * Restart all services - stops all services, then starts them back
+   * Restart all services - restarts by sending one RESTART command
    */
   restartAllServices: function () {
+    App.ajax.send({
+      name: 'restart.allServices',
+      sender: this,
+      showLoadingPopup: true
+    });
+  },
+
+  /**
+   * Restart all services - stops all services, then starts them back
+   */
+  stopAndStartAllServices: function () {
     this.silentStopAllServices();
   },
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -60,7 +60,7 @@ public class AlertServiceStateListener {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertServiceStateListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertServiceStateListener.class);
 
   /**
    * Services metainfo; injected lazily as a {@link Provider} since JPA is not

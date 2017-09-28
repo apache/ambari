@@ -78,8 +78,10 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
   private static SortRequest sortRequest = new SortRequestImpl(sortRequestProperties);
   private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(PageRequest.StartingPoint.End, 1000, 0, null, null);
   private static final RequestImpl REQUEST = new RequestImpl(null, null, null, null, sortRequest, PAGE_REQUEST);
-  private static final Predicate PREDICATE = new PredicateBuilder().property(TaskResourceProvider.TASK_COMMAND_PROPERTY_ID)
-      .equals(RoleCommand.SERVICE_CHECK.name()).toPredicate();
+  private static final Predicate PREDICATE = new PredicateBuilder()
+    .property(TaskResourceProvider.TASK_COMMAND_PROPERTY_ID).equals(RoleCommand.SERVICE_CHECK.name())
+    .and().property(TaskResourceProvider.TASK_START_TIME_PROPERTY_ID).greaterThan(-1)
+    .toPredicate();
 
 
 
@@ -88,6 +90,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
   @Inject
   Provider<HostRoleCommandDAO> hostRoleCommandDAOProvider;
+
 
   /**
    * Constructor.
@@ -116,7 +119,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
       if (service.getMaintenanceState() != MaintenanceState.OFF || !hasAtLeastOneComponentVersionAdvertised(service)) {
         continue;
       }
-      StackId stackId = cluster.getCurrentStackVersion();
+      StackId stackId = service.getDesiredStackId();
       boolean isServiceWitNoConfigs = ambariMetaInfo.get().isServiceWithNoConfigs(stackId.getStackName(), stackId.getStackVersion(), service.getName());
       if (isServiceWitNoConfigs){
         LOG.info(String.format("%s in %s version %s does not have customizable configurations. Skip checking service configuration history.", service.getName(), stackId.getStackName(), stackId.getStackVersion()));
@@ -147,7 +150,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
       boolean serviceCheckWasExecuted = false;
       for (HostRoleCommandEntity command : latestTimestamps.values()) {
-        if (command.getCommandDetail().contains(serviceName)) {
+        if (null !=  command.getCommandDetail() && command.getCommandDetail().contains(serviceName)) {
           serviceCheckWasExecuted = true;
           Long serviceCheckTimestamp = command.getStartTime();
 

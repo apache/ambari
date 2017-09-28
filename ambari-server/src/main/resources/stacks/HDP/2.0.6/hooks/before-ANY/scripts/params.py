@@ -43,6 +43,8 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+stack_root = Script.get_stack_root()
+
 architecture = get_architecture()
 
 dfs_type = default("/commandParams/dfs_type", "")
@@ -52,6 +54,8 @@ jdk_name = default("/ambariLevelParams/jdk_name", None)
 java_home = config['ambariLevelParams']['java_home']
 java_version = expect("/ambariLevelParams/java_version", int)
 jdk_location = config['ambariLevelParams']['jdk_location']
+
+hadoop_custom_extensions_enabled = default("/configurations/core-site/hadoop.custom-extensions.enabled", False)
 
 sudo = AMBARI_SUDO_BINARY
 
@@ -65,6 +69,8 @@ version = default("/commandParams/version", None)
 # Handle upgrade and downgrade
 if (upgrade_type is not None) and version:
   stack_version_formatted = format_stack_version(version)
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+ambari_jdk_name = default("/commandParams/ambari_jdk_name", None)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']

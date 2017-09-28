@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -48,6 +48,9 @@ public class AlertDefinitionCommand extends AgentCommand {
   @com.fasterxml.jackson.annotation.JsonProperty("hostName")
   private final String m_hostName;
 
+  @SerializedName("publicHostName")
+  private final String m_publicHostName;
+
   @SerializedName("hash")
   @com.fasterxml.jackson.annotation.JsonProperty("hash")
   private final String m_hash;
@@ -66,17 +69,19 @@ public class AlertDefinitionCommand extends AgentCommand {
    * @param clusterName
    *          the name of the cluster this response is for (
    * @param hostName
+   * @param publicHostName
    * @param hash
    * @param definitions
    *
    * @see AlertDefinitionHash
    */
-  public AlertDefinitionCommand(String clusterName, String hostName,
+  public AlertDefinitionCommand(String clusterName, String hostName, String publicHostName,
       String hash, List<AlertDefinition> definitions) {
     super(AgentCommandType.ALERT_DEFINITION_COMMAND);
 
     m_clusterName = clusterName;
     m_hostName = hostName;
+    m_publicHostName = publicHostName;
     m_hash = hash;
     m_definitions = definitions;
   }

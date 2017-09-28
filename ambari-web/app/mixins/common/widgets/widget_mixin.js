@@ -42,7 +42,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  VALUE_NAME_REGEX: /(\w+\s+\w+)?[\w\.\,\:\=\[\]]+/g,
+  VALUE_NAME_REGEX: /(\w+\s+\w+)?[\w\.\,\-\:\=\[\]]+/g,
 
   /**
    * @type {string}
@@ -84,7 +84,6 @@ App.WidgetMixin = Ember.Mixin.create({
   contentColor: Em.computed.ifThenElse('value', 'green', 'grey'),
 
   beforeRender: function () {
-    this.get('metrics').clear();
     this.loadMetrics();
   },
 
@@ -97,6 +96,8 @@ App.WidgetMixin = Ember.Mixin.create({
       request,
       requestCounter = 0,
       self = this;
+
+    this.set('metrics', []);
 
     for (var i in requestData) {
       request = requestData[i];

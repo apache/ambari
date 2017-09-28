@@ -289,15 +289,13 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    */
   loadHosts: function() {
     this.set('isLoaded', false);
-    if (this.get('isInstaller')) {
-      var allHosts = this.get('isAddService') ? App.router.get('addServiceController').get('allHosts') : App.router.get('installerController').get('allHosts');
-      this.set('clusterHosts', allHosts);
-      this.loadConfigGroups(this.get('serviceName'));
-    }
-    else {
+    if (this.get('isInstaller') && !this.get('isAddService')) {
+      var hostNames = App.router.get('installerController').get('allHosts').mapProperty('hostName').join();
+      this.loadInstallerHostsFromServer(hostNames);
+    } else {
       this.loadHostsFromServer();
-      this.loadConfigGroups(this.get('serviceName'));
     }
+    this.loadConfigGroups(this.get('serviceName'));
   },
 
   /**
@@ -323,15 +321,16 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @private
    */
   _loadHostsFromServerSuccessCallback: function (data) {
-    var wrappedHosts = [];
+    var wrappedHosts = [],
+        newlyAddedHostComponentsMap = this.getNewlyAddedHostComponentsMap();
 
     data.items.forEach(function (host) {
       var hostComponents = [];
-      var diskInfo = host.Hosts.disk_info.filter(function(item) {
+      var diskInfo = host.Hosts.disk_info.filter(function (item) {
         return /^ext|^ntfs|^fat|^xfs/i.test(item.type);
       });
       if (diskInfo.length) {
-        diskInfo = diskInfo.reduce(function(a, b) {
+        diskInfo = diskInfo.reduce(function (a, b) {
           return {
             available: parseInt(a.available) + parseInt(b.available),
             size: parseInt(a.size) + parseInt(b.size)
@@ -344,6 +343,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           displayName: App.format.role(hostComponent.HostRoles.component_name, false)
         }));
       }, this);
+      if (this.get('isAddService') && newlyAddedHostComponentsMap[host.Hosts.host_name]) {
+        hostComponents.pushObjects(newlyAddedHostComponentsMap[host.Hosts.host_name]);
+      }
       wrappedHosts.pushObject(Em.Object.create({
           id: host.Hosts.host_name,
           ip: host.Hosts.ip,
@@ -371,6 +373,55 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    */
   _loadHostsFromServerErrorCallback: function () {
     this.set('clusterHosts', []);
+  },
+
+  /**
+   *
+   * @returns {{}}
+   */
+  getNewlyAddedHostComponentsMap: function () {
+    var newlyAddedHostComponentsMap = {};
+    var masters = App.router.get('addServiceController.content.masterComponentHosts') || [];
+    var slaves = App.router.get('addServiceController.content.slaveComponentHosts') || [];
+    var clients = (App.router.get('addServiceController.content.clients') || []);
+
+    clients = clients.filterProperty('isInstalled', false).map(function (component) {
+      return Em.Object.create({
+        componentName: component.component_name,
+        displayName: component.display_name
+      });
+    });
+
+    masters.forEach(function (component) {
+      if (!component.isInstalled) {
+        if (!newlyAddedHostComponentsMap[component.hostName]) {
+          newlyAddedHostComponentsMap[component.hostName] = [];
+        }
+        newlyAddedHostComponentsMap[component.hostName].push(Em.Object.create({
+          componentName: component.component,
+          displayName: component.display_name
+        }));
+      }
+    });
+
+    slaves.forEach(function (component) {
+      component.hosts.forEach(function (host) {
+        if (!host.isInstalled) {
+          if (!newlyAddedHostComponentsMap[host.hostName]) {
+            newlyAddedHostComponentsMap[host.hostName] = [];
+          }
+          if (component.componentName === 'CLIENT') {
+            newlyAddedHostComponentsMap[host.hostName].pushObjects(clients);
+          } else {
+            newlyAddedHostComponentsMap[host.hostName].push(Em.Object.create({
+              componentName: component.componentName,
+              displayName: component.displayName
+            }));
+          }
+        }
+      });
+    });
+    return newlyAddedHostComponentsMap;
   },
 
   /**
@@ -958,8 +1009,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
               if (errors.length > 0) {
                 self.get('subViewController').set('errorMessage', errors.join(". "));
               } else {
-                if (!self.get('isAddService') && !self.get('isInstaller') && !modifiedConfigGroups.toCreate.everyProperty('properties.length', 0)) {
-                  //update service config versions only if it is service configs page and at least one newly created group had properties
+                if (!self.get('isAddService') && !self.get('isInstaller')) {
+                  //update service config versions only if it is service configs page
                   App.router.get('mainServiceInfoConfigsController').loadServiceConfigVersions().done(function () {
                     self.updateConfigGroupOnServicePage();
                     self.hide();
@@ -1000,6 +1051,83 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         this.set('disablePrimary', !modified);
       }.observes('subViewController.isHostsModified')
     });
+  },
+
+  loadInstallerHostsFromServer: function (hostNames) {
+    return App.ajax.send({
+      name: 'hosts.info.install',
+      sender: this,
+      data: {
+        hostNames: hostNames
+      },
+      success: 'loadInstallerHostsSuccessCallback'
+    });
+  },
+
+  loadInstallerHostsSuccessCallback: function (data) {
+    var rawHosts = App.router.get('installerController.content.hosts'),
+      masterComponents = App.router.get('installerController.content.masterComponentHosts'),
+      slaveComponents = App.router.get('installerController.content.slaveComponentHosts'),
+      hosts = [];
+    masterComponents.forEach(function (component) {
+      var host = rawHosts[component.hostName];
+      if (host.hostComponents) {
+        host.hostComponents.push(Em.Object.create({
+          componentName: component.component,
+          displayName: component.display_name
+        }));
+      } else {
+        rawHosts[component.hostName].hostComponents = [
+          Em.Object.create({
+            componentName: component.component,
+            displayName: component.display_name
+          })
+        ]
+      }
+    });
+    slaveComponents.forEach(function (component) {
+      component.hosts.forEach(function (rawHost) {
+        var host = rawHosts[rawHost.hostName];
+        if (host.hostComponents) {
+          host.hostComponents.push(Em.Object.create({
+            componentName: component.componentName,
+            displayName: component.displayName
+          }));
+        } else {
+          rawHosts[rawHost.hostName].hostComponents = [
+            Em.Object.create({
+              componentName: component.componentName,
+              displayName: component.displayName
+            })
+          ]
+        }
+      });
+    });
+
+    data.items.forEach(function (host) {
+      var disksOverallCapacity = 0,
+        diskFree = 0;
+      host.Hosts.disk_info.forEach(function (disk) {
+        disksOverallCapacity += parseFloat(disk.size);
+        diskFree += parseFloat(disk.available);
+      });
+      hosts.pushObject(Em.Object.create({
+        id: host.Hosts.host_name,
+        ip: host.Hosts.ip,
+        osType: host.Hosts.os_type,
+        osArch: host.Hosts.os_arch,
+        hostName: host.Hosts.host_name,
+        publicHostName: host.Hosts.public_host_name,
+        cpu: host.Hosts.cpu_count,
+        memory: host.Hosts.total_mem.toFixed(2),
+        diskInfo: host.Hosts.disk_info,
+        diskTotal: disksOverallCapacity / (1024 * 1024),
+        diskFree: diskFree / (1024 * 1024),
+        hostComponents: (rawHosts[host.Hosts.host_name] && rawHosts[host.Hosts.host_name].hostComponents) || []
+      }));
+    });
+
+    this.set('clusterHosts', hosts);
   }
 
 });

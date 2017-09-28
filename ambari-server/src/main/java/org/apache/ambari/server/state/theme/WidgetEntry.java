@@ -18,21 +18,23 @@
 
 package org.apache.ambari.server.state.theme;
 
-
-
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WidgetEntry {
+public class WidgetEntry implements ApiModel {
 	@JsonProperty("config")
 	private String config;
+
 	@JsonProperty("widget")
 	private Widget widget;
 
+  @ApiModelProperty(name = "config")
   public String getConfig() {
     return config;
   }
@@ -41,6 +43,7 @@ public class WidgetEntry {
     this.config = config;
   }
 
+  @ApiModelProperty(name = "widget")
   public Widget getWidget() {
     return widget;
   }

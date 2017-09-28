@@ -54,7 +54,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VER
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -70,6 +70,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,6 +78,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -134,7 +136,6 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -143,15 +144,12 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.ExtensionEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -187,7 +185,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -195,7 +192,6 @@ import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -210,16 +206,19 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
@@ -230,6 +229,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -254,6 +254,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariManagementControllerImpl.class);
+  private final static Logger configChangeLog = LoggerFactory.getLogger("configchange");
 
   /**
    * Property name of request context.
@@ -270,6 +271,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private static final String PASSWORD = "password";
+
   public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
   public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
 
@@ -330,18 +332,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private CredentialStoreService credentialStoreService;
   @Inject
-  private ClusterVersionDAO clusterVersionDAO;
-  @Inject
   private SettingDAO settingDAO;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
-  @Inject
-  private ExtensionLinkDAO linkDAO;
+  private AmbariManagementHelper helper;
+
   @Inject
   private ExtensionDAO extensionDAO;
   @Inject
+  private ExtensionLinkDAO linkDAO;
+  @Inject
   private StackDAO stackDAO;
+  @Inject
+  protected OsFamily osFamily;
 
   @Inject
   private TopologyDeleteFormer topologyDeleteFormer;
@@ -385,6 +389,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private Cache<ClusterRequest, ClusterResponse> clusterUpdateCache =
       CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+  private Cache<ConfigGroupRequest, ConfigGroupResponse> configGroupUpdateCache =
+          CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
@@ -434,6 +440,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       mysqljdbcUrl = null;
       serverDB = null;
     }
+    helper = new AmbariManagementHelper(stackDAO, extensionDAO, linkDAO);
   }
 
   @Override
@@ -470,20 +477,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()
         || request.getClusterId() != null) {
-      throw new IllegalArgumentException("Cluster name should be provided" +
-          " and clusterId should be null");
+      throw new IllegalArgumentException(
+          "Cluster name should be provided and clusterId should be null");
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createCluster request"
-          + ", clusterName=" + request.getClusterName()
-          + ", request=" + request);
+      LOG.debug("Received a createCluster request, clusterName={}, request={}",
+          request.getClusterName(), request);
     }
 
     if (request.getStackVersion() == null
         || request.getStackVersion().isEmpty()) {
-      throw new IllegalArgumentException("Stack information should be"
-          + " provided when creating a cluster");
+      throw new IllegalArgumentException(
+          "Stack information should be provided when creating a cluster");
     }
 
     StackId stackId = new StackId(request.getStackVersion());
@@ -492,18 +498,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (stackInfo == null) {
       throw new StackAccessException("stackName=" + stackId.getStackName() + ", stackVersion=" + stackId.getStackVersion());
-    }
-
-    RepositoryVersionEntity versionEntity = null;
-
-    if (null != request.getRepositoryVersion()) {
-      versionEntity = repositoryVersionDAO.findByStackAndVersion(stackId,
-          request.getRepositoryVersion());
-
-      if (null == versionEntity) {
-        throw new AmbariException(String.format("Tried to create a cluster on version %s, but that version doesn't exist",
-            request.getRepositoryVersion()));
-      }
     }
 
     // FIXME add support for desired configs at cluster level
@@ -537,17 +531,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     // Create cluster widgets and layouts
     initializeWidgetsAndLayouts(c, null);
-
-    if (null != versionEntity) {
-      ClusterVersionDAO clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
-
-      ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(request.getClusterName(), stackId,
-          request.getRepositoryVersion());
-
-      if (null == clusterVersion) {
-        c.createClusterVersion(stackId, versionEntity.getVersion(), getAuthName(), RepositoryVersionState.INIT);
-      }
-    }
   }
 
   @Override
@@ -584,29 +567,23 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createHostComponent request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
+        LOG.debug("Received a createHostComponent request, clusterName={}, serviceName={}, componentName={}, hostname={}, request={}",
+          request.getClusterName(), request.getServiceName(), request.getComponentName(), request.getHostname(), request);
       }
 
       if (!hostComponentNames.containsKey(request.getClusterName())) {
-        hostComponentNames.put(request.getClusterName(),
-            new HashMap<String, Map<String,Set<String>>>());
+        hostComponentNames.put(request.getClusterName(), new HashMap<>());
       }
       if (!hostComponentNames.get(request.getClusterName())
           .containsKey(request.getServiceName())) {
         hostComponentNames.get(request.getClusterName()).put(
-            request.getServiceName(), new HashMap<String, Set<String>>());
+            request.getServiceName(), new HashMap<>());
       }
       if (!hostComponentNames.get(request.getClusterName())
           .get(request.getServiceName())
           .containsKey(request.getComponentName())) {
         hostComponentNames.get(request.getClusterName())
-            .get(request.getServiceName()).put(request.getComponentName(),
-                new HashSet<String>());
+            .get(request.getServiceName()).put(request.getComponentName(), new HashSet<>());
       }
       if (hostComponentNames.get(request.getClusterName())
           .get(request.getServiceName())
@@ -655,17 +632,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           clusters.getClustersForHost(request.getHostname());
       boolean validCluster = false;
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Looking to match host to cluster"
-            + ", hostnameViaReg=" + host.getHostName()
-            + ", hostname=" + request.getHostname()
-            + ", clusterName=" + request.getClusterName()
-            + ", hostClusterMapCount=" + mappedClusters.size());
+        LOG.debug("Looking to match host to cluster, hostnameViaReg={}, hostname={}, clusterName={}, hostClusterMapCount={}",
+          host.getHostName(), request.getHostname(), request.getClusterName(), mappedClusters.size());
       }
       for (Cluster mappedCluster : mappedClusters) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Host belongs to cluster"
-              + ", hostname=" + request.getHostname()
-              + ", clusterName=" + mappedCluster.getClusterName());
+          LOG.debug("Host belongs to cluster, hostname={}, clusterName={}", request.getHostname(), mappedCluster.getClusterName());
         }
         if (mappedCluster.getClusterName().equals(
             request.getClusterName())) {
@@ -711,7 +683,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       } else {
         msg = "Attempted to create host_component's which already exist: ";
       }
-      throw new DuplicateResourceException(msg + names.toString());
+      throw new DuplicateResourceException(msg + names);
     }
 
     // set restartRequired flag for  monitoring services
@@ -739,8 +711,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         State state = State.valueOf(request.getDesiredState());
         sch.setDesiredState(state);
       }
-
-      sch.setDesiredStackVersion(sc.getDesiredStackVersion());
 
       schMap.put(cluster, sch);
     }
@@ -806,27 +776,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
-      StackId stackId = cluster.getCurrentStackVersion();
-      Collection<String> monitoringServices = ambariMetaInfo.getMonitoringServiceNames(
-        stackId.getStackName(), stackId.getStackVersion());
+      for (Service service : cluster.getServices().values()) {
+        ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
 
-      for (String serviceName : monitoringServices) {
-        if (cluster.getServices().containsKey(serviceName)) {
-          Service service = cluster.getService(serviceName);
+        if (!BooleanUtils.toBoolean(serviceInfo.isMonitoringService())) {
+          continue;
+        }
 
-          for (ServiceComponent sc : service.getServiceComponents().values()) {
-            if (sc.isMasterComponent()) {
-              for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-                sch.setRestartRequired(true);
-              }
-              continue;
-            }
-
-            String hostname = request.getHostname();
-            if (sc.getServiceComponentHosts().containsKey(hostname)) {
-              ServiceComponentHost sch = sc.getServiceComponentHost(hostname);
+        for (ServiceComponent sc : service.getServiceComponents().values()) {
+          if (sc.isMasterComponent()) {
+            for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
               sch.setRestartRequired(true);
             }
+            continue;
+          }
+
+          String hostname = request.getHostname();
+          if (sc.getServiceComponentHosts().containsKey(hostname)) {
+            ServiceComponentHost sch = sc.getServiceComponentHost(hostname);
+            sch.setRestartRequired(true);
           }
         }
       }
@@ -835,8 +803,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private void setRestartRequiredServices(
           Service service, String componentName) throws AmbariException {
-    Cluster cluster = service.getCluster();
-    StackId stackId = cluster.getCurrentStackVersion();
+
+    StackId stackId = service.getDesiredStackId();
     if (service.getServiceComponent(componentName).isClientComponent()) {
       return;
     }
@@ -861,22 +829,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public void registerRackChange(String clusterName) throws AmbariException {
     Cluster cluster = clusters.getCluster(clusterName);
-    StackId stackId = cluster.getCurrentStackVersion();
 
-    Set<String> rackSensitiveServices =
-        ambariMetaInfo.getRackSensitiveServicesNames(stackId.getStackName(), stackId.getStackVersion());
+    for (Service service : cluster.getServices().values()) {
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
 
-    Map<String, Service> services = cluster.getServices();
+      if (!BooleanUtils.toBoolean(serviceInfo.isRestartRequiredAfterRackChange())) {
+        continue;
+      }
 
-    for (Service service : services.values()) {
-      if(rackSensitiveServices.contains(service.getName())) {
-        Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
-        for (ServiceComponent serviceComponent : serviceComponents.values()) {
-          Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
-          for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
-            ServiceComponentHost serviceComponentHost = sch.getValue();
-            serviceComponentHost.setRestartRequired(true);
-          }
+      Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+
+      for (ServiceComponent serviceComponent : serviceComponents.values()) {
+        Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+        for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
+          ServiceComponentHost serviceComponentHost = sch.getValue();
+          serviceComponentHost.setRestartRequired(true);
         }
       }
     }
@@ -1005,13 +972,24 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
 
-    StackId currentStackId = cluster.getCurrentStackVersion();
-    StackInfo currentStackInfo = ambariMetaInfo.getStack(currentStackId.getStackName(), currentStackId.getStackVersion());
-    Map<String, Map<String, String>> defaultConfigAttributes = currentStackInfo.getDefaultConfigAttributesForConfigType(configType);
+    Set<StackId> visitedStacks = new HashSet<>();
 
-    if(defaultConfigAttributes != null){
-      ConfigHelper.mergeConfigAttributes(propertiesAttributes, defaultConfigAttributes);
+    for (Service clusterService : cluster.getServices().values()) {
+      StackId stackId = clusterService.getDesiredStackId();
+      StackInfo stackInfo = ambariMetaInfo.getStack(clusterService.getDesiredStackId());
+
+      if (visitedStacks.contains(stackId)) {
+        continue;
+      }
+
+      Map<String, Map<String, String>> defaultConfigAttributes = stackInfo.getDefaultConfigAttributesForConfigType(configType);
+      if (null != defaultConfigAttributes) {
+        ConfigHelper.mergeConfigAttributes(propertiesAttributes, defaultConfigAttributes);
+      }
+
+      visitedStacks.add(stackId);
     }
+
     // overwrite default attributes with request attributes
     if(requestPropertiesAttributes != null){
       ConfigHelper.mergeConfigAttributes(propertiesAttributes, requestPropertiesAttributes);
@@ -1023,7 +1001,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           request.getType()));
     }
 
-    Config config = createConfig(cluster, request.getType(), requestProperties,
+    StackId stackId = null;
+    if (null != service) {
+      Service svc = cluster.getService(service);
+      stackId = svc.getDesiredStackId();
+    } else {
+      stackId = cluster.getDesiredStackVersion();
+    }
+
+    Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
       request.getVersionTag(), propertiesAttributes);
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
@@ -1035,10 +1021,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Config createConfig(Cluster cluster, String type, Map<String, String> properties,
+  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
                              String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
 
-    Config config = configFactory.createNew(cluster, type, versionTag, properties,
+    Config config = configFactory.createNew(stackId, cluster, type, versionTag, properties,
         propertiesAttributes);
 
     cluster.addConfig(config);
@@ -1088,7 +1074,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throws AmbariException {
     final Set<MemberResponse> responses = new HashSet<>();
     for (MemberRequest request: requests) {
-      LOG.debug("Received a getMembers request, " + request.toString());
+      LOG.debug("Received a getMembers request, {}", request);
       final Group group = users.getGroup(request.getGroupName());
       if (null == group) {
         if (requests.size() == 1) {
@@ -1141,7 +1127,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         stageFactory.createNew(requestId, logDir,
           null == cluster ? null : cluster.getClusterName(),
           null == cluster ? -1L : cluster.getClusterId(),
-          requestContext, clusterHostInfo, commandParamsStage,
+          requestContext, commandParamsStage,
           hostParamsStage);
     stage.setStageId(id);
     return stage;
@@ -1153,10 +1139,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Set<ClusterResponse> response = new HashSet<>();
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a getClusters request"
-        + ", clusterName=" + request.getClusterName()
-        + ", clusterId=" + request.getClusterId()
-        + ", stackInfo=" + request.getStackVersion());
+      LOG.debug("Received a getClusters request, clusterName={}, clusterId={}, stackInfo={}",
+        request.getClusterName(), request.getClusterId(), request.getStackVersion());
     }
 
     Cluster singleCluster = null;
@@ -1201,13 +1185,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Map<String, Cluster> allClusters = clusters.getClusters();
     for (Cluster c : allClusters.values()) {
-      if (request.getStackVersion() != null) {
-        if (!request.getStackVersion().equals(
-            c.getDesiredStackVersion().getStackId())) {
-          // skip non matching stack versions
-          continue;
-        }
-      }
 
 // TODO: Uncomment this when the UI doesn't require view access for View-only users.
 //       If the user is authorized to view information about this cluster, add it to the response
@@ -1223,7 +1200,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StringBuilder builder = new StringBuilder();
     if (LOG.isDebugEnabled()) {
       clusters.debugDump(builder);
-      LOG.debug("Cluster State for cluster " + builder.toString());
+      LOG.debug("Cluster State for cluster {}", builder);
     }
     return response;
   }
@@ -1264,20 +1241,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (request.getComponentName() != null) {
-      if (request.getServiceName() == null
-          || request.getServiceName().isEmpty()) {
-        StackId stackId = cluster.getDesiredStackVersion();
-        String serviceName =
-            ambariMetaInfo.getComponentToService(stackId.getStackName(),
-                stackId.getStackVersion(), request.getComponentName());
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Looking up service name for component"
-              + ", componentName=" + request.getComponentName()
-              + ", serviceName=" + serviceName
-              + ", stackInfo=" + stackId.getStackId());
-        }
-        if (serviceName == null
-            || serviceName.isEmpty()) {
+      if (StringUtils.isBlank(request.getServiceName())) {
+
+        // !!! FIXME the assumption that a component is unique across all stacks is a ticking
+        // time bomb.  Blueprints are making this assumption.
+        String serviceName = findServiceName(cluster, request.getComponentName());
+
+        if (StringUtils.isBlank(serviceName)) {
           LOG.error("Unable to find service for component {}", request.getComponentName());
           throw new ServiceComponentHostNotFoundException(
               cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
@@ -1520,8 +1490,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 cluster.getClusterName(), config.getStackId(),
                 request.getType(),
                 config.getTag(), entry.getValue().getVersion(),
-                includeProps ? config.getProperties() : new HashMap<String, String>(),
-                includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>(),
+                includeProps ? config.getProperties() : new HashMap<>(),
+                includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
                 config.getPropertiesTypes());
             responses.add(response);
           }
@@ -1534,8 +1504,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           ConfigurationResponse response = new ConfigurationResponse(
               cluster.getClusterName(), config.getStackId(), config.getType(),
               config.getTag(), config.getVersion(),
-              includeProps ? config.getProperties() : new HashMap<String, String>(),
-              includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>(),
+              includeProps ? config.getProperties() : new HashMap<>(),
+              includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
               config.getPropertiesTypes());
 
           responses.add(response);
@@ -1627,6 +1597,100 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return response;
   }
 
+  /**
+   * Get a dictionary of all config differences between existingConfig and newConfigValues where the key is the config name and the action is one of "changed", "added", or "deleted".
+   * @param existingConfig
+   * @param newConfigValues
+   * @return Delta of configs
+   */
+  private Map<String, String> getConfigKeyDeltaToAction(Config existingConfig, Map<String, String> newConfigValues) {
+    Map<String, String> configsChanged = new HashMap<>();
+
+    if (null != existingConfig) {
+      Map<String, String> existingConfigValues = existingConfig.getProperties();
+
+      Iterator it = existingConfigValues.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<String, String> pair = (Map.Entry) it.next();
+        // Check the value if both keys exist
+        if (newConfigValues.containsKey(pair.getKey())) {
+          if (!newConfigValues.get(pair.getKey()).equals(pair.getValue())) {
+            configsChanged.put(pair.getKey(), "changed");
+          }
+        } else {
+          // Deleted
+          configsChanged.put(pair.getKey(), "deleted");
+        }
+      }
+
+      it = newConfigValues.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<String, String> pair = (Map.Entry) it.next();
+        if (!existingConfigValues.keySet().contains(pair.getKey())) {
+          configsChanged.put(pair.getKey(), "added");
+        }
+      }
+    } else {
+      // All of the configs in this config type are new.
+      for (String key : newConfigValues.keySet()) {
+        configsChanged.put(key, "added");
+      }
+    }
+    return configsChanged;
+  }
+
+  /**
+   * Inverse a HashMap of the form key_i: value_j to value_j: [key_a, ..., key_z]
+   * for all keys that contain that value.
+   * This is useful for printing config deltas.
+   * @param configKeyToAction Original dictionary
+   * @return Inverse of the dictionary.
+   */
+  private Map<String, List<String>> inverseMapByValue(Map<String, String> configKeyToAction) {
+    Map<String, List<String>> mapByValue = new HashMap<>();
+
+    Iterator it = configKeyToAction.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry<String, String> pair = (Map.Entry) it.next();
+      // Key is the config name, Value is the action (added, deleted, changed)
+      if (mapByValue.containsKey(pair.getValue())) {
+        mapByValue.get(pair.getValue()).add(pair.getKey());
+      } else {
+        List<String> configListForAction = new ArrayList<>();
+        configListForAction.add(pair.getKey());
+        mapByValue.put(pair.getValue(), configListForAction);
+      }
+    }
+    return mapByValue;
+  }
+
+  /**
+   * Get a string that represents config keys that are changed, added, or deleted.
+   * @param actionToConfigKeyList Dictionary from the action to a list of configs in that category.
+   * @return String that represents config keys that are changed, added, or deleted.
+   */
+  private String getActionToConfigListAsString(Map<String, List<String>> actionToConfigKeyList) {
+    String output = "";
+
+    String[] actions = {"added", "deleted", "changed"};
+    int i = 0;
+    for (String action : actions) {
+      i++;
+      output += action + ": [";
+      if (actionToConfigKeyList.containsKey(action)) {
+        List<String> values = actionToConfigKeyList.get(action);
+        output += StringUtils.join(values, ", ");
+
+      }
+      if (i < actions.length) {
+        output += "], ";
+      } else {
+        output += "]";
+      }
+    }
+    return output;
+  }
+
   private synchronized RequestStatusResponse updateCluster(ClusterRequest request, Map<String, String> requestProperties)
       throws AmbariException, AuthorizationException {
 
@@ -1651,6 +1715,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cluster = clusters.getClusterById(request.getClusterId());
     }
 
+    List<ConfigurationRequest> desiredConfigs = request.getDesiredConfig();
+    if (desiredConfigs != null) {
+      for (ConfigurationRequest configurationRequest : desiredConfigs) {
+        if (StringUtils.isEmpty(configurationRequest.getVersionTag())) {
+          configurationRequest.setVersionTag(UUID.randomUUID().toString());
+        }
+      }
+    }
+
     // Ensure the user has access to update this cluster
     AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
 
@@ -1659,8 +1732,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       new LinkedList<>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
 
-    if (request.getDesiredConfig() != null && request.getServiceConfigVersionRequest() != null) {
-      String msg = "Unable to set desired configs and rollback at same time, request = " + request.toString();
+    if (desiredConfigs != null && request.getServiceConfigVersionRequest() != null) {
+      String msg = "Unable to set desired configs and rollback at same time, request = " + request;
       LOG.error(msg);
       throw new IllegalArgumentException(msg);
     }
@@ -1668,7 +1741,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // set the new name of the cluster if change is requested
     if (!cluster.getClusterName().equals(request.getClusterName())) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received cluster name change request from " + cluster.getClusterName() + " to " + request.getClusterName());
+        LOG.debug("Received cluster name change request from {} to {}", cluster.getClusterName(), request.getClusterName());
       }
 
       if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, EnumSet.of(RoleAuthorization.AMBARI_RENAME_CLUSTER))) {
@@ -1680,8 +1753,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     //check if desired configs are available in request and they were changed
     boolean isConfigurationCreationNeeded = false;
-    if (request.getDesiredConfig() != null) {
-      for (ConfigurationRequest desiredConfig : request.getDesiredConfig()) {
+    if (desiredConfigs != null) {
+      for (ConfigurationRequest desiredConfig : desiredConfigs) {
         Map<String, String> requestConfigProperties = desiredConfig.getProperties();
         Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
 
@@ -1758,7 +1831,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // set or create configuration mapping (and optionally create the map of properties)
     if (isConfigurationCreationNeeded) {
-      List<ConfigurationRequest> desiredConfigs = request.getDesiredConfig();
 
       if (!desiredConfigs.isEmpty()) {
         Set<Config> configs = new HashSet<>();
@@ -1785,18 +1857,39 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           note = cr.getServiceConfigVersionNote();
-          configs.add(cluster.getConfig(configType, cr.getVersionTag()));
+          Config config = cluster.getConfig(configType, cr.getVersionTag());
+          if (null != config) {
+            configs.add(config);
+          }
         }
         if (!configs.isEmpty()) {
+          Map<String, Config> existingConfigTypeToConfig = new HashMap();
+          for (Config config : configs) {
+            Config existingConfig = cluster.getDesiredConfigByType(config.getType());
+            existingConfigTypeToConfig.put(config.getType(), existingConfig);
+          }
+
           String authName = getAuthName();
           serviceConfigVersionResponse = cluster.addDesiredConfig(authName, configs, note);
           if (serviceConfigVersionResponse != null) {
-            Logger logger = LoggerFactory.getLogger("configchange");
+            List<String> hosts = serviceConfigVersionResponse.getHosts();
+            int numAffectedHosts = null != hosts ? hosts.size() : 0;
+            configChangeLog.info("(configchange) Changing default config. cluster: '{}', changed by: '{}', service_name: '{}', config_group: '{}', num affected hosts during creation: '{}', note: '{}'",
+                request.getClusterName(), authName, serviceConfigVersionResponse.getServiceName(),
+                serviceConfigVersionResponse.getGroupName(), numAffectedHosts, serviceConfigVersionResponse.getNote());
+
             for (Config config : configs) {
-              logger.info("cluster '" + request.getClusterName() + "' "
-                  + "changed by: '" + authName + "'; "
-                  + "type='" + config.getType() + "' "
-                  + "tag='" + config.getTag() + "'");
+              config.getVersion();
+              serviceConfigVersionResponse.getNote();
+              configChangeLog.info("(configchange)    type: '{}', tag: '{}', version: '{}'", config.getType(), config.getTag(), config.getVersion());
+
+              Map<String, String> configKeyToAction = getConfigKeyDeltaToAction(existingConfigTypeToConfig.get(config.getType()), config.getProperties());
+              Map<String, List<String>> actionToListConfigKeys = inverseMapByValue(configKeyToAction);
+
+              if (!actionToListConfigKeys.isEmpty()) {
+                String configOutput = getActionToConfigListAsString(actionToListConfigKeys);
+                configChangeLog.info("(configchange)    Config type '{}' was modified with the following keys, {}", config.getType(), configOutput);
+              }
             }
           }
         }
@@ -1816,8 +1909,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       cluster.setCurrentStackVersion(desiredVersion);
     }
-    // Stack Upgrade: unlike the workflow for creating a cluster, updating a cluster via the API will not
-    // create any ClusterVersionEntity changes because those have to go through the Stack Upgrade process.
 
     boolean requiresHostListUpdate =
         request.getHostNames() != null && !request.getHostNames().isEmpty();
@@ -1850,7 +1941,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         if (!isStateTransitionValid) {
           LOG.warn(
-              "Invalid cluster provisioning 2state {} cannot be set on the cluster {} because the current state is {}",
+              "Invalid cluster provisioning state {} cannot be set on the cluster {} because the current state is {}",
               provisioningState, request.getClusterName(), oldProvisioningState);
 
           throw new AmbariException("Invalid transition for"
@@ -1889,7 +1980,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       ClusterResponse clusterResponse =
-          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, null, null, null);
+          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, 0, null, null);
 
       Map<String, Collection<ServiceConfigVersionResponse>> map =
         new HashMap<>();
@@ -2075,6 +2166,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  public ConfigGroupResponse getConfigGroupUpdateResults(ConfigGroupRequest configGroupRequest) {
+    return configGroupUpdateCache.getIfPresent(configGroupRequest);
+  }
+
+  @Override
+  public void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse) {
+    configGroupUpdateCache.put(configGroupRequest, configGroupResponse);
+  }
+
+  @Override
   public String getJobTrackerHost(Cluster cluster) {
     try {
       Service svc = cluster.getService("MAPREDUCE");
@@ -2134,8 +2235,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             continue;
           }
           if (!changedComponentCount.containsKey(sch.getServiceName())) {
-            changedComponentCount.put(sch.getServiceName(),
-              new HashMap<String, Integer>());
+            changedComponentCount.put(sch.getServiceName(), new HashMap<>());
           }
           if (!changedComponentCount.get(sch.getServiceName())
             .containsKey(sch.getServiceComponentName())) {
@@ -2167,7 +2267,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         changedComponentCount.get(serviceName).keySet()) {
         ServiceComponent sc = cluster.getService(serviceName).
           getServiceComponent(componentName);
-        StackId stackId = sc.getDesiredStackVersion();
+        StackId stackId = sc.getDesiredStackId();
         ComponentInfo compInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(), serviceName,
           componentName);
@@ -2290,7 +2390,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 Map<String, String> commandParamsInp,
                                 ServiceComponentHostEvent event,
                                 boolean skipFailure,
-                                ClusterVersionEntity effectiveClusterVersion,
+                                RepositoryVersionEntity repoVersion,
                                 boolean isUpgradeSuspended,
                                 DatabaseType databaseType,
                                 Map<String, DesiredConfig> clusterDesiredConfigs
@@ -2308,7 +2408,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     HostEntity hostEntity = host.getHostEntity();
     Map<String, String> hostAttributes = gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
     String osFamily = host.getOSFamilyFromHostAttributes(hostAttributes);
-    StackId stackId = cluster.getDesiredStackVersion();
+
+    StackId stackId = scHost.getServiceComponent().getDesiredStackId();
+
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
@@ -2328,6 +2430,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Get the value of credential store enabled from the DB
     Service clusterService = cluster.getService(serviceName);
     execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
+
+    ServiceComponent component = clusterService.getServiceComponent(componentName);
 
     // Get the map of service config type to password properties for the service
     Map<String, Map<String, String>> configCredentials;
@@ -2411,9 +2515,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
 
-        if (effectiveClusterVersion != null) {
-         commandParams.put(VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
-        }
         if (script.getTimeout() > 0) {
           scriptCommandTimeout = String.valueOf(script.getTimeout());
         }
@@ -2447,49 +2548,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceName)) {
       commandParams.put(ExecutionCommand.KeyNames.REFRESH_TOPOLOGY, "True");
     }
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
-    String repoInfo = ambariMetaInfo.getRepoInfoString(cluster, hostEntity.getOsType(), osFamily , hostname);
+    String repoInfo = ambariMetaInfo.getRepoInfoString(cluster, component, host);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Sending repo information to agent"
-        + ", hostname=" + scHost.getHostName()
-        + ", clusterName=" + clusterName
-        + ", stackInfo=" + stackId.getStackId()
-        + ", repoInfo=" + repoInfo);
+      LOG.debug("Sending repo information to agent, hostname={}, clusterName={}, stackInfo={}, repoInfo={}",
+        scHost.getHostName(), clusterName, stackId.getStackId(), repoInfo);
     }
 
     Map<String, String> hostParams = new TreeMap<>();
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
-
-    Map<String, String> roleParams = new TreeMap<>();
-
-    // use the effective cluster version here since this command might happen
-    // in the context of an upgrade and we should send the repo ID which matches
-    // the version being send down
-    RepositoryVersionEntity repoVersion = null;
-    if (null != effectiveClusterVersion) {
-      repoVersion = effectiveClusterVersion.getRepositoryVersion();
-    } else {
-      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
-          RepositoryVersionState.INIT);
-      if (1 == list.size()) {
-        repoVersion = list.get(0).getRepositoryVersion();
-      }
-    }
-
-    if (null != repoVersion) {
-      try {
-        VersionDefinitionXml xml = repoVersion.getRepositoryXml();
-        if (null != xml && !StringUtils.isBlank(xml.getPackageVersion(osFamily))) {
-          roleParams.put(PACKAGE_VERSION, xml.getPackageVersion(osFamily));
-        }
-      } catch (Exception e) {
-        throw new AmbariException(String.format("Could not load version xml from repo version %s",
-            repoVersion.getVersion()), e);
-      }
-
-      roleParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
-    }
 
     if (roleCommand.equals(RoleCommand.INSTALL)) {
       List<ServiceOsSpecific.Package> packages =
@@ -2514,7 +2583,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
 
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -2538,6 +2608,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     execCmd.setHostLevelParams(hostParams);
 
+    Map<String, String> roleParams = new TreeMap<>();
+
     // !!! consistent with where custom commands put variables
     // !!! after-INSTALL hook checks this such that the stack selection tool won't
     // select-all to a version that is not being upgraded, breaking RU
@@ -2545,12 +2617,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
     }
 
-
     execCmd.setRoleParams(roleParams);
     execCmd.setCommandParams(commandParams);
 
-    execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
-
+    execCmd.setRepositoryFile(ambariMetaInfo.getCommandRepository(cluster, component, host));
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
       LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
@@ -2610,13 +2680,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {
-    List<ServiceOsSpecific> foundedOSSpecifics = new ArrayList<>();
+    List<ServiceOsSpecific> foundOSSpecifics = new ArrayList<>();
     for (Entry<String, ServiceOsSpecific> osSpecific : osSpecifics.entrySet()) {
-      if (osSpecific.getKey().contains(osFamily)) {
-        foundedOSSpecifics.add(osSpecific.getValue());
+      String[] osFamilyNames = osSpecific.getKey().split("\\s*,\\s*");
+
+      for(String osFamilyName:osFamilyNames) {
+        if (this.osFamily.isVersionedOsFamilyExtendedByVersionedFamily(osFamily, osFamilyName)) {
+          foundOSSpecifics.add(osSpecific.getValue());
+          break;
+        }
       }
     }
-    return foundedOSSpecifics;
+    return foundOSSpecifics;
   }
 
   private ActionExecutionContext getActionExecutionContext
@@ -2676,8 +2751,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       return requestStages;
     }
 
-    // caching effective cluster version
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+    // check all stack configs are present in desired configs
+    configHelper.checkAllStageConfigsPresentInDesiredConfigs(cluster);
 
     // caching upgrade suspended
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
@@ -2704,12 +2779,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
 
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-      String hostParamsJson = StageUtils.getGson().toJson(
-          customCommandExecutionHelper.createDefaultHostParams(cluster));
 
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
           requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-          clusterHostInfoJson, "{}", hostParamsJson);
+          clusterHostInfoJson, "{}", null);
       boolean skipFailure = false;
       if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
         skipFailure = true;
@@ -2819,6 +2892,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           for (ServiceComponentHost scHost :
               changedScHosts.get(compName).get(newState)) {
 
+            Service service = cluster.getService(scHost.getServiceName());
+            ServiceComponent serviceComponent = service.getServiceComponent(compName);
+
+            if (StringUtils.isBlank(stage.getHostParamsStage())) {
+              RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+              stage.setHostParamsStage(StageUtils.getGson().toJson(
+                  customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion)));
+            }
+
+
             // Do not create role command for hosts that are not responding
             if (scHost.getHostState().equals(HostState.HEARTBEAT_LOST)) {
               LOG.info("Command is not created for servicecomponenthost "
@@ -2857,7 +2940,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     event = new ServiceComponentHostInstallEvent(
                         scHost.getServiceComponentName(), scHost.getHostName(),
                         nowTimestamp,
-                        scHost.getDesiredStackVersion().getStackId());
+                        serviceComponent.getDesiredStackId().getStackId());
                   }
                 } else if (oldSchState == State.STARTED
                       // TODO: oldSchState == State.INSTALLED is always false, looks like a bug
@@ -2871,7 +2954,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                   roleCommand = RoleCommand.UPGRADE;
                   event = new ServiceComponentHostUpgradeEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
-                      nowTimestamp, scHost.getDesiredStackVersion().getStackId());
+                      nowTimestamp, serviceComponent.getDesiredStackId().getStackId());
                 } else {
                   throw new AmbariException("Invalid transition for"
                       + " servicecomponenthost"
@@ -2885,7 +2968,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 }
                 break;
               case STARTED:
-                StackId stackId = scHost.getDesiredStackVersion();
+                StackId stackId = serviceComponent.getDesiredStackId();
                 ComponentInfo compInfo = ambariMetaInfo.getComponent(
                     stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
                     scHost.getServiceComponentName());
@@ -2952,15 +3035,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     + ", newDesiredState=" + newState);
               default:
                 throw new AmbariException("Unsupported state change operation"
-                    + ", newState=" + newState.toString());
+                    + ", newState=" + newState);
             }
 
             if (LOG.isDebugEnabled()) {
-              LOG.debug("Create a new host action"
-                  + ", requestId=" + requestStages.getId()
-                  + ", componentName=" + scHost.getServiceComponentName()
-                  + ", hostname=" + scHost.getHostName()
-                  + ", roleCommand=" + roleCommand.name());
+              LOG.debug("Create a new host action, requestId={}, componentName={}, hostname={}, roleCommand={}",
+                requestStages.getId(), scHost.getServiceComponentName(), scHost.getHostName(), roleCommand.name());
             }
 
             // any targeted information
@@ -2999,6 +3079,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 requestParameters = new HashMap<>();
               }
               requestParameters.put(CLUSTER_PHASE_PROPERTY, requestProperties.get(CLUSTER_PHASE_PROPERTY));
+
             }
 
             Map<String, Map<String, String>> configurations = new TreeMap<>();
@@ -3016,10 +3097,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             // START task should run configuration script.
             if (newState == State.INSTALLED && skipInstallTaskForComponent(requestProperties, cluster, scHost)) {
               LOG.info("Skipping create of INSTALL task for {} on {}.", scHost.getServiceComponentName(), scHost.getHostName());
-              scHost.setState(State.INSTALLED);
+              // set state to INSTALLING, then immediately send an ServiceComponentHostOpSucceededEvent to allow
+              // transitioning from INSTALLING --> INSTALLED.
+              scHost.setState(State.INSTALLING);
+              long now = System.currentTimeMillis();
+              try {
+                scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost.getServiceComponentName(), scHost.getHostName(), now));
+              } catch (InvalidStateTransitionException e) {
+                LOG.error("Error transitioning ServiceComponentHost state to INSTALLED", e);
+              }
             } else {
+              // !!! can never be null
+              RepositoryVersionEntity repoVersion = serviceComponent.getDesiredRepositoryVersion();
+
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended,
+                roleCommand, requestParameters, event, skipFailure, repoVersion, isUpgradeSuspended,
                 databaseType, clusterDesiredConfigs);
             }
 
@@ -3059,6 +3151,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
       }
       rg.build(stage);
+      requestStages.setClusterHostInfo(clusterHostInfoJson);
       requestStages.addStages(rg.getStages());
 
       if (!componentsToEnableKerberos.isEmpty()) {
@@ -3143,11 +3236,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                               RoleCommand roleCommand) throws AmbariException {
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-    Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(cluster);
-    Stage stage = createNewStage(0, cluster,
-                                 1, "",
-                                 clusterHostInfoJson, "{}", "");
 
+
+    Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
+        cluster, scHost.getServiceComponent().getDesiredRepositoryVersion());
+
+    Stage stage = createNewStage(0, cluster, 1, "", clusterHostInfoJson, "{}", "");
 
     Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
     Map<String, Map<String, String>> configurations = configHelper.getEffectiveConfigProperties(cluster, configTags);
@@ -3156,12 +3250,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         configurationAttributes =
         new TreeMap<>();
 
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+    RepositoryVersionEntity repoVersion = null;
+    if (null != scHost.getServiceComponent().getDesiredRepositoryVersion()) {
+      repoVersion = scHost.getServiceComponent().getDesiredRepositoryVersion();
+    } else {
+      Service service = cluster.getService(scHost.getServiceName());
+      repoVersion = service.getDesiredRepositoryVersion();
+    }
+
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
     DatabaseType databaseType = configs.getDatabaseType();
     Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null, false, effectiveClusterVersion, isUpgradeSuspended, databaseType,
+                     roleCommand, null, null, false, repoVersion, isUpgradeSuspended, databaseType,
                      clusterDesiredConfigs);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
@@ -3192,7 +3293,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       if (ec.getConfigurationAttributes() != null) {
         if (!ec.getConfigurationAttributes().containsKey(type)) {
-          ec.getConfigurationAttributes().put(type, new TreeMap<String, Map<String, String>>());
+          ec.getConfigurationAttributes().put(type, new TreeMap<>());
         }
         configHelper.cloneAttributesMap(attributes, ec.getConfigurationAttributes().get(type));
       }
@@ -3282,15 +3383,50 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    //keep 2 maps for simpler maintenance
+    Map<String, String> serviceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
     for (Map<State, List<ServiceComponentHost>> stateScHostMap :
         changedScHosts.values()) {
       for (Entry<State, List<ServiceComponentHost>> entry :
           stateScHostMap.entrySet()) {
         State newState = entry.getKey();
         for (ServiceComponentHost sch : entry.getValue()) {
+          String componentName = sch.getServiceComponentName();
+          //Create map for include/exclude files refresh
+          if (masterToSlaveMappingForDecom.containsValue(componentName) &&
+            sch.getState() == State.INIT && newState == State.INSTALLED) {
+            String serviceName = sch.getServiceName();
+            String masterComponentName = null;
+            for (Entry<String, String> entrySet : masterToSlaveMappingForDecom.entrySet()) {
+              if (entrySet.getValue().equals(componentName)) {
+                masterComponentName = entrySet.getKey();
+              }
+            }
+            try {
+              //Filter services whose masters are not started
+              if (isServiceComponentStartedOnAnyHost(cluster, serviceName, masterComponentName)) {
+                serviceMasterForDecommissionMap.put(serviceName, masterComponentName);
+                masterSlaveHostsMap.putIfAbsent(masterComponentName, new HashSet<>());
+                masterSlaveHostsMap.get(masterComponentName).add(sch.getHostName());
+              } else {
+                LOG.info(String.format("Not adding %s service from include/exclude files refresh map because it's master is not started", serviceName));
+              }
+            } catch (AmbariException e) {
+              LOG.error("Exception during INIT masters cleanup : ", e);
+            }
+          }
+
+          //actually set the new state
           sch.setDesiredState(newState);
         }
       }
+    }
+
+    try {
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(serviceMasterForDecommissionMap, masterSlaveHostsMap, cluster.getClusterName(), false);
+    } catch (AmbariException e) {
+      LOG.error("Exception during refresh include exclude files action : ", e);
     }
 
     if (ignoredScHosts != null) {
@@ -3298,6 +3434,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         scHost.setDesiredState(scHost.getState());
       }
     }
+  }
+
+  private boolean isServiceComponentStartedOnAnyHost(Cluster cluster, String serviceName, String masterComponentName) throws AmbariException {
+    Service service = cluster.getService(serviceName);
+    ServiceComponent serviceComponent = service.getServiceComponent(masterComponentName);
+    Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+    for (ServiceComponentHost sch : schMap.values()) {
+       if (sch.getState() == State.STARTED) {
+         return true;
+       }
+    }
+    return false;
   }
 
   @Override
@@ -3383,24 +3531,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
-    StackId stackId = cluster.getDesiredStackVersion();
-    String serviceName =
-        ambariMetaInfo.getComponentToService(stackId.getStackName(),
-            stackId.getStackVersion(), componentName);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Looking up service name for component"
-          + ", componentName=" + componentName
-          + ", serviceName=" + serviceName);
-    }
-
-    if (serviceName == null
-        || serviceName.isEmpty()) {
-      throw new AmbariException("Could not find service for component"
-          + ", componentName=" + componentName
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId());
-    }
-    return serviceName;
+    return cluster.getServiceByComponentName(componentName).getName();
   }
 
   /**
@@ -3539,7 +3670,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       try {
         checkIfHostComponentsInDeleteFriendlyState(request, cluster);
         if (!safeToRemoveSCHs.containsKey(component)) {
-          safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());
+          safeToRemoveSCHs.put(component, new HashSet<>());
         }
         safeToRemoveSCHs.get(component).add(componentHost);
       } catch (Exception ex) {
@@ -3547,14 +3678,47 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    //keep 2 maps for simpler maintenance
+    Map<String, Map<String, String>> clusterServiceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Map<String, Set<String>>> clusterMasterSlaveHostsMap = new HashMap<>();
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
         try {
-          deleteHostComponent(entry.getKey(), componentHost, deleteMetaData);
+          //actually delete the component
+          entry.getKey().deleteServiceComponentHosts(componentHost.getHostName(), deleteMetaData);
+
+          //create cluster-master-service map to update all include/exclude files in one action
+          String componentName = componentHost.getServiceComponentName();
+          if (masterToSlaveMappingForDecom.containsValue(componentName)) {
+            String masterComponentName = null;
+            for (Entry<String, String> entrySet : masterToSlaveMappingForDecom.entrySet()) {
+              if (entrySet.getValue().equals(componentName)) {
+                masterComponentName = entrySet.getKey();
+              }
+            }
+            if (clusterServiceMasterForDecommissionMap.containsKey(componentHost.getClusterName())) {
+              clusterServiceMasterForDecommissionMap.get(componentHost.getClusterName()).put(componentHost.getServiceName(), masterComponentName);
+              Map<String, Set<String>> masterSlaveMap  = clusterMasterSlaveHostsMap.get(componentHost.getClusterName());
+              masterSlaveMap.putIfAbsent(masterComponentName, new HashSet<>());
+              masterSlaveMap.get(masterComponentName).add(componentHost.getHostName());
+            } else {
+              Map<String, String> serviceMasterMap = new HashMap<>();
+              serviceMasterMap.put(componentHost.getServiceName(), masterComponentName);
+              clusterServiceMasterForDecommissionMap.put(componentHost.getClusterName(), serviceMasterMap);
+
+              Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
+              masterSlaveHostsMap.put(masterComponentName, new HashSet<>(Collections.singletonList(componentHost.getHostName())));
+              clusterMasterSlaveHostsMap.put(componentHost.getClusterName(), masterSlaveHostsMap);
+            }
+          }
         } catch (Exception ex) {
           deleteMetaData.addException(componentHost.getHostName() + "/" + componentHost.getServiceComponentName(), ex);
         }
       }
+    }
+
+    for (String cluster : clusterServiceMasterForDecommissionMap.keySet()) {
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(clusterServiceMasterForDecommissionMap.get(cluster), clusterMasterSlaveHostsMap.get(cluster), cluster, true);
     }
 
     //Do not break behavior for existing clients where delete request contains only 1 host component.
@@ -3580,69 +3744,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return deleteMetaData;
   }
 
-  private void deleteHostComponent(ServiceComponent serviceComponent, ServiceComponentHost componentHost,
-                                   DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException {
-    String included_hostname = componentHost.getHostName();
-    String serviceName = serviceComponent.getServiceName();
-    String master_component_name = null;
-    String slave_component_name = componentHost.getServiceComponentName();
-    HostComponentAdminState desiredAdminState = componentHost.getComponentAdminState();
-    State slaveState = componentHost.getState();
-    //Delete hostcomponents
-    serviceComponent.deleteServiceComponentHosts(componentHost.getHostName(), deleteMetaData);
-    // If deleted hostcomponents support decomission and were decommited and stopped
-    if (AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.containsValue(slave_component_name)
-            && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)
-            && slaveState.equals(State.INSTALLED)) {
-
-      for (Entry<String, String> entrySet : AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.entrySet()) {
-        if (entrySet.getValue().equals(slave_component_name)) {
-          master_component_name = entrySet.getKey();
-        }
-      }
-      //Clear exclud file or draining list except HBASE
-      if (!serviceName.equals(Service.Type.HBASE.toString())) {
-        HashMap<String, String> requestProperties = new HashMap<>();
-        requestProperties.put("context", "Remove host " +
-                included_hostname + " from exclude file");
-        requestProperties.put("exclusive", "true");
-        HashMap<String, String> params = new HashMap<>();
-        params.put("included_hosts", included_hostname);
-        params.put("slave_type", slave_component_name);
-        params.put(AmbariCustomCommandExecutionHelper.UPDATE_EXCLUDE_FILE_ONLY, "true");
-
-        //Create filter for RECOMISSION command
-        RequestResourceFilter resourceFilter
-                = new RequestResourceFilter(serviceName, master_component_name, null);
-        //Create request for RECOMISSION command
-        ExecuteActionRequest actionRequest = new ExecuteActionRequest(
-                serviceComponent.getClusterName(), AmbariCustomCommandExecutionHelper.DECOMMISSION_COMMAND_NAME, null,
-                Collections.singletonList(resourceFilter), null, params, true);
-        //Send request
-        createAction(actionRequest, requestProperties);
-      }
-
-      //Mark master component as needed to restart for remove host info from components UI
-      Cluster cluster = clusters.getCluster(serviceComponent.getClusterName());
-      Service service = cluster.getService(serviceName);
-      ServiceComponent sc = service.getServiceComponent(master_component_name);
-
-      if (sc != null && sc.isMasterComponent()) {
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          sch.setRestartRequired(true);
-        }
-      }
-    }
-  }
-
   @Override
   public void deleteUsers(Set<UserRequest> requests)
     throws AmbariException {
 
     for (UserRequest r : requests) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a delete user request"
-            + ", username=" + r.getUsername());
+        LOG.debug("Received a delete user request, username={}", r.getUsername());
       }
       User u = users.getAnyUser(r.getUsername());
       if (null != u) {
@@ -3654,7 +3762,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public void deleteGroups(Set<GroupRequest> requests) throws AmbariException {
     for (GroupRequest request: requests) {
-      LOG.debug("Received a delete group request, groupname=" + request.getGroupName());
+      LOG.debug("Received a delete group request, groupname={}", request.getGroupName());
       final Group group = users.getGroup(request.getGroupName());
       if (group != null) {
         users.removeGroup(group);
@@ -3662,10 +3770,52 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  /**
+   * Creates and triggers an action to update include and exclude files for the master components depending on current cluster topology and components state
+   * @param serviceMasterMap
+   * @param masterSlaveHostsMap
+   *@param clusterName  @throws AmbariException
+   */
+  private void createAndExecuteRefreshIncludeExcludeFilesActionForMasters(Map<String, String> serviceMasterMap, Map<String, Set<String>> masterSlaveHostsMap, String clusterName, boolean isDecommission) throws AmbariException {
+    //Clear include/exclude files or draining list except HBASE
+    serviceMasterMap.remove(Service.Type.HBASE.toString());
+    //exit if empty
+    if (serviceMasterMap.isEmpty()) {
+      return;
+    }
+    LOG.debug("Refresh include/exclude files action will be executed for " + serviceMasterMap);
+    HashMap<String, String> requestProperties = new HashMap<>();
+    requestProperties.put("context", "Update Include/Exclude Files for " + serviceMasterMap.keySet().toString());
+    requestProperties.put("exclusive", "true");
+    HashMap<String, String> params = new HashMap<>();
+    params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, String.valueOf(isDecommission));
+
+    for (String masterName : masterSlaveHostsMap.keySet()) {
+      if (!isDecommission) {
+        params.put(masterName + "_" + AmbariCustomCommandExecutionHelper.DECOM_INCLUDED_HOSTS, StringUtils.join(masterSlaveHostsMap.get(masterName).toArray(), ","));
+      }
+    }
+
+    params.put(AmbariCustomCommandExecutionHelper.IS_ADD_OR_DELETE_SLAVE_REQUEST, "true");
+
+    //Create filter for command
+    List<RequestResourceFilter> resourceFilters = new ArrayList<>(serviceMasterMap.size());
+    for (String serviceName : serviceMasterMap.keySet()) {
+      resourceFilters.add(new RequestResourceFilter(serviceName, serviceMasterMap.get(serviceName), null));
+    }
+
+    //Create request for command
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+      clusterName, AmbariCustomCommandExecutionHelper.DECOMMISSION_COMMAND_NAME, null,
+      resourceFilters, null, params, true);
+    //Send action
+    createAction(actionRequest, requestProperties);
+  }
+
   @Override
   public void deleteMembers(java.util.Set<MemberRequest> requests) throws AmbariException {
     for (MemberRequest request : requests) {
-      LOG.debug("Received a delete member request, " + request);
+      LOG.debug("Received a delete member request, {}", request);
       users.removeMemberFromGroup(request.getGroupName(), request.getUserName());
     }
   }
@@ -3717,30 +3867,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ServiceComponentHostRequest request : requests) {
       try {
         response.addAll(getHostComponents(request));
-      } catch (ServiceComponentHostNotFoundException e) {
+      } catch (ServiceComponentHostNotFoundException | ServiceComponentNotFoundException | ServiceNotFoundException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
           // there will be > 1 request in case of OR predicate
-          throw e;
-        } else {
-          LOG.debug("Ignoring not found exception due to other requests", e);
-        }
-      } catch (ServiceNotFoundException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          // In 'OR' case, a host_component may be included in predicate
-          // that has no corresponding service
-          throw e;
-        } else {
-          LOG.debug("Ignoring not found exception due to other requests", e);
-        }
-      } catch (ServiceComponentNotFoundException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          // In 'OR' case, a host_component may be included in predicate
-          // that has no corresponding component
           throw e;
         } else {
           LOG.debug("Ignoring not found exception due to other requests", e);
@@ -3837,8 +3967,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (UserRequest r : requests) {
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a getUsers request"
-            + ", userRequest=" + r.toString());
+        LOG.debug("Received a getUsers request, userRequest={}", r);
       }
 
       String requestedUsername = r.getUsername();
@@ -3892,7 +4021,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throws AmbariException {
     final Set<GroupResponse> responses = new HashSet<>();
     for (GroupRequest request: requests) {
-      LOG.debug("Received a getGroups request, groupRequest=" + request.toString());
+      LOG.debug("Received a getGroups request, groupRequest={}", request);
       // get them all
       if (null == request.getGroupName()) {
         for (Group group: users.getAllGroups()) {
@@ -3941,7 +4070,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
      * that has client component is in maintenance state
      */
 
-    StackId stackId = service.getDesiredStackVersion();
+    StackId stackId = service.getDesiredStackId();
     ComponentInfo compInfo =
         ambariMetaInfo.getService(stackId.getStackName(),
             stackId.getStackVersion(), service.getName()).getClientComponent();
@@ -3991,10 +4120,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     );
-    LOG.debug("Ignoring hosts when selecting available hosts for action" +
-            " due to maintenance state." +
-            "Ignored hosts =" + ignoredHosts + ", cluster="
-            + cluster.getClusterName() + ", service=" + service.getName());
+    LOG.debug("Ignoring hosts when selecting available hosts for action due to maintenance state.Ignored hosts ={}, cluster={}, service={}",
+      ignoredHosts, cluster.getClusterName(), service.getName());
   }
 
   /**
@@ -4064,7 +4191,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       LOG.info("Received action execution request"
         + ", clusterName=" + actionRequest.getClusterName()
-        + ", request=" + actionRequest.toString());
+        + ", request=" + actionRequest);
     }
 
     ActionExecutionContext actionExecContext = getActionExecutionContext(actionRequest);
@@ -4082,11 +4209,57 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         actionManager,
         actionRequest);
 
-    StackId stackId = null;
-    if (null != cluster) {
-      stackId = cluster.getDesiredStackVersion();
+    RepositoryVersionEntity desiredRepositoryVersion = null;
+
+    RequestOperationLevel operationLevel = actionExecContext.getOperationLevel();
+    if (null != operationLevel && StringUtils.isNotBlank(operationLevel.getServiceName())) {
+      Service service = cluster.getService(operationLevel.getServiceName());
+      if (null != service) {
+        desiredRepositoryVersion = service.getDesiredRepositoryVersion();
+      }
     }
-    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster, stackId);
+
+    if (null == desiredRepositoryVersion && CollectionUtils.isNotEmpty(actionExecContext.getResourceFilters())) {
+      Set<RepositoryVersionEntity> versions = new HashSet<>();
+
+      for (RequestResourceFilter filter : actionExecContext.getResourceFilters()) {
+        RepositoryVersionEntity repoVersion = null;
+
+        if (StringUtils.isNotBlank(filter.getServiceName())) {
+          Service service = cluster.getService(filter.getServiceName());
+
+          if (StringUtils.isNotBlank(filter.getComponentName())) {
+            ServiceComponent serviceComponent = service.getServiceComponent(filter.getComponentName());
+
+            repoVersion = serviceComponent.getDesiredRepositoryVersion();
+          }
+
+          if (null == repoVersion) {
+            repoVersion = service.getDesiredRepositoryVersion();
+          }
+        }
+
+        if (null != repoVersion) {
+          versions.add(repoVersion);
+        }
+      }
+
+      if (1 == versions.size()) {
+        desiredRepositoryVersion = versions.iterator().next();
+      } else if (versions.size() > 1) {
+        Set<String> errors = new HashSet<>();
+        for (RepositoryVersionEntity version : versions) {
+          errors.add(String.format("%s/%s", version.getStackId(), version.getVersion()));
+        }
+        throw new IllegalArgumentException(String.format("More than one repository is resolved with this Action: %s",
+            StringUtils.join(errors, ';')));
+      }
+    }
+
+
+    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext,
+        cluster, desiredRepositoryVersion, requestContext);
+
     String commandParamsForStage = jsons.getCommandParamsForStage();
 
     Map<String, String> commandParamsStage = gson.fromJson(commandParamsForStage, new TypeToken<Map<String, String>>()
@@ -4119,7 +4292,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
-          requestProperties);
+          requestProperties, jsons);
     } else {
       actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestProperties);
     }
@@ -4136,6 +4309,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = rg.getStages();
 
     if (stages != null && !stages.isEmpty()) {
+      requestStageContainer.setClusterHostInfo(jsons.getClusterHostInfo());
       requestStageContainer.addStages(stages);
     }
 
@@ -4361,7 +4535,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
           if (operatingSystem.getOsType().equals(osType)) {
             for (RepositoryEntity repository: operatingSystem.getRepositories()) {
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(), repository.getName(), "", "", "");
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(), repository.getName(), "", "");
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4390,7 +4564,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getMirrorsList(),
-              repo.getBaseUrl(), repo.getLatestUri());
+              repo.getBaseUrl());
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());
@@ -4420,40 +4594,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     return responses;
-  }
-
-  @Override
-  public void updateRepositories(Set<RepositoryRequest> requests) throws AmbariException {
-    for (RepositoryRequest rr : requests) {
-      if (null == rr.getStackName() || rr.getStackName().isEmpty()) {
-        throw new AmbariException("Stack name must be specified.");
-      }
-
-      if (null == rr.getStackVersion() || rr.getStackVersion().isEmpty()) {
-        throw new AmbariException("Stack version must be specified.");
-      }
-
-      if (null == rr.getOsType() || rr.getOsType().isEmpty()) {
-        throw new AmbariException("OS type must be specified.");
-      }
-
-      if (null == rr.getRepoId() || rr.getRepoId().isEmpty()) {
-        throw new AmbariException("Repo ID must be specified.");
-      }
-
-      if (null == rr.getBaseUrl() && null == rr.getMirrorsList()) {
-        throw new AmbariException("Repo Base Url or Mirrors List must be specified.");
-      }
-
-      if (rr.isVerifyBaseUrl()) {
-        verifyRepository(rr);
-      }
-      if (rr.getRepositoryVersionId() != null) {
-        throw new AmbariException("Can't directly update repositories in repository_version, update the repository_version instead");
-      }
-      ambariMetaInfo.updateRepo(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId(), rr.getBaseUrl(), rr.getMirrorsList());
-
-    }
   }
 
   @Override
@@ -4918,11 +5058,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       String serviceName  = request.getServiceName();
       try {
         Set<RootServiceComponentResponse> rootServiceComponents = getRootServiceComponents(request);
-
-        for (RootServiceComponentResponse serviceComponentResponse : rootServiceComponents) {
-          serviceComponentResponse.setServiceName(serviceName);
-        }
-
         response.addAll(rootServiceComponents);
       } catch (AmbariException e) {
         if (requests.size() == 1) {
@@ -5099,52 +5234,52 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @SuppressWarnings("unchecked")
   @Override
   public void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException {
-    StackId stackId = cluster.getDesiredStackVersion();
     Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
 
-    try {
-      Map<String, Object> widgetDescriptor = null;
-      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-      if (service != null) {
-        // Service widgets
-        ServiceInfo serviceInfo = stackInfo.getService(service.getName());
-        File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
-        if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
-          try {
-            widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-          } catch (Exception ex) {
-            String msg = "Error loading widgets from file: " + widgetDescriptorFile;
-            LOG.error(msg, ex);
-            throw new AmbariException(msg);
-          }
-        }
-      } else {
-        // Cluster level widgets
+    Set<File> widgetDescriptorFiles = new HashSet<>();
+
+    if (null != service) {
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
+      File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
+      if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
+        widgetDescriptorFiles.add(widgetDescriptorFile);
+      }
+    } else {
+      Set<StackId> stackIds = new HashSet<>();
+
+      for (Service svc : cluster.getServices().values()) {
+        stackIds.add(svc.getDesiredStackId());
+      }
+
+      for (StackId stackId : stackIds) {
+        StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
+
         String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
         if (widgetDescriptorFileLocation != null) {
           File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
           if (widgetDescriptorFile.exists()) {
-            try {
-              widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-            } catch (Exception ex) {
-              String msg = "Error loading widgets from file: " + widgetDescriptorFile;
-              LOG.error(msg, ex);
-              throw new AmbariException(msg);
-            }
+            widgetDescriptorFiles.add(widgetDescriptorFile);
           }
         }
       }
-      if (widgetDescriptor != null) {
-        LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
+    }
+
+    for (File widgetDescriptorFile : widgetDescriptorFiles) {
+      Map<String, Object> widgetDescriptor = null;
+
+      try {
+        widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+
         for (Object artifact : widgetDescriptor.values()) {
           List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
           createWidgetsAndLayouts(cluster, widgetLayouts);
         }
+
+      } catch (Exception ex) {
+        String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+        LOG.error(msg, ex);
+        throw new AmbariException(msg);
       }
-    } catch (Exception e) {
-      throw new AmbariException("Error creating stack widget artifacts. " +
-        (service != null ? "Service: " + service.getName() + ", " : "") +
-        "Cluster: " + cluster.getClusterName(), e);
     }
   }
 
@@ -5168,7 +5303,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       widgetEntity.setMetrics(gson.toJson(layoutInfo.getMetricsInfo()));
       widgetEntity.setProperties(gson.toJson(layoutInfo.getProperties()));
       widgetEntity.setWidgetValues(gson.toJson(layoutInfo.getValues()));
-      widgetEntity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
+      widgetEntity.setListWidgetLayoutUserWidgetEntity(new LinkedList<>());
       LOG.info("Creating cluster widget with: name = " +
         layoutInfo.getWidgetName() + ", type = " + layoutInfo.getType() + ", " +
         "cluster = " + clusterEntity.getClusterName());
@@ -5532,7 +5667,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public void createExtensionLink(ExtensionLinkRequest request) throws AmbariException {
-    validateCreateExtensionLinkRequest(request);
+    if (StringUtils.isBlank(request.getStackName())
+            || StringUtils.isBlank(request.getStackVersion())
+            || StringUtils.isBlank(request.getExtensionName())
+            || StringUtils.isBlank(request.getExtensionVersion())) {
+
+      throw new IllegalArgumentException("Stack name, stack version, extension name and extension version should be provided");
+    }
 
     StackInfo stackInfo = ambariMetaInfo.getStack(request.getStackName(), request.getStackVersion());
 
@@ -5546,24 +5687,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new StackAccessException("extensionName=" + request.getExtensionName() + ", extensionVersion=" + request.getExtensionVersion());
     }
 
-    ExtensionHelper.validateCreateLink(stackInfo, extensionInfo);
-    ExtensionLinkEntity linkEntity = createExtensionLinkEntity(request);
-    ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
-
-    try {
-      linkDAO.create(linkEntity);
-      linkEntity = linkDAO.merge(linkEntity);
-    } catch (RollbackException e) {
-      String message = "Unable to create extension link";
-      LOG.debug(message, e);
-      String errorMessage = message
-              + ", stackName=" + request.getStackName()
-              + ", stackVersion=" + request.getStackVersion()
-              + ", extensionName=" + request.getExtensionName()
-              + ", extensionVersion=" + request.getExtensionVersion();
-      LOG.warn(errorMessage);
-      throw new AmbariException(errorMessage, e);
-    }
+    helper.createExtensionLink(ambariMetaInfo.getStackManager(), stackInfo, extensionInfo);
   }
 
   /**
@@ -5612,37 +5736,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
-  }
-
-  private void validateCreateExtensionLinkRequest(ExtensionLinkRequest request) throws AmbariException {
-    if (request.getStackName() == null
-            || request.getStackVersion() == null
-            || request.getExtensionName() == null
-            || request.getExtensionVersion() == null) {
-
-      throw new IllegalArgumentException("Stack name, stack version, extension name and extension version should be provided");
-    }
-
-    ExtensionLinkEntity entity = linkDAO.findByStackAndExtension(request.getStackName(), request.getStackVersion(),
-            request.getExtensionName(), request.getExtensionVersion());
-
-    if (entity != null) {
-      throw new AmbariException("The stack and extension are already linked"
-                + ", stackName=" + request.getStackName()
-                + ", stackVersion=" + request.getStackVersion()
-                + ", extensionName=" + request.getExtensionName()
-                + ", extensionVersion=" + request.getExtensionVersion());
-    }
-  }
-
-  private ExtensionLinkEntity createExtensionLinkEntity(ExtensionLinkRequest request) throws AmbariException {
-    StackEntity stack = stackDAO.find(request.getStackName(), request.getStackVersion());
-    ExtensionEntity extension = extensionDAO.find(request.getExtensionName(), request.getExtensionVersion());
-
-    ExtensionLinkEntity linkEntity = new ExtensionLinkEntity();
-    linkEntity.setStack(stack);
-    linkEntity.setExtension(extension);
-    return linkEntity;
   }
 
   @Override
@@ -5892,13 +5985,5 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
 
     return clusterLevelParams;
-  }
-
-  public TreeMap<String, String> getTopologyHostLevelParams(Cluster cluster, Host host) throws AmbariException {
-    TreeMap<String, String> hostLevelParams = new TreeMap<>();
-    String repoInfo = ambariMetaInfo.getRepoInfoString(cluster, host);
-
-    hostLevelParams.put(REPO_INFO, repoInfo);
-    return hostLevelParams;
   }
 }

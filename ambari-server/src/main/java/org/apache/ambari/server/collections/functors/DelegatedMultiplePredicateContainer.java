@@ -51,7 +51,7 @@ abstract class DelegatedMultiplePredicateContainer extends Predicate implements 
 
   @Override
   public Map<String, Object> toMap() {
-    return Collections.<String, Object>singletonMap(getName(), containedPredicatesToMaps());
+    return Collections.singletonMap(getName(), containedPredicatesToMaps());
   }
 
   @Override

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,9 +21,11 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.ViewVersionResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -35,6 +37,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.server.view.configuration.ParameterConfig;
+import org.apache.ambari.view.ViewDefinition;
 
 /**
  * Resource provider for view versions.
@@ -119,7 +123,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
     if (propertyMaps.isEmpty()) {
-      propertyMaps.add(Collections.<String, Object>emptyMap());
+      propertyMaps.add(Collections.emptyMap());
     }
 
     for (Map<String, Object> propertyMap : propertyMaps) {
@@ -131,24 +135,25 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
         if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
           if (viewVersion == null || viewVersion.equals(viewDefinition.getVersion())) {
             Resource resource = new ResourceImpl(Resource.Type.ViewVersion);
-
-            setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewDefinition.getCommonName(), requestedIds);
-            setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewDefinition.getVersion(), requestedIds);
-            setResourceProperty(resource, VIEW_BUILD_PROPERTY_ID, viewDefinition.getBuild(), requestedIds);
-            setResourceProperty(resource, LABEL_PROPERTY_ID, viewDefinition.getLabel(), requestedIds);
-            setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewDefinition.getDescription(), requestedIds);
+            ViewVersionResponse viewVersionResponse = getResponse(viewDefinition);
+            ViewVersionResponse.ViewVersionInfo viewVersionInfo = viewVersionResponse.getViewVersionInfo();
+            setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewVersionInfo.getViewName(), requestedIds);
+            setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewVersionInfo.getVersion(), requestedIds);
+            setResourceProperty(resource, VIEW_BUILD_PROPERTY_ID, viewVersionInfo.getBuildNumber(), requestedIds);
+            setResourceProperty(resource, LABEL_PROPERTY_ID, viewVersionInfo.getLabel(), requestedIds);
+            setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewVersionInfo.getDescription(), requestedIds);
             setResourceProperty(resource, MIN_AMBARI_VERSION_PROPERTY_ID,
-                viewDefinition.getConfiguration().getMinAmbariVersion(), requestedIds);
+              viewVersionInfo.getMinAmbariVersion(), requestedIds);
             setResourceProperty(resource, MAX_AMBARI_VERSION_PROPERTY_ID,
-                viewDefinition.getConfiguration().getMaxAmbariVersion(), requestedIds);
+              viewVersionInfo.getMaxAmbariVersion(), requestedIds);
             setResourceProperty(resource, PARAMETERS_PROPERTY_ID,
-                viewDefinition.getConfiguration().getParameters(), requestedIds);
-            setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewDefinition.getArchive(), requestedIds);
-            setResourceProperty(resource, MASKER_CLASS_PROPERTY_ID, viewDefinition.getMask(), requestedIds);
-            setResourceProperty(resource, VIEW_STATUS_PROPERTY_ID, viewDefinition.getStatus().toString(), requestedIds);
-            setResourceProperty(resource, VIEW_STATUS_DETAIL_PROPERTY_ID, viewDefinition.getStatusDetail(), requestedIds);
-            setResourceProperty(resource, CLUSTER_CONFIG_PROPERTY_ID, viewDefinition.isClusterConfigurable(), requestedIds);
-            setResourceProperty(resource, SYSTEM_PROPERTY_ID, viewDefinition.isSystem(), requestedIds);
+              viewVersionInfo.getParameters(), requestedIds);
+            setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewVersionInfo.getArchive(), requestedIds);
+            setResourceProperty(resource, MASKER_CLASS_PROPERTY_ID, viewVersionInfo.getMaskerClass(), requestedIds);
+            setResourceProperty(resource, VIEW_STATUS_PROPERTY_ID, viewVersionInfo.getStatus().toString(), requestedIds);
+            setResourceProperty(resource, VIEW_STATUS_DETAIL_PROPERTY_ID, viewVersionInfo.getStatusDetail(), requestedIds);
+            setResourceProperty(resource, CLUSTER_CONFIG_PROPERTY_ID, viewVersionInfo.isClusterConfigurable(), requestedIds);
+            setResourceProperty(resource, SYSTEM_PROPERTY_ID, viewVersionInfo.isSystem(), requestedIds);
 
             resources.add(resource);
           }
@@ -156,6 +161,32 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
       }
     }
     return resources;
+  }
+
+  /**
+   * Returns response schema instance for view version REST endpoint: /views/{viewName}/versions
+   * @param viewDefinition   view entity {@link ViewEntity}
+   * @return {@link ViewVersionResponse}
+   */
+  public ViewVersionResponse getResponse(ViewEntity viewDefinition) {
+    String archive = viewDefinition.getArchive();
+    String buildNumber = viewDefinition.getBuild();
+    boolean clusterConfigurable = viewDefinition.isClusterConfigurable();
+    String description = viewDefinition.getDescription();
+    String label =  viewDefinition.getLabel();
+    String maskerClass = viewDefinition.getMask();
+    String maxAmbariVersion = viewDefinition.getConfiguration().getMaxAmbariVersion();
+    String minAmbariVersion = viewDefinition.getConfiguration().getMinAmbariVersion();
+    List<ParameterConfig> parameters = viewDefinition.getConfiguration().getParameters();
+    ViewDefinition.ViewStatus status = viewDefinition.getStatus();
+    String statusDetail = viewDefinition.getStatusDetail();
+    boolean system =  viewDefinition.isSystem();
+    String version =  viewDefinition.getVersion();
+    String viewName =  viewDefinition.getCommonName();
+    ViewVersionResponse.ViewVersionInfo viewVersionInfo = new ViewVersionResponse.ViewVersionInfo(archive, buildNumber,
+      clusterConfigurable, description, label, maskerClass, maxAmbariVersion, minAmbariVersion, parameters, status,
+      statusDetail, system, version, viewName);
+    return new ViewVersionResponse(viewVersionInfo);
   }
 
   @Override

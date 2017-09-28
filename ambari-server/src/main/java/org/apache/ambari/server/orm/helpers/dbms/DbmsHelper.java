@@ -62,6 +62,16 @@ public interface DbmsHelper {
                                  String... columnNames);
 
   /**
+   * Generating update SQL statement for {@link DBAccessor#executePreparedUpdate}
+   *
+   * @param tableName name of the table
+   * @param setColumnName column name, value of which need to be set
+   * @param conditionColumnName column name for the condition
+   * @return
+   */
+  String getColumnUpdateStatementWhereColumnIsNull(String tableName, String setColumnName, String conditionColumnName);
+
+  /**
    * Gets DROP INDEX statement
    *
    * @param indexName
@@ -125,6 +135,54 @@ public interface DbmsHelper {
    * @return the statement (never {@code null}).
    */
   String getSetNullableStatement(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable);
+
+  /**
+   * Get's the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
+   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
+   *
+   * @param sourceTable
+   *          the source table name
+   * @param sourceColumnName
+   *          the source column name
+   * @param sourceIDColumnName
+   *          source key id column which would be used to math right rows for {@code targetTable}
+   * @param targetTable
+   *          the destination table name
+   * @param targetColumnName
+   *          the destination column name
+   * @param targetIDColumnName
+   *          destination key id column name which should math {@code sourceIDColumnName}
+   * @return
+   */
+  String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName, String sourceIDColumnName,
+                                              String targetTable, String targetColumnName, String targetIDColumnName);
+
+  /**
+   * Get's the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
+   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
+   * and condition {@code sourceConditionFieldName} = {@code condition}
+   *
+   * @param sourceTable              the source table name
+   * @param sourceColumnName         the source column name
+   * @param sourceIDColumnName1      source key id column which would be used to math right rows for {@code targetTable}
+   * @param sourceIDColumnName2      source key id column which would be used to math right rows for {@code targetTable}
+   * @param sourceIDColumnName3      source key id column which would be used to math right rows for {@code targetTable}
+   * @param targetTable              the destination table name
+   * @param targetColumnName         the destination column name
+   * @param targetIDColumnName1      destination key id column name which should match {@code sourceIDColumnName1}
+   * @param targetIDColumnName2      destination key id column name which should match {@code sourceIDColumnName1}
+   * @param targetIDColumnName3      destination key id column name which should match {@code sourceIDColumnName1}
+   * @param sourceConditionFieldName source key column name which should match {@code condition}
+   * @param condition                value which should match {@code sourceConditionFieldName}
+   * @return
+   */
+  String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+                                              String sourceIDColumnName1, String sourceIDColumnName2,
+                                              String sourceIDColumnName3,
+                                              String targetTable, String targetColumnName,
+                                              String targetIDColumnName1, String targetIDColumnName2,
+                                              String targetIDColumnName3,
+                                              String sourceConditionFieldName, String condition);
 
   /**
    * Gets whether the database platform supports adding contraints after the

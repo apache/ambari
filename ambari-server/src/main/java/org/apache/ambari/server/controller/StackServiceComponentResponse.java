@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,6 +26,8 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Stack service component response.
@@ -87,6 +89,11 @@ public class StackServiceComponentResponse {
   private String decommissionAllowed;
 
   /**
+   * Whether the component supports rolling restart.
+   * */
+  private boolean rollingRestartSupported;
+
+  /**
    * auto deploy information
    */
   private AutoDeployInfo autoDeploy;
@@ -131,6 +138,7 @@ public class StackServiceComponentResponse {
     bulkCommandsDisplayName = getBulkCommandsDisplayName(component);
     bulkCommandMasterComponentName = getBulkCommandsMasterComponentName(component);
     reassignAllowed = component.getReassignAllowed();
+    rollingRestartSupported = component.getRollingRestartSupported();
 
     // the custom command names defined for this component
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
@@ -197,6 +205,7 @@ public class StackServiceComponentResponse {
    *
    * @return stack name
    */
+  @ApiModelProperty(name = "stack_name")
   public String getStackName() {
     return stackName;
   }
@@ -215,6 +224,7 @@ public class StackServiceComponentResponse {
    *
    * @return stack version
    */
+  @ApiModelProperty(name = "stack_version")
   public String getStackVersion() {
     return stackVersion;
   }
@@ -233,6 +243,7 @@ public class StackServiceComponentResponse {
    *
    * @return service name
    */
+  @ApiModelProperty(name = "service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -251,6 +262,7 @@ public class StackServiceComponentResponse {
    *
    * @return component name
    */
+  @ApiModelProperty(name = "component_name")
   public String getComponentName() {
     return componentName;
   }
@@ -270,6 +282,7 @@ public class StackServiceComponentResponse {
    * @return component display name
    */
 
+  @ApiModelProperty(name = "display_name")
   public String getComponentDisplayName() {
     return componentDisplayName;
   }
@@ -288,6 +301,7 @@ public class StackServiceComponentResponse {
    *
    * @return component category
    */
+  @ApiModelProperty(name = "component_category")
   public String getComponentCategory() {
     return componentCategory;
   }
@@ -306,6 +320,7 @@ public class StackServiceComponentResponse {
    *
    * @return whether the component is a client component
    */
+  @ApiModelProperty(name = "is_client")
   public boolean isClient() {
     return isClient;
   }
@@ -324,6 +339,7 @@ public class StackServiceComponentResponse {
    *
    * @return whether the component is a master component
    */
+  @ApiModelProperty(name = "is_master")
   public boolean isMaster() {
     return isMaster;
   }
@@ -342,6 +358,7 @@ public class StackServiceComponentResponse {
    *
    * @return component cardinality requirement
    */
+  @ApiModelProperty(name = "cardinality")
   public String getCardinality() {
     return cardinality;
   }
@@ -361,6 +378,7 @@ public class StackServiceComponentResponse {
    *
    * @return Whether the components needs to advertise a version
    */
+  @ApiModelProperty(name = "advertise_version")
   public boolean isVersionAdvertised() {
     return versionAdvertised;
   }
@@ -379,6 +397,7 @@ public class StackServiceComponentResponse {
    *
    * @return Whether the components can be decommissioned
    */
+  @ApiModelProperty(name = "decommission_allowed")
   public boolean isDecommissionAlllowed() {
     if (decommissionAllowed != null && decommissionAllowed.equals("true")) {
       return true;
@@ -397,10 +416,21 @@ public class StackServiceComponentResponse {
   }
 
   /**
+   * Get whether the component supports rolling restart
+   *
+   * @return whether the component supports rolling restart
+   */
+  @ApiModelProperty(name = "rollingRestartSupported")
+  public boolean isRollingRestartSupported(){
+    return rollingRestartSupported;
+  }
+
+  /**
    * Get whether the components can be reassigned.
    *
    * @return Whether the components can be reassigned
    */
+  @ApiModelProperty(name = "reassign_allowed")
   public boolean isReassignAlllowed() {
     if (reassignAllowed != null && reassignAllowed.equals("true")) {
       return true;
@@ -423,6 +453,7 @@ public class StackServiceComponentResponse {
    *
    * @return True or false.
    */
+  @ApiModelProperty(name = "recovery_enabled")
   public boolean isRecoveryEnabled() {
     return recoveryEnabled;
   }
@@ -442,6 +473,7 @@ public class StackServiceComponentResponse {
    *
    * @return auto deploy information
    */
+  @ApiModelProperty(hidden = true)
   public AutoDeployInfo getAutoDeploy() {
     return autoDeploy;
   }
@@ -460,10 +492,12 @@ public class StackServiceComponentResponse {
    *
    * @return the commands or an empty list (never {@code null}).
    */
+  @ApiModelProperty(name = "custom_commands")
   public List<String> getCustomCommands() {
     return customCommands;
   }
 
+  @ApiModelProperty(name = "has_bulk_commands_definition")
   public boolean hasBulkCommands(){
     return hasBulkCommands;
   }
@@ -472,7 +506,16 @@ public class StackServiceComponentResponse {
     return bulkCommandsDisplayName == null ? "":bulkCommandsDisplayName;
   }
 
+  @ApiModelProperty(name = "bulk_commands_master_component_namen")
   public String getBulkCommandsMasterComponentName(){
     return bulkCommandMasterComponentName == null ? "":bulkCommandMasterComponentName;
+  }
+
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface StackServiceComponentResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "StackServiceComponents")
+    public StackServiceComponentResponse getStackServiceComponentResponse();
   }
 }

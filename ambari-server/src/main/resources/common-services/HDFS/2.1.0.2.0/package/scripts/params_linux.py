@@ -31,7 +31,7 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions import get_klist_path
@@ -54,8 +54,11 @@ architecture = get_architecture()
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+rolling_restart = default("/commandParams/rolling_restart", False)
+rolling_restart_safemode_exit_timeout = default("/configurations/cluster-env/namenode_rolling_restart_safemode_exit_timeout", None)
 stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
@@ -161,7 +164,13 @@ falcon_user = config['configurations']['falcon-env']['falcon_user']
 #exclude file
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
-update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
+slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
+include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)
+hdfs_include_file = None
+manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  hdfs_include_file = slave_hosts
+update_files_only = default("/commandParams/update_files_only",False)
 command_phase = default("/commandParams/phase","")
 
 klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
@@ -169,7 +178,7 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 #hosts
 hostname = config['agentLevelParams']['hostname']
 rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
-slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
+public_hostname = config["public_hostname"]
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
 hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
@@ -268,6 +277,8 @@ else:
 fs_checkpoint_dirs = default("/configurations/hdfs-site/dfs.namenode.checkpoint.dir", "").split(',')
 
 dfs_data_dirs = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
+dfs_data_dirs_perm = default("/configurations/hdfs-site/dfs.datanode.data.dir.perm", "755")
+dfs_data_dirs_perm = int(dfs_data_dirs_perm, base=8) # convert int from octal representation
 
 data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
@@ -303,6 +314,9 @@ if dfs_ha_enabled:
   for nn_id in dfs_ha_namemodes_ids_list:
     nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
     if hostname.lower() in nn_host.lower():
+      namenode_id = nn_id
+      namenode_rpc = nn_host
+    elif public_hostname.lower() in nn_host.lower():
       namenode_id = nn_id
       namenode_rpc = nn_host
   # With HA enabled namenode_address is recomputed

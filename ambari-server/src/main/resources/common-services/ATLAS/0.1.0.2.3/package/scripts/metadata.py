@@ -197,6 +197,28 @@ def metadata(type='server'):
     else:
       File(format('{conf_dir}/hdfs-site.xml'), action="delete")
 
+    '''
+    Atlas requires hadoop core-site.xml to resolve users/groups synced in HadoopUGI for
+    authentication and authorization process. Earlier the core-site.xml was available in
+    Hbase conf directory which is a part of Atlas class-path, from stack 2.6 onwards,
+    core-site.xml is no more available in Hbase conf directory. Hence need to create
+    core-site.xml in Atlas conf directory.
+    '''
+    if params.stack_supports_atlas_core_site and params.has_namenode:
+      XmlConfig("core-site.xml",
+        conf_dir=params.conf_dir,
+        configurations=params.config['configurations']['core-site'],
+        configuration_attributes=params.config['configuration_attributes']['core-site'],
+        owner=params.metadata_user,
+        group=params.user_group,
+        mode=0644
+      )
+
+    Directory(format('{metadata_home}/'),
+      owner = params.metadata_user,
+      group = params.user_group,
+      recursive_ownership = True,
+    )
 
 def upload_conf_set(config_set, jaasFile):
   import params
@@ -207,7 +229,7 @@ def upload_conf_set(config_set, jaasFile):
       config_set_dir=format("{conf_dir}/solr"),
       config_set=config_set,
       tmp_dir=params.tmp_dir,
-      java64_home=params.java64_home,
+      java64_home=params.ambari_java_home,
       solrconfig_content=InlineTemplate(params.metadata_solrconfig_content),
       jaas_file=jaasFile,
       retry=30, interval=5)
@@ -220,7 +242,7 @@ def create_collection(collection, config_set, jaasFile):
       solr_znode=params.infra_solr_znode,
       collection = collection,
       config_set=config_set,
-      java64_home=params.java64_home,
+      java64_home=params.ambari_java_home,
       jaas_file=jaasFile,
       shards=params.atlas_solr_shards,
       replication_factor = params.infra_solr_replication_factor)
@@ -230,7 +252,7 @@ def secure_znode(znode, jaasFile):
   solr_cloud_util.secure_znode(config=params.config, zookeeper_quorum=params.zookeeper_quorum,
                                solr_znode=znode,
                                jaas_file=jaasFile,
-                               java64_home=params.java64_home, sasl_users=[params.atlas_jaas_principal])
+                               java64_home=params.ambari_java_home, sasl_users=[params.atlas_jaas_principal])
 
 
 
@@ -240,4 +262,4 @@ def check_znode():
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.infra_solr_znode,
-    java64_home=params.java64_home)
+    java64_home=params.ambari_java_home)

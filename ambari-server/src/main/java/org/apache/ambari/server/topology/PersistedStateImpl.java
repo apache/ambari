@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostGroupDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
+import org.apache.ambari.server.orm.dao.TopologyLogicalRequestDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -53,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Implementation which uses Ambari Database DAO and Entity objects for persistence
@@ -77,6 +79,9 @@ public class PersistedStateImpl implements PersistedState {
 
   @Inject
   private TopologyHostRequestDAO hostRequestDAO;
+
+  @Inject
+  private TopologyLogicalRequestDAO topologyLogicalRequestDAO;
 
   @Inject
   private TopologyLogicalTaskDAO topologyLogicalTaskDAO;
@@ -116,6 +121,24 @@ public class PersistedStateImpl implements PersistedState {
     //logicalRequestDAO.create(entity);
 
     topologyRequestDAO.merge(topologyRequestEntity);
+  }
+
+  @Override
+  @Transactional
+  public void removeHostRequests(long logicalRequestId, Collection<HostRequest> hostRequests) {
+    TopologyLogicalRequestEntity logicalRequest = topologyLogicalRequestDAO.findById(logicalRequestId);
+    for (HostRequest hostRequest : hostRequests) {
+      TopologyHostRequestEntity hostRequestEntity = hostRequestDAO.findById(hostRequest.getId());
+      if (logicalRequest != null)  {
+        logicalRequest.getTopologyHostRequestEntities().remove(hostRequestEntity);
+      }
+      hostRequestDAO.remove(hostRequestEntity);
+    }
+    if (logicalRequest != null && logicalRequest.getTopologyHostRequestEntities().isEmpty()) {
+      Long topologyRequestId = logicalRequest.getTopologyRequestId();
+      topologyLogicalRequestDAO.remove(logicalRequest);
+      topologyRequestDAO.removeByPK(topologyRequestId);
+    }
   }
 
   @Override
@@ -185,7 +208,7 @@ public class PersistedStateImpl implements PersistedState {
             clusterTopology.setProvisionAction(entity.getProvisionAction());
           }
           topologyRequests.put(replayedRequest.getClusterId(), clusterTopology);
-          allRequests.put(clusterTopology, new ArrayList<LogicalRequest>());
+          allRequests.put(clusterTopology, new ArrayList<>());
         } catch (InvalidTopologyException e) {
           throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
         }
@@ -200,18 +223,21 @@ public class PersistedStateImpl implements PersistedState {
       }
 
       TopologyLogicalRequestEntity logicalRequestEntity = entity.getTopologyLogicalRequestEntity();
-      Long logicalId = logicalRequestEntity.getId();
+      if (logicalRequestEntity != null) {
+        try {
+          Long logicalId = logicalRequestEntity.getId();
 
-      try {
-        //todo: fix initialization of ActionManager.requestCounter to account for logical requests
-        //todo: until this is fixed, increment the counter for every recovered logical request
-        //todo: this will cause gaps in the request id's after recovery
-        ambariContext.getNextRequestId();
-        allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
-            logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
-      } catch (AmbariException e) {
-        throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+          //todo: fix initialization of ActionManager.requestCounter to account for logical requests
+          //todo: until this is fixed, increment the counter for every recovered logical request
+          //todo: this will cause gaps in the request id's after recovery
+          ambariContext.getNextRequestId();
+          allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
+                  logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
+        } catch (AmbariException e) {
+          throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+        }
       }
+
     }
 
     return allRequests;
@@ -339,7 +365,6 @@ public class PersistedStateImpl implements PersistedState {
     }
     return entity;
   }
-
 
   private static String propertiesAsString(Map<String, Map<String, String>> configurationProperties) {
     return jsonSerializer.toJson(configurationProperties);

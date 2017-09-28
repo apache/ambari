@@ -55,6 +55,7 @@ define([
             if (newValue === '') {
               $scope.target.metric = '';
               $scope.target.hosts = '';
+              $scope.target.cluster = '';
             }
           });
           if (!$scope.target.downsampleAggregator) {
@@ -86,8 +87,14 @@ define([
             .then(callback);
         };
 
+        $scope.suggestClusters = function(query, callback) {
+          $scope.datasource.suggestClusters($scope.target.app)
+            .then($scope.getTextValues)
+            .then(callback);
+        };
+
         $scope.suggestHosts = function(query, callback) {
-          $scope.datasource.suggestHosts(query, $scope.target.app)
+          $scope.datasource.suggestHosts($scope.target.app, $scope.target.cluster)
             .then($scope.getTextValues)
             .then(callback);
         };

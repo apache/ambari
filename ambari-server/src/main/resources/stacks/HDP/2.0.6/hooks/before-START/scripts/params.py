@@ -24,16 +24,25 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions, get_major_version
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
+from resource_management.libraries.functions import StackFeature
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 artifact_dir = tmp_dir + "/AMBARI-artifacts"
+
+version_for_stack_feature_checks = get_stack_feature_version(config)
+stack_supports_hadoop_custom_extensions = check_stack_feature(StackFeature.HADOOP_CUSTOM_EXTENSIONS, version_for_stack_feature_checks)
+
+sudo = AMBARI_SUDO_BINARY
 
 # Global flag enabling or disabling the sysprep feature
 host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
@@ -47,6 +56,7 @@ sysprep_skip_setup_jce = host_sys_prepped and default("/configurations/cluster-e
 
 stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 dfs_type = default("/commandParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
@@ -111,7 +121,14 @@ jtnode_host = default("/clusterHostInfo/jtnode_host", [])
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+cluster_name = config["clusterName"]
+set_instanceId = "false"
+if 'cluster-env' in config['configurations'] and \
+    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 
 has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
@@ -137,8 +154,8 @@ if has_ganglia_server:
 metric_collector_port = None
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -156,6 +173,9 @@ if has_metric_collector:
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+
+host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = None
@@ -240,6 +260,10 @@ refresh_topology = False
 command_params = config["commandParams"] if "commandParams" in config else None
 if command_params is not None:
   refresh_topology = bool(command_params["refresh_topology"]) if "refresh_topology" in command_params else False
+
+ambari_java_home = default("/commandParams/ambari_java_home", None)
+ambari_jdk_name = default("/commandParams/ambari_jdk_name", None)
+ambari_jce_name = default("/commandParams/ambari_jce_name", None)
   
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']
@@ -266,7 +290,6 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
@@ -306,10 +329,15 @@ if dfs_ha_enabled:
    pass
  pass
 else:
- namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
+  namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', default_fs)
 
-if namenode_rpc:
- nn_rpc_client_port = namenode_rpc.split(':')[1].strip()
+# if HDFS is not installed in the cluster, then don't try to access namenode_rpc
+if "core-site" in config['configurations'] and namenode_rpc:
+  port_str = namenode_rpc.split(':')[-1].strip()
+  try:
+    nn_rpc_client_port = int(port_str)
+  except ValueError:
+    nn_rpc_client_port = None
 
 if dfs_ha_enabled:
  dfs_service_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.servicerpc-address.{dfs_ha_nameservices}.{namenode_id}'), None)

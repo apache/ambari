@@ -135,12 +135,26 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       if (configGroup && !configGroup.get('isDefault')) {
         var overriddenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
 
-        if (Em.isArray(overriddenConfigs)) {
+        if (Em.isArray(overriddenConfigs) && this.isOverriddenConfigsModified(overriddenConfigs, configGroup)) {
           var successCallback = this.get('content.serviceName') === serviceName ? 'putConfigGroupChangesSuccess' : null;
           this.saveGroup(overriddenConfigs, configGroup, this.get('serviceConfigVersionNote'), successCallback);
         }
       }
     }, this);
+  },
+
+  /**
+   * @param {Array} overriddenConfigs
+   * @returns {boolean}
+   */
+  isOverriddenConfigsModified: function(overriddenConfigs, group) {
+    var hasChangedConfigs = overriddenConfigs.some(function(config) {
+      return config.get('savedValue') !== config.get('value') || config.get('savedIsFinal') !== config.get('isFinal');
+    });
+    var overriddenConfigsNames = overriddenConfigs.mapProperty('name');
+    return hasChangedConfigs || group.get('properties').some(function (property) {
+        return !overriddenConfigsNames.contains(Em.get(property, 'name'));
+      });
   },
 
   saveConfigsForDefaultGroup: function() {
@@ -317,9 +331,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       return App.config.getOriginalFileName(type);
     });
 
-    // save modified original configs that have no group
+    // save modified original configs that have no group and are not Undefined label
     modifiedConfigs = this.saveSiteConfigs(modifiedConfigs.filter(function (config) {
-      return !config.get('group');
+      return !config.get('group') && !config.get('isUndefinedLabel');
     }));
 
     if (!Em.isArray(modifiedConfigs) || modifiedConfigs.length == 0) return null;
@@ -368,10 +382,10 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   /*********************************** 3. GENERATING JSON TO SAVE *****************************/
 
   /**
-   * Map that contains last used timestamp per filename.
+   * Map that contains last used timestamp.
    * There is a case when two config groups can update same filename almost simultaneously
-   * so they have equal timestamp only and this causes collision. So to prevent this we need to check
-   * if specific filename with specific timestamp is not saved yet
+   * so they have equal timestamp and this causes collision. So to prevent this we need to check
+   * if specific filename with specific timestamp is not saved yet.
    *
    * @type {Object}
    */
@@ -389,14 +403,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     var desired_config = [];
     if (Em.isArray(configsToSave) && Em.isArray(fileNamesToSave) && fileNamesToSave.length && configsToSave.length) {
       serviceConfigNote = serviceConfigNote || "";
-      var tagVersion = "version" + (new Date).getTime();
-      fileNamesToSave.forEach(function(fName) {
 
-        /** @see <code>_timeStamps<code> **/
-        if (this.get('_timeStamps')[fName] === tagVersion) {
-          tagVersion = "version" + ((new Date).getTime() + 1);
-        }
-        this.get('_timeStamps')[fName] = tagVersion;
+      fileNamesToSave.forEach(function(fName) {
+        var tagVersion = this.getUniqueTag();
 
         if (this.allowSaveSite(fName)) {
           var properties = configsToSave.filterProperty('filename', fName);
@@ -406,6 +415,23 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       }, this);
     }
     return desired_config;
+  },
+
+  /**
+   * generate unique tag
+   * @returns {string}
+   */
+  getUniqueTag: function() {
+    var timestamp = (new Date).getTime();
+    var tagVersion = "version" + timestamp;
+
+    while(this.get('_timeStamps')[tagVersion]) {
+      timestamp++;
+      tagVersion = "version" + timestamp;
+    }
+    /** @see <code>_timeStamps<code> **/
+    this.get('_timeStamps')[tagVersion] = true;
+    return tagVersion;
   },
 
   /**
@@ -551,6 +577,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
         "cluster_name": App.get('clusterName') || this.get('clusterName'),
         "group_name": group.name,
         "tag": group.service_id,
+        "service_name": group.service_id,
         "description": group.description,
         "hosts": groupHosts,
         "service_config_version_note": configVersionNote || "",

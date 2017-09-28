@@ -19,7 +19,7 @@
 <div class="row">
   <div class={{get-value-from-columns columnHeaders 'name' 'columnClass'}}>
     {{#if file.isDirectory}}
-      {{#link-to 'files' (query-params path=file.path) bubbles=false title=file.name}}{{fa-icon "folder-o"}} {{shorten-text file.name 40}} {{/link-to}}
+      {{#link-to 'files' (query-params path=file.path filter='') bubbles=false title=file.name}}{{fa-icon "folder-o"}} {{shorten-text file.name 40}} {{/link-to}}
     {{else}}
       <span title={{ file.name }}>{{fa-icon "file-o"}} {{shorten-text file.name 40}}</span>
     {{/if}}

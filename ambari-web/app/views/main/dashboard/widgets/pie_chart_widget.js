@@ -84,10 +84,10 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
   content: App.ChartPieView.extend({
     model: null,  //data bind here
     id: Em.computed.alias('parentView.widgetHtmlId'), // html id
-    stroke: '#D6DDDF', //light grey
+    stroke: 'transparent',
     thresholdMin: null, //bind from parent
     thresholdMax: null,
-    innerR: 25,
+    innerR: 40,
 
     existCenterText: true,
     centerTextColor: Em.computed.alias('contentColor'),
@@ -111,20 +111,21 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
       var thresholdMax = parseFloat(this.get('thresholdMax'));
       if (used <= thresholdMin) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: ['#FFFFFF', App.healthStatusGreen].reverse()
+          scheme: ['#DDDDDD', App.healthStatusGreen].reverse()
         }));
-        return App.healthStatusGreen;
       }
-      if (used <= thresholdMax) {
+      else if (used <= thresholdMax) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: ['#FFFFFF', App.healthStatusOrange].reverse()
+          scheme: ['#DDDDDD', App.healthStatusOrange].reverse()
         }));
-        return App.healthStatusOrange;
       }
-      this.set('palette', new Rickshaw.Color.Palette({
-        scheme: ['#FFFFFF', App.healthStatusRed].reverse()
-      }));
-      return App.healthStatusRed;
+      else {
+        this.set('palette', new Rickshaw.Color.Palette({
+          scheme: ['#DDDDDD', App.healthStatusRed].reverse()
+        }));
+      }
+      return App.widgetContentColor;
+
     }.property('data', 'thresholdMin', 'thresholdMax'),
 
     // refresh text and color when data in model changed

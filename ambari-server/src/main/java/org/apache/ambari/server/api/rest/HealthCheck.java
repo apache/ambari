@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,6 +23,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.annotations.ApiIgnore;
+
 /**
  * A simple POJO to do a health check on the server to see if its running
  * or not
@@ -33,21 +35,21 @@ public class HealthCheck {
   private static final String status = "RUNNING";
   // This method is called if TEXT_PLAIN is request
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces(MediaType.TEXT_PLAIN)
   public String plainTextCheck() {
     return status;
   }
 
   // This method is called if XML is request
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces(MediaType.TEXT_XML)
   public String xmlCheck() {
     return "<?xml version=\"1.0\"?>" + "<status> " + status + "</status>";
   }
 
   // This method is called if HTML is request
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces(MediaType.TEXT_HTML)
   public String  htmlCheck() {
     return "<html> " + "<title>" + "Status" + "</title>"

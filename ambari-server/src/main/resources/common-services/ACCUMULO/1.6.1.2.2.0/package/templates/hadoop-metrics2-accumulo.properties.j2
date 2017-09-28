@@ -16,6 +16,9 @@
 # Poll collectors every {{metrics_report_interval}} seconds
 *.period={{metrics_collection_period}}
 
+*.host_in_memory_aggregation = {{host_in_memory_aggregation}}
+*.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+
 {% if has_metric_collector %}
 
 *.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar

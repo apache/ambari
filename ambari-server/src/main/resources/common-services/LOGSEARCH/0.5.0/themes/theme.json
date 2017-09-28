@@ -87,7 +87,7 @@
       "configuration-layout": "default",
       "configs": [
         {
-          "config" : "logsearch-properties/logsearch.logfeeder.include.default.level",
+          "config" : "logfeeder-properties/logfeeder.include.default.level",
           "subsection-name": "subsection-logsearch-server-col1"
         },
         {
@@ -353,7 +353,7 @@
         }
       },
       {
-        "config": "logsearch-properties/logsearch.logfeeder.include.default.level",
+        "config": "logfeeder-properties/logfeeder.include.default.level",
         "widget": {
           "type": "text-field"
         }

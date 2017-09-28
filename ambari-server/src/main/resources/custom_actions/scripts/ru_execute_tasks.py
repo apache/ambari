@@ -23,6 +23,7 @@ import re
 import os
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import socket
+import traceback
 
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
@@ -79,6 +80,7 @@ def resolve_ambari_config():
     else:
       raise Exception("No config found at %s" % str(config_path))
   except Exception, err:
+    traceback.print_exc()
     Logger.warning(err)
 
 

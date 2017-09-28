@@ -83,7 +83,7 @@ def hive(name=None):
   if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
-  
+
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
@@ -125,7 +125,7 @@ def hive(name=None):
 
 def setup_hiveserver2():
   import params
-  
+
   File(params.start_hiveserver2_path,
        mode=0755,
        content=Template(format('{start_hiveserver2_script}'))
@@ -144,16 +144,16 @@ def setup_hiveserver2():
             owner=params.hive_user,
             group=params.user_group,
             mode=0600)
-  
+
   # copy tarball to HDFS feature not supported
-  if not (params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major)):  
+  if not (params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major)):
     params.HdfsResource(params.webhcat_apps_dir,
                           type="directory",
                           action="create_on_execute",
                           owner=params.webhcat_user,
                           mode=0755
                         )
-  
+
   # Create webhcat dirs.
   if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
     params.HdfsResource(params.hcat_hdfs_user_dir,
@@ -216,7 +216,7 @@ def setup_hiveserver2():
                    skip=params.sysprep_skip_copy_tarballs_hdfs)
   # ******* End Copy Tarballs *******
   # *********************************
-  
+
   # if warehouse directory is in DFS
   if not params.whs_dir_protocol or params.whs_dir_protocol == urlparse(params.default_fs).scheme:
     # Create Hive Metastore Warehouse Dir
@@ -236,7 +236,7 @@ def setup_hiveserver2():
                         owner=params.hive_user,
                         mode=params.hive_hdfs_user_mode
   )
-  
+
   if not is_empty(params.hive_exec_scratchdir) and not urlparse(params.hive_exec_scratchdir).path.startswith("/tmp"):
     params.HdfsResource(params.hive_exec_scratchdir,
                          type="directory",
@@ -244,12 +244,12 @@ def setup_hiveserver2():
                          owner=params.hive_user,
                          group=params.hdfs_user,
                          mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
-    
+
   params.HdfsResource(None, action="execute")
-  
+
 def setup_non_client():
   import params
-  
+
   Directory(params.hive_pid_dir,
             create_parents = True,
             cd_access='a',
@@ -273,10 +273,10 @@ def setup_non_client():
     jdbc_connector(params.hive_jdbc_target, params.hive_previous_jdbc_jar)
   if params.hive2_jdbc_target is not None and not os.path.exists(params.hive2_jdbc_target):
     jdbc_connector(params.hive2_jdbc_target, params.hive2_previous_jdbc_jar)
-    
+
 def setup_metastore():
   import params
-  
+
   if params.hive_metastore_site_supported:
     hivemetastore_site_config = get_config("hivemetastore-site")
     if hivemetastore_site_config:
@@ -287,7 +287,7 @@ def setup_metastore():
                 owner=params.hive_user,
                 group=params.user_group,
                 mode=0600)
-  
+
   File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
        owner=params.hive_user,
        group=params.user_group,
@@ -328,7 +328,7 @@ def create_metastore_schema():
           not_if = check_schema_created_cmd,
           user = params.hive_user
   )
-    
+
 """
 Writes configuration files required by Hive.
 """
@@ -400,7 +400,13 @@ def fill_conf_dir(component_conf_dir):
            owner=params.hive_user,
            content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
       )
-    pass # if params.log4j_version == '1'
+
+  if params.parquet_logging_properties is not None:
+    File(format("{component_conf_dir}/parquet-logging.properties"),
+      mode = mode_identified_for_file,
+      group = params.user_group,
+      owner = params.hive_user,
+      content = params.parquet_logging_properties)
 
 
 def jdbc_connector(target, hive_previous_jdbc_jar):
@@ -426,7 +432,7 @@ def jdbc_connector(target, hive_previous_jdbc_jar):
       Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
               path=["/bin", "/usr/bin/"],
               sudo = True)
-    
+
     File(params.downloaded_custom_connector,
          content = DownloadSource(params.driver_curl_source))
 
@@ -463,7 +469,7 @@ def jdbc_connector(target, hive_previous_jdbc_jar):
   File(target,
        mode = 0644,
   )
-  
+
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hive(name=None):
   import params

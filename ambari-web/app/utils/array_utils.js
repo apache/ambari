@@ -20,6 +20,8 @@ function _parseId(id) {
   return id.replace(/[^\d|\.]/g, '').split('.').map(function (i) {return parseInt(i, 10);});
 }
 
+const flatten = (list) => list.reduce((a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []);
+
 module.exports = {
   /**
    *
@@ -83,6 +85,8 @@ module.exports = {
       return 0
     }
     return lId1 > lId2 ? 1 : -1;
-  }
+  },
+
+  flatten
 
 };

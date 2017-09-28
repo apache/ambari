@@ -20,61 +20,106 @@
 package org.apache.ambari.logsearch.manager;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
+import org.apache.ambari.logfeeder.common.LogEntryParseTester;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
+import org.apache.ambari.logsearch.model.common.LSServerInputConfig;
+import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.apache.log4j.Logger;
 
-import javax.annotation.PostConstruct;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Named
 public class ShipperConfigManager extends JsonManagerBase {
 
   private static final Logger logger = Logger.getLogger(ShipperConfigManager.class);
-  
-  @Inject
-  private LogSearchConfigState logSearchConfigState;
 
   @Inject
   private LogSearchConfigConfigurer logSearchConfigConfigurer;
-
-  @PostConstruct
-  private void postConstructor() {
-    logSearchConfigConfigurer.start();
-  }
   
   public List<String> getServices(String clusterName) {
-    if (!logSearchConfigState.isLogSearchConfigAvailable()) {
-      logger.warn("Log Search Config not available yet");
-      return null;
-    }
-    
-    return LogSearchConfigConfigurer.getConfig().getServices(clusterName);
+    return logSearchConfigConfigurer.getConfig().getServices(clusterName);
   }
 
-  public String getInputConfig(String clusterName, String serviceName) {
-    if (!logSearchConfigState.isLogSearchConfigAvailable()) {
-      logger.warn("Log Search Config not available yet");
-      return null;
-    }
-    
-    return LogSearchConfigConfigurer.getConfig().getInputConfig(clusterName, serviceName);
+  public LSServerInputConfig getInputConfig(String clusterName, String serviceName) {
+    InputConfig inputConfig = logSearchConfigConfigurer.getConfig().getInputConfig(clusterName, serviceName);
+    return new LSServerInputConfig(inputConfig);
   }
 
-  public Response setInputConfig(String clusterName, String serviceName, String inputConfig) {
-    if (!logSearchConfigState.isLogSearchConfigAvailable()) {
-      logger.warn("Log Search Config not available yet");
-      return Response.serverError().build();
-    }
-    
+  public Response createInputConfig(String clusterName, String serviceName, LSServerInputConfig inputConfig) {
     try {
-      LogSearchConfigConfigurer.getConfig().setInputConfig(clusterName, serviceName, inputConfig);
+      if (logSearchConfigConfigurer.getConfig().inputConfigExists(clusterName, serviceName)) {
+        return Response.serverError()
+            .type(MediaType.APPLICATION_JSON)
+            .entity(ImmutableMap.of("errorMessage", "Input config already exists for service " + serviceName))
+            .build();
+      }
+      
+      logSearchConfigConfigurer.getConfig().createInputConfig(clusterName, serviceName, new ObjectMapper().writeValueAsString(inputConfig));
       return Response.ok().build();
     } catch (Exception e) {
-      logger.warn("Could not write input config", e);
+      logger.warn("Could not create input config", e);
+      return Response.serverError().build();
+    }
+  }
+
+  public Response setInputConfig(String clusterName, String serviceName, LSServerInputConfig inputConfig) {
+    try {
+      if (!logSearchConfigConfigurer.getConfig().inputConfigExists(clusterName, serviceName)) {
+        return Response.serverError()
+            .type(MediaType.APPLICATION_JSON)
+            .entity(ImmutableMap.of("errorMessage", "Input config doesn't exist for service " + serviceName))
+            .build();
+      }
+      
+      logSearchConfigConfigurer.getConfig().setInputConfig(clusterName, serviceName, new ObjectMapper().writeValueAsString(inputConfig));
+      return Response.ok().build();
+    } catch (Exception e) {
+      logger.warn("Could not update input config", e);
+      return Response.serverError().build();
+    }
+  }
+
+  public Map<String, Object> testShipperConfig(String shipperConfig, String logId, String testEntry, String clusterName) {
+    try {
+      LSServerInputConfig inputConfigValidate = new ObjectMapper().readValue(shipperConfig, LSServerInputConfig.class);
+      Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+      Set<ConstraintViolation<LSServerInputConfig>> violations = validator.validate(inputConfigValidate);
+      if (!violations.isEmpty()) {
+        throw new IllegalArgumentException("Error validating shipper config:\n" + violations);
+      }
+      
+      String globalConfigs = logSearchConfigConfigurer.getConfig().getGlobalConfigs(clusterName);
+      LogEntryParseTester tester = new LogEntryParseTester(testEntry, shipperConfig, globalConfigs, logId);
+      return tester.parse();
+    } catch (Exception e) {
+      Map<String, Object> errorResponse = ImmutableMap.of("errorMessage", (Object)e.toString());
+      return errorResponse;
+    }
+  }
+
+  public LSServerLogLevelFilterMap getLogLevelFilters(String clusterName) {
+    return new LSServerLogLevelFilterMap(logSearchConfigConfigurer.getConfig().getLogLevelFilters(clusterName));
+  }
+
+  public Response setLogLevelFilters(String clusterName, LSServerLogLevelFilterMap request) {
+    try {
+      logSearchConfigConfigurer.getConfig().setLogLevelFilters(clusterName, request.convertToApi());
+      return Response.ok().build();
+    } catch (Exception e) {
+      logger.warn("Could not update log level filters", e);
       return Response.serverError().build();
     }
   }

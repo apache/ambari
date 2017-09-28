@@ -31,6 +31,7 @@ describe('App.UpgradeVersionBoxView', function () {
       initFilters: Em.K,
       controller: Em.Object.create({
         upgrade: Em.K,
+        getRepoVersionInstallId: Em.K,
         currentVersion: Em.Object.create()
       }),
       content: Em.Object.create(),
@@ -50,7 +51,7 @@ describe('App.UpgradeVersionBoxView', function () {
       view.set('controller.fromVersion', 'HDP-1');
     });
     afterEach(function () {
-      App.set('upgradeState', 'INIT');
+      App.set('upgradeState', 'NOT_REQUIRED');
     });
     it("wrong version", function () {
       App.set('upgradeState', 'IN_PROGRESS');
@@ -74,15 +75,15 @@ describe('App.UpgradeVersionBoxView', function () {
       view.propertyDidChange('isUpgrading');
       expect(view.get('isUpgrading')).to.be.true;
     });
-    it("upgradeState INIT", function () {
-      App.set('upgradeState', 'INIT');
+    it("upgradeState NOT_REQUIRED", function () {
+      App.set('upgradeState', 'NOT_REQUIRED');
       view.set('controller.upgradeVersion', 'HDP-2.2.2');
       view.set('content.displayName', 'HDP-2.2.2');
       view.propertyDidChange('isUpgrading');
       expect(view.get('isUpgrading')).to.be.false;
     });
-    it("upgradeState INIT and wrong version", function () {
-      App.set('upgradeState', 'INIT');
+    it("upgradeState NOT_REQUIRED and wrong version", function () {
+      App.set('upgradeState', 'NOT_REQUIRED');
       view.set('controller.upgradeVersion', 'HDP-2.2.2');
       view.set('content.displayName', 'HDP-2.2.1');
       view.propertyDidChange('isUpgrading');
@@ -93,29 +94,29 @@ describe('App.UpgradeVersionBoxView', function () {
   describe("#installProgress", function () {
 
     beforeEach(function () {
-      this.mockDB = sinon.stub(App.db, 'get');
+      this.mockId = sinon.stub(view.get('controller'), 'getRepoVersionInstallId');
       this.mock = sinon.stub(App.router, 'get');
       App.set('testMode', false);
     });
     afterEach(function () {
-      this.mockDB.restore();
+      this.mockId.restore();
       this.mock.restore();
     });
 
     it("request id is not set", function () {
       this.mock.returns([]);
-      this.mockDB.returns(undefined);
+      this.mockId.returns(undefined);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(0);
     });
     it("request absent", function () {
       this.mock.returns([]);
-      this.mockDB.returns([1]);
+      this.mockId.returns([1]);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(0);
     });
     it("request present", function () {
-      this.mockDB.returns([1]);
+      this.mockId.returns([1]);
       this.mock.returns([Em.Object.create({progress: 100, id: 1})]);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(100);
@@ -449,11 +450,44 @@ describe('App.UpgradeVersionBoxView', function () {
       },
       {
         inputData: {
-          'content.status': 'INIT',
+          'content.status': 'CURRENT',
+          'content.isPatch': true,
+          'isUpgrading': false,
+          'content.stackVersion': Em.Object.create({
+            'supportsRevert': false
+          })
+        },
+        expected: {
+          isLabel: true,
+          text: Em.I18n.t('common.current'),
+          class: 'label label-success',
+          canBeReverted: false
+        },
+        title: 'current no-revertable patch version'
+      },
+      {
+        inputData: {
+          'content.status': 'CURRENT',
+          'content.isPatch': true,
+          'isUpgrading': false,
+          'content.stackVersion': Em.Object.create({
+            'supportsRevert': true
+          })
+        },
+        expected: {
+          status: 'CURRENT',
+          text: Em.I18n.t('common.current'),
+          action: 'confirmRevertPatchUpgrade'
+        },
+        title: 'current revertable patch version'
+      },
+      {
+        inputData: {
+          'content.status': 'NOT_REQUIRED',
           'controller.requestInProgress': false,
           'parentView.repoVersions': [
             Em.Object.create({
-              status: 'INIT'
+              status: 'NOT_REQUIRED'
             })
           ]
         },
@@ -462,20 +496,27 @@ describe('App.UpgradeVersionBoxView', function () {
           this.initMock.returns(false);
         },
         expected: {
-          status: 'INIT',
-          isButton: true,
-          buttons: [],
-          isDisabled: false
+          status: 'NOT_REQUIRED',
+          isButton: false,
+          isButtonGroup: true,
+          buttons: [
+            {
+              "action": "confirmDiscardRepoVersion",
+              "isDisabled": false,
+              "text": Em.I18n.t('common.hide')
+            }
+          ],
+          isDisabled: true
         },
-        title: 'INIT state, no admin access, no requests in progress'
+        title: 'NOT_REQUIRED state, no admin access, no requests in progress'
       },
       {
         inputData: {
-          'content.status': 'INIT',
+          'content.status': 'NOT_REQUIRED',
           'controller.requestInProgress': true,
           'parentView.repoVersions': [
             Em.Object.create({
-              status: 'INIT'
+              status: 'NOT_REQUIRED'
             })
           ]
         },
@@ -484,12 +525,19 @@ describe('App.UpgradeVersionBoxView', function () {
           this.initMock.returns(true);
         },
         expected: {
-          status: 'INIT',
-          isButton: true,
-          buttons: [],
+          status: 'NOT_REQUIRED',
+          isButton: false,
+          isButtonGroup: true,
+          buttons: [
+            {
+              "action": "confirmDiscardRepoVersion",
+              "isDisabled": true,
+              "text": Em.I18n.t('common.hide')
+            }
+          ],
           isDisabled: true
         },
-        title: 'INIT state, no admin access, request in progress, not installation'
+        title: 'NOT_REQUIRED state, no admin access, request in progress, not installation'
       },
       {
         inputData: {
@@ -516,15 +564,9 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         expected: {
           status: 'INSTALL_FAILED',
-          isButtonGroup: true,
-          buttons: [{
-            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionConfirmation',
-            isDisabled: true
-          }],
-          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-          action: 'confirmUpgrade',
-          isDisabled: true
+          isButton: true,
+          text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+          action: 'installRepoVersionPopup',
         },
         title: 'INSTALL_FAILED state, no admin access, request in progress, another installation running'
       },
@@ -553,15 +595,9 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         expected: {
           status: 'INSTALL_FAILED',
-          isButtonGroup: true,
-          buttons: [{
-            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionConfirmation',
-            isDisabled: true
-          }],
-          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-          action: 'confirmUpgrade',
-          isDisabled: true
+          isButton: true,
+          text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+          action: 'installRepoVersionPopup',
         },
         title: 'INSTALL_FAILED state, no admin access, no requests in progress, another installation running'
       },
@@ -595,7 +631,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: false
           }],
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
           isDisabled: false
         },
         title: 'OUT_OF_SYNC state, admin access, no requests in progress, no installation'
@@ -628,7 +664,7 @@ describe('App.UpgradeVersionBoxView', function () {
             isDisabled: true
           }],
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
+          action: 'installRepoVersionPopup',
           isDisabled: true
         },
         title: 'OUT_OF_SYNC state, admin access, request in progress, no installation'
@@ -656,6 +692,7 @@ describe('App.UpgradeVersionBoxView', function () {
         inputData: {
           'content.status': 'INSTALLED',
           'controller.requestInProgress': true,
+          'content.isPatch': true,
           'parentView.repoVersions': [
             Em.Object.create({
               status: 'INSTALLED'
@@ -681,8 +718,18 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation',
+              action: 'installRepoVersionPopup',
               isDisabled: true
+            },
+            {
+              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+              action: 'showUpgradeOptions',
+              isDisabled: true
+            },
+            {
+              "action": "confirmDiscardRepoVersion",
+              "isDisabled": true,
+              "text": Em.I18n.t('common.hide')
             }
           ],
           isDisabled: true
@@ -717,7 +764,12 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation',
+              action: 'installRepoVersionPopup',
+              isDisabled: true
+            },
+            {
+              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+              action: 'showUpgradeOptions',
               isDisabled: true
             }
           ],
@@ -962,7 +1014,7 @@ describe('App.UpgradeVersionBoxView', function () {
           isButton: true,
           action: 'resumeUpgrade',
           text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
-          isDisabled: false
+          isDisabled: true
         },
         title: 'upgrade suspended'
       },
@@ -1006,6 +1058,9 @@ describe('App.UpgradeVersionBoxView', function () {
         if (item.setup) {
           item.setup.call(this);
         }
+        view.reopen({
+          isUpgrading: item.inputData.isUpgrading
+        });
         view.setProperties(item.inputData);
         var result = view.get('stateElement').getProperties(Em.keys(item.expected));
         if (result.buttons) {
@@ -1039,7 +1094,7 @@ describe('App.UpgradeVersionBoxView', function () {
         title: 'upgrading just started'
       },
       {
-        status: 'INIT',
+        status: 'NOT_REQUIRED',
         isUpgrading: false,
         isRepoUrlsEditDisabled: false,
         title: 'neither upgrading nor installing packages'
@@ -1217,6 +1272,252 @@ describe('App.UpgradeVersionBoxView', function () {
         view.set('controller.upgradeVersion', test.upgradeVersion);
         expect(view.isDisabledOnInstalled()).to.be.equal(test.expected);
       });
+    });
+  });
+
+  describe('#processSuspendedState', function() {
+
+    it('should process suspended state', function() {
+      view.set('controller.requestInProgress', false);
+      var element = Em.Object.create();
+      view.processSuspendedState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "resumeUpgrade",
+        "isButton": true,
+        "isDisabled": false,
+        "text": Em.I18n.t('admin.stackUpgrade.dialog.resume')
+      }));
+    });
+  });
+
+  describe('#processUpgradingState', function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it('downgrade in HOLDING state', function() {
+      this.mock.returns('HOLDING');
+      view.set('controller.isDowngrade', true);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "glyphicon glyphicon-pause",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.downgrade.pause')
+      }));
+    });
+
+    it('upgrade in HOLDING state', function() {
+      this.mock.returns('HOLDING');
+      view.set('controller.isDowngrade', false);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "glyphicon glyphicon-pause",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.upgrade.pause')
+      }));
+    });
+
+    it('upgrade in running state', function() {
+      this.mock.returns('UPGRADING');
+      view.set('controller.isDowngrade', false);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "glyphicon glyphicon-cog",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.upgrade.running')
+      }));
+    });
+
+    it('downgrade in running state', function() {
+      this.mock.returns('UPGRADING');
+      view.set('controller.isDowngrade', true);
+      var element = Em.Object.create();
+      view.processUpgradingState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": "openUpgradeDialog",
+        "iconClass": "glyphicon glyphicon-cog",
+        "isLink": true,
+        "text": Em.I18n.t('admin.stackVersions.version.downgrade.running')
+      }));
+    });
+  });
+
+  describe('#processPreUpgradeState', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'isDisabledOnInstalled').returns(false);
+    });
+    afterEach(function() {
+      view.isDisabledOnInstalled.restore();
+    });
+
+    it('version lower than current and in INSTALLED state', function() {
+      view.set('controller', Em.Object.create({
+        currentVersion: Em.Object.create({
+          repository_version: '2.0',
+          stack_name: 'HDP'
+        })
+      }));
+      view.set('content', Em.Object.create({
+        status: 'INSTALLED',
+        repositoryVersion: '2.0',
+        stackVersionType: 'HDP'
+      }));
+      var element = Em.Object.create();
+      view.processPreUpgradeState(element);
+      expect(element).to.be.eql(Em.Object.create({
+        "action": null,
+        "iconClass": "glyphicon glyphicon-ok",
+        "isLink": true,
+        "text": "Installed"
+      }));
+    });
+
+    it('version higher than current and in OUT_OF_SYNC state', function() {
+      view.set('controller', Em.Object.create({
+        currentVersion: Em.Object.create({
+          repository_version: '2.0',
+          stack_name: 'HDP'
+        })
+      }));
+      view.set('content', Em.Object.create({
+        status: 'OUT_OF_SYNC',
+        repositoryVersion: '2.1',
+        stackVersionType: 'HDP'
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processPreUpgradeState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+            "action": "confirmUpgrade",
+            "isDisabled": false
+          }
+        ],
+        "isButtonGroup": true,
+        "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
+        "action": 'installRepoVersionPopup',
+        "isDisabled": false
+      })));
+    });
+
+    it('version higher than current and in INSTALLED state', function() {
+      view.set('controller', Em.Object.create({
+        currentVersion: Em.Object.create({
+          repository_version: '2.0',
+          stack_name: 'HDP'
+        })
+      }));
+      view.set('content', Em.Object.create({
+        status: 'INSTALLED',
+        repositoryVersion: '2.1',
+        stackVersionType: 'HDP',
+        isPatch: true
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processPreUpgradeState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
+            "action": "installRepoVersionPopup",
+            "isDisabled": false
+          },
+          {
+            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+            action: 'showUpgradeOptions',
+            isDisabled: false
+          },
+          {
+            "text": Em.I18n.t('common.hide'),
+            "action": "confirmDiscardRepoVersion",
+            "isDisabled": false
+          }
+        ],
+        "isButtonGroup": true,
+        "text": Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+        "action": 'confirmUpgrade',
+        "isDisabled": false
+      })));
+    });
+  });
+
+  describe('#processNotRequiredState', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'isDisabledOnInit').returns(false);
+    });
+    afterEach(function() {
+      view.isDisabledOnInit.restore();
+    });
+
+    it('version in LOADING state', function() {
+      view.set('controller', Em.Object.create({
+        requestInProgressRepoId: 1
+      }));
+      view.set('content', Em.Object.create({
+        status: 'NOT_REQUIRED',
+        id: 1
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processNotRequiredState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('common.hide'),
+            "action": "confirmDiscardRepoVersion",
+            "isDisabled": false
+          }
+        ],
+        "isSpinner": true,
+        "class": "spinner",
+        "isDisabled": false,
+        "isButtonGroup": true,
+        "isButton": false
+      })));
+    });
+
+    it('version in NOT_REQUIRED state', function() {
+      view.set('controller', Em.Object.create({
+        requestInProgressRepoId: 1
+      }));
+      view.set('content', Em.Object.create({
+        status: 'NOT_REQUIRED',
+        id: 2
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processNotRequiredState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [
+          {
+            "text": Em.I18n.t('common.hide'),
+            "action": "confirmDiscardRepoVersion",
+            "isDisabled": false
+          }
+        ],
+        "isButton": false,
+        "text": Em.I18n.t('admin.stackVersions.version.installNow'),
+        "action": 'installRepoVersionPopup',
+        "isDisabled": false,
+        "isButtonGroup": true
+      })));
     });
   });
 });

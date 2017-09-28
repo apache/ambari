@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -38,13 +38,13 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -71,7 +71,6 @@ public class TestHeartbeatMonitor {
 
   private String hostname1 = "host1";
   private String hostname2 = "host2";
-  private String hostname3 = "host3";
   private String clusterName = "cluster1";
   private String serviceName = "HDFS";
   private int heartbeatMonitorWakeupIntervalMS = 30;
@@ -148,9 +147,10 @@ public class TestHeartbeatMonitor {
     setOsFamily(clusters.getHost(hostname2), "redhat", "6.3");
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        stackId.getStackVersion());
+
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
       add(hostname2);
@@ -158,12 +158,12 @@ public class TestHeartbeatMonitor {
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     Config config = configFactory.createNew(cluster, "hadoop-env", "version1",
-        new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<>());
     cluster.addDesiredConfig("_test", Collections.singleton(config));
 
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
-    Service hdfs = cluster.addService(serviceName);
+    Service hdfs = cluster.addService(serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -230,9 +230,9 @@ public class TestHeartbeatMonitor {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        stackId.getStackVersion());
+
     Set<String> hostNames = new HashSet<String>() {{
       add(hostname1);
       add(hostname2);
@@ -242,17 +242,19 @@ public class TestHeartbeatMonitor {
     Config hadoopEnvConfig = configFactory.createNew(cluster, "hadoop-env", "version1",
       new HashMap<String, String>() {{
         put("a", "b");
-      }}, new HashMap<String, Map<String,String>>());
+      }}, new HashMap<>());
+
+
     Config hbaseEnvConfig = configFactory.createNew(cluster, "hbase-env", "version1",
             new HashMap<String, String>() {{
               put("a", "b");
-            }}, new HashMap<String, Map<String,String>>());
+            }}, new HashMap<>());
 
     cluster.addDesiredConfig("_test", Collections.singleton(hadoopEnvConfig));
 
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
-    Service hdfs = cluster.addService(serviceName);
+    Service hdfs = cluster.addService(serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
     (hostname1);
@@ -350,9 +352,8 @@ public class TestHeartbeatMonitor {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        stackId.getStackVersion());
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
@@ -360,7 +361,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(serviceName);
+    Service hdfs = cluster.addService(serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -432,9 +433,8 @@ public class TestHeartbeatMonitor {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-            RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        stackId.getStackVersion());
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
@@ -442,7 +442,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(serviceName);
+    Service hdfs = cluster.addService(serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -550,9 +550,8 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
 
     cluster.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        stackId.getStackVersion());
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
@@ -561,7 +560,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(serviceName);
+    Service hdfs = cluster.addService(serviceName, repositoryVersion);
 
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);

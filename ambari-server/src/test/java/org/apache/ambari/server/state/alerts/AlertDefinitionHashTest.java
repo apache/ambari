@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
@@ -207,8 +206,8 @@ public class AlertDefinitionHashTest extends TestCase {
 
     // configHelper mock
     m_configHelper = m_injector.getInstance(ConfigHelper.class);
-    EasyMock.expect(m_configHelper.getEffectiveDesiredTags((Cluster) anyObject(), EasyMock.anyString())).andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
-    EasyMock.expect(m_configHelper.getEffectiveConfigProperties((Cluster) anyObject(), (Map<String, Map<String, String>>) anyObject())).andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
+    EasyMock.expect(m_configHelper.getEffectiveDesiredTags((Cluster) anyObject(), EasyMock.anyString())).andReturn(new HashMap<>()).anyTimes();
+    EasyMock.expect(m_configHelper.getEffectiveConfigProperties((Cluster) anyObject(), (Map<String, Map<String, String>>) anyObject())).andReturn(new HashMap<>()).anyTimes();
     EasyMock.replay(m_configHelper);
   }
 
@@ -379,10 +378,10 @@ public class AlertDefinitionHashTest extends TestCase {
     ActionQueue actionQueue = m_injector.getInstance(ActionQueue.class);
 
     AlertDefinitionCommand definitionCommand1 = new AlertDefinitionCommand(
-        CLUSTERNAME, HOSTNAME, "12345", null);
+        CLUSTERNAME, HOSTNAME, HOSTNAME, "12345", null);
 
     AlertDefinitionCommand definitionCommand2 = new AlertDefinitionCommand(
-        CLUSTERNAME, "anotherHost", "67890", null);
+        CLUSTERNAME, "anotherHost", "anotherHost", "67890", null);
 
     AlertExecutionCommand executionCommand = new AlertExecutionCommand(
         CLUSTERNAME, HOSTNAME, null);
@@ -414,7 +413,7 @@ public class AlertDefinitionHashTest extends TestCase {
     public void configure(Binder binder) {
       Cluster cluster = EasyMock.createNiceMock(Cluster.class);
       EasyMock.expect(cluster.getAllConfigs()).andReturn(
-          new ArrayList<Config>()).anyTimes();
+        new ArrayList<>()).anyTimes();
 
       binder.bind(Clusters.class).toInstance(
           EasyMock.createNiceMock(Clusters.class));

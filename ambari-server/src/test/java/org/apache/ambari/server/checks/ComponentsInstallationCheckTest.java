@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -36,12 +37,17 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -61,12 +67,37 @@ public class ComponentsInstallationCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
   private AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
 
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
+
+  /**
+   *
+   */
+  @Before
+  public void setup() throws Exception {
+    MockitoAnnotations.initMocks(this);
+
+    m_services.clear();
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
+    Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
+  }
+
   @Test
   public void testIsApplicable() throws Exception {
     PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
-    checkRequest.setRepositoryVersion("HDP-2.2.0.0");
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
-    checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+    checkRequest.setTargetRepositoryVersion(m_repositoryVersion);
     ComponentsInstallationCheck cic = new ComponentsInstallationCheck();
     Configuration config = Mockito.mock(Configuration.class);
     cic.config = config;
@@ -106,10 +137,9 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
     Mockito.when(amsService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
 
-    HashMap<String, Service> clusterServices = new HashMap<>();
-    clusterServices.put("HDFS", hdfsService);
-    clusterServices.put("TEZ", tezService);
-    clusterServices.put("AMBARI_METRICS", amsService);
+    m_services.put("HDFS", hdfsService);
+    m_services.put("TEZ", tezService);
+    m_services.put("AMBARI_METRICS", amsService);
 
     Mockito.when(hdfsService.getName()).thenReturn("HDFS");
     Mockito.when(tezService.getName()).thenReturn("TEZ");
@@ -119,7 +149,11 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(tezService.isClientOnlyService()).thenReturn(true);
     Mockito.when(amsService.isClientOnlyService()).thenReturn(false);
 
-    Mockito.when(cluster.getServices()).thenReturn(clusterServices);
+    Mockito.when(cluster.getServices()).thenReturn(m_services);
+
+    Mockito.when(cluster.getService("HDFS")).thenReturn(hdfsService);
+    Mockito.when(cluster.getService("TEZ")).thenReturn(tezService);
+    Mockito.when(cluster.getService("AMBARI_METRICS")).thenReturn(amsService);
 
     Mockito.when(ambariMetaInfo.getComponent(Mockito.anyString(), Mockito.anyString(),
         Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<ComponentInfo>() {
@@ -248,22 +282,26 @@ public class ComponentsInstallationCheckTest {
       Mockito.when(hcs.getDesiredState()).thenReturn(State.INSTALLED);
       Mockito.when(hcs.getCurrentState()).thenReturn(State.STARTED);
     }
+
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALLED);
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     // Case 2. Ensure that AMS is ignored even if their current state is not INSTALLED
     Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     Mockito.when(hcsMetricsMonitor.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     // Case 3: Change TEZ client state to INSTALL_FAILED, should fail
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(check.getFailReason().indexOf("Service components in INSTALL_FAILED state") > -1);
 
@@ -271,7 +309,7 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.ON);
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     // Case 5: Change TEZ client state to INSTALL_FAILED and place host2 in Maintenance mode, should succeed
@@ -279,7 +317,7 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     check = new PrerequisiteCheck(null, null);
-    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
 }

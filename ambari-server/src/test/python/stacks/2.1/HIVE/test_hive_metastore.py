@@ -33,6 +33,8 @@ class TestHiveMetastore(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = { "serviceName" : "HIVE", "role" : "HIVE_METASTORE" }
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
@@ -416,6 +418,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -437,24 +440,15 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
     self.assertNoMoreResources()
 
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hive', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hive', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])
 
   def test_pre_upgrade_restart_ims(self):
     """
@@ -518,10 +512,10 @@ class TestHiveMetastore(RMFTestCase):
   @patch("resource_management.core.shell.call")
   @patch("resource_management.libraries.functions.get_stack_version")
   def test_upgrade_metastore_schema(self, get_stack_version_mock, call_mock, os_path_exists_mock):
-    get_stack_version_mock.return_value = '2.3.0.0-1234'
+    get_stack_version_mock.return_value = '2.4.0.0-1234'
 
     def side_effect(path):
-      if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
+      if path == "/usr/hdp/2.3.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
         return True
       if ".j2" in path:
         return True
@@ -534,13 +528,27 @@ class TestHiveMetastore(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    # must be HDP 2.3+
-    version = '2.3.0.0-1234'
+    # must be HDP 2.4+
+    version = '2.4.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
-    json_content['hostLevelParams']['stack_version'] = "2.3"
-    json_content['hostLevelParams']['current_version'] = "2.2.7.0-1234"
-
+    json_content['hostLevelParams']['stack_version'] = "2.4"
+    json_content["upgradeSummary"] = {
+      "services":{
+        "HIVE":{
+          "sourceRepositoryId":1,
+          "sourceStackId":"HDP-2.3",
+          "sourceVersion":"2.3.7.0-1234",
+          "targetRepositoryId":2,
+          "targetStackId":"HDP-2.4",
+          "targetVersion":version
+        }
+      },
+      "direction":"UPGRADE",
+      "type":"nonrolling_upgrade",
+      "isRevert":False,
+      "orchestration":"STANDARD"
+    }
 
     # trigger the code to think it needs to copy the JAR
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "com.mysql.jdbc.Driver"
@@ -551,18 +559,16 @@ class TestHiveMetastore(RMFTestCase):
       classname = "HiveMetastore",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
-      call_mocks = [(0, None, ''), (0, None)],
       mocks_dict = mocks_dict)
 
-    # conf-select, hdp-select BEFORE upgrade schema calls
-    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
     self.assertResourceCalled('Execute', ('ambari-python-wrap',
      '/usr/bin/hdp-select',
      'set',
      'hive-metastore',
-     '2.3.0.0-1234'),
+     '2.4.0.0-1234'),
         sudo = True)
 
     # we don't care about configure here - the strings are different anyway because this
@@ -570,7 +576,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
       mode = 0755, create_parents = True, cd_access = 'a')
 
-    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True)
 
@@ -580,13 +586,13 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/tmp/mysql-connector-java.jar',
-     '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar'),
+     '/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True)
 
-    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar',
         mode = 0644)
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-metastore/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
         content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
         owner = 'hive',
         group = 'hadoop',
@@ -596,7 +602,7 @@ class TestHiveMetastore(RMFTestCase):
         content = StaticFile('startMetastore.sh'),
         mode = 0755,
     )
-    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True,
     )
@@ -606,25 +612,25 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      u'/tmp/mysql-connector-java.jar',
-     u'/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar'),
+     u'/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True,
     )
-    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar',
         mode = 0644,
     )
     self.assertResourceCalled('Execute', ('cp',
-     '/usr/hdp/2.2.7.0-1234/hive/lib/mysql-connector-java.jar',
-     '/usr/hdp/2.3.0.0-1234/hive/lib'),
+     '/usr/hdp/2.3.7.0-1234/hive/lib/mysql-connector-java.jar',
+     '/usr/hdp/2.4.0.0-1234/hive/lib'),
         path = ['/bin', '/usr/bin/'],
         sudo = True)
 
-    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.4.0.0-1234/hive/lib/mysql-connector-java.jar',
         mode = 0644)
 
-    self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema',
+    self.assertResourceCalled('Execute', '/usr/hdp/2.4.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema',
          logoutput = True,
-         environment = {'HIVE_CONF_DIR': '/etc/hive/conf.server'},
+         environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-metastore/conf/conf.server'},
          tries = 1,
          user = 'hive')
 
@@ -760,12 +766,10 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
-
-    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
 
@@ -776,7 +780,7 @@ class TestHiveMetastore(RMFTestCase):
       mode = 0755, create_parents = True, cd_access = 'a')
 
     self.assertResourceCalled('Execute',
-                              ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+                              ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
                               path=["/bin", "/usr/bin/"],
                               sudo = True)
 
@@ -790,22 +794,22 @@ class TestHiveMetastore(RMFTestCase):
                               sudo = True)
 
     self.assertResourceCalled('Execute',
-                              ('yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/hdp/current/hive-server2/lib'))
+                              ('yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/hdp/current/hive-metastore/lib'))
 
     self.assertResourceCalled('Directory',
-                              '/usr/hdp/current/hive-server2/lib/native/lib64',
+                              '/usr/hdp/current/hive-metastore/lib/native/lib64',
                               create_parents = True)
 
     self.assertResourceCalled('Execute',
-                              ('yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-server2/lib/native/lib64'))
+                              ('yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-metastore/lib/native/lib64'))
 
     self.assertResourceCalled('Execute',
-                              ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*'))
+                              ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-metastore/lib/*'))
 
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sqla-client-jdbc.tar.gz',
                               mode = 0644,
                               )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-metastore/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
         content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
         owner = 'hive',
         group = 'hadoop',
@@ -815,7 +819,7 @@ class TestHiveMetastore(RMFTestCase):
         content = StaticFile('startMetastore.sh'),
         mode = 0755,
     )
-    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True,
     )
@@ -825,34 +829,34 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar', '-xvf', u'/tmp/sqla-client-jdbc.tar.gz', '-C', '/tmp'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/hdp/current/hive-server2/lib',)
-    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/lib/native/lib64',
+    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/hdp/current/hive-metastore/lib',)
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-metastore/lib/native/lib64',
         create_parents = True,
     )
-    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-server2/lib/native/lib64',)
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*',)
+    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-metastore/lib/native/lib64',)
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-metastore/lib/*',)
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sqla-client-jdbc.tar.gz',
         mode = 0644,
     )
     self.assertResourceCalled('Execute',
-                              ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-server2/lib/*.jar /usr/hdp/2.3.0.0-1234/hive/lib'))
+                              ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-metastore/lib/*.jar /usr/hdp/2.3.0.0-1234/hive/lib'))
 
     self.assertResourceCalled('Directory',
                               '/usr/hdp/2.3.0.0-1234/hive/lib/native/lib64',
                               create_parents = True)
 
     self.assertResourceCalled('Execute',
-                              ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-server2/lib/native/lib64/* /usr/hdp/2.3.0.0-1234/hive/lib/native/lib64'))
+                              ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-metastore/lib/native/lib64/* /usr/hdp/2.3.0.0-1234/hive/lib/native/lib64'))
 
     self.assertResourceCalled('Execute',
-                              ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*'))
+                              ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-metastore/lib/*'))
 
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sqla-client-jdbc.tar.gz',
                               mode = 0644,
                               )
 
     self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType sqlanywhere -upgradeSchema",
-                              logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-server2/conf/conf.server'},
+                              logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-metastore/conf/conf.server'},
                               tries = 1, user = 'hive')
 
 

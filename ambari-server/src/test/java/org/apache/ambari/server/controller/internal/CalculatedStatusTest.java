@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -675,19 +675,19 @@ public class CalculatedStatusTest {
   public void testGetCompletedStatusForNoTasks() throws Exception {
     // no status / no tasks
     CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(
-        new ArrayList<HostRoleCommandEntity>(), false);
+      new ArrayList<>(), false);
 
     assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
 
     // empty summaries
     status = CalculatedStatus.statusFromStageSummary(
-        new HashMap<Long, HostRoleCommandStatusSummaryDTO>(), new HashSet<Long>());
+      new HashMap<>(), new HashSet<>());
 
     assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
 
     // generate a map of 0's - COMPLETED=0, IN_PROGRESS=0, etc
-    Map<HostRoleStatus, Integer> counts = CalculatedStatus.calculateStatusCounts(new ArrayList<HostRoleStatus>());
-    Map<HostRoleStatus, Integer> displayCounts = CalculatedStatus.calculateStatusCounts(new ArrayList<HostRoleStatus>());
+    Map<HostRoleStatus, Integer> counts = CalculatedStatus.calculateStatusCounts(new ArrayList<>());
+    Map<HostRoleStatus, Integer> displayCounts = CalculatedStatus.calculateStatusCounts(new ArrayList<>());
 
     HostRoleStatus hostRoleStatus = CalculatedStatus.calculateSummaryStatusOfUpgrade(counts, 0);
     HostRoleStatus hostRoleDisplayStatus = CalculatedStatus.calculateSummaryDisplayStatus(displayCounts, 0, false);
@@ -743,7 +743,7 @@ public class CalculatedStatusTest {
     private final List<HostRoleCommand> hostRoleCommands = new LinkedList<>();
 
     private TestStage() {
-      super(1L, "", "", 1L, "", "", "", "", hostRoleCommandFactory, ecwFactory);
+      super(1L, "", "", 1L, "", "", "", hostRoleCommandFactory, ecwFactory);
     }
 
     void setHostRoleCommands(Collection<HostRoleCommandEntity> tasks) {

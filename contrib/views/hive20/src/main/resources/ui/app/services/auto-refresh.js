@@ -84,6 +84,7 @@ export default Ember.Service.extend({
 
 
     console.log("Starting tables auto refresh for " + databaseName);
+    this.set('tablesRefresherRunningStatus',{});
 
     this.get('tablesRefresherRunningStatus')[databaseName] = {};
     this.get('tablesRefresherRunningStatus')[databaseName]["started"] = true;

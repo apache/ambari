@@ -2114,6 +2114,21 @@
       },
       {
         "allFormat": "glob",
+        "current": null,
+        "datasource": null,
+        "includeAll": false,
+        "label": "Cluster",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "cluster",
+        "options": [],
+        "query": "cluster",
+        "refresh": true,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allFormat": "glob",
         "current": {
           "text": "All",
           "value": "",
@@ -2132,7 +2147,7 @@
             "selected": true
           }
         ],
-        "query": "hosts",
+        "query": "hosts.$cluster",
         "refresh": true,
         "type": "query"
       }

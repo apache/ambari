@@ -54,9 +54,11 @@ public class SolrCollectionConfigurer implements Configurer {
   private static final int CONNECTION_TIMEOUT = 30000;
 
   private final SolrDaoBase solrDaoBase;
+  private final boolean hasEnumConfig; // enumConfig.xml for solr collection
 
-  public SolrCollectionConfigurer(final SolrDaoBase solrDaoBase) {
+  public SolrCollectionConfigurer(SolrDaoBase solrDaoBase, boolean hasEnumConfig) {
     this.solrDaoBase = solrDaoBase;
+    this.hasEnumConfig = hasEnumConfig;
   }
 
   @Override
@@ -100,7 +102,7 @@ public class SolrCollectionConfigurer implements Configurer {
   }
 
   private boolean uploadConfigurationsIfNeeded(CloudSolrClient cloudSolrClient, File configSetFolder, SolrCollectionState state, SolrPropsConfig solrPropsConfig) throws Exception {
-    boolean reloadCollectionNeeded = new UploadConfigurationHandler(configSetFolder).handle(cloudSolrClient, solrPropsConfig);
+    boolean reloadCollectionNeeded = new UploadConfigurationHandler(configSetFolder, hasEnumConfig).handle(cloudSolrClient, solrPropsConfig);
     if (!state.isConfigurationUploaded()) {
       state.setConfigurationUploaded(true);
     }
@@ -121,7 +123,7 @@ public class SolrCollectionConfigurer implements Configurer {
 
   private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {
     if (StringUtils.isNotEmpty(zookeeperConnectString)) {
-      CloudSolrClient cloudSolrClient = new CloudSolrClient(zookeeperConnectString);
+      CloudSolrClient cloudSolrClient = new CloudSolrClient.Builder().withZkHost(zookeeperConnectString).build();
       cloudSolrClient.setDefaultCollection(defaultCollection);
       return cloudSolrClient;
     } else if (StringUtils.isNotEmpty(solrUrl)) {
@@ -136,7 +138,7 @@ public class SolrCollectionConfigurer implements Configurer {
     boolean securityEnabled = solrDaoBase.getSolrKerberosConfig().isEnabled();
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
-      HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
       LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
     }
   }
@@ -213,10 +215,13 @@ public class SolrCollectionConfigurer implements Configurer {
     return status;
   }
 
-  private void createCollectionsIfNeeded(CloudSolrClient solrClient, SolrCollectionState state, SolrPropsConfig solrPropsConfig, boolean reloadCollectionNeeded) {
+  private void createCollectionsIfNeeded(CloudSolrClient solrClient, SolrCollectionState state, SolrPropsConfig solrPropsConfig,
+      boolean reloadCollectionNeeded) {
     try {
       List<String> allCollectionList = new ListCollectionHandler().handle(solrClient, null);
-      boolean collectionCreated = new CreateCollectionHandler(allCollectionList).handle(solrClient, solrPropsConfig);
+      solrDaoBase.waitForLogSearchConfig();
+      CreateCollectionHandler handler = new CreateCollectionHandler(solrDaoBase.getLogSearchConfig(), allCollectionList);
+      boolean collectionCreated = handler.handle(solrClient, solrPropsConfig);
       boolean collectionReloaded = true;
       if (reloadCollectionNeeded) {
         collectionReloaded = new ReloadCollectionHandler().handle(solrClient, solrPropsConfig);

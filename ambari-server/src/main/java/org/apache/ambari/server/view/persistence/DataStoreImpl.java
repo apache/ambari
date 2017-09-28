@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -147,7 +147,7 @@ public class DataStoreImpl implements DataStore {
     try {
       em.getTransaction().begin();
       try {
-        DynamicEntity dynamicEntity = persistEntity(entity, em, new HashSet<DynamicEntity>());
+        DynamicEntity dynamicEntity = persistEntity(entity, em, new HashSet<>());
         em.getTransaction().commit();
         Map<String, Object> props = getEntityProperties(entity);
         List<String> keys = new ArrayList<>(props.keySet());

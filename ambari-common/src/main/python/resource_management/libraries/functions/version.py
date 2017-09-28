@@ -34,23 +34,32 @@ def _normalize(v, desired_segments=0):
   return [int(x) for x in v_list]
 
 
-def format_stack_version(input):
+def format_stack_version(value):
   """
-  :param input: Input string, e.g. "2.2" or "GlusterFS", or "2.0.6.GlusterFS", or "2.2.0.1-885"
+  :param value: Input string, e.g. "2.2" or "GlusterFS", or "2.0.6.GlusterFS", or "2.2.0.1-885"
   :return: Returns a well-formatted HDP stack version of the form #.#.#.# as a string.
   """
-  if input:
-    if "-" in input:
-      input_array = input.split("-")
-      input = input_array[0]
+  if value:
+    if "-" in value:
+      first_occurrence = value.find("-")
+      last_occurence = value.rfind("-")
 
-    input = re.sub(r'^\D+', '', input)
-    input = re.sub(r'\D+$', '', input)
-    input = input.strip('.')
+      if first_occurrence == last_occurence:
+        if value[0].isalpha():
+          value = value[first_occurrence + 1:]
+        else:
+          value = value[:first_occurrence]
+      else:
+        value = value[first_occurrence + 1:last_occurence]
 
-    strip_dots = input.replace('.', '')
+
+    value = re.sub(r'^\D+', '', value)
+    value = re.sub(r'\D+$', '', value)
+    value = value.strip('.')
+
+    strip_dots = value.replace('.', '')
     if strip_dots.isdigit():
-      normalized = _normalize(str(input))
+      normalized = _normalize(str(value))
       if len(normalized) == 2:
         normalized = normalized + [0, 0]
       elif len(normalized) == 3:
@@ -75,3 +84,18 @@ def compare_versions(version1, version2, format=False):
 
   max_segments = max(len(v1.split(".")), len(v2.split(".")))
   return cmp(_normalize(v1, desired_segments=max_segments), _normalize(v2, desired_segments=max_segments))
+
+def get_major_version(full_version):
+  """
+  :param input: Input string, e.g. "2.1.3.0" or "2.2.0.1-885" and other similar
+  :return: Returns a well-formatted HDP major stack version of the form #.# as a string. If can't get major version
+  return None
+  """
+  pattern = re.compile(r'^[0-9]+\.[0-9]+')
+  major_version = None
+
+  m = pattern.search(full_version)
+  if m:
+    major_version = m.group()
+
+  return major_version

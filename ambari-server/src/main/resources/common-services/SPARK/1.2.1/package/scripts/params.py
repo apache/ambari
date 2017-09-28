@@ -23,15 +23,16 @@ import status_params
 
 from setup_spark import *
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import Direction
@@ -52,14 +53,16 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
+
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 java_home = config['ambariLevelParams']['java_home']
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
-stack_version_unformatted = config['clusterLevelParams']['stack_version']
-if upgrade_direction == Direction.DOWNGRADE:
-  stack_version_unformatted = config['commandParams']['original_stack'].split("-")[1]
-stack_version_formatted = format_stack_version(stack_version_unformatted)
+
+version_for_stack_feature_checks = get_stack_feature_version(config)
 
 sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 
@@ -70,7 +73,7 @@ spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
-if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+if check_stack_feature(StackFeature.ROLLING_UPGRADE, version_for_stack_feature_checks):
   hadoop_home = stack_select.get_hadoop_dir("home")
   spark_conf = format("{stack_root}/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
@@ -211,7 +214,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 # livy is only supported from HDP 2.5
 has_livyserver = False
 
-if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted):
+if check_stack_feature(StackFeature.SPARK_LIVY, version_for_stack_feature_checks) and "livy-env" in config['configurations']:
   livy_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY_SERVER")
   livy_conf = format("{stack_root}/current/{livy_component_directory}/conf")
   livy_log_dir = config['configurations']['livy-env']['livy_log_dir']
@@ -242,6 +245,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
     livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.launch.kerberos.principal']
 
   livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
+  livy_http_scheme = 'https' if 'livy.keystore' in config['configurations']['livy-conf'] else 'http'
 
   # ats 1.5 properties
   entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']

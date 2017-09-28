@@ -346,7 +346,7 @@
           "values": [
             {
               "name": "HDFS Bytes Read",
-              "value": "${dfs.datanode.BytesRead}"
+              "value": "${dfs.datanode.BytesRead}/1024"
             }
           ],
           "properties": {
@@ -370,7 +370,7 @@
           "values": [
             {
               "name": "HDFS Bytes Written",
-              "value": "${dfs.datanode.BytesWritten}"
+              "value": "${dfs.datanode.BytesWritten}/1024"
             }
           ],
           "properties": {

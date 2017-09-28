@@ -18,6 +18,7 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+var fileUtils = require('utils/file_utils');
 
 App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
 
@@ -912,6 +913,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         installerController.postVersionDefinitionFileStep8(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
           if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
             var selectedStack = App.Stack.find().findProperty('isSelected', true);
+            if (selectedStack) {
+              selectedStack.set('versionInfoId', versionInfo.id);
+            }
             installerController.updateRepoOSInfo(versionInfo, selectedStack).done(function() {
               self._startDeploy();
             });
@@ -973,11 +977,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   createCluster: function () {
     if (!this.get('isInstaller')) return;
     var stackVersion = this.get('content.installOptions.localRepo') ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion, "repository_version": selectedStack.get('repositoryVersion')}})
+        data: JSON.stringify({ "Clusters": {"version": stackVersion}})
       },
       success: 'createClusterSuccess'
     });
@@ -1010,9 +1013,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createSelectedServicesData
    */
   createSelectedServicesData: function () {
-    return this.get('selectedServices').map(function (_service) {
-      return {"ServiceInfo": { "service_name": _service.get('serviceName') }};
-    });
+    var selectedStack;
+    if (this.get('isInstaller')) {
+      selectedStack = App.Stack.find().findProperty('isSelected', true);
+    }
+    return this.get('selectedServices').map(service => selectedStack ?
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
+      {"ServiceInfo": { "service_name": service.get('serviceName') }});
   },
 
   /**
@@ -1299,6 +1306,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (this.get('content.slaveComponentHosts').someProperty('componentName', 'CLIENT')) {
       clientHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'CLIENT').hosts;
     }
+    var clients = this.get('content.clients').filterProperty('isInstalled', false);
     var clientsToMasterMap = this.getClientsMap('isMaster');
     var clientsToClientMap = this.getClientsMap('isClient');
     var installedClients = [];
@@ -1326,7 +1334,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           clientsToClientMap[_clientName].forEach(function (componentName) {
             clientHosts.forEach(function (_clientHost) {
               var host = this.get('content.hosts')[_clientHost.hostName];
-              if (host.isInstalled && !host.hostComponents.someProperty('HostRoles.component_name', componentName)) {
+              var isClientSelected = clients.someProperty('component_name', componentName);
+              if (host.isInstalled && isClientSelected && !host.hostComponents.someProperty('HostRoles.component_name', componentName)) {
                 hostNames.pushObject(_clientHost.hostName);
               }
             }, this);
@@ -1762,6 +1771,264 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       })
 
     });
+  },
+
+  getComponentsForHost: function(host) {
+    if(!host.hostComponents) {
+      App.router.get('installerController').get('allHosts');
+    }
+    var componentNameDetail = [];
+    host.hostComponents.mapProperty('componentName').forEach(function (componentName) {
+      if(componentName === 'CLIENT') {
+        this.get('content.clients').mapProperty('component_name').forEach(function (clientComponent) {
+          componentNameDetail.push({ name : clientComponent });
+        }, this);
+        return;
+      }
+      componentNameDetail.push({ name : componentName });
+    }, this);
+    return componentNameDetail;
+  },
+
+  getPropertyAttributesForConfigType : function(configs) {
+    //Currently only looks for final properties, if any
+    var finalProperties = configs.filterProperty('isFinal', 'true');
+    var propertyAttributes = {};
+    finalProperties.forEach(function (finalProperty) {
+      propertyAttributes[finalProperty['name']] = "true";
+    });
+    var finalPropertyMap = {};
+    if (!App.isEmptyObject(finalProperties)) {
+      finalPropertyMap = {
+        "isFinal": propertyAttributes
+      };
+    }
+    return finalPropertyMap;
+  },
+
+  getConfigurationDetailsForConfigType: function(configs) {
+    var configDetails = {};
+    var self = this;
+    configs.forEach(function (propertyObj) {
+      configDetails[propertyObj['name']] = propertyObj['value'];
+    }, this);
+    var configurationsDetails = {
+      "properties_attributes": self.getPropertyAttributesForConfigType(configs),
+      "properties": configDetails
+    };
+    return configurationsDetails;
+  },
+
+  hostInExistingHostGroup: function (newHost, host_groups) {
+    var hostGroupMatched = false;
+      host_groups.some(function (existingHostGroup) {
+        if(!hostGroupMatched) {
+        var fqdnInHostGroup =  existingHostGroup.hosts[0].fqdn;
+        var componentsInExistingHostGroup = this.getRegisteredHosts().filterProperty('hostName', fqdnInHostGroup)[0].hostComponents;
+        if(componentsInExistingHostGroup.length !== newHost.hostComponents.length) {
+          return;
+        } else {
+          var componentMismatch = false;
+          componentsInExistingHostGroup.forEach(function (componentInExistingHostGroup, index) {
+          if(!componentMismatch) {
+            if(!newHost.hostComponents.mapProperty('componentName').includes(componentInExistingHostGroup.componentName)) {
+              componentMismatch = true;
+            }
+          }
+          });
+          if(!componentMismatch) {
+            hostGroupMatched = true;
+            existingHostGroup["cardinality"] = parseInt(existingHostGroup["cardinality"]) + 1;
+            existingHostGroup.hosts.push({"fqdn" : newHost.hostName});
+            return true;
+          }
+        }
+        }
+      }, this);
+    return hostGroupMatched;
+  },
+
+   hostInChildHostGroup: function (presentHostGroup, configGroupName, hostInConfigGroup) {
+    return  presentHostGroup['childHostGroups'].some(function (childHostGroup) {
+      //Check if childHostGroup name is same as this configgroupname, if yes, update childHostGroup else, compare with other childhostgroups
+      if(childHostGroup.configGroupName === configGroupName) {
+        childHostGroup.hosts.push( { "fqdn" : hostInConfigGroup } );
+        childHostGroup['cardinality'] = childHostGroup['cardinality'] + 1;
+        return true;
+      }
+      });
+  },
+
+  /**
+   * Confirmation popup before generate blueprint
+   */
+  generateBlueprintConfirmation: function () {
+    var self = this;
+    return App.showConfirmationPopup(function () {
+      self.generateBlueprint();
+      }, Em.I18n.t('installer.step8.generateBlueprint.popup.msg').format(App.clusterStatus.clusterName)
+    );
+  },
+
+  generateBlueprint: function () {
+    console.log("Prepare blueprint for download...");
+    var blueprint = {};
+    var self = this;
+    //service configurations
+    var totalConf = [];
+    //Add cluster-env
+    var clusterEnv = this.get('configs').filterProperty('filename', 'cluster-env.xml');
+    var configurations = {};
+    configurations["cluster-env"] = self.getConfigurationDetailsForConfigType(clusterEnv);
+    totalConf.push(configurations);
+    //Add configurations for selected services
+    this.get('selectedServices').forEach(function (service) {
+      Object.keys(service.get('configTypes')).forEach(function (type) {
+        if (!this.get('serviceConfigTags').someProperty('type', type)) {
+          var configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(type));
+          var configurations = {};
+          configurations[type] = self.getConfigurationDetailsForConfigType(configs);
+          totalConf.push(configurations);
+        }
+      }, this);
+    }, this);
+
+    var host_groups = [];
+    var cluster_template_host_groups = [];
+    var counter = 0;
+
+    this.getRegisteredHosts().filterProperty('isInstalled', false).map(function (host) {
+      if(self.hostInExistingHostGroup(host, host_groups)) {
+        return;
+      }
+      //Create new host_group if host is not mapped to existing host_groups
+      var hostGroupId = "host_group_" + counter;
+      var hostListForGroup = [];
+      hostListForGroup.push({ "fqdn": host.hostName });
+      var hostGroupDetail = {
+        "name": hostGroupId,
+        "components": self.getComponentsForHost(host),
+        "hosts": hostListForGroup,
+        "cardinality" : 1
+      };
+      hostGroupDetail.toJSON = function () {
+        var hostGroupDetailResult = _.omit(this, [ "hosts", "childHostGroups" ]);
+        hostGroupDetailResult["cardinality"] = this["cardinality"].toString();
+        return hostGroupDetailResult;
+      };
+      host_groups.push(hostGroupDetail);
+
+      var clusterTemplateHostGroupDetail = {
+        "name": hostGroupId,
+        "hosts": hostListForGroup
+      };
+
+      cluster_template_host_groups.push(clusterTemplateHostGroupDetail);
+      counter++;
+    }, this);
+
+    this.get('content.configGroups').filterProperty("is_default", false).forEach(function (configGroup) {
+      if (configGroup.properties.length == 0) {
+        return;
+      }
+      configGroup.hosts.forEach(function (hostInConfigGroup) {
+        return host_groups.some(function (presentHostGroup) {
+          return presentHostGroup.hosts.some(function (hostInPresentHostGroup, index) {
+            if (hostInConfigGroup !== hostInPresentHostGroup.fqdn) {
+              return;
+            }
+            //Check if childHostGroup already created
+            if (presentHostGroup['childHostGroups']) {
+             if (self.hostInChildHostGroup(presentHostGroup, configGroup.name, hostInConfigGroup)) {
+               // Update to remove parentHostGroup as all the hosts are added to childHostGroup/s
+               presentHostGroup.hosts.splice(index, 1);
+               presentHostGroup["cardinality"] = presentHostGroup['cardinality'] - 1;
+               return true;
+             }
+            }
+            //create configuration object
+            var hgConfigurations;
+            if(presentHostGroup.hosts.length === 1 && presentHostGroup["configurations"]) {
+              hgConfigurations = presentHostGroup["configurations"][0];
+            } else if (presentHostGroup["configurations"]) { //Deep copy
+                hgConfigurations = jQuery.extend(true, {}, presentHostGroup["configurations"][0]);
+            } else {
+                hgConfigurations = {};
+            }
+            configGroup.properties.forEach(function (hgProperties) {
+              var type = App.config.getConfigTagFromFileName(hgProperties.filename);
+              if (!hgConfigurations[type]) {
+                hgConfigurations[type] = { properties: {} };
+              }
+              hgConfigurations[type]['properties'][hgProperties.name] = hgProperties.value;
+            });
+            var totalHgConf = [];
+            totalHgConf.push(hgConfigurations);
+            //If only host in presentHostGroup then merge configuration and return
+            if (presentHostGroup.hosts.length === 1) {
+              //If host_group already has configuration, assigned from previously processed config_group
+              if(!presentHostGroup["configurations"]) {
+                presentHostGroup["configurations"] = totalHgConf;
+              }
+              return true;
+            }
+
+            //Create new host_group from this host
+            var hostGroupId = "host_group_" + counter;
+            counter++;
+            var hostListForGroup = [];
+            hostListForGroup.push({ "fqdn": hostInPresentHostGroup.fqdn });
+            var hostGroupDetail = {
+              "name": hostGroupId,
+              "components": presentHostGroup.components,
+              "cardinality": 1,
+              "hosts": hostListForGroup,
+              "configurations": totalHgConf,
+              "configGroupName": configGroup.name
+            };
+            hostGroupDetail.toJSON = function () {
+              var hostGroupDetailResult = _.omit(this, [ "hosts", "configGroupName", "childHostGroups" ]);
+              hostGroupDetailResult["cardinality"] = this["cardinality"].toString();
+              return hostGroupDetailResult;
+            };
+            host_groups.push(hostGroupDetail);
+            //Update for clustertemplate file
+            var clusterTemplateHostGroupDetail = {
+              "name": hostGroupId,
+              "hosts": hostListForGroup
+            };
+            cluster_template_host_groups.push(clusterTemplateHostGroupDetail);
+            //Add newly created host_group as child to existing host_group
+            if (!presentHostGroup['childHostGroups']) {
+              presentHostGroup['childHostGroups'] = [];
+            }
+            presentHostGroup['childHostGroups'].push(hostGroupDetail);
+            presentHostGroup.hosts.splice(index, 1);
+            presentHostGroup["cardinality"] = presentHostGroup['cardinality'] - 1;
+            //return true to indicate that host has been matched
+            return true;
+          }, this);
+        }, this);
+      }, this);
+    }, this);
+
+    var selectedStack = App.Stack.find().findProperty('isSelected', true);
+    blueprint = {
+        'configurations': totalConf,
+        'host_groups': host_groups.filter(function (item) { return item.cardinality > 0; }),
+        'Blueprints': {'blueprint_name' : App.clusterStatus.clusterName, 'stack_name':selectedStack.get('stackName'), 'stack_version':selectedStack.get('stackVersion')}
+    };
+    fileUtils.downloadTextFile(JSON.stringify(blueprint), 'json', 'blueprint.json')
+
+    var cluster_template = {
+      "blueprint": App.clusterStatus.clusterName,
+      "config_recommendation_strategy" : "NEVER_APPLY",
+      "provision_action" : "INSTALL_AND_START",
+      "configurations": [],
+      "host_groups": cluster_template_host_groups.filter(function (item) { return item.hosts.length > 0; }),
+      "Clusters": {'cluster_name': App.clusterStatus.clusterName}
+    };
+    fileUtils.downloadTextFile(JSON.stringify(cluster_template), 'json', 'clustertemplate.json')
   },
 
   downloadCSV: function() {

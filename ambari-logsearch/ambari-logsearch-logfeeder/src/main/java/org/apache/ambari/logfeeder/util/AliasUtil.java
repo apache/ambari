@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logfeeder.util;
 
-import java.io.File;
 import java.util.HashMap;
 
 import org.apache.ambari.logfeeder.filter.Filter;
@@ -36,10 +35,7 @@ public class AliasUtil {
   private static HashMap<String, Object> aliasMap = null;
 
   static {
-    File jsonFile = FileUtil.getFileFromClasspath(ALIAS_CONFIG_JSON);
-    if (jsonFile != null) {
-      aliasMap = FileUtil.readJsonFromFile(jsonFile);
-    }
+    aliasMap = FileUtil.getJsonFileContentFromClassPath(ALIAS_CONFIG_JSON);
   }
 
   public static enum AliasType {

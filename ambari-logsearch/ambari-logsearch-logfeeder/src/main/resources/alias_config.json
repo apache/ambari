@@ -33,6 +33,9 @@
     },
     "map_fieldvalue": {
       "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldValue"
+    },
+    "map_anonymize": {
+      "klass": "org.apache.ambari.logfeeder.mapper.MapperAnonymize"
     }
   },
   "output": {

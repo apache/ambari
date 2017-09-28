@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -49,7 +49,7 @@ public class LdapSyncRequest {
    */
   public LdapSyncRequest(LdapSyncSpecEntity.SyncType type, Set<String> principalNames) {
     this.type  = type;
-    this.principalNames = principalNames == null ? new HashSet<String>() : principalNames;
+    this.principalNames = principalNames == null ? new HashSet<>() : principalNames;
   }
 
   /**

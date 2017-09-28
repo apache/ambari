@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -66,6 +66,6 @@ public class GangliaHostComponentPropertyProvider extends GangliaPropertyProvide
     
     return new HashSet<>(GANGLIA_CLUSTER_NAME_MAP.containsKey(component) ?
       GANGLIA_CLUSTER_NAME_MAP.get(component) :
-      Collections.<String>emptyList());
+      Collections.emptyList());
   }
 }

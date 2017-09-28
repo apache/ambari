@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -51,14 +51,14 @@ import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.TextNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parent for all commands.
@@ -67,11 +67,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   /**
    * Type of response object provided by extending classes when
-   * {@link #invoke(StackAdvisorRequest)} is called.
+   * {@link #invoke(StackAdvisorRequest, ServiceInfo.ServiceAdvisorType)} is called.
    */
   private Class<T> type;
 
-  protected static Log LOG = LogFactory.getLog(StackAdvisorCommand.class);
+  protected static Logger LOG = LoggerFactory.getLogger(StackAdvisorCommand.class);
 
   private static final String GET_HOSTS_INFO_URI = "/api/v1/hosts"
       + "?fields=Hosts/*&Hosts/host_name.in(%s)";
@@ -98,7 +98,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
-  private String stackAdvisorScript;
+  private ServiceInfo.ServiceAdvisorType serviceAdvisorType;
 
   private int requestId;
   private File requestDirectory;
@@ -109,7 +109,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private final AmbariMetaInfo metaInfo;
 
   @SuppressWarnings("unchecked")
-  public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
+  public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType, int requestId,
       StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
@@ -119,7 +119,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     this.recommendationsDir = recommendationsDir;
     this.recommendationsArtifactsLifetime = recommendationsArtifactsLifetime;
-    this.stackAdvisorScript = stackAdvisorScript;
+    this.serviceAdvisorType = serviceAdvisorType;
     this.requestId = requestId;
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
@@ -278,7 +278,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
   }
 
-  public synchronized T invoke(StackAdvisorRequest request) throws StackAdvisorException {
+  public synchronized T invoke(StackAdvisorRequest request, ServiceInfo.ServiceAdvisorType serviceAdvisorType) throws StackAdvisorException {
     validate(request);
     String hostsJSON = getHostsInformation(request);
     String servicesJSON = getServicesInformation(request);
@@ -289,10 +289,9 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       createRequestDirectory();
 
       FileUtils.writeStringToFile(new File(requestDirectory, "hosts.json"), adjusted.hostsJSON);
-      FileUtils.writeStringToFile(new File(requestDirectory, "services.json"),
-          adjusted.servicesJSON);
+      FileUtils.writeStringToFile(new File(requestDirectory, "services.json"), adjusted.servicesJSON);
 
-      saRunner.runScript(stackAdvisorScript, getCommandType(), requestDirectory);
+      saRunner.runScript(serviceAdvisorType, getCommandType(), requestDirectory);
       String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()));
 
       T response = this.mapper.readValue(result, this.type);
@@ -348,13 +347,13 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
         return file.isDirectory() && !FileUtils.isFileNewer(file, cutoffDate);
       }
     });
-    
+
     if(oldDirectories.length > 0) {
       LOG.info(String.format("Deleting old directories %s from %s", StringUtils.join(oldDirectories, ", "), recommendationsDir));
     }
-    
+
     for(String oldDirectory:oldDirectories) {
-      FileUtils.deleteDirectory(new File(recommendationsDir, oldDirectory));
+      FileUtils.deleteQuietly(new File(recommendationsDir, oldDirectory));
     }
   }
 
@@ -374,7 +373,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     String hostsJSON = (String) response.getEntity();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Hosts information: " + hostsJSON);
+      LOG.debug("Hosts information: {}", hostsJSON);
     }
 
     Collection<String> unregistered = getUnregisteredHosts(hostsJSON, request.getHosts());
@@ -428,7 +427,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     String servicesJSON = (String) response.getEntity();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Services information: " + servicesJSON);
+      LOG.debug("Services information: {}", servicesJSON);
     }
     return servicesJSON;
   }

@@ -18,10 +18,11 @@
 
 package org.apache.ambari.logfeeder.filter;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.output.OutputManager;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterKeyValueDescriptor;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterKeyValueDescriptorImpl;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.log4j.Logger;
 import org.easymock.Capture;
@@ -41,12 +42,12 @@ public class FilterKeyValueTest {
   private OutputManager mockOutputManager;
   private Capture<Map<String, Object>> capture;
 
-  public void init(Map<String, Object> config) throws Exception {
+  public void init(FilterKeyValueDescriptor filterKeyValueDescriptor) throws Exception {
     mockOutputManager = EasyMock.strictMock(OutputManager.class);
     capture = EasyMock.newCapture(CaptureType.LAST);
 
     filterKeyValue = new FilterKeyValue();
-    filterKeyValue.loadConfig(config);
+    filterKeyValue.loadConfig(filterKeyValueDescriptor);
     filterKeyValue.setOutputManager(mockOutputManager);
     filterKeyValue.init();
   }
@@ -55,11 +56,10 @@ public class FilterKeyValueTest {
   public void testFilterKeyValue_extraction() throws Exception {
     LOG.info("testFilterKeyValue_extraction()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("source_field", "keyValueField");
-    config.put("field_split", "&");
-    // using default value split:
-    init(config);
+    FilterKeyValueDescriptorImpl filterKeyValueDescriptor = new FilterKeyValueDescriptorImpl();
+    filterKeyValueDescriptor.setSourceField("keyValueField");
+    filterKeyValueDescriptor.setFieldSplit("&");
+    init(filterKeyValueDescriptor);
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall();
@@ -80,11 +80,11 @@ public class FilterKeyValueTest {
   public void testFilterKeyValue_extractionWithBorders() throws Exception {
     LOG.info("testFilterKeyValue_extractionWithBorders()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("source_field", "keyValueField");
-    config.put("field_split", "&");
-    config.put("value_borders", "()");
-    init(config);
+    FilterKeyValueDescriptorImpl filterKeyValueDescriptor = new FilterKeyValueDescriptorImpl();
+    filterKeyValueDescriptor.setSourceField("keyValueField");
+    filterKeyValueDescriptor.setFieldSplit("&");
+    filterKeyValueDescriptor.setValueBorders("()");
+    init(filterKeyValueDescriptor);
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall();
@@ -105,10 +105,9 @@ public class FilterKeyValueTest {
   public void testFilterKeyValue_missingSourceField() throws Exception {
     LOG.info("testFilterKeyValue_missingSourceField()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("field_split", "&");
-    // using default value split: =
-    init(config);
+    FilterKeyValueDescriptorImpl filterKeyValueDescriptor = new FilterKeyValueDescriptorImpl();
+    filterKeyValueDescriptor.setFieldSplit("&");
+    init(filterKeyValueDescriptor);
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall().anyTimes();
@@ -124,10 +123,10 @@ public class FilterKeyValueTest {
   public void testFilterKeyValue_noSourceFieldPresent() throws Exception {
     LOG.info("testFilterKeyValue_noSourceFieldPresent()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("source_field", "keyValueField");
-    config.put("field_split", "&");
-    init(config);
+    FilterKeyValueDescriptorImpl filterKeyValueDescriptor = new FilterKeyValueDescriptorImpl();
+    filterKeyValueDescriptor.setSourceField("keyValueField");
+    filterKeyValueDescriptor.setFieldSplit("&");
+    init(filterKeyValueDescriptor);
 
     // using default value split: =
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));

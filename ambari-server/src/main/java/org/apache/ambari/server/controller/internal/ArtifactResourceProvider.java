@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -61,16 +61,15 @@ import com.google.inject.Inject;
 //todo: implement ExtendedResourceProvider???
 @StaticallyInject
 public class ArtifactResourceProvider extends AbstractResourceProvider {
-  /**
-   * artifact name
-   */
-  public static final String ARTIFACT_NAME_PROPERTY =
-      PropertyHelper.getPropertyId("Artifacts", "artifact_name");
 
-  /**
-   * artifact data
-   */
+  public static final String RESPONSE_KEY = "Artifacts";
+  public static final String ARTIFACT_NAME = "artifact_name";
+  public static final String CLUSTER_NAME = "cluster_name";
+  public static final String SERVICE_NAME = "service_name";
   public static final String ARTIFACT_DATA_PROPERTY = "artifact_data";
+  public static final String ARTIFACT_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + ARTIFACT_NAME;
+  public static final String CLUSTER_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME;
+  public static final String SERVICE_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_NAME;
 
   /**
    * primary key fields
@@ -118,7 +117,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private static ArtifactDAO artifactDAO;
 
 
-  /**
+  /*
    * set resource properties, pk and fk's
    */
   static {
@@ -368,7 +367,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
       public Void invoke() throws AmbariException {
         // flatten out key properties as is expected by createForeignKeyMap()
         Map<String, Object> keyProperties = new HashMap<>();
-        for (Map.Entry<String, Object> entry : resource.getPropertiesMap().get("Artifacts").entrySet()) {
+        for (Map.Entry<String, Object> entry : resource.getPropertiesMap().get(RESPONSE_KEY).entrySet()) {
           keyProperties.put(String.format("Artifacts/%s", entry.getKey()), entry.getValue());
         }
 
@@ -667,7 +666,6 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
     /**
      * cluster name property name
      */
-    private static final String CLUSTER_NAME = PropertyHelper.getPropertyId("Artifacts", "cluster_name");
 
     @Override
     public void setManagementController(AmbariManagementController controller) {
@@ -681,7 +679,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
 
     @Override
     public String getFKPropertyName() {
-      return CLUSTER_NAME;
+      return CLUSTER_NAME_PROPERTY;
     }
 
     @Override
@@ -708,7 +706,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
     public boolean instanceExists(Map<Resource.Type, String> keyMap,
                                   Map<String, Object> properties) throws AmbariException {
       try {
-        String clusterName = String.valueOf(properties.get(CLUSTER_NAME));
+        String clusterName = String.valueOf(properties.get(CLUSTER_NAME_PROPERTY));
         controller.getClusters().getCluster(clusterName);
         return true;
       } catch (ObjectNotFoundException e) {
@@ -730,7 +728,6 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
     /**
      * service name property name
      */
-    private static final String SERVICE_NAME = PropertyHelper.getPropertyId("Artifacts", "service_name");
 
     @Override
     public void setManagementController(AmbariManagementController controller) {
@@ -744,7 +741,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
 
     @Override
     public String getFKPropertyName() {
-      return SERVICE_NAME;
+      return SERVICE_NAME_PROPERTY;
     }
 
     @Override
@@ -764,7 +761,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
 
     @Override
     public Map<Resource.Type, String> getForeignKeyInfo() {
-      return Collections.singletonMap(Resource.Type.Cluster, "Artifacts/cluster_name");
+      return Collections.singletonMap(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY);
     }
 
     @Override
@@ -774,7 +771,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
       String clusterName = String.valueOf(properties.get(keyMap.get(Resource.Type.Cluster)));
       try {
         Cluster cluster = controller.getClusters().getCluster(clusterName);
-        cluster.getService(String.valueOf(properties.get(SERVICE_NAME)));
+        cluster.getService(String.valueOf(properties.get(SERVICE_NAME_PROPERTY)));
         return true;
       } catch (ObjectNotFoundException e) {
         // doesn't exist

@@ -94,9 +94,11 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
   describe("#didInsertElement()", function() {
     beforeEach(function () {
       sinon.stub(view, 'observesCategories', Em.K);
+      sinon.stub(view, '$').returns({on: Em.K});
     });
     afterEach(function () {
       view.observesCategories.restore();
+      view.$.restore();
     });
     it("observesCategories is called once", function() {
       view.didInsertElement();
@@ -135,13 +137,13 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       event = {
         context: Em.Object.create({
           isSelected: false,
-          value: 'ALL',
+          value: 'ALL'
         })
       };
       view.set('categories', [
         Em.Object.create({
           isSelected: true,
-          value: 'UPGRADE_COMPLETED',
+          value: 'UPGRADE_COMPLETED'
         }),
         event.context
       ]);
@@ -176,36 +178,60 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
     var content = [
       Em.Object.create({
         direction: 'UPGRADE',
+        upgradeId: 1,
         upgradeType: 'ROLLING',
+        associatedVersion: '1.1',
         startTime: timestamp,
-        endTime: timestamp + 3600 * 1000
+        endTime: timestamp + 3600 * 1000,
+        versions: {s1: {}}
       }),
       Em.Object.create({
         direction: 'DOWNGRADE',
+        upgradeId: 2,
         upgradeType: 'HOST_ORDERED',
+        associatedVersion: '1.1',
         startTime: timestamp,
-        endTime: timestamp + 3600 * 1000 * 2
+        endTime: timestamp + 3600 * 1000 * 2,
+        versions: {s1: {}}
       })
     ];
 
     var expected = [
       Em.Object.create({
+        idHref: '#1',
+        id: 1,
+        repositoryName: 'hdp-1.1',
+        repositoryType: 'Type1',
+        services: [],
         directionLabel: Em.I18n.t('common.upgrade'),
         upgradeTypeLabel: Em.I18n.t('common.rolling'),
         duration: '1.00 hours'
       }),
       Em.Object.create({
+        idHref: '#2',
+        id: 1,
+        repositoryName: 'hdp-1.1',
+        repositoryType: 'Type1',
+        services: [],
         directionLabel: Em.I18n.t('common.downgrade'),
         upgradeTypeLabel: Em.I18n.t('common.hostOrdered'),
         duration: '2.00 hours'
       })
     ];
 
-    var fields = ['directionLabel', 'upgradeTypeLabel', 'duration'];
+    var fields = ['directionLabel', 'upgradeTypeLabel', 'duration', 'serviceName'];
 
     var processedContent;
 
     beforeEach(function () {
+      sinon.stub(view, 'getRepoServicesForDisplay').returns([]);
+      sinon.stub(App.RepositoryVersion, 'find').returns([
+        Em.Object.create({
+          repositoryVersion: '1.1',
+          displayName: 'hdp-1.1',
+          type: 'TYPE1'
+        })
+      ]);
       sinon.stub(App, 'dateTimeWithTimeZone', function (ts) {
         return ts - 3600 * 1000 * 2
       });
@@ -214,6 +240,12 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
 
     afterEach(function () {
       App.dateTimeWithTimeZone.restore();
+      view.getRepoServicesForDisplay.restore();
+      App.RepositoryVersion.find.restore();
+    });
+
+    it('2 items mapped', function () {
+      expect(processedContent.length).to.be.equal(2);
     });
 
     expected.forEach(function (item, index) {
@@ -222,7 +254,7 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
 
         fields.forEach(function (field) {
           it('#' + field, function () {
-            expect(processedContent[index].get(field)).to.be.equal(item.get(field));
+            expect(processedContent[index][field]).to.be.equal(item.get(field));
           });
         });
 
@@ -232,8 +264,48 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
 
 
     it('End Time for upgrade in progress is `Not finished`', function () {
-      processedContent = view.processForDisplay([Em.Object.create({endTime: -1})]);
-      expect(processedContent[0].get('endTimeLabel')).to.be.equal('Not finished');
+      processedContent = view.processForDisplay([Em.Object.create({
+        endTime: -1,
+        versions: {s1: {}},
+        associatedVersion: '1.1'
+      })]);
+      expect(processedContent[0].endTimeLabel).to.be.equal('Not finished');
+    });
+  });
+
+  describe('#getRepoServicesForDisplay', function() {
+    beforeEach(function() {
+      sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
+        stackServices: [
+          Em.Object.create({
+            name: 'S1',
+            displayName: 's1',
+            latestVersion: '1.1'
+          })
+        ]
+      }));
+    });
+    afterEach(function() {
+      App.RepositoryVersion.find.restore();
+    });
+
+    it('should return services with versions', function() {
+      var versions = {
+        S1: {
+          from_repository_id: 1,
+          to_repository_id: 2,
+          from_repository_version: '1.123.123-1',
+          to_repository_version: '1.123.123-2'
+        }
+      };
+      expect(view.getRepoServicesForDisplay(versions)).to.be.eql([
+        {
+          name: 'S1',
+          displayName: 's1',
+          fromVersion: '1.123.123-1',
+          toVersion: '1.123.123-2'
+        }
+      ]);
     });
   });
 

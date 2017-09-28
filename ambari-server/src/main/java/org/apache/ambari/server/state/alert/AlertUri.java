@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Set;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -28,6 +30,11 @@ import com.google.gson.annotations.SerializedName;
  * URI.
  */
 public class AlertUri {
+  /**
+   * The HTTP URI to use.
+   */
+  @SerializedName("acceptable_codes")
+  private Set<Integer> m_acceptableCodes;
 
   /**
    * The HTTP URI to use.
@@ -83,7 +90,7 @@ public class AlertUri {
   /**
    * If present, then the component supports HA mode and the properties
    * contained within need to be checked to see if an HA URI is required to be
-   * constructed instead of using {@link #m_httpProperty} and
+   * constructed instead of using {@link #m_httpUri}, {@link #m_httpsUri} and
    * {@link #m_httpsProperty}.
    */
   @SerializedName("high_availability")
@@ -179,6 +186,14 @@ public class AlertUri {
    */
   public HighAvailability getHighAvailability() {
     return m_highAvailability;
+  }
+
+  public Set<Integer> getAcceptableCodes() {
+    return m_acceptableCodes;
+  }
+
+  public void setAcceptableCodes(Set<Integer> m_acceptableCodes) {
+    this.m_acceptableCodes = m_acceptableCodes;
   }
 
   /**

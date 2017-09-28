@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,6 +32,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -61,7 +62,7 @@ public class RepositoryVersionService extends BaseService {
    * @param headers http headers
    * @param ui      uri info
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getRepositoryVersions(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
@@ -76,7 +77,7 @@ public class RepositoryVersionService extends BaseService {
    * @param repositoryVersionId   the repository version id
    * @return information regarding the specified repository
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{repositoryVersionId}")
   @Produces("text/plain")
   public Response getRepositoryVersion(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -92,7 +93,7 @@ public class RepositoryVersionService extends BaseService {
    * @param ui           uri info
    * @return information regarding the created repository
    */
-   @POST
+   @POST @ApiIgnore // until documented
    @Produces("text/plain")
    public Response createRepositoryVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(null));
@@ -106,7 +107,7 @@ public class RepositoryVersionService extends BaseService {
    * @param repositoryVersionId   the repository version id
    * @return information regarding the deleted repository
    */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{repositoryVersionId}")
   @Produces("text/plain")
   public Response deleteRepositoryVersion(@Context HttpHeaders headers, @Context UriInfo ui,
@@ -122,7 +123,7 @@ public class RepositoryVersionService extends BaseService {
    * @param repositoryVersionId   the repository version id
    * @return information regarding the updated repository
    */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{repositoryVersionId}")
   @Produces("text/plain")
   public Response updateRepositoryVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui,

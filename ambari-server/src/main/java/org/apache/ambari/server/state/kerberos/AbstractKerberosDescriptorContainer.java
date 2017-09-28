@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state.kerberos;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -775,6 +777,16 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
     }
 
     return map;
+  }
+
+  /**
+   * @return identities which are not references to other identities
+   */
+  public List<KerberosIdentityDescriptor> getIdentitiesSkipReferences() {
+    return nullToEmpty(getIdentities())
+      .stream()
+      .filter(identity -> !identity.getReferencedServiceName().isPresent() && identity.getName() != null && !identity.getName().startsWith("/"))
+      .collect(toList());
   }
 
   @Override

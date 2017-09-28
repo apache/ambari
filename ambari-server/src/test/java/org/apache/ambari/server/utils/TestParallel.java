@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -51,7 +51,7 @@ public class TestParallel {
     Assert.assertTrue(nullLoopResult.getResult().isEmpty());
 
     ParallelLoopResult<Integer> emptyLoopResult = Parallel.forLoop(
-        new ArrayList<Integer>(),
+      new ArrayList<>(),
         new LoopBody<Integer, Integer>() {
           @Override
           public Integer run(Integer integer) {

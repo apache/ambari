@@ -174,13 +174,19 @@ if stack_supports_storm_kerberos:
   else:
     storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
 
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+set_instanceId = "false"
+if 'cluster-env' in config['configurations'] and \
+        'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 metric_collector_port = None
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -202,6 +208,8 @@ metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sin
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar"
 metric_collector_legacy_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink-legacy-with-common-*.jar"
+host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
 
 
 # Cluster Zookeeper quorum
@@ -385,8 +393,6 @@ if enable_ranger_storm:
 
 namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_hosts) == 0
-
-availableServices = config['availableServices']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab'] if has_namenode else None

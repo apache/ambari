@@ -28,6 +28,7 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
+from resource_management.core.exceptions import Fail
 
 
 # a map of the Ambari role to the component name
@@ -117,6 +118,7 @@ if "jdbc_drivers" in config['configurations']['sqoop-env']:
         jdbc_name = default("/hostLevelParams/custom_hsqldb_jdbc_name", None)
         previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_hsqldb_jdbc_name", None)
         jdbc_driver_name = "hsqldb"
+      else: raise Fail(format("JDBC driver '{driver_name}' not supported."))
     else:
       continue
     sqoop_jdbc_drivers_dict.append(jdbc_name)

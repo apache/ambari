@@ -49,7 +49,7 @@ public class CleanupDriver {
   private static Options getOptions() {
     Options options = new Options();
     options.addOption(Option.builder().longOpt(CLUSTER_NAME_ARG).desc("The cluster name").required().type(String.class).hasArg().valueSeparator(' ').build());
-    options.addOption(Option.builder().longOpt(FROM_DATE_ARG).desc("The day from which the cleanup runs").required().type(String.class).hasArg().valueSeparator(' ').build());
+    options.addOption(Option.builder().longOpt(FROM_DATE_ARG).desc("Date up until data will be purged.").required().type(String.class).hasArg().valueSeparator(' ').build());
     return options;
   }
 
@@ -67,7 +67,7 @@ public class CleanupDriver {
     } catch (Exception exp) {
       System.err.println("Parsing failed.  Reason: " + exp.getMessage());
       LOGGER.error("Parsing failed.  Reason: ", exp);
-      formatter.printHelp("cleanup", getOptions());
+      formatter.printHelp("db-purge-history", getOptions());
       System.exit(1);
     }
     return ctx;
@@ -75,7 +75,7 @@ public class CleanupDriver {
 
 
   public static void main(String... args) throws Exception {
-    LOGGER.info("DB-CLEANUP - Starting the cleanup process ...");
+    LOGGER.info("DB-PURGE - Starting the database purge process ...");
 
     CleanupContext cleanupContext = processArguments(args);
 
@@ -86,12 +86,17 @@ public class CleanupDriver {
     injector.getInstance(AmbariJpaPersistService.class).start();
 
     CleanupServiceImpl cleanupService = injector.getInstance(CleanupServiceImpl.class);
-    long affected = cleanupService.cleanup(new TimeBasedCleanupPolicy(cleanupContext.getClusterName(), cleanupContext.getFromDayTimestamp()));
+    CleanupService.CleanupResult result = cleanupService.cleanup(new TimeBasedCleanupPolicy(cleanupContext.getClusterName(), cleanupContext.getFromDayTimestamp()));
 
     // explicitly stopping the persist service
     injector.getInstance(AmbariJpaPersistService.class).stop();
 
-    LOGGER.info("DB-CLEANUP - completed. Number of affected records [{}]", affected);
+    if (result.getErrorCount() > 0) {
+      LOGGER.warn("DB-PURGE - completed with error, check Ambari Server log for details ! Number of affected records [{}]", result.getAffectedRows());
+      System.exit(2);
+    }
+
+    LOGGER.info("DB-PURGE - completed. Number of affected records [{}]", result.getAffectedRows());
   }
 
   /**

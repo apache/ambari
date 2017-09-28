@@ -58,8 +58,10 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 
     var propertiesToDelete = [];
     configs.forEach(function (config) {
-      var name = Em.get(config, 'name'), fileName = Em.get(config, 'filename'),
-        recommendations = recommendationObject[App.config.getConfigTagFromFileName(fileName)];
+      var name = Em.get(config, 'name'),
+          fileName = Em.get(config, 'filename'),
+          value = Em.get(config, 'value'),
+          recommendations = recommendationObject[App.config.getConfigTagFromFileName(fileName)];
 
       if (recommendations) {
 
@@ -78,7 +80,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
           if (propertyAttributes) {
             var stackProperty = App.configsCollection.getConfigByName(name, fileName);
             for (var attr in propertyAttributes) {
-              if (attr === 'delete' && this.allowUpdateProperty(parentProperties, name, fileName)) {
+              if (attr === 'delete' && this.allowUpdateProperty(parentProperties, name, fileName, null, value)) {
                 propertiesToDelete.push(config);
               } else if (attr === 'visible' || stackProperty) {
                 /** update config boundaries **/
@@ -152,14 +154,18 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
    */
   _updateConfigByRecommendation: function (config, recommendedValue, parentProperties) {
     App.assertObject(config);
+    var name = Em.get(config, 'name'),
+        fileName = Em.get(config, 'filename'),
+        group = Em.get(config, 'group.name'),
+        value = Em.get(config, 'value');
 
     Em.set(config, 'recommendedValue', recommendedValue);
-    if (this.allowUpdateProperty(parentProperties, Em.get(config, 'name'), Em.get(config, 'filename'))) {
+    if (this.allowUpdateProperty(parentProperties, name, fileName, group, value)) {
       var allowConfigUpdate = true;
       // workaround for capacity-scheduler
       if (this.get('currentlyChangedConfig')) {
         var cId = App.config.configId(this.get('currentlyChangedConfig.name'), this.get('currentlyChangedConfig.fileName'));
-        if (App.config.configId(config.get('name'), config.get('filename')) === cId) {
+        if (App.config.configId(name, fileName) === cId) {
           allowConfigUpdate = false;
         }
       }
@@ -173,7 +179,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       if (!Em.isNone(recommendedValue) && !Em.get(config, 'hiddenBySection')) {
         Em.set(config, 'isVisible', true);
       }
-      this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'), recommendedValue, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
+      this.applyRecommendation(name, fileName, group, recommendedValue, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
     }
     if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
       Em.set(config, 'initialValue', recommendedValue);
@@ -341,13 +347,14 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
   /**
    * Defines if recommendation allowed to be applied
    *
-   * @param parentProperties
-   * @param name
-   * @param fileName
-   * @param [configGroup]
+   * @param {Array} parentProperties
+   * @param {string} name
+   * @param {string} fileName
+   * @param {string} configGroup
+   * @param {*} savedValue
    * @returns {boolean}
    */
-  allowUpdateProperty: function (parentProperties, name, fileName, configGroup) {
+  allowUpdateProperty: function (parentProperties, name, fileName, configGroup, savedValue) {
     try {
       return Em.get(this.getRecommendation(name, fileName, configGroup), 'saveRecommended');
     } catch (e) {

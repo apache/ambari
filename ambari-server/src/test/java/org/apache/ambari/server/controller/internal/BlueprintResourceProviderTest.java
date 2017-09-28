@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -69,7 +69,6 @@ import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
-import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -395,7 +394,7 @@ public class BlueprintResourceProviderTest {
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
 
     // set expectations
-    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.<Map<String, Object>>anyObject(), anyBoolean())).andReturn
+    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), securityConfiguration)).andReturn(blueprint).once();
     blueprint.validateRequiredProperties();
@@ -459,7 +458,7 @@ public class BlueprintResourceProviderTest {
       NoSuchParentResourceException, NoSuchResourceException, AmbariException {
 
     StackInfo info = createMock(StackInfo.class);
-    expect(info.getConfigPropertiesTypes("core-site")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
+    expect(info.getConfigPropertiesTypes("core-site")).andReturn(new HashMap<>()).anyTimes();
     expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
     replay(info, metaInfo);
     Request request = createNiceMock(Request.class);
@@ -855,7 +854,7 @@ public class BlueprintResourceProviderTest {
       hostGroups.add(hostGroup);
       hostGroup.setName((String) groupProperties.get(BlueprintResourceProvider.HOST_GROUP_NAME_PROPERTY_ID));
       hostGroup.setCardinality((String) groupProperties.get(BlueprintResourceProvider.HOST_GROUP_CARDINALITY_PROPERTY_ID));
-      hostGroup.setConfigurations(new ArrayList<HostGroupConfigEntity>());
+      hostGroup.setConfigurations(new ArrayList<>());
 
       Set<Map<String, String>> setComponentProperties = (Set<Map<String, String>>) groupProperties.get(
           BlueprintResourceProvider.COMPONENT_PROPERTY_ID);
@@ -1056,8 +1055,8 @@ public class BlueprintResourceProviderTest {
     }};
 
     StackInfo info = createMock(StackInfo.class);
-    expect(info.getConfigPropertiesTypes("type1")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
-    expect(info.getConfigPropertiesTypes("type2")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
+    expect(info.getConfigPropertiesTypes("type1")).andReturn(new HashMap<>()).anyTimes();
+    expect(info.getConfigPropertiesTypes("type2")).andReturn(new HashMap<>()).anyTimes();
     expect(info.getConfigPropertiesTypes("type3")).andReturn(pwdProperties).anyTimes();
     expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
 
@@ -1157,8 +1156,8 @@ public class BlueprintResourceProviderTest {
     }};
 
     StackInfo info = createMock(StackInfo.class);
-    expect(info.getConfigPropertiesTypes("type1")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
-    expect(info.getConfigPropertiesTypes("type2")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
+    expect(info.getConfigPropertiesTypes("type1")).andReturn(new HashMap<>()).anyTimes();
+    expect(info.getConfigPropertiesTypes("type2")).andReturn(new HashMap<>()).anyTimes();
     expect(info.getConfigPropertiesTypes("type3")).andReturn(pwdProperties).anyTimes();
     expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
 

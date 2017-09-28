@@ -38,7 +38,7 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from resource_management.core.resources.packaging import Package
-from resource_management.core.shell import as_user, as_sudo, call
+from resource_management.core.shell import as_user, as_sudo, call, checked_call
 from resource_management.core.exceptions import Fail
 
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
@@ -52,7 +52,7 @@ from ambari_commons.inet_utils import download_file
 from resource_management.core import Logger
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def oozie(is_server=False):
+def oozie(is_server=False, upgrade_type=None):
   import params
 
   from status_params import oozie_server_win_service_name
@@ -99,7 +99,7 @@ def oozie(is_server=False):
 
 # TODO: see if see can remove this
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def oozie(is_server=False):
+def oozie(is_server=False, upgrade_type=None):
   import params
 
   if is_server:
@@ -189,8 +189,8 @@ def oozie(is_server=False):
 
   oozie_ownership()
   
-  if is_server:      
-    oozie_server_specific()
+  if is_server:
+    oozie_server_specific(upgrade_type)
   
 def oozie_ownership():
   import params
@@ -215,7 +215,27 @@ def oozie_ownership():
     group = params.user_group
   )
 
-def oozie_server_specific():
+def get_oozie_ext_zip_source_paths(upgrade_type, params):
+  """
+  Get an ordered list of Oozie ext zip file paths from the source stack.
+  :param upgrade_type:  Upgrade type will be None if not in the middle of a stack upgrade.
+  :param params: Expected to contain fields for ext_js_path, upgrade_direction, source_stack_name, and ext_js_file
+  :return: Source paths to use for Oozie extension zip file
+  """
+  # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip
+  paths = []
+  source_ext_js_path = params.ext_js_path
+  # Preferred location used by HDP and BigInsights 4.2.5
+  if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE:
+    source_ext_js_path = "/usr/share/" + params.source_stack_name.upper() + "-oozie/" + params.ext_js_file
+  paths.append(source_ext_js_path)
+
+  # Alternate location used by BigInsights 4.2.0 when migrating to another stack.
+  paths.append("/var/lib/oozie/" + params.ext_js_file)
+
+  return paths
+
+def oozie_server_specific(upgrade_type):
   import params
   
   no_op_test = as_user(format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.oozie_user)
@@ -249,13 +269,23 @@ def oozie_server_specific():
   )
 
   configure_cmds = []
-  configure_cmds.append(('cp', params.ext_js_path, params.oozie_libext_dir))
-  configure_cmds.append(('chown', format('{oozie_user}:{user_group}'), format('{oozie_libext_dir}/{ext_js_file}')))
+  # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip as the first path
+  source_ext_zip_paths = get_oozie_ext_zip_source_paths(upgrade_type, params)
   
-  Execute( configure_cmds,
-    not_if  = no_op_test,
-    sudo = True,
-  )
+  # Copy the first oozie ext-2.2.zip file that is found.
+  # This uses a list to handle the cases when migrating from some versions of BigInsights to HDP.
+  if source_ext_zip_paths is not None:
+    for source_ext_zip_path in source_ext_zip_paths:
+      if os.path.isfile(source_ext_zip_path):
+        configure_cmds.append(('cp', source_ext_zip_path, params.oozie_libext_dir))
+        configure_cmds.append(('chown', format('{oozie_user}:{user_group}'), format('{oozie_libext_dir}/{ext_js_file}')))
+
+        Execute(configure_cmds,
+                not_if=no_op_test,
+                sudo=True,
+                )
+        break
+  
   
   Directory(params.oozie_webapps_conf_dir,
             owner = params.oozie_user,
@@ -394,8 +424,8 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
                  "and performing a Downgrade.")
     return
 
-  current_version = get_current_version()
-  atlas_hive_hook_dir = format("{stack_root}/{current_version}/atlas/hook/hive/")
+  effective_version = get_current_version(service="ATLAS")
+  atlas_hive_hook_dir = format("{stack_root}/{effective_version}/atlas/hook/hive/")
   if not os.path.exists(atlas_hive_hook_dir):
     Logger.error(format("ERROR. Atlas is installed in cluster but this Oozie server doesn't "
                         "contain directory {atlas_hive_hook_dir}"))
@@ -409,12 +439,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
   # This can return over 100 files, so take the first 5 lines after "Available ShareLib"
   # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
   command = format(r'source {conf_dir}/oozie-env.sh ; oozie admin -oozie {oozie_base_url} -shareliblist hive | grep "\[Available ShareLib\]" -A 5')
-  Execute(command,
-          user=params.oozie_user,
-          tries=10,
-          try_sleep=5,
-          logoutput=True,
-  )
+  code, out = checked_call(command, user=params.oozie_user, tries=10, try_sleep=5, logoutput=True)
 
   hive_sharelib_dir = __parse_sharelib_from_output(out)
 

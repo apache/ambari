@@ -17,95 +17,123 @@
 }}
 
 <div class="row">
-{{! left column }}
-<div class="col-md-6">
-  {{view view.dashboardMasterComponentView}}
+  {{! Component Section }}
+  <div class="col-md-12 component-summary">
+    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
+    <div class="col-md-10">
+      {{view view.dashboardMasterComponentView}}
 
-  {{! NodeManagers }}
-  {{#if view.isNodeManagerCreated}}
-    <div {{bindAttr class=":row :component view.nodeManagerComponent.componentName"}}>
-      <div class="col-md-6 summary-label">
-        <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a>
+      {{! NodeManagers }}
+      {{#if view.isNodeManagerCreated}}
+        <div {{bindAttr class=":row :component :col-md-3 view.nodeManagerComponent.componentName"}}>
+          <div class="summary-value main-info">
+            {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal" tagName="span"}}
+                {{view.liveComponents}}/{{view.totalComponents}}
+              {{/view}}
+              {{t common.started}}
+            {{else}}
+              {{t common.loading.eclipses}}
+            {{/if}}
+          </div>
+          <div class="summary-label">
+            <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a>
+          </div>
+        </div>
+      {{/if}}
+      {{! YARN Clients }}
+      <div {{bindAttr class=":row :component :col-md-3 view.yarnClientComponent.componentName"}}>
+        <div class="summary-value main-info">
+          <span>{{view.service.installedClients}} {{t common.installed}} </span>
+        </div>
+        <div class="summary-label">
+          <a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">
+            {{pluralize view.service.installedClients singular="t:dashboard.services.yarn.client" plural="t:dashboard.services.yarn.clients"}}
+          </a>
+        </div>
       </div>
-      <div class="col-md-6 summary-value">
-        {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal" tagName="span"}}
-            {{view.liveComponents}}/{{view.totalComponents}}
-          {{/view}}
-          {{t common.started}}
-        {{else}}
-          {{t common.loading.eclipses}}
-        {{/if}}
+      {{! ResourceManager Uptime }}
+      <div class="row col-md-3 resourcemanager-uptime">
+        <div class="summary-value main-info">{{view.nodeUptime}}</div>
+        <div class="summary-label">{{t dashboard.services.yarn.resourceManager.uptime}}</div>
+      </div>
+      {{! NodeManagers status }}
+      <div class="row col-md-3 nodemanager-status">
+        <div class="summary-value">
+          <div class="main-info">
+            <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.active"}}
+                    rel="tooltip">
+              {{view._nmActive}} </span> /
+            <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.lost"}}
+                    rel="tooltip">
+              {{view._nmLost}} </span> /
+            <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.unhealthy"}}
+                    rel="tooltip">
+              {{view._nmUnhealthy}} </span> /
+            <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.rebooted"}}
+                    rel="tooltip">
+              {{view._nmRebooted}} </span> /
+            <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.decommissioned"}}
+                    rel="tooltip">
+              {{view._nmDecom}} </span>
+          </div>
+          <div class="info-desc">
+            <span {{t dashboard.services.yarn.nodeManagers.status.active}} </span> /
+            <span {{t dashboard.services.yarn.nodeManagers.status.lost}} </span> /
+            <span {{t dashboard.services.yarn.nodeManagers.status.unhealthy}} </span> /
+            <span {{t dashboard.services.yarn.nodeManagers.status.rebooted}} </span> /
+            <span {{t dashboard.services.yarn.nodeManagers.status.decommissioned}} </span>
+          </div>
+        </div>
+        <div class="summary-label">{{t dashboard.services.yarn.nodeManagers.status}}</div>
+      </div>
+      {{! ResourceManager Heap }}
+      <div class="row col-md-3 resourcemanager-heap">
+        <div class="summary-value main-info">{{view.nodeHeap}}</div>
+        <div class="summary-label">{{t dashboard.services.resourceManager.nodes.heap}}</div>
       </div>
     </div>
-  {{/if}}
-  {{! NodeManagers status }}
-  <div class="row nodemanager-status">
-    <div class="col-md-6 summary-label">{{t dashboard.services.yarn.nodeManagers.status}}</div>
-    <div class="col-md-6 summary-value">
-      <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.active"}} rel="tooltip">
-      {{view._nmActive}} {{t dashboard.services.yarn.nodeManagers.status.active}} </span> /
-    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.lost"}} rel="tooltip">
-      {{view._nmLost}} {{t dashboard.services.yarn.nodeManagers.status.lost}} </span> /
-    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.unhealthy"}} rel="tooltip">
-      {{view._nmUnhealthy}} {{t dashboard.services.yarn.nodeManagers.status.unhealthy}} </span> /
-    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.rebooted"}} rel="tooltip">
-      {{view._nmRebooted}} {{t dashboard.services.yarn.nodeManagers.status.rebooted}} </span> /
-    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.decommissioned"}} rel="tooltip">
-      {{view._nmDecom}} {{t dashboard.services.yarn.nodeManagers.status.decommissioned}} </span>
-    </div>
   </div>
-  {{! YARN Clients }}
-  <div {{bindAttr class=":row :component view.yarnClientComponent.componentName"}}>
-    <div class="col-md-6 summary-label">
-      <a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">
-        {{pluralize view.service.installedClients singular="t:dashboard.services.yarn.client" plural="t:dashboard.services.yarn.clients"}}
-      </a>
-    </div>
-    <div class="col-md-6 summary-value">
-      <span class="green-live">{{view.service.installedClients}} </span>
-      {{pluralize view.service.installedClients singular="t:dashboard.services.yarn.client" plural="t:dashboard.services.yarn.clients"}} {{t common.installed}}
-    </div>
-  </div>
-  {{! ResourceManager Uptime }}
-  <div class="row resourcemanager-uptime">
-    <div class="col-md-6 summary-label">{{t dashboard.services.yarn.resourceManager.uptime}}</div>
-    <div class="col-md-6 summary-value">{{view.nodeUptime}}</div>
-  </div>
-</div>
-{{! left column end }}
 
-{{! right column }}
-<div class="col-md-6">
-  {{! ResourceManager Heap }}
-  <div class="row resourcemanager-heap">
-    <div class="col-md-6 summary-label">{{t dashboard.services.resourceManager.nodes.heap}}</div>
-    <div class="col-md-6 summary-value">{{view.nodeHeap}}</div>
-  </div>
-  {{! Containers }}
-  <div class="row yarn-containers">
-    <div class="col-md-6 summary-label">{{t dashboard.services.yarn.containers}}</div>
-    <div class="col-md-6 summary-value">{{view.containers}}</div>
-  </div>
-  {{! Applications }}
-  <div class="row yarn-applications">
-    <div class="col-md-6 summary-label">{{t dashboard.services.yarn.apps}}</div>
-    <div class="col-md-6 summary-value">{{view.apps}}</div>
-  </div>
-  {{! Memory }}
-  <div class="row yarn-memory">
-    <div class="col-md-6 summary-label">{{t dashboard.services.yarn.memory}}</div>
-    <div class="col-md-6 summary-value">{{view.memory}}</div>
-  </div>
-  {{! Queues }}
-  <div class="row yarn-queues">
-    <div class="col-md-6 summary-label">{{t dashboard.services.yarn.queues}}</div>
-    <div class="col-md-6 summary-value">
-        <span rel="queue-tooltip" class="text-tooltip" {{bindAttr data-original-title="view.service.queueFormatted" }}>
-          {{view.queues}}
-        </span>
+  {{! Service Metrics Section }}
+  <div class="col-md-12 metrics-summary">
+    <div class="col-md-2">{{t dashboard.services.hdfs.summary.service-metrics}}</div>
+    <div class="col-md-10">
+      {{! Containers }}
+      <div class="row col-md-3 yarn-containers">
+        <div class="summary-value">
+          <div class="main-info">{{view.containers}}</div>
+          <div class="info-desc">{{t dashboard.services.yarn.containers.msgDesc}}</div>
+        </div>
+        <div class="summary-label">{{t dashboard.services.yarn.containers}}</div>
+      </div>
+      {{! Applications }}
+      <div class="row col-md-3 yarn-applications">
+        <div class="summary-value">
+          <div class="main-info">{{view.apps}}</div>
+          <div class="info-desc">{{t dashboard.services.yarn.apps.msgDesc}}</div>
+        </div>
+        <div class="summary-label">{{t dashboard.services.yarn.apps}}</div>
+      </div>
+      {{! Memory }}
+      <div class="row col-md-3 yarn-memory">
+        <div class="summary-value">
+          <div class="main-info">{{view.memory}}</div>
+          <div class="info-desc">{{t dashboard.services.yarn.memory.msgDesc}}</div>
+        </div>
+        <div class="summary-label">{{t dashboard.services.yarn.memory}}</div>
+      </div>
+      {{! Queues }}
+      <div class="row col-md-3 yarn-queues">
+        <div class="summary-value main-info">
+          <span rel="queue-tooltip"
+                class="text-tooltip" {{bindAttr data-original-title="view.service.queueFormatted" }}>
+            {{view.queues}}
+          </span>
+        </div>
+        <div class="summary-label">{{t dashboard.services.yarn.queues}}</div>
+      </div>
     </div>
   </div>
-</div>
-{{! right column end }}
+  {{! right column end }}
 </div>

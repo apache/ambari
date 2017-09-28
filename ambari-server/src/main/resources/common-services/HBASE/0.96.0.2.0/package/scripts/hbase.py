@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from urlparse import urlparse
 import os
 import sys
 from resource_management.libraries.script.script import Script
@@ -200,11 +201,12 @@ def hbase(name=None):
       owner=params.hbase_user
     )
   if name == "master":
-    params.HdfsResource(params.hbase_hdfs_root_dir,
-                         type="directory",
-                         action="create_on_execute",
-                         owner=params.hbase_user
-    )
+    if not params.hbase_hdfs_root_dir_protocol or params.hbase_hdfs_root_dir_protocol == urlparse(params.default_fs).scheme:
+      params.HdfsResource(params.hbase_hdfs_root_dir,
+                           type="directory",
+                           action="create_on_execute",
+                           owner=params.hbase_user
+      )
     params.HdfsResource(params.hbase_staging_dir,
                          type="directory",
                          action="create_on_execute",

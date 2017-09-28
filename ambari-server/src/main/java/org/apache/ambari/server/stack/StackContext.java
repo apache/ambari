@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,10 +26,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.OsFamily;
 
@@ -80,32 +78,6 @@ public class StackContext {
   public void registerServiceCheck(String serviceName) {
     actionMetaData.addServiceCheckAction(serviceName);
   }
-
-  /**
-   * Obtain an updated url for the repo.
-   * This will check the database for a user update of the repo url.
-   *
-   * @param stackName     stack name
-   * @param stackVersion  stack version
-   * @param osType        OS type
-   * @param repoId        repo id
-   *
-   * @return  an update url or null if the url has not been updated
-   */
-  public String getUpdatedRepoUrl(String stackName, String stackVersion, String osType, String repoId) {
-    String key = AmbariMetaInfo.generateRepoMetaKey(stackName, stackVersion,
-        osType, repoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
-    MetainfoEntity entity = metaInfoDAO.findByKey(key);
-    return entity != null ? entity.getMetainfoValue() : null;
-  }
-
-  public String getUpdatedMirrorsList(String stackName, String stackVersion, String osType, String repoId) {
-    String key = AmbariMetaInfo.generateRepoMetaKey(stackName, stackVersion,
-        osType, repoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_MIRRORSLIST);
-    MetainfoEntity entity = metaInfoDAO.findByKey(key);
-    return entity != null ? entity.getMetainfoValue() : null;
-  }
-
 
   /**
    * Register a task to obtain the latest repo url from an external location.

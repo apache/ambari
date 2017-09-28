@@ -19,6 +19,7 @@ limitations under the License.
 
 import math
 
+
 from ambari_commons.str_utils import string_set_equals
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
@@ -39,6 +40,24 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor,self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
     putOozieEnvProperty = self.putProperty(configurations, "oozie-env", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putOozieSiteProperty = self.putProperty(configurations, "oozie-site", services)
+    putOozieSitePropertyAttributes = self.putPropertyAttribute(configurations, "oozie-site")
+
+    if "FALCON" in servicesList:
+      putOozieSiteProperty('oozie.service.ELService.ext.functions.workflow',
+                           'now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo, \
+                            today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo, \
+                            yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo, \
+                            currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo, \
+                            lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo, \
+                            currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo, \
+                            lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo, \
+                            formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo, \
+                            latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo, \
+                            future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo')
+    else:
+      putOozieSitePropertyAttributes('oozie.service.ELService.ext.functions.workflow', 'delete', 'true')
 
     if not "oozie-env" in services["configurations"] :
       self.logger.info("No oozie configurations available")
@@ -441,10 +460,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "STORM": self.recommendStormConfigurations,
       "OOZIE": self.recommendOozieConfigurations,
-      "SPARK2": self.recommendSpark2Configurations
+      "SPARK": self.recommendSparkConfigurations,
+      "SPARK2": self.recommendSpark2Configurations,
+      "ZEPPELIN": self.recommendZeppelinConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
+
+  def recommendSparkConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    self.__addZeppelinToLivySuperUsers(configurations, services)
 
   def recommendSpark2Configurations(self, configurations, clusterData, services, hosts):
     """
@@ -517,6 +547,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putStormSiteProperty('storm.cluster.metrics.consumer.register', 'null')
       putStormSiteProperty('topology.metrics.consumer.register', 'null')
+
+  def recommendZeppelinConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    self.__addZeppelinToLivySuperUsers(configurations, services)
 
   def constructAtlasRestAddress(self, services, hosts):
     """
@@ -774,9 +813,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
 
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
-    stack_root = "/usr/hdp"
-    if cluster_env and "stack_root" in cluster_env:
-      stack_root = cluster_env["stack_root"]
+    stack_root = self.getStackRoot(services)
 
     timeline_plugin_classes_values = []
     timeline_plugin_classpath_values = []
@@ -1014,8 +1051,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Set 'num_llap_nodes_requested' for 1st invocation, as it gets passed as 1 otherwise, read from config.
 
       # Check if its : 1. 1st invocation from UI ('enable_hive_interactive' in changed-configurations)
-      # OR 2. 1st invocation from BP (services['changed-configurations'] should be empty in this case)
-      if (changed_configs_has_enable_hive_int or  0 == len(services['changed-configurations'])) \
+      # OR 2. 1st invocation from BP (services['changed-configurations'] should be empty in this case and 'num_llap_nodes' not defined)
+      if (changed_configs_has_enable_hive_int
+          or (0 == len(services['changed-configurations'])
+              and not services['configurations']['hive-interactive-env']['properties']['num_llap_nodes'])) \
         and services['configurations']['hive-interactive-env']['properties']['enable_hive_interactive']:
         num_llap_nodes_requested = min_nodes_required
       else:
@@ -1152,6 +1191,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                   "{2}".format(llap_mem_daemon_size, llap_mem_for_tezAm_and_daemons, tez_am_memory_required))
 
     llap_daemon_mem_per_node = self._normalizeDown(llap_mem_daemon_size / num_llap_nodes_requested, yarn_min_container_size)
+    # This value takes into account total cluster capacity, and may not have left enough capcaity on each node to launch an AM.
     self.logger.info("DBG: Calculated 'llap_daemon_mem_per_node' : {0}, using following : llap_mem_daemon_size : {1}, num_llap_nodes_requested : {2}, "
                   "yarn_min_container_size: {3}".format(llap_daemon_mem_per_node, llap_mem_daemon_size, num_llap_nodes_requested, yarn_min_container_size))
     if llap_daemon_mem_per_node == 0:
@@ -1170,6 +1210,31 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # All good. We have a proper value for memoryPerNode.
       num_llap_nodes = num_llap_nodes_requested
       self.logger.info("DBG: num_llap_nodes : {0}".format(num_llap_nodes))
+
+    # Make sure we have enough memory on each node to run AMs.
+    # If nodes vs nodes_requested is different - AM memory is already factored in.
+    # If llap_node_count < total_cluster_nodes - assuming AMs can run on a different node.
+    # Else factor in min_concurrency_per_node * tez_am_size, and slider_am_size
+    # Also needs to factor in whether num_llap_nodes = cluster_node_count
+    min_mem_reserved_per_node = 0
+    if num_llap_nodes == num_llap_nodes_requested and num_llap_nodes == node_manager_cnt:
+      min_mem_reserved_per_node = max(normalized_tez_am_container_size, slider_am_container_size)
+      tez_AMs_per_node = llap_concurrency / num_llap_nodes
+      tez_AMs_per_node_low = int(math.floor(tez_AMs_per_node))
+      tez_AMs_per_node_high = int(math.ceil(tez_AMs_per_node))
+      min_mem_reserved_per_node = int(max(tez_AMs_per_node_high * normalized_tez_am_container_size, tez_AMs_per_node_low * normalized_tez_am_container_size + slider_am_container_size))
+      self.logger.info("DBG: Determined 'AM reservation per node': {0}, using following : concurrency: {1}, num_llap_nodes: {2}, AMsPerNode: {3}"
+        .format(min_mem_reserved_per_node, llap_concurrency, num_llap_nodes,  tez_AMs_per_node))
+
+    max_single_node_mem_available_for_daemon = self._normalizeDown(yarn_nm_mem_in_mb_normalized - min_mem_reserved_per_node, yarn_min_container_size)
+    if max_single_node_mem_available_for_daemon <=0 or max_single_node_mem_available_for_daemon < mem_per_thread_for_llap:
+      self.logger.warning("Not enough capacity available per node for daemons after factoring in AM memory requirements. NM Mem: {0}, "
+      "minAMMemPerNode: {1}, available: {2}".format(yarn_nm_mem_in_mb_normalized, min_mem_reserved_per_node, max_single_node_mem_available_for_daemon))
+      self.recommendDefaultLlapConfiguration(configurations, services, hosts)
+
+    llap_daemon_mem_per_node = min(max_single_node_mem_available_for_daemon, llap_daemon_mem_per_node)
+    self.logger.info("DBG: Determined final memPerDaemon: {0}, using following: concurrency: {1}, numNMNodes: {2}, numLlapNodes: {3} "
+      .format(llap_daemon_mem_per_node, llap_concurrency, node_manager_cnt, num_llap_nodes))
 
     num_executors_per_node_max = self.get_max_executors_per_node(yarn_nm_mem_in_mb_normalized, cpu_per_nm_host, mem_per_thread_for_llap)
     if num_executors_per_node_max < 1:
@@ -1191,6 +1256,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Now figure out how much of the memory will be used by the executors, and how much will be used by the cache.
     total_mem_for_executors_per_node = num_executors_per_node * mem_per_thread_for_llap
     cache_mem_per_node = llap_daemon_mem_per_node - total_mem_for_executors_per_node
+    self.logger.info("DBG: Calculated 'Cache per node' : {0}, using following : llap_daemon_mem_per_node : {1}, total_mem_for_executors_per_node : {2}"
+                .format(cache_mem_per_node, llap_daemon_mem_per_node, total_mem_for_executors_per_node))
 
     tez_runtime_io_sort_mb = (long((0.8 * mem_per_thread_for_llap) / 3))
     tez_runtime_unordered_output_buffer_size = long(0.8 * 0.075 * mem_per_thread_for_llap)
@@ -1223,11 +1290,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     if not llap_concurrency_in_changed_configs:
       min_llap_concurrency = 1
-      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', llap_concurrency)
-      putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum",
-                                              min_llap_concurrency)
+      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', long(llap_concurrency))
+      putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", min_llap_concurrency)
 
-    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", max_llap_concurreny)
+    # Check if 'max_llap_concurreny' < 'llap_concurrency'.
+    if max_llap_concurreny < llap_concurrency:
+      self.logger.info("DBG: Adjusting 'max_llap_concurreny' to : {0}, based on 'llap_concurrency' : {1} and "
+                       "earlier 'max_llap_concurreny' : {2}. ".format(llap_concurrency, llap_concurrency, max_llap_concurreny))
+      max_llap_concurreny = llap_concurrency
+    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", long(max_llap_concurreny))
 
     num_llap_nodes = long(num_llap_nodes)
 
@@ -2094,6 +2165,42 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
                                     "Need to Install ATLAS service to set ranger.tagsync.source.atlas as true.")})
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-tagsync-site")
+
+  def __addZeppelinToLivySuperUsers(self, configurations, services):
+    """
+    If Kerberos is enabled AND Zeppelin is installed and Spark Livy Server is installed, then set
+    livy-conf/livy.superusers to contain the Zeppelin principal name from
+    zeppelin-env/zeppelin.server.kerberos.principal
+
+    :param configurations:
+    :param services:
+    """
+    if self.isSecurityEnabled(services):
+      zeppelin_env = self.getServicesSiteProperties(services, "zeppelin-env")
+
+      if zeppelin_env and 'zeppelin.server.kerberos.principal' in zeppelin_env:
+        zeppelin_principal = zeppelin_env['zeppelin.server.kerberos.principal']
+        zeppelin_user = zeppelin_principal.split('@')[0] if zeppelin_principal else None
+
+        if zeppelin_user:
+          livy_conf = self.getServicesSiteProperties(services, 'livy-conf')
+
+          if livy_conf:
+            superusers = livy_conf['livy.superusers'] if livy_conf and 'livy.superusers' in livy_conf else None
+
+            # add the Zeppelin user to the set of users
+            if superusers:
+              _superusers = superusers.split(',')
+              _superusers = [x.strip() for x in _superusers]
+              _superusers = filter(None, _superusers)  # Removes empty string elements from array
+            else:
+              _superusers = []
+
+            if zeppelin_user not in _superusers:
+              _superusers.append(zeppelin_user)
+
+              putLivyProperty = self.putProperty(configurations, 'livy-conf', services)
+              putLivyProperty('livy.superusers', ','.join(_superusers))
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return super(HDP25StackAdvisor, self).isComponentUsingCardinalityForLayout (componentName) or  componentName in ['SPARK2_THRIFTSERVER', 'LIVY2_SERVER', 'LIVY_SERVER']

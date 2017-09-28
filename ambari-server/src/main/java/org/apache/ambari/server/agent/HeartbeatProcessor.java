@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.agent;
 
+
+import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +61,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -300,13 +303,12 @@ public class HeartbeatProcessor extends AbstractService{
         int slaveCount = 0;
         int slavesRunning = 0;
 
-        StackId stackId;
         Cluster cluster = clusterFsm.getCluster(clusterId);
-        stackId = cluster.getDesiredStackVersion();
-
 
         List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostName);
         for (ServiceComponentHost scHost : scHosts) {
+          StackId stackId = scHost.getDesiredStackId();
+
           ComponentInfo componentInfo =
               ambariMetaInfo.getComponent(stackId.getStackName(),
                   stackId.getStackVersion(), scHost.getServiceName(),
@@ -374,9 +376,10 @@ public class HeartbeatProcessor extends AbstractService{
 
       Long clusterId = Long.parseLong(report.getClusterId());
 
-      LOG.debug("Received command report: " + report);
+      LOG.debug("Received command report: {}", report);
+
+      // get this locally; don't touch the database
       Host host = clusterFsm.getHost(hostName);
-//      HostEntity hostEntity = hostDAO.findByName(hostname); //don't touch database
       if (host == null) {
         LOG.error("Received a command report and was unable to retrieve Host for hostname = " + hostName);
         continue;
@@ -419,8 +422,8 @@ public class HeartbeatProcessor extends AbstractService{
 
         String customCommand = report.getCustomCommand();
 
-        boolean adding = "SET_KEYTAB".equalsIgnoreCase(customCommand);
-        if (adding || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
+        boolean adding = SET_KEYTAB.equalsIgnoreCase(customCommand);
+        if (adding || REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
           WriteKeytabsStructuredOut writeKeytabsStructuredOut;
           try {
             writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
@@ -444,6 +447,12 @@ public class HeartbeatProcessor extends AbstractService{
               }
             }
           }
+        } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
+          ListKeytabsStructuredOut structuredOut = gson.fromJson(report.getStructuredOut(), ListKeytabsStructuredOut.class);
+          for (MissingKeytab each : structuredOut.missingKeytabs){
+            LOG.info("Missing keytab: {} on host: {} principal: {}", each.keytabFilePath, hostName, each.principal);
+            kerberosPrincipalHostDAO.remove(each.principal, host.getHostId());
+          }
         }
       }
 
@@ -462,7 +471,7 @@ public class HeartbeatProcessor extends AbstractService{
         throw new AmbariException("Invalid command report, service: " + service);
       }
       if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
-        LOG.debug(report.getRole() + " is an action - skip component lookup");
+        LOG.debug("{} is an action - skip component lookup", report.getRole());
       } else {
         try {
           Service svc = cl.getService(service);
@@ -473,7 +482,8 @@ public class HeartbeatProcessor extends AbstractService{
           if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
 
             // Reading component version if it is present
-            if (StringUtils.isNotBlank(report.getStructuredOut())) {
+            if (StringUtils.isNotBlank(report.getStructuredOut())
+                && !StringUtils.equals("{}", report.getStructuredOut())) {
               ComponentVersionStructuredOut structuredOutput = null;
               try {
                 structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
@@ -604,30 +614,6 @@ public class HeartbeatProcessor extends AbstractService{
                 }
               }
 
-              if (status.getSecurityState() != null) {
-                SecurityState prevSecurityState = scHost.getSecurityState();
-                SecurityState currentSecurityState = SecurityState.valueOf(status.getSecurityState());
-                if ((prevSecurityState != currentSecurityState)) {
-                  if (prevSecurityState.isEndpoint()) {
-                    scHost.setSecurityState(currentSecurityState);
-                    LOG.info(String.format("Security of service component %s of service %s of cluster %s " +
-                            "has changed from %s to %s on host %s",
-                        componentName, status.getServiceName(), status.getClusterId(), prevSecurityState,
-                        currentSecurityState, hostname));
-                  } else {
-                    LOG.debug(String.format("Security of service component %s of service %s of cluster %s " +
-                            "has changed from %s to %s on host %s but will be ignored since %s is a " +
-                            "transitional state",
-                        componentName, status.getServiceName(), status.getClusterId(),
-                        prevSecurityState, currentSecurityState, hostname, prevSecurityState));
-                  }
-                }
-              }
-
-              if (null != status.getStackVersion() && !status.getStackVersion().isEmpty()) {
-                scHost.setStackVersion(gson.fromJson(status.getStackVersion(), StackId.class));
-              }
-
               if (null != status.getConfigTags()) {
                 scHost.updateActualConfigs(status.getConfigTags());
               }
@@ -728,6 +714,26 @@ public class HeartbeatProcessor extends AbstractService{
     }
   }
 
+  private static class ListKeytabsStructuredOut {
+    @SerializedName("missing_keytabs")
+    private final List<MissingKeytab> missingKeytabs;
+
+    public ListKeytabsStructuredOut(List<MissingKeytab> missingKeytabs) {
+      this.missingKeytabs = missingKeytabs;
+    }
+  }
+
+  private static class MissingKeytab {
+    @SerializedName("principal")
+    private final String principal;
+    @SerializedName("keytab_file_path")
+    private final String keytabFilePath;
+
+    public MissingKeytab(String principal, String keytabFilePath) {
+      this.principal = principal;
+      this.keytabFilePath = keytabFilePath;
+    }
+  }
 
   /**
    * This class is used for mapping json of structured output for component START action.

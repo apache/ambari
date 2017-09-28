@@ -255,22 +255,24 @@ class TestHiveServer(RMFTestCase):
   @patch("hive_service.check_fs_root")
   @patch("socket.socket")
   def test_start_secured(self, socket_mock, check_fs_root_mock, copy_to_hfds_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    json_content['commandParams']['version'] = '2.3.0.0-1234'
+
     s = socket_mock.return_value
     copy_to_hfds_mock.return_value = None
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
-                       config_file="secured.json",
+                       config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
-                              user = 'hive',
-                              )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
@@ -299,10 +301,6 @@ class TestHiveServer(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
-                              user = 'hive',
-                              )
 
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
         not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
@@ -318,7 +316,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/hive/hive-server.pid',
       action = ['delete'],
     )
-    
+
     self.assertNoMoreResources()
 
   def assert_configure_default(self, no_tmp = False, default_fs_default='hdfs://c6401.ambari.apache.org:8020'):
@@ -326,7 +324,7 @@ class TestHiveServer(RMFTestCase):
     if self._testMethodName == "test_socket_timeout":
       # This test will not call any more resources.
       return
-    
+
     self.assertResourceCalled('Directory', '/etc/hive',
                               mode=0755,
     )
@@ -491,6 +489,7 @@ class TestHiveServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
+        group = 'hadoop',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/hive',
@@ -703,6 +702,7 @@ class TestHiveServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        group = 'hadoop',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/hive',
@@ -750,11 +750,11 @@ class TestHiveServer(RMFTestCase):
   @patch("socket.socket")
   def test_socket_timeout(self, socket_mock, time_mock):
     s = socket_mock.return_value
-    s.connect = MagicMock()    
+    s.connect = MagicMock()
     s.connect.side_effect = socket.error("")
-    
+
     time_mock.return_value = 1000
-    
+
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                            classname = "HiveServer",
@@ -763,7 +763,7 @@ class TestHiveServer(RMFTestCase):
                            stack_version = self.STACK_VERSION,
                            target = RMFTestCase.TARGET_COMMON_SERVICES
       )
-      
+
       self.fail("Script failure due to socket error was expected")
     except:
       self.assert_configure_default()
@@ -851,7 +851,6 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
       ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'),
       sudo=True)
 
-    self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart(self, copy_to_hdfs_mock):
@@ -908,10 +907,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
     self.assertResourceCalled('Execute',
 
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', version), sudo=True,)
@@ -930,12 +927,3 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hive', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hive', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])

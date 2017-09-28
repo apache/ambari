@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.AbstractMiniHBaseClusterTest;
@@ -124,14 +125,14 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(20, currentHostAggregate.getNumberOfSamples());
         assertEquals(15.0, currentHostAggregate.getSum());
-        assertEquals(15.0 / 20, currentHostAggregate.getAvg());
+        assertEquals(15.0 / 20, currentHostAggregate.calculateAverage());
         count++;
       } else if ("mem_free".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(20, currentHostAggregate.getNumberOfSamples());
         assertEquals(15.0, currentHostAggregate.getSum());
-        assertEquals(15.0 / 20, currentHostAggregate.getAvg());
+        assertEquals(15.0 / 20, currentHostAggregate.calculateAverage());
         count++;
       } else {
         fail("Unexpected entry");
@@ -198,7 +199,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(12 * 20, currentHostAggregate.getNumberOfSamples());
         assertEquals(12 * 15.0, currentHostAggregate.getSum());
-        assertEquals(15.0 / 20, currentHostAggregate.getAvg());
+        assertEquals(15.0 / 20, currentHostAggregate.calculateAverage());
       }
     }
   }
@@ -260,7 +261,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(12 * 20, currentHostAggregate.getNumberOfSamples());
         assertEquals(12 * 15.0, currentHostAggregate.getSum());
-        assertEquals(15.0 / 20, currentHostAggregate.getAvg());
+        assertEquals(15.0 / 20, currentHostAggregate.calculateAverage());
       }
     }
   }
@@ -309,14 +310,14 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(20, currentHostAggregate.getNumberOfSamples());
         assertEquals(15.0, currentHostAggregate.getSum());
-        assertEquals(15.0 / 20, currentHostAggregate.getAvg());
+        assertEquals(15.0 / 20, currentHostAggregate.calculateAverage());
         count++;
       } else if ("mem_free".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
         assertEquals(0.0, currentHostAggregate.getMin());
         assertEquals(20, currentHostAggregate.getNumberOfSamples());
         assertEquals(15.0, currentHostAggregate.getSum());
-        assertEquals(15.0 / 20, currentHostAggregate.getAvg());
+        assertEquals(15.0 / 20, currentHostAggregate.calculateAverage());
         count++;
       } else {
         fail("Unexpected entry");

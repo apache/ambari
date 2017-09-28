@@ -545,6 +545,9 @@ App.config = Em.Object.create({
    */
   getViewClass: function (displayType, dependentConfigPattern, unit) {
     switch (displayType) {
+      case 'user':
+      case 'group':
+        return App.ServiceConfigTextFieldUserGroupWithID;
       case 'checkbox':
       case 'boolean':
         return dependentConfigPattern ? App.ServiceConfigCheckboxWithDependencies : App.ServiceConfigCheckbox;
@@ -1251,7 +1254,7 @@ App.config = Em.Object.create({
   getTempletonHiveHosts: function (value) {
     var pattern = /thrift:\/\/.+:\d+/,
       patternMatch = value.match(pattern);
-    return patternMatch ? patternMatch[0].split('\\,') : value;
+    return patternMatch ? patternMatch[0].split('\\,') : [];
   },
 
   /**

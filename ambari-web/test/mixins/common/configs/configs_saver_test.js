@@ -259,6 +259,19 @@ describe('App.ConfigsSaverMixin', function() {
     })
   });
 
+  describe('#getUniqueTag', function() {
+
+    it('should generate unique tags', function() {
+      var tags = [];
+      for (var i = 0; i < 3; i++) {
+        tags.push(mixin.getUniqueTag());
+      }
+      expect(tags[1]).to.not.be.equal(tags[0]);
+      expect(tags[2]).to.not.be.equal(tags[1]);
+      expect(tags[0]).to.not.be.equal(tags[2]);
+    });
+  });
+
   describe('#getModifiedConfigs', function () {
     var configs = [
       Em.Object.create({
@@ -395,12 +408,14 @@ describe('App.ConfigsSaverMixin', function() {
       this.mockGroup = sinon.stub(mixin, 'getGroupFromModel');
       this.mockConfigs = sinon.stub(mixin, 'getConfigsForGroup');
       sinon.stub(mixin, 'saveGroup');
+      sinon.stub(mixin, 'isOverriddenConfigsModified').returns(true);
     });
 
     afterEach(function() {
       this.mockGroup.restore();
       this.mockConfigs.restore();
       mixin.saveGroup.restore();
+      mixin.isOverriddenConfigsModified.restore();
     });
 
     it("configGroup is null", function() {
@@ -899,7 +914,8 @@ describe('App.ConfigsSaverMixin', function() {
             host_name: 'host1'
           }],
           "service_config_version_note": "note",
-          "desired_configs": "{}"
+          "desired_configs": "{}",
+          "service_name": "S1",
         }
       });
     });
@@ -924,6 +940,7 @@ describe('App.ConfigsSaverMixin', function() {
             host_name: 'host1'
           }],
           "service_config_version_note": "",
+          "service_name": "S1",
           "desired_configs": "{}",
           id: 'g1'
         }
@@ -1174,6 +1191,70 @@ describe('App.ConfigsSaverMixin', function() {
           desired_config: [{}]
         }
       }));
+    });
+  });
+
+  describe('#isOverriddenConfigsModified', function() {
+    it('no configs modified', function() {
+      expect(mixin.isOverriddenConfigsModified([
+        Em.Object.create({
+         name: '1',
+          savedValue: '1',
+          value: '1',
+          isFinal: false,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '1'}
+        ]
+      }))).to.be.false;
+    });
+    it('config value modified', function() {
+      expect(mixin.isOverriddenConfigsModified([
+        Em.Object.create({
+          name: '2',
+          savedValue: '1',
+          value: '2',
+          isFinal: false,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '2'}
+        ]
+      }))).to.be.true;
+    });
+    it('config isFinal modified', function() {
+      expect(mixin.isOverriddenConfigsModified([
+        Em.Object.create({
+          name: '2',
+          savedValue: '2',
+          value: '2',
+          isFinal: true,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '2'}
+        ]
+      }))).to.be.true;
+    });
+    it('one config removed', function() {
+      expect(mixin.isOverriddenConfigsModified([
+        Em.Object.create({
+          name: '3',
+          savedValue: '3',
+          value: '3',
+          isFinal: false,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '2'},
+          {name: '3'}
+        ]
+      }))).to.be.true;
     });
   });
 

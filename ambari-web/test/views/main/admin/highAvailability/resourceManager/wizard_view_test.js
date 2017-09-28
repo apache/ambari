@@ -28,7 +28,8 @@ describe('App.RMHighAvailabilityWizardView', function () {
     view = App.RMHighAvailabilityWizardView.create({
       controller: Em.Object.create({
         content: Em.Object.create(),
-        setLowerStepsDisable: Em.K
+        setLowerStepsDisable: Em.K,
+        setDBProperty: Em.K
       })
     });
   });
@@ -85,46 +86,34 @@ describe('App.RMHighAvailabilityWizardView', function () {
       items: [
         {
           Hosts: {
-            host_name: 'host1',
-            cpu_count: 1,
-            total_mem: 1,
-            disk_info: {},
-            maintenance_state: 'OFF'
+            host_name: 'host1'
           }
         }
       ]
     };
 
     beforeEach(function() {
-      sinon.stub(App.db, 'setHosts');
+      sinon.stub(view.get('controller'), 'setDBProperty');
     });
     afterEach(function() {
-      App.db.setHosts.restore();
+      view.get('controller').setDBProperty.restore();
     });
 
-    it("App.db.setHosts should be called", function () {
+    it("setDBProperty should be called", function () {
       view.loadHostsSuccessCallback(data);
       expect(view.get('isLoaded')).to.be.true;
       expect(view.get('controller.content.hosts')).to.be.eql({
         "host1": {
           "name": "host1",
-          "cpu": 1,
-          "memory": 1,
-          "disk_info": {},
           "bootStatus": "REGISTERED",
-          "isInstalled": true,
-          "maintenance_state": "OFF"
+          "isInstalled": true
         }
       });
-      expect(App.db.setHosts.calledWith({
+      expect(view.get('controller').setDBProperty.calledWith('hosts', {
         "host1": {
           "name": "host1",
-          "cpu": 1,
-          "memory": 1,
-          "disk_info": {},
           "bootStatus": "REGISTERED",
-          "isInstalled": true,
-          "maintenance_state": "OFF"
+          "isInstalled": true
         }
       })).to.be.true;
     });

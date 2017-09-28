@@ -17,18 +17,38 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
+import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +74,15 @@ public class ExecutionCommandWrapper {
 
   @Inject
   private Gson gson;
+
+  @Inject
+  private UpgradeContextFactory upgradeContextFactory;
+
+  /**
+   * Used for injecting hooks and common-services into the command.
+   */
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
 
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
@@ -93,7 +122,7 @@ public class ExecutionCommandWrapper {
 
       // sanity; if no configurations, just initialize to prevent NPEs
       if (null == executionCommand.getConfigurations()) {
-        executionCommand.setConfigurations(new TreeMap<String, Map<String, String>>());
+        executionCommand.setConfigurations(new TreeMap<>());
       }
 
       Map<String, Map<String, String>> configurations = executionCommand.getConfigurations();
@@ -139,6 +168,76 @@ public class ExecutionCommandWrapper {
       configHelper.getAndMergeHostConfigs(configurations, configurationTags, cluster);
       configHelper.getAndMergeHostConfigAttributes(executionCommand.getConfigurationAttributes(),
           configurationTags, cluster);
+
+      // set the repository version for the component this command is for -
+      // always use the current desired version
+      try {
+        RepositoryVersionEntity repositoryVersion = null;
+        String serviceName = executionCommand.getServiceName();
+        if (!StringUtils.isEmpty(serviceName)) {
+          Service service = cluster.getService(serviceName);
+          if (null != service) {
+            repositoryVersion = service.getDesiredRepositoryVersion();
+          }
+
+          String componentName = executionCommand.getComponentName();
+          if (!StringUtils.isEmpty(componentName)) {
+            ServiceComponent serviceComponent = service.getServiceComponent(
+                executionCommand.getComponentName());
+
+            if (null != serviceComponent) {
+              repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+            }
+          }
+        }
+
+        Map<String, String> commandParams = executionCommand.getCommandParams();
+
+        if (null != repositoryVersion) {
+          // only set the version if it's not set and this is NOT an install
+          // command
+          if (!commandParams.containsKey(KeyNames.VERSION)
+              && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
+            commandParams.put(KeyNames.VERSION, repositoryVersion.getVersion());
+          }
+
+          StackId stackId = repositoryVersion.getStackId();
+          StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+              stackId.getStackVersion());
+
+          if (!commandParams.containsKey(HOOKS_FOLDER)) {
+            commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+          }
+
+          if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
+            if (!StringUtils.isEmpty(serviceName)) {
+              ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+                  stackId.getStackVersion(), serviceName);
+
+              commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+            }
+          }
+        }
+      } catch (ServiceNotFoundException serviceNotFoundException) {
+        // it's possible that there are commands specified for a service where
+        // the service doesn't exist yet
+        LOG.warn(
+            "The service {} is not installed in the cluster. No repository version will be sent for this command.",
+            executionCommand.getServiceName());
+      }
+
+      // set the desired versions of versionable components.  This is safe even during an upgrade because
+      // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.
+      executionCommand.setComponentVersions(cluster);
+
+      // provide some basic information about a cluster upgrade if there is one
+      // in progress
+      UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+      if (null != upgrade) {
+        UpgradeContext upgradeContext = upgradeContextFactory.create(cluster, upgrade);
+        UpgradeSummary upgradeSummary = upgradeContext.getUpgradeSummary();
+        executionCommand.setUpgradeSummary(upgradeSummary);
+      }
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs

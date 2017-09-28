@@ -30,23 +30,26 @@ SECURE_DIRECTORY_PERMISSIONS = 700
 SECURE_FILE_PERMISSIONS = 700
 
 # List of directories with jar files or path to jar file. If "directory", then we will check all jar files in it and in all subdirectories. If jar "file" then we will check only this file.
-jar_files_to_check = ["/var/lib/ambari-server/", "/usr/lib/ambari-server/"]
+jar_files_to_check = ["/var/lib/ambari-server/", "/usr/lib/ambari-server/", "/var/lib/ambari-agent/"]
 
 # List of directories. For this list we are only checking permissions for directory.
 directories_to_check = ["/etc/ambari-server/conf", "/usr/lib/ambari-server", "/usr/lib/python2.6/site-packages/ambari_server",
-                        "/var/lib/ambari-server"]
+                        "/var/lib/ambari-server", "/usr/lib/ambari-agent", "/usr/lib/python2.6/site-packages/ambari_agent",
+                        "/var/lib/ambari-agent/cache", "/var/lib/ambari-agent/cred", "/var/lib/ambari-agent/data",
+                        "/var/lib/ambari-agent/tools", "/var/lib/ambari-agent/lib", "/etc/ambari-agent/conf"]
 
 # List of directories/files. If "directory", then we will check all files in it and in all subdirectories. If "file" then we will check only this file.
 files_to_check = ["/etc/ambari-server/conf/", "/etc/init/ambari-server.conf", "/etc/init.d/ambari-server",
                   "/usr/lib/ambari-server", "/usr/lib/python2.6/site-packages/ambari_server", "/usr/sbin/ambari_server_main.py",
-                  "/usr/sbin/ambari-server.py", "/var/lib/ambari-server"]
+                  "/usr/sbin/ambari-server.py", "/var/lib/ambari-server", "/usr/lib/ambari-agent",
+                  "/usr/lib/python2.6/site-packages/ambari_agent", "/var/lib/ambari-agent"]
 
 
 # List of secure directories. For this list we are only checking permissions for directory.
-secure_directories_to_check = ["/var/lib/ambari-server/keys"]
+secure_directories_to_check = ["/var/lib/ambari-server/keys","/var/lib/ambari-agent/keys"]
 
 # List of secure directories/files. If "directory", then we will check all files in it and in all subdirectories. If "file" then we will check only this file.
-secure_files_to_check = ["/var/lib/ambari-server/keys"]
+secure_files_to_check = ["/var/lib/ambari-server/keys", "/var/lib/ambari-agent/keys"]
 
 
 
@@ -146,9 +149,10 @@ def print_paths_with_wrong_permissions(list_of_paths):
 
 def do_work(args):
   print "\n*****Check file, or files in directory for valid permissions (without w for group and other)*****"
+  files_with_wrong_permissions = []
   for path in files_to_check:
     path = os.path.join(args.ambari_root_dir, path.lstrip('/'))
-    files_with_wrong_permissions = check_files_in_directory_or_file_for_permissions(path, "/g=w,o=w")
+    files_with_wrong_permissions = files_with_wrong_permissions + check_files_in_directory_or_file_for_permissions(path, "/g=w,o=w")
 
   if files_with_wrong_permissions:
     print "\nFiles with wrong permissions:"
@@ -186,9 +190,10 @@ def do_work(args):
 
 
   print "\n*****Check directories for valid permissions (without w for group and other)*****"
+  directories_with_wrong_permissions = []
   for dir_path in directories_to_check:
     dir_path = os.path.join(args.ambari_root_dir, dir_path.lstrip('/'))
-    directories_with_wrong_permissions = check_directory_permissions(dir_path, "/g=w,o=w")
+    directories_with_wrong_permissions = directories_with_wrong_permissions + check_directory_permissions(dir_path, "/g=w,o=w")
 
   if directories_with_wrong_permissions:
     print "\nDirectories with wrong permissions:"
@@ -196,9 +201,10 @@ def do_work(args):
     update_permissions(directories_with_wrong_permissions, DIRECTORY_PERMISSIONS, "Fix permissions for directories to " + str(DIRECTORY_PERMISSIONS) + " (recommended) ")
 
   print "\n*****Check secure directories for valid permissions (without r+w+x for group and other)*****"
+  secure_directories_with_wrong_permissions = []
   for dir_path in secure_directories_to_check:
     dir_path = os.path.join(args.ambari_root_dir, dir_path.lstrip('/'))
-    secure_directories_with_wrong_permissions = check_directory_permissions(dir_path, "/g=r+w+x,o=r+w+x")
+    secure_directories_with_wrong_permissions = secure_directories_with_wrong_permissions + check_directory_permissions(dir_path, "/g=r+w+x,o=r+w+x")
 
   if secure_directories_with_wrong_permissions:
     print "\nSecure directories with wrong permissions:"
@@ -206,9 +212,10 @@ def do_work(args):
     update_permissions(secure_directories_with_wrong_permissions, SECURE_DIRECTORY_PERMISSIONS, "Fix permissions for secure directories to " + str(SECURE_DIRECTORY_PERMISSIONS) + " (recommended) ")
 
   print "\n*****Check secure file, or files in directory for valid permissions (without r+w+x for group and other)*****"
+  secure_files_with_wrong_permissions = []
   for path in secure_files_to_check:
     path = os.path.join(args.ambari_root_dir, path.lstrip('/'))
-    secure_files_with_wrong_permissions = check_files_in_directory_or_file_for_permissions(path, "/g=r+w+x,o=r+w+x")
+    secure_files_with_wrong_permissions = secure_files_with_wrong_permissions + check_files_in_directory_or_file_for_permissions(path, "/g=r+w+x,o=r+w+x")
 
   if secure_files_with_wrong_permissions:
     print "\nSecure files with wrong permissions:"

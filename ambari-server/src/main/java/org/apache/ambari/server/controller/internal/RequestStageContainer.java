@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -65,6 +65,8 @@ public class RequestStageContainer {
 
   private ExecuteActionRequest actionRequest = null;
 
+  private String clusterHostInfo = null;
+
   /**
    * Logger
    */
@@ -95,10 +97,11 @@ public class RequestStageContainer {
   public RequestStageContainer(Long id, List<Stage> stages, RequestFactory factory, ActionManager manager,
                                ExecuteActionRequest actionRequest) {
     this.id = id;
-    this.stages = stages == null ? new ArrayList<Stage>() : stages;
+    this.stages = stages == null ? new ArrayList<>() : stages;
     this.requestFactory = factory;
     this.actionManager = manager;
     this.actionRequest = actionRequest;
+    this.clusterHostInfo = "{}";
   }
 
   /**
@@ -108,6 +111,10 @@ public class RequestStageContainer {
    */
   public Long getId()  {
     return id;
+  }
+
+  public void setClusterHostInfo(String clusterHostInfo){
+    this.clusterHostInfo = clusterHostInfo;
   }
 
   /**
@@ -202,8 +209,8 @@ public class RequestStageContainer {
   public void persist() throws AmbariException {
     if (!stages.isEmpty()) {
       Request request = (null == actionRequest)
-          ? requestFactory.createNewFromStages(stages)
-          : requestFactory.createNewFromStages(stages, actionRequest);
+          ? requestFactory.createNewFromStages(stages, clusterHostInfo)
+          : requestFactory.createNewFromStages(stages, clusterHostInfo, actionRequest);
 
       if (null != requestContext) {
         request.setRequestContext(requestContext);
@@ -211,7 +218,7 @@ public class RequestStageContainer {
 
       if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("Triggering Action Manager, request=%s", request));
+          LOG.debug("Triggering Action Manager, request={}", request);
         }
         actionManager.sendActions(request, actionRequest);
       }

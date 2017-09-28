@@ -115,8 +115,8 @@ App.CheckHostMixin = Em.Mixin.create({
    * disables host check on Add host wizard as per the experimental flag
    */
   disableHostCheck: function () {
-    return App.get('supports.disableHostCheckOnAddHostWizard') && this.get('isAddHostWizard');
-  }.property('App.supports.disableHostCheckOnAddHostWizard', 'isAddHostWizard'),
+    return this.get('content.installOptions.skipHostChecks') && this.get('isAddHostWizard');
+  }.property('content.installOptions.skipHostChecks', 'isAddHostWizard'),
 
   /**
    * send request to create tasks for performing hosts checks

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
@@ -205,6 +204,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getDisplayName() == null) {
       serviceInfo.setDisplayName(parent.getDisplayName());
     }
+    if (serviceInfo.getServiceAdvisorType() == null) {
+      ServiceInfo.ServiceAdvisorType serviceAdvisorType = parent.getServiceAdvisorType();
+      serviceInfo.setServiceAdvisorType(serviceAdvisorType == null ? ServiceInfo.ServiceAdvisorType.PYTHON : serviceAdvisorType);
+    }
     if (serviceInfo.getVersion() == null) {
       serviceInfo.setVersion(parent.getVersion());
     }
@@ -213,7 +216,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
         || serviceInfo.getRequiredServices().size() == 0) {
       serviceInfo.setRequiredServices(parent.getRequiredServices() != null ?
           parent.getRequiredServices() :
-          Collections.<String>emptyList());
+          Collections.emptyList());
     }
 
     if (serviceInfo.isRestartRequiredAfterChange() == null) {
@@ -266,7 +269,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setChecksFolder(parent.getChecksFolder());
     }
 
-    /**
+    /*
      * If current stack version does not specify the credential store information
      * for the service, then use parent definition.
      */
@@ -402,7 +405,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    */
   private void populateConfigurationModules() {
     ConfigurationDirectory configDirectory = serviceDirectory.getConfigurationDirectory(
-        serviceInfo.getConfigDir(), AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME);
+        serviceInfo.getConfigDir(), StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME);
 
     if (configDirectory != null) {
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {
@@ -422,7 +425,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       for (String excludedType : serviceInfo.getExcludedConfigTypes()) {
         if (! configurationModules.containsKey(excludedType)) {
           ConfigurationInfo configInfo = new ConfigurationInfo(
-              Collections.<PropertyInfo>emptyList(), Collections.<String, String>emptyMap());
+              Collections.emptyList(), Collections.emptyMap());
           ConfigurationModule config = new ConfigurationModule(excludedType, configInfo);
 
           config.setDeleted(true);
@@ -435,7 +438,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   private void populateThemeModules() {
 
     if (serviceInfo.getThemesDir() == null) {
-      serviceInfo.setThemesDir(AmbariMetaInfo.SERVICE_THEMES_FOLDER_NAME);
+      serviceInfo.setThemesDir(StackDirectory.SERVICE_THEMES_FOLDER_NAME);
     }
 
     String themesDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getThemesDir();
@@ -479,7 +482,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
   private void populateQuickLinksConfigurationModules(){
     if (serviceInfo.getQuickLinksConfigurationsDir() == null) {
-      serviceInfo.setQuickLinksConfigurationsDir(AmbariMetaInfo.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME);
+      serviceInfo.setQuickLinksConfigurationsDir(StackDirectory.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME);
     }
 
     String quickLinksConfigurationsDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getQuickLinksConfigurationsDir();
@@ -541,7 +544,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     //currently there is no way to remove an inherited config dependency
     List<String> configDependencies = serviceInfo.getConfigDependencies();
     List<String> parentConfigDependencies = parent.getConfigDependencies() != null ?
-        parent.getConfigDependencies() : Collections.<String>emptyList();
+        parent.getConfigDependencies() : Collections.emptyList();
 
     if (configDependencies == null) {
       serviceInfo.setConfigDependencies(parentConfigDependencies);
@@ -566,7 +569,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       ServiceModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     serviceInfo.getProperties().clear();
-    serviceInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
+    serviceInfo.setAllConfigAttributes(new HashMap<>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
@@ -629,9 +632,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Ensure that all default type attributes are set.
    */
   private void finalizeConfiguration() {
-    LOG.debug(String.format("Finalize config, number of configuration modules %s", configurationModules.size()));
+    LOG.debug("Finalize config, number of configuration modules {}", configurationModules.size());
     hasConfigs = !(configurationModules.isEmpty());
-    LOG.debug(String.format("Finalize config, hasConfigs %s", hasConfigs));
+    LOG.debug("Finalize config, hasConfigs {}", hasConfigs);
 
     for (ConfigurationModule config : configurationModules.values()) {
       ConfigurationInfo configInfo = config.getModuleInfo();

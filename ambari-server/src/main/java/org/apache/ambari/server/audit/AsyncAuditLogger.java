@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -63,7 +63,7 @@ class AsyncAuditLogger implements AuditLogger {
     isEnabled = configuration.isAuditLogEnabled();
     if(isEnabled) {
       eventBus = new AsyncEventBus("AuditLoggerEventBus", new ThreadPoolExecutor(0, 1, 5L, TimeUnit.MINUTES,
-        new LinkedBlockingQueue<Runnable>(configuration.getAuditLoggerCapacity()), new AuditLogThreadFactory(),
+        new LinkedBlockingQueue<>(configuration.getAuditLoggerCapacity()), new AuditLogThreadFactory(),
         new ThreadPoolExecutor.CallerRunsPolicy()));
       eventBus.register(auditLogger);
     }

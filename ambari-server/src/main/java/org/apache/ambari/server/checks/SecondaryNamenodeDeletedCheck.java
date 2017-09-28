@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -53,18 +54,21 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     super(CheckDescription.SECONDARY_NAMENODE_MUST_BE_DELETED);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request, Arrays.asList(HDFS_SERVICE_NAME), true)) {
-      return false;
-    }
+  public Set<String> getApplicableServices() {
+    return Sets.newHashSet(HDFS_SERVICE_NAME);
+  }
 
-    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
-    if (null != ha && ha == PrereqCheckStatus.FAIL) {
-      return false;
-    }
-
-    return true;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<CheckQualification> getQualifications() {
+    return Arrays.asList(
+        new PriorCheckQualification(CheckDescription.SERVICES_NAMENODE_HA));
   }
 
   // TODO AMBARI-12698, there are 2 ways to filter the prechecks.

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,13 +20,19 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.junit.Before;
 import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import junit.framework.Assert;
 
@@ -42,6 +48,23 @@ public class RequestImplTest {
     propertyIds.add(PropertyHelper.getPropertyId("c1", "p2"));
     propertyIds.add(PropertyHelper.getPropertyId("c2", "p3"));
     propertyIds.add(PropertyHelper.getPropertyId("c3", "p4"));
+  }
+
+  @Before
+  public void setup() throws Exception {
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    ResourceProviderFactory resourceProviderFactory = injector.getInstance(ResourceProviderFactory.class);
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    DefaultProviderModule defaultProviderModule = injector.getInstance(DefaultProviderModule.class);
+    for( Resource.Type type : Resource.Type.values() ){
+      try {
+        defaultProviderModule.getResourceProvider(type);
+      } catch (Exception exception) {
+        // ignore
+      }
+    }
   }
 
   @Test
@@ -61,7 +84,8 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/actual_configs"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_stack_id"));
-    Assert.assertTrue(validPropertyIds.contains("HostRoles/stack_id"));
+    Assert.assertTrue(validPropertyIds.contains("HostRoles/version"));
+    Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_repository_version"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_state"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/state"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/component_name"));
@@ -88,9 +112,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("ServiceInfo/service_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceInfo/cluster_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceInfo/state"));
-    Assert.assertTrue(validPropertyIds.contains("Services/description"));
-    Assert.assertTrue(validPropertyIds.contains("Services/display_name"));
-    Assert.assertTrue(validPropertyIds.contains("Services/attributes"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
     Assert.assertTrue(validPropertyIds.contains("params/reconfigure_client"));
 
@@ -128,8 +149,7 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/component_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/cluster_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/state"));
-    Assert.assertTrue(validPropertyIds.contains("ServiceComponents/display_name"));
-    Assert.assertTrue(validPropertyIds.contains("ServiceComponents/description"));
+    Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/display_name"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Action));
@@ -263,9 +283,9 @@ public class RequestImplTest {
 
   @Test
   public void testDryRunRequest() {
-    Request dryRunRequest = PropertyHelper.getCreateRequest(Collections.<Map<String,Object>>emptySet(), Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true"));
-    Request nonDryRunReqest1 = PropertyHelper.getCreateRequest(Collections.<Map<String,Object>>emptySet(), Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "false"));
-    Request nonDryRunReqest2 = PropertyHelper.getCreateRequest(Collections.<Map<String,Object>>emptySet(), Collections.<String, String>emptyMap());
+    Request dryRunRequest = PropertyHelper.getCreateRequest(Collections.emptySet(), Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true"));
+    Request nonDryRunReqest1 = PropertyHelper.getCreateRequest(Collections.emptySet(), Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "false"));
+    Request nonDryRunReqest2 = PropertyHelper.getCreateRequest(Collections.emptySet(), Collections.emptyMap());
 
     Assert.assertTrue(dryRunRequest.isDryRunRequest());
     Assert.assertFalse(nonDryRunReqest1.isDryRunRequest());

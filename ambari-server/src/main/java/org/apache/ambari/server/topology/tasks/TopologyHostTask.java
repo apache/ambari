@@ -28,7 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class TopologyHostTask implements TopologyTask {
 
-  private static Logger LOG = LoggerFactory.getLogger(TopologyHostTask.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TopologyHostTask.class);
 
   ClusterTopology clusterTopology;
   HostRequest hostRequest;

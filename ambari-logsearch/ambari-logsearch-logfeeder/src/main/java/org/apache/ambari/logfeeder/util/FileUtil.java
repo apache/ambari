@@ -21,16 +21,14 @@ package org.apache.ambari.logfeeder.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -41,18 +39,6 @@ public class FileUtil {
   private FileUtil() {
     throw new UnsupportedOperationException();
   }
-  
-  public static List<File> getAllFileFromDir(File directory, String extension, boolean checkInSubDir) {
-    if (!directory.exists()) {
-      LOG.error(directory.getAbsolutePath() + " is not exists ");
-    } else if (!directory.isDirectory()) {
-      LOG.error(directory.getAbsolutePath() + " is not Directory ");
-    } else {
-      return (List<File>) FileUtils.listFiles(directory, new String[]{extension}, checkInSubDir);
-    }
-    return new ArrayList<File>();
-  }
-
 
   public static Object getFileKey(File file) {
     try {
@@ -66,27 +52,20 @@ public class FileUtil {
     }
     return file.toString();
   }
-
-  public static File getFileFromClasspath(String filename) {
-    URL fileCompleteUrl = Thread.currentThread().getContextClassLoader().getResource(filename);
-    LOG.debug("File Complete URI :" + fileCompleteUrl);
-    File file = null;
-    try {
-      file = new File(fileCompleteUrl.toURI());
-    } catch (Exception exception) {
-      LOG.debug(exception.getMessage(), exception.getCause());
-    }
-    return file;
-  }
-
-  public static HashMap<String, Object> readJsonFromFile(File jsonFile) {
+  
+  public static HashMap<String, Object> getJsonFileContentFromClassPath(String fileName) {
     ObjectMapper mapper = new ObjectMapper();
-    try {
-      HashMap<String, Object> jsonmap = mapper.readValue(jsonFile, new TypeReference<HashMap<String, Object>>() {});
-      return jsonmap;
+    try (InputStream inputStream = FileUtil.class.getClassLoader().getResourceAsStream(fileName)) {
+      return mapper.readValue(inputStream, new TypeReference<HashMap<String, Object>>() {});
     } catch (IOException e) {
       LOG.error(e, e.getCause());
     }
     return new HashMap<String, Object>();
+  }
+  
+  public static void move(File source, File target) throws IOException {
+    Path sourcePath = Paths.get(source.getAbsolutePath());
+    Path targetPath = Paths.get(target.getAbsolutePath());
+    Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
   }
 }

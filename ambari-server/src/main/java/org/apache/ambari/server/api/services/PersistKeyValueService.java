@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,17 +33,18 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 @Path("/persist/")
 public class PersistKeyValueService {
   private static PersistKeyValueImpl persistKeyVal;
-  private static Log LOG = LogFactory.getLog(PersistKeyValueService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PersistKeyValueService.class);
 
   @Inject
   public static void init(PersistKeyValueImpl instance) {
@@ -51,12 +52,12 @@ public class PersistKeyValueService {
   }
 
   @SuppressWarnings("unchecked")
-  @POST
+  @POST @ApiIgnore // until documented
   @Produces("text/plain")
   public Response update(String keyValues)
       throws WebApplicationException, InvalidStateTransitionException,
       JAXBException, IOException {
-    LOG.debug("Received message from UI " + keyValues);
+    LOG.debug("Received message from UI {}", keyValues);
     Map<String, String> keyValuesMap = StageUtils.fromJson(keyValues, Map.class);
     /* Call into the heartbeat handler */
 
@@ -67,34 +68,34 @@ public class PersistKeyValueService {
   }
 
   @SuppressWarnings("unchecked")
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Produces("text/plain")
   public String store(String values) throws IOException, JAXBException {
-    LOG.debug("Received message from UI " + values);
+    LOG.debug("Received message from UI {}", values);
     Collection<String> valueCollection = StageUtils.fromJson(values, Collection.class);
     Collection<String> keys = new ArrayList<>(valueCollection.size());
     for (String s : valueCollection) {
       keys.add(persistKeyVal.put(s));
     }
     String stringRet = StageUtils.jaxbToString(keys);
-    LOG.debug("Returning " + stringRet);
+    LOG.debug("Returning {}", stringRet);
     return stringRet;
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   @Path("{keyName}")
   public String getKey( @PathParam("keyName") String keyName) {
-    LOG.debug("Looking for keyName " + keyName);
+    LOG.debug("Looking for keyName {}", keyName);
     return persistKeyVal.getValue(keyName);
   }
 
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public String getAllKeyValues() throws JAXBException, IOException {
     Map<String, String> ret = persistKeyVal.getAllKeyValues();
     String stringRet = StageUtils.jaxbToString(ret);
-    LOG.debug("Returning " + stringRet);
+    LOG.debug("Returning {}", stringRet);
     return stringRet;
   }
 }

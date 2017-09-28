@@ -21,7 +21,6 @@ Ambari Agent
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
 from mahout import mahout
 from resource_management.libraries.functions.default import default
@@ -29,18 +28,12 @@ from resource_management.libraries.functions.default import default
 
 class MahoutClient(Script):
 
-  def get_component_name(self):
-    return "mahout-client"
-
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
-    conf_select.select(params.stack_name, "mahout", params.version)
-    stack_select.select("mahout-client", params.version )
-
+    stack_select.select_packages(params.version)
 
   def install(self, env):
     self.install_packages(env)

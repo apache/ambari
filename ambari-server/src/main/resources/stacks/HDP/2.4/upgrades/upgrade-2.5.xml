@@ -480,6 +480,7 @@
     </group>
 
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
+      <scope>COMPLETE</scope>
       <execute-stage title="Update remaining HDP stack to {{version}}">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
@@ -1045,6 +1046,7 @@
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
           <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
           <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
+          <task xsi:type="configure" id="storm_worker_log4j_directory" />
         </pre-upgrade>
 
         <pre-downgrade>

@@ -17,27 +17,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import ConfigParser
-import os
-
-import pprint
-
-from unittest import TestCase
-import threading
-import tempfile
-import time
-from threading import Thread
-
-
 import StringIO
-import sys, logging, pprint
-from ambari_agent import AgentException
+import sys, pprint
 from resource_management.libraries.script import Script
 from resource_management.core.environment import Environment
-from mock.mock import MagicMock, patch
+from mock.mock import patch, MagicMock
+from stacks.utils.RMFTestCase import *
+import logging
 
-
-class TestScript(TestCase):
+class TestScript(RMFTestCase):
 
   def setUp(self):
     # disable stdout
@@ -75,25 +63,28 @@ class TestScript(TestCase):
 
     # Testing config without any keys
     with Environment(".", test_mode=True) as env:
-      script = Script()
-      Script.config = no_packages_config
-      script.install_packages(env)
+      with patch("resource_management.libraries.script.get_provider", return_value=MagicMock()):
+        script = Script()
+        Script.config = no_packages_config
+        script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEquals(resource_dump, "[]")
 
     # Testing empty package list
     with Environment(".", test_mode=True) as env:
-      script = Script()
-      Script.config = empty_config
-      script.install_packages(env)
+      with patch("resource_management.libraries.script.get_provider", return_value=MagicMock()):
+        script = Script()
+        Script.config = empty_config
+        script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEquals(resource_dump, "[]")
 
     # Testing installing of a list of packages
     with Environment(".", test_mode=True) as env:
-      script = Script()
-      Script.config = dummy_config
-      script.install_packages("env")
+      with patch("resource_management.libraries.script.get_provider", return_value=MagicMock()):
+        script = Script()
+        Script.config = dummy_config
+        script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEqual(resource_dump, '[Package[\'hbase\'], Package[\'yet-another-package\']]')
 
@@ -115,6 +106,40 @@ class TestScript(TestCase):
     script.put_structured_out({"1": "3"})
     self.assertEqual(open_mock.call_count, 3)
     self.assertEqual(Script.structuredOut, {"1": "3", "2": "2"})
+
+  @patch("__builtin__.open")
+  def test_status_commands_clear_structured_out(self, open_mock):
+    """
+    Tests that status commands will clear and stored structured output from prior status commands.
+    :param open_mock: 
+    :return: 
+    """
+    class MagicFile(object):
+      def read(self):
+        return "{}"
+
+      def write(self, data):
+        pass
+
+      def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+      def __enter__(self):
+        return self
+
+    sys.argv = ["", "status", "foo.py", "", "", "INFO", ""]
+    open_mock.side_effect = [MagicFile()]
+
+    try:
+      with Environment(".", test_mode=True) as env:
+        script = Script()
+        Script.structuredOut = { "version" : "old_version" }
+        script.execute()
+    except:
+      pass
+
+    self.assertTrue(open_mock.called)
+    self.assertEquals({}, Script.structuredOut)
 
   def tearDown(self):
     # enable stdout

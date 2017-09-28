@@ -16,8 +16,6 @@
 * limitations under the License.
 }}
 
-{{outlet}}
-
 {{#unless hasJobAssociated}}
   <div class="explain--error">
     <div>No Results available.</div>
@@ -27,7 +25,9 @@
 {{#if hasJobAssociated}}
   {{query-result-table
   queryResult=queryResult
-  isQueryRunning=isQueryRunning
+  isQueryRunning=model.isQueryRunning
+  currentJobData=model.currentJobData
+  isJobCreated=model.isJobCreated
   jobId=jobId
   payloadTitle=payloadTitle
   previousPage=previousPage
@@ -45,6 +45,9 @@
   showDownloadCsvModal=showDownloadCsvModal
   }}
 {{/if}}
+{{outlet}}
+
+
 
 
 

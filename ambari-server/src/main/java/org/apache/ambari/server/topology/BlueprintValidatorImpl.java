@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +48,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     this.blueprint = blueprint;
     this.stack = blueprint.getStack();
   }
+
   @Override
   public void validateTopology() throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
@@ -57,7 +57,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
     for (HostGroup group : hostGroups) {
       Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
-      if (! missingGroupDependencies.isEmpty()) {
+      if (!missingGroupDependencies.isEmpty()) {
         missingDependencies.put(group.getName(), missingGroupDependencies);
       }
     }
@@ -73,27 +73,24 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           cardinalityFailures.addAll(verifyComponentInAllHostGroups(component, autoDeploy));
         } else {
           cardinalityFailures.addAll(verifyComponentCardinalityCount(
-              component, cardinality, autoDeploy));
+            component, cardinality, autoDeploy));
         }
       }
     }
 
-    if (! missingDependencies.isEmpty() || ! cardinalityFailures.isEmpty()) {
+    if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
       generateInvalidTopologyException(missingDependencies, cardinalityFailures);
     }
   }
 
   @Override
   public void validateRequiredProperties() throws InvalidTopologyException {
-    //todo: combine with RequiredPasswordValidator
-    Map<String, Map<String, Collection<String>>> missingProperties =
-      new HashMap<>();
 
     // we don't want to include default stack properties so we can't just use hostGroup full properties
     Map<String, Map<String, String>> clusterConfigurations = blueprint.getConfiguration().getProperties();
 
     // we need to have real passwords, not references
-    if(clusterConfigurations != null) {
+    if (clusterConfigurations != null) {
       StringBuilder errorMessage = new StringBuilder();
       boolean containsSecretReferences = false;
       for (Map.Entry<String, Map<String, String>> configEntry : clusterConfigurations.entrySet()) {
@@ -104,16 +101,16 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
             String propertyValue = propertyEntry.getValue();
             if (propertyValue != null) {
               if (SecretReference.isSecret(propertyValue)) {
-                errorMessage.append("  Config:").append(configType).append(" Property:").append(propertyName).append("\n");
+                errorMessage.append("  Config:" + configType + " Property:" + propertyName + "\n");
                 containsSecretReferences = true;
               }
             }
           }
         }
       }
-      if(containsSecretReferences) {
+      if (containsSecretReferences) {
         throw new InvalidTopologyException("Secret references are not allowed in blueprints, " +
-            "replace following properties with real passwords:\n"+errorMessage.toString());
+          "replace following properties with real passwords:\n" + errorMessage);
       }
     }
 
@@ -129,9 +126,9 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         if (component.equals("MYSQL_SERVER")) {
           Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
           if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
-              && hiveEnvConfig.get("hive_database").startsWith("Existing")) {
+            && hiveEnvConfig.get("hive_database").startsWith("Existing")) {
             throw new InvalidTopologyException("Incorrect configuration: MYSQL_SERVER component is available but hive" +
-                " using existing db!");
+              " using existing db!");
           }
         }
         if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
@@ -162,71 +159,26 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
         if (component.equals("HIVE_METASTORE")) {
           Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
-          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") !=null
-              && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
-              && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-              && stack.getName().equalsIgnoreCase("HDP")) {
+          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
+            && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
+            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+            && stack.getName().equalsIgnoreCase("HDP")) {
             throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-                "and repo version 2.3.2+!");
+              "and repo version 2.3.2+!");
           }
         }
 
         if (component.equals("OOZIE_SERVER")) {
           Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
-          if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") !=null
-              && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
-              && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-              && stack.getName().equalsIgnoreCase("HDP")) {
+          if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
+            && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
+            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+            && stack.getName().equalsIgnoreCase("HDP")) {
             throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-                "and repo version 2.3.2+!");
-          }
-        }
-
-        //for now, AMBARI is not recognized as a service in Stacks
-        if (! component.equals("AMBARI_SERVER")) {
-          String serviceName = stack.getServiceForComponent(component);
-          if (processedServices.add(serviceName)) {
-            Collection<Stack.ConfigProperty> requiredServiceConfigs =
-                stack.getRequiredConfigurationProperties(serviceName);
-
-            for (Stack.ConfigProperty requiredConfig : requiredServiceConfigs) {
-              String configCategory = requiredConfig.getType();
-              String propertyName = requiredConfig.getName();
-              if (! stack.isPasswordProperty(serviceName, configCategory, propertyName)) {
-                Collection<String> typeRequirements = allRequiredProperties.get(configCategory);
-                if (typeRequirements == null) {
-                  typeRequirements = new HashSet<>();
-                  allRequiredProperties.put(configCategory, typeRequirements);
-                }
-                typeRequirements.add(propertyName);
-              }
-            }
+              "and repo version 2.3.2+!");
           }
         }
       }
-      for (Map.Entry<String, Collection<String>> requiredTypeProperties : allRequiredProperties.entrySet()) {
-        String requiredCategory = requiredTypeProperties.getKey();
-        Collection<String> requiredProperties = requiredTypeProperties.getValue();
-        Collection<String> operationalTypeProps = operationalConfiguration.containsKey(requiredCategory) ?
-            operationalConfiguration.get(requiredCategory).keySet() :
-            Collections.<String>emptyList();
-
-        requiredProperties.removeAll(operationalTypeProps);
-        if (! requiredProperties.isEmpty()) {
-          String hostGroupName = hostGroup.getName();
-          Map<String, Collection<String>> hostGroupMissingProps = missingProperties.get(hostGroupName);
-          if (hostGroupMissingProps == null) {
-            hostGroupMissingProps = new HashMap<>();
-            missingProperties.put(hostGroupName, hostGroupMissingProps);
-          }
-          hostGroupMissingProps.put(requiredCategory, requiredProperties);
-        }
-      }
-    }
-
-    if (! missingProperties.isEmpty()) {
-      throw new InvalidTopologyException("Missing required properties.  Specify a value for these " +
-          "properties in the blueprint configuration. " + missingProperties);
     }
   }
 

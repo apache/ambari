@@ -49,6 +49,10 @@ App.AssignMasterComponentsView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+  },
+
+  willDestroyElement: function () {
+    this.get('controller').clearStepOnExit();
   }
 });
 

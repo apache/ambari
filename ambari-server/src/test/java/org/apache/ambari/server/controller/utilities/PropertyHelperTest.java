@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -127,7 +127,6 @@ public class PropertyHelperTest {
     Assert.assertFalse(PropertyHelper.containsArguments("$X/foo/bar/$Y/baz/$Z"));
   }
 
-  @Test
   /**
    * Test to make sure that point in time metrics are not in both JMX and Ganglia.
    * A metric marked as point in time should not be available from both JMX
@@ -138,6 +137,7 @@ public class PropertyHelperTest {
    * be available from both property providers then please add an exception to
    * this test.
    */
+  @Test
   public void testDuplicatePointInTimeMetrics() {
     TreeSet<String> set = new TreeSet<>();
 
@@ -191,7 +191,6 @@ public class PropertyHelperTest {
     }
   }
 
-  @Test
   /**
    * Test to make sure that any metrics that are marked as temporal only in Ganglia are available
    * as point in time from JMX.  If a metric can not be provided by JMX it may be marked
@@ -200,6 +199,7 @@ public class PropertyHelperTest {
    * If there is a legitimate exception and the metric should be temporal only then please add an
    * exception to this test.
    */
+  @Test
   public void testTemporalOnlyMetrics() {
     TreeSet<String> set = new TreeSet<>();
 
@@ -259,10 +259,10 @@ public class PropertyHelperTest {
     }
   }
 
-  @Test
   /**
    * Test to make sure that no JMX metrics are marked as point in time.
    */
+  @Test
   public void testJMXTemporal() {
     TreeSet<String> set = new TreeSet<>();
 

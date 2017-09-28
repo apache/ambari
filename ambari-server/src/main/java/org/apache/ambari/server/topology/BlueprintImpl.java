@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,6 +40,7 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
@@ -55,6 +57,7 @@ public class BlueprintImpl implements Blueprint {
   private BlueprintValidator validator;
   private SecurityConfiguration security;
   private Setting setting;
+  private List<RepositorySetting> repoSettings;
 
   public BlueprintImpl(BlueprintEntity entity) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
@@ -71,6 +74,7 @@ public class BlueprintImpl implements Blueprint {
     configuration.setParentConfiguration(stack.getConfiguration(getServices()));
     validator = new BlueprintValidatorImpl(this);
     processSetting(entity.getSettings());
+    processRepoSettings();
   }
 
   public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration,
@@ -241,9 +245,7 @@ public class BlueprintImpl implements Blueprint {
     if (setting == null)
       return null;
 
-    /**
-     * Look up the service and return the credential_store_enabled value.
-     */
+    // Look up the service and return the credential_store_enabled value.
     Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
     for (Map<String, String> setting : settingValue) {
       String name = setting.get(Setting.SETTING_NAME_NAME);
@@ -362,7 +364,7 @@ public class BlueprintImpl implements Blueprint {
     } catch (StackAccessException e) {
       throw new NoSuchStackException(stackEntity.getStackName(), stackEntity.getStackVersion());
     } catch (AmbariException e) {
-    //todo:
+      //todo:
       throw new RuntimeException("An error occurred parsing the stack information.", e);
     }
   }
@@ -599,5 +601,47 @@ public class BlueprintImpl implements Blueprint {
       }
       blueprintEntity.setSettings(settingEntityMap.values());
     }
+  }
+
+  /**
+   * A config type is valid if there are services related to except cluster-env and global.
+   */
+  public boolean isValidConfigType(String configType) {
+    if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
+      return true;
+    }
+    String service = getStack().getServiceForConfigType(configType);
+    if (getServices().contains(service)) {
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Parse stack repo info stored in the blueprint_settings table
+   * @return set of repositories
+   * */
+  private void processRepoSettings(){
+    repoSettings = new ArrayList<>();
+    if (setting != null){
+      Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_REPOSITORY_SETTINGS);
+      for (Map<String, String> setting : settingValue) {
+        RepositorySetting rs = parseRepositorySetting(setting);
+        repoSettings.add(rs);
+      }
+    }
+  }
+
+  private RepositorySetting parseRepositorySetting(Map<String, String> setting){
+    RepositorySetting result = new RepositorySetting();
+    result.setOperatingSystem(setting.get(RepositorySetting.OPERATING_SYSTEM));
+    result.setOverrideStrategy(setting.get(RepositorySetting.OVERRIDE_STRATEGY));
+    result.setRepoId(setting.get(RepositorySetting.REPO_ID));
+    result.setBaseUrl(setting.get(RepositorySetting.BASE_URL));
+    return result;
+  }
+
+  public List<RepositorySetting> getRepositorySettings(){
+    return repoSettings;
   }
 }

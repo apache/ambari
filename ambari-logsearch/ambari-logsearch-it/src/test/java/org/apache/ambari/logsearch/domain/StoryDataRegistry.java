@@ -18,24 +18,23 @@
  */
 package org.apache.ambari.logsearch.domain;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DockerClientConfig;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.SolrClient;
+import org.jbehave.web.selenium.WebDriverProvider;
 
 public class StoryDataRegistry {
   public static final StoryDataRegistry INSTANCE = new StoryDataRegistry();
 
-  private DockerClient dockerClient;
-  private DockerClientConfig dockerClientConfig;
-  private CloudSolrClient cloudSolrClient;
+  private SolrClient solrClient;
   private boolean logsearchContainerStarted = false;
   private String dockerHost;
   private String ambariFolder;
+  private String shellScriptLocation;
   private final int solrPort = 8886;
   private final int logsearchPort = 61888;
   private final int zookeeperPort = 9983;
   private final String serviceLogsCollection = "hadoop_logs";
   private final String auditLogsCollection = "audit_logs";
+  private WebDriverProvider webDriverProvider;
 
   private StoryDataRegistry() {
   }
@@ -60,14 +59,6 @@ public class StoryDataRegistry {
     return zookeeperPort;
   }
 
-  public DockerClient getDockerClient() {
-    return dockerClient;
-  }
-
-  public void setDockerClient(DockerClient dockerClient) {
-    this.dockerClient = dockerClient;
-  }
-
   public String getServiceLogsCollection() {
     return serviceLogsCollection;
   }
@@ -76,12 +67,12 @@ public class StoryDataRegistry {
     return auditLogsCollection;
   }
 
-  public CloudSolrClient getCloudSolrClient() {
-    return cloudSolrClient;
+  public SolrClient getSolrClient() {
+    return solrClient;
   }
 
-  public void setCloudSolrClient(CloudSolrClient cloudSolrClient) {
-    this.cloudSolrClient = cloudSolrClient;
+  public void setSolrClient(SolrClient solrClient) {
+    this.solrClient = solrClient;
   }
 
   public String getAmbariFolder() {
@@ -92,12 +83,12 @@ public class StoryDataRegistry {
     this.ambariFolder = ambariFolder;
   }
 
-  public DockerClientConfig getDockerClientConfig() {
-    return dockerClientConfig;
+  public String getShellScriptLocation() {
+    return shellScriptLocation;
   }
 
-  public void setDockerClientConfig(DockerClientConfig dockerClientConfig) {
-    this.dockerClientConfig = dockerClientConfig;
+  public void setShellScriptLocation(String shellScriptLocation) {
+    this.shellScriptLocation = shellScriptLocation;
   }
 
   public boolean isLogsearchContainerStarted() {
@@ -106,5 +97,13 @@ public class StoryDataRegistry {
 
   public void setLogsearchContainerStarted(boolean logsearchContainerStarted) {
     this.logsearchContainerStarted = logsearchContainerStarted;
+  }
+
+  public WebDriverProvider getWebDriverProvider() {
+    return webDriverProvider;
+  }
+
+  public void setWebDriverProvider(WebDriverProvider webDriverProvider) {
+    this.webDriverProvider = webDriverProvider;
   }
 }

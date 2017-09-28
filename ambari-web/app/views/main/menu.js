@@ -26,6 +26,17 @@ App.MainSideMenuView = Em.CollectionView.extend({
     return App.router.get('mainViewsController.ambariViews');
   }.property('App.router.mainViewsController.ambariViews'),
 
+  didInsertElement: function() {
+    $('[data-toggle="collapse-side-nav"]').on('click', () => {
+      if ($('.navigation-bar-container.collapsed').length > 0) {
+        App.tooltip($('.navigation-bar-container.collapsed .mainmenu-li:not(.has-sub-menu)>a'), {placement: "right"});
+        App.tooltip($('.navigation-bar-container.collapsed .mainmenu-li.has-sub-menu>a'), {placement: "top"});
+      } else {
+        $('.navigation-bar-container .mainmenu-li>a').tooltip('destroy');
+      }
+    });
+  },
+
   content: function () {
     var result = [];
     let {router} = App;
@@ -107,15 +118,17 @@ App.MainSideMenuView = Em.CollectionView.extend({
           });
         }
         if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || upg) {
-          categories.push({
-            name: 'kerberos',
-            url: 'kerberos/',
-            label: Em.I18n.t('common.kerberos'),
-            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding'),
-            href: router.urlFor('main.admin.adminKerberos')
-          });
+          if (App.supports.enableToggleKerberos) {
+            categories.push({
+              name: 'kerberos',
+              url: 'kerberos/',
+              label: Em.I18n.t('common.kerberos'),
+              disabled: App.get('upgradeInProgress') || App.get('upgradeHolding'),
+              href: router.urlFor('main.admin.adminKerberos')
+            });
+          }
         }
-        if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || upg) {
+        if ((App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') && App.isAuthorized('SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START')) || upg) {
           if (App.supports.serviceAutoStart) {
             categories.push({
               name: 'serviceAutoStart',
@@ -162,6 +175,7 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
     App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
+    App.tooltip($("[rel='serviceHealthTooltip']"), {html:true, placement:"right"});
   },
 
   willDestroyElement: function() {

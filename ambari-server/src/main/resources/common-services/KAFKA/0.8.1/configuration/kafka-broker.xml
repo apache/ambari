@@ -412,4 +412,15 @@
     <description>Timeline metrics reporter send interval</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>kafka.timeline.metrics.host_in_memory_aggregation</name>
+    <value>{{host_in_memory_aggregation}}</value>
+    <description>if set to "true" host metrics will be aggregated in memory on each host</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.host_in_memory_aggregation_port</name>
+    <value>{{host_in_memory_aggregation_port}}</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

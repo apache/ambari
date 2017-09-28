@@ -84,7 +84,6 @@ define([
          * AMS Datasource  Query
          */
         AmbariMetricsDatasource.prototype.query = function (options) {
-
           var emptyData = function (metric) {
             var legend = metric.alias ? metric.alias : metric.metric;
             return {
@@ -217,16 +216,21 @@ define([
           var getHostAppIdData = function(target) {
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
             + target.precision;
+            var instanceId = typeof target.cluster == 'undefined'  ? '' : '&instanceId=' + target.cluster;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform +
-                metricAggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
-                '&endTime=' + to + precision + seriesAggregator }).then(
-                getMetricsData(target)
+            metricAggregator + "&hostname=" + target.hosts + '&appId=' + target.app + instanceId + '&startTime=' + from +
+            '&endTime=' + to + precision + seriesAggregator }).then(
+              getMetricsData(target)
             );
           };
           //Check if it's a templated dashboard.
+          var templatedClusters = templateSrv.variables.filter(function(o) { return o.name === "cluster"});
+          var templatedCluster = (_.isEmpty(templatedClusters)) ? '' : templatedClusters[0].options.filter(function(cluster)
+            { return cluster.selected; }).map(function(clusterName) { return clusterName.value; });
+
           var templatedHosts = templateSrv.variables.filter(function(o) { return o.name === "hosts"});
           var templatedHost = (_.isEmpty(templatedHosts)) ? '' : templatedHosts[0].options.filter(function(host)
             { return host.selected; }).map(function(hostName) { return hostName.value; });
@@ -236,20 +240,23 @@ define([
           var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
 
           var getServiceAppIdData = function(target) {
+            var tCluster = (_.isEmpty(templateSrv.variables))? templatedCluster : '';
+            var instanceId = typeof tCluster == 'undefined'  ? '' : '&instanceId=' + tCluster;
             var tHost = (_.isEmpty(templateSrv.variables)) ? templatedHost : target.templatedHost;
-            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
-              + metricAggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
+              + metricAggregator + '&hostname=' + tHost + '&appId=' + target.app + instanceId + '&startTime=' + from +
               '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
           // To speed up querying on templatized dashboards.
           var getAllHostData = function(target) {
+            var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
@@ -265,28 +272,30 @@ define([
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
             return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
-              + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
-              '&endTime=' + to + precision + topN + seriesAggregator }).then(
+              + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + instanceId
+              + '&startTime=' + from + '&endTime=' + to + precision + topN + seriesAggregator }).then(
               allHostMetricsData(target)
             );
           };
           var getYarnAppIdData = function(target) {
-            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
+            var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
-              + metricAggregator + '&appId=resourcemanager&startTime=' + from +
+              + metricAggregator + '&appId=resourcemanager' + instanceId + '&startTime=' + from +
               '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
           var getHbaseAppIdData = function(target) {
-            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+              var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
+              var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + '&appId=hbase&startTime='
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + instanceId + '&appId=hbase&startTime='
             + from + '&endTime=' + to + precision + seriesAggregator }).then(
               allHostMetricsData(target)
             );
@@ -295,22 +304,25 @@ define([
           var getKafkaAppIdData = function(target) {
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
+            var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform + instanceId
               + metricAggregator + '&appId=kafka_broker&startTime=' + from +
               '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
           var getNnAppIdData = function(target) {
+
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
+            var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform + instanceId
             + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
               allHostMetricsData(target)
             );
@@ -318,12 +330,13 @@ define([
 
           // Storm Topology calls.
           var getStormData = function(target) {
+            var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sTopoMetric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sTopoMetric + metricTransform + instanceId
                 + metricAggregator + '&appId=nimbus&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
                 allHostMetricsData(target)
             );
@@ -331,12 +344,13 @@ define([
 
           // Druid calls.
           var getDruidData = function(target) {
+            var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sDataSourceMetric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sDataSourceMetric + metricTransform + instanceId
                           + metricAggregator + '&appId=druid&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
                           allHostMetricsData(target)
             );
@@ -471,7 +485,6 @@ define([
                 target.sTopology = selectedTopology;
                 target.sComponent = selectedComponent;
                 target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sComponent);
-                debugger;
                   return getStormData(target);
               }));
             }
@@ -507,14 +520,20 @@ define([
                 }));
               });
             }
-
             // To speed up querying on templatized dashboards.
-            if (templateSrv.variables[1] && templateSrv.variables[1].name === "hosts") {
+              var indexOfHosts = -1;
+              for (var i = 0; i < templateSrv.variables.length; i++) {
+                  if (templateSrv.variables[i].name == 'hosts') {
+                      indexOfHosts = i;
+                  }
+              }
+              if (indexOfHosts >= 0) {
               var allHosts = templateSrv._values.hosts.lastIndexOf('}') > 0 ? templateSrv._values.hosts.slice(1,-1) :
               templateSrv._values.hosts;
               allHosts = templateSrv._texts.hosts === "All" ? '%' : allHosts;
               metricsPromises.push(_.map(options.targets, function(target) {
-                  target.templatedHost = allHosts;
+                  target.templatedHost = allHosts? allHosts : '';
+                  target.templatedCluster = templatedCluster;
                   return getAllHostData(target);
               }));
             }
@@ -558,13 +577,18 @@ define([
         AmbariMetricsDatasource.prototype.metricFindQuery = function (query) {
           var interpolated;
           try {
-            interpolated = templateSrv.replace(query);
+            interpolated = query.split('.')[0];
           } catch (err) {
             return $q.reject(err);
           }
+          var templatedClusters = templateSrv.variables.filter(function(o) { return o.name === "cluster"});
+          var templatedCluster = (_.isEmpty(templatedClusters)) ? '' : templatedClusters[0].options.filter(function(cluster)
+          { return cluster.selected; }).map(function(clusterName) { return clusterName.value; });
+
           var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) 
             { return variable.name === "components"});
           var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
+
 
           // Templated Variable for HBase Users
           // It will search the cluster and populate the HBase Users.
@@ -837,58 +861,11 @@ define([
               });
           }
 
-          // Templated Variable that will populate all hosts on the cluster.
-          // The variable needs to be set to "hosts".
-          if (!tComponent){
-                  return this.doAmbariRequest({
-                        method: 'GET',
-                        url: '/ws/v1/timeline/metrics/' + interpolated
-                      })
-                      .then(function (results) {
-                        //Remove fakehostname from the list of hosts on the cluster.
-                        var fake = "fakehostname"; delete results.data[fake];
-                        return _.map(_.keys(results.data), function (hostName) {
-                          return {
-                                text: hostName,
-                                expandable: hostName.expandable ? true : false
-                              };
-                        });
-                      });
-          } else {
-            // Create a dropdown in templated dashboards for single components.
-            // This will check for the component set and show hosts only for the
-            // selected component.
-            return this.doAmbariRequest({
-                method: 'GET',
-                url: '/ws/v1/timeline/metrics/hosts'
-              })
-              .then(function(results) {
-                var compToHostMap = {};
-                //Remove fakehostname from the list of hosts on the cluster.
-                var fake = "fakehostname";
-                delete results.data[fake];
-                //Query hosts based on component name
-                _.forEach(results.data, function(comp, hostName) {
-                  comp.forEach(function(component) {
-                    if (!compToHostMap[component]) {
-                      compToHostMap[component] = [];
-                    }
-                    compToHostMap[component].push(hostName);
-                  });
-                });
-                var compHosts = compToHostMap[tComponent];
-                compHosts = _.map(compHosts, function(host) {
-                  return {
-                    text: host,
-                    expandable: host.expandable ? true : false
-                  };
-                });
-                compHosts = _.sortBy(compHosts, function(i) {
-                  return i.text.toLowerCase();
-                });
-                return $q.when(compHosts);
-              });
-           }
+          if (interpolated == 'hosts') {
+            return this.suggestHosts(tComponent, templatedCluster);
+          } else if (interpolated == 'cluster') {
+            return this.suggestClusters(tComponent)
+          }
         };
 
         /**
@@ -941,34 +918,47 @@ define([
           return $q.when(keys);
         };
 
+        AmbariMetricsDatasource.prototype.suggestClusters = function(app) {
+          if (!app) { app = ''; }
+          return this.doAmbariRequest({
+            method: 'GET',
+            url: '/ws/v1/timeline/metrics/instances?' + 'appId=' + app
+          }).then(function(response) {
+              var clusters = [];
+              var data = response.data;
+              for (var cluster in data) {
+                if (data[cluster].hasOwnProperty(app)) {
+                  clusters.push({text: cluster});
+                }
+              }
+              return $q.when(clusters);
+          });
+        };
+
         /**
          * AMS Datasource - Suggest Hosts.
          *
          * Query Hosts on the cluster.
          */
-        AmbariMetricsDatasource.prototype.suggestHosts = function (query, app) {
-          console.log(query);
-          return this.doAmbariRequest({method: 'GET', url: '/ws/v1/timeline/metrics/hosts'})
-            .then(function (results) {
-              var compToHostMap = {};
-              //Remove fakehostname from the list of hosts on the cluster.
-              var fake = "fakehostname"; delete results.data[fake];
-              //Query hosts based on component name
-              _.forEach(results.data, function (comp, hostName) {
-                comp.forEach(function (component) {
-                  if (!compToHostMap[component]){
-                    compToHostMap[component] = [];
-                  }
-                  compToHostMap[component].push(hostName);
-                });
-              });
-              var compHosts = compToHostMap[app];
-              compHosts = _.map(compHosts, function (h) {
-                return {text: h};
-              });
-              compHosts = _.sortBy(compHosts, function (i) { return i.text.toLowerCase(); });
-              return $q.when(compHosts);
-            });
+        AmbariMetricsDatasource.prototype.suggestHosts = function (app, cluster) {
+          if (!app) { app = ''; }
+          if (!cluster) { cluster = ''; }
+          return this.doAmbariRequest({
+            method: 'GET',
+            url: '/ws/v1/timeline/metrics/instances?' + 'appId=' + app + '&instanceId=' + cluster
+          }).then(function (response) {
+            var hosts = [];
+            var data = response.data;
+            for (var cluster in data) {
+              var appHosts = data[cluster][app];
+              if (appHosts) {
+                for (var index in appHosts) {
+                  hosts.push({text: appHosts[index]});
+                }
+              }
+            }
+            return $q.when(hosts);
+          });
         };
 
         /**

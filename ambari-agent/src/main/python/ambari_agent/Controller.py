@@ -29,6 +29,7 @@ import threading
 import urllib2
 import pprint
 from random import randint
+import re
 import subprocess
 import functools
 
@@ -354,6 +355,7 @@ class Controller(threading.Thread):
           logger.log(logging_level, "Sending Heartbeat (id = %s)", self.responseId)
 
         response = self.sendRequest(self.heartbeatUrl, data)
+
         exitStatus = 0
         if 'exitstatus' in response.keys():
           exitStatus = int(response['exitstatus'])
@@ -399,7 +401,9 @@ class Controller(threading.Thread):
           self.restartAgent()
 
         if serverId != self.responseId + 1:
-          logger.error("Error in responseId sequence - restarting")
+          logger.error("Error in responseId sequence - received responseId={0} from server while expecting {1} - restarting..."
+              .format(serverId, self.responseId + 1))
+
           self.restartAgent()
         else:
           self.responseId = serverId
@@ -498,6 +502,7 @@ class Controller(threading.Thread):
 
         #randomize the heartbeat
         delay = randint(0, self.max_reconnect_retry_delay)
+        logger.info("Waiting {0} seconds before reconnecting to {1}".format(delay, self.heartbeatUrl))
         time.sleep(delay)
 
       # Sleep for some time
@@ -621,7 +626,9 @@ class Controller(threading.Thread):
     Stack Upgrade.
     """
     try:
-      if compare_versions(self.version, "2.1.2") >= 0:
+      version = self.get_version()
+      logger.debug("Ambari Agent version {0}".format(version))
+      if compare_versions(version, "2.1.2") >= 0:
         source_file = "/etc/hadoop/conf/dfs_data_dir_mount.hist"
         destination_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
         if os.path.exists(source_file) and not os.path.exists(destination_file):
@@ -635,9 +642,16 @@ class Controller(threading.Thread):
           return_code = subprocess.call(command, shell=True)
           logger.info("Return code: %d" % return_code)
     except Exception, e:
-      logger.info("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))
+      logger.error("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))
 
-
+  def get_version(self):
+    version = self.version
+    matches = re.findall(r"[\d+.]+",version)
+    if not matches:
+      logger.warning("No version match result, use original version {0}".format(version))
+      return version
+    else:
+      return matches[0]
 
 def main(argv=None):
   # Allow Ctrl-C

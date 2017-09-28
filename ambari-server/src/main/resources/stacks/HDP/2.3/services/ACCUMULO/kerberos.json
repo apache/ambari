@@ -67,7 +67,8 @@
           }
         },
         {
-          "name": "/smokeuser"
+          "name": "accumulo_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [
@@ -93,7 +94,8 @@
           "name": "ACCUMULO_MASTER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "accumulo_accumulo_master_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             }
           ]
         },

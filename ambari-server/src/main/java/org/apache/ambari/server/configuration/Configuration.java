@@ -364,6 +364,13 @@ public class Configuration {
       "views.validate", "false");
 
   /**
+   * Determines whether the view directory watcher service should be disabled.
+   */
+  @Markdown(description = "Determines whether the view directory watcher service should be disabled.")
+  public static final ConfigurationProperty<String> DISABLE_VIEW_DIRECTORY_WATCHER = new ConfigurationProperty<>(
+      "views.directory.watcher.disable", "false");
+
+  /**
    * Determines whether remove undeployed views from the Ambari database.
    */
   @Markdown(description = "Determines whether remove undeployed views from the Ambari database.")
@@ -726,8 +733,8 @@ public class Configuration {
    * The location of the JDK on the Ambari Agent hosts.
    */
   @Markdown(
-      description = "The location of the JDK on the Ambari Agent hosts.",
-      examples = { "/usr/jdk64/jdk1.7.0_45" })
+      description = "The location of the JDK on the Ambari Agent hosts. If stack.java.home exists, that is only used by Ambari Server (or you can find that as ambari_java_home in the commandParams on the agent side)",
+      examples = { "/usr/jdk64/jdk1.8.0_112" })
   public static final ConfigurationProperty<String> JAVA_HOME = new ConfigurationProperty<>(
       "java.home", null);
 
@@ -735,8 +742,8 @@ public class Configuration {
    * The name of the JDK installation binary.
    */
   @Markdown(
-      description = "The name of the JDK installation binary.",
-      examples = { "jdk-7u45-linux-x64.tar.gz" })
+      description = "The name of the JDK installation binary. If stack.jdk.name exists, that is only used by Ambari Server (or you can find that as ambari_jdk_name in the commandParams on the agent side)",
+      examples = { "jdk-8u112-linux-x64.tar.gz" })
   public static final ConfigurationProperty<String> JDK_NAME = new ConfigurationProperty<>(
       "jdk.name", null);
 
@@ -744,10 +751,46 @@ public class Configuration {
    * The name of the JCE policy ZIP file.
    */
   @Markdown(
-      description = "The name of the JCE policy ZIP file. ",
-      examples = {"UnlimitedJCEPolicyJDK7.zip"})
+      description = "The name of the JCE policy ZIP file. If stack.jce.name exists, that is only used by Ambari Server (or you can find that as ambari_jce_name in the commandParams on the agent side)",
+      examples = {"UnlimitedJCEPolicyJDK8.zip"})
   public static final ConfigurationProperty<String> JCE_NAME = new ConfigurationProperty<>(
       "jce.name", null);
+
+  /**
+   * The location of the JDK on the Ambari Agent hosts.
+   */
+  @Markdown(
+    description = "The location of the JDK on the Ambari Agent hosts for stack services.",
+    examples = { "/usr/jdk64/jdk1.7.0_45" })
+  public static final ConfigurationProperty<String> STACK_JAVA_HOME = new ConfigurationProperty<>(
+    "stack.java.home", null);
+
+  /**
+   * The name of the JDK installation binary.
+   */
+  @Markdown(
+    description = "The name of the JDK installation binary for stack services.",
+    examples = { "jdk-7u45-linux-x64.tar.gz" })
+  public static final ConfigurationProperty<String> STACK_JDK_NAME = new ConfigurationProperty<>(
+    "stack.jdk.name", null);
+
+  /**
+   * The name of the JCE policy ZIP file.
+   */
+  @Markdown(
+    description = "The name of the JCE policy ZIP file for stack services.",
+    examples = {"UnlimitedJCEPolicyJDK7.zip"})
+  public static final ConfigurationProperty<String> STACK_JCE_NAME = new ConfigurationProperty<>(
+    "stack.jce.name", null);
+
+  /**
+   * Java version of the stack
+   */
+  @Markdown(
+    description = "JDK version of the stack, use in case of it differs from Ambari JDK version.",
+    examples = {"1.7"})
+  public static final ConfigurationProperty<String> STACK_JAVA_VERSION = new ConfigurationProperty<>(
+    "stack.java.version", null);
 
   /**
    * The auto group creation by Ambari.
@@ -1444,13 +1487,25 @@ public class Configuration {
    * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
 
-  @Markdown(description = "The number of times failed kerberos operations should be retried to execute.")
+  @Markdown(description = "The number of times failed Kerberos operations should be retried to execute.")
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRIES = new ConfigurationProperty<>(
       "kerberos.operation.retries", 3);
 
-  @Markdown(description = "The time to wait (in seconds) between failed kerberos operations retries.")
+  @Markdown(description = "The time to wait (in seconds) between failed Kerberos operations retries.")
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRY_TIMEOUT = new ConfigurationProperty<>(
       "kerberos.operation.retry.timeout", 10);
+
+  /**
+   * A flag indicating whether to validate the trust of an SSL certificate provided by a KDC when
+   * performing Kerberos operations.
+   *
+   * For example, when communicating with an Active Directory using
+   * LDAPS. The default behavior is to validate the trust.
+   */
+  @Markdown(description = "Validate the trust of the SSL certificate provided by the KDC when performing Kerberos operations over SSL.")
+  public static final ConfigurationProperty<Boolean> KERBEROS_OPERATION_VERIFY_KDC_TRUST = new ConfigurationProperty<>(
+      "kerberos.operation.verify.kdc.trust", Boolean.TRUE);
+
   /**
    * The type of connection pool to use with JDBC connections to the database.
    */
@@ -1732,6 +1787,13 @@ public class Configuration {
   @Markdown(description = "The number of concurrent database connections that the Quartz job scheduler can use.")
   public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_CONNECTIONS = new ConfigurationProperty<>(
       "server.execution.scheduler.maxDbConnections", "5");
+
+  /**
+   * The maximum number of prepared statements cached per database connection.
+   */
+  @Markdown(description = "The maximum number of prepared statements cached per database connection.")
+  public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_MAX_STATEMENTS_PER_CONNECTION = new ConfigurationProperty<>(
+      "server.execution.scheduler.maxStatementsPerConnection", "120");
 
   /**
    * The tolerance, in {@link TimeUnit#MINUTES}, that Quartz will allow a misfired job to run.
@@ -2702,6 +2764,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> TLS_EPHEMERAL_DH_KEY_SIZE = new ConfigurationProperty<>(
     "security.server.tls.ephemeral_dh_key_size", 2048);
 
+  /**
+   * The directory for scripts which are used by the alert notification dispatcher.
+   */
+  @Markdown(description = "The directory for scripts which are used by the alert notification dispatcher.")
+  public static final ConfigurationProperty<String> DISPATCH_PROPERTY_SCRIPT_DIRECTORY = new ConfigurationProperty<>(
+          "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
+
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -3300,6 +3370,15 @@ public class Configuration {
    */
   public boolean isViewRemoveUndeployedEnabled() {
     return Boolean.parseBoolean(getProperty(VIEWS_REMOVE_UNDEPLOYED));
+  }
+
+  /**
+   * Determines whether the view directory watcher service should be disabled
+   *
+   * @return true view directory watcher service should be disabled
+   */
+  public boolean isViewDirectoryWatcherServiceDisabled() {
+    return Boolean.parseBoolean(getProperty(DISABLE_VIEW_DIRECTORY_WATCHER));
   }
 
   /**
@@ -3992,7 +4071,11 @@ public class Configuration {
       if (result != null) {
         password = new String(result);
       } else {
-        LOG.error("Cannot read password for alias = " + aliasStr);
+        if (CredentialProvider.isAliasString(aliasStr)) {
+          LOG.error("Cannot read password for alias = " + aliasStr);
+        } else {
+          LOG.warn("Raw password provided, not an alias. It cannot be read from credential store.");
+        }
       }
     }
     return password;
@@ -4092,6 +4175,23 @@ public class Configuration {
   public String getJCEName() {
     return getProperty(JCE_NAME);
   }
+
+  public String getStackJavaHome() {
+    return getProperty(STACK_JAVA_HOME);
+  }
+
+  public String getStackJDKName() {
+    return getProperty(STACK_JDK_NAME);
+  }
+
+  public String getStackJCEName() {
+    return getProperty(STACK_JCE_NAME);
+  }
+
+  public String getStackJavaVersion() {
+    return getProperty(STACK_JAVA_VERSION);
+  }
+
   public String getAmbariBlacklistFile() {
     return getProperty(PROPERTY_MASK_FILE);
   }
@@ -4543,6 +4643,10 @@ public class Configuration {
 
   public String getExecutionSchedulerConnections() {
     return getProperty(EXECUTION_SCHEDULER_CONNECTIONS);
+  }
+
+  public String getExecutionSchedulerMaxStatementsPerConnection() {
+    return getProperty(EXECUTION_SCHEDULER_MAX_STATEMENTS_PER_CONNECTION);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -5156,6 +5260,11 @@ public class Configuration {
     return Boolean.parseBoolean(getProperty(TIMELINE_METRICS_CACHE_DISABLE));
   }
 
+  /** @see #AMBARISERVER_METRICS_DISABLE */
+  public boolean isMetricsServiceDisabled() {
+    return Boolean.parseBoolean(getProperty(AMBARISERVER_METRICS_DISABLE));
+  }
+
   /**
    * Constant fudge factor subtracted from the cache update requests to
    * account for unavailability of data on the trailing edge due to buffering.
@@ -5554,6 +5663,15 @@ public class Configuration {
       throw new IllegalArgumentException("Invalid " + TLS_EPHEMERAL_DH_KEY_SIZE + " " + getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
     }
     return keySize;
+  }
+
+  /**
+   * Gets the dispatch script directory.
+   *
+   * @return the dispatch script directory
+   */
+  public String getDispatchScriptDirectory() {
+    return getProperty(DISPATCH_PROPERTY_SCRIPT_DIRECTORY);
   }
 
   /**
@@ -6060,6 +6178,10 @@ public class Configuration {
 
   public int getKerberosOperationRetryTimeout() {
     return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
+  }
+
+  public boolean validateKerberosOperationSSLCertTrust() {
+    return Boolean.parseBoolean(getProperty(KERBEROS_OPERATION_VERIFY_KDC_TRUST));
   }
 
   /**

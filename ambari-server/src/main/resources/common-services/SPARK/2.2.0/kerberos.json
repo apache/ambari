@@ -4,7 +4,8 @@
       "name": "SPARK",
       "identities": [
         {
-          "name": "/smokeuser"
+          "name": "spark_smokeuser",
+          "reference": "/smokeuser"
         },
         {
           "name": "sparkuser",

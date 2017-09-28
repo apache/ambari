@@ -35,7 +35,7 @@
           <dependencies>
             <dependency>
               <name>HDFS/ZKFC</name>
-              <scope>host</scope>
+              <scope>cluster</scope>
               <auto-deploy>
                 <enabled>false</enabled>
               </auto-deploy>
@@ -48,7 +48,7 @@
             </dependency>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>host</scope>
+              <scope>cluster</scope>
               <auto-deploy>
                 <enabled>false</enabled>
               </auto-deploy>
@@ -61,7 +61,7 @@
             </dependency>
             <dependency>
               <name>HDFS/JOURNALNODE</name>
-              <scope>host</scope>
+              <scope>cluster</scope>
               <auto-deploy>
                 <enabled>false</enabled>
               </auto-deploy>
@@ -199,6 +199,10 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+           <bulkCommands>
+              <displayName>JournalNodes</displayName>
+              <masterComponent>NAMENODE</masterComponent>
+          </bulkCommands>
           <logs>
             <log>
               <logId>hdfs_journalnode</logId>
@@ -366,10 +370,6 @@
         <timeout>300</timeout>
       </commandScript>
       
-      <requiredServices>
-        <service>ZOOKEEPER</service>
-      </requiredServices>
-
       <configuration-dependencies>
         <config-type>core-site</config-type>
         <config-type>hdfs-site</config-type>

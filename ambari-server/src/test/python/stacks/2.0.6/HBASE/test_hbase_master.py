@@ -29,6 +29,8 @@ class TestHBaseMaster(RMFTestCase):
   TMP_PATH = "/hadoop"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
+  CONFIG_OVERRIDES = {"serviceName":"HBASE", "role":"HBASE_MASTER"}
+
   def test_install_hbase_master_default_no_phx(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                        classname = "HbaseMaster",
@@ -46,11 +48,7 @@ class TestHBaseMaster(RMFTestCase):
     self.assertNoMoreResources()
   
   
-  #@patch('resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call', new=('','',''))
   def test_install_hbase_master_default_with_phx(self):
-    #import resource_management
-    import itertools
-    #resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call = lambda a, b: '','',''
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                        classname = "HbaseMaster",
                        command = "install",
@@ -69,43 +67,53 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def test_install_hbase_master_with_version(self):
-    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/hbase_with_phx.json"
-    with open(config_file, "r") as f:
-      json_content = json.load(f)
-    version = '2.3.0.1-1234'
-    # the json file is not a "well formed" install command
-    json_content['roleCommand'] = 'INSTALL'
-    json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['package_list'] = "[{\"name\":\"hbase_${stack_version}\",\"condition\":\"\",\"skipUpgrade\":false}]"
+  @patch("resource_management.libraries.script.get_provider")
+  def test_install_hbase_master_with_version(self, get_provider):
+    from resource_management.core.providers.package.yumrpm import YumProvider
+    provider = YumProvider(None)
+    with patch.object(provider, "_lookup_packages") as lookup_packages:
+      lookup_packages.return_value = [["hbase_2_3_0_1_1234", "1.0", "testrepo"]]
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
-                       classname = "HbaseMaster",
-                       command = "install",
-                       config_dict = json_content,
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       try_install=True,
-                       checked_call_mocks = [(0, "OK.", "")],
-    )
+      get_provider.return_value = provider
 
-    # only assert that the correct package is trying to be installed
-    self.assertResourceCalled('Package', 'hbase_2_3_0_1_1234',
-                              retry_count=5,
-                              retry_on_repo_unavailability=False)
+      config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/hbase_with_phx.json"
+      with open(config_file, "r") as f:
+        json_content = json.load(f)
+      version = '2.3.0.1-1234'
+
+      # the json file is not a "well formed" install command
+      json_content['roleCommand'] = 'INSTALL'
+      json_content['commandParams']['version'] = version
+      json_content['hostLevelParams']['package_list'] = "[{\"name\":\"hbase_${stack_version}\",\"condition\":\"\",\"skipUpgrade\":false}]"
+
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
+                         classname = "HbaseMaster",
+                         command = "install",
+                         config_dict = json_content,
+                         stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES,
+                         try_install=True,
+                         os_type=('Redhat', '6.4', 'Final'),
+                         checked_call_mocks = [(0, "OK.", "")],
+                         )
+
+      # only assert that the correct package is trying to be installed
+      self.assertResourceCalled('Package', 'hbase_2_3_0_1_1234',
+                                retry_count=5,
+                                retry_on_repo_unavailability=False)
 
 
-  def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
-                   classname = "HbaseMaster",
-                   command = "configure",
-                   config_file="default.json",
-                   stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
+    def test_configure_default(self):
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
+                     classname = "HbaseMaster",
+                     command = "configure",
+                     config_file="default.json",
+                     stack_version = self.STACK_VERSION,
+                     target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
     
-    self.assert_configure_default()
-    self.assertNoMoreResources()
+      self.assert_configure_default()
+      self.assertNoMoreResources()
 
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
@@ -740,6 +748,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        mocks_dict = mocks_dict)
@@ -763,20 +772,10 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hbase-master', version), sudo=True)
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(3, mocks_dict['checked_call'].call_count)
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hbase', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[1][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hbase', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])
 

@@ -43,7 +43,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   installProgress: function() {
     if (App.get('testMode')) return 100;
 
-    var installRequest, requestIds = App.db.get('repoVersionInstall', 'id');
+    var installRequest, requestIds = this.get('controller').getRepoVersionInstallId();
     if (requestIds) {
       installRequest = App.router.get('backgroundOperationsController.services').findProperty('id', requestIds[0]);
     }
@@ -57,11 +57,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
   isUpgrading: function () {
     return (this.get('controller.upgradeVersion') === this.get('content.displayName') ||
             this.get('controller.fromVersion') === this.get('content.repositoryVersion'))
-            && App.get('upgradeState') !== 'INIT';
+            && App.get('upgradeState') !== 'NOT_REQUIRED';
   }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
 
   isRepoUrlsEditDisabled: function () {
-    return ['INSTALLING', 'UPGRADING'].contains(this.get('content.status')) || this.get('isUpgrading') || (!App.isAuthorized('AMBARI.MANAGE_STACK_VERSIONS') && this.get('content.status') === 'CURRENT');
+    return ['INSTALLING', 'UPGRADING'].contains(this.get('content.status')) || this.get('isUpgrading') || (!App.isAuthorized('AMBARI.MANAGE_STACK_VERSIONS'));
   }.property('content.status', 'isUpgrading'),
 
   /**
@@ -70,8 +70,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
   versionClass: function () {
     return this.get('content.status') === 'CURRENT' ? 'current-version-box' : '';
   }.property('content.status'),
-
-  isPatch: Em.computed.equal('content.type', 'PATCH'),
 
   /**
    * @type {boolean}
@@ -85,16 +83,19 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   versionStateMap: {
     'current': {
+      'type': 'CURRENT',
       'value': ['CURRENT'],
       'property': 'currentHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.current')
     },
     'installed': {
+      'type': 'INSTALLED',
       'value': ['INSTALLED'],
       'property': 'installedHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.installed')
     },
     'not_installed': {
+      'type': 'NOT_INSTALLED',
       'value': ['INSTALLING', 'INSTALL_FAILED', 'OUT_OF_SYNC'],
       'property': 'notInstalledHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
@@ -117,10 +118,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
       text: Em.I18n.t('common.current'),
       class: 'label label-success'
     },
-    'INIT': {
+    'NOT_REQUIRED': {
       isButton: true,
       text: Em.I18n.t('admin.stackVersions.version.installNow'),
-      action: 'installRepoVersionConfirmation'
+      action: 'installRepoVersionPopup'
     },
     'LOADING': {
       isSpinner: true,
@@ -142,6 +143,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
       isButton: true,
       text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
       action: 'resumeUpgrade'
+    },
+    'CURRENT_PATCH': {
+      isLabel: true,
+      text: Em.I18n.t('common.current'),
+      class: 'label label-success'
     }
   },
 
@@ -151,85 +157,39 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * TODO remove <code>isUpgrading</code> condition when transition of version states in API fixed
    */
   stateElement: function () {
-    var currentVersion = this.get('controller.currentVersion');
     var statePropertiesMap = this.get('statePropertiesMap');
-    var requestInProgressRepoId = this.get('controller.requestInProgressRepoId');
     var status = this.get('content.status');
     var element = Em.Object.create({
       status: status,
-      isInstalling: function () {
-        return this.get('status') === 'INSTALLING';
-      }.property('status'),
+      isInstalling: Em.computed.equal('status', 'INSTALLING'),
       buttons: [],
       isDisabled: false
     });
     var isSuspended = App.get('upgradeSuspended');
 
-    if (['INSTALLING', 'CURRENT'].contains(status)) {
+    if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
+      element.setProperties(statePropertiesMap['CURRENT_PATCH']);
+      element.set('canBeReverted', this.get('content.stackVersion').get('supportsRevert'));
+      element.set('action', 'confirmRevertPatchUpgrade');
+      element.set('actionText', Em.I18n.t('common.revert'));
+    }
+    else if (['INSTALLING', 'CURRENT'].contains(status) && !this.get('content.isPatch')) {
       element.setProperties(statePropertiesMap[status]);
     }
-    else if (status === 'INIT') {
-      requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
-      element.set('isDisabled', this.isDisabledOnInit());
+    else if (status === 'NOT_REQUIRED') {
+      this.processNotRequiredState(element);
     }
-    else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
-             (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
-      if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
-        var isDisabled = this.isDisabledOnInstalled();
-        element.set('isButtonGroup', true);
-        if (status === 'OUT_OF_SYNC') {
-          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
-          element.set('action', 'installRepoVersionConfirmation');
-          element.get('buttons').pushObject({
-            text: this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-            action: 'confirmUpgrade',
-            isDisabled: isDisabled
-          });
-        } else {
-          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
-          element.set('action', 'confirmUpgrade');
-          element.get('buttons').pushObject({
-            text: this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionConfirmation',
-            isDisabled: isDisabled
-          });
-        }
-        element.set('isDisabled', isDisabled);
-      }
-      else {
-        element.setProperties(statePropertiesMap['INSTALLED']);
-      }
+    else if ((status === 'INSTALLED' && !this.get('isUpgrading')) || (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
+      this.processPreUpgradeState(element);
     }
-    else if ((this.get('isUpgrading')) && !isSuspended) {
-      element.set('isLink', true);
-      element.set('action', 'openUpgradeDialog');
-      if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT', 'ABORTED'].contains(App.get('upgradeState'))) {
-        element.set('iconClass', 'glyphicon glyphicon-pause');
-        if (this.get('controller.isDowngrade')) {
-          element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.pause'));
-        }
-        else {
-          element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.pause'));
-        }
-      }
-      else {
-        element.set('iconClass', 'glyphicon glyphicon-cog');
-        if (this.get('controller.isDowngrade')) {
-          element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.running'));
-        }
-        else {
-          element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
-        }
-      }
+    else if (this.get('isUpgrading') && !isSuspended) {
+      this.processUpgradingState(element);
     }
     else if (isSuspended) {
-      element.setProperties(statePropertiesMap['SUSPENDED']);
-      var text = this.get('controller.isDowngrade') ? Em.I18n.t('admin.stackUpgrade.dialog.resume.downgrade') : Em.I18n.t('admin.stackUpgrade.dialog.resume');
-      element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.resume'): text);
-      element.set('isDisabled', this.get('controller.requestInProgress'));
+      this.processSuspendedState(element);
     }
     //For restricted upgrade wizard should be disabled in any state
-    if (this.get('controller.isWizardRestricted')) {
+    if (this.get('controller.isWizardRestricted') || (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK'))) {
       element.set('isDisabled', true);
     }
     return element;
@@ -243,7 +203,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   ),
 
   /**
-   * check if actions of INIT stack version disabled
+   * check if actions of NOT_REQUIRED stack version disabled
    * @returns {boolean}
    */
   isDisabledOnInit: function() {
@@ -251,6 +211,128 @@ App.UpgradeVersionBoxView = Em.View.extend({
             !this.get('content.isCompatible') ||
             (App.get('upgradeIsRunning') && !App.get('upgradeSuspended')) ||
             this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
+  },
+
+  /**
+   * @param {Em.Object} element
+   */
+  processSuspendedState: function(element) {
+    element.setProperties(this.get('statePropertiesMap')['SUSPENDED']);
+    var text = this.get('controller.isDowngrade')
+      ? Em.I18n.t('admin.stackUpgrade.dialog.resume.downgrade')
+      : Em.I18n.t('admin.stackUpgrade.dialog.resume');
+    element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.resume'): text);
+    element.set('isDisabled', this.get('controller.requestInProgress'));
+  },
+
+  /**
+   * @param {Em.Object} element
+   */
+  processUpgradingState: function(element) {
+    element.set('isLink', true);
+    element.set('action', 'openUpgradeDialog');
+    if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT', 'ABORTED'].contains(App.get('upgradeState'))) {
+      element.set('iconClass', 'glyphicon glyphicon-pause');
+      if (this.get('controller.isDowngrade')) {
+        element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.pause'));
+      }
+      else {
+        element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.pause'));
+      }
+    }
+    else {
+      element.set('iconClass', 'glyphicon glyphicon-cog');
+      if (this.get('controller.isDowngrade')) {
+        element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.running'));
+      }
+      else {
+        element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
+      }
+    }
+  },
+
+  /**
+   * @param {Em.Object} element
+   */
+  processPreUpgradeState: function(element) {
+    var currentVersion = this.get('controller.currentVersion');
+    var status = this.get('content.status');
+    var isVersionHigherThanCurrent = stringUtils.compareVersions(
+        this.get('content.repositoryVersion'),
+        Em.get(currentVersion, 'repository_version')
+      ) === 1;
+
+    if (Em.get(currentVersion, 'stack_name') !== this.get('content.stackVersionType') || isVersionHigherThanCurrent) {
+      var isDisabled = this.isDisabledOnInstalled();
+      switch (status){
+        case 'OUT_OF_SYNC':
+          element.set('isButtonGroup', true);
+          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
+          element.set('action', 'installRepoVersionPopup');
+          element.get('buttons').pushObject({
+            text: this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+            action: 'confirmUpgrade',
+            isDisabled: isDisabled
+          });
+          break;
+        case 'INSTALL_FAILED':
+          element.set('isButton', true);
+          element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
+          element.set('action', 'installRepoVersionPopup');
+          break;
+        default:
+          var isVersionColumnView = this.get('isVersionColumnView');
+          element.set('isButtonGroup', true);
+          element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
+          element.set('action', 'confirmUpgrade');
+          element.get('buttons').pushObject({
+            text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
+            action: 'installRepoVersionPopup',
+            isDisabled: isDisabled
+          });
+
+          element.get('buttons').pushObject({
+            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+            action: 'showUpgradeOptions',
+            isDisabled: isDisabled
+          });
+
+          if (this.get('content.isPatch')) {
+            element.get('buttons').pushObject({
+              text: Em.I18n.t('common.hide'),
+              action: 'confirmDiscardRepoVersion',
+              isDisabled: isDisabled
+            });
+          }
+      }
+      element.set('isDisabled', isDisabled);
+    }
+    else {
+      element.setProperties(this.get('statePropertiesMap')['INSTALLED']);
+    }
+  },
+
+  /**
+   * @param {Em.Object} element
+   */
+  processNotRequiredState: function(element) {
+    var isDisabledOnInit = this.isDisabledOnInit();
+    var requestInProgressRepoId = this.get('controller.requestInProgressRepoId');
+    var status = this.get('content.status');
+
+    if (requestInProgressRepoId && requestInProgressRepoId === this.get('content.id')) {
+      element.setProperties(this.get('statePropertiesMap')['LOADING']);
+    } else {
+      element.setProperties(this.get('statePropertiesMap')[status]);
+    }
+    element.set('isDisabled', isDisabledOnInit);
+    element.set('isButtonGroup', true);
+    element.set('isButton', false);
+    element.get('buttons').pushObject({
+      text: Em.I18n.t('common.hide'),
+      action: 'confirmDiscardRepoVersion',
+      isDisabled: isDisabledOnInit
+    });
   },
 
   /**
@@ -427,11 +509,14 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var displayName = this.get('content.displayName');
     var hosts = this.get(status['property']);
     var self = this;
+    var title = status.type === 'CURRENT'
+      ? Em.I18n.t('admin.stackVersions.hosts.popup.current.title').format(displayName, hosts.length)
+      : Em.I18n.t('admin.stackVersions.hosts.popup.title').format(displayName, status.label, hosts.length);
     hosts.sort();
     if (hosts.length) {
       return App.ModalPopup.show({
         bodyClass: Ember.View.extend({
-          title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(displayName, status.label, hosts.length),
+          title: title,
           hosts: hosts,
           template: Em.Handlebars.compile('<h4>{{view.title}}</h4><div class="limited-height-2">{{#each view.hosts}}<div>{{this}}</div>{{/each}}</div>')
         }),

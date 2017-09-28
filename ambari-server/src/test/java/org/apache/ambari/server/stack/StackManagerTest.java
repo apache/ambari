@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -44,6 +44,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
@@ -119,9 +120,10 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     osFamily = new OsFamily(config);
+    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(new File(stackRoot), null, null, osFamily, false,
-        metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
+        metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     verify(config, metaInfoDao, stackDao, actionMetadata);
 
@@ -131,13 +133,13 @@ public class StackManagerTest {
   @Test
   public void testGetsStacks() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
-    assertEquals(20, stacks.size());
+    assertEquals(21, stacks.size());
   }
 
   @Test
   public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
-    assertEquals(16, stacks.size());
+    assertEquals(17, stacks.size());
 
     stacks = stackManager.getStacks("OTHER");
     assertEquals(2, stacks.size());
@@ -287,6 +289,7 @@ public class StackManagerTest {
 
     //should include all stacks in hierarchy
     assertEquals(18, services.size());
+
     HashSet<String> expectedServices = new HashSet<>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
@@ -794,9 +797,10 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     OsFamily osFamily = new OsFamily(config);
+    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(stackRoot, commonServices, extensions,
-            osFamily, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
+            osFamily, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     for (StackInfo stackInfo : stackManager.getStacks()) {
       for (ServiceInfo serviceInfo : stackInfo.getServices()) {
@@ -859,9 +863,10 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     OsFamily osFamily = new OsFamily(config);
+    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(stackRoot, commonServices, extensions, osFamily,
-        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
+        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
     String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
@@ -937,12 +942,12 @@ public class StackManagerTest {
     ArrayList<String> rangerKmsBlockers = (ArrayList<String>)generalDeps.get(kmsRoleCommand);
 
     assertTrue(kmsRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerKmsBlockers.contains(rangerAdminRoleCommand));
+    assertTrue(kmsRoleCommand + " should be dependent of " + nameNodeRoleCommand, rangerKmsBlockers.contains(nameNodeRoleCommand));
 
     // Ranger User Sync
     ArrayList<String> rangerUserSyncBlockers = (ArrayList<String>)generalDeps.get(rangerUserSyncRoleCommand);
 
     assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerUserSyncBlockers.contains(rangerAdminRoleCommand));
-    assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + kmsRoleCommand, rangerUserSyncBlockers.contains(kmsRoleCommand));
   }
   //todo: component override assertions
 
@@ -988,9 +993,10 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     OsFamily osFamily = new OsFamily(config);
+    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(stackRoot, commonServices, extensions, osFamily,
-        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
+        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
     String logsearchServerRoleCommand = Role.LOGSEARCH_SERVER + "-" + RoleCommand.START;

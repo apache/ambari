@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.ambari.server.state;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -35,21 +36,30 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
+import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
 import com.google.inject.ProvisionException;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -84,17 +94,18 @@ public class ServiceComponentImpl implements ServiceComponent {
    */
   private final long desiredStateEntityId;
 
-  /**
-   * Data access object used for lookup up stacks.
-   */
-  private final StackDAO stackDAO;
+  @Inject
+  private RepositoryVersionDAO repoVersionDAO;
+
+  @Inject
+  private HostComponentStateDAO hostComponentDAO;
 
   @AssistedInject
   public ServiceComponentImpl(@Assisted Service service, @Assisted String componentName,
       AmbariMetaInfo ambariMetaInfo,
       ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO,
       ClusterServiceDAO clusterServiceDAO, ServiceComponentHostFactory serviceComponentHostFactory,
-      StackDAO stackDAO, AmbariEventPublisher eventPublisher)
+      AmbariEventPublisher eventPublisher)
       throws AmbariException {
 
     this.ambariMetaInfo = ambariMetaInfo;
@@ -103,20 +114,15 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.serviceComponentDesiredStateDAO = serviceComponentDesiredStateDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceComponentHostFactory = serviceComponentHostFactory;
-    this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
-
-    StackId stackId = service.getDesiredStackVersion();
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
 
     ServiceComponentDesiredStateEntity desiredStateEntity = new ServiceComponentDesiredStateEntity();
     desiredStateEntity.setComponentName(componentName);
     desiredStateEntity.setDesiredState(State.INIT);
-    desiredStateEntity.setDesiredVersion(State.UNKNOWN.toString());
     desiredStateEntity.setServiceName(service.getName());
     desiredStateEntity.setClusterId(service.getClusterId());
     desiredStateEntity.setRecoveryEnabled(false);
-    desiredStateEntity.setDesiredStack(stackEntity);
+    desiredStateEntity.setDesiredRepositoryVersion(service.getDesiredRepositoryVersion());
 
     updateComponentInfo();
 
@@ -124,8 +130,9 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntityId = desiredStateEntity.getId();
   }
 
+  @Override
   public void updateComponentInfo() throws AmbariException {
-    StackId stackId = service.getDesiredStackVersion();
+    StackId stackId = service.getDesiredStackId();
     try {
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
           stackId.getStackVersion(), service.getName(), componentName);
@@ -150,14 +157,13 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO,
       ClusterServiceDAO clusterServiceDAO,
       HostComponentDesiredStateDAO hostComponentDesiredStateDAO,
-      ServiceComponentHostFactory serviceComponentHostFactory, StackDAO stackDAO,
+      ServiceComponentHostFactory serviceComponentHostFactory,
       AmbariEventPublisher eventPublisher)
       throws AmbariException {
     this.service = service;
     this.serviceComponentDesiredStateDAO = serviceComponentDesiredStateDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceComponentHostFactory = serviceComponentHostFactory;
-    this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
     this.ambariMetaInfo = ambariMetaInfo;
 
@@ -180,7 +186,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           serviceComponentHostFactory.createExisting(this,
             hostComponentStateEntity, hostComponentDesiredStateEntity));
       } catch(ProvisionException ex) {
-        StackId currentStackId = service.getCluster().getCurrentStackVersion();
+        StackId currentStackId = getDesiredStackId();
         LOG.error(String.format("Can not get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, hostname=%s",
           currentStackId.getStackName(), currentStackId.getStackVersion(),
           service.getName(),serviceComponentDesiredStateEntity.getComponentName(), hostComponentStateEntity.getHostName()));
@@ -222,11 +228,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public void setRecoveryEnabled(boolean recoveryEnabled) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting RecoveryEnabled of Component" + ", clusterName="
-          + service.getCluster().getClusterName() + ", clusterId="
-          + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-          + ", componentName=" + getName() + ", oldRecoveryEnabled=" + isRecoveryEnabled()
-          + ", newRecoveryEnabled=" + recoveryEnabled);
+      LOG.debug("Setting RecoveryEnabled of Component, clusterName={}, clusterId={}, serviceName={}, componentName={}, oldRecoveryEnabled={}, newRecoveryEnabled={}",
+        service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), isRecoveryEnabled(), recoveryEnabled);
     }
 
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
@@ -300,11 +303,8 @@ public class ServiceComponentImpl implements ServiceComponent {
       // TODO validation
       // TODO ensure host belongs to cluster
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding a ServiceComponentHost to ServiceComponent" + ", clusterName="
-            + service.getCluster().getClusterName() + ", clusterId="
-            + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-            + ", serviceComponentName=" + getName() + ", hostname=" + hostComponent.getHostName()
-            + ", recoveryEnabled=" + isRecoveryEnabled());
+        LOG.debug("Adding a ServiceComponentHost to ServiceComponent, clusterName={}, clusterId={}, serviceName={}, serviceComponentName={}, hostname={}, recoveryEnabled={}",
+          service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), hostComponent.getHostName(), isRecoveryEnabled());
       }
 
       if (hostComponents.containsKey(hostComponent.getHostName())) {
@@ -361,11 +361,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredState of Service" + ", clusterName="
-          + service.getCluster().getClusterName() + ", clusterId="
-          + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + getName() + ", oldDesiredState=" + getDesiredState()
-          + ", newDesiredState=" + state);
+      LOG.debug("Setting DesiredState of Service, clusterName={}, clusterId={}, serviceName={}, serviceComponentName={}, oldDesiredState={}, newDesiredState={}",
+        service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), getDesiredState(), state);
     }
 
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
@@ -381,7 +378,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public StackId getDesiredStackVersion() {
+  public StackId getDesiredStackId() {
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
 
@@ -393,27 +390,32 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void setDesiredStackVersion(StackId stack) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredStackVersion of Service" + ", clusterName="
-          + service.getCluster().getClusterName() + ", clusterId="
-          + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + getName() + ", oldDesiredStackVersion="
-          + getDesiredStackVersion() + ", newDesiredStackVersion=" + stack);
-    }
-
+  public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
 
     if (desiredStateEntity != null) {
-      StackEntity stackEntity = stackDAO.find(stack.getStackName(), stack.getStackVersion());
-      desiredStateEntity.setDesiredStack(stackEntity);
+      desiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
       desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RepositoryVersionEntity getDesiredRepositoryVersion() {
+    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
+        desiredStateEntityId);
+
+    return desiredStateEntity.getDesiredRepositoryVersion();
   }
 
   @Override
@@ -425,26 +427,17 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public void setDesiredVersion(String version) {
-    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
-
-      if (desiredStateEntity != null) {
-        desiredStateEntity.setDesiredVersion(version);
-      desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
-      } else {
-        LOG.warn("Setting a member on an entity object that may have been " +
-          "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
-      }
-  }
-
-  @Override
   public ServiceComponentResponse convertToResponse() {
     Cluster cluster = service.getCluster();
+    RepositoryVersionEntity repositoryVersionEntity = getDesiredRepositoryVersion();
+    StackId desiredStackId = repositoryVersionEntity.getStackId();
+
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), service.getName(), getName(),
-        getDesiredStackVersion().getStackId(), getDesiredState().toString(),
-        getServiceComponentStateCount(), isRecoveryEnabled(), displayName);
+        desiredStackId, getDesiredState().toString(),
+        getServiceComponentStateCount(), isRecoveryEnabled(), displayName,
+        repositoryVersionEntity.getVersion(), getRepositoryState());
+
     return r;
   }
 
@@ -461,7 +454,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       .append(", clusterName=").append(service.getCluster().getClusterName())
       .append(", clusterId=").append(service.getCluster().getClusterId())
       .append(", serviceName=").append(service.getName())
-      .append(", desiredStackVersion=").append(getDesiredStackVersion())
+      .append(", desiredStackVersion=").append(getDesiredStackId())
       .append(", desiredState=").append(getDesiredState())
       .append(", hostcomponents=[ ");
     boolean first = true;
@@ -592,6 +585,152 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     } finally {
       readWriteLock.writeLock().unlock();
+    }
+  }
+
+
+  /**
+   * Follows this version logic:
+   * <table border="1">
+   *   <tr>
+   *     <th>DB hostcomponent1</th>
+   *     <th>DB hostcomponentN</th>
+   *     <th>DB desired</th>
+   *     <th>New desired</th>
+   *     <th>Repo State</th>
+   *   </tr>
+   *   <tr>
+   *     <td>v1</td>
+   *     <td>v1</td>
+   *     <td>UNKNOWN</td>
+   *     <td>v1</td>
+   *     <td>CURRENT</td>
+   *   </tr>
+   *   <tr>
+   *     <td>v1</td>
+   *     <td>v2</td>
+   *     <td>UNKNOWN</td>
+   *     <td>UNKNOWN</td>
+   *     <td>OUT_OF_SYNC</td>
+   *   </tr>
+   *   <tr>
+   *     <td>v1</td>
+   *     <td>v2</td>
+   *     <td>v2</td>
+   *     <td>v2 (no change)</td>
+   *     <td>OUT_OF_SYNC</td>
+   *   </tr>
+   *   <tr>
+   *     <td>v2</td>
+   *     <td>v2</td>
+   *     <td>v1</td>
+   *     <td>v1 (no change)</td>
+   *     <td>OUT_OF_SYNC</td>
+   *   </tr>
+   *   <tr>
+   *     <td>v2</td>
+   *     <td>v2</td>
+   *     <td>v2</td>
+   *     <td>v2 (no change)</td>
+   *     <td>CURRENT</td>
+   *   </tr>
+   * </table>
+   */
+  @Override
+  @Transactional
+  public void updateRepositoryState(String reportedVersion) throws AmbariException {
+
+    ServiceComponentDesiredStateEntity component = serviceComponentDesiredStateDAO.findById(
+        desiredStateEntityId);
+
+    List<ServiceComponentVersionEntity> componentVersions = serviceComponentDesiredStateDAO.findVersions(
+        getClusterId(), getServiceName(), getName());
+
+    // per component, this list should be small, so iterating here isn't a big deal
+    Map<String, ServiceComponentVersionEntity> map = new HashMap<>(Maps.uniqueIndex(componentVersions,
+        new Function<ServiceComponentVersionEntity, String>() {
+          @Override
+          public String apply(ServiceComponentVersionEntity input) {
+            return input.getRepositoryVersion().getVersion();
+          }
+      }));
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Existing versions for {}/{}/{}: {}",
+          getClusterName(), getServiceName(), getName(), map.keySet());
+    }
+
+    ServiceComponentVersionEntity componentVersion = map.get(reportedVersion);
+
+    if (null == componentVersion) {
+      RepositoryVersionEntity repoVersion = repoVersionDAO.findByStackAndVersion(
+          getDesiredStackId(), reportedVersion);
+
+      if (null != repoVersion) {
+        componentVersion = new ServiceComponentVersionEntity();
+        componentVersion.setRepositoryVersion(repoVersion);
+        componentVersion.setState(RepositoryVersionState.INSTALLED);
+        componentVersion.setUserName("auto-reported");
+
+        // since we've never seen this version before, mark the component as CURRENT
+        component.setRepositoryState(RepositoryVersionState.CURRENT);
+        component.addVersion(componentVersion);
+
+        component = serviceComponentDesiredStateDAO.merge(component);
+
+        map.put(reportedVersion, componentVersion);
+
+      } else {
+        LOG.warn("There is no repository available for stack {}, version {}",
+            getDesiredStackId(), reportedVersion);
+      }
+    }
+
+    if (MapUtils.isNotEmpty(map)) {
+      String desiredVersion = component.getDesiredVersion();
+      RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
+
+      List<HostComponentStateEntity> hostComponents = hostComponentDAO.findByServiceAndComponentAndNotVersion(
+          component.getServiceName(), component.getComponentName(), reportedVersion);
+
+      LOG.debug("{}/{} reportedVersion={}, desiredVersion={}, non-matching desired count={}, repo_state={}",
+          component.getServiceName(), component.getComponentName(), reportedVersion,
+          desiredVersion, hostComponents.size(), component.getRepositoryState());
+
+      // !!! if we are unknown, that means it's never been set.  Try to determine it.
+      if (StackVersionListener.UNKNOWN_VERSION.equals(desiredVersion)) {
+        if (CollectionUtils.isEmpty(hostComponents)) {
+          // all host components are the same version as reported
+          component.setDesiredRepositoryVersion(desiredRepositoryVersion);
+          component.setRepositoryState(RepositoryVersionState.CURRENT);
+        } else {
+          // desired is UNKNOWN and there's a mix of versions in the host components
+          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
+        }
+      } else {
+        if (!reportedVersion.equals(desiredVersion)) {
+          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
+        } else if (CollectionUtils.isEmpty(hostComponents)) {
+          component.setRepositoryState(RepositoryVersionState.CURRENT);
+        }
+      }
+
+      component = serviceComponentDesiredStateDAO.merge(component);
+    }
+  }
+
+  @Override
+  public RepositoryVersionState getRepositoryState() {
+    ServiceComponentDesiredStateEntity component = serviceComponentDesiredStateDAO.findById(
+        desiredStateEntityId);
+
+    if (null != component) {
+      return component.getRepositoryState();
+    } else {
+      LOG.warn("Cannot retrieve repository state on component that may have been deleted: service {}, component {}",
+          service != null ? service.getName() : null, componentName);
+
+      return null;
     }
   }
 

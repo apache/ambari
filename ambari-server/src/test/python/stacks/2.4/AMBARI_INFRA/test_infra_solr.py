@@ -21,7 +21,10 @@ limitations under the License.
 from stacks.utils.RMFTestCase import RMFTestCase, Template, InlineTemplate, StaticFile
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+from mock.mock import MagicMock, call, patch
 
+@patch("os.listdir", new = MagicMock(return_value=['solr-8886.pid']))
+@patch("os.path.isdir", new = MagicMock(return_value=True))
 class TestInfraSolr(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "AMBARI_INFRA/0.1.0/package"
   STACK_VERSION = "2.4"
@@ -103,6 +106,9 @@ class TestInfraSolr(RMFTestCase):
                                 )
 
       self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --create-znode --retry 30 --interval 5')
+      self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --remove-admin-handlers --collection hadoop_logs --retry 5 --interval 10')
+      self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --remove-admin-handlers --collection audit_logs --retry 5 --interval 10')
+      self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --remove-admin-handlers --collection history --retry 5 --interval 10')
       self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --cluster-prop --property-name urlScheme --property-value http')
       self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --setup-kerberos-plugin')
 

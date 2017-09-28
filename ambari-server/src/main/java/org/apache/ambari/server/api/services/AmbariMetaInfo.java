@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,7 +24,6 @@ import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGRE
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -37,12 +36,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -53,15 +56,11 @@ import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -75,6 +74,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -95,6 +95,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -105,30 +108,6 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class AmbariMetaInfo {
-  public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
-  public static final String SERVICE_PROPERTIES_FOLDER_NAME = "properties";
-  public static final String SERVICE_THEMES_FOLDER_NAME = "themes";
-  public static final String SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME = "quicklinks";
-  public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
-  public static final String RCO_FILE_NAME = "role_command_order.json";
-  public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
-  public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
-  public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
-
-  /**
-   * The filename for a Kerberos descriptor file at either the stack or service level
-   */
-  public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
-
-  /**
-   * The filename for a Widgets descriptor file at either the stack or service level
-   */
-  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
-
-  /**
-   * Filename for theme file at service layer
-   */
-  public static final String SERVICE_THEME_FILE_NAME = "theme.json";
 
   /**
    * This string is used in placeholder in places that are common for
@@ -139,34 +118,15 @@ public class AmbariMetaInfo {
    * Version of XML files with support of custom services and custom commands
    */
   public static final String SCHEMA_VERSION_2 = "2.0";
-  public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String s) {
-      return !(s.equals(".svn") || s.equals(".git") ||
-          s.equals(StackDirectory.HOOKS_FOLDER_NAME));
-    }
-  };
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
 
-  /**
-   * Repository XML base url property name
-   */
-  public static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
-
-  /**
-   * Repository XML mirrors list property name
-   */
-  public static final String REPOSITORY_XML_PROPERTY_MIRRORSLIST = "mirrorslist";
 
   // all the supported OS'es
   @Inject
-  private OsFamily osFamily;
+  private OsFamily os_family;
 
   @Inject
   private Gson gson;
-
-  @Inject
-  private ClusterVersionDAO clusterVersionDAO;
 
   /**
    * ALL_SUPPORTED_OS is dynamically generated list from loaded families from os_family.json
@@ -280,12 +240,12 @@ public class AmbariMetaInfo {
   @Inject
   public void init() throws Exception {
     // Need to be initialized before all actions
-    ALL_SUPPORTED_OS = new ArrayList<>(osFamily.os_list());
+    ALL_SUPPORTED_OS = new ArrayList<>(os_family.os_list());
 
     readServerVersion();
 
     stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
-        osFamily, false);
+        os_family, false);
 
     getCustomActionDefinitions(customActionRoot);
   }
@@ -393,6 +353,13 @@ public class AmbariMetaInfo {
     return foundDependency;
   }
 
+  /**
+   * Gets repositories that are keyed by operating system type.
+   * @param stackName the stack name
+   * @param version   the stack version
+   * @return
+   * @throws AmbariException
+   */
   public Map<String, List<RepositoryInfo>> getRepository(String stackName,
                                                          String version) throws AmbariException {
     StackInfo stack = getStack(stackName, version);
@@ -401,8 +368,7 @@ public class AmbariMetaInfo {
     Map<String, List<RepositoryInfo>> reposResult = new HashMap<>();
     for (RepositoryInfo repo : repository) {
       if (!reposResult.containsKey(repo.getOsType())) {
-        reposResult.put(repo.getOsType(),
-          new ArrayList<RepositoryInfo>());
+        reposResult.put(repo.getOsType(), new ArrayList<>());
       }
       reposResult.get(repo.getOsType()).add(repo);
     }
@@ -502,10 +468,7 @@ public class AmbariMetaInfo {
   public String getComponentToService(String stackName, String version,
                                       String componentName) throws AmbariException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Looking for service for component"
-          + ", stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", componentName=" + componentName);
+      LOG.debug("Looking for service for component, stackName={}, stackVersion={}, componentName={}", stackName, version, componentName);
     }
     Map<String, ServiceInfo> services = getServices(stackName, version);
     String retService = null;
@@ -549,6 +512,18 @@ public class AmbariMetaInfo {
       }
     }
     return servicesInfoResult;
+  }
+
+  /**
+   * Convenience method to use stack id instead of separate name and version.
+   * @param service
+   *            the service business object
+   * @return  the service info instance defined from the stack for the business object
+   * @throws AmbariException
+   */
+  public ServiceInfo getService(Service service) throws AmbariException {
+    StackId stackId = service.getDesiredStackId();
+    return getService(stackId.getStackName(), stackId.getStackVersion(), service.getName());
   }
 
   public ServiceInfo getService(String stackName, String version, String serviceName) throws AmbariException {
@@ -643,6 +618,17 @@ public class AmbariMetaInfo {
     }
 
     return stacks;
+  }
+
+  /**
+   * Convenience method to get stack info from a stack id
+   * @param stackId
+   *            the stack id
+   * @return  the stack info
+   * @throws AmbariException
+   */
+  public StackInfo getStack(StackId stackId) throws AmbariException {
+    return getStack(stackId.getStackName(), stackId.getStackVersion());
   }
 
   public StackInfo getStack(String stackName, String version) throws AmbariException {
@@ -822,13 +808,12 @@ public class AmbariMetaInfo {
 
   private void getCustomActionDefinitions(File customActionDefinitionRoot) throws JAXBException, AmbariException {
     if (customActionDefinitionRoot != null) {
-      LOG.debug("Loading custom action definitions from "
-          + customActionDefinitionRoot.getAbsolutePath());
+      LOG.debug("Loading custom action definitions from {}", customActionDefinitionRoot.getAbsolutePath());
 
       if (customActionDefinitionRoot.exists() && customActionDefinitionRoot.isDirectory()) {
         adManager.readCustomActionDefinitions(customActionDefinitionRoot);
       } else {
-        LOG.debug("No action definitions found at " + customActionDefinitionRoot.getAbsolutePath());
+        LOG.debug("No action definitions found at {}", customActionDefinitionRoot.getAbsolutePath());
       }
     }
   }
@@ -863,89 +848,6 @@ public class AmbariMetaInfo {
     return ALL_SUPPORTED_OS.contains(osType);
   }
 
-  /**
-   * Returns a suitable key for use with stack url overrides.
-   * @param stackName the stack name
-   * @param stackVersion the stack version
-   * @param osType the os
-   * @param repoId the repo id
-   * @param field the field name
-   * @return the key for any repo value override
-   */
-  public static String generateRepoMetaKey(String stackName, String stackVersion,
-      String osType, String repoId, String field) {
-
-    StringBuilder sb = new StringBuilder("repo:/");
-    sb.append(stackName).append('/');
-    sb.append(stackVersion).append('/');
-    sb.append(osType).append('/');
-    sb.append(repoId);
-    sb.append(':').append(field);
-
-    return sb.toString();
-  }
-
-  /**
-   * @param stackName the stack name
-   * @param stackVersion the stack version
-   * @param osType the os
-   * @param repoId the repo id
-   * @param newBaseUrl the new base url
-   * @param newMirrorsList the new mirrors list
-   */
-  public void updateRepo(String stackName,
-                         String stackVersion, String osType, String repoId, String newBaseUrl, String newMirrorsList) throws AmbariException {
-
-    // validate existing
-    RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
-
-    if (!stackRoot.exists()) {
-      throw new StackAccessException("Stack root does not exist.");
-    }
-
-    if (null != newMirrorsList) {
-      ri.setMirrorsList(newMirrorsList);
-    }
-    if (null != newBaseUrl) {
-      ri.setBaseUrl(newBaseUrl);
-    }
-    if (null != metaInfoDAO) {
-      if (null != newBaseUrl) {
-        updateRepoInMetaInfo(stackName, stackVersion, osType, repoId, newBaseUrl, ri, REPOSITORY_XML_PROPERTY_BASEURL);
-      }
-      if (null != newMirrorsList) {
-        updateRepoInMetaInfo(stackName, stackVersion, osType, repoId, newMirrorsList, ri, REPOSITORY_XML_PROPERTY_MIRRORSLIST);
-      }
-    }
-  }
-
-  /**
-   * Update repo property repositoryXmlProperty in metaInfo with new value
-   *
-   * @param stackName             the stack name
-   * @param stackVersion          the stack version
-   * @param osType                the os
-   * @param repoId                the repo id
-   * @param value                 new value
-   * @param ri                    repositoryInfo
-   * @param repositoryXmlProperty repository.xml property name
-   */
-  private void updateRepoInMetaInfo(String stackName, String stackVersion, String osType, String repoId, String value, RepositoryInfo ri, String repositoryXmlProperty) {
-    String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
-        repoId, repositoryXmlProperty);
-
-    MetainfoEntity entity = new MetainfoEntity();
-    entity.setMetainfoName(metaKey);
-    entity.setMetainfoValue(value);
-
-    // !!! need a way to remove
-    if (StringUtils.isBlank(value)) { // This block should get removed someday, we aren't supporting this mechanism anymore
-      metaInfoDAO.remove(entity);
-    } else {
-      metaInfoDAO.merge(entity);
-      ri.setRepoSaved(true);
-    }
-  }
 
   public File getStackRoot() {
     return stackRoot;
@@ -964,7 +866,7 @@ public class AmbariMetaInfo {
     ServiceInfo svc = getService(stackName, stackVersion, serviceName);
 
     if (null == svc.getMetricsFile() || !svc.getMetricsFile().exists()) {
-      LOG.debug("Metrics file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
+      LOG.debug("Metrics file for {}/{}/{} not found.", stackName, stackVersion, serviceName);
       return null;
     }
 
@@ -1152,22 +1054,12 @@ public class AmbariMetaInfo {
     // for every cluster
     for (Cluster cluster : clusterMap.values()) {
       long clusterId = cluster.getClusterId();
-      StackId stackId = cluster.getDesiredStackVersion();
-      StackInfo stackInfo = getStack(stackId.getStackName(),
-          stackId.getStackVersion());
 
       // creating a mapping between names and service/component for fast lookups
-      Collection<ServiceInfo> stackServices = stackInfo.getServices();
+//      Collection<ServiceInfo> stackServices = new ArrayList<>();
       Map<String, ServiceInfo> stackServiceMap = new HashMap<>();
       Map<String, ComponentInfo> stackComponentMap = new HashMap<>();
-      for (ServiceInfo stackService : stackServices) {
-        stackServiceMap.put(stackService.getName(), stackService);
 
-        List<ComponentInfo> components = stackService.getComponents();
-        for (ComponentInfo component : components) {
-          stackComponentMap.put(component.getName(), component);
-        }
-      }
 
       Map<String, Service> clusterServiceMap = cluster.getServices();
       Set<String> clusterServiceNames = clusterServiceMap.keySet();
@@ -1175,12 +1067,20 @@ public class AmbariMetaInfo {
       // for every service installed in that cluster, get the service metainfo
       // and off of that the alert definitions
       List<AlertDefinition> stackDefinitions = new ArrayList<>(50);
-      for (String clusterServiceName : clusterServiceNames) {
-        ServiceInfo stackService = stackServiceMap.get(clusterServiceName);
+
+      for (Service service : cluster.getServices().values()) {
+        ServiceInfo stackService = getService(service.getDesiredStackId().getStackName(),
+            service.getDesiredStackId().getStackVersion(), service.getName());
+
         if (null == stackService) {
           continue;
         }
 
+        stackServiceMap.put(stackService.getName(), stackService);
+        List<ComponentInfo> components = stackService.getComponents();
+        for (ComponentInfo component : components) {
+          stackComponentMap.put(component.getName(), component);
+        }
 
         // get all alerts defined on the stack for each cluster service
         Set<AlertDefinition> serviceDefinitions = getAlertDefinitions(stackService);
@@ -1283,6 +1183,8 @@ public class AmbariMetaInfo {
           continue;
         }
 
+        StackId stackId = cluster.getService(serviceName).getDesiredStackId();
+
         if (!stackServiceMap.containsKey(serviceName)) {
           LOG.info(
               "The {} service has been marked as deleted for stack {}, disabling alert {}",
@@ -1324,7 +1226,7 @@ public class AmbariMetaInfo {
     try {
       StackInfo stack = getStack(stackName, stackVersion);
       return stack.getUpgradePacks() == null ?
-          Collections.<String, UpgradePack>emptyMap() : stack.getUpgradePacks();
+          Collections.emptyMap() : stack.getUpgradePacks();
 
     } catch (AmbariException e) {
       LOG.debug("Cannot load upgrade packs for non-existent stack {}-{}", stackName, stackVersion, e);
@@ -1357,40 +1259,52 @@ public class AmbariMetaInfo {
    * All of the kerberos.json files from the specified stack (and version) are read, parsed and
    * complied into a complete Kerberos descriptor hierarchy.
    *
-   * @param stackName    a String declaring the stack name
-   * @param stackVersion a String declaring the stack version
+   * @param stackName               a String declaring the stack name
+   * @param stackVersion            a String declaring the stack version
+   * @param includePreconfigureData a Boolean value indicating whether to include the pre-configuration
+   *                                data (<code>true</code>), or not (<code>false</code>)
    * @return a new complete KerberosDescriptor, or null if no Kerberos descriptor information is available
    * @throws AmbariException if an error occurs reading or parsing the stack's kerberos.json files
    */
-  public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion) throws AmbariException {
+  public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion, boolean includePreconfigureData) throws AmbariException {
     StackInfo stackInfo = getStack(stackName, stackVersion);
-
-    String kerberosDescriptorFileLocation = stackInfo.getKerberosDescriptorFileLocation();
 
     KerberosDescriptor kerberosDescriptor = null;
 
-    // Read in the stack-level Kerberos descriptor
-    if (kerberosDescriptorFileLocation != null) {
-      File file = new File(kerberosDescriptorFileLocation);
+    // Read in the stack-level Kerberos descriptor pre-configuration data
+    if (includePreconfigureData) {
+      kerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorPreConfigurationFileLocation());
 
-      if (file.canRead()) {
-        try {
-          kerberosDescriptor = kerberosDescriptorFactory.createInstance(file);
-        } catch (IOException e) {
-          throw new AmbariException(String.format("Failed to parse kerberos descriptor file %s",
-              file.getAbsolutePath()), e);
+      if (kerberosDescriptor != null) {
+        // Ensure the all services to be pre-configured are flagged appropriately.
+        Map<String, KerberosServiceDescriptor> serviceDescriptors = kerberosDescriptor.getServices();
+        if (serviceDescriptors != null) {
+          for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors.values()) {
+            serviceDescriptor.setPreconfigure(true);
+          }
         }
-      } else {
-        throw new AmbariException(String.format("Unable to read kerberos descriptor file %s",
-            file.getAbsolutePath()));
       }
     }
 
-    if (kerberosDescriptor == null) {
-      kerberosDescriptor = new KerberosDescriptor();
+    // Read in the base stack-level Kerberos descriptor.
+    KerberosDescriptor stackKerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorFileLocation());
+    if (stackKerberosDescriptor == null) {
+      // If kerberosDescriptor is null and stackKerberosDescriptor is null, then ensure
+      // kerberosDescriptor is an empty KerberosDescriptor.
+      if (kerberosDescriptor == null) {
+        kerberosDescriptor = new KerberosDescriptor();
+      }
+    } else {
+      if (kerberosDescriptor == null) {
+        // If kerberosDescriptor is null; then set it to stackKerberosDescriptor.
+        kerberosDescriptor = stackKerberosDescriptor;
+      } else {
+        // If kerberosDescriptor is not null; then update it using stackKerberosDescriptor.
+        kerberosDescriptor.update(stackKerberosDescriptor);
+      }
     }
 
-    // Read in the service-level Kerberos descriptors
+    // Read in the individual service-level Kerberos descriptors
     Map<String, ServiceInfo> services = getServices(stackName, stackVersion);
 
     if (services != null) {
@@ -1399,6 +1313,9 @@ public class AmbariMetaInfo {
 
         if (serviceDescriptors != null) {
           for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors) {
+            // Add the service-level Kerberos descriptor to kerberosDescriptor. If the service was
+            // previously added (possible from the pre-configure data), update the existing service-level
+            // Kerberos descriptor with this one.
             kerberosDescriptor.putService(serviceDescriptor);
           }
         }
@@ -1462,7 +1379,14 @@ public class AmbariMetaInfo {
 
       if (stack.isActive() && stack.isValid()) {
         try {
-          VersionDefinitionXml xml = VersionDefinitionXml.build(stack);
+          // !!! check for a "latest-vdf" one.  This will be used for the default if one is not found.
+          VersionDefinitionXml xml = stack.getLatestVersionDefinition();
+
+          if (null == xml) {
+            // !!! "latest-vdf" was not found, use the stack.  this is the last-ditch effort
+            xml = VersionDefinitionXml.build(stack);
+          }
+
           versionDefinitions.put(String.format("%s-%s", stack.getName(), stack.getVersion()), xml);
         } catch (Exception e) {
           LOG.warn("Could not make a stack VDF for {}-{}: {}",
@@ -1507,14 +1431,13 @@ public class AmbariMetaInfo {
    * @return the repo info
    *
    * @throws AmbariException if the repository information can not be obtained
-   */
   public String getRepoInfoString(Cluster cluster, Host host) throws AmbariException {
 
     return getRepoInfoString(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
-  }
+  }*/
 
-  public String getRepoInfoString(Cluster cluster, String hostOSType, String hostOSFamily, String hostName) throws AmbariException {
-    return gson.toJson(getRepoInfo(cluster, hostOSType, hostOSFamily, hostName));
+  public String getRepoInfoString(Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
+    return gson.toJson(getCommandRepository(cluster, component, host));
   }
 
   /**
@@ -1525,105 +1448,236 @@ public class AmbariMetaInfo {
    *
    * @return the repo info
    *
+   * @deprecated use {@link #getCommandRepository(Cluster, ServiceComponent, Host)} instead.
    * @throws AmbariException if the repository information can not be obtained
    */
-  public List<RepositoryInfo> getRepoInfo(Cluster cluster, Host host) throws AmbariException {
+  @Deprecated
+  public String getRepoInfo(Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
 
-    return getRepoInfo(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
+    Function<List<RepositoryInfo>, JsonArray> function = new Function<List<RepositoryInfo>, JsonArray>() {
+      @Override
+      public JsonArray apply(List<RepositoryInfo> input) {
+        return null == input ? null : (JsonArray) gson.toJsonTree(input);
+      }
+    };
+
+    final JsonArray gsonList = getBaseUrls(cluster, component, host, function);
+
+    if (null == gsonList) {
+      return "";
+    }
+
+    BaseUrlUpdater<JsonArray> updater = new BaseUrlUpdater<JsonArray>(gsonList) {
+      @Override
+      public JsonArray apply(final RepositoryVersionEntity rve) {
+
+        JsonArray result = new JsonArray();
+
+        for (JsonElement e : gsonList) {
+          JsonObject obj = e.getAsJsonObject();
+
+          String repoId = obj.has("repoId") ? obj.get("repoId").getAsString() : null;
+          String repoName = obj.has("repoName") ? obj.get("repoName").getAsString() : null;
+          String baseUrl = obj.has("baseUrl") ? obj.get("baseUrl").getAsString() : null;
+          String osType = obj.has("osType") ? obj.get("osType").getAsString() : null;
+
+          if (null == repoId || null == baseUrl || null == osType || null == repoName) {
+            continue;
+          }
+
+          for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
+            if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
+              for (RepositoryEntity re : ose.getRepositories()) {
+                if (re.getName().equals(repoName) &&
+                    !re.getBaseUrl().equals(baseUrl)) {
+                  obj.addProperty("baseUrl", re.getBaseUrl());
+                }
+              }
+              result.add(e);
+            }
+          }
+        }
+
+        return result;
+      }
+    };
+
+    return updateBaseUrls(cluster, component, updater).toString();
   }
 
-  public List<RepositoryInfo> getRepoInfo(Cluster cluster, String hostOSType, String hostOSFamily, String hostName) throws AmbariException {
+  /**
+   * Builds repository information for inclusion in a command.  This replaces escaping json on
+   * a command.
+   *
+   * @param cluster the cluster
+   * @param host    the host
+   * @return  the command repository
+   * @throws AmbariException
+   */
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
+  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, final Host host) throws AmbariException {
 
-    StackId stackId = cluster.getDesiredStackVersion();
+    final CommandRepository command = new CommandRepository();
+    StackId stackId = component.getDesiredStackId();
+    command.setRepositories(Collections.<RepositoryInfo>emptyList());
+    command.setStackName(stackId.getStackName());
+
+    final BaseUrlUpdater<Void> updater = new BaseUrlUpdater<Void>(null) {
+      @Override
+      public Void apply(RepositoryVersionEntity rve) {
+        command.setRepositoryVersionId(rve.getId());
+        command.setRepositoryVersion(rve.getVersion());
+        command.setStackName(rve.getStackName());
+
+        // !!! a repository version entity has all the repos worked out.  We shouldn't use
+        // the stack at all.
+        for (OperatingSystemEntity osEntity : rve.getOperatingSystems()) {
+          String osEntityFamily = os_family.find(osEntity.getOsType());
+          if (osEntityFamily.equals(host.getOsFamily())) {
+            command.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
+
+            if (!osEntity.isAmbariManagedRepos()) {
+              command.setNonManaged();
+            } else {
+              command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
+            }
+          }
+        }
+
+        return null;
+      }
+    };
+
+    updateBaseUrls(cluster, component, updater);
+
+    return command;
+  }
+
+  /**
+   * Executed by two different representations of repos.  When we are comfortable with the new
+   * implementation, this may be removed and called inline in {@link #getCommandRepository(Cluster, ServiceComponent, Host)}
+   *
+   * @param cluster   the cluster to isolate the stack
+   * @param component the component
+   * @param host      used to resolve the family for the repositories
+   * @param function  function that will transform the supplied repositories for specific use.
+   * @return <T> the type as defined by the supplied {@code function}.
+   * @throws AmbariException
+   */
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+  private <T> T getBaseUrls(Cluster cluster, ServiceComponent component, Host host,
+                            Function<List<RepositoryInfo>, T> function) throws AmbariException {
+
+    String hostOsType = host.getOsType();
+    String hostOsFamily = host.getOsFamily();
+    String hostName = host.getHostName();
+
+    StackId stackId = component.getDesiredStackId();
 
     Map<String, List<RepositoryInfo>> repos = getRepository(
         stackId.getStackName(), stackId.getStackVersion());
 
-    String family = osFamily.find(hostOSType);
+    String family = os_family.find(hostOsType);
     if (null == family) {
-      family = hostOSFamily;
+      family = hostOsFamily;
     }
 
-    List<RepositoryInfo> repoInfos = new ArrayList<>();
+    final List<RepositoryInfo> repoInfos;
 
     // !!! check for the most specific first
-    if (repos.containsKey(hostOSType)) {
-      repoInfos = repos.get(hostOSType);
+    if (repos.containsKey(hostOsType)) {
+      repoInfos = repos.get(hostOsType);
     } else if (null != family && repos.containsKey(family)) {
       repoInfos = repos.get(family);
     } else {
+      repoInfos = null;
       LOG.warn("Could not retrieve repo information for host"
           + ", hostname=" + hostName
           + ", clusterName=" + cluster.getClusterName()
           + ", stackInfo=" + stackId.getStackId());
     }
 
-    if (null != repoInfos) {
-      updateBaseUrls(cluster, repoInfos);
-      return repoInfos;
-    } else {
-      return null;
-    }
+    // leave it to function implementation to handle null.
+    return function.apply(repoInfos);
   }
+
   /**
    * Checks repo URLs against the current version for the cluster and makes
    * adjustments to the Base URL when the current is different.
-   * @param cluster   the cluster to load the current version
-   * @param repoInfos the array containing stack repo data
+   *
+   * @param <T> the result after appling the repository version, if found.
    */
-  private void updateBaseUrls(Cluster cluster, List<RepositoryInfo> repoInfos) throws AmbariException {
-    ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+  private <T> T updateBaseUrls(Cluster cluster, ServiceComponent component, BaseUrlUpdater<T> function) throws AmbariException {
 
-    if (null == cve) {
-      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
-          RepositoryVersionState.INIT);
+    RepositoryVersionEntity repositoryEntity = null;
 
-      if (!list.isEmpty()) {
-        if (list.size() > 1) {
-          throw new AmbariException(String.format("The cluster can only be initialized by one version: %s found",
-              list.size()));
-        } else {
-          cve = list.get(0);
-        }
-      }
+    // !!! try to find the component repo first
+    if (null != component) {
+      repositoryEntity = component.getDesiredRepositoryVersion();
+    } else {
+      LOG.info("Service component not passed in, attempt to resolve the repository for cluster {}",
+          cluster.getClusterName());
     }
 
-    if (null == cve || null == cve.getRepositoryVersion()) {
+    if (null == repositoryEntity && null != component) {
+      Service service = cluster.getService(component.getServiceName());
+
+      repositoryEntity = service.getDesiredRepositoryVersion();
+    }
+
+    if (null == repositoryEntity) {
       LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
-      return;
+      return function.getDefault();
     }
 
-    RepositoryVersionEntity rve = cve.getRepositoryVersion();
+    return function.apply(repositoryEntity);
+  }
 
-    for (Iterator<RepositoryInfo> iter = repoInfos.iterator(); iter.hasNext(); ) {
+  /**
+   * Reads a Kerberos descriptor from the specified file path.
+   *
+   * @param fileLocation the path to the file
+   * @return a KerberosDescriptor or <code>null</code>, if no path is specified
+   * @throws AmbariException if an error occurs reading or parsing the Kerberos descriptor file
+   */
+  KerberosDescriptor readKerberosDescriptorFromFile(String fileLocation) throws AmbariException {
+    if (!StringUtils.isEmpty(fileLocation)) {
+      File file = new File(fileLocation);
 
-      RepositoryInfo repositoryInfo = iter.next();
-
-      String repoId = repositoryInfo.getRepoId();
-      String repoName = repositoryInfo.getRepoName();
-      String baseUrl = repositoryInfo.getBaseUrl();
-      String osType = repositoryInfo.getOsType();
-
-      if (null == repoId || null == baseUrl || null == osType || null == repoName) {
-        continue;
-      }
-
-      boolean toResult = false;
-      for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
-        if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
-          for (RepositoryEntity re : ose.getRepositories()) {
-            if (re.getName().equals(repoName) &&
-                re.getRepositoryId().equals(repoId) &&
-                !re.getBaseUrl().equals(baseUrl)) {
-              repositoryInfo.setBaseUrl(re.getBaseUrl());
-            }
-          }
-          toResult = true;
+      if (file.canRead()) {
+        try {
+          return kerberosDescriptorFactory.createInstance(file);
+        } catch (IOException e) {
+          throw new AmbariException(String.format("Failed to parse Kerberos descriptor file %s",
+              file.getAbsolutePath()), e);
         }
+      } else {
+        throw new AmbariException(String.format("Unable to read Kerberos descriptor file %s",
+            file.getAbsolutePath()));
       }
-      if (!toResult) {
-        iter.remove();
-      }
+    } else {
+      LOG.debug("Missing path to Kerberos descriptor, returning null");
     }
+
+    return null;
+  }
+
+  /**
+   * Class that is used to update base urls.  There are two implementations of this - when we no
+   * longer are sure the deprecated repo info can be removed, so too can this class.
+   */
+  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
+  abstract static class BaseUrlUpdater<T> implements Function<RepositoryVersionEntity, T> {
+    private T m_default;
+
+    private BaseUrlUpdater(T defaultValue) {
+      m_default = defaultValue;
+    }
+
+    private T getDefault() {
+      return m_default;
+    }
+
   }
 }

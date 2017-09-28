@@ -173,9 +173,9 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 
 # if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
-  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/datanode_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+  rs_hosts = default('/clusterHostInfo/hbase_regionserver_hosts', '/clusterHostInfo/datanode_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 else:
-  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
+  rs_hosts = default('/clusterHostInfo/hbase_regionserver_hosts', '/clusterHostInfo/all_hosts')
 
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']

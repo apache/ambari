@@ -123,7 +123,7 @@ App.upgradeWizardView = Em.View.extend({
    */
   noActiveItem: function () {
     return (Em.isNone(this.get('failedItem')) && Em.isNone(this.get('runningItem')) && Em.isNone(this.get('manualItem'))) &&
-      !['INIT', 'COMPLETED', 'ABORTED'].contains(App.get('upgradeState'));
+      !['NOT_REQUIRED', 'COMPLETED', 'ABORTED'].contains(App.get('upgradeState'));
   }.property('failedItem', 'runningItem', 'manualItem', 'App.upgradeState'),
 
   /**
@@ -192,7 +192,9 @@ App.upgradeWizardView = Em.View.extend({
    */
   isSlaveComponentFailuresItem: function () {
     var item = this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('context', this.get("controller.slaveFailuresContext"));
-    return item && ['HOLDING', 'HOLDING_FAILED'].contains(item.get('status'));
+    var status = item && item.get('status');
+    this.set('isOutOfSync', status === 'OUT_OF_SYNC');
+    return ['HOLDING', 'HOLDING_FAILED', 'OUT_OF_SYNC'].contains(status);
   }.property('activeGroup.upgradeItems.@each.status', 'activeGroup.upgradeItems.@each.context'),
 
   /**
@@ -206,6 +208,22 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   isFinalizeItem: Em.computed.equalProperties('manualItem.context', 'controller.finalizeContext'),
+
+  /**
+   * Upgrade of PATCH version is revertible
+   */
+  isRevertibleUpgrade: function() {
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var upgradeVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    return ['PATCH'].contains(upgradeVersion.get('type'));
+  }.property('controller.upgradeData.Upgrade.associated_version'),
+
+  revertibleFinalizeMessage: function() {
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var upgradeVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    return Em.I18n.t('admin.stackUpgrade.finalize.message.revertible')
+      .format(upgradeVersion.get('type'), upgradeVersion.get('displayName'));
+  }.property('controller.upgradeData.Upgrade.associated_version'),
 
   /**
    * label of Upgrade status
@@ -231,6 +249,9 @@ App.upgradeWizardView = Em.View.extend({
       case 'HOLDING_TIMEDOUT':
       case 'HOLDING':
         labelKey = 'admin.stackUpgrade.state.paused';
+        break;
+      default:
+        labelKey = 'admin.stackUpgrade.state.init';
         break;
     }
     if (labelKey) {

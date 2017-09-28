@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,35 +18,35 @@
 package org.apache.ambari.server.stack;
 
 
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Collections;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
+import com.google.gson.Gson;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Provider;
 
 /**
@@ -58,7 +58,6 @@ public class UpdateActiveRepoVersionOnStartupTest {
   private static String ADD_ON_REPO_ID = "MSFT_R-8.0";
 
   private RepositoryVersionDAO repositoryVersionDao;
-  private RepositoryVersionEntity repoVersion;
   private UpdateActiveRepoVersionOnStartup activeRepoUpdater;
 
   @Test
@@ -80,25 +79,20 @@ public class UpdateActiveRepoVersionOnStartupTest {
    * @throws Exception
    */
   private void verifyRepoIsAdded() throws Exception {
-    verify(repositoryVersionDao, times(1)).merge(repoVersion);
-
-    boolean serviceRepoAddedToJson = false;
-    outer:
-    for (OperatingSystemEntity os: repoVersion.getOperatingSystems()) if (os.getOsType().equals("redhat6")) {
-      for (RepositoryEntity repo: os.getRepositories()) if (repo.getRepositoryId().equals(ADD_ON_REPO_ID)) {
-        serviceRepoAddedToJson = true;
-        break outer;
-      }
-    }
-    Assert.assertTrue(ADD_ON_REPO_ID + " is add-on repo was not added to JSON representation", serviceRepoAddedToJson);
+    verify(repositoryVersionDao, atLeast(1)).merge(Mockito.any(RepositoryVersionEntity.class));
   }
 
   public void init(boolean addClusterVersion) throws Exception {
     ClusterDAO clusterDao = mock(ClusterDAO.class);
-    ClusterVersionDAO clusterVersionDAO = mock(ClusterVersionDAO.class);
+
     repositoryVersionDao = mock(RepositoryVersionDAO.class);
+
     final RepositoryVersionHelper repositoryVersionHelper = new RepositoryVersionHelper();
-    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    Field field = RepositoryVersionHelper.class.getDeclaredField("gson");
+    field.setAccessible(true);
+    field.set(repositoryVersionHelper, new Gson());
+
+    final AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
 
     StackManager stackManager = mock(StackManager.class);
     when(metaInfo.getStackManager()).thenReturn(stackManager);
@@ -112,42 +106,63 @@ public class UpdateActiveRepoVersionOnStartupTest {
     stackEntity.setStackVersion("2.3");
     cluster.setDesiredStack(stackEntity);
 
+    RepositoryVersionEntity desiredRepositoryVersion = new RepositoryVersionEntity();
+    desiredRepositoryVersion.setStack(stackEntity);
+    desiredRepositoryVersion.setOperatingSystems(resourceAsString("org/apache/ambari/server/stack/UpdateActiveRepoVersionOnStartupTest_initialRepos.json"));
+
+    ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
+    serviceDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
+
+    ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
+    clusterServiceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
+    cluster.setClusterServiceEntities(Collections.singletonList(clusterServiceEntity));
+
     StackInfo stackInfo = new StackInfo();
     stackInfo.setName("HDP");
     stackInfo.setVersion("2.3");
+
     RepositoryInfo repositoryInfo = new RepositoryInfo();
     repositoryInfo.setBaseUrl("http://msft.r");
     repositoryInfo.setRepoId(ADD_ON_REPO_ID);
     repositoryInfo.setRepoName("MSFT_R");
     repositoryInfo.setOsType("redhat6");
     stackInfo.getRepositories().add(repositoryInfo);
+
     when(stackManager.getStack("HDP", "2.3")).thenReturn(stackInfo);
 
-    Provider<RepositoryVersionHelper> repositoryVersionHelperProvider = mock(Provider.class);
+    final Provider<RepositoryVersionHelper> repositoryVersionHelperProvider = mock(Provider.class);
     when(repositoryVersionHelperProvider.get()).thenReturn(repositoryVersionHelper);
+
+
     InMemoryDefaultTestModule testModule = new InMemoryDefaultTestModule() {
       @Override
       protected void configure() {
-        bind(RepositoryVersionHelper.class).toInstance(repositoryVersionHelper);
+        bind(RepositoryVersionHelper.class).toProvider(repositoryVersionHelperProvider);
+        bind(AmbariMetaInfo.class).toProvider(new Provider<AmbariMetaInfo>() {
+          @Override
+          public AmbariMetaInfo get() {
+            return metaInfo;
+          }
+        });
+
         requestStaticInjection(RepositoryVersionEntity.class);
       }
     };
-    Injector injector = Guice.createInjector(testModule);
-    if (addClusterVersion) {
-      repoVersion = new RepositoryVersionEntity();
-      repoVersion.setStack(stackEntity);
-      repoVersion.setOperatingSystems(resourceAsString("org/apache/ambari/server/stack/UpdateActiveRepoVersionOnStartupTest_initialRepos.json"));
-      ClusterVersionEntity clusterVersion = new ClusterVersionEntity();
-      clusterVersion.setRepositoryVersion(repoVersion);
-      when(clusterVersionDAO.findByClusterAndStateCurrent(CLUSTER_NAME)).thenReturn(clusterVersion);
 
+    Guice.createInjector(testModule);
+    if (addClusterVersion) {
+
+      RepositoryInfo info = new RepositoryInfo();
+      info.setBaseUrl("http://msft.r");
+      info.setRepoId(ADD_ON_REPO_ID);
+      info.setRepoName("MSFT_R1");
+      info.setOsType("redhat6");
+      stackInfo.getRepositories().add(info);
     }
 
     activeRepoUpdater = new UpdateActiveRepoVersionOnStartup(clusterDao,
-        clusterVersionDAO, repositoryVersionDao, repositoryVersionHelper, metaInfo);
+        repositoryVersionDao, repositoryVersionHelper, metaInfo);
   }
-
-
 
   private static String resourceAsString(String resourceName) throws IOException {
     return Resources.toString(Resources.getResource(resourceName), Charsets.UTF_8);

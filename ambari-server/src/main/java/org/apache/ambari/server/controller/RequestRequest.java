@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,8 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Encapsulates all data about update request that came to RequestResourceProvider
  */
@@ -37,11 +39,15 @@ public class RequestRequest {
 
   private String abortReason;
 
+  private boolean removePendingHostRequests = false;
 
+
+  @ApiModelProperty(name = "request_status", notes = "Only valid value is ABORTED.")
   public HostRoleStatus getStatus() {
     return status;
   }
 
+  @ApiModelProperty(name = "cluster_name")
   public String getClusterName() {
     return clusterName;
   }
@@ -50,6 +56,7 @@ public class RequestRequest {
     this.clusterName = clusterName;
   }
 
+  @ApiModelProperty(name = "id")
   public long getRequestId() {
     return requestId;
   }
@@ -62,12 +69,21 @@ public class RequestRequest {
     this.status = status;
   }
 
+  @ApiModelProperty(name = "abort_reason")
   public String getAbortReason() {
     return abortReason;
   }
 
   public void setAbortReason(String abortReason) {
     this.abortReason = abortReason;
+  }
+
+  public boolean isRemovePendingHostRequests() {
+    return removePendingHostRequests;
+  }
+
+  public void setRemovePendingHostRequests(boolean removePendingHostRequests) {
+    this.removePendingHostRequests = removePendingHostRequests;
   }
 
   @Override
@@ -77,6 +93,7 @@ public class RequestRequest {
             ", requestId=" + requestId +
             ", status=" + status +
             ", abortReason='" + abortReason + '\'' +
+            ", removePendingHostRequests='" + removePendingHostRequests + '\'' +
             '}';
   }
 }

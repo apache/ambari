@@ -271,6 +271,13 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
         if not livyUser in users and livyUser is not None:
           users[livyUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "livy-env", "propertyName" : "livy_user"}
 
+    if "SPARK2" in servicesList:
+      livyUser = None
+      if "livy2-env" in services["configurations"] and "livy_user" in services["configurations"]["livy2-env"]["properties"]:
+        livyUser = services["configurations"]["livy2-env"]["properties"]["livy_user"]
+        if not livyUser in users and livyUser is not None:
+          users[livy2User] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "livy2-env", "propertyName" : "livy_user"}
+
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
@@ -1395,7 +1402,7 @@ class ODPi20StackAdvisor(DefaultStackAdvisor):
     if len(leaf_queue_names) == 0:
       return None
     elif queue_name not in leaf_queue_names:
-      return self.getErrorItem("Queue is not exist or not corresponds to existing YARN leaf queue")
+      return self.getErrorItem("Queue does not exist or correspond to an existing YARN leaf queue")
 
     return None
 

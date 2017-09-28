@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,9 +23,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.annotations.Experimental;
@@ -388,6 +390,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       stageDAO.create(stageEntity);
 
       List<HostRoleCommand> orderedHostRoleCommands = stage.getOrderedHostRoleCommands();
+      List<HostRoleCommandEntity> hostRoleCommandEntities = new ArrayList<>();
 
       for (HostRoleCommand hostRoleCommand : orderedHostRoleCommands) {
         hostRoleCommand.setRequestId(requestId);
@@ -395,8 +398,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
         hostRoleCommandEntity.setStage(stageEntity);
         hostRoleCommandDAO.create(hostRoleCommandEntity);
+        hostRoleCommandEntities.add(hostRoleCommandEntity);
 
-        assert hostRoleCommandEntity.getTaskId() != null;
         hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
 
         String prefix = "";
@@ -453,6 +456,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         roleSuccessCriteriaDAO.create(roleSuccessCriteriaEntity);
       }
 
+      stageEntity.setHostRoleCommands(hostRoleCommandEntities);
       stageEntity = stageDAO.merge(stageEntity);
     }
 
@@ -530,6 +534,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     long now = System.currentTimeMillis();
 
     List<Long> requestsToCheck = new ArrayList<>();
+    List<Long> abortedCommandUpdates = new ArrayList<>();
 
     List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet());
     List<HostRoleCommandEntity> commandEntitiesToMerge = new ArrayList<>();
@@ -590,9 +595,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
                                   long stageId, String role, CommandReport report) {
     boolean checkRequest = false;
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Update HostRoleState: "
-        + "HostName " + hostname + " requestId " + requestId + " stageId "
-        + stageId + " role " + role + " report " + report);
+      LOG.debug("Update HostRoleState: HostName {} requestId {} stageId {} role {} report {}", hostname, requestId, stageId, role, report);
     }
 
     long now = System.currentTimeMillis();
@@ -827,7 +830,15 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public void resubmitTasks(List<Long> taskIds) {
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
+    Set<RequestEntity> requestEntities = new HashSet<>();
+    Set<StageEntity> stageEntities = new HashSet<>();
     for (HostRoleCommandEntity task : tasks) {
+      StageEntity stage = task.getStage();
+      stage.setStatus(HostRoleStatus.PENDING);
+      stageEntities.add(stage);
+      RequestEntity request = stage.getRequest();
+      request.setStatus(HostRoleStatus.IN_PROGRESS);
+      requestEntities.add(request);
       task.setStatus(HostRoleStatus.PENDING);
       // TODO HACK, shouldn't reset start time.
       // Because it expects -1, RetryActionMonitor.java also had to set it to -1.
@@ -835,6 +846,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       task.setEndTime(-1L);
 
       auditLog(task, task.getRequestId());
+    }
+
+    for (StageEntity stageEntity : stageEntities) {
+      stageDAO.merge(stageEntity);
+    }
+    for (RequestEntity requestEntity : requestEntities) {
+      requestDAO.merge(requestEntity);
     }
 
     // no need to merge if there's nothing to merge
@@ -969,7 +987,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         .withTaskId(String.valueOf(commandEntity.getTaskId()))
         .withHostName(commandEntity.getHostName())
         .withUserName(details.getUserName())
-        .withOperation(commandEntity.getRoleCommand().toString() + " " + commandEntity.getRole().toString())
+        .withOperation(commandEntity.getRoleCommand() + " " + commandEntity.getRole())
         .withDetails(commandEntity.getCommandDetail())
         .withStatus(commandEntity.getStatus().toString())
         .withRequestId(String.valueOf(requestId))

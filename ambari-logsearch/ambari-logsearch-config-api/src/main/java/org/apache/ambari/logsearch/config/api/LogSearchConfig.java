@@ -20,56 +20,13 @@
 package org.apache.ambari.logsearch.config.api;
 
 import java.io.Closeable;
-import java.util.List;
-import java.util.Map;
+
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 
 /**
  * Log Search Configuration, which uploads, retrieves configurations, and monitors it's changes.
  */
 public interface LogSearchConfig extends Closeable {
-  /**
-   * Enumeration of the components of the Log Search service.
-   */
-  public enum Component {
-    SERVER, LOGFEEDER;
-  }
-  
-  /**
-   * Initialization of the configuration.
-   * 
-   * @param component The component which will use the configuration.
-   * @param properties The properties of that component.
-   * @throws Exception
-   */
-  void init(Component component, Map<String, String> properties) throws Exception;
-  
-  /**
-   * Returns all the service names with input configurations of a cluster. Will be used only in SERVER mode.
-   * 
-   * @param clusterName The name of the cluster which's services are required.
-   * @return List of the service names.
-   */
-  List<String> getServices(String clusterName);
-  
-  /**
-   * Checks if input configuration exists.
-   * 
-   * @param clusterName The name of the cluster where the service is looked for.
-   * @param serviceName The name of the service looked for.
-   * @return If input configuration exists for the service.
-   * @throws Exception
-   */
-  boolean inputConfigExists(String clusterName, String serviceName) throws Exception;
-  
-  /**
-   * Returns the input configuration of a service in a cluster. Will be used only in SERVER mode.
-   * 
-   * @param clusterName The name of the cluster where the service is looked for.
-   * @param serviceName The name of the service looked for.
-   * @return The input configuration for the service if it exists, null otherwise.
-   */
-  String getInputConfig(String clusterName, String serviceName);
-  
   /**
    * Uploads the input configuration for a service in a cluster.
    * 
@@ -78,13 +35,15 @@ public interface LogSearchConfig extends Closeable {
    * @param inputConfig The input configuration of the service.
    * @throws Exception
    */
-  void setInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception;
-  
+  void createInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception;
+
   /**
-   * Starts the monitoring of the input configurations, asynchronously. Will be used only in LOGFEEDER mode.
+   * Uploads the log level filter of a log.
    * 
-   * @param configMonitor The input config monitor to call in case of a config change.
-   * @throws Exception
+   * @param clusterName The name of the cluster where the log is.
+   * @param logId The id of the log.
+   * @param filter The log level filter for the log.
+   * @throws Exception 
    */
-  void monitorInputConfigChanges(InputConfigMonitor configMonitor) throws Exception;
+  void createLogLevelFilter(String clusterName, String logId, LogLevelFilter filter) throws Exception;
 }

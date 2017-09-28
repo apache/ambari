@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -54,7 +54,7 @@ public class NamedPropertySetTest {
     NamedPropertySet propertySet3 = new NamedPropertySet("bar", mapProps);
     assertFalse(propertySet.equals(propertySet3));
 
-    NamedPropertySet propertySet4 = new NamedPropertySet("foo", new HashMap<String, Object>());
+    NamedPropertySet propertySet4 = new NamedPropertySet("foo", new HashMap<>());
     assertFalse(propertySet.equals(propertySet4));
   }
 

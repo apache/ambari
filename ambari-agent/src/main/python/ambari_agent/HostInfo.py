@@ -21,6 +21,7 @@ limitations under the License.
 import glob
 import logging
 import os
+import pwd
 import re
 import shlex
 import socket
@@ -69,9 +70,22 @@ class HostInfo(object):
     return 'unknown'
 
   def checkLiveServices(self, services, result):
+    is_redhat7_or_higher = False
+    is_redhat = False
+
+    if OSCheck.is_redhat_family():
+      is_redhat = True
+      if int(OSCheck.get_os_major_version()) >= 7:
+        is_redhat7_or_higher = True
+
     for service in services:
       svcCheckResult = {}
-      svcCheckResult['name'] = " or ".join(service)
+      if "ntpd" in service and is_redhat7_or_higher:
+        svcCheckResult['name'] = "chronyd"
+      elif "chronyd" in service and is_redhat:
+        svcCheckResult['name'] = "ntpd"
+      else:
+        svcCheckResult['name'] = " or ".join(service)
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
@@ -164,7 +178,7 @@ class HostInfoLinux(HostInfo):
     "/etc", "/var/run", "/var/log", "/usr/lib", "/var/lib", "/var/tmp", "/tmp", "/var",
     "/hadoop", "/usr/hdp"
   ]
-  
+
   # Exact directories names which are checked for existance
   EXACT_DIRECTORIES = [
     "/kafka-logs"
@@ -181,15 +195,17 @@ class HostInfoLinux(HostInfo):
     super(HostInfoLinux, self).__init__(config)
 
   def checkUsers(self, users, results):
-    f = open('/etc/passwd', 'r')
-    for userLine in f:
-      fields = userLine.split(":")
-      if fields[0] in users:
-        result = {}
-        result['name'] = fields[0]
-        result['homeDir'] = fields[5]
-        result['status'] = "Available"
-        results.append(result)
+    for user in users:
+      try:
+          pw = pwd.getpwnam(user)
+          result = {}
+          result['name'] = pw.pw_name
+          result['homeDir'] = pw.pw_dir
+          result['status'] = "Available"
+          results.append(result)
+      except Exception as e:
+          #User doesnot exist, so skip it
+          pass
 
   def checkFolders(self, basePaths, projectNames, exactDirectories, existingUsers, dirs):
     foldersToIgnore = []
@@ -204,13 +220,13 @@ class HostInfoLinux(HostInfo):
             obj['type'] = self.dirType(path)
             obj['name'] = path
             dirs.append(obj)
-            
+
       for path in exactDirectories:
         if os.path.exists(path):
           obj = {}
           obj['type'] = self.dirType(path)
           obj['name'] = path
-          dirs.append(obj)     
+          dirs.append(obj)
     except:
       logger.exception("Checking folders failed")
 

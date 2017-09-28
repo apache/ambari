@@ -204,6 +204,477 @@ class TestHDP26StackAdvisor(TestCase):
                                                               'druid.broker.jvm.heap.memory': {'maximum': '49152'}}}}
                       )
 
+  def test_recommendSPARK2Configurations_SecurityEnabledZeppelinInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK2"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.superusers": "zeppelin_user",
+          "livy.property1": "value1"
+        }
+      },
+      "spark2-defaults": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "spark2-thrift-sparkconf": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSPARK2Configurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendSPARK2Configurations_SecurityNotEnabledZeppelinInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "false",
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK2"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "false",
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      },
+      "spark2-defaults": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "spark2-thrift-sparkconf": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSPARK2Configurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendSPARK2Configurations_SecurityEnabledZeppelinInstalledExistingValue(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1",
+          "livy.superusers": "livy_user"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK2"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1",
+          "livy.superusers": "livy_user,zeppelin_user"
+        }
+      },
+      "spark2-defaults": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "spark2-thrift-sparkconf": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSPARK2Configurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendSPARK2Configurations_SecurityEnabledZeppelinNotInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK2"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      },
+      "spark2-defaults": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "spark2-thrift-sparkconf": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSPARK2Configurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendZEPPELINConfigurations_SecurityEnabledSPARKInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.property1": "value1"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "ZEPPELIN"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.superusers": "zeppelin_user",
+          "livy.property1": "value1"
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.superusers": "zeppelin_user",
+          "livy.property1": "value1"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendZEPPELINConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendZEPPELINConfigurations_SecurityNotEnabledSparkInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "false",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "ZEPPELIN"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "false",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendZEPPELINConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendZEPPELINConfigurations_SecurityEnabledZeppelinInstalledExistingValue(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.superusers": "livy_user, hdfs"
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.superusers": "livy2_user"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "ZEPPELIN"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        }
+      },
+      "livy-conf": {
+        "properties": {
+          "livy.superusers": "livy_user,hdfs,zeppelin_user"
+        }
+      },
+      "livy2-conf": {
+        "properties": {
+          "livy.superusers": "livy2_user,zeppelin_user"
+        }
+      },
+      "zeppelin-env": {
+        "properties": {
+          "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendZEPPELINConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendZEPPELINConfigurations_SecurityEnabledSparkNotInstalled(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        },
+        "zeppelin-env": {
+          "properties": {
+            "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+          }
+        }
+      }
+    }
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "ZEPPELIN"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true",
+        },
+        "zeppelin-env": {
+          "properties": {
+            "zeppelin.server.kerberos.principal": "zeppelin_user@REALM"
+          }
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendZEPPELINConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
   def test_recommendDruidConfigurations_WithPostgresql(self):
     hosts = {
       "items": [
@@ -748,26 +1219,26 @@ class TestHDP26StackAdvisor(TestCase):
     expected = {
       'ranger-admin-site': {
         'properties': {
-          'ranger.audit.solr.zookeepers': 'NONE', 
+          'ranger.audit.solr.zookeepers': 'NONE',
           'ranger.audit.source.type': 'solr'
         }
-      }, 
+      },
       'admin-properties': {
         'properties': {
           'policymgr_external_url': 'http://host1:6080'
         }
-      }, 
+      },
       'ranger-tagsync-site': {
         'properties': {}
-      }, 
+      },
       'tagsync-application-properties': {
-        'properties': {} 
-      }, 
+        'properties': {}
+      },
       'ranger-env': {
         'properties': {
           'ranger-storm-plugin-enabled': 'No'
         }
-      }, 
+      },
       'ranger-ugsync-site': {
         'properties': {
           'ranger.usersync.group.searchenabled': 'true'
@@ -966,19 +1437,49 @@ class TestHDP26StackAdvisor(TestCase):
 
   def test_recommendHiveConfigurations(self):
     configurations = {
-      "ranger-hive-plugin-properties": {
-        "properties": {
-          "ranger-hive-plugin-enabled": "Yes",
-          "REPOSITORY_CONFIG_USERNAME":"hive"
+      "hive-env" : {
+        "properties" : {
+          "hive.atlas.hook" : "false",
+          "hive_user": "custom_hive",
+          "hive_security_authorization": "Ranger"
         }
       },
-      "hive-env":{
-        "properties":{
-          "hive_security_authorization":"ranger",
-          "hive_user":"custom_hive"
+      "ranger-env" : {
+        "properties" : {
+          "ranger-hive-plugin-enabled" : "Yes"
+        }
+      },
+      "cluster-env" : {
+        "properties" : {
+          "security_enabled" : "false"
+        }
+      },
+      "ranger-hive-plugin-properties" : {
+        "properties" : {
+          "REPOSITORY_CONFIG_USERNAME": "hive"
+        }
+      },
+      "hive-atlas-application.properties" : {
+        "properties": {}
+      },
+      "druid-coordinator": {
+        "properties": {'druid.port': 8081}
+      },
+      "druid-broker": {
+        "properties": {'druid.port': 8082}
+      },
+      "druid-common": {
+        "properties": {
+          "database_name": "druid",
+          "metastore_hostname": "c6401.ambari.apache.org",
+          "druid.metadata.storage.type": "mysql",
+          'druid.metadata.storage.connector.port': '3306',
+          'druid.metadata.storage.connector.user': 'druid',
+          'druid.metadata.storage.connector.connectURI': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true'
         }
       }
     }
+
     clusterData = {
       "cpu": 4,
       "mapMemory": 3000,
@@ -1012,17 +1513,63 @@ class TestHDP26StackAdvisor(TestCase):
 
     services = {
       "services":
-        [{
-           "StackServices": {
-             "service_name": "YARN"
-           }, "components": []
-         },
-         {
-            "StackServices": {
+        [
+          {
+            "StackServices" : {
+             "service_name" : "YARN"
+            },
+            "components" : []
+          },
+          {
+            "StackServices" : {
               "service_name" : "HIVE",
               "service_version" : "1.2.1.2.6"
             },
+            "components": []
+          },
+          {
+            "StackServices" : {
+              "service_name" : "ATLAS",
+              "service_version": "0.8.0"
+            },
+            "components": []
+          },
+          {
+            "StackServices" : {
+              "service_name" : "RANGER",
+              "service_version": "0.7.0"
+            },
+            "components": []
+          },
+          {
+            "StackServices": {
+              "service_name": "DRUID",
+            },
             "components": [
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_COORDINATOR",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              },
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_OVERLORD",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              },
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_BROKER",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              },
+              {
+                "StackServiceComponents": {
+                  "component_name": "DRUID_ROUTER",
+                  "hostnames": ["c6401.ambari.apache.org"]
+                },
+              }
             ]
           }
         ],
@@ -1030,12 +1577,10 @@ class TestHDP26StackAdvisor(TestCase):
         "stack_name" : "HDP",
         "stack_version": "2.6"
       },
-      "changed-configurations": [
-      ],
+      "changed-configurations": [],
       "configurations": configurations,
       "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
-
 
     expected = {
       'yarn-env': {
@@ -1047,7 +1592,6 @@ class TestHDP26StackAdvisor(TestCase):
       },
       'ranger-hive-plugin-properties': {
         'properties': {
-          'ranger-hive-plugin-enabled': 'Yes',
           'REPOSITORY_CONFIG_USERNAME': 'custom_hive'
         }
       },
@@ -1068,12 +1612,11 @@ class TestHDP26StackAdvisor(TestCase):
       },
       'hive-env': {
         'properties': {
-          'hive.atlas.hook': 'false',
-          'hive_security_authorization': 'ranger',
+          'hive.atlas.hook': 'true',
+          'hive_security_authorization': 'Ranger',
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_timeline_logging_enabled': 'true',
-          'hive_txn_acid': 'off',
-          'hive_user': 'custom_hive'
+          'hive_txn_acid': 'off'
         }
       },
       'hiveserver2-site': {
@@ -1098,7 +1641,7 @@ class TestHDP26StackAdvisor(TestCase):
           'hive.exec.orc.encoding.strategy': 'SPEED',
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.security.authorization.enabled': 'true',
-          'hive.exec.post.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
+          'hive.exec.post.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook,org.apache.atlas.hive.hook.HiveHook',
           'hive.server2.tez.default.queues': 'default',
           'hive.prewarm.enabled': 'false',
           'hive.exec.orc.compression.strategy': 'SPEED',
@@ -1118,7 +1661,12 @@ class TestHDP26StackAdvisor(TestCase):
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.optimize.sort.dynamic.partition': 'false',
-          'hive.server2.enable.doAs': 'false'
+          'hive.server2.enable.doAs': 'false',
+          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
+          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
+          'hive.druid.metadata.db.type': 'mysql',
+          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
+          'hive.druid.metadata.username': 'druid',
         },
         'property_attributes': {
           'hive.tez.container.size': {
@@ -1143,6 +1691,21 @@ class TestHDP26StackAdvisor(TestCase):
             'maximum': '644245094'
           },
           'atlas.rest.address': {
+            'delete': 'true'
+          },
+          'hive.server2.authentication.pam.services': {
+            'delete': 'true'
+          },
+          'hive.server2.custom.authentication.class': {
+            'delete': 'true'
+          },
+          'hive.server2.authentication.kerberos.principal': {
+            'delete': 'true'
+          },
+          'hive.server2.authentication.kerberos.keytab': {
+            'delete': 'true'
+          },
+          'hive.server2.authentication.ldap.url': {
             'delete': 'true'
           }
         }
@@ -1174,16 +1737,41 @@ class TestHDP26StackAdvisor(TestCase):
             'delete': 'true'
           }
         }
+      },
+      'hive-atlas-application.properties' : {
+        'properties' : {},
+        'property_attributes' : {
+            'atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag': {'delete': 'true'},
+            'atlas.jaas.ticketBased-KafkaClient.loginModuleName': {'delete': 'true'},
+            'atlas.jaas.ticketBased-KafkaClient.option.useTicketCache': {'delete': 'true'}
+        }
       }
     }
 
-    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations,expected)
-    configurations['hive-env']['properties']['hive_user'] = 'hive'
-    expected['hive-env']['properties']['hive_user'] = 'hive'
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    services['configurations']['hive-env']['properties']['hive_user'] = 'hive'
     expected['ranger-hive-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'hive'
-    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations,expected)
+    services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
+    expected['hive-atlas-application.properties']['properties']['atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag'] = 'required'
+    expected['hive-atlas-application.properties']['properties']['atlas.jaas.ticketBased-KafkaClient.loginModuleName'] = 'com.sun.security.auth.module.Krb5LoginModule'
+    expected['hive-atlas-application.properties']['properties']['atlas.jaas.ticketBased-KafkaClient.option.useTicketCache'] = 'true'
+    del expected['hive-atlas-application.properties']['property_attributes']
+    expected['core-site'] = {
+      'properties': {}
+    }
+
+    # case there is router in the stack
+    services['configurations']['druid-router'] = {}
+    services['configurations']['druid-router']['properties'] = {}
+    services['configurations']['druid-router']['properties']['druid.port'] = 8083
+    expected['hive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)
+    self.assertEquals(recommendedConfigurations, expected)
 
 
   def test_recommendHBASEConfigurations(self):

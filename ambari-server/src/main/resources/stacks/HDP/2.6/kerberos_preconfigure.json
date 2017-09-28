@@ -1,0 +1,22 @@
+{
+  "services": [
+    {
+      "name": "KNOX",
+      "preconfigure" : true
+    },
+    {
+      "name": "BEACON",
+      "preconfigure" : true,
+      "identities": [
+        {
+          "name": "beacon_server",
+          "principal": {
+            "value": "beacon/_HOST@${realm}",
+            "type": "service",
+            "local_username": "beacon"
+          }
+        }
+      ]
+    }
+  ]
+}

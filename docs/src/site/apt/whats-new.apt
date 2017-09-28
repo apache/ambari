@@ -16,7 +16,11 @@
 
 What's New with Ambari?
 
-  * The latest release of Ambari is Ambari 2.5.0.
+  * The latest release of Ambari is Ambari 2.5.2.
+
+  * Ambari 2.5.2 added the following features:
+  
+    * Cross Stack upgrade support.
 
   * Ambari 2.5.0 added the following features:
 
@@ -49,7 +53,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.5.0} how to install a Hadoop cluster using Ambari 2.5.0}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.5.1} how to install a Hadoop cluster using Ambari 2.5.1}}.
 
 Stay Tuned
 

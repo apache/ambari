@@ -76,6 +76,7 @@ CREATE TABLE clusterconfig (
   config_data VARCHAR(3000) NOT NULL,
   config_attributes VARCHAR(3000),
   create_timestamp BIGINT NOT NULL,
+  unmapped SMALLINT NOT NULL DEFAULT 0,
   selected_timestamp BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
@@ -153,6 +154,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR(128) NOT NULL,
   repositories VARCHAR(3000) NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden SMALLINT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml CLOB,
   version_xsd VARCHAR(512),
@@ -162,48 +164,34 @@ CREATE TABLE repo_version (
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
   CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
 
-CREATE TABLE cluster_version (
-  id BIGINT NOT NULL,
-  repo_version_id BIGINT NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  state VARCHAR(32) NOT NULL,
-  start_time BIGINT NOT NULL,
-  end_time BIGINT,
-  user_name VARCHAR(32),
-  CONSTRAINT PK_cluster_version PRIMARY KEY (id),
-  CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_cluster_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
-  desired_stack_id BIGINT NOT NULL,
+  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
-  desired_version VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
   service_name VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
+  repo_state VARCHAR(255) NOT NULL DEFAULT 'NOT_REQUIRED',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
-  CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
 
 CREATE TABLE hostcomponentdesiredstate (
   id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
-  desired_stack_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   admin_state VARCHAR(32),
   maintenance_state VARCHAR(32) NOT NULL,
-  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
   CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_hcds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
 
 
@@ -212,14 +200,11 @@ CREATE TABLE hostcomponentstate (
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
-  current_stack_id BIGINT NOT NULL,
   current_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
-  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
-  CONSTRAINT FK_hcs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
 
@@ -244,19 +229,18 @@ CREATE TABLE host_version (
   CONSTRAINT PK_host_version PRIMARY KEY (id),
   CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_host_repo UNIQUE(repo_version_id, host_id));
+  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id));
 
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
   desired_host_role_mapping INTEGER NOT NULL,
-  desired_stack_id BIGINT NOT NULL,
+  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL,
-  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
-  CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
 
 CREATE TABLE adminprincipaltype (
@@ -289,6 +273,7 @@ CREATE TABLE groups (
   principal_id BIGINT NOT NULL,
   group_name VARCHAR(255) NOT NULL,
   ldap_group INTEGER NOT NULL DEFAULT 0,
+  group_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
   CONSTRAINT PK_groups PRIMARY KEY (group_id),
   UNIQUE (ldap_group, group_name),
   CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id));
@@ -339,6 +324,7 @@ CREATE TABLE request (
   start_time BIGINT NOT NULL,
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  cluster_host_info BLOB NOT NULL,
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -350,7 +336,6 @@ CREATE TABLE stage (
   supports_auto_skip_failure SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
-  cluster_host_info BLOB NOT NULL,
   command_params BLOB,
   host_params BLOB,
   command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
@@ -383,6 +368,7 @@ CREATE TABLE host_role_command (
   role_command VARCHAR(255),
   command_detail VARCHAR(255),
   custom_command_name VARCHAR(255),
+  ops_display_name VARCHAR(255),
   is_background SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_host_role_command PRIMARY KEY (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
@@ -569,7 +555,7 @@ CREATE table viewurl(
   url_id BIGINT ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -825,18 +811,20 @@ CREATE TABLE upgrade (
   upgrade_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
-  from_version VARCHAR(255) DEFAULT '' NOT NULL,
-  to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
+  repo_version_id BIGINT NOT NULL,
   skip_failures SMALLINT DEFAULT 0 NOT NULL,
   skip_sc_failures SMALLINT DEFAULT 0 NOT NULL,
   downgrade_allowed SMALLINT DEFAULT 1 NOT NULL,
+  revert_allowed SMALLINT DEFAULT 0 NOT NULL,
   suspended SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id)
+  FOREIGN KEY (request_id) REFERENCES request(request_id),
+  FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id)
 );
 
 CREATE TABLE upgrade_group (
@@ -860,17 +848,18 @@ CREATE TABLE upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
-CREATE TABLE servicecomponent_history(
+CREATE TABLE upgrade_history(
   id BIGINT NOT NULL,
-  component_id BIGINT NOT NULL,
   upgrade_id BIGINT NOT NULL,
-  from_stack_id BIGINT NOT NULL,
-  to_stack_id BIGINT NOT NULL,
-  CONSTRAINT PK_sc_history PRIMARY KEY (id),
-  CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
-  CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id),
-  CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  from_repo_version_id BIGINT NOT NULL,
+  target_repo_version_id BIGINT NOT NULL,
+  CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
+  CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
+  CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT FK_upgrade_hist_target_repo FOREIGN KEY (target_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name)
 );
 
 CREATE TABLE servicecomponent_version(
@@ -1104,8 +1093,6 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'repo_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'cluster_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
-  union all
   select 'host_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'service_config_id_seq', 1 FROM SYSIBM.SYSDUMMY1
@@ -1146,7 +1133,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'servicecomponentdesiredstate_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'servicecomponent_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  select 'upgrade_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'blueprint_setting_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all

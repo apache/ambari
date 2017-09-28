@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,15 +33,17 @@ import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.utils.VersionUtils;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.io.Files;
 
-public class StackInfo implements Comparable<StackInfo>, Validable{
+public class StackInfo implements Comparable<StackInfo>, Validable {
   private String minJdk;
   private String maxJdk;
   private String name;
@@ -50,6 +52,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private boolean active;
   private String rcoFileLocation;
   private String kerberosDescriptorFileLocation;
+  private String kerberosDescriptorPreConfigurationFileLocation;
   private String widgetsDescriptorFileLocation;
   private List<RepositoryInfo> repositories;
   private Collection<ServiceInfo> services;
@@ -76,6 +79,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private Set<String> errorSet = new HashSet<>();
   private RepositoryXml repoXml = null;
 
+  private VersionDefinitionXml latestVersion = null;
+
   /**
    * List of services removed from current stack
    * */
@@ -84,7 +89,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   /**
   * List of services withnot configurations
   * */
-  private List<String> servicesWithNoConfigs = new ArrayList<String>();
+  private List<String> servicesWithNoConfigs = new ArrayList<>();
 
   public String getMinJdk() {
     return minJdk;
@@ -202,6 +207,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   public ExtensionInfo getExtensionByService(String serviceName) {
     Collection<ExtensionInfo> extensions = getExtensions();
     for (ExtensionInfo extension : extensions) {
+      Collection<ServiceInfo> services = extension.getServices();
       for (ServiceInfo service : services) {
         if (service.getName().equals(serviceName))
           return extension;
@@ -209,6 +215,24 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     }
     //todo: exception?
     return null;
+  }
+
+  public void addExtension(ExtensionInfo extension) {
+    Collection<ExtensionInfo> extensions = getExtensions();
+    extensions.add(extension);
+    Collection<ServiceInfo> services = getServices();
+    for (ServiceInfo service : extension.getServices()) {
+      services.add(service);
+    }
+  }
+
+  public void removeExtension(ExtensionInfo extension) {
+    Collection<ExtensionInfo> extensions = getExtensions();
+    extensions.remove(extension);
+    Collection<ServiceInfo> services = getServices();
+    for (ServiceInfo service : extension.getServices()) {
+      services.remove(service);
+    }
   }
 
   public List<PropertyInfo> getProperties() {
@@ -227,7 +251,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    */
   public synchronized Map<String, Map<String, Map<String, String>>> getConfigTypeAttributes() {
     return configTypes == null ?
-        Collections.<String, Map<String, Map<String, String>>>emptyMap() :
+        Collections.emptyMap() :
         Collections.unmodifiableMap(configTypes);
   }
 
@@ -275,7 +299,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
       sb.append("\n\t\tRepositories:");
       for (RepositoryInfo repository : repositories) {
         sb.append("\t\t");
-        sb.append(repository.toString());
+        sb.append(repository);
       }
     }
 
@@ -324,7 +348,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
         isActive(), getParentStackVersion(), getConfigTypeAttributes(),
         (stackDescriptorFileFilePath == null) ? null : new File(stackDescriptorFileFilePath),
         serviceDescriptorFiles,
-        null == upgradePacks ? Collections.<String>emptySet() : upgradePacks.keySet(),
+        null == upgradePacks ? Collections.emptySet() : upgradePacks.keySet(),
         isValid(), getErrors(), getMinJdk(), getMaxJdk());
   }
 
@@ -385,6 +409,25 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    */
   public void setKerberosDescriptorFileLocation(String kerberosDescriptorFileLocation) {
     this.kerberosDescriptorFileLocation = kerberosDescriptorFileLocation;
+  }
+
+  /**
+   * Gets the path to the stack-level Kerberos descriptor pre-configuration file
+   *
+   * @return a String containing the path to the stack-level Kerberos descriptor pre-configuration file
+   */
+  public String getKerberosDescriptorPreConfigurationFileLocation() {
+    return kerberosDescriptorPreConfigurationFileLocation;
+  }
+
+  /**
+   * Sets the path to the stack-level Kerberos descriptor file
+   *
+   * @param kerberosDescriptorPreConfigurationFileLocation a String containing the path to the stack-level Kerberos
+   *                                                       descriptor file
+   */
+  public void setKerberosDescriptorPreConfigurationFileLocation(String kerberosDescriptorPreConfigurationFileLocation) {
+    this.kerberosDescriptorPreConfigurationFileLocation = kerberosDescriptorPreConfigurationFileLocation;
   }
 
   public String getWidgetsDescriptorFileLocation() {
@@ -459,9 +502,10 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
   @Override
   public int compareTo(StackInfo o) {
-    String myId = name + "-" + version;
-    String oId = o.name + "-" + o.version;
-    return myId.compareTo(oId);
+    if (name.equals(o.name)) {
+      return VersionUtils.compareVersions(version, o.version);
+    }
+    return name.compareTo(o.name);
   }
 
   //todo: ensure that required properties are never modified...
@@ -494,7 +538,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
             Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
             for (PropertyInfo.PropertyType propertyType : types) {
               if (!propertiesTypes.containsKey(propertyType))
-                propertiesTypes.put(propertyType, new HashSet<String>());
+                propertiesTypes.put(propertyType, new HashSet<>());
               propertiesTypes.get(propertyType).add(propertyInfo.getName());
             }
           }
@@ -530,10 +574,10 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
         String hidden = pi.getPropertyValueAttributes().getHidden();
         if(hidden != null){
           if(!result.containsKey(propertyConfigType)){
-            result.put(propertyConfigType, new HashMap<String, Map<String, String>>());
+            result.put(propertyConfigType, new HashMap<>());
           }
           if(!result.get(propertyConfigType).containsKey("hidden")){
-            result.get(propertyConfigType).put("hidden", new HashMap<String, String>());
+            result.get(propertyConfigType).put("hidden", new HashMap<>());
           }
           result.get(propertyConfigType).get("hidden").put(propertyName, hidden);
         }
@@ -585,5 +629,19 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
   public void setServicesWithNoConfigs(List<String> servicesWithNoConfigs) {
     this.servicesWithNoConfigs = servicesWithNoConfigs;
+  }
+
+  /**
+   * @param xml the version definition parsed from {@link LatestRepoCallable}
+   */
+  public void setLatestVersionDefinition(VersionDefinitionXml xml) {
+    latestVersion = xml;
+  }
+
+  /**
+   * @param xml the version definition parsed from {@link LatestRepoCallable}
+   */
+  public VersionDefinitionXml getLatestVersionDefinition() {
+    return latestVersion;
   }
 }

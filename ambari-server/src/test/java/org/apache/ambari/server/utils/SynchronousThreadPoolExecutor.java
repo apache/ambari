@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,7 +33,7 @@ public class SynchronousThreadPoolExecutor extends ThreadPoolExecutor {
    *
    */
   public SynchronousThreadPoolExecutor() {
-    super(1, 1, 0L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+    super(1, 1, 0L, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   }
 
   /**

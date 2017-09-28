@@ -67,7 +67,9 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;
@@ -90,38 +92,45 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
-  public static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = "Requests/cluster_name";
-  public static final String REQUEST_CLUSTER_ID_PROPERTY_ID = "Requests/cluster_id";
-  public static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
-  protected static final String REQUEST_STATUS_PROPERTY_ID = "Requests/request_status";
-  protected static final String REQUEST_ABORT_REASON_PROPERTY_ID = "Requests/abort_reason";
-  protected static final String REQUEST_CONTEXT_ID = "Requests/request_context";
-  public static final String REQUEST_SOURCE_SCHEDULE = "Requests/request_schedule";
-  public static final String REQUEST_SOURCE_SCHEDULE_ID = "Requests/request_schedule/schedule_id";
-  public static final String REQUEST_SOURCE_SCHEDULE_HREF = "Requests/request_schedule/href";
-  protected static final String REQUEST_TYPE_ID = "Requests/type";
-  protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
-  protected static final String REQUEST_RESOURCE_FILTER_ID = "Requests/resource_filters";
-  protected static final String REQUEST_OPERATION_LEVEL_ID = "Requests/operation_level";
-  protected static final String REQUEST_CREATE_TIME_ID = "Requests/create_time";
-  protected static final String REQUEST_START_TIME_ID = "Requests/start_time";
-  protected static final String REQUEST_END_TIME_ID = "Requests/end_time";
-  protected static final String REQUEST_EXCLUSIVE_ID = "Requests/exclusive";
-  protected static final String REQUEST_TASK_CNT_ID = "Requests/task_count";
-  protected static final String REQUEST_FAILED_TASK_CNT_ID = "Requests/failed_task_count";
-  protected static final String REQUEST_ABORTED_TASK_CNT_ID = "Requests/aborted_task_count";
-  protected static final String REQUEST_TIMED_OUT_TASK_CNT_ID = "Requests/timed_out_task_count";
-  protected static final String REQUEST_COMPLETED_TASK_CNT_ID = "Requests/completed_task_count";
-  protected static final String REQUEST_QUEUED_TASK_CNT_ID = "Requests/queued_task_count";
-  protected static final String REQUEST_PROGRESS_PERCENT_ID = "Requests/progress_percent";
-  protected static final String COMMAND_ID = "command";
-  protected static final String SERVICE_ID = "service_name";
-  protected static final String COMPONENT_ID = "component_name";
-  protected static final String HOSTS_ID = "hosts"; // This is actually a list of hosts
-  protected static final String HOSTS_PREDICATE = "hosts_predicate";
-  protected static final String ACTION_ID = "action";
-  protected static final String INPUTS_ID = "parameters";
-  protected static final String EXLUSIVE_ID = "exclusive";
+  public static final String REQUESTS = "Requests";
+  public static final String REQUEST_INFO = "RequestInfo";
+  public static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = REQUESTS + "/cluster_name";
+  public static final String REQUEST_CLUSTER_ID_PROPERTY_ID = REQUESTS + "/cluster_id";
+  public static final String REQUEST_ID_PROPERTY_ID = REQUESTS + "/id";
+  public static final String REQUEST_STATUS_PROPERTY_ID = REQUESTS + "/request_status";
+  public static final String REQUEST_ABORT_REASON_PROPERTY_ID = REQUESTS + "/abort_reason";
+  public static final String REQUEST_CONTEXT_ID = REQUESTS + "/request_context";
+  public static final String REQUEST_SOURCE_SCHEDULE = REQUESTS + "/request_schedule";
+  public static final String REQUEST_SOURCE_SCHEDULE_ID = REQUESTS + "/request_schedule/schedule_id";
+  public static final String REQUEST_SOURCE_SCHEDULE_HREF = REQUESTS + "/request_schedule/href";
+  public static final String REQUEST_TYPE_ID = REQUESTS + "/type";
+  public static final String REQUEST_INPUTS_ID = REQUESTS + "/inputs";
+  public static final String REQUEST_CLUSTER_HOST_INFO_ID = REQUESTS + "/cluster_host_info";
+  public static final String REQUEST_RESOURCE_FILTER_ID = REQUESTS + "/resource_filters";
+  public static final String REQUEST_OPERATION_LEVEL_ID = REQUESTS + "/operation_level";
+  public static final String REQUEST_CREATE_TIME_ID = REQUESTS + "/create_time";
+  public static final String REQUEST_START_TIME_ID = REQUESTS + "/start_time";
+  public static final String REQUEST_END_TIME_ID = REQUESTS + "/end_time";
+  public static final String REQUEST_EXCLUSIVE_ID = REQUESTS + "/exclusive";
+  public static final String REQUEST_TASK_CNT_ID = REQUESTS + "/task_count";
+  public static final String REQUEST_FAILED_TASK_CNT_ID = REQUESTS + "/failed_task_count";
+  public static final String REQUEST_ABORTED_TASK_CNT_ID = REQUESTS + "/aborted_task_count";
+  public static final String REQUEST_TIMED_OUT_TASK_CNT_ID = REQUESTS + "/timed_out_task_count";
+  public static final String REQUEST_COMPLETED_TASK_CNT_ID = REQUESTS + "/completed_task_count";
+  public static final String REQUEST_QUEUED_TASK_CNT_ID = REQUESTS + "/queued_task_count";
+  public static final String REQUEST_PROGRESS_PERCENT_ID = REQUESTS + "/progress_percent";
+  public static final String REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID = REQUESTS + "/remove_pending_host_requests";
+  public static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = REQUESTS + "/pending_host_request_count";
+  public static final String COMMAND_ID = "command";
+  public static final String SERVICE_ID = "service_name";
+  public static final String COMPONENT_ID = "component_name";
+  public static final String HOSTS_ID = "hosts"; // This is actually a list of hosts
+  public static final String HOSTS_PREDICATE = "hosts_predicate";
+  public static final String ACTION_ID = "action";
+  public static final String INPUTS_ID = "parameters";
+  public static final String EXLUSIVE_ID = "exclusive";
+  public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
+
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       REQUEST_ID_PROPERTY_ID}));
@@ -151,7 +160,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_TIMED_OUT_TASK_CNT_ID,
     REQUEST_COMPLETED_TASK_CNT_ID,
     REQUEST_QUEUED_TASK_CNT_ID,
-    REQUEST_PROGRESS_PERCENT_ID);
+    REQUEST_PROGRESS_PERCENT_ID,
+    REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID,
+    REQUEST_PENDING_HOST_REQUEST_COUNT_ID,
+    REQUEST_CLUSTER_HOST_INFO_ID
+  );
 
   // ----- Constructors ----------------------------------------------------
 
@@ -238,7 +251,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
                 ? null
                 : actionDefinition.getPermissions();
 
-            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, permissions)) {
+            // here goes ResourceType handling for some specific custom actions
+            ResourceType customActionResourceType = resourceType;
+            if (actionName.contains("check_host")) { // check_host custom action
+              customActionResourceType = ResourceType.CLUSTER;
+            }
+
+            if (!AuthorizationHelper.isAuthorized(customActionResourceType, resourceId, permissions)) {
               throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the action %s.", actionName));
             }
           }
@@ -296,6 +315,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public RequestStatus updateResources(Request requestInfo, Predicate predicate)
           throws SystemException, UnsupportedPropertyException,
           NoSuchResourceException, NoSuchParentResourceException {
+
     AmbariManagementController amc = getManagementController();
     final Set<RequestRequest> requests = new HashSet<>();
 
@@ -318,33 +338,48 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       }
       // There should be only one request with this id (or no request at all)
       org.apache.ambari.server.actionmanager.Request internalRequest = internalRequests.get(0);
-      // Validate update request (check constraints on state value and presence of abort reason)
-      if (updateRequest.getAbortReason() == null || updateRequest.getAbortReason().isEmpty()) {
-        throw new IllegalArgumentException("Abort reason can not be empty.");
-      }
 
-      if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
-        throw new IllegalArgumentException(
-                String.format("%s is wrong value. The only allowed value " +
-                                "for updating request status is ABORTED",
-                        updateRequest.getStatus()));
-      }
-
-      HostRoleStatus internalRequestStatus =
-          CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
-
-      if (internalRequestStatus.isCompletedState()) {
-        // Ignore updates to completed requests to avoid throwing exception on race condition
+      if (updateRequest.isRemovePendingHostRequests()) {
+        if (internalRequest instanceof LogicalRequest) {
+          targets.add(internalRequest);
+        } else {
+          throw new IllegalArgumentException("Request with id: " + internalRequest.getRequestId() + "is not a Logical Request.");
+        }
       } else {
-        // Validation passed
-        targets.add(internalRequest);
+        // Validate update request (check constraints on state value and presence of abort reason)
+        if (updateRequest.getAbortReason() == null || updateRequest.getAbortReason().isEmpty()) {
+          throw new IllegalArgumentException("Abort reason can not be empty.");
+        }
+
+        if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
+          throw new IllegalArgumentException(
+                  String.format("%s is wrong value. The only allowed value " +
+                                  "for updating request status is ABORTED",
+                          updateRequest.getStatus()));
+        }
+
+        HostRoleStatus internalRequestStatus =
+                CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
+
+        if (internalRequestStatus.isCompletedState()) {
+          // Ignore updates to completed requests to avoid throwing exception on race condition
+        } else {
+          // Validation passed
+          targets.add(internalRequest);
+        }
       }
+
     }
+
     // Perform update
     Iterator<RequestRequest> reqIterator = requests.iterator();
     for (org.apache.ambari.server.actionmanager.Request target : targets) {
-      String reason = reqIterator.next().getAbortReason();
-      amc.getActionManager().cancelRequest(target.getRequestId(), reason);
+      if (target instanceof LogicalRequest) {
+        topologyManager.removePendingHostRequests(target.getClusterName(), target.getRequestId());
+      } else {
+        String reason = reqIterator.next().getAbortReason();
+        amc.getActionManager().cancelRequest(target.getRequestId(), reason);
+      }
     }
     return getRequestStatus(null);
   }
@@ -362,9 +397,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       requestStatus = HostRoleStatus.valueOf(requestStatusStr);
     }
     String abortReason = (String) propertyMap.get(REQUEST_ABORT_REASON_PROPERTY_ID);
+    String removePendingHostRequests = (String) propertyMap.get(REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID);
+
     RequestRequest requestRequest = new RequestRequest(clusterNameStr, requestId);
     requestRequest.setStatus(requestStatus);
     requestRequest.setAbortReason(abortReason);
+    if (removePendingHostRequests != null) {
+      requestRequest.setRemovePendingHostRequests(Boolean.valueOf(removePendingHostRequests));
+    }
+
     return requestRequest;
 
   }
@@ -410,16 +451,18 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> resourceFilterList = null;
     Set<Map<String, Object>> resourceFilters;
 
+    Map<String, String> params = new HashMap<>();
     Object resourceFilterObj = propertyMap.get(REQUEST_RESOURCE_FILTER_ID);
     if (resourceFilterObj != null && resourceFilterObj instanceof HashSet) {
       resourceFilters = (HashSet<Map<String, Object>>) resourceFilterObj;
       resourceFilterList = new ArrayList<>();
 
       for (Map<String, Object> resourceMap : resourceFilters) {
+        params.put(HAS_RESOURCE_FILTERS, "true");
         resourceFilterList.addAll(parseRequestResourceFilter(resourceMap,
           (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID)));
       }
-      LOG.debug("RequestResourceFilters : " + resourceFilters);
+      LOG.debug("RequestResourceFilters : {}", resourceFilters);
     }
     // Extract operation level property
     RequestOperationLevel operationLevel = null;
@@ -427,7 +470,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       operationLevel = new RequestOperationLevel(requestInfoProperties);
     }
 
-    Map<String, String> params = new HashMap<>();
     String keyPrefix = INPUTS_ID + "/";
     for (String key : requestInfoProperties.keySet()) {
       if (key.startsWith(keyPrefix)) {
@@ -624,9 +666,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         status = org.apache.ambari.server.actionmanager.RequestStatus.valueOf(requestStatus);
       }
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a Get Request Status request"
-            + ", requestId=null"
-            + ", requestStatus=" + status);
+        LOG.debug("Received a Get Request Status request, requestId=null, requestStatus={}", status);
       }
 
       maxResults = (maxResults != null) ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE;
@@ -713,7 +753,20 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, entity.getRequestId(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_CONTEXT_ID, entity.getRequestContext(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TYPE_ID, entity.getRequestType(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_INPUTS_ID, entity.getInputs(), requestedPropertyIds);
+
+    // Mask any sensitive data fields in the inputs data structure
+    if (isPropertyRequested(REQUEST_INPUTS_ID, requestedPropertyIds)) {
+      String value = entity.getInputs();
+      if (!StringUtils.isBlank(value)) {
+        value = SecretReference.maskPasswordInPropertyMap(value);
+      }
+      resource.setProperty(REQUEST_INPUTS_ID, value);
+    }
+
+    if (isPropertyRequested(REQUEST_CLUSTER_HOST_INFO_ID, requestedPropertyIds)) {
+      resource.setProperty(REQUEST_CLUSTER_HOST_INFO_ID, entity.getClusterHostInfo());
+    }
+
     setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID,
         org.apache.ambari.server.actionmanager.Request.filtersFromEntity(entity),
         requestedPropertyIds);
@@ -737,13 +790,41 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
     }
 
-    final CalculatedStatus status = CalculatedStatus.statusFromRequest(s_hostRoleCommandDAO, topologyManager, entity.getRequestId());
+    Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
+
+    // get summaries from TopologyManager for logical requests
+    summary.putAll(topologyManager.getStageSummaries(entity.getRequestId()));
+
+    // summary might be empty due to delete host have cleared all
+    // HostRoleCommands or due to hosts haven't registered yet with the cluster
+    // when the cluster is provisioned with a Blueprint
+    final CalculatedStatus status;
+    LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
+    if (summary.isEmpty() && null != logicalRequest) {
+      // In this case, it appears that there are no tasks but this is a logical
+      // topology request, so it's a matter of hosts simply not registering yet
+      // for tasks to be created ==> status = PENDING.
+      // For a new LogicalRequest there should be at least one HostRequest,
+      // while if they were removed already ==> status = COMPLETED.
+      if (logicalRequest.getHostRequests().isEmpty()) {
+        status = CalculatedStatus.COMPLETED;
+      } else {
+        status = CalculatedStatus.PENDING;
+      }
+    } else {
+      // there are either tasks or this is not a logical request, so do normal
+      // status calculations
+      status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+    }
+
+    if (null != logicalRequest) {
+      setResourceProperty(resource, REQUEST_PENDING_HOST_REQUEST_COUNT_ID, logicalRequest.getPendingHostRequestCount(), requestedPropertyIds);
+    }
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, status.getPercent(), requestedPropertyIds);
 
     int taskCount = 0;
-    Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
     for (HostRoleCommandStatusSummaryDTO dto : summary.values()) {
       taskCount += dto.getTaskTotal();
     }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -40,16 +40,21 @@ import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMet
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -70,7 +75,14 @@ public class RecoveryConfigHelperTest {
   private RecoveryConfigHelper recoveryConfigHelper;
 
   @Inject
-  private AmbariEventPublisher eventPublisher;
+  private RepositoryVersionDAO repositoryVersionDAO;
+
+  @Inject
+  private OrmTestHelper helper;
+
+  private final String STACK_VERSION = "0.1";
+  private final String REPO_VERSION = "0.1-1234";
+  private final StackId stackId = new StackId("HDP", STACK_VERSION);
 
   @Before
   public void setup() throws Exception {
@@ -115,7 +127,7 @@ public class RecoveryConfigHelperTest {
   public void testRecoveryConfigValues()
       throws Exception {
     String hostname = "hostname1";
-    Cluster cluster = getDummyCluster(hostname);
+    Cluster cluster = getDummyCluster(Sets.newHashSet(hostname));
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), hostname);
     assertEquals(recoveryConfig.getMaxLifetimeCount(), "10");
     assertEquals(recoveryConfig.getMaxCount(), "4");
@@ -135,7 +147,9 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentInstalled()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -162,7 +176,8 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentUninstalled()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -191,7 +206,8 @@ public class RecoveryConfigHelperTest {
   public void testClusterEnvConfigChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -224,7 +240,8 @@ public class RecoveryConfigHelperTest {
   public void testMaintenanceModeChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -252,7 +269,8 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentRecoveryChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -286,8 +304,10 @@ public class RecoveryConfigHelperTest {
     // Create a cluster with 2 hosts
     Cluster cluster = getDummyCluster(hostNames);
 
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+
     // Add HDFS service with DATANODE component to the cluster
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
 
@@ -311,6 +331,7 @@ public class RecoveryConfigHelperTest {
 
   private Cluster getDummyCluster(Set<String> hostNames)
       throws Exception {
+
     Map<String, String> configProperties = new HashMap<String, String>() {{
       put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "true");
       put(RecoveryConfigHelper.RECOVERY_TYPE_KEY, "AUTO_START");
@@ -320,16 +341,9 @@ public class RecoveryConfigHelperTest {
       put(RecoveryConfigHelper.RECOVERY_RETRY_GAP_KEY, "2");
     }};
 
-    return heartbeatTestHelper.getDummyCluster("cluster1", "HDP-0.1", configProperties, hostNames);
-  }
+    Cluster cluster = heartbeatTestHelper.getDummyCluster("cluster1", stackId, REPO_VERSION,
+        configProperties, hostNames);
 
-  private Cluster getDummyCluster(final String hostname)
-      throws Exception {
-
-    Set<String> hostNames = new HashSet<String>(){{
-      add(hostname);
-    }};
-
-    return getDummyCluster(hostNames);
+    return cluster;
   }
 }

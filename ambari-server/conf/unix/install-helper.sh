@@ -33,6 +33,9 @@ JINJA_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
 SIMPLEJSON_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_simplejson"
 AMBARI_PROPERTIES="${ROOT}/etc/ambari-server/conf/ambari.properties"
 AMBARI_ENV_RPMSAVE="${ROOT}/var/lib/ambari-server/ambari-env.sh.rpmsave" # this turns into ambari-env.sh during ambari-server start
+AMBARI_SERVER_KEYS_FOLDER="${ROOT}/var/lib/ambari-server/keys"
+AMBARI_SERVER_KEYS_DB_FOLDER="${ROOT}/var/lib/ambari-server/keys/db"
+AMBARI_SERVER_NEWCERTS_FOLDER="${ROOT}/var/lib/ambari-server/keys/db/newcerts"
 
 PYTHON_WRAPER_DIR="${ROOT}/usr/bin/"
 PYTHON_WRAPER_TARGET="${PYTHON_WRAPER_DIR}/ambari-python-wrap"
@@ -83,7 +86,7 @@ do_install(){
   rm -f "$PYTHON_WRAPER_TARGET"
 
   AMBARI_PYTHON=""
-  python_binaries=( "/usr/bin/python" "/usr/bin/python2" "/usr/bin/python2.7", "/usr/bin/python2.6" )
+  python_binaries=( "/usr/bin/python" "/usr/bin/python2" "/usr/bin/python2.7" "/usr/bin/python2.6" )
   for python_binary in "${python_binaries[@]}"
   do
     $python_binary -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (2,6) and ver<(3,0)))" 1>/dev/null 2>/dev/null
@@ -124,6 +127,20 @@ do_install(){
 	echo "sudo $AUTOSTART_SERVER_CMD"
   else
 	$AUTOSTART_SERVER_CMD
+  fi
+
+  if [ -d "$AMBARI_SERVER_KEYS_FOLDER" ]
+  then
+      chmod 700 "$AMBARI_SERVER_KEYS_FOLDER"
+      if [ -d "$AMBARI_SERVER_KEYS_DB_FOLDER" ]
+      then
+          chmod 700 "$AMBARI_SERVER_KEYS_DB_FOLDER"
+          if [ -d "$AMBARI_SERVER_NEWCERTS_FOLDER" ]
+          then
+              chmod 700 "$AMBARI_SERVER_NEWCERTS_FOLDER"
+
+          fi
+      fi
   fi
 
   if [ -f "$AMBARI_ENV_RPMSAVE" ] ; then

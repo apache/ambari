@@ -32,6 +32,8 @@ class TestDatanode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"HDFS", "role":"DATANODE"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
@@ -375,7 +377,7 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0750,
                               create_parents = True,
                               cd_access='a'
                               )
@@ -416,6 +418,16 @@ class TestDatanode(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
+    self.assertResourceCalled('File', conf_dir + '/hdfs_dn_jaas.conf',
+                              content = Template('hdfs_dn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', conf_dir + '/hdfs_nn_jaas.conf',
+                              content = Template('hdfs_nn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -451,7 +463,7 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0750,
                               create_parents = True,
                               cd_access='a'
                               )
@@ -474,6 +486,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
@@ -494,23 +507,13 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
-    self.assertResourceCalled('Link', ('/etc/hadoop/conf'), to='/usr/hdp/current/hadoop-client/conf')
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-datanode', version), sudo=True,)
 
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])
 
 
   @patch("socket.gethostbyname")

@@ -231,7 +231,7 @@ var urls = {
   },
 
   'common.request.polling': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status,tasks/Tasks/structured_out,Requests/*&tasks/Tasks/stage_id={stageId}',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status,tasks/Tasks/structured_out,Requests/*&tasks/Tasks/stage_id={stageId}',
     'mock': '/data/background_operations/host_upgrade_tasks.json'
   },
 
@@ -539,12 +539,14 @@ var urls = {
     'mock': '/data/alerts/alert_instances_history.json'
   },
   'background_operations.get_most_recent': {
-    'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
+    'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=' +
+    'Requests/end_time,Requests/id,Requests/progress_percent,Requests/request_context,' +
+    'Requests/request_status,Requests/start_time,Requests/cluster_name&minimal_response=true',
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
   },
   'background_operations.get_by_request': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/background_operations/task_by_request{requestId}.json',
     'testInProduction': true
   },
@@ -1351,11 +1353,11 @@ var urls = {
     }
   },
   'cluster.load_cluster_name': {
-    'real': '/clusters?fields=Clusters/security_type,Clusters/cluster_id',
+    'real': '/clusters?fields=Clusters/security_type,Clusters/version,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
-    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/to_version,Upgrade/from_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures',
+    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/*',
     'mock': '/data/stack_versions/upgrades.json'
   },
   'cluster.update_upgrade_version': {
@@ -1684,7 +1686,7 @@ var urls = {
     'mock': '/data/stack_versions/upgrade_item.json'
   },
   'admin.upgrade.service_checks': {
-    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,upgrade_items/tasks/Tasks/status&minimal_response=true'
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status&minimal_response=true'
   },
   'admin.upgrade.update.options': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
@@ -1710,7 +1712,7 @@ var urls = {
         timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version": data.value,
+            "repository_version_id": data.id,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
             "skip_service_check_failures": data.skipSCFailures,
@@ -1728,8 +1730,6 @@ var urls = {
       return {
         data: JSON.stringify({
           "Upgrade": {
-            "from_version": data.from,
-            "repository_version": data.value,
             "upgrade_type": data.upgradeType,
             "direction": "DOWNGRADE"
           }
@@ -1776,6 +1776,21 @@ var urls = {
         data: JSON.stringify({
           "Upgrade": {
             "request_status": "PENDING"
+          }
+        })
+      }
+    }
+  },
+  'admin.upgrade.revert': {
+    'real': '/clusters/{clusterName}/upgrades',
+    'mock': '/data/stack_versions/start_upgrade.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        timeout : 600000,
+        data: JSON.stringify({
+          "Upgrade": {
+            "revert_upgrade_id": data.upgradeId
           }
         })
       }
@@ -1837,8 +1852,23 @@ var urls = {
     }
   },
 
+  'admin.stack_versions.discard': {
+    'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "RepositoryVersions":{
+            "hidden": "true"
+          }
+        })
+      }
+    }
+  },
+
   'admin.upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}&UpgradeChecks/upgrade_type={type}',
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id={id}&UpgradeChecks/upgrade_type={type}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 
@@ -1969,7 +1999,7 @@ var urls = {
     'mock': '/data/wizard/deploy/5_hosts/get_host_state.json'
   },
   'wizard.step9.load_log': {
-    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/wizard/deploy/5_hosts/poll_{numPolls}.json',
     'format': function () {
       return {
@@ -2287,7 +2317,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/cluster_id',
+    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {
@@ -2351,6 +2381,28 @@ var urls = {
             "operation_level": data.operation_level
           },
           "Requests/resource_filters": data.resource_filters
+        })
+      }
+    }
+  },
+
+  'restart.allServices': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": 'Restart all services',
+            "operation_level": 'host_component'
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts_predicate": "HostRoles/cluster_name=" + data.clusterName
+            }
+          ]
         })
       }
     }
@@ -2571,7 +2623,7 @@ var urls = {
     'mock': ''
   },
   'hosts.confirmed': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/os_type,Hosts/os_arch,Hosts/ip,Hosts/maintenance_state,host_components/HostRoles/state&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?fields=host_components/HostRoles/state&minimal_response=true',
     'mock': '/data/hosts/HDP2/hosts.json'
   },
   'hosts.with_searchTerm': {
@@ -2694,6 +2746,10 @@ var urls = {
   },
   'hosts.config_groups': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true',
+    'mock': ''
+  },
+  'hosts.info.install': {
+    'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
   'hosts.host_components.pre_load': {
@@ -3097,7 +3153,7 @@ var ajax = Em.Object.extend({
   MAX_GET_URL_LENGTH: 2048,
 
   consoleMsg: function(name, url) {
-    return Em.I18n.t('app.logger.ajax').format(name, url.substr(7, 100));
+    return Em.I18n.t('app.logger.ajax').format(name, url ? url.substr(7, 100) : '');
   },
 
   /**
@@ -3127,7 +3183,7 @@ var ajax = Em.Object.extend({
     if(config.hasOwnProperty("showLoadingPopup") && config.showLoadingPopup === true) {
       loadingPopupTimeout = setTimeout(function() {
         loadingPopup = App.ModalPopup.show({
-          header: Em.I18n.t('jobs.loadingTasks'),
+          header: Em.I18n.t('common.loading.eclipses'),
           backdrop: false,
           primary: false,
           secondary: false,

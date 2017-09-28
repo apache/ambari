@@ -274,7 +274,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     expect(privilegeDAO.findAll()).andReturn(privilegeEntities).atLeastOnce();
 
     UserDAO userDAO = injector.getInstance(UserDAO.class);
-    expect(userDAO.findUsersByPrincipal(EasyMock.<List<PrincipalEntity>>anyObject())).andReturn(userEntities).atLeastOnce();
+    expect(userDAO.findUsersByPrincipal(EasyMock.anyObject())).andReturn(userEntities).atLeastOnce();
 
     replayAll();
 
@@ -556,7 +556,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     expect(principalDAO.merge(principalEntity)).andReturn(principalEntity).once();
 
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
-    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity>emptyList()).atLeastOnce();
+    expect(clusterDAO.findAll()).andReturn(Collections.emptyList()).atLeastOnce();
 
     ResourceDAO resourceDAO = injector.getInstance(ResourceDAO.class);
     expect(resourceDAO.findById(1L)).andReturn(clusterResourceEntity).atLeastOnce();
@@ -613,7 +613,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     expect(userDAO.findUsersByPrincipal(principalEntities)).andReturn(userEntities).atLeastOnce();
 
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
-    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity>emptyList()).atLeastOnce();
+    expect(clusterDAO.findAll()).andReturn(Collections.emptyList()).atLeastOnce();
 
     replayAll();
 
@@ -727,7 +727,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     expect(principalDAO.merge(principalEntity2)).andReturn(principalEntity2).atLeastOnce();
 
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
-    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity>emptyList()).atLeastOnce();
+    expect(clusterDAO.findAll()).andReturn(Collections.emptyList()).atLeastOnce();
 
     ResourceDAO resourceDAO = injector.getInstance(ResourceDAO.class);
     expect(resourceDAO.findById(1L)).andReturn(clusterResourceEntity).atLeastOnce();

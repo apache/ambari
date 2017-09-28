@@ -46,10 +46,6 @@ retryAble = default("/commandParams/command_retry_enabled", False)
 # Version being upgraded/downgraded to
 version = default("/commandParams/version", None)
 
-# Version that is CURRENT.
-current_version = default("/hostLevelParams/current_version", None)
-
-
 stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -60,10 +56,6 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT, version_for_stack_feature_checks)
-
-# When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
-# downgrade_from_version provides the source-version the downgrade is happening from
-downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
 hostname = config['agentLevelParams']['hostname']
 
@@ -105,6 +97,9 @@ zookeeper_hosts.sort()
 secure_acls = default("/configurations/kafka-broker/zookeeper.set.acl", False)
 kafka_security_migrator = os.path.join(kafka_home, "bin", "zookeeper-security-migration.sh")
 
+all_hosts = default("/clusterHostInfo/all_hosts", [])
+all_racks = default("/clusterHostInfo/all_racks", [])
+
 #Kafka log4j
 kafka_log_maxfilesize = default('/configurations/kafka-log4j/kafka_log_maxfilesize',256)
 kafka_log_maxbackupindex = default('/configurations/kafka-log4j/kafka_log_maxbackupindex',20)
@@ -130,13 +125,22 @@ metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.trust
 metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
 metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
 
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+set_instanceId = "false"
+cluster_name = config["clusterName"]
+
+if 'cluster-env' in config['configurations'] and \
+        'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+
 has_metric_collector = not len(ams_collector_hosts) == 0
 
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -147,6 +151,9 @@ if has_metric_collector:
     metric_collector_protocol = 'https'
   else:
     metric_collector_protocol = 'http'
+
+  host_in_memory_aggregation = str(default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)).lower()
+  host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
   pass
 
 # Security-related params

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,7 +35,6 @@ import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -67,7 +66,7 @@ public class Stage {
    */
   public static final String INTERNAL_HOSTNAME = "_internal_ambari";
 
-  private static Logger LOG = LoggerFactory.getLogger(Stage.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
   private String clusterName;
   private long clusterId = -1L;
@@ -76,7 +75,6 @@ public class Stage {
   private final String requestContext;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private HostRoleStatus displayStatus = HostRoleStatus.PENDING;
-  private String clusterHostInfo;
   private String commandParamsStage;
   private String hostParamsStage;
 
@@ -110,7 +108,6 @@ public class Stage {
       @Assisted("clusterName") @Nullable String clusterName,
       @Assisted("clusterId") long clusterId,
       @Assisted("requestContext") @Nullable String requestContext,
-      @Assisted("clusterHostInfo") String clusterHostInfo,
       @Assisted("commandParamsStage") String commandParamsStage,
       @Assisted("hostParamsStage") String hostParamsStage,
       HostRoleCommandFactory hostRoleCommandFactory, ExecutionCommandWrapperFactory ecwFactory) {
@@ -120,7 +117,6 @@ public class Stage {
     this.clusterName = clusterName;
     this.clusterId = clusterId;
     this.requestContext = requestContext == null ? "" : requestContext;
-    this.clusterHostInfo = clusterHostInfo;
     this.commandParamsStage = commandParamsStage;
     this.hostParamsStage = hostParamsStage;
 
@@ -155,7 +151,6 @@ public class Stage {
     }
 
     requestContext = stageEntity.getRequestContext();
-    clusterHostInfo = stageEntity.getClusterHostInfo();
     commandParamsStage = stageEntity.getCommandParamsStage();
     hostParamsStage = stageEntity.getHostParamsStage();
     commandExecutionType = stageEntity.getCommandExecutionType();
@@ -172,7 +167,7 @@ public class Stage {
       String hostname = getSafeHost(command.getHostName());
 
       if (!hostRoleCommands.containsKey(hostname)) {
-        hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
+        hostRoleCommands.put(hostname, new LinkedHashMap<>());
       }
 
       hostRoleCommands.get(hostname).put(command.getRole().toString(), command);
@@ -195,11 +190,12 @@ public class Stage {
     stageEntity.setSkippable(skippable);
     stageEntity.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
     stageEntity.setRequestContext(requestContext);
-    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
-    stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
-    stageEntity.setClusterHostInfo(clusterHostInfo);
+    stageEntity.setHostRoleCommands(new ArrayList<>());
+    stageEntity.setRoleSuccessCriterias(new ArrayList<>());
     stageEntity.setCommandParamsStage(commandParamsStage);
-    stageEntity.setHostParamsStage(hostParamsStage);
+    if (null != hostParamsStage) {
+      stageEntity.setHostParamsStage(hostParamsStage);
+    }
     stageEntity.setCommandExecutionType(commandExecutionType);
     stageEntity.setStatus(status);
     stageEntity.setDisplayStatus(displayStatus);
@@ -228,7 +224,7 @@ public class Stage {
   void loadExecutionCommandWrappers() {
     for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
       String hostname = hostRoleCommandEntry.getKey();
-      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+      commandsToSend.put(hostname, new ArrayList<>());
       Map<String, HostRoleCommand> roleCommandMap = hostRoleCommandEntry.getValue();
       for (Map.Entry<String, HostRoleCommand> roleCommandEntry : roleCommandMap.entrySet()) {
         commandsToSend.get(hostname).add(roleCommandEntry.getValue().getExecutionCommandWrapper());
@@ -262,14 +258,6 @@ public class Stage {
       }
     }
     return commandsToScheduleSet;
-  }
-
-  public String getClusterHostInfo() {
-    return clusterHostInfo;
-  }
-
-  public void setClusterHostInfo(String clusterHostInfo) {
-    this.clusterHostInfo = clusterHostInfo;
   }
 
   public String getCommandParamsStage() {
@@ -824,12 +812,12 @@ public class Stage {
 
     String role = r.toString();
     if (commandsToSend.get(hostname) == null) {
-      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+      commandsToSend.put(hostname, new ArrayList<>());
     }
     commandsToSend.get(hostname).add(
         origStage.getExecutionCommandWrapper(hostname, role));
     if (hostRoleCommands.get(hostname) == null) {
-      hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
+      hostRoleCommands.put(hostname, new LinkedHashMap<>());
     }
     // TODO add reference to ExecutionCommand into HostRoleCommand
     hostRoleCommands.get(hostname).put(role,
@@ -864,7 +852,7 @@ public class Stage {
             summaryTaskTimeoutForHost += commandTimeout;
           } else {
             LOG.error("Execution command has no timeout parameter" +
-                    command.toString());
+              command);
           }
         }
         if (summaryTaskTimeoutForHost > stageTimeout) {
@@ -935,7 +923,6 @@ public class Stage {
     builder.append("clusterName=").append(clusterName).append("\n");
     builder.append("logDir=").append(logDir).append("\n");
     builder.append("requestContext=").append(requestContext).append("\n");
-    builder.append("clusterHostInfo=").append(clusterHostInfo).append("\n");
     builder.append("commandParamsStage=").append(commandParamsStage).append("\n");
     builder.append("hostParamsStage=").append(hostParamsStage).append("\n");
     builder.append("status=").append(status).append("\n");
@@ -948,7 +935,7 @@ public class Stage {
       builder.append("HOST: ").append(hostRoleCommand.getHostName()).append(" :\n");
       builder.append(hostRoleCommand.getExecutionCommandWrapper().getJson());
       builder.append("\n");
-      builder.append(hostRoleCommand.toString());
+      builder.append(hostRoleCommand);
       builder.append("\n");
     }
     builder.append("STAGE DESCRIPTION END\n");

@@ -14,7 +14,8 @@
         "command_retry_max_attempt_count": "3", 
         "command_retry_enabled": "false", 
         "command_timeout": "300", 
-        "script_type": "PYTHON"
+        "script_type": "PYTHON",
+        "version": "2.3.0.0-1889"
     }, 
     "roleCommand": "SERVICE_CHECK", 
     "kerberosCommandParams": [], 
@@ -34,8 +35,7 @@
         "host_sys_prepped": "false", 
         "db_name": "ambari", 
         "jdk_name": "jdk-8u60-linux-x64.tar.gz", 
-        "ambari_db_rca_driver": "org.postgresql.Driver", 
-        "current_version": "2.3.0.0-1889", 
+        "ambari_db_rca_driver": "org.postgresql.Driver",
         "ambari_db_rca_username": "mapred", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "agentCacheDir": "/var/lib/ambari-agent/cache", 

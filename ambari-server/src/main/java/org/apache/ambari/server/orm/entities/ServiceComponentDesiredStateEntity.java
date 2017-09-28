@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -40,7 +41,9 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.lang.builder.EqualsBuilder;
 
 @Entity
 @Table(
@@ -84,19 +87,21 @@ public class ServiceComponentDesiredStateEntity {
   @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
   private Integer recoveryEnabled = 0;
 
-  /**
-   * Unidirectional one-to-one association to {@link StackEntity}
-   */
-  @OneToOne
-  @JoinColumn(name = "desired_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
-  private StackEntity desiredStack;
+  @Column(name = "repo_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(EnumType.STRING)
+  private RepositoryVersionState repoState = RepositoryVersionState.NOT_REQUIRED;
 
   /**
-   * Version string that should be followed by instances
-   * of component on hosts. Includes both stack version and build
+   * Unidirectional one-to-one association to {@link RepositoryVersionEntity}
    */
-  @Column(name = "desired_version", nullable = false, insertable = true, updatable = true)
-  private String desiredVersion = State.UNKNOWN.toString();
+  @OneToOne
+  @JoinColumn(
+      name = "desired_repo_version_id",
+      unique = false,
+      nullable = false,
+      insertable = true,
+      updatable = true)
+  private RepositoryVersionEntity desiredRepositoryVersion;
 
   @ManyToOne
   @JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
@@ -108,17 +113,8 @@ public class ServiceComponentDesiredStateEntity {
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
-  /**
-   * All of the upgrades and downgrades which have occurred for this component.
-   * Can be {@code null} for none.
-   */
-  @OneToMany(
-      mappedBy = "m_serviceComponentDesiredStateEntity",
-      cascade = { CascadeType.ALL })
-  private Collection<ServiceComponentHistoryEntity> serviceComponentHistory;
-
   @OneToMany(mappedBy = "m_serviceComponentDesiredStateEntity", cascade = { CascadeType.ALL })
-  private Collection<ServiceComponentVersionEntity> serviceComponentVersion;
+  private Collection<ServiceComponentVersionEntity> serviceComponentVersions;
 
   public Long getId() {
     return id;
@@ -156,66 +152,39 @@ public class ServiceComponentDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
-  public StackEntity getDesiredStack() {
-    return desiredStack;
+  public RepositoryVersionEntity getDesiredRepositoryVersion() {
+    return desiredRepositoryVersion;
   }
 
-  public void setDesiredStack(StackEntity desiredStack) {
-    this.desiredStack = desiredStack;
+  public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
+    this.desiredRepositoryVersion = desiredRepositoryVersion;
+  }
+
+  public StackEntity getDesiredStack() {
+    return desiredRepositoryVersion.getStack();
   }
 
   public String getDesiredVersion() {
-    return desiredVersion;
-  }
-
-  public void setDesiredVersion(String desiredVersion) {
-    this.desiredVersion = desiredVersion;
+    return desiredRepositoryVersion.getVersion();
   }
 
   /**
-   * Adds a historical entry for the version of this service component. New
-   * entries are automatically created when this entity is merged via a
-   * {@link CascadeType#MERGE}.
-   *
-   * @param historicalEntry
-   *          the entry to add.
+   * @param versionEntity the version to add
    */
-  public void addHistory(ServiceComponentHistoryEntity historicalEntry) {
-    if (null == serviceComponentHistory) {
-      serviceComponentHistory = new ArrayList<>();
+  public void addVersion(ServiceComponentVersionEntity versionEntity) {
+    if (null == serviceComponentVersions) {
+      serviceComponentVersions = new ArrayList<>();
     }
 
-    serviceComponentHistory.add(historicalEntry);
-    historicalEntry.setServiceComponentDesiredState(this);
-  }
-
-  /**
-   * Gets the history of this component's upgrades and downgrades.
-   *
-   * @return the component history, or {@code null} if none.
-   */
-  public Collection<ServiceComponentHistoryEntity> getHistory() {
-    return serviceComponentHistory;
-  }
-
-
-  /**
-   * @param versionEntry the version to add
-   */
-  public void addVersion(ServiceComponentVersionEntity versionEntry) {
-    if (null == serviceComponentVersion) {
-      serviceComponentVersion = new ArrayList<>();
-    }
-
-    serviceComponentVersion.add(versionEntry);
-    versionEntry.setServiceComponentDesiredState(this);
+    serviceComponentVersions.add(versionEntity);
+    versionEntity.setServiceComponentDesiredState(this);
   }
 
   /**
    * @return the collection of versions for the component
    */
   public Collection<ServiceComponentVersionEntity> getVersions() {
-    return serviceComponentVersion;
+    return serviceComponentVersions;
   }
 
 
@@ -227,6 +196,9 @@ public class ServiceComponentDesiredStateEntity {
     this.recoveryEnabled = (recoveryEnabled == false) ? 0 : 1;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -238,39 +210,21 @@ public class ServiceComponentDesiredStateEntity {
     }
 
     ServiceComponentDesiredStateEntity that = (ServiceComponentDesiredStateEntity) o;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
+    equalsBuilder.append(id, that.id);
+    equalsBuilder.append(clusterId, that.clusterId);
+    equalsBuilder.append(componentName, that.componentName);
+    equalsBuilder.append(desiredState, that.desiredState);
+    equalsBuilder.append(serviceName, that.serviceName);
+    equalsBuilder.append(desiredRepositoryVersion, that.desiredRepositoryVersion);
 
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
-      return false;
-    }
-    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) {
-      return false;
-    }
-    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
-      return false;
-    }
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) {
-      return false;
-    }
-    if (desiredStack != null ? !desiredStack.equals(that.desiredStack)
-        : that.desiredStack != null) {
-      return false;
-    }
-    return true;
+    return equalsBuilder.isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
-    result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
-    result = 31 * result + (desiredStack != null ? desiredStack.hashCode() : 0);
-
-    return result;
+    return Objects.hash(id, clusterId, serviceName, componentName, desiredState,
+        desiredRepositoryVersion);
   }
 
   public ClusterServiceEntity getClusterServiceEntity() {
@@ -295,6 +249,20 @@ public class ServiceComponentDesiredStateEntity {
 
   public void setHostComponentDesiredStateEntities(Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities) {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
+  }
+
+  /**
+   * @param state the repository state for {@link #getDesiredVersion()}
+   */
+  public void setRepositoryState(RepositoryVersionState state) {
+    repoState = state;
+  }
+
+  /**
+   * @return the state of the repository for {@link #getDesiredVersion()}
+   */
+  public RepositoryVersionState getRepositoryState() {
+    return repoState;
   }
 
 }

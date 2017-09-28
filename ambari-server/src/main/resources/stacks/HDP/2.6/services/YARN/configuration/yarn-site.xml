@@ -19,7 +19,7 @@
 <configuration supports_final="true">
   <property>
     <name>yarn.application.classpath</name>
-    <value>/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*</value>
+    <value>/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*,/usr/hdp/current/ext/hadoop/*</value>
     <description>Classpath for typical applications.</description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -97,6 +97,22 @@
       <property>
         <type>yarn-site</type>
         <name>yarn.timeline-service.webapp.https.address</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.kill-escape.launch-command-line</name>
+    <value>slider-agent,LLAP</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.kill-escape.user</name>
+    <value>hive</value>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_user</name>
       </property>
     </depends-on>
     <on-ambari-upgrade add="false"/>

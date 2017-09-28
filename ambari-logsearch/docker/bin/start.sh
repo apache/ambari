@@ -70,7 +70,7 @@ function generate_keys() {
 
 function start_solr() {
   echo "Starting Solr..."
-  /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose
+  /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose -force
   touch /var/log/ambari-logsearch-solr/solr.log
 
   if [ $LOGSEARCH_SOLR_SSL_ENABLED == 'true'  ]
@@ -78,7 +78,7 @@ function start_solr() {
     echo "Setting urlScheme as https and restarting solr..."
     $ZKCLI -zkhost localhost:9983 -cmd clusterprop -name urlScheme -val https
     /root/solr-$SOLR_VERSION/bin/solr stop
-    /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose
+    /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose -force
   fi
 }
 
@@ -92,6 +92,10 @@ function start_logfeeder() {
   touch /var/log/ambari-logsearch-logfeeder/logsearch-logfeeder.log
 }
 
+function start_selenium_server() {
+  nohup java -jar /root/selenium-server-standalone.jar > /var/log/selenium-test.log &
+}
+
 function log() {
   component_log=${COMPONENT_LOG:-"logsearch"}
   case $component_log in
@@ -101,6 +105,9 @@ function log() {
     "solr")
       tail -f /var/log/ambari-logsearch-solr/solr.log
      ;;
+    "selenium")
+      tail -f /var/log/selenium-test.log
+     ;;
      *)
       tail -f /var/log/ambari-logsearch-portal/logsearch-app.log
      ;;
@@ -109,8 +116,8 @@ function log() {
 
 create_config
 generate_keys
+start_selenium_server
 start_solr
 start_logsearch
 start_logfeeder
 log
-

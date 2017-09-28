@@ -18,12 +18,17 @@
 
 package org.apache.ambari.view.commons.hdfs;
 
+import com.google.common.base.Strings;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
 import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.DirListInfo;
+import org.apache.ambari.view.utils.hdfs.DirStatus;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -41,6 +46,14 @@ import java.util.Map;
  * File operations service
  */
 public class FileOperationService extends HdfsService {
+  private final static Logger LOG =
+      LoggerFactory.getLogger(FileOperationService.class);
+
+
+  private static final String FILES_VIEW_MAX_FILE_PER_PAGE = "views.files.max.files.per.page";
+  private static final int DEFAULT_FILES_VIEW_MAX_FILE_PER_PAGE = 5000;
+
+  private Integer maxFilesPerPage = DEFAULT_FILES_VIEW_MAX_FILE_PER_PAGE;
 
   /**
    * Constructor
@@ -48,6 +61,19 @@ public class FileOperationService extends HdfsService {
    */
   public FileOperationService(ViewContext context) {
     super(context);
+    setMaxFilesPerPage(context);
+  }
+
+  private void setMaxFilesPerPage(ViewContext context) {
+    String maxFilesPerPageProperty = context.getAmbariProperty(FILES_VIEW_MAX_FILE_PER_PAGE);
+    LOG.info("maxFilesPerPageProperty = {}", maxFilesPerPageProperty);
+    if(!Strings.isNullOrEmpty(maxFilesPerPageProperty)){
+      try {
+        maxFilesPerPage = Integer.parseInt(maxFilesPerPageProperty);
+      }catch(Exception e){
+        LOG.error("{} should be integer, but it is {}, using default value of {}", FILES_VIEW_MAX_FILE_PER_PAGE , maxFilesPerPageProperty, DEFAULT_FILES_VIEW_MAX_FILE_PER_PAGE);
+      }
+    }
   }
 
   /**
@@ -56,21 +82,30 @@ public class FileOperationService extends HdfsService {
    */
   public FileOperationService(ViewContext context, Map<String, String> customProperties) {
     super(context, customProperties);
+    this.setMaxFilesPerPage(context);
   }
 
   /**
    * List dir
    * @param path path
+   * @param nameFilter : name on which filter is applied
    * @return response with dir content
    */
   @GET
   @Path("/listdir")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response listdir(@QueryParam("path") String path) {
+  public Response listdir(@QueryParam("path") String path, @QueryParam("nameFilter") String nameFilter) {
     try {
       JSONObject response = new JSONObject();
-      response.put("files", getApi().fileStatusToJSON(getApi().listdir(path)));
-      response.put("meta", getApi().fileStatusToJSON(getApi().getFileStatus(path)));
+      Map<String, Object> parentInfo = getApi().fileStatusToJSON(getApi().getFileStatus(path));
+      DirStatus dirStatus = getApi().listdir(path, nameFilter, maxFilesPerPage);
+      DirListInfo dirListInfo = dirStatus.getDirListInfo();
+      parentInfo.put("originalSize", dirListInfo.getOriginalSize());
+      parentInfo.put("truncated", dirListInfo.isTruncated());
+      parentInfo.put("finalSize", dirListInfo.getFinalSize());
+      parentInfo.put("nameFilter", dirListInfo.getNameFilter());
+      response.put("files", getApi().fileStatusToJSON(dirStatus.getFileStatuses()));
+      response.put("meta", parentInfo);
       return Response.ok(response).build();
     } catch (WebApplicationException ex) {
       throw ex;

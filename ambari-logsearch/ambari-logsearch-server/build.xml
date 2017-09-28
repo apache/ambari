@@ -32,6 +32,9 @@
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset dir="target/libs"/>
     </copy>
+    <copy todir="target/classes/static" includeEmptyDirs="no">
+      <fileset dir="target/dist"/>
+    </copy>
     <copy todir="target/package/classes" includeEmptyDirs="no">
       <fileset dir="target/classes"/>
     </copy>

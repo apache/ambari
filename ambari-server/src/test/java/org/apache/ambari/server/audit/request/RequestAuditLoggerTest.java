@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,6 @@ import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.controller.spi.Resource;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -142,7 +141,7 @@ public class RequestAuditLoggerTest {
   }
 
   private Request createRequest(ResourceDefinition resourceDefinition, Request.Type requestType) {
-    ResourceInstance resource = new QueryImpl(new HashMap<Resource.Type, String>(), resourceDefinition, null);
+    ResourceInstance resource = new QueryImpl(new HashMap<>(), resourceDefinition, null);
     return requestFactory.createRequest(null, new RequestBody(), new LocalUriInfo(TEST_URI), requestType, resource);
   }
 

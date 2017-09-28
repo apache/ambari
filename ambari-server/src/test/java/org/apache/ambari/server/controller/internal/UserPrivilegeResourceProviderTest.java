@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.UserPrivilegeResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -41,7 +42,6 @@ import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -142,7 +142,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
 
@@ -195,7 +196,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
     Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
@@ -254,7 +256,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
     Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
@@ -315,7 +318,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
     Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
@@ -386,7 +390,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
     final UserDAO userDAO = createNiceMock(UserDAO.class);
     expect(userDAO.findLocalUserByName("jdoe")).andReturn(userEntity).anyTimes();
     expect(userDAO.findUserByPrincipal(anyObject(PrincipalEntity.class))).andReturn(userEntity).anyTimes();
-    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).anyTimes();
+    expect(userDAO.findAll()).andReturn(Collections.emptyList()).anyTimes();
 
     final PrivilegeDAO privilegeDAO = createMock(PrivilegeDAO.class);
     final MemberDAO memberDAO = createMock(MemberDAO.class);
@@ -409,7 +413,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
         andReturn(Collections.singletonList(implicitPrivilegeEntity))
         .once();
     expect(memberDAO.findAllMembersByUser(userEntity)).
-        andReturn(Collections.<MemberEntity>emptyList())
+        andReturn(Collections.emptyList())
         .atLeastOnce();
 
     replayAll();
@@ -464,12 +468,12 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
         andReturn(Collections.singletonList(privilegeEntity))
         .atLeastOnce();
     expect(memberDAO.findAllMembersByUser(userEntity)).
-        andReturn(Collections.<MemberEntity>emptyList())
+        andReturn(Collections.emptyList())
         .atLeastOnce();
     expect(userDAO.findLocalUserByName(requestedUsername)).andReturn(userEntity).anyTimes();
-    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).anyTimes();
+    expect(userDAO.findAll()).andReturn(Collections.emptyList()).anyTimes();
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
-    expect(userEntity.getMemberEntities()).andReturn(Collections.<MemberEntity>emptySet()).anyTimes();
+    expect(userEntity.getMemberEntities()).andReturn(Collections.emptySet()).anyTimes();
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
     expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
@@ -484,7 +488,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
     expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
     expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
     expect(resourceTypeEntity.getName()).andReturn(ResourceType.AMBARI.name());
-    expect(viewInstanceDAO.findAll()).andReturn(new ArrayList<ViewInstanceEntity>()).anyTimes();
+    expect(viewInstanceDAO.findAll()).andReturn(new ArrayList<>()).anyTimes();
 
     replayAll();
 

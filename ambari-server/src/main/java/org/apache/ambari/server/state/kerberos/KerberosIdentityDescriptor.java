@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -366,6 +366,30 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
       return Optional.of(name.split("/")[1]);
     } else {
       return Optional.absent();
+    }
+  }
+
+
+  /**
+   * @return true if the given identity has the same principal or keytab as me
+   */
+  public boolean isShared(KerberosIdentityDescriptor that) {
+    return hasSamePrincipal(that) || hasSameKeytab(that);
+  }
+
+  private boolean hasSameKeytab(KerberosIdentityDescriptor that) {
+    try {
+      return this.getKeytabDescriptor().getFile().equals(that.getKeytabDescriptor().getFile());
+    } catch (NullPointerException e) {
+      return false;
+    }
+  }
+
+  private boolean hasSamePrincipal(KerberosIdentityDescriptor that) {
+    try {
+      return this.getPrincipalDescriptor().getValue().equals(that.getPrincipalDescriptor().getValue());
+    } catch (NullPointerException e) {
+      return false;
     }
   }
 

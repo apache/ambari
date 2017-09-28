@@ -83,7 +83,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
   initPopup: function (popupTitle, requestIds, progressController, showSpinner, stageId) {
     if (showSpinner) {
       var loadingPopup = App.ModalPopup.show({
-        header: Em.I18n.t('jobs.loadingTasks'),
+        header: Em.I18n.t('common.loading.eclipses'),
         primary: false,
         secondary: false,
         bodyClass: Ember.View.extend({
@@ -130,7 +130,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
       })
     }, this);
   },
-  
+
   doPolling: function () {
     var self = this;
     this.set('progressController.logs', []);
@@ -158,7 +158,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     if (this.get('requestIds.length') === this.get('hostsData.length')) {
       var popupTitle = this.get('popupTitle');
       this.calculateHostsData(hostsData);
-      App.HostPopup.initPopup(popupTitle, this);
+      App.HostPopup.initPopup(popupTitle, this, false, this.get("requestIds")[0]);
       if (this.isRequestRunning(hostsData)) {
         if (this.get('progressController.name') === 'mainAdminStackAndUpgradeController') {
           this.doPolling();
@@ -180,6 +180,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     var hosts = [];
     var hostsMap = {};
     var popupTitle = this.get('popupTitle');
+    var id = this.get('requestIds')[0];
 
     data.forEach(function (request) {
       request.tasks.forEach(function (task) {
@@ -199,7 +200,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
       hosts.push(hostsMap[host]);
     }
     this.set('services', [
-      {name: popupTitle, hosts: hosts}
+      {id: id, name: popupTitle, hosts: hosts}
     ]);
     this.set('serviceTimestamp', App.dateTime());
     if (!this.isRequestRunning(data)) {
@@ -293,4 +294,3 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
   }
 
 });
-

@@ -27,6 +27,7 @@ import org.apache.ambari.infra.solr.commands.EnableKerberosPluginSolrZkCommand;
 import org.apache.ambari.infra.solr.commands.GetShardsCommand;
 import org.apache.ambari.infra.solr.commands.GetSolrHostsCommand;
 import org.apache.ambari.infra.solr.commands.ListCollectionCommand;
+import org.apache.ambari.infra.solr.commands.RemoveAdminHandlersCommand;
 import org.apache.ambari.infra.solr.commands.SecureSolrZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.SecureZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.SetClusterPropertyZkCommand;
@@ -255,6 +256,13 @@ public class AmbariSolrCloudClient {
    */
   public Collection<String> getSolrHosts() throws Exception {
     return new GetSolrHostsCommand(getRetryTimes(), getInterval()).run(this);
+  }
+
+  /**
+   * Remove solr.admin.AdminHandlers requestHandler from solrconfi.xml
+   */
+  public boolean removeAdminHandlerFromCollectionConfig() throws Exception {
+    return new RemoveAdminHandlersCommand(getRetryTimes(), getInterval()).run(this);
   }
 
   public String getZkConnectString() {

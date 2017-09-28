@@ -90,6 +90,12 @@ function getInputFields() {
     },
     port: {
       value: ''
+    },
+    scriptDispatchProperty:{
+      value: ''
+    },
+    scriptFileName:{
+      value: ''
     }
   });
 }
@@ -339,6 +345,9 @@ describe('App.ManageAlertNotificationsController', function () {
         scriptDispatchProperty:{
           value: ''
         },
+        scriptFileName:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
           {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -405,6 +414,9 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         port: {},
         scriptDispatchProperty:{
+          value: ''
+        },
+        scriptFileName:{
           value: ''
         },
         customProperties: [
@@ -504,6 +516,9 @@ describe('App.ManageAlertNotificationsController', function () {
         scriptDispatchProperty:{
           value: ''
         },
+        scriptFileName:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
           {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -566,6 +581,9 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 161
         },
         scriptDispatchProperty:{
+          value: ''
+        },
+        scriptFileName:{
           value: ''
         },
         customProperties: [
@@ -664,6 +682,9 @@ describe('App.ManageAlertNotificationsController', function () {
         scriptDispatchProperty:{
           value: ''
         },
+        scriptFileName:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
           {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -726,6 +747,9 @@ describe('App.ManageAlertNotificationsController', function () {
         scriptDispatchProperty:{
           value: ''
         },
+        scriptFileName:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
         ]
@@ -744,6 +768,7 @@ describe('App.ManageAlertNotificationsController', function () {
             alertStates: ['OK', 'UNKNOWN'],
             properties: {
               'ambari.dispatch-property.script': "com.mycompany.dispatch.syslog.script",
+              'ambari.dispatch-property.script.filename': 'a.py',
               'customName': 'customValue'
             }
           }));
@@ -815,6 +840,9 @@ describe('App.ManageAlertNotificationsController', function () {
             scriptDispatchProperty: {
               value: ''
             },
+            scriptFileName: {
+              value: ''
+            },
             customProperties: [
               {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
               {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -870,6 +898,9 @@ describe('App.ManageAlertNotificationsController', function () {
             port: {},
             scriptDispatchProperty: {
                value: 'com.mycompany.dispatch.syslog.script'
+            },
+            scriptFileName:{
+               value: 'a.py'
             },
             customProperties: [
               {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
@@ -929,7 +960,7 @@ describe('App.ManageAlertNotificationsController', function () {
         view = getBodyClass();
       });
 
-      App.TestAliases.testAsComputedOr(getBodyClass(), 'someErrorExists', ['nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError']);
+      App.TestAliases.testAsComputedOr(getBodyClass(), 'someErrorExists', ['nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError','scriptFileNameError']);
 
       describe('#selectAllGroups', function () {
 
@@ -1140,6 +1171,11 @@ describe('App.ManageAlertNotificationsController', function () {
               method: 'SNMP',
               errors: ['emailToError', 'emailFromError', 'smtpPortError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError'],
               validators: ['portValidation', 'hostsValidation']
+            },
+            {
+              method: 'ALERT_SCRIPT',
+              errors: ['scriptFileNameError'],
+              validators: ['scriptFileNameValidation']
             }
           ],
           validators = [];

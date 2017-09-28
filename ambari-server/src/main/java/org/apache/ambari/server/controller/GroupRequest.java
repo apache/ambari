@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,16 +17,19 @@
  */
 package org.apache.ambari.server.controller;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Represents a group maintenance request.
  */
-public class GroupRequest {
+public class GroupRequest implements ApiModel{
   private final String groupName;
 
   public GroupRequest(String groupName) {
     this.groupName = groupName;
   }
 
+  @ApiModelProperty(name = "Groups/group_name",required = true)
   public String getGroupName() {
     return groupName;
   }

@@ -79,4 +79,32 @@ public class OracleHelper extends GenericDbmsHelper {
   public boolean isConstraintSupportedAfterNullability() {
     return false;
   }
+
+  /**
+   {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+         String sourceIDColumnName, String targetTable, String targetColumnName, String targetIDColumnName) {
+
+    // sub-query should return only one value, ROWNUM is safe-guard for this
+    return String.format("UPDATE %1$s a SET (a.%3$s) = (SELECT b.%4$s FROM %2$s b WHERE b.%6$s = a.%5$s and ROWNUM < 2)",
+      targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName, sourceIDColumnName);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+                                                     String sourceIDColumnName1, String sourceIDColumnName2,
+                                                     String sourceIDColumnName3,
+                                                     String targetTable, String targetColumnName,
+                                                     String targetIDColumnName1, String targetIDColumnName2,
+                                                     String targetIDColumnName3,
+                                                     String sourceConditionFieldName, String condition) {
+    return String.format("UPDATE %1$s a SET (a.%3$s) = (SELECT b.%4$s FROM %2$s b WHERE b.%8$s = a.%5$s AND b.%9$s = a.%6$s AND b.%10$s = a.%7$s AND b.%11$s = '%12$s' AND ROWNUM < 2)",
+        targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName1, targetIDColumnName2, targetIDColumnName3,
+        sourceIDColumnName1, sourceIDColumnName2, sourceIDColumnName3, sourceConditionFieldName, condition);
+  }
 }

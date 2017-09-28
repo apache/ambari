@@ -38,6 +38,10 @@
     <solr.client.mapping.path>${mapping.base.path}/${solr.client.package.name}</solr.client.mapping.path>
     <solr.client.dir>${project.basedir}/../ambari-infra-solr-client</solr.client.dir>
     <infra.solr.plugin.dir>${project.basedir}/../ambari-infra-solr-plugin</infra.solr.plugin.dir>
+    <infra-manager.package.name>ambari-infra-manager</infra-manager.package.name>
+    <infra-manager.dir>${project.basedir}/../ambari-infra-manager</infra-manager.dir>
+    <infra-manager.mapping.path>${mapping.base.path}/${infra-manager.package.name}</infra-manager.mapping.path>
+    <infra-manager.conf.mapping.path>/etc/${infra-manager.package.name}/conf</infra-manager.conf.mapping.path>
   </properties>
 
   <profiles>
@@ -112,6 +116,45 @@
                       <sources>
                         <source>
                           <location>${solr.client.dir}/target/package</location>
+                        </source>
+                      </sources>
+                    </mapping>
+                  </mappings>
+                </configuration>
+              </execution>
+              <execution>
+                <id>infra-manager</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>rpm</goal>
+                </goals>
+                <configuration>
+                  <group>Development</group>
+                  <name>${infra-manager.package.name}</name>
+                  <mappings>
+                    <mapping>
+                      <directory>${infra-manager.mapping.path}</directory>
+                      <sources>
+                        <source>
+                          <location>${infra-manager.dir}/target/package</location>
+                          <excludes>
+                            <exclude>log4j.xml</exclude>
+                            <exclude>infra-manager.properties</exclude>
+                            <exclude>infra-manager-env.sh</exclude>
+                          </excludes>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>${infra-manager.conf.mapping.path}</directory>
+                      <sources>
+                        <source>
+                          <location>${infra-manager.dir}/target/package</location>
+                          <includes>
+                            <include>log4j.xml</include>
+                            <include>infra-manager.properties</include>
+                            <include>infra-manager-env.sh</include>
+                          </includes>
                         </source>
                       </sources>
                     </mapping>
@@ -277,6 +320,49 @@
                   </dataSet>
                 </configuration>
               </execution>
+
+              <execution>
+                <phase>package</phase>
+                <id>jdeb-infra-manager</id>
+                <goals>
+                  <goal>jdeb</goal>
+                </goals>
+                <configuration>
+                  <controlDir>${basedir}/src/main/package/deb/manager</controlDir>
+                  <deb>${basedir}/target/${infra-manager.package.name}_${package-version}-${package-release}.deb</deb>
+                  <skip>false</skip>
+                  <skipPOMs>false</skipPOMs>
+                  <dataSet>
+                    <data>
+                      <src>${infra-manager.dir}/target/ambari-infra-manager.tar.gz</src>
+                      <type>archive</type>
+                      <mapper>
+                        <type>perm</type>
+                        <user>root</user>
+                        <group>root</group>
+                        <prefix>${infra-manager.mapping.path}</prefix>
+                      </mapper>
+                      <excludes>
+                        log4j.xml,infra-manager.properties,infra-manager-env.sh
+                      </excludes>
+                    </data>
+                    <data>
+                      <src>${infra-manager.dir}/target/package</src>
+                      <type>directory</type>
+                      <mapper>
+                        <prefix>${infra-manager.conf.mapping.path}</prefix>
+                        <type>perm</type>
+                        <user>root</user>
+                        <group>root</group>
+                        <filemode>644</filemode>
+                      </mapper>
+                      <includes>
+                        log4j.xml,infra-manager.properties,infra-manager-env.sh
+                      </includes>
+                    </data>
+                  </dataSet>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
           <plugin>
@@ -328,6 +414,11 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-infra-solr-plugin</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-infra-manager</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

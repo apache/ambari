@@ -60,7 +60,7 @@ public class AmbariDelegatingAuthenticationFilter implements Filter {
    */
   public AmbariDelegatingAuthenticationFilter(Collection<AmbariAuthenticationFilter> filters) {
 
-    this.filters = (filters == null) ? Collections.<AmbariAuthenticationFilter>emptyList() : filters;
+    this.filters = (filters == null) ? Collections.emptyList() : filters;
 
     if (this.filters.isEmpty()) {
       LOG.warn("The delegated filters list is empty. No authentication tests will be performed by this " +

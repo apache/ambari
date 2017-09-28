@@ -231,15 +231,15 @@
       <execute-stage title="Restore configuration directories and remove HDP 2.3 symlinks">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
-          <function>unlink_all_configs</function>
+          <function>foo_function</function>
         </task>
       </execute-stage>
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
-    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack" service="" component="">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
+    <group xsi:type="update-stack" name="UPDATE_DESIRED_REPOSITORY_ID" title="Update Target Repositories">
+      <execute-stage title="Update Target Repositories" service="" component="">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction">
         </task>
       </execute-stage>
     </group>

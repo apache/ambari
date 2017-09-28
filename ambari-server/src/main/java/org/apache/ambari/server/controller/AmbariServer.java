@@ -78,6 +78,7 @@ import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvide
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -170,7 +171,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   public static final String VIEWS_URL_PATTERN = "/api/v1/views/*";
-  private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
 
   /**
    * The thread name prefix for threads handling agent requests.
@@ -448,7 +449,6 @@ public class AmbariServer {
       SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
       viewRegistry.readViewArchives();
-      viewDirectoryWatcher.start();
 
       //Check and load requestlog handler.
       loadRequestlogHandler(handlerList, serverForAgent, configsMap);
@@ -548,6 +548,11 @@ public class AmbariServer {
       serverForAgent.start();
       LOG.info("********* Started Server **********");
 
+      if( !configs.isViewDirectoryWatcherServiceDisabled()) {
+        LOG.info("Starting View Directory Watcher");
+        viewDirectoryWatcher.start();
+      }
+
       manager.start();
       LOG.info("********* Started ActionManager **********");
 
@@ -557,7 +562,7 @@ public class AmbariServer {
       serviceManager.startAsync();
       LOG.info("********* Started Services **********");
 
-      if (!Configuration.AMBARISERVER_METRICS_DISABLE.equals(true)) {
+      if (!configs.isMetricsServiceDisabled()) {
         metricsService.start();
       } else {
         LOG.info("AmbariServer Metrics disabled.");
@@ -603,6 +608,7 @@ public class AmbariServer {
       https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
       https_config.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
+      https_config.setSendServerVersion(false);
 
       // Secured connector - default constructor sets trustAll = true for certs
       SslContextFactory sslContextFactory = new SslContextFactory();
@@ -637,6 +643,7 @@ public class AmbariServer {
     HttpConfiguration http_config = new HttpConfiguration();
     http_config.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
     http_config.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
+    http_config.setSendServerVersion(false);
     if (configs.getApiSSLAuthentication()) {
       String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
         File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME.getKey());
@@ -927,6 +934,9 @@ public class AmbariServer {
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
 
     RetryHelper.init(injector.getInstance(Clusters.class), configs.getOperationsRetryAttempts());
+
+    KerberosIdentityCleaner identityCleaner = injector.getInstance(KerberosIdentityCleaner.class);
+    identityCleaner.register();
   }
 
   /**

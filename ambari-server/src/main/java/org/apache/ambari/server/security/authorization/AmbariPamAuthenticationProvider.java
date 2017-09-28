@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import java.security.Principal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +29,7 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.pam.PamAuthenticationFactory;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
@@ -40,7 +40,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Inject;
 
@@ -56,8 +55,10 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   protected UserDAO userDAO;
   @Inject
   protected GroupDAO groupDAO;
+  @Inject
+  private PamAuthenticationFactory pamAuthenticationFactory;
 
-  private static Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
 
   private final Configuration configuration;
 
@@ -77,10 +78,17 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
       if(isPamEnabled()){
         PAM pam;
+        String userName = String.valueOf(authentication.getPrincipal());
+        UserEntity existingUser = userDAO.findUserByName(userName);
+        if ((existingUser != null) && (existingUser.getUserType() != UserType.PAM)) {
+          String errorMsg = String.format("%s user exists with the username %s. Cannot authenticate via PAM", existingUser.getUserType(), userName);
+          LOG.error(errorMsg);
+          return null;
+        }
         try{
           //Set PAM configuration file (found under /etc/pam.d)
           String pamConfig = configuration.getPamConfigurationFile();
-          pam = new PAM(pamConfig);
+          pam = pamAuthenticationFactory.createInstance(pamConfig);
 
         } catch(PAMException ex) {
           LOG.error("Unable to Initialize PAM." + ex.getMessage());
@@ -124,18 +132,10 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
               users.getUserAuthorities(userName, UserType.PAM);
 
           final User user = users.getUser(userName, UserType.PAM);
-
-          Principal principal = new Principal() {
-            @Override
-            public String getName() {
-              return user.getUserName();
-            }
-          };
-
-          UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, null, userAuthorities);
-          SecurityContextHolder.getContext().setAuthentication(token);
-          return token;
-
+ 
+          Authentication authToken = new AmbariUserAuthentication(passwd, user, userAuthorities);
+          authToken.setAuthenticated(true);
+          return authToken;   
         } catch (PAMException ex) {
           LOG.error("Unable to sign in. Invalid username/password combination - " + ex.getMessage());
           Throwable t = ex.getCause();

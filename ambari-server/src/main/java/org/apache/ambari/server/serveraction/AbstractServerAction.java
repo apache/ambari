@@ -167,7 +167,7 @@ public abstract class AbstractServerAction implements ServerAction {
    * @return the (assumed read-only) configurations value from the ExecutionCommand
    */
   protected Map<String, Map<String, String>> getConfigurations() {
-    return (executionCommand == null) ? Collections.<String, Map<String, String>>emptyMap() : executionCommand.getConfigurations();
+    return (executionCommand == null) ? Collections.emptyMap() : executionCommand.getConfigurations();
   }
 
   /**

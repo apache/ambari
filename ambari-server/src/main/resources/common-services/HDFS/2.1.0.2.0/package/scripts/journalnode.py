@@ -19,7 +19,7 @@ limitations under the License.
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -43,17 +43,13 @@ class JournalNode(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class JournalNodeDefault(JournalNode):
 
-  def get_component_name(self):
-    return "hadoop-hdfs-journalnode"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-journalnode", params.version)
+      stack_select.select_packages(params.version)
 
   def start(self, env, upgrade_type=None):
     import params

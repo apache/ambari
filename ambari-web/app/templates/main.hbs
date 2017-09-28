@@ -22,7 +22,7 @@
   </div>
 {{else}}
   {{#unless isClusterDataLoaded}}
-    <h2>{{t app.loadingPlaceholder}}</h2>
+    <h2>{{t common.loading.eclipses}}</h2>
     <div class="progress">
       <div class="progress-bar progress-bar-striped active" {{QAAttr "main-progress-bar"}} {{bindAttr style="controller.clusterDataLoadedPercent"}}></div>
     </div>

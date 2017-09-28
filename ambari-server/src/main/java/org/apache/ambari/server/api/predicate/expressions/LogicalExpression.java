@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -53,7 +53,7 @@ public class LogicalExpression extends AbstractExpression<Expression> {
     if (getOperator().getPrecedence() == precedence && getLeftOperand() == null) {
       setLeftOperand(left);
       setRightOperand(right);
-      return Collections.<Expression>singletonList(this);
+      return Collections.singletonList(this);
     } else {
       return defaultMerge(left, right);
     }

@@ -58,7 +58,7 @@
   <div class="col-md-9 versions-slides">
     {{#if isLoaded}}
       <div class="versions-slides-bar">
-        {{#each version in view.repoVersionsDisplay}}
+        {{#each version in view.repoVersions}}
           {{#if version.isVisible}}
             {{view App.UpgradeVersionColumnView contentBinding="version"}}
           {{/if}}

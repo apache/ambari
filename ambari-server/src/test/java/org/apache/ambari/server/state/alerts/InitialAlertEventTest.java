@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,10 +28,12 @@ import org.apache.ambari.server.events.MockEventListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
@@ -67,9 +69,21 @@ public class InitialAlertEventTest {
   private MockEventListener m_listener;
 
   private AlertDefinitionDAO m_definitionDao;
+  private Clusters m_clusters;
   private Cluster m_cluster;
+  private String m_clusterName;
   private ServiceFactory m_serviceFactory;
 
+  private OrmTestHelper m_helper;
+
+  private final String STACK_VERSION = "2.0.6";
+  private final String REPO_VERSION = "2.0.6-1234";
+  private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  /**
+   *
+   */
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(Modules.override(
@@ -88,14 +102,17 @@ public class InitialAlertEventTest {
     synchronizedBus.register(m_listener);
 
     m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
-    Clusters clusters = m_injector.getInstance(Clusters.class);
+    m_clusters = m_injector.getInstance(Clusters.class);
     m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
 
     m_alertsDao = m_injector.getInstance(AlertsDAO.class);
+    m_helper = m_injector.getInstance(OrmTestHelper.class);
 
-    String clusterName = "c1";
-    clusters.addCluster(clusterName, new StackId("HDP", "2.0.6"));
-    m_cluster = clusters.getCluster(clusterName);
+    m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
+
+    m_clusterName = "c1";
+    m_clusters.addCluster(m_clusterName, STACK_ID);
+    m_cluster = m_clusters.getCluster(m_clusterName);
     Assert.assertNotNull(m_cluster);
 
     // install HDFS to get 6 definitions
@@ -104,6 +121,9 @@ public class InitialAlertEventTest {
     Assert.assertEquals(6, m_definitionDao.findAll().size());
   }
 
+  /**
+   * @throws Exception
+   */
   @After
   public void teardown() throws Exception {
     H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
@@ -132,7 +152,7 @@ public class InitialAlertEventTest {
         definition.getServiceName(), definition.getComponentName(), null,
         AlertState.CRITICAL);
 
-    alert.setClusterId(m_cluster.getClusterId());
+    alert.setCluster(m_clusterName);
 
     AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
 
@@ -167,7 +187,7 @@ public class InitialAlertEventTest {
 
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    Service service = m_serviceFactory.createNew(m_cluster, serviceName);
+    Service service = m_serviceFactory.createNew(m_cluster, serviceName, m_repositoryVersion);
     service = m_cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

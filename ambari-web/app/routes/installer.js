@@ -149,9 +149,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router) {
       console.time('step1 connectOutlets');
       var self = this;
-      var controller = router.get('installerController');
+      var controller = router.get('installerController'),
+        wizardStep1Controller = router.get('wizardStep1Controller');
       controller.setCurrentStep('1');
       controller.loadAllPriorSteps().done(function () {
+        wizardStep1Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep1', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step1 connectOutlets');
@@ -315,6 +317,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
       controller.setCurrentStep('5');
       controller.loadAllPriorSteps().done(function () {
+        wizardStep5Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep5', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step5 connectOutlets');

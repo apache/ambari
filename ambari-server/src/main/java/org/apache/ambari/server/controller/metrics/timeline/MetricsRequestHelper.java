@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -71,23 +71,23 @@ public class MetricsRequestHelper {
   }
 
   public TimelineMetrics fetchTimelineMetrics(URIBuilder uriBuilder, Long startTime, Long endTime) throws IOException {
-    LOG.debug("Metrics request url = " + uriBuilder.toString());
+    LOG.debug("Metrics request url = {}", uriBuilder);
     BufferedReader reader = null;
     TimelineMetrics timelineMetrics = null;
     try {
 
       HttpURLConnection connection = streamProvider.processURL(uriBuilder.toString(), HttpMethod.GET,
-        (String) null, Collections.<String, List<String>>emptyMap());
+        (String) null, Collections.emptyMap());
 
       if (!checkConnectionForPrecisionException(connection)) {
         //Try one more time with higher precision
         String higherPrecision = getHigherPrecision(uriBuilder, startTime, endTime);
         if (higherPrecision != null) {
-          LOG.debug("Requesting metrics with higher precision : " + higherPrecision);
+          LOG.debug("Requesting metrics with higher precision : {}", higherPrecision);
           uriBuilder.setParameter("precision", higherPrecision);
           String newSpec = uriBuilder.toString();
           connection = streamProvider.processURL(newSpec, HttpMethod.GET, (String) null,
-            Collections.<String, List<String>>emptyMap());
+            Collections.emptyMap());
           if (!checkConnectionForPrecisionException(connection)) {
             throw new IOException("Encountered Precision exception : Higher precision request also failed.");
           }
@@ -102,13 +102,9 @@ public class MetricsRequestHelper {
 
       if (LOG.isTraceEnabled()) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-          LOG.trace("metric: " + metric.getMetricName() +
-            ", size = " + metric.getMetricValues().size() +
-            ", host = " + metric.getHostName() +
-            ", app = " + metric.getAppId() +
-            ", instance = " + metric.getInstanceId() +
-            ", time = " + metric.getTimestamp() +
-            ", startTime = " + new Date(metric.getStartTime()));
+          LOG.trace("metric: {}, size = {}, host = {}, app = {}, instance = {}, time = {}, startTime = {}",
+            metric.getMetricName(), metric.getMetricValues().size(), metric.getHostName(), metric.getAppId(), metric.getInstanceId(), metric.getTimestamp(),
+            new Date(metric.getStartTime()));
         }
       }
     } catch (IOException io) {
@@ -136,9 +132,9 @@ public class MetricsRequestHelper {
         } catch (IOException e) {
           if (LOG.isWarnEnabled()) {
             if (LOG.isDebugEnabled()) {
-              LOG.warn("Unable to close http input stream : spec=" + uriBuilder.toString(), e);
+              LOG.warn("Unable to close http input stream : spec=" + uriBuilder, e);
             } else {
-              LOG.warn("Unable to close http input stream : spec=" + uriBuilder.toString());
+              LOG.warn("Unable to close http input stream : spec=" + uriBuilder);
             }
           }
         }
@@ -155,7 +151,7 @@ public class MetricsRequestHelper {
       BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
       String errorMessage = reader.readLine();
       if (errorMessage != null && errorMessage.contains("PrecisionLimitExceededException")) {
-        LOG.debug("Encountered Precision exception while requesting metrics : " + errorMessage);
+        LOG.debug("Encountered Precision exception while requesting metrics : {}", errorMessage);
         return false;
       } else {
         throw new IOException(errorMessage);

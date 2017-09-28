@@ -288,7 +288,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
 
     PermissionEntity emptyPermissionEntity = createMock(PermissionEntity.class);
     expect(emptyPermissionEntity.getAuthorizations())
-        .andReturn(Collections.<RoleAuthorizationEntity>emptyList())
+        .andReturn(Collections.emptyList())
         .anyTimes();
 
     PermissionEntity nullPermissionEntity = createMock(PermissionEntity.class);

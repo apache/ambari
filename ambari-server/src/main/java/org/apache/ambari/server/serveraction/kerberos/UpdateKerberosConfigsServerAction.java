@@ -147,9 +147,8 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
             }
 
             for (String configType : configTypes) {
-              configHelper.updateConfigType(cluster, controller, configType,
-                  propertiesToSet.get(configType),
-                  propertiesToRemove.get(configType),
+              configHelper.updateConfigType(cluster, cluster.getDesiredStackVersion(), controller,
+                  configType, propertiesToSet.get(configType), propertiesToRemove.get(configType),
                   authenticatedUserName, configNote);
             }
           }

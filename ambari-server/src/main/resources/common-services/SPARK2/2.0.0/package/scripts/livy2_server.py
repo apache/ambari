@@ -31,7 +31,7 @@ from resource_management import shell
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 
 from livy2_service import livy2_service
 from setup_livy2 import setup_livy
@@ -117,7 +117,7 @@ class LivyServer(Script):
         dir_exists = ('FileStatus' in list_status)
       else:
         # have to do time expensive hdfs dfs -d check.
-        dfs_ret_code = shell.call(format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path), user=params.livy_user)[0]
+        dfs_ret_code = shell.call(format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path), user=params.livy2_user)[0]
         dir_exists = not dfs_ret_code #dfs -test -d returns 0 in case the dir exists
 
       if not dir_exists:
@@ -125,17 +125,13 @@ class LivyServer(Script):
       else:
         Logger.info("DFS directory '" + dir_path + "' exists.")
 
-  def get_component_name(self):
-    return "livy2-server"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Livy2 Server Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "spark2", params.version)
-      stack_select.select("livy2-server", params.version)
+      stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params

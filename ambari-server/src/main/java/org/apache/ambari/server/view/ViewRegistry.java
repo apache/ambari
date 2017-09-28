@@ -50,8 +50,8 @@ import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
-import org.apache.ambari.server.api.services.ViewSubResourceService;
+import org.apache.ambari.server.api.services.views.ViewExternalSubResourceService;
+import org.apache.ambari.server.api.services.views.ViewSubResourceService;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -329,6 +329,8 @@ public class ViewRegistry {
   @Inject
   ViewURLDAO viewURLDAO;
 
+  @Inject
+  ViewInstanceOperationHandler viewInstanceOperationHandler;
   // ----- Constructors -----------------------------------------------------
 
   /**
@@ -556,6 +558,7 @@ public class ViewRegistry {
   }
 
   /**
+   * TODO : This should move to {@link ViewInstanceOperationHandler}
    * Install the given view instance with its associated view.
    *
    * @param instanceEntity the view instance entity
@@ -575,8 +578,7 @@ public class ViewRegistry {
 
       if (getInstanceDefinition(viewName, version, instanceName) == null) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating view instance " + viewName + "/" +
-              version + "/" + instanceName);
+          LOG.debug("Creating view instance {}/{}/{}", viewName, version, instanceName);
         }
 
         instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
@@ -661,33 +663,21 @@ public class ViewRegistry {
    */
   @Transactional
   public void uninstallViewInstance(ViewInstanceEntity instanceEntity) throws IllegalStateException {
-    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
-
-    if (viewEntity != null) {
-      String instanceName = instanceEntity.getName();
-      String viewName = viewEntity.getCommonName();
-      String version = viewEntity.getVersion();
-
-      if (getInstanceDefinition(viewName, version, instanceName) != null) {
-        if (instanceEntity.isXmlDriven()) {
-          throw new IllegalStateException("View instances defined via xml can't be deleted through api requests");
-        }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Deleting view instance " + viewName + "/" +
-              version + "/" + instanceName);
-        }
-        List<PrivilegeEntity> instancePrivileges = privilegeDAO.findByResourceId(instanceEntity.getResource().getId());
-        for (PrivilegeEntity privilegeEntity : instancePrivileges) {
-          removePrivilegeEntity(privilegeEntity);
-        }
-        instanceDAO.remove(instanceEntity);
-        viewEntity.removeInstanceDefinition(instanceName);
-        removeInstanceDefinition(viewEntity, instanceName);
-
-        // remove the web app context
-        handlerList.removeViewInstance(instanceEntity);
-      }
+    try {
+      viewInstanceOperationHandler.uninstallViewInstance(instanceEntity);
+      updateCaches(instanceEntity);
+    } catch (IllegalStateException illegalStateExcpetion) {
+      LOG.error("Exception occurred while uninstalling view : {}", instanceEntity, illegalStateExcpetion);
+      throw illegalStateExcpetion;
     }
+  }
+
+  private void updateCaches(ViewInstanceEntity instanceEntity) {
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
+    viewEntity.removeInstanceDefinition(instanceEntity.getInstanceName());
+    removeInstanceDefinition(viewEntity, instanceEntity.getInstanceName());
+    // remove the web app context
+    handlerList.removeViewInstance(instanceEntity);
   }
 
   /**
@@ -715,8 +705,7 @@ public class ViewRegistry {
   @Transactional
   public void copyPrivileges(ViewInstanceEntity sourceInstanceEntity,
                              ViewInstanceEntity targetInstanceEntity) {
-    LOG.debug("Copy all privileges from " + sourceInstanceEntity.getName() + " to " +
-        targetInstanceEntity.getName());
+    LOG.debug("Copy all privileges from {} to {}", sourceInstanceEntity.getName(), targetInstanceEntity.getName());
     List<PrivilegeEntity> targetInstancePrivileges = privilegeDAO.findByResourceId(targetInstanceEntity.getResource().getId());
     if (targetInstancePrivileges.size() > 0) {
       LOG.warn("Target instance {} already has privileges assigned, these will not be deleted. Manual clean up may be needed", targetInstanceEntity.getName());
@@ -976,8 +965,13 @@ public class ViewRegistry {
       org.apache.ambari.server.state.Cluster cluster = clusters.getClusterById(clusterId);
       String clusterName = cluster.getClusterName();
 
-      StackId stackId = cluster.getCurrentStackVersion();
+      Set<StackId> stackIds = new HashSet<>();
       Set<String> serviceNames = cluster.getServices().keySet();
+
+      for (String serviceName : serviceNames) {
+        Service service = cluster.getService(serviceName);
+        stackIds.add(service.getDesiredStackId());
+      }
 
       for (ViewEntity viewEntity : getDefinitions()) {
 
@@ -989,13 +983,15 @@ public class ViewRegistry {
           roles.addAll(autoConfig.getRoles());
         }
 
-        try {
-          if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
-            installAutoInstance(clusterId, clusterName, cluster.getService(event.getServiceName()), viewEntity, viewName, viewConfig, autoConfig, roles);
+        for (StackId stackId : stackIds) {
+          try {
+            if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
+              installAutoInstance(clusterId, clusterName, cluster.getService(event.getServiceName()), viewEntity, viewName, viewConfig, autoConfig, roles);
+            }
+          } catch (Exception e) {
+            LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
+              ".  Caught exception :" + e.getMessage(), e);
           }
-        } catch (Exception e) {
-          LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
-            ".  Caught exception :" + e.getMessage(), e);
         }
       }
     } catch (AmbariException e) {
@@ -1498,13 +1494,13 @@ public class ViewRegistry {
     ViewEntity persistedView = viewDAO.findByName(viewName);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Syncing view " + viewName + ".");
+      LOG.debug("Syncing view {}.", viewName);
     }
 
     // if the view is not yet persisted ...
     if (persistedView == null) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Creating view " + viewName + ".");
+        LOG.debug("Creating view {}.", viewName);
       }
 
       // create an admin resource type to represent this view
@@ -1545,7 +1541,7 @@ public class ViewRegistry {
       }
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Syncing view " + viewName + " complete.");
+      LOG.debug("Syncing view {} complete.", viewName);
     }
   }
 
@@ -1620,18 +1616,6 @@ public class ViewRegistry {
       view.onDeploy(definition);
     }
   }
-
-  // remove a privilege entity.
-  private void removePrivilegeEntity(PrivilegeEntity privilegeEntity) {
-
-    PrincipalEntity principalEntity = privilegeEntity.getPrincipal();
-    if (principalEntity != null) {
-      principalEntity.removePrivilege(privilegeEntity);
-    }
-
-    privilegeDAO.remove(privilegeEntity);
-  }
-
 
   /**
    * Extract a view archive at the specified path
@@ -1811,7 +1795,7 @@ public class ViewRegistry {
   }
 
   // read a view archive
-  private void readViewArchive(ViewEntity viewDefinition,
+  private synchronized void readViewArchive(ViewEntity viewDefinition,
                                File archiveFile,
                                File extractedArchiveDirFile,
                                String serverVersion) {
@@ -1866,14 +1850,13 @@ public class ViewRegistry {
 
   private void migrateDataFromPreviousVersion(ViewEntity viewDefinition, String serverVersion) {
     if (!viewDefinitions.containsKey(viewDefinition.getName())) { // migrate only registered views to avoid recursive calls
-      LOG.debug("Cancel auto migration of not loaded view: " + viewDefinition.getName() + ".");
+      LOG.debug("Cancel auto migration of not loaded view: {}.", viewDefinition.getName());
       return;
     }
     try {
 
       for (ViewInstanceEntity instance : viewDefinition.getInstances()) {
-        LOG.debug("Try to migrate the data from previous version of: " + viewDefinition.getName() + "/" +
-            instance.getInstanceName() + ".");
+        LOG.debug("Try to migrate the data from previous version of: {}/{}.", viewDefinition.getName(), instance.getInstanceName());
         ViewInstanceEntity latestUnregisteredView = getLatestUnregisteredInstance(serverVersion, instance);
 
         if (latestUnregisteredView != null) {
@@ -1958,12 +1941,12 @@ public class ViewRegistry {
 
       String clusterName = cluster.getClusterName();
       Long clusterId = cluster.getClusterId();
-      StackId stackId = cluster.getCurrentStackVersion();
       Set<String> serviceNames = cluster.getServices().keySet();
 
       for (String service : services) {
         try {
-
+          Service svc = cluster.getService(service);
+          StackId stackId = svc.getDesiredStackId();
           if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
             installAutoInstance(clusterId, clusterName, cluster.getService(service), viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
           }
@@ -2260,12 +2243,12 @@ public class ViewRegistry {
               continue;
             }
 
-            LOG.debug("Unregistered extracted view found: " + archiveDir.getPath());
+            LOG.debug("Unregistered extracted view found: {}", archiveDir.getPath());
 
             ViewEntity uViewDefinition = new ViewEntity(uViewConfig, configuration, archiveDir.getPath());
             readViewArchive(uViewDefinition, archiveDir, archiveDir, serverVersion);
             for (ViewInstanceEntity instanceEntity : uViewDefinition.getInstances()) {
-              LOG.debug(uViewDefinition.getName() + " instance found: " + instanceEntity.getInstanceName());
+              LOG.debug("{} instance found: {}", uViewDefinition.getName(), instanceEntity.getInstanceName());
               unregInstancesTimestamps.put(instanceEntity, archiveDir.lastModified());
             }
           }
@@ -2286,10 +2269,10 @@ public class ViewRegistry {
       }
     }
     if (latestPrevInstance != null) {
-      LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " found: " +
-          latestPrevInstance.getViewEntity().getName() + "/" + latestPrevInstance.getName());
+      LOG.debug("Previous version of {}/{} found: {}/{}",
+        instance.getViewEntity().getName(), instance.getName(), latestPrevInstance.getViewEntity().getName(), latestPrevInstance.getName());
     } else {
-      LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " not found");
+      LOG.debug("Previous version of {}/{} not found", instance.getViewEntity().getName(), instance.getName());
     }
     return latestPrevInstance;
   }

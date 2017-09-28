@@ -27,6 +27,8 @@ class TestTezClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "TEZ/0.4.0.2.1/package"
   STACK_VERSION = "2.1"
 
+  CONFIG_OVERRIDES = {"serviceName":"TEZ", "role":"TEZ_CLIENT"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
@@ -70,6 +72,7 @@ class TestTezClient(RMFTestCase):
                        classname = "TezClient",
                        command = "restart",
                        config_file="client-upgrade.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -84,6 +87,7 @@ class TestTezClient(RMFTestCase):
                        classname = "TezClient",
                        command = "restart",
                        config_file="client-upgrade.json",
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -106,26 +110,11 @@ class TestTezClient(RMFTestCase):
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
-    self.assertEquals(2, mocks_dict['call'].call_count)
-    self.assertEquals(2, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'tez', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'tez', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[1][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[1][0][0])
 
   def test_stack_upgrade_save_new_config(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/client-upgrade.json"

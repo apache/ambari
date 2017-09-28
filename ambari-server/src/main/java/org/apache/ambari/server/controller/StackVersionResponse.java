@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,28 +27,12 @@ import java.util.Set;
 
 import org.apache.ambari.server.stack.Validable;
 
+import io.swagger.annotations.ApiModelProperty;
 
 public class StackVersionResponse implements Validable{
 
   private String minJdk;
   private String maxJdk;
-
-  public String getMinJdk() {
-    return minJdk;
-  }
-
-  public void setMinJdk(String minJdk) {
-    this.minJdk = minJdk;
-  }
-
-  public String getMaxJdk() {
-    return maxJdk;
-  }
-
-  public void setMaxJdk(String maxJdk) {
-    this.maxJdk = maxJdk;
-  }
-
   private String stackName;
   private String stackVersion;
   private String minUpgradeVersion;
@@ -93,6 +77,7 @@ public class StackVersionResponse implements Validable{
   }
 
   @Override
+  @ApiModelProperty(name = "valid")
   public boolean isValid() {
     return valid;
   }
@@ -110,6 +95,7 @@ public class StackVersionResponse implements Validable{
   }
 
   @Override
+  @ApiModelProperty(name = "stack-errors")
   public Collection<String> getErrors() {
     return errorSet;
   }   
@@ -117,8 +103,25 @@ public class StackVersionResponse implements Validable{
   @Override
   public void addErrors(Collection<String> errors) {
     this.errorSet.addAll(errors);
-  }  
-  
+  }
+
+  @ApiModelProperty(name = "min_jdk")
+  public String getMinJdk() { return minJdk; }
+
+  public void setMinJdk(String minJdk) {
+    this.minJdk = minJdk;
+  }
+
+  @ApiModelProperty(name = "max_jdk")
+  public String getMaxJdk() {
+    return maxJdk;
+  }
+
+  public void setMaxJdk(String maxJdk) {
+    this.maxJdk = maxJdk;
+  }
+
+  @ApiModelProperty(name = "stack_name")
   public String getStackName() {
     return stackName;
   }
@@ -127,6 +130,7 @@ public class StackVersionResponse implements Validable{
     this.stackName = stackName;
   }
 
+  @ApiModelProperty(name = "stack_version")
   public String getStackVersion() {
     return stackVersion;
   }
@@ -135,6 +139,7 @@ public class StackVersionResponse implements Validable{
     this.stackVersion = stackVersion;
   }
 
+  @ApiModelProperty(name = "min_upgrade_version")
   public String getMinUpgradeVersion() {
     return minUpgradeVersion;
   }
@@ -143,6 +148,7 @@ public class StackVersionResponse implements Validable{
     this.minUpgradeVersion = minUpgradeVersion;
   }
 
+  @ApiModelProperty(name = "active")
   public boolean isActive() {
     return active;
   }
@@ -151,6 +157,7 @@ public class StackVersionResponse implements Validable{
     this.active = active;
   }
 
+  @ApiModelProperty(name = "parent_stack_version")
   public String getParentVersion() {
     return parentVersion;
   }
@@ -158,6 +165,8 @@ public class StackVersionResponse implements Validable{
   public void setParentVersion(String parentVersion) {
     this.parentVersion = parentVersion;
   }
+
+  @ApiModelProperty(name = "config_types")
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     return configTypes;
   }
@@ -172,6 +181,7 @@ public class StackVersionResponse implements Validable{
    * @return a File pointing to the stack-level Kerberos descriptor, or null if no relevant file is
    * available
    */
+  @ApiModelProperty(hidden = true)
   public File getStackKerberosDescriptorFile() {
     return stackKerberosDescriptorFile;
   }
@@ -192,6 +202,7 @@ public class StackVersionResponse implements Validable{
    * @return a Collection of Files pointing to the stack-specific service-level Kerberos descriptor
    * files, or null if no relevant files are available
    */
+  @ApiModelProperty(hidden = true)
   public Collection<File> getServiceKerberosDescriptorFiles() {
     return serviceKerberosDescriptorFiles;
   }
@@ -216,7 +227,17 @@ public class StackVersionResponse implements Validable{
   /**
    * @return the upgrade pack names for the stack version
    */
+  @ApiModelProperty(name = "upgrade_packs")
   public Set<String> getUpgradePacks() {
     return upgradePacks;
+  }
+
+
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface StackVersionResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "Versions")
+    public StackVersionResponse getStackVersionResponse();
   }
 }

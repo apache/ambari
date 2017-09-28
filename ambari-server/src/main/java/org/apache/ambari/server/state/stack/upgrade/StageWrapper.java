@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -78,7 +78,7 @@ public class StageWrapper {
   public StageWrapper(Type type, String text, Map<String, String> params, List<TaskWrapper> tasks) {
     this.type = type;
     this.text = text;
-    this.params = (params == null ? Collections.<String, String>emptyMap() : params);
+    this.params = (params == null ? Collections.emptyMap() : params);
     this.tasks = tasks;
   }
 
@@ -155,7 +155,7 @@ public class StageWrapper {
   public enum Type {
     SERVER_SIDE_ACTION,
     RESTART,
-    RU_TASKS,
+    UPGRADE_TASKS,
     SERVICE_CHECK,
     STOP,
     START,

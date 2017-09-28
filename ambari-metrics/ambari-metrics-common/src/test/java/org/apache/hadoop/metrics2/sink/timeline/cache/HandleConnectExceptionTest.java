@@ -45,7 +45,7 @@ import static org.powermock.api.easymock.PowerMock.replayAll;
 public class HandleConnectExceptionTest {
   private static final String COLLECTOR_URL = "collector";
   private TestTimelineMetricsSink sink;
-  
+
   @Before
   public void init(){
     sink = new TestTimelineMetricsSink();
@@ -88,6 +88,17 @@ public class HandleConnectExceptionTest {
     }
   }
 
+  @Test
+  public void testEmitMetricsWithNullHost() {
+    TestTimelineMetricsSinkWithNullHost sinkWithNullHost = new TestTimelineMetricsSinkWithNullHost();
+
+    boolean success = sinkWithNullHost.emitMetrics(new TimelineMetrics());
+    Assert.assertFalse(success);
+
+    success = sinkWithNullHost.emitMetrics(new TimelineMetrics());
+    Assert.assertTrue(success);
+  }
+
   private class TestTimelineMetricsSink extends AbstractTimelineMetricsSink{
     @Override
     protected String getCollectorUri(String host) {
@@ -125,6 +136,16 @@ public class HandleConnectExceptionTest {
     }
 
     @Override
+    protected boolean isHostInMemoryAggregationEnabled() {
+      return false;
+    }
+
+    @Override
+    protected int getHostInMemoryAggregationPort() {
+      return 61888;
+    }
+
+    @Override
     public boolean emitMetrics(TimelineMetrics metrics) {
       super.init();
       return super.emitMetrics(metrics);
@@ -136,4 +157,77 @@ public class HandleConnectExceptionTest {
     }
 
   }
+
+  private class TestTimelineMetricsSinkWithNullHost extends AbstractTimelineMetricsSink {
+
+    int ctr = 0;
+
+    @Override
+    protected String getCollectorUri(String host) {
+      return COLLECTOR_URL;
+    }
+
+    @Override
+    protected String getCollectorProtocol() {
+      return "http";
+    }
+
+    @Override
+    protected String getCollectorPort() {
+      return "2181";
+    }
+
+    @Override
+    protected int getTimeoutSeconds() {
+      return 10;
+    }
+
+    @Override
+    protected String getZookeeperQuorum() {
+      return "localhost:2181";
+    }
+
+    @Override
+    protected Collection<String> getConfiguredCollectorHosts() {
+      return Arrays.asList("localhost");
+    }
+
+    @Override
+    protected String getHostname() {
+      return "h1";
+    }
+
+    @Override
+    protected boolean isHostInMemoryAggregationEnabled() {
+      return false;
+    }
+
+    @Override
+    protected int getHostInMemoryAggregationPort() {
+      return 0;
+    }
+
+    @Override
+    public boolean emitMetrics(TimelineMetrics metrics) {
+      super.init();
+      return super.emitMetrics(metrics);
+    }
+
+    @Override
+    protected synchronized String findPreferredCollectHost() {
+      if (ctr == 0) {
+        ctr++;
+        return null;
+      } else {
+        return "localhost";
+      }
+    }
+
+    @Override
+    protected boolean emitMetricsJson(String connectUrl, String jsonData) {
+      return true;
+    }
+
+  }
+
 }

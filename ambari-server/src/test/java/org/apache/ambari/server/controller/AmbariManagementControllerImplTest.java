@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -73,9 +73,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.Users;
@@ -94,7 +92,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -104,6 +101,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -113,6 +111,7 @@ import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.Binder;
@@ -225,7 +224,7 @@ public class AmbariManagementControllerImplTest {
     Injector injector = createStrictMock(Injector.class);
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
-    ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.<String>emptySet());
+    ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.emptySet());
     Cluster cluster = createNiceMock(Cluster.class);
     ClusterResponse response = createNiceMock(ClusterResponse.class);
 
@@ -343,7 +342,7 @@ public class AmbariManagementControllerImplTest {
 
     expect(service.getName()).andReturn("service");
     expect(service.getServiceComponent("component")).andReturn(component);
-    expect(service.getDesiredStackVersion()).andReturn(stackId);
+    expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
 
@@ -351,7 +350,7 @@ public class AmbariManagementControllerImplTest {
     ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
     expect(serviceInfo.getClientComponent()).andReturn(compInfo);
     expect(compInfo.getName()).andReturn("component");
-    expect(component.getServiceComponentHosts()).andReturn(Collections.<String, ServiceComponentHost>singletonMap("host", null));
+    expect(component.getServiceComponentHosts()).andReturn(Collections.singletonMap("host", null));
     expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
 
     replay(injector, cluster, service, component, serviceInfo, compInfo, ambariMetaInfo, stackId);
@@ -377,16 +376,16 @@ public class AmbariManagementControllerImplTest {
     expect(service.getName()).andReturn("service");
     expect(service.getServiceComponent("component")).andThrow(
       new ServiceComponentNotFoundException("cluster", "service", "component"));
-    expect(service.getDesiredStackVersion()).andReturn(stackId);
+    expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
     Map<String, ServiceComponent> componentsMap = new HashMap<>();
     componentsMap.put("component1", component1);
     componentsMap.put("component2", component2);
     expect(service.getServiceComponents()).andReturn(componentsMap);
-    expect(component1.getServiceComponentHosts()).andReturn(Collections.<String, ServiceComponentHost>emptyMap());
+    expect(component1.getServiceComponentHosts()).andReturn(Collections.emptyMap());
     expect(component2.getServiceComponentHosts()).andReturn(
-      Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
+      Collections.singletonMap("anyHost", null));
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
@@ -415,16 +414,16 @@ public class AmbariManagementControllerImplTest {
     ServiceComponent component2 = createNiceMock(ServiceComponent.class);
 
     expect(service.getName()).andReturn("service");
-    expect(service.getDesiredStackVersion()).andReturn(stackId);
+    expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
     Map<String, ServiceComponent> componentsMap = new HashMap<>();
     componentsMap.put("component1", component1);
     componentsMap.put("component2", component2);
     expect(service.getServiceComponents()).andReturn(componentsMap);
-    expect(component1.getServiceComponentHosts()).andReturn(Collections.<String, ServiceComponentHost>emptyMap());
+    expect(component1.getServiceComponentHosts()).andReturn(Collections.emptyMap());
     expect(component2.getServiceComponentHosts()).andReturn(
-      Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
+      Collections.singletonMap("anyHost", null));
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     expect(serviceInfo.getClientComponent()).andReturn(null);
@@ -451,7 +450,7 @@ public class AmbariManagementControllerImplTest {
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
     // requests
-    ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.<String>emptySet());
+    ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.emptySet());
 
     Set<ClusterRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
@@ -499,10 +498,10 @@ public class AmbariManagementControllerImplTest {
     ClusterResponse response2 = createNiceMock(ClusterResponse.class);
 
     // requests
-    ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.<String>emptySet());
-    ClusterRequest request2 = new ClusterRequest(null, "cluster2", "1", Collections.<String>emptySet());
-    ClusterRequest request3 = new ClusterRequest(null, "cluster3", "1", Collections.<String>emptySet());
-    ClusterRequest request4 = new ClusterRequest(null, "cluster4", "1", Collections.<String>emptySet());
+    ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.emptySet());
+    ClusterRequest request2 = new ClusterRequest(null, "cluster2", "1", Collections.emptySet());
+    ClusterRequest request3 = new ClusterRequest(null, "cluster3", "1", Collections.emptySet());
+    ClusterRequest request4 = new ClusterRequest(null, "cluster4", "1", Collections.emptySet());
 
     Set<ClusterRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
@@ -562,9 +561,14 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
     ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+    ConfigurationRequest configurationRequest = createNiceMock(ConfigurationRequest.class);
 
     // requests
-    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+    Set<ClusterRequest> setRequests = new HashSet<>();
+    setRequests.add(clusterRequest);
+
+    List<ConfigurationRequest> configRequests = new ArrayList<>();
+    configRequests.add(configurationRequest);
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
     // expectations
@@ -574,17 +578,22 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(3);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusterRequest.getDesiredConfig()).andReturn(configRequests);
+    expect(configurationRequest.getVersionTag()).andReturn(null).times(1);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(EasyMock.anyObject());
     expectLastCall().once();
 
     cluster.setClusterName("clusterNew");
     expectLastCall();
 
+    configurationRequest.setVersionTag(EasyMock.anyObject(String.class));
+    expectLastCall();
+
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -592,7 +601,7 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
   }
 
   /**
@@ -633,14 +642,14 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getDesiredConfig()).andReturn(ImmutableList.of(configReq)).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn("clusterOld").anyTimes();
-    expect(cluster.getConfigPropertiesTypes(anyObject(String.class))).andReturn(Maps.<PropertyInfo.PropertyType, Set<String>>newHashMap()).anyTimes();
+    expect(cluster.getConfigPropertiesTypes(anyObject(String.class))).andReturn(Maps.newHashMap()).anyTimes();
 
     expect(config.getType()).andReturn("config-type").anyTimes();
     expect(config.getProperties()).andReturn(configReqProps).anyTimes();
-    expect(config.getPropertiesAttributes()).andReturn(new HashMap<String,Map<String,String>>()).anyTimes();
+    expect(config.getPropertiesAttributes()).andReturn(new HashMap<>()).anyTimes();
     expect(cluster.getDesiredConfigByType(anyObject(String.class))).andReturn(config).anyTimes();
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(EasyMock.anyObject());
     expectLastCall().once();
 
     cluster.setClusterName("clusterNew");
@@ -684,7 +693,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(EasyMock.anyObject());
     expectLastCall().once();
 
     // replay mocks
@@ -728,13 +737,13 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(EasyMock.anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.<Map<String, String>>anyObject()))
+    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.anyObject()))
         .andReturn(false)
         .once();
     // Note: kerberosHelper.toggleKerberos is not called
@@ -778,7 +787,7 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(EasyMock.anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
@@ -862,16 +871,16 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(EasyMock.anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.<Map<String, String>>anyObject()))
+    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.anyObject()))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getManageIdentitiesDirective(EasyMock.<Map<String, String>>anyObject()))
+    expect(kerberosHelper.getManageIdentitiesDirective(EasyMock.anyObject()))
         .andReturn(manageIdentities)
         .once();
     expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(RequestStageContainer.class), captureBoolean(manageIdentitiesCapture)))
@@ -919,7 +928,6 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getResourceId()).andReturn(1L).times(3);
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
-    expect(cluster.getCurrentClusterVersion()).andReturn(null).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(null).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(null).anyTimes();
 
@@ -929,16 +937,16 @@ public class AmbariManagementControllerImplTest {
     cluster.setClusterName(anyObject(String.class));
     expectLastCall().once();
 
-    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
+    cluster.addSessionAttributes(EasyMock.anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.<Map<String, String>>anyObject()))
+    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.anyObject()))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getManageIdentitiesDirective(EasyMock.<Map<String, String>>anyObject()))
+    expect(kerberosHelper.getManageIdentitiesDirective(EasyMock.anyObject()))
         .andReturn(null)
         .once();
     expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(RequestStageContainer.class), anyBoolean()))
@@ -1047,13 +1055,10 @@ public class AmbariManagementControllerImplTest {
           put("host1", host);
         }}).anyTimes();
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stack);
-    expect(stack.getStackName()).andReturn("stackName");
-    expect(stack.getStackVersion()).andReturn("stackVersion");
-
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getName()).andReturn("service1");
     expect(component.getName()).andReturn("component1");
     expect(component.getServiceComponentHosts()).andReturn(
         new HashMap<String, ServiceComponentHost>() {{
@@ -1113,13 +1118,15 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster));
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stack);
-    expect(stack.getStackName()).andReturn("stackName");
-    expect(stack.getStackVersion()).andReturn("stackVersion");
-
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
+//    expect(cluster.getDesiredStackVersion()).andReturn(stack);
+//    expect(stack.getStackName()).andReturn("stackName");
+//    expect(stack.getStackVersion()).andReturn("stackVersion");
+//
+//    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getName()).andReturn("service1");
     expect(component.getName()).andReturn("component1").anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(null);
 
@@ -1185,14 +1192,16 @@ public class AmbariManagementControllerImplTest {
           put("host1", host);
         }}).anyTimes();
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stack);
+//    expect(cluster.getDesiredStackVersion()).andReturn(stack);
+//    expect(stack.getStackName()).andReturn("stackName");
+//    expect(stack.getStackVersion()).andReturn("stackVersion");
+//
+//    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getClusterName()).andReturn("cl1");
-    expect(stack.getStackName()).andReturn("stackName");
-    expect(stack.getStackVersion()).andReturn("stackVersion");
-
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getName()).andReturn("service1");
     expect(component.getName()).andReturn("component1").anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(new HashMap<String, ServiceComponentHost>() {{
       put("host1", componentHost1);
@@ -1260,14 +1269,11 @@ public class AmbariManagementControllerImplTest {
           put("host1", host);
         }}).anyTimes();
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stack);
     expect(cluster.getClusterName()).andReturn("cl1");
-    expect(stack.getStackName()).andReturn("stackName");
-    expect(stack.getStackVersion()).andReturn("stackVersion");
-
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getName()).andReturn("service1");
     expect(component.getName()).andReturn("component1").anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(new HashMap<String, ServiceComponentHost>() {{
       put("host1", componentHost1);
@@ -1302,7 +1308,7 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     final Host host = createNiceMock(Host.class);
     Service service = createNiceMock(Service.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
+    ServiceComponent component1 = createNiceMock(ServiceComponent.class);
     ServiceComponent component2 = createNiceMock(ServiceComponent.class);
     ServiceComponent component3 = createNiceMock(ServiceComponent.class);
 
@@ -1349,27 +1355,24 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster)).anyTimes();
     expect(cluster.getService("service1")).andReturn(service).times(3);
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stack).anyTimes();
-    expect(stack.getStackName()).andReturn("stackName").anyTimes();
-    expect(stack.getStackVersion()).andReturn("stackVersion").anyTimes();
-
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
-    expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(component.getName()).andReturn("component1");
-    expect(component.getServiceComponentHosts()).andReturn(
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(service.getServiceComponent("component1")).andReturn(component1);
+    expect(service.getName()).andReturn("service1").anyTimes();
+    expect(component1.getName()).andReturn("component1");
+    expect(component1.getServiceComponentHosts()).andReturn(
         new HashMap<String, ServiceComponentHost>() {{
           put("host1", componentHost1);
         }});
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component2")).andReturn("service1");
+    expect(cluster.getServiceByComponentName("component2")).andReturn(service);
     expect(service.getServiceComponent("component2")).andReturn(component2);
     expect(component2.getName()).andReturn("component2");
     expect(component2.getServiceComponentHosts()).andReturn(null);
     expect(componentHost2.getHostName()).andReturn("host1");
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component3")).andReturn("service1");
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
     expect(service.getServiceComponent("component3")).andReturn(component3);
     expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(
@@ -1380,7 +1383,7 @@ public class AmbariManagementControllerImplTest {
 
     // replay mocks
     replay(stateHelper, injector, clusters, cluster, host, stack,
-        ambariMetaInfo, service, component, component2, component3, componentHost1,
+        ambariMetaInfo, service, component1, component2, component3, componentHost1,
         componentHost2, response1, response2);
 
     //test
@@ -1395,7 +1398,7 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response1));
     assertTrue(setResponses.contains(response2));
 
-    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component, component2, component3,
+    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component1, component2, component3,
         componentHost1, componentHost2, response1, response2);
   }
 
@@ -1409,7 +1412,7 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     final Host host = createNiceMock(Host.class);
     Service service = createNiceMock(Service.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
+    ServiceComponent component1 = createNiceMock(ServiceComponent.class);
     ServiceComponent component2 = createNiceMock(ServiceComponent.class);
     ServiceComponent component3 = createNiceMock(ServiceComponent.class);
 
@@ -1456,22 +1459,23 @@ public class AmbariManagementControllerImplTest {
           put("host1", host);
         }}).anyTimes();
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
+//    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
-    expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(component.getName()).andReturn("component1");
-    expect(component.getServiceComponentHosts()).andReturn(new
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(service.getName()).andReturn("service1").atLeastOnce();
+    expect(service.getServiceComponent("component1")).andReturn(component1);
+    expect(component1.getName()).andReturn("component1");
+    expect(component1.getServiceComponentHosts()).andReturn(new
                                                                HashMap<String, ServiceComponentHost>() {{
                                                                  put("host1", componentHost1);
                                                                }});
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component2")).andReturn("service2");
-    expect(cluster.getService("service2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));
+    expect(cluster.getServiceByComponentName("component2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component3")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
     expect(service.getServiceComponent("component3")).andReturn(component3);
     expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(new
@@ -1483,7 +1487,7 @@ public class AmbariManagementControllerImplTest {
 
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
-        service, component, component2, component3, componentHost1,
+        service, component1, component2, component3, componentHost1,
         componentHost2, response1, response2);
 
     //test
@@ -1498,7 +1502,7 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response1));
     assertTrue(setResponses.contains(response2));
 
-    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component, component2, component3,
+    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component1, component2, component3,
         componentHost1, componentHost2, response1, response2);
   }
 
@@ -1553,39 +1557,42 @@ public class AmbariManagementControllerImplTest {
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
     expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster)).anyTimes();
-    expect(clusters.getHostsForCluster((String) anyObject())).andReturn(
-        new HashMap<String, Host>() {{
-          put("host1", host);
-        }}).anyTimes();
+    expect(clusters.getHostsForCluster((String) anyObject())).andReturn(ImmutableMap.<String, Host>builder()
+        .put("host1", host)
+        .build()).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(stack).anyTimes();
     expect(stack.getStackName()).andReturn("stackName").anyTimes();
     expect(stack.getStackVersion()).andReturn("stackVersion").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
+//    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getName()).andReturn("service1").anyTimes();
     expect(component.getName()).andReturn("component1");
-    expect(component.getServiceComponentHosts()).andReturn(
-        new HashMap<String, ServiceComponentHost>() {{
-          put("host1", componentHost1);
-        }});
+    expect(component.getServiceComponentHosts()).andReturn(ImmutableMap.<String, ServiceComponentHost>builder()
+        .put("host1", componentHost1)
+        .build());
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component2")).andReturn("service2");
+//    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component2")).andReturn("service2");
     expect(cluster.getService("service2")).andReturn(service2);
+    expect(cluster.getServiceByComponentName("component2")).andReturn(service2);
+    expect(service2.getName()).andReturn("service2");
     expect(service2.getServiceComponent("component2")).
         andThrow(new ServiceComponentNotFoundException("cluster1", "service2", "component2"));
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component3")).andReturn("service1");
+//    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component3")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
     expect(service.getServiceComponent("component3")).andReturn(component3);
+
     expect(component3.getName()).andReturn("component3");
-    expect(component3.getServiceComponentHosts()).andReturn(
-        new HashMap<String, ServiceComponentHost>() {{
-          put("host1", componentHost2);
-        }});
+    expect(component3.getServiceComponentHosts()).andReturn(ImmutableMap.<String, ServiceComponentHost>builder()
+        .put("host1", componentHost2)
+        .build());
     expect(componentHost2.convertToResponse(null)).andReturn(response2);
     expect(componentHost2.getHostName()).andReturn("host1");
 
@@ -1668,9 +1675,10 @@ public class AmbariManagementControllerImplTest {
     expect(stack.getStackName()).andReturn("stackName").anyTimes();
     expect(stack.getStackVersion()).andReturn("stackVersion").anyTimes();
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getName()).andReturn("service1").anyTimes();
     expect(component.getName()).andReturn("component1");
     expect(component.getServiceComponentHosts()).andReturn(Collections.singletonMap("foo", componentHost1));
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
@@ -1678,8 +1686,8 @@ public class AmbariManagementControllerImplTest {
 
     expect(clusters.getClustersForHost("host2")).andThrow(new HostNotFoundException("host2"));
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component3")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
     expect(service.getServiceComponent("component3")).andReturn(component3);
     expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(Collections.singletonMap("foo", componentHost2));
@@ -1864,15 +1872,12 @@ public class AmbariManagementControllerImplTest {
         new HashMap<String, Host>() {{
           put("host1", createNiceMock(Host.class));
         }}).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stack);
-    expect(stack.getStackName()).andReturn("stackName");
-    expect(stack.getStackVersion()).andReturn("stackVersion");
 
-    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
-    expect(service.getServiceComponent("component1")).andReturn(component);
     expect(component.getName()).andReturn("component1").anyTimes();
-
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getName()).andReturn("service1");
     expect(component.getServiceComponentHosts()).andReturn(mapHostComponents);
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost2.convertToResponse(null)).andReturn(response2);
@@ -2030,14 +2035,17 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
-    replay(maintHelper, injector, clusters, serviceInfo);
+    OsFamily osFamilyMock = createNiceMock(OsFamily.class);
+
+    EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
+    replay(maintHelper, injector, clusters, serviceInfo, osFamilyMock);
 
     AmbariManagementControllerImplTest.NestedTestClass nestedTestClass = this.new NestedTestClass(null, clusters,
-        injector);
+        injector, osFamilyMock);
 
     ServiceOsSpecific serviceOsSpecific = nestedTestClass.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
 
-    assertEquals(serviceOsSpecific.getPackages().size(), 3);
+    assertEquals(3, serviceOsSpecific.getPackages().size());
   }
 
   @Test
@@ -2051,6 +2059,14 @@ public class AmbariManagementControllerImplTest {
     String JCE_NAME = "jceName";
     String OJDBC_JAR_NAME = "OjdbcJarName";
     String SERVER_DB_NAME = "ServerDBName";
+    Map<PropertyInfo, String> notManagedHdfsPathMap = new HashMap<>();
+    PropertyInfo propertyInfo1 = new PropertyInfo();
+    propertyInfo1.setName("1");
+    PropertyInfo propertyInfo2 = new PropertyInfo();
+    propertyInfo2.setName("2");
+    notManagedHdfsPathMap.put(propertyInfo1, "/tmp");
+    notManagedHdfsPathMap.put(propertyInfo2, "/apps/falcon");
+
     Set<String> notManagedHdfsPathSet = new HashSet<>(Arrays.asList("/tmp", "/apps/falcon"));
     Gson gson = new Gson();
 
@@ -2059,8 +2075,6 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Injector injector = createNiceMock(Injector.class);
     Configuration configuration = createNiceMock(Configuration.class);
-    ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
-    ClusterVersionEntity clusterVersionEntity = createNiceMock(ClusterVersionEntity.class);
     RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
 
@@ -2079,17 +2093,17 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getServerDBName()).andReturn(SERVER_DB_NAME);
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("true");
-    expect(configuration.getDatabaseConnectorNames()).andReturn(new HashMap<String, String>()).anyTimes();
-    expect(configuration.getPreviousDatabaseConnectorNames()).andReturn(new HashMap<String, String>()).anyTimes();
-    expect(clusterVersionDAO.findByClusterAndStateCurrent(clusterName)).andReturn(clusterVersionEntity).anyTimes();
-    expect(clusterVersionEntity.getRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
+    expect(configuration.getDatabaseConnectorNames()).andReturn(new HashMap<>()).anyTimes();
+    expect(configuration.getPreviousDatabaseConnectorNames()).andReturn(new HashMap<>()).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
-    expect(configHelper.getPropertyValuesWithPropertyType(stackId,
+    expect(repositoryVersionEntity.getStackId()).andReturn(stackId).anyTimes();
+    expect(configHelper.getPropertiesWithPropertyType(stackId,
         PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs)).andReturn(
+            notManagedHdfsPathMap);
+    expect(configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST)).andReturn(
             notManagedHdfsPathSet);
 
-    replay(manager, clusters, cluster, injector, stackId, configuration, clusterVersionDAO, clusterVersionEntity,
-        repositoryVersionEntity, configHelper);
+    replay(manager, clusters, cluster, injector, stackId, configuration, repositoryVersionEntity, configHelper);
 
     AmbariManagementControllerImpl ambariManagementControllerImpl =
         createMockBuilder(AmbariManagementControllerImpl.class)
@@ -2097,7 +2111,7 @@ public class AmbariManagementControllerImplTest {
             .withConstructor(manager, clusters, injector).createNiceMock();
 
     expect(ambariManagementControllerImpl.
-        getRcaParameters()).andReturn(new HashMap<String, String>());
+        getRcaParameters()).andReturn(new HashMap<>());
     replay(ambariManagementControllerImpl);
 
     // Inject configuration manually
@@ -2116,10 +2130,6 @@ public class AmbariManagementControllerImplTest {
     f.setAccessible(true);
     f.set(helper, configuration);
 
-    f = helperClass.getDeclaredField("clusterVersionDAO");
-    f.setAccessible(true);
-    f.set(helper, clusterVersionDAO);
-
     f = helperClass.getDeclaredField("configHelper");
     f.setAccessible(true);
     f.set(helper, configHelper);
@@ -2128,12 +2138,12 @@ public class AmbariManagementControllerImplTest {
     f.setAccessible(true);
     f.set(helper, gson);
 
-    Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster);
+    Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster, repositoryVersionEntity);
 
-    assertEquals(defaultHostParams.size(), 16);
-    assertEquals(defaultHostParams.get(DB_DRIVER_FILENAME), MYSQL_JAR);
-    assertEquals(defaultHostParams.get(STACK_NAME), SOME_STACK_NAME);
-    assertEquals(defaultHostParams.get(STACK_VERSION), SOME_STACK_VERSION);
+    assertEquals(15, defaultHostParams.size());
+    assertEquals(MYSQL_JAR, defaultHostParams.get(DB_DRIVER_FILENAME));
+    assertEquals(SOME_STACK_NAME, defaultHostParams.get(STACK_NAME));
+    assertEquals(SOME_STACK_VERSION, defaultHostParams.get(STACK_VERSION));
     assertEquals("true", defaultHostParams.get(HOST_SYS_PREPPED));
     assertEquals("8", defaultHostParams.get(JAVA_VERSION));
     assertNotNull(defaultHostParams.get(NOT_MANAGED_HDFS_PATH_LIST));
@@ -2217,14 +2227,15 @@ public class AmbariManagementControllerImplTest {
 
   private class NestedTestClass extends AmbariManagementControllerImpl {
 
-    public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector) throws Exception {
+    public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector, OsFamily osFamilyMock) throws Exception {
       super(actionManager, clusters, injector);
+      this.osFamily = osFamilyMock;
     }
 
-    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
-                                                             String osFamily) {
-      return super.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
-    }
+//    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
+//                                                             String osFamily) {
+//      return super.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+//    }
 
   }
 
@@ -2301,7 +2312,6 @@ public class AmbariManagementControllerImplTest {
     dummyRepoInfo.setRepoName("repo_name");
 
     expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(service.getName()).andReturn("HDFS").anyTimes();
 
     Map<String, ServiceComponent> serviceComponents = new HashMap<>();
@@ -2318,7 +2328,9 @@ public class AmbariManagementControllerImplTest {
     Set<String> services = new HashSet<>();
     services.add("HDFS");
 
-    expect(ambariMetaInfo.getRackSensitiveServicesNames(null, null)).andReturn(services);
+    ServiceInfo serviceInfo = new ServiceInfo();
+    serviceInfo.setRestartRequiredAfterRackChange(true);
+    expect(ambariMetaInfo.getService(service)).andReturn(serviceInfo);
 
     Map<String, Service> serviceMap = new HashMap<>();
 
@@ -2341,10 +2353,6 @@ public class AmbariManagementControllerImplTest {
   public void testCreateClusterWithRepository() throws Exception {
     Injector injector = createNiceMock(Injector.class);
 
-    ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-        anyObject(StackId.class), anyObject(String.class))).andReturn(null).once();
-
     RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
     RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     expect(repoVersionDAO.findByStackAndVersion(anyObject(StackId.class),
@@ -2353,23 +2361,26 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-    expect(injector.getInstance(ClusterVersionDAO.class)).andReturn(clusterVersionDAO);
+
+    StackId stackId = new StackId("HDP-2.1");
 
     Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.1")).atLeastOnce();
-
-    // this getting called one time means the cluster version is getting created
-    cluster.createClusterVersion(anyObject(StackId.class), anyObject(String.class), anyObject(String.class), anyObject(RepositoryVersionState.class));
-    expectLastCall().once();
+    Service service = createNiceMock(Service.class);
+    expect(service.getDesiredStackId()).andReturn(stackId).atLeastOnce();
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", service)
+        .build());
 
     expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
+
 
     StackInfo stackInfo = createNiceMock(StackInfo.class);
     expect(stackInfo.getWidgetsDescriptorFileLocation()).andReturn(null).once();
 
     expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
+    expect(ambariMetaInfo.getStack(stackId)).andReturn(stackInfo).atLeastOnce();
 
-    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
+    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, service, repoVersionDAO, repoVersion);
 
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);
@@ -2387,12 +2398,9 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, configuration);
 
     ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
-    cr.setRepositoryVersion("2.1.1.0-1234");
     controller.createCluster(cr);
 
     // verification
-    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
+    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
   }
-
-
 }

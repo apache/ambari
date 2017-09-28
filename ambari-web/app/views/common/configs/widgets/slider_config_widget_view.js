@@ -113,7 +113,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     var configValue = this.get('config.value');
     var defaultGroupAttr = this.get('config.stackConfigProperty.valueAttributes');
     var groupAttr = this.get('configGroup') && defaultGroupAttr[this.get('configGroup.name')];
-    var boundary = (groupAttr && !Em.isNone(groupAttr[attribute])) ? groupAttr[attribute] : defaultGroupAttr[attribute];
+    var usedGroupAttr = (groupAttr && !Em.isNone(groupAttr[attribute])) ? groupAttr : defaultGroupAttr;
+    var boundary = usedGroupAttr[attribute];
 
     if (!this.get('referToSelectedGroup')) {
       if (attribute === 'minimum') {
@@ -124,6 +125,14 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         if (parseFunction(configValue) > parseFunction(boundary)) {
           return configValue;
         }
+      }
+    }
+    if (isNaN(boundary) && !isNaN(configValue)) {
+      if (attribute === 'minimum') {
+        return isNaN(usedGroupAttr['maximum']) ? configValue : Math.min(usedGroupAttr['maximum'], configValue).toString();
+      }
+      if (attribute === 'maximum') {
+        return isNaN(usedGroupAttr['minimum']) ? configValue : Math.max(usedGroupAttr['minimum'], configValue).toString();
       }
     }
     return boundary;
@@ -251,12 +260,16 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     }
   },
 
+  mirrorValueObs: function () {
+    Em.run.once(this, 'mirrorValueObsOnce');
+  },
+
   /**
    * Check if <code>mirrorValue</code> was updated by user
    * Validate it. If value is correct, set it to slider and config.value
    * @method mirrorValueObs
    */
-  mirrorValueObs: function () {
+  mirrorValueObsOnce: function () {
     var mirrorValue = this.get('mirrorValue'),
       slider = this.get('slider'),
       min = this.get('minMirrorValue'),

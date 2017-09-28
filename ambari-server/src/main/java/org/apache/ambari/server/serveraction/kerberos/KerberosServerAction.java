@@ -35,6 +35,7 @@ import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +82,8 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * A (command parameter) property name used to hold the (serialized) identity filter list.
    */
   public static final String IDENTITY_FILTER = "identity_filter";
+
+  public static final String COMPONENT_FILTER = "component_filter";
 
   /**
    * A (command parameter) property name used to hold the relevant KDC type value.  See
@@ -131,6 +134,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   * ("true") or ignore it ("false")
   */
   public static final String INCLUDE_AMBARI_IDENTITY = "include_ambari_identity";
+
+  /**
+   * Keys used in CommandParams from ExecutionCommand to declare how to pre-configure services.
+   * Expected values are, "ALL", "DEFAULT", and "NONE".
+   */
+  public static final String PRECONFIGURE_SERVICES = "preconfigure_services";
 
   private static final Logger LOG = LoggerFactory.getLogger(KerberosServerAction.class);
 
@@ -535,5 +544,29 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     }
 
     return commandReport;
+  }
+
+  protected void deleteDataDirectory(String dataDirectoryPath) {
+    // Make sure this is a relevant directory. We don't want to accidentally allow _ANY_ directory
+    // to be deleted.
+    if ((dataDirectoryPath != null) && dataDirectoryPath.contains("/" + DATA_DIRECTORY_PREFIX)) {
+      File dataDirectory = new File(dataDirectoryPath);
+      File dataDirectoryParent = dataDirectory.getParentFile();
+
+      // Make sure this directory has a parent and it is writeable, else we wont be able to
+      // delete the directory
+      if ((dataDirectoryParent != null) && dataDirectory.isDirectory() &&
+          dataDirectoryParent.isDirectory() && dataDirectoryParent.canWrite()) {
+        try {
+          FileUtils.deleteDirectory(dataDirectory);
+        } catch (IOException e) {
+          // We should log this exception, but don't let it fail the process since if we got to this
+          // KerberosServerAction it is expected that the the overall process was a success.
+          String message = String.format("The data directory (%s) was not deleted due to an error condition - {%s}",
+              dataDirectory.getAbsolutePath(), e.getMessage());
+          LOG.warn(message, e);
+        }
+      }
+    }
   }
 }

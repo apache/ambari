@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -52,11 +53,6 @@ public class DDLTests {
   @Test
   public void testVerifyPostgres() throws Exception {
     verifyDDL("Postgres");
-  }
-
-  @Test
-  public void testVerifyPostgresEmbedded() throws Exception {
-    verifyDDL("Postgres-EMBEDDED");
   }
 
   @Test
@@ -124,11 +120,6 @@ public class DDLTests {
   }
 
   @Test
-  public void testComparePostgresEmbedded() throws Exception {
-    compareAgainstPostgres("Postgres-EMBEDDED");
-  }
-
-  @Test
   public void testCompareDerby() throws Exception {
     compareAgainstPostgres("Derby");
   }
@@ -164,7 +155,12 @@ public class DDLTests {
     else {
       LOG.info("{} differences found:", diffs.size());
       for (String diff: diffs) { LOG.info(diff); }
-      Assert.fail("Found " + diffs.size() + " differences when comparing " + other + " against Postgres.");
+      StringBuilder buffer = new StringBuilder();
+      buffer.append("Found ").append(diffs.size()).append(" differences when comparing ").append(
+          other).append(" against Postgres:").append(System.lineSeparator()).append(
+              StringUtils.join(diffs, System.lineSeparator()));
+
+      Assert.fail(buffer.toString());
     }
   }
 
@@ -176,7 +172,9 @@ public class DDLTests {
     int uqCount = 0;
     for (Table t: ddl.tables.values()) {
       colCount += t.columns.size();
-      if (t.primaryKey.isPresent()) pkCount ++;
+      if (t.primaryKey.isPresent()) {
+        pkCount ++;
+      }
       fkCount += t.foreignKeys.size();
       uqCount += t.uniqueConstraints.size();
     }
@@ -227,7 +225,7 @@ public class DDLTests {
   }
 
   static <T> Set<T> toSet(Optional<T> arg) {
-    return arg.isPresent() ? ImmutableSet.of(arg.get()) : ImmutableSet.<T>of();
+    return arg.isPresent() ? ImmutableSet.of(arg.get()) : ImmutableSet.of();
   }
 
   static <ContentType> List<String> compareSets(String message, Set<ContentType> base, Set<ContentType> other) {

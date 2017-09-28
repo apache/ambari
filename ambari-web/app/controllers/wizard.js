@@ -114,39 +114,21 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   allHosts: function () {
     var dbHosts = this.get('content.hosts');
     var hosts = [];
-    var hostComponents = [];
 
     for (var hostName in dbHosts) {
-      hostComponents = [];
-      var disksOverallCapacity = 0;
-      var diskFree = 0;
+      var hostComponents = [];
       dbHosts[hostName].hostComponents.forEach(function (componentName) {
         hostComponents.push(Em.Object.create({
           componentName: componentName,
           displayName: App.format.role(componentName, false)
         }));
       });
-      dbHosts[hostName].disk_info.forEach(function (disk) {
-        disksOverallCapacity += parseFloat(disk.size);
-        diskFree += parseFloat(disk.available);
-      });
 
       hosts.push(Em.Object.create({
         id: hostName,
         hostName: hostName,
-        publicHostName: hostName,
-        diskInfo: dbHosts[hostName].disk_info,
-        diskTotal: disksOverallCapacity / (1024 * 1024),
-        diskFree: diskFree / (1024 * 1024),
-        disksMounted: dbHosts[hostName].disk_info.length,
-        cpu: dbHosts[hostName].cpu,
-        memory: dbHosts[hostName].memory,
-        osType: dbHosts[hostName].osType ? dbHosts[hostName].osType: 0,
-        osArch: dbHosts[hostName].osArch ? dbHosts[hostName].osArch : 0,
-        ip: dbHosts[hostName].ip ? dbHosts[hostName].ip: 0,
-        hostComponents: hostComponents,
-        maintenanceState: dbHosts[hostName].maintenance_state
-      }))
+        hostComponents: hostComponents
+      }));
     }
     return hosts;
   }.property('content.hosts'),
@@ -771,13 +753,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       if (_host.bootStatus === 'REGISTERED') {
         hosts[_host.name] = {
           name: _host.name,
-          cpu: _host.cpu,
-          memory: _host.memory,
-          disk_info: _host.disk_info,
-          os_type: _host.os_type,
-          os_arch: _host.os_arch,
-          ip: _host.ip,
-          maintenance_state: _host.maintenance_state,
           bootStatus: _host.bootStatus,
           isInstalled: false,
           id: indx++
@@ -897,14 +872,15 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   /**
    * Save cluster status before going to deploy step
    * @param name cluster state. Unique for every wizard
+   * @param callbackObj can have additional params for ajax callBacks and sender
    */
-  saveClusterState: function (name) {
+  saveClusterState: function (name, callbackObj) {
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: name,
       wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
-    });
+    }, callbackObj);
   },
 
   /**
@@ -1031,16 +1007,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           })
         });
         //configGroup copied into plain JS object to avoid Converting circular structure to JSON
-        var hostNames = configGroup.get('hosts').map(function(host_name) {return hosts[host_name].id;});
+        var hostIds = configGroup.get('hosts').map(function(host_name) {return hosts[host_name].id;});
         serviceConfigGroups.push({
           id: configGroup.get('id'),
           name: configGroup.get('name'),
           description: configGroup.get('description'),
-          hosts: hostNames.slice(),
+          hosts: hostIds.slice(),
           properties: properties.slice(),
           is_default: configGroup.get('isDefault'),
           is_for_installed_service: isForInstalledService,
-          is_for_update: configGroup.isForUpdate || configGroup.get('hash') != this.getConfigGroupHash(configGroup, hostNames),
+          is_for_update: configGroup.get('isForUpdate') || configGroup.get('hash') !== this.getConfigGroupHash(configGroup, configGroup.get('hosts')),
           service_name: configGroup.get('serviceName'),
           service_id: configGroup.get('serviceName'),
           desired_configs: configGroup.get('desiredConfigs'),
@@ -1276,11 +1252,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function () {
-    var hosts = App.db.getHosts();
-
-    if (hosts) {
-      this.set('content.hosts', hosts);
-    }
+    this.set('content.hosts', this.getDBProperty('hosts') || {});
   },
 
   loadHosts: function () {
@@ -1308,13 +1280,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     response.items.forEach(function (item, indx) {
       installedHosts[item.Hosts.host_name] = {
         name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
-        osType: item.Hosts.os_type,
-        osArch: item.Hosts.os_arch,
-        ip: item.Hosts.ip,
-        maintenance_state: item.Hosts.maintenance_state,
         bootStatus: "REGISTERED",
         isInstalled: true,
         hostComponents: item.host_components,
@@ -1531,10 +1496,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @param {App.WizardController} controller - wizard controller
    * @param {string} route - preferable path to go after wizard finished
    */
-  resetOnClose: function(controller, route) {
+  resetOnClose: function(controller, route, router) {
     App.router.get('wizardWatcherController').resetUser();
     controller.finish();
-    App.router.get('updateController').set('isWorking', true);
     App.clusterStatus.setClusterStatus({
       clusterName: App.get('clusterName'),
       clusterState: 'DEFAULT',
@@ -1542,6 +1506,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     },
     {
       alwaysCallback: function () {
+        router && router.set('nextBtnClickInProgress', false);
         controller.get('popup').hide();
         App.router.transitionTo(route);
         Em.run.next(function() {

@@ -24,33 +24,45 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Section {
+public class Section implements ApiModel {
+
 	@JsonProperty("subsections")
 	private List<Subsection> subsections;
+
 	@JsonProperty("display-name")
 	private String displayName;
+
 	@JsonProperty("row-index")
 	private String rowIndex;
+
 	@JsonProperty("section-rows")
 	private String sectionRows;
+
 	@JsonProperty("name")
 	private String name;
+
 	@JsonProperty("column-span")
 	private String columnSpan;
+
 	@JsonProperty("section-columns")
 	private String sectionColumns;
+
 	@JsonProperty("column-index")
 	private String columnIndex;
+
 	@JsonProperty("row-span")
 	private String rowSpan;
 
+  @ApiModelProperty(name = "subsections")
   public List<Subsection> getSubsections() {
     return subsections;
   }
@@ -59,6 +71,7 @@ public class Section {
     this.subsections = subsections;
   }
 
+  @ApiModelProperty(name = "display-name")
   public String getDisplayName() {
     return displayName;
   }
@@ -67,6 +80,7 @@ public class Section {
     this.displayName = displayName;
   }
 
+  @ApiModelProperty(name = "row-index")
   public String getRowIndex() {
     return rowIndex;
   }
@@ -75,6 +89,7 @@ public class Section {
     this.rowIndex = rowIndex;
   }
 
+  @ApiModelProperty(name = "section-rows")
   public String getSectionRows() {
     return sectionRows;
   }
@@ -83,6 +98,7 @@ public class Section {
     this.sectionRows = sectionRows;
   }
 
+  @ApiModelProperty(name = "name")
   public String getName() {
     return name;
   }
@@ -91,6 +107,7 @@ public class Section {
     this.name = name;
   }
 
+  @ApiModelProperty(name = "column-span")
   public String getColumnSpan() {
     return columnSpan;
   }
@@ -103,10 +120,12 @@ public class Section {
     return sectionColumns;
   }
 
+  @ApiModelProperty(name = "section-columns")
   public void setSectionColumns(String sectionColumns) {
     this.sectionColumns = sectionColumns;
   }
 
+  @ApiModelProperty(name = "column-index")
   public String getColumnIndex() {
     return columnIndex;
   }
@@ -115,6 +134,7 @@ public class Section {
     this.columnIndex = columnIndex;
   }
 
+  @ApiModelProperty(name = "row-span")
   public String getRowSpan() {
     return rowSpan;
   }

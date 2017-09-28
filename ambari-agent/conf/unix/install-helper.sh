@@ -35,6 +35,8 @@ WS4PY_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_ws4py"
 AMBARI_AGENT="/usr/lib/python2.6/site-packages/ambari_agent"
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 AMBARI_AGENT_VAR="/var/lib/ambari-agent"
+AMBARI_AGENT_BINARY="/etc/init.d/ambari-agent"
+AMBARI_AGENT_BINARY_SYMLINK="/usr/sbin/ambari-agent"
 
 clean_pyc_files(){
   # cleaning old *.pyc files
@@ -50,6 +52,10 @@ do_install(){
     cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
   fi
+
+  # setting up /usr/sbin/ambari-agent symlink
+  rm -f "$AMBARI_AGENT_BINARY_SYMLINK"
+  ln -s "$AMBARI_AGENT_BINARY" "$AMBARI_AGENT_BINARY_SYMLINK"
     
   # setting ambari_commons shared resource
   rm -rf "$OLD_COMMON_DIR"
@@ -83,6 +89,7 @@ do_install(){
   chmod a+x $AMBARI_AGENT_VAR
   
   chmod 1777 $AMBARI_AGENT_VAR/tmp
+  chmod 700 $AMBARI_AGENT_VAR/keys
   chmod 700 $AMBARI_AGENT_VAR/data
 
   #TODO we need this when upgrading from pre 2.4 versions to 2.4, remove this when upgrade from pre 2.4 versions will be
@@ -102,7 +109,7 @@ do_install(){
   rm -f "$PYTHON_WRAPER_TARGET"
 
   AMBARI_PYTHON=""
-  python_binaries=( "/usr/bin/python" "/usr/bin/python2" "/usr/bin/python2.7", "/usr/bin/python2.6" )
+  python_binaries=( "/usr/bin/python" "/usr/bin/python2" "/usr/bin/python2.7" "/usr/bin/python2.6" )
   for python_binary in "${python_binaries[@]}"
   do
     $python_binary -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (2,6) and ver<(3,0)))" 1>/dev/null 2>/dev/null
@@ -136,6 +143,8 @@ do_remove(){
   /usr/sbin/ambari-agent stop > /dev/null 2>&1
 
   clean_pyc_files
+
+  rm -f "$AMBARI_AGENT_BINARY_SYMLINK"
 
   if [ -d "/etc/ambari-agent/conf.save" ]; then
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save

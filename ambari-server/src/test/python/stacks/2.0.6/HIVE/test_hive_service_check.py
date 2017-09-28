@@ -34,11 +34,15 @@ class TestServiceCheck(RMFTestCase):
 
 
   def test_service_check_default(self, socket_mock):
+    config_file = "default.json"
+
+    base_path, configs_path = self._get_test_paths(RMFTestCase.TARGET_COMMON_SERVICES, self.STACK_VERSION)
+    json_content = self.get_config_file(configs_path, config_file)
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HiveServiceCheck",
                         command="service_check",
-                        config_file="default.json",
+                        config_dict = json_content,
                         stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -46,6 +50,7 @@ class TestServiceCheck(RMFTestCase):
                               path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
                               user = 'ambari-qa',
                               timeout = 30,
+                              timeout_kill_strategy = 2,
                               )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
@@ -145,11 +150,15 @@ class TestServiceCheck(RMFTestCase):
 
 
   def test_service_check_secured(self, socket_mock):
+    config_file = "secured.json"
+    base_path, configs_path = self._get_test_paths(RMFTestCase.TARGET_COMMON_SERVICES, self.STACK_VERSION)
+    json_content = self.get_config_file(configs_path, config_file)
+    del json_content["commandParams"]["version"]
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HiveServiceCheck",
                         command="service_check",
-                        config_file="secured.json",
+                        config_dict = json_content,
                         stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -160,6 +169,7 @@ class TestServiceCheck(RMFTestCase):
                               path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
                               user = 'ambari-qa',
                               timeout = 30,
+                              timeout_kill_strategy = 2,
                               )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
@@ -276,7 +286,9 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10010/;transportMode=binary'  -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
       path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
       timeout = 30,
-      user = 'ambari-qa')
+      user = 'ambari-qa',
+      timeout_kill_strategy = 2,
+    )
 
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
       content = StaticFile('hcatSmoke.sh'),
@@ -313,13 +325,17 @@ class TestServiceCheck(RMFTestCase):
       "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10010/;transportMode=binary'  -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
       path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
       timeout = 30,
-      user = 'ambari-qa')
+      user = 'ambari-qa',
+      timeout_kill_strategy = 2,
+    )
 
     self.assertResourceCalled('Execute',
       "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10500/;transportMode=binary'  -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
       path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
       timeout = 30,
-      user = 'ambari-qa')
+      user = 'ambari-qa',
+      timeout_kill_strategy = 2,
+    )
 
     # LLAP call
     self.assertResourceCalled('Execute',

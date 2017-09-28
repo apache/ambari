@@ -26,6 +26,7 @@ body {
 
 html, body {
   height: 100%;
+  background-color: #f0f0f0;
 }
 
 .form-text {
@@ -66,6 +67,7 @@ ul.typeahead.dropdown-menu {
 }
 
 #main {
+  transition: .5s ease;
   overflow: visible;
   padding-bottom: @footer-height;
   min-width: 980px;
@@ -75,7 +77,6 @@ footer {
   position: relative;
   border-top: 1px solid #e5e5e5;
   padding: 30px 0;
-  background-color: #fff;
   color: #666;
   margin-top: -1 * @footer-height - 1;
   height: @footer-height - 60px;
@@ -345,7 +346,7 @@ footer {
 }
 
 #content {
-  padding: 15px 0;
+  padding: 0 0 15px 0;
 }
 
 .badge-important {
@@ -500,7 +501,7 @@ h1 {
 }
 
 .glyphicon-refresh {
-  color: #fdb82f;
+  color: #999;
 }
 
 .glyphicon-warning-sign {
@@ -1041,12 +1042,12 @@ a:focus {
 .services, .summary-info {
   .tab-marker-position(@color) {
     color: @color;
-    background-position:  0 3px;
+    background-position:  0 7px;
     background-repeat: no-repeat;
     list-style: none;
-    height: 20px;
-    width: 20px;
-    margin-left: 0;
+    height: 13px;
+    width: 13px;
+    margin: 0 3px 0 0 ;
     display: inline !important;
     float: none !important;
   }
@@ -1078,13 +1079,21 @@ a:focus {
   .upgrade-status-warning {
     color: @health-status-red;
   }
-  .summary-label {
-    text-align: right;
+
+  .col-md-3 {
+    min-height: 100px;
+    margin-left: 2px;
+    min-width: 150px;
   }
-  a {
-    text-decoration: underline;
-    &:hover {
-      text-decoration: none;
+  .summary-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-top: 5px;
+  }
+  .summary-value {
+    color: #333333;
+    span {
+      display: inline-block;
     }
   }
 }
@@ -1136,6 +1145,21 @@ a:focus {
     margin-left: 0;
     margin-right: 0;
   }
+}
+
+.serviceConfigUGIDLbl {
+  display: inline-block;
+  text-align: left;
+  margin-left: 92px;
+  width: 100px;
+}
+
+.serviceConfigUGID {
+  width: 150px !important;
+}
+
+.serviceConfigNoUGID {
+  width: 500px !important;
 }
 
 .chart-container {
@@ -1332,6 +1356,10 @@ a:focus {
   }
 }
 
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a.services-menu-blocks {
+  padding-left: 50px;
+}
+
 a.services-menu-blocks{
   overflow:auto;
   .icon-health-block{
@@ -1347,7 +1375,12 @@ a.services-menu-blocks{
     margin-left: 4px;
     margin-right: 4px;
   }
-
+  .menu-item-name.INSTALLED {
+    color: @health-status-red;
+  }
+  .menu-item-name.UNKNOWN {
+    color: @health-status-orange;
+  }
 }
 
 .quick-links-wrapper {
@@ -1373,6 +1406,28 @@ a.services-menu-blocks{
 
 .service-block {
   margin-top: 20px;
+  .summary-links-block {
+    display: flex;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: -o-flex;
+  }
+  .panel, .panel-heading{
+    border: none;
+  }
+  .panel-title {
+    font-size: 20px;
+  }
+  .service-alerts {
+    margin-top: 10px;
+  }
+  .quick-links-block {
+    .panel-body > a{
+      display: block;
+      margin-bottom: 5px;
+    }
+  }
 }
 
 .service-button {
@@ -1983,8 +2038,14 @@ i.glyphicon-asterisks {
     width: 940px;
     padding: 0 15px;
   }
+
   .contribview .main-container {
     width: auto;
+  }
+
+  .contribview .navbar .main-container {
+    width: 940px;
+    margin: 0 auto;
   }
 }
 
@@ -2665,4 +2726,75 @@ a.abort-icon:hover {
   &.overlay-visible {
     display: block;
   }
+}
+
+.step-marker {
+  .step-index {
+    display: block;
+    margin-top: -1px;
+    margin-left: 0.3px;
+  }
+}
+
+.ellipsis-menu:after {
+  content: '\2807';
+  color: #999999;
+  font-size: 22px;
+}
+
+.button-border {
+  padding: 0px;
+  border: none;
+  background: none;
+}
+
+.summary-block {
+  flex: 1;
+  .metrics-summary {
+    margin-top:40px;
+  }
+  .component-summary, .metrics-summary {
+    .col-md-2 {
+      float:left;
+      padding-left: 0px;
+      top: 7px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .col-md-10 {
+      float: right;
+    }
+    .main-info {
+      font-size: 16px;
+    }
+    .info-desc {
+      font-size: 12px;
+      color: #999999;
+    }
+  }
+}
+
+.quick-links-block {
+  width: 18%;
+  margin: 0 0 20px 20px;
+  .col-lg-12 {
+    float: none !important;
+  }
+  .panel-body {
+    padding-top: 0px;
+    color: #999999;
+    font-size: 12px;
+  }
+}
+
+.restart-services-alert {
+  padding: 8px 35px 8px 14px;
+  margin-bottom: 20px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  color: #b94a48;
+  background-color: #f2dede;
+  border: 1px solid #b94a48;
 }

@@ -22,6 +22,7 @@ import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.spool.LogSpooler;
 import org.apache.ambari.logfeeder.output.spool.LogSpoolerContext;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,7 +33,6 @@ import java.util.Map;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
 
 public class OutputS3FileTest {
 
@@ -71,8 +71,11 @@ public class OutputS3FileTest {
 
     Input input = mock(Input.class);
     InputMarker inputMarker = new InputMarker(input, null, 0);
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
+    inputDescriptor.setType("hdfs-namenode");
+    
     expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
-    expect(input.getStringValue(OutputS3File.INPUT_ATTRIBUTE_TYPE)).andReturn("hdfs-namenode");
+    expect(input.getInputDescriptor()).andReturn(inputDescriptor);
     final LogSpooler spooler = mock(LogSpooler.class);
     spooler.add("log event block");
     final S3Uploader s3Uploader = mock(S3Uploader.class);
@@ -99,8 +102,11 @@ public class OutputS3FileTest {
   public void shouldReuseSpoolerForSamePath() throws Exception {
     Input input = mock(Input.class);
     InputMarker inputMarker = new InputMarker(input, null, 0);
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
+    inputDescriptor.setType("hdfs-namenode");
+    
     expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
-    expect(input.getStringValue(OutputS3File.INPUT_ATTRIBUTE_TYPE)).andReturn("hdfs-namenode");
+    expect(input.getInputDescriptor()).andReturn(inputDescriptor);
     final LogSpooler spooler = mock(LogSpooler.class);
     spooler.add("log event block1");
     spooler.add("log event block2");
@@ -169,8 +175,11 @@ public class OutputS3FileTest {
   public void shouldUploadFileOnRollover() throws Exception {
     Input input = mock(Input.class);
     InputMarker inputMarker = new InputMarker(input, null, 0);
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
+    inputDescriptor.setType("hdfs-namenode");
+    
     expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
-    expect(input.getStringValue(OutputS3File.INPUT_ATTRIBUTE_TYPE)).andReturn("hdfs-namenode");
+    expect(input.getInputDescriptor()).andReturn(inputDescriptor);
     final LogSpooler spooler = mock(LogSpooler.class);
     spooler.add("log event block1");
     final S3Uploader s3Uploader = mock(S3Uploader.class);

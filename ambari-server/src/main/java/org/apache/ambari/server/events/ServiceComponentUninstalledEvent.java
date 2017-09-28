@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.events;
+
+import org.apache.ambari.server.serveraction.kerberos.Component;
 
 /**
  * The {@link ServiceComponentUninstalledEvent} class is fired when a service
@@ -84,5 +86,9 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     buffer.append(", recoveryEnabled=").append(m_recoveryEnabled);
     buffer.append("}");
     return buffer.toString();
+  }
+
+  public Component getComponent() {
+    return new Component(getHostName(), getServiceName(), getComponentName());
   }
 }

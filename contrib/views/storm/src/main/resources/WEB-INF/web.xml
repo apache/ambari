@@ -30,8 +30,16 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <servlet-name>ProxyServlet</servlet-name>
     <servlet-class>org.apache.ambari.view.storm.ProxyServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>StormDetailsServlet</servlet-name>
+    <servlet-class>org.apache.ambari.view.storm.StormDetailsServlet</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>ProxyServlet</servlet-name>
     <url-pattern>/proxy</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>StormDetailsServlet</servlet-name>
+    <url-pattern>/storm_details</url-pattern>
   </servlet-mapping>
 </web-app>

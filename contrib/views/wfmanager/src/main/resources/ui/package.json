@@ -21,6 +21,7 @@
   "devDependencies": {
     "bower": "^1.7.7",
     "broccoli-asset-rev": "^2.2.0",
+    "babel-plugin-transform-es2015-block-scoping": "^6.24.1",
     "ember-ajax": "0.7.1",
     "ember-cli": "2.3.0",
     "ember-cli-app-version": "^1.0.0",
@@ -49,7 +50,8 @@
     "ember-uuid": "1.0.0",
     "ember-validations": "~ 2.0.0-alpha.4",
     "ivy-codemirror": "2.0.3",
-    "loader.js": "^4.0.0"
+    "loader.js": "^4.0.0",
+    "ember-collection": "git://github.com/emberjs/ember-collection.git#4dbe10b7498886e277fc21b28139924f908d1926"
   },
   "ember-addon": {
     "paths": [

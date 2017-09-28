@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -153,9 +153,6 @@ public class HeartBeatResponse {
   /**
    * Gets the alert definition commands that contain the alert definitions for
    * each cluster that the host is a member of.
-   *
-   * @param commands
-   *          the commands, or {@code null} for none.
    */
   public List<AlertDefinitionCommand> getAlertDefinitionCommands() {
     return alertDefinitionCommands;

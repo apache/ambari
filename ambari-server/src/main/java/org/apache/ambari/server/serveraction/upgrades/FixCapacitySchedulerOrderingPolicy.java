@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -65,6 +65,11 @@ public class FixCapacitySchedulerOrderingPolicy extends AbstractServerAction {
     String clusterName = getExecutionCommand().getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
     Config config = cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE);
+
+    if (null == config) {
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
+          String.format("The cluster does not have %s defined.", SOURCE_CONFIG_TYPE), "");
+    }
 
     Map<String, String> properties = config.getProperties();
 

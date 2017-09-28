@@ -34,11 +34,11 @@ def spark_service(name, upgrade_type=None, action=None):
 
   if action == 'start':
 
-    effective_version = params.version if upgrade_type is not None else params.stack_version_formatted
+    effective_version = params.version if upgrade_type is not None else params.version_for_stack_feature_checks
     if effective_version:
       effective_version = format_stack_version(effective_version)
 
-    if name == 'jobhistoryserver' and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
+    if name == 'jobhistoryserver' and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
       # copy spark-hdp-assembly.jar to hdfs
       copy_to_hdfs("spark", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
       # create spark history directory
@@ -58,7 +58,7 @@ def spark_service(name, upgrade_type=None, action=None):
 
     # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not
     # need to copy the tarball, otherwise, copy it.
-    if params.stack_version_formatted and check_stack_feature(StackFeature.TEZ_FOR_SPARK, params.stack_version_formatted):
+    if check_stack_feature(StackFeature.TEZ_FOR_SPARK, params.version_for_stack_feature_checks):
       resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
       if resource_created:
         params.HdfsResource(None, action="execute")

@@ -138,7 +138,14 @@
   {{/if}}
   <div  id="content" class="panel panel-default designer-main-panel col-xs-20">
     <div class="designer-panel designer-canvas">
-      {{designer-errors errors=errors validationErrors=validationErrors errorMsg=errorMsg data=data}}
+        {{designer-errors errors=errors validationErrors=validationErrors errorMsg=errorMsg data=data}}
+        {{#if isSparkUnSupportedPropsAvailable}}
+            <div class="alert alert-warning">
+                <a href="#" class="close" {{action "closeInfo" "isSparkUnSupportedPropsAvailable"}}> × </a>
+                Spark does not support YARN Client mode.Hence, YARN Client mode value will changed in xml while importing.
+            </div>
+        {{/if}}
+
       {{#if undoAvailable}}
         <div id="alert"class="alert alert-warning workflow-error" role="alert">
           {{#if (eq undoType 'nodeDeleted')}}

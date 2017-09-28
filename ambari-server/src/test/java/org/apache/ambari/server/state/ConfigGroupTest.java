@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,6 +26,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
@@ -65,8 +66,12 @@ public class ConfigGroupTest {
     configGroupHostMappingDAO = injector.getInstance
       (ConfigGroupHostMappingDAO.class);
 
+    StackId stackId = new StackId("HDP-0.1");
+    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
+    helper.createStack(stackId);
+
     clusterName = "foo";
-    clusters.addCluster(clusterName, new StackId("HDP-0.1"));
+    clusters.addCluster(clusterName, stackId);
     cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
     clusters.addHost("h1");
@@ -100,7 +105,7 @@ public class ConfigGroupTest {
     configs.put(config.getType(), config);
     hosts.put(host.getHostId(), host);
 
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "cg-test",
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS", "cg-test",
       "HDFS", "New HDFS configs for h1", configs, hosts);
 
     cluster.addConfigGroup(configGroup);

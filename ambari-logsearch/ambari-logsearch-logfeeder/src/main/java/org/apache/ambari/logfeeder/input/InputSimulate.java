@@ -21,7 +21,6 @@ package org.apache.ambari.logfeeder.input;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -34,26 +33,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.filter.FilterJSON;
 import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterJsonDescriptorImpl;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.apache.commons.collections.MapUtils;
-import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Base64;
 
 import com.google.common.base.Joiner;
 
 public class InputSimulate extends Input {
-  private static final Logger LOG = Logger.getLogger(InputSimulate.class);
-
   private static final String LOG_TEXT_PATTERN = "{ logtime=\"%d\", level=\"%s\", log_message=\"%s\", host=\"%s\"}";
-  
+
   private static final Map<String, String> typeToFilePath = new HashMap<>();
-  private static List<String> inputTypes = new ArrayList<>();
-  public static void loadTypeToFilePath(List<Map<String, Object>> inputList) {
-    for (Map<String, Object> input : inputList) {
-      if (input.containsKey("type") && input.containsKey("path")) {
-        typeToFilePath.put((String)input.get("type"), (String)input.get("path"));
-        inputTypes.add((String)input.get("type"));
-      }
+  private static final List<String> inputTypes = new ArrayList<>();
+  public static void loadTypeToFilePath(List<InputDescriptor> inputList) {
+    for (InputDescriptor input : inputList) {
+      typeToFilePath.put(input.getType(), input.getPath());
+      inputTypes.add(input.getType());
     }
   }
   
@@ -78,21 +76,21 @@ public class InputSimulate extends Input {
   
   public InputSimulate() throws Exception {
     this.types = getSimulatedLogTypes();
-    this.level = LogFeederUtil.getStringProperty("logfeeder.simulate.log_level", "WARN");
-    this.numberOfWords = LogFeederUtil.getIntProperty("logfeeder.simulate.number_of_words", 1000, 50, 1000000);
-    this.minLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.min_log_words", 5, 1, 10);
-    this.maxLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.max_log_words", 10, 10, 20);
-    this.sleepMillis = LogFeederUtil.getIntProperty("logfeeder.simulate.sleep_milliseconds", 10000);
+    this.level = LogFeederPropertiesUtil.getSimulateLogLevel();
+    this.numberOfWords = LogFeederPropertiesUtil.getSimulateNumberOfWords();
+    this.minLogWords = LogFeederPropertiesUtil.getSimulateMinLogWords();
+    this.maxLogWords = LogFeederPropertiesUtil.getSimulateMaxLogWords();
+    this.sleepMillis = LogFeederPropertiesUtil.getSimulateSleepMilliseconds();
     this.host = "#" + hostNumber.incrementAndGet() + "-" + LogFeederUtil.hostName;
     
     Filter filter = new FilterJSON();
-    filter.loadConfig(Collections.<String, Object> emptyMap());
+    filter.loadConfig(new FilterJsonDescriptorImpl());
     filter.setInput(this);
     addFilter(filter);
   }
   
   private List<String> getSimulatedLogTypes() {
-    String logsToSimulate = LogFeederUtil.getStringProperty("logfeeder.simulate.log_ids");
+    String logsToSimulate = LogFeederPropertiesUtil.getSimulateLogIds();
     return (logsToSimulate == null) ?
       inputTypes :
       Arrays.asList(logsToSimulate.split(","));
@@ -104,6 +102,7 @@ public class InputSimulate extends Input {
       Class<? extends Output> clazz = output.getClass();
       Output outputCopy = clazz.newInstance();
       outputCopy.loadConfig(output.getConfigs());
+      outputCopy.setDestination(output.getDestination());
       simulateOutputs.add(outputCopy);
       super.addOutput(outputCopy);
     } catch (Exception e) {
@@ -141,7 +140,7 @@ public class InputSimulate extends Input {
     String type = types.get(typePos);
     String filePath = MapUtils.getString(typeToFilePath, type, "path of " + type);
     
-    configs.put("type", type);
+    ((InputDescriptorImpl)inputDescriptor).setType(type);
     setFilePath(filePath);
     
     return type;

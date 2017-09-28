@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,8 +58,8 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
@@ -67,7 +67,7 @@ import com.google.inject.Injector;
  * Monitors the node state and heartbeats.
  */
 public class HeartbeatMonitor implements Runnable {
-  private static Log LOG = LogFactory.getLog(HeartbeatMonitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HeartbeatMonitor.class);
   private Clusters clusters;
   private ActionQueue actionQueue;
   private ActionManager actionManager;
@@ -120,8 +120,7 @@ public class HeartbeatMonitor implements Runnable {
     while (shouldRun) {
       try {
         doWork();
-        LOG.trace("Putting monitor to sleep for " + threadWakeupInterval + " " +
-          "milliseconds");
+        LOG.trace("Putting monitor to sleep for {} milliseconds", threadWakeupInterval);
         Thread.sleep(threadWakeupInterval);
       } catch (InterruptedException ex) {
         LOG.warn("Scheduler thread is interrupted going to stop", ex);
@@ -228,7 +227,9 @@ public class HeartbeatMonitor implements Runnable {
       ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
     String serviceName = sch.getServiceName();
     String componentName = sch.getServiceComponentName();
-    StackId stackId = cluster.getDesiredStackVersion();
+
+    StackId stackId = sch.getDesiredStackId();
+
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
@@ -338,7 +339,7 @@ public class HeartbeatMonitor implements Runnable {
     if (statusCmd.getPayloadLevel() == StatusCommand.StatusCommandPayload.EXECUTION_COMMAND) {
       ExecutionCommand ec = ambariManagementController.getExecutionCommand(cluster, sch, RoleCommand.START);
       statusCmd.setExecutionCommand(ec);
-      LOG.debug(componentName + " has more payload for execution command");
+      LOG.debug("{} has more payload for execution command", componentName);
     }
 
     return statusCmd;

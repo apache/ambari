@@ -127,13 +127,13 @@ public class ServerActionExecutorTest {
     final Request request = createMockRequest();
     stageFactory = createNiceMock(StageFactory.class);
 
-    final Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 978, "context", CLUSTER_HOST_INFO,
+    final Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 978, "context",
         "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     stage.addServerActionCommand(ManualStageAction.class.getName(),
         null, Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        Collections.<String, String> emptyMap(), null, null, 1200, false, false);
+        Collections.emptyMap(), null, null, 1200, false, false);
 
     final List<Stage> stages = new ArrayList<Stage>() {
       {
@@ -318,14 +318,13 @@ public class ServerActionExecutorTest {
                                                 final int timeout) {
     stageFactory = createNiceMock(StageFactory.class);
     expect(stageFactory.createNew(anyLong(), anyObject(String.class), anyObject(String.class),
-        anyLong(), anyObject(String.class), anyObject(String.class),
-        anyObject(String.class), anyObject(String.class))).
+        anyLong(), anyObject(String.class), anyObject(String.class), anyObject(String.class))).
         andAnswer(new IAnswer<Stage>() {
 
           @Override
           public Stage answer() throws Throwable {
             Stage stage = stageFactory.createNew(requestId, "/tmp", "cluster1",
-                1L, requestContext, CLUSTER_HOST_INFO, "{}", "{}");
+                1L, requestContext, "{}", "{}");
 
             stage.setStageId(stageId);
             stage.addServerActionCommand(MockServerAction.class.getName(), null,
@@ -338,7 +337,7 @@ public class ServerActionExecutorTest {
           }
         });
 
-    Stage stage = stageFactory.createNew(requestId, "", "", 1L, "", "", "", "");
+    Stage stage = stageFactory.createNew(requestId, "", "", 1L, "", "", "");
     return stage;
   }
 

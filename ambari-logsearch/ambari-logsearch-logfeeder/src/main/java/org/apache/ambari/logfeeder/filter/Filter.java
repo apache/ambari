@@ -24,8 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.common.ConfigBlock;
-import org.apache.ambari.logfeeder.common.LogfeederException;
+import org.apache.ambari.logfeeder.common.ConfigItem;
+import org.apache.ambari.logfeeder.common.LogFeederException;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.mapper.Mapper;
@@ -33,17 +33,27 @@ import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logfeeder.util.AliasUtil;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
-import org.apache.log4j.Logger;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.PostMapValues;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.log4j.Priority;
 
-public abstract class Filter extends ConfigBlock {
-  private static final Logger LOG = Logger.getLogger(Filter.class);
-
+public abstract class Filter extends ConfigItem {
+  protected FilterDescriptor filterDescriptor;
   protected Input input;
   private Filter nextFilter = null;
   private OutputManager outputManager;
 
   private Map<String, List<Mapper>> postFieldValueMappers = new HashMap<String, List<Mapper>>();
+
+  public void loadConfig(FilterDescriptor filterDescriptor) {
+    this.filterDescriptor = filterDescriptor;
+  }
+
+  public FilterDescriptor getFilterDescriptor() {
+    return filterDescriptor;
+  }
 
   @Override
   public void init() throws Exception {
@@ -55,28 +65,22 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void initializePostMapValues() {
-    Map<String, Object> postMapValues = (Map<String, Object>) getConfigValue("post_map_values");
+    Map<String, ? extends List<? extends PostMapValues>> postMapValues = filterDescriptor.getPostMapValues();
     if (postMapValues == null) {
       return;
     }
     for (String fieldName : postMapValues.keySet()) {
-      List<Map<String, Object>> mapList = null;
-      Object values = postMapValues.get(fieldName);
-      if (values instanceof List<?>) {
-        mapList = (List<Map<String, Object>>) values;
-      } else {
-        mapList = new ArrayList<Map<String, Object>>();
-        mapList.add((Map<String, Object>) values);
-      }
-      for (Map<String, Object> mapObject : mapList) {
-        for (String mapClassCode : mapObject.keySet()) {
+      List<? extends PostMapValues> values = postMapValues.get(fieldName);
+      for (PostMapValues pmv : values) {
+        for (MapFieldDescriptor mapFieldDescriptor : pmv.getMappers()) {
+          String mapClassCode = mapFieldDescriptor.getJsonName();
           Mapper mapper = (Mapper) AliasUtil.getClassInstance(mapClassCode, AliasType.MAPPER);
           if (mapper == null) {
-            break;
+            LOG.warn("Unknown mapper type: " + mapClassCode);
+            continue;
           }
-          if (mapper.init(getInput().getShortDescription(), fieldName, mapClassCode, mapObject.get(mapClassCode))) {
+          if (mapper.init(getInput().getShortDescription(), fieldName, mapClassCode, mapFieldDescriptor)) {
             List<Mapper> fieldMapList = postFieldValueMappers.get(fieldName);
             if (fieldMapList == null) {
               fieldMapList = new ArrayList<Mapper>();
@@ -112,7 +116,7 @@ public abstract class Filter extends ConfigBlock {
   /**
    * Deriving classes should implement this at the minimum
    */
-  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException  {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException  {
     // TODO: There is no transformation for string types.
     if (nextFilter != null) {
       nextFilter.apply(inputStr, inputMarker);
@@ -121,7 +125,7 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogFeederException {
     for (String fieldName : postFieldValueMappers.keySet()) {
       Object value = jsonObj.get(fieldName);
       if (value != null) {
@@ -156,15 +160,8 @@ public abstract class Filter extends ConfigBlock {
   }
 
   @Override
-  public boolean isFieldConditionMatch(String fieldName, String stringValue) {
-    if (!super.isFieldConditionMatch(fieldName, stringValue)) {
-      if (input != null) {
-        return input.isFieldConditionMatch(fieldName, stringValue);
-      } else {
-        return false;
-      }
-    }
-    return true;
+  public boolean isEnabled() {
+    return BooleanUtils.isNotFalse(filterDescriptor.isEnabled());
   }
 
   @Override

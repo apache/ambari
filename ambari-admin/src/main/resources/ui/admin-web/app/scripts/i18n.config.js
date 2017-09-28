@@ -159,6 +159,7 @@ angular.module('ambariAdminConsole')
     'common.alerts.cannotUpdateAdminStatus': 'Cannot update User Admin status',
     'common.alerts.checkFailed': 'CHECK FAILED',
     'common.alerts.onlySimpleChars': 'Must contain only simple characters.',
+    'common.hidden' : 'Hidden',
 
     'main.title': 'Welcome to Apache Ambari',
     'main.noClusterDescription': 'Provision a cluster, manage who can access the cluster, and customize views for Ambari users.',
@@ -307,7 +308,7 @@ angular.module('ambariAdminConsole')
     'users.showAll': 'Show all users',
     'users.showAdmin': 'Show only admin users',
     'users.groupMembership': 'Group Membership',
-    'users.userNameTip': 'Only alpha-numeric characters, up to 80 characters',
+    'users.userNameTip': 'Maximum length is 80 characters. \\, &, |, <, >, ` are not allowed.',
 
     'users.changeStatusConfirmation.title': 'Change Status',
     'users.changeStatusConfirmation.message': 'Are you sure you want to change status for user "{{userName}}" to {{status}}?',
@@ -343,7 +344,7 @@ angular.module('ambariAdminConsole')
     'users.alerts.usersEffectivePrivilege': '{{user_name}}\'s effective privilege through its Group(s) is higher than your selected privilege.',
 
     'versions.current': 'Current',
-    'versions.addVersion': 'Add Version',
+    'versions.addVersion': 'Add Version or Hotfix',
     'versions.defaultVersion': '(Default Version Definition)',
     'versions.inUse': 'In Use',
     'versions.installed': 'Installed',
@@ -374,7 +375,7 @@ angular.module('ambariAdminConsole')
 
     'versions.deregister': 'Deregister Version',
     'versions.deregisterConfirmation': 'Are you sure you want to deregister version <strong>{{versionName}}</strong> ?',
-    'versions.placeholder': 'Version Number (0.0)',
+    'versions.placeholder': 'Version Number {{pattern}}',
     'versions.repos': 'Repositories',
     'versions.os': 'OS',
     'versions.baseURL': 'Base URL',
@@ -434,16 +435,9 @@ angular.module('ambariAdminConsole')
 
     'authentication.connectivity.trustStore.label': 'Trust Store',
 
-    'authentication.connectivity.trustStore.options.default': 'JDK Default',
-    'authentication.connectivity.trustStore.options.custom': 'Custom',
-
     'authentication.connectivity.trustStorePath': 'Trust Store Path',
 
     'authentication.connectivity.trustStoreType.label': 'Trust Store Type',
-
-    'authentication.connectivity.trustStoreType.options.jks': 'JKS',
-    'authentication.connectivity.trustStoreType.options.jceks': 'JCEKS',
-    'authentication.connectivity.trustStoreType.options.pkcs12': 'PKCS12',
 
     'authentication.connectivity.trustStorePassword': 'Trust Store Password',
     'authentication.connectivity.dn': 'Bind DN',

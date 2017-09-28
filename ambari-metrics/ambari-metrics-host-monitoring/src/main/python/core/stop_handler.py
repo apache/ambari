@@ -117,7 +117,8 @@ class StopHandlerLinux(StopHandler):
 
   def wait(self, timeout=None):
     # Stop process when stop event received
-    if self.stop_event.wait(timeout):
+    self.stop_event.wait(timeout)
+    if self.stop_event.isSet():
       logger.info("Stop event received")
       return 0
     # Timeout

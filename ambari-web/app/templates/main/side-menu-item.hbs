@@ -18,7 +18,7 @@
 
 <!--dropdown menu for the items had dropdowns-->
 {{#if view.isServicesItem}}
-  <a {{bindAttr href="view.content.href" class="view.content.isView:views-button-container"}} data-toggle="collapse-sub-menu">
+  <a {{bindAttr title="view.content.label" href="view.content.href" class="view.content.isView:views-button-container"}} data-toggle="collapse-sub-menu">
     <span class="toggle-icon glyphicon glyphicon-menu-down pull-right"></span>
     <span {{bindAttr class=":navigation-icon view.content.iconClass"}}></span>
     <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
@@ -27,7 +27,7 @@
   {{view App.SideNavServiceMenuView}}
 {{else}}
   {{#if view.isAdminItem}}
-    <a {{bindAttr href="view.content.href" class="view.content.isView:views-button-container"}} data-toggle="collapse-sub-menu">
+    <a {{bindAttr data-original-title="view.content.label" href="view.content.href" class="view.content.isView:views-button-container"}} data-toggle="collapse-sub-menu">
       <span class="toggle-icon glyphicon glyphicon-menu-down pull-right"></span>
       <span {{bindAttr class=":navigation-icon view.content.iconClass"}}></span>
       <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
@@ -40,7 +40,7 @@
       {{/each}}
     </ul>
   {{else}}
-    <a {{action goToSection view.content.routing target="view"}} {{bindAttr href="view.content.href" class="view.content.isView:views-button-container"}}>
+    <a {{action goToSection view.content.routing target="view"}} {{bindAttr data-original-title="view.content.label" href="view.content.href" class="view.content.isView:views-button-container"}}>
       <span {{bindAttr class=":navigation-icon view.content.iconClass"}}></span>
       <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
     </a>

@@ -81,6 +81,9 @@
                     <td class="col-sm-1">
                         <a class="instance-link ng-scope ng-binding" href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/clone"><i class="fa fa-copy"></i></a>
                     </td>
+                    <td class="col-sm-1">
+                        <a class="instance-link ng-scope ng-binding" href ng-click="deleteInstance(instance)"><i class="fa fa-trash-o"></i></a>
+                    </td>
                 </tr>
                 </tbody>
                 <tfoot>

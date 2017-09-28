@@ -29,7 +29,6 @@ from ambari_commons import constants
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
@@ -67,15 +66,11 @@ except ImportError:
 
 class NameNode(Script):
 
-  def get_component_name(self):
-    return "hadoop-hdfs-namenode"
-
   def get_hdfs_binary(self):
     """
     Get the name or path to the hdfs binary depending on the component name.
     """
-    component_name = self.get_component_name()
-    return get_hdfs_binary(component_name)
+    return get_hdfs_binary("hadoop-hdfs-namenode")
 
   def install(self, env):
     import params
@@ -96,6 +91,10 @@ class NameNode(Script):
     env.set_params(params)
     self.configure(env)
     hdfs_binary = self.get_hdfs_binary()
+
+    if not params.hdfs_tmp_dir or params.hdfs_tmp_dir == None or params.hdfs_tmp_dir.lower() == 'null':
+      Logger.error("WARNING: HDFS tmp dir property (hdfs_tmp_dir) is empty or invalid. Ambari will change permissions for the folder on regular basis.")
+
     namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type,
       upgrade_suspended=params.upgrade_suspended, env=env)
 
@@ -180,7 +179,7 @@ class NameNodeDefault(NameNode):
     namenode_upgrade.prepare_rolling_upgrade(hfds_binary)
 
   def wait_for_safemode_off(self, env):
-    wait_for_safemode_off(self.get_hdfs_binary(), 30, True)
+    wait_for_safemode_off(self.get_hdfs_binary(), afterwait_sleep=30, execute_kinit=True)
 
   def finalize_non_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
@@ -195,12 +194,7 @@ class NameNodeDefault(NameNode):
     import params
     env.set_params(params)
 
-    # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
-    # Therefore, we cannot call this code in that scenario.
-    if upgrade_type != constants.UPGRADE_TYPE_NON_ROLLING or params.upgrade_direction != Direction.DOWNGRADE:
-      conf_select.select(params.stack_name, "hadoop", params.version)
-
-    stack_select.select("hadoop-hdfs-namenode", params.version)
+    stack_select.select_packages(params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,7 +58,7 @@ public class ConfigUpgradePack {
    */
   private Map<String, ConfigUpgradeChangeDefinition> changesById;
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigUpgradePack.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigUpgradePack.class);
 
   /**
    * no-arg default constructor for JAXB
@@ -122,7 +122,7 @@ public class ConfigUpgradePack {
     for (ConfigUpgradePack configUpgradePack : cups) {
       for (AffectedService service : configUpgradePack.services) {
         if (! mergedServiceMap.containsKey(service.name)) {
-          mergedServiceMap.put(service.name, new HashMap<String, AffectedComponent>());
+          mergedServiceMap.put(service.name, new HashMap<>());
         }
         Map<String, AffectedComponent> mergedComponentMap = mergedServiceMap.get(service.name);
 

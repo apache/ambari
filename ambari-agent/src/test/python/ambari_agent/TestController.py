@@ -416,6 +416,20 @@ class TestController(unittest.TestCase):
                         exceptionMessage, str(e))
 
 
+  def test_getVersion(self):
+    self.controller.version = "1.2.3.4_MyAgent"
+    version = self.controller.get_version()
+    self.assertEquals('1.2.3.4', version)
+    self.controller.version = "1.2.3-MyAgent"
+    version = self.controller.get_version()
+    self.assertEquals('1.2.3', version)
+    self.controller.version = "11.2.3-MyAgent"
+    version = self.controller.get_version()
+    self.assertEquals('11.2.3', version)
+    self.controller.version = "11.2.13.10_MyAgent"
+    version = self.controller.get_version()
+    self.assertEquals('11.2.13.10', version)
+
   @patch.object(ExitHelper, "exit")
   @patch.object(threading._Event, "wait")
   @patch("time.sleep")

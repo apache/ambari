@@ -49,15 +49,11 @@ App.ReassignMasterView = Em.View.extend(App.WizardMenuMixin, {
     data.items.forEach(function (item) {
       hosts[item.Hosts.host_name] = {
         name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
-        maintenance_state: item.Hosts.maintenance_state,
         bootStatus: "REGISTERED",
         isInstalled: true
       };
     });
-    App.db.setHosts(hosts);
+    this.get('controller').setDBProperty('hosts', hosts);
     this.set('controller.content.hosts', hosts);
     this.set('isLoaded', true);
   },

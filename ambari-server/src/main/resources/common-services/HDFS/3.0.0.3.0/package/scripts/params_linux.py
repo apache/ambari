@@ -51,6 +51,8 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+rolling_restart = default("/commandParams/rolling_restart", False)
+rolling_restart_safemode_exit_timeout = default("/configurations/cluster-env/namenode_rolling_restart_safemode_exit_timeout", None)
 stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
@@ -156,7 +158,13 @@ falcon_user = config['configurations']['falcon-env']['falcon_user']
 #exclude file
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
-update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
+slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
+include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)
+hdfs_include_file = None
+manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
+if include_file_path and manage_include_files:
+  hdfs_include_file = slave_hosts
+update_files_only = default("/commandParams/update_files_only", False)
 command_phase = default("/commandParams/phase","")
 
 klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
@@ -164,7 +172,6 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 #hosts
 hostname = config['agentLevelParams']['hostname']
 rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
-slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
 hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
@@ -510,10 +517,6 @@ if enable_ranger_hdfs:
     'repositoryType': 'hdfs',
     'assetType': '1'
   }
-
-  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
-  if len(custom_ranger_service_config) > 0:
-    hdfs_ranger_plugin_config.update(custom_ranger_service_config)
 
   if stack_supports_ranger_kerberos and security_enabled:
     hdfs_ranger_plugin_config['policy.download.auth.users'] = hdfs_user

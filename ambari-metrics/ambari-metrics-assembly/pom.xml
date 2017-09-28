@@ -35,6 +35,7 @@
   <properties>
     <collector.dir>${project.basedir}/../ambari-metrics-timelineservice</collector.dir>
     <monitor.dir>${project.basedir}/../ambari-metrics-host-monitoring</monitor.dir>
+    <aggregator.dir>${project.basedir}/../ambari-metrics-host-aggregator</aggregator.dir>
     <grafana.dir>${project.basedir}/../ambari-metrics-grafana</grafana.dir>
     <hadoop-sink.dir>${project.basedir}/../ambari-metrics-hadoop-sink</hadoop-sink.dir>
     <storm-sink.dir>${project.basedir}/../ambari-metrics-storm-sink</storm-sink.dir>
@@ -243,6 +244,7 @@
                           <location>${collector.dir}/target/lib</location>
                           <excludes>
                             <exclude>*tests.jar</exclude>
+                            <exclude>findbugs*.jar</exclude>
                           </excludes>
                         </source>
                         <source>
@@ -262,6 +264,7 @@
                             <exclude>bin/**</exclude>
                             <exclude>bin/*</exclude>
                             <exclude>lib/*tests.jar</exclude>
+                            <exclude>lib/findbugs*.jar</exclude>
                           </excludes>
                         </source>
                       </sources>
@@ -599,6 +602,19 @@
                       </sources>
                     </mapping>
                     <mapping>
+                      <directory>/var/lib/ambari-metrics-monitor/lib</directory>
+                      <sources>
+                        <source>
+                          <location>
+                            ${aggregator.dir}/target/
+                          </location>
+                          <includes>
+                            <include>ambari-metrics-host-aggregator-${project.version}.jar</include>
+                          </includes>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
                       <directory>/etc/ambari-metrics-monitor/conf</directory>
                       <configuration>true</configuration>
                     </mapping>
@@ -744,6 +760,7 @@
                     <path>/var/run/ambari-metrics-grafana</path>
                     <path>/var/log/ambari-metrics-grafana</path>
                     <path>/var/lib/ambari-metrics-collector</path>
+                    <path>/var/lib/ambari-metrics-monitor/lib</path>
                     <path>/var/lib/ambari-metrics-grafana</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink</path>
@@ -1330,6 +1347,11 @@
       <version>${project.version}</version>
       <type>pom</type>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-metrics-host-aggregator</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

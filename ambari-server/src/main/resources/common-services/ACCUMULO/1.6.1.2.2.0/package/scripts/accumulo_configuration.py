@@ -113,6 +113,9 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
          content=InlineTemplate(params.server_env_sh_template)
     )
 
+    if  params.security_enabled:
+      accumulo_TemplateConfig("accumulo_jaas.conf", dest_conf_dir)
+
   # create client.conf file
   configs = {}
   if 'client' in params.config['configurations']:

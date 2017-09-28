@@ -857,14 +857,14 @@ describe('App.WizardController', function () {
 
   describe('#loadConfirmedHosts', function () {
     beforeEach(function(){
-      sinon.stub(App.db, 'getHosts').returns(Em.A([
+      sinon.stub(wizardController, 'getDBProperty').returns(Em.A([
         Em.Object.create({
           name: 'h1'
         })
       ]));
     });
     afterEach(function(){
-      App.db.getHosts.restore();
+      wizardController.getDBProperty.restore();
     });
     it('should load hosts from db', function () {
       wizardController.loadConfirmedHosts();
@@ -1257,8 +1257,8 @@ describe('App.WizardController', function () {
 
     it('should return all hosts', function () {
       var hosts = {
-        'h1': {hostComponents: ['c1', 'c2'], disk_info: [{size: 2, available: 1}]},
-        'h2': {hostComponents: ['c3', 'c4'], disk_info: [{size: 2, available: 1}]}
+        'h1': {hostComponents: ['c1', 'c2']},
+        'h2': {hostComponents: ['c3', 'c4']}
       };
 
       var content = Em.Object.create({
@@ -1271,19 +1271,6 @@ describe('App.WizardController', function () {
         {
           "id": "h1",
           "hostName": "h1",
-          "publicHostName": "h1",
-          "diskInfo": [
-            {
-              "size": 2,
-              "available": 1
-            }
-          ],
-          "diskTotal": 0.0000019073486328125,
-          "diskFree": 9.5367431640625e-7,
-          "disksMounted": 1,
-          "osType": 0,
-          "osArch": 0,
-          "ip": 0,
           "hostComponents": [
             {
               "componentName": "c1",
@@ -1298,19 +1285,6 @@ describe('App.WizardController', function () {
         {
           "id": "h2",
           "hostName": "h2",
-          "publicHostName": "h2",
-          "diskInfo": [
-            {
-              "size": 2,
-              "available": 1
-            }
-          ],
-          "diskTotal": 0.0000019073486328125,
-          "diskFree": 9.5367431640625e-7,
-          "disksMounted": 1,
-          "osType": 0,
-          "osArch": 0,
-          "ip": 0,
           "hostComponents": [
             {
               "componentName": "c3",
@@ -1718,10 +1692,6 @@ describe('App.WizardController', function () {
 
     it("finish should be called", function () {
       expect(ctrl.finish.calledOnce).to.be.true;
-    });
-
-    it("isWorking should be true", function () {
-      expect(mock.get('isWorking')).to.be.true;
     });
 
     it("App.clusterStatus.setClusterStatus should be called", function () {

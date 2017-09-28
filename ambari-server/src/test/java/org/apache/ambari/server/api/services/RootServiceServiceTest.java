@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,31 +42,31 @@ public class RootServiceServiceTest extends BaseServiceTest {
     
     //getServices
     RootServiceService service = new TestRootServiceService(null, null, null);
-    Method m = service.getClass().getMethod("getServices", String.class, HttpHeaders.class, UriInfo.class);
+    Method m = service.getClass().getMethod("getRootServices", String.class, HttpHeaders.class, UriInfo.class);
     Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getService
     service = new TestRootServiceService("AMBARI", null, null);
-    m = service.getClass().getMethod("getService", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    m = service.getClass().getMethod("getRootService", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getServiceComponents
     service = new TestRootServiceService("AMBARI", null, null);
-    m = service.getClass().getMethod("getServiceComponents", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    m = service.getClass().getMethod("getRootServiceComponents", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getServiceComponent
     service = new TestRootServiceService("AMBARI", "AMBARI_SERVER", null);
-    m = service.getClass().getMethod("getServiceComponent", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    m = service.getClass().getMethod("getRootServiceComponent", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI", "AMBARI_SERVER"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
     //getRootHostComponents
     service = new TestRootServiceService("AMBARI", "AMBARI_SERVER", null);
-    m = service.getClass().getMethod("getRootHostComponents", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    m = service.getClass().getMethod("getRootServiceComponentHosts", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo(), "AMBARI", "AMBARI_SERVER"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
     
@@ -124,7 +124,6 @@ public class RootServiceServiceTest extends BaseServiceTest {
       assertEquals(m_hostName, hostName);
       return getTestResource();
     }
-    
     
     @Override
     RequestFactory getRequestFactory() {

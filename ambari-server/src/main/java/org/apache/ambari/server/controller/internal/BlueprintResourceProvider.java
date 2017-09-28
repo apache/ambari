@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -213,7 +213,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
         if (name != null) {
           BlueprintEntity entity = blueprintDAO.findByName(name);
-          results = entity == null ? Collections.<BlueprintEntity>emptyList() :
+          results = entity == null ? Collections.emptyList() :
               Collections.singletonList(entity);
         }
       }
@@ -618,7 +618,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     private void addConfigAttribute(Map<String, Map<String, String>> configDependencyProperties,
                                     String[] propertyNameTokens, String value) {
       if (!configDependencyProperties.containsKey(propertyNameTokens[2])) {
-        configDependencyProperties.put(propertyNameTokens[2], new HashMap<String, String>());
+        configDependencyProperties.put(propertyNameTokens[2], new HashMap<>());
       }
       Map<String, String> propertiesGroup = configDependencyProperties.get(propertyNameTokens[2]);
       propertiesGroup.put(propertyNameTokens[3], value);

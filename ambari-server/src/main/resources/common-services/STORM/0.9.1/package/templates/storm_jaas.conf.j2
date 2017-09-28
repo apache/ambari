@@ -33,6 +33,24 @@ StormClient {
    serviceName="{{nimbus_bare_jaas_principal}}"
    principal="{{storm_jaas_principal}}";
 };
+RegistryClient {
+   com.sun.security.auth.module.Krb5LoginModule required
+   useKeyTab=true
+   keyTab="{{storm_keytab_path}}"
+   storeKey=true
+   useTicketCache=false
+   principal="{{storm_jaas_principal}}";
+};
+com.sun.security.jgss.krb5.initiate {
+    com.sun.security.auth.module.Krb5LoginModule required
+    renewTGT=false
+    doNotPrompt=true
+    useKeyTab=true
+    keyTab="{{nimbus_keytab_path}}"
+    principal="{{nimbus_jaas_principal}}"
+    storeKey=true
+    useTicketCache=false;
+};
 {% endif %}
 Client {
    com.sun.security.auth.module.Krb5LoginModule required

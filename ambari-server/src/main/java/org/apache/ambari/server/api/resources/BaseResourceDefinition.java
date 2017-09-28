@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -132,8 +132,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
               || name.contains("zero_padding")) {
       return new MetricsPaddingRenderer(name);
     } else {
-      throw new IllegalArgumentException("Invalid renderer name: " + name +
-          " for resource of type: " + m_type);
+      throw new IllegalArgumentException("Invalid renderer name for resource of type " + m_type);
     }
   }
 

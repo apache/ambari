@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -85,6 +85,8 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     directives.add(KerberosHelper.DIRECTIVE_REGENERATE_KEYTABS);
     directives.add(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES);
     directives.add(KerberosHelper.DIRECTIVE_FORCE_TOGGLE_KERBEROS);
+    directives.add(KerberosHelper.DIRECTIVE_HOSTS);
+    directives.add(KerberosHelper.DIRECTIVE_COMPONENTS);
     return directives;
   }
 

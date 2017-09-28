@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.Stack;
@@ -154,9 +155,19 @@ public interface Blueprint {
   void validateRequiredProperties() throws InvalidTopologyException;
 
   /**
+   *
+   * A config type is valid if there are services related to except cluster-env and global.
+   * @param configType
+   * @return
+   */
+  boolean isValidConfigType(String configType);
+
+  /**
    * Obtain the blueprint as an entity.
    *
    * @return entity representation of the blueprint
    */
   BlueprintEntity toEntity();
+
+  List<RepositorySetting> getRepositorySettings();
 }

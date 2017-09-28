@@ -54,6 +54,10 @@ export default Ember.Object.extend({
    */
   listDirectoryUrl(pathParams) {
     return `/listdir?${pathParams}`;
+  },
+
+  createDirectoryUrl() {
+    return '/mkdir';
   }
 
 });

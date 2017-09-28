@@ -19,7 +19,6 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -442,10 +441,10 @@ public abstract class KerberosOperationHandler {
    */
   protected Keytab mergeKeytabs(Keytab keytab, Keytab updates) {
     List<KeytabEntry> keytabEntries = (keytab == null)
-        ? Collections.<KeytabEntry>emptyList()
+        ? Collections.emptyList()
         : new ArrayList<>(keytab.getEntries());
     List<KeytabEntry> updateEntries = (updates == null)
-        ? Collections.<KeytabEntry>emptyList()
+        ? Collections.emptyList()
         : new ArrayList<>(updates.getEntries());
     List<KeytabEntry> mergedEntries = new ArrayList<>();
 
@@ -681,11 +680,6 @@ public abstract class KerberosOperationHandler {
         fos = new FileOutputStream(tempFile);
         fos.write(Base64.decodeBase64(keytabData));
         success = true;
-      } catch (FileNotFoundException e) {
-        String message = String.format("Failed to write to temporary keytab file %s: %s",
-            tempFile.getAbsolutePath(), e.getLocalizedMessage());
-        LOG.error(message, e);
-        throw new KerberosOperationException(message, e);
       } catch (IOException e) {
         String message = String.format("Failed to write to temporary keytab file %s: %s",
             tempFile.getAbsolutePath(), e.getLocalizedMessage());
@@ -808,7 +802,7 @@ public abstract class KerberosOperationHandler {
       encryptionTypes = ENCRYPTION_TYPE_TRANSLATION_MAP.get(name.toLowerCase());
     }
 
-    return (encryptionTypes == null) ? Collections.<EncryptionType>emptySet() : encryptionTypes;
+    return (encryptionTypes == null) ? Collections.emptySet() : encryptionTypes;
   }
 
   /**

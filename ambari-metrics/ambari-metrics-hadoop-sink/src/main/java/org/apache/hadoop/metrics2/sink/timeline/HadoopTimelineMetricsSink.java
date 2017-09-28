@@ -52,6 +52,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private TimelineMetricsCache metricsCache;
   private String hostName = "UNKNOWN.example.com";
   private String instanceId = null;
+  private boolean setInstanceId;
   private String serviceName = "";
   private Collection<String> collectorHosts;
   private String collectorUri;
@@ -74,6 +75,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       return t;
     }
   });
+  private int hostInMemoryAggregationPort;
+  private boolean hostInMemoryAggregationEnabled;
 
   @Override
   public void init(SubsetConfiguration conf) {
@@ -95,8 +98,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     }
 
     serviceName = getServiceName(conf);
-    String inst = conf.getString("instanceId", "");
-    instanceId = StringUtils.isEmpty(inst) ? null : inst;
+    instanceId = conf.getString(INSTANCE_ID_PROPERTY, null);
+    setInstanceId = conf.getBoolean(SET_INSTANCE_ID_PROPERTY, false);
 
     LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);
     // Initialize the collector write strategy
@@ -106,7 +109,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     protocol = conf.getString(COLLECTOR_PROTOCOL, "http");
     collectorHosts = parseHostsStringArrayIntoCollection(conf.getStringArray(COLLECTOR_HOSTS_PROPERTY));
     port = conf.getString(COLLECTOR_PORT, "6188");
-
+    hostInMemoryAggregationEnabled = conf.getBoolean(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY);
+    hostInMemoryAggregationPort = conf.getInt(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY);
     if (collectorHosts.isEmpty()) {
       LOG.error("No Metric collector configured.");
     } else {
@@ -248,6 +252,16 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   }
 
   @Override
+  protected boolean isHostInMemoryAggregationEnabled() {
+    return hostInMemoryAggregationEnabled;
+  }
+
+  @Override
+  protected int getHostInMemoryAggregationPort() {
+    return hostInMemoryAggregationPort;
+  }
+
+  @Override
   public void putMetrics(MetricsRecord record) {
     try {
       String recordName = record.name();
@@ -307,9 +321,10 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
 
       int sbBaseLen = sb.length();
       List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
-      Map<String, String> metadata = null;
+      HashMap<String, String> metadata = null;
       if (skipAggregation) {
-        metadata = Collections.singletonMap("skipAggregation", "true");
+        metadata = new HashMap<>();
+        metadata.put("skipAggregation", "true");
       }
       long startTime = record.timestamp();
 
@@ -321,7 +336,9 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         timelineMetric.setMetricName(name);
         timelineMetric.setHostName(hostName);
         timelineMetric.setAppId(serviceName);
-        timelineMetric.setInstanceId(instanceId);
+        if (setInstanceId) {
+          timelineMetric.setInstanceId(instanceId);
+        }
         timelineMetric.setStartTime(startTime);
         timelineMetric.setType(metric.type() != null ? metric.type().name() : null);
         timelineMetric.getMetricValues().put(startTime, value.doubleValue());

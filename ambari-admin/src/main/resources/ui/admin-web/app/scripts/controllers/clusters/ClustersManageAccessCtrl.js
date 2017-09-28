@@ -37,7 +37,7 @@ angular.module('ambariAdminConsole')
       });
       var orderedRoles = Cluster.orderedRoles;
       var pms = [];
-      for (var key in orderedRoles) {
+      for (var key=0;key<orderedRoles.length;key++) {
         pms.push($scope.permissions[orderedRoles[key]]);
       }
       $scope.permissions = pms;

@@ -20,6 +20,7 @@ import HdfsViewerConfig from '../utils/hdfsviewer';
 export default Ember.Component.extend({
   config: HdfsViewerConfig.create(),
   uploaderService : Ember.inject.service('hdfs-file-uploader'),
+  userInfo : Ember.inject.service('workspace-manager'),
   initialize:function(){
     var self=this;
     self.$("#filediv").modal("show");
@@ -27,8 +28,12 @@ export default Ember.Component.extend({
       self.sendAction('closeWorkflowSubmitConfigs');
       self.sendAction("closeFileBrowser");
     });
-
   }.on('didInsertElement'),
+  setUserData : function() {
+    this.set("homeDirectory", "/user/"+this.get("userInfo").getUserName());
+    this.set("selectedPath", "/user/"+this.get("userInfo").getUserName());
+    this.set("filePath", "/user/"+this.get("userInfo").getUserName());
+  }.on("init"),
   selectFileType: "all",//can be all/file/folder
   selectedPath:"",
   isDirectory:false,
@@ -81,6 +86,7 @@ export default Ember.Component.extend({
     },
     viewerSelectedPath(data) {
       this.set("selectedPath",data.path);
+      this.set("filePath",data.path);
       this.set("isDirectory",data.isDirectory);
       this.set("alertMessage",null);
     },

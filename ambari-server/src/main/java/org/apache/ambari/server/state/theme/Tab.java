@@ -18,23 +18,27 @@
 
 package org.apache.ambari.server.state.theme;
 
-
-
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Tab {
+public class Tab implements ApiModel {
+
 	@JsonProperty("display-name")
 	private String displayName;
+
 	@JsonProperty("name")
 	private String name;
+
 	@JsonProperty("layout")
 	private TabLayout tabLayout;
 
+  @ApiModelProperty(name = "display-name")
   public String getDisplayName() {
     return displayName;
   }
@@ -43,6 +47,7 @@ public class Tab {
     this.displayName = displayName;
   }
 
+  @ApiModelProperty(name = "name")
   public String getName() {
     return name;
   }
@@ -51,6 +56,7 @@ public class Tab {
     this.name = name;
   }
 
+  @ApiModelProperty(name = "layout")
   public TabLayout getTabLayout() {
     return tabLayout;
   }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -71,6 +71,16 @@ public class TestAmbariMetricsSinkImpl extends AbstractTimelineMetricsSink imple
   @Override
   protected String getHostname() {
     return "localhost";
+  }
+
+  @Override
+  protected boolean isHostInMemoryAggregationEnabled() {
+    return true;
+  }
+
+  @Override
+  protected int getHostInMemoryAggregationPort() {
+    return 61888;
   }
 
   @Override

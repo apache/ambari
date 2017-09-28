@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -44,7 +44,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * and publishes to configured Metric Sink.
  **/
 public class DatabaseMetricsSource extends AbstractMetricsSource {
-  private static Logger LOG = LoggerFactory.getLogger(DatabaseMetricsSource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseMetricsSource.class);
   private static String dbMonitorPrefix = "monitor.";
   private ExecutorService executor;
   private MetricsConfiguration configuration;
@@ -59,7 +59,7 @@ public class DatabaseMetricsSource extends AbstractMetricsSource {
     super.init(metricsConfig, sink);
     configuration = metricsConfig;
     initializeFilterSets();
-    LOG.info("DatabaseMetricsSource initialized.");
+    LOG.info("Initialized Ambari DB Metrics Source...");
   }
 
   /**
@@ -83,11 +83,11 @@ public class DatabaseMetricsSource extends AbstractMetricsSource {
 
   @Override
   public void start() {
-    LOG.info("Starting Database Metrics source...");
     ThreadFactory threadFactory = new ThreadFactoryBuilder()
       .setNameFormat("DatabaseMetricsSource-%d")
       .build();
     executor = Executors.newSingleThreadExecutor(threadFactory);
+    LOG.info("Started Ambari DB Metrics source...");
   }
 
   /**
@@ -113,7 +113,7 @@ public class DatabaseMetricsSource extends AbstractMetricsSource {
             double value = metricsMap.get(metricName).doubleValue();
             metrics.add(new SingleMetric(metricName, value, currentTime));
 
-            /**
+            /*
              * Add computed (Timer/Counter) metric.
              * Example
              * Counter Metric : Counter.ReadAllQuery.HostRoleCommandEntity = 10000

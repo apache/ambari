@@ -70,6 +70,10 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private static final String TIMELINE_METRICS_SSL_KEYSTORE_PATH_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_PATH_PROPERTY;
   private static final String TIMELINE_METRICS_SSL_KEYSTORE_TYPE_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_TYPE_PROPERTY;
   private static final String TIMELINE_METRICS_SSL_KEYSTORE_PASSWORD_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_PASSWORD_PROPERTY;
+  private static final String TIMELINE_METRICS_KAFKA_INSTANCE_ID_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + INSTANCE_ID_PROPERTY;
+  private static final String TIMELINE_METRICS_KAFKA_SET_INSTANCE_ID_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SET_INSTANCE_ID_PROPERTY;
+  private static final String TIMELINE_METRICS_KAFKA_HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY;
+  private static final String TIMELINE_METRICS_KAFKA_HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY;
   private static final String TIMELINE_DEFAULT_HOST = "localhost";
   private static final String TIMELINE_DEFAULT_PORT = "6188";
   private static final String TIMELINE_DEFAULT_PROTOCOL = "http";
@@ -87,11 +91,15 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private TimelineMetricsCache metricsCache;
   private int timeoutSeconds = 10;
   private String zookeeperQuorum = null;
+  private boolean setInstanceId;
+  private String instanceId;
 
   private String[] excludedMetricsPrefixes;
   private String[] includedMetricsPrefixes;
   // Local cache to avoid prefix matching everytime
   private Set<String> excludedMetrics = new HashSet<>();
+  private boolean hostInMemoryAggregationEnabled;
+  private int hostInMemoryAggregationPort;
 
   @Override
   protected String getCollectorUri(String host) {
@@ -128,6 +136,17 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
     return hostname;
   }
 
+
+  @Override
+  protected boolean isHostInMemoryAggregationEnabled() {
+    return hostInMemoryAggregationEnabled;
+  }
+
+  @Override
+  protected int getHostInMemoryAggregationPort() {
+    return hostInMemoryAggregationPort;
+  }
+
   public void setMetricsCache(TimelineMetricsCache metricsCache) {
     this.metricsCache = metricsCache;
   }
@@ -162,6 +181,11 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         collectorHosts = parseHostsStringIntoCollection(props.getString(TIMELINE_HOSTS_PROPERTY, TIMELINE_DEFAULT_HOST));
         metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
 
+        instanceId = props.getString(TIMELINE_METRICS_KAFKA_INSTANCE_ID_PROPERTY, null);
+        setInstanceId = props.getBoolean(TIMELINE_METRICS_KAFKA_SET_INSTANCE_ID_PROPERTY, false);
+
+        hostInMemoryAggregationEnabled = props.getBoolean(TIMELINE_METRICS_KAFKA_HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY, false);
+        hostInMemoryAggregationPort = props.getInt(TIMELINE_METRICS_KAFKA_HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY, 61888);
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
 
         if (metricCollectorProtocol.contains("https")) {
@@ -315,6 +339,9 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       TimelineMetric timelineMetric = new TimelineMetric();
       timelineMetric.setMetricName(attributeName);
       timelineMetric.setHostName(hostname);
+      if (setInstanceId) {
+        timelineMetric.setInstanceId(instanceId);
+      }
       timelineMetric.setAppId(component);
       timelineMetric.setStartTime(currentTimeMillis);
       timelineMetric.setType(ClassUtils.getShortCanonicalName(attributeValue, "Number"));
@@ -379,8 +406,10 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       final String sanitizedName = sanitizeName(name);
 
       try {
-        cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
-        populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+        if (!isExcludedMetric(sanitizedName)) {
+          cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
+          populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+        }
       } catch (NumberFormatException ex) {
         LOG.debug(ex.getMessage());
       }

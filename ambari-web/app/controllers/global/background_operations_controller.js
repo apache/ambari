@@ -481,6 +481,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var self = this;
     App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       App.updater.immediateRun('requestMostRecent');
+
+      App.HostPopup.set("breadcrumbs", [ App.HostPopup.get("rootBreadcrumb") ]);
+
       if (self.get('popupView') && App.HostPopup.get('isBackgroundOperations')) {
         self.set('popupView.isNotShowBgChecked', !initValue);
         self.set('popupView.isOpen', true);

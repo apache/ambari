@@ -185,12 +185,12 @@
           <customCommands>
             <customCommand>
               <name>CLEAN</name>
-                <commandScript>
-                  <script>scripts/mysql_server.py</script>
-                  <scriptType>PYTHON</scriptType>
-                  <timeout>600</timeout>
-            </commandScript>
-                </customCommand>
+              <commandScript>
+                <script>scripts/mysql_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
         </component>
 
@@ -225,11 +225,18 @@
               <fileName>hive-exec-log4j.properties</fileName>
               <dictionaryName>hive-exec-log4j</dictionaryName>
             </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>parquet-logging.properties</fileName>
+              <dictionaryName>parquet-logging</dictionaryName>
+              <optional>true</optional>
+            </configFile>
           </configFiles>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
           </configuration-dependencies>
         </component>
+        
         <component>
           <name>HCAT</name>
           <displayName>HCat Client</displayName>
@@ -341,12 +348,14 @@
         <config-type>hivemetastore-site.xml</config-type>
         <config-type>webhcat-site</config-type>
         <config-type>webhcat-env</config-type>
+        <config-type>parquet-logging</config-type>
         <config-type>ranger-hive-plugin-properties</config-type>
         <config-type>ranger-hive-audit</config-type>
         <config-type>ranger-hive-policymgr-ssl</config-type>
         <config-type>ranger-hive-security</config-type>
         <config-type>mapred-site</config-type>
         <config-type>application.properties</config-type>
+        <config-type>druid-common</config-type>
       </configuration-dependencies>
     </service>
   </services>

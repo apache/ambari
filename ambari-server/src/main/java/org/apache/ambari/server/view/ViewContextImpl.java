@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -54,14 +54,14 @@ import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.cluster.Cluster;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.directory.api.util.Strings;
 import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.apache.hadoop.security.authentication.util.KerberosUtil;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -75,7 +75,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
   /**
    * Logger.
    */
-  private static final Log LOG = LogFactory.getLog(ViewContextImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewContextImpl.class);
 
   public static final String HADOOP_SECURITY_AUTH_TO_LOCAL = "hadoop.security.auth_to_local";
   public static final String CORE_SITE = "core-site";
@@ -339,7 +339,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public Collection<ViewDefinition> getViewDefinitions() {
-    return Collections.<ViewDefinition>unmodifiableCollection(viewRegistry.getDefinitions());
+    return Collections.unmodifiableCollection(viewRegistry.getDefinitions());
   }
 
   @Override
@@ -348,7 +348,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
     for (ViewEntity viewEntity : viewRegistry.getDefinitions()) {
       instanceDefinitions.addAll(viewRegistry.getInstanceDefinitions(viewEntity));
     }
-    return Collections.<ViewInstanceDefinition>unmodifiableCollection(instanceDefinitions);
+    return Collections.unmodifiableCollection(instanceDefinitions);
   }
 
   @Override

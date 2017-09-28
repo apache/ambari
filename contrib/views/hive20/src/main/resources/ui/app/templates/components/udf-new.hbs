@@ -16,46 +16,63 @@
 * limitations under the License.
 }}
 
-<form class="form-inline">
-  <table class="table">
-    <tr>
-      <td width="20%" >
-        <label>UDF Name</label><br />
-        {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="UDF Name" value=udfName }}
-      </td>
-      <td width="20%">
-        <label >UDF Class Name</label><br />
-        {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="UDF Class Name" value=udfClassName }}
-      </td>
-      <td width="40%">
-        <label >File Resource</label><br />
-        {{#unless isAddingNewFileResource}}
-          {{#power-select
-          options=fileResourceList
-          placeholder="File Resource"
-          searchField="name"
-          selected=selectedFileResource
-          searchPlaceholder="Type the paramter"
-          onchange=(action "handleFileResourceChange" ) as |filter| }}
-            <b>{{filter.name}}</b>
-          {{/power-select}}
-        {{/unless}}
-        {{#if isAddingNewFileResource}}
-          <label class="sr-only">Resource name</label>
-          {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0"  placeholder="File Resource Name" value=resourceName }}
+<h4>Add new UDF</h4>
 
-          <label class="sr-only">Resource Path</label>
-          {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0"  placeholder="File Resource path" value=resourcePath }}
-        {{/if}}
-      </td>
+<form class="form-horizontal">
+  <div class="form-group">
+    <label class="col-sm-2 control-label">UDF Name</label>
+    <div class="col-sm-10">
+      {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="UDF Name" value=udfName }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">UDF Class Name</label>
+    <div class="col-sm-10">
+      {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="UDF Class Name" value=udfClassName }}
+    </div>
+  </div>
 
-      <td width="20%" align="center">
-        <br />
-        <button class="btn btn-success" type="button" {{action 'saveUDf'}}>Add UDF</button>
-        <button class="btn btn-warning" type="button" {{action 'cancelSaveUDf'}}>Cancel</button>
-      </td>
-    </tr>
-  </table>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">File Resource</label>
+    <div class="col-sm-10">
+      {{#unless isAddingNewFileResource}}
+        {{#power-select
+        options=fileResourceList
+        placeholder="File Resource"
+        searchField="name"
+        selected=selectedFileResource
+        searchPlaceholder="Type the paramter"
+        onchange=(action "handleFileResourceChange" ) as |filter| }}
+          <b>{{filter.name}}</b>
+        {{/power-select}}
+      {{/unless}}
+      {{#if isAddingNewFileResource}}
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Resource name</label>
+          <div class="col-sm-10">
+            {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0"  placeholder="File Resource Name" value=resourceName }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Resource Path</label>
+          <div class="col-sm-10">
+            {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0"  placeholder="File Resource path" value=resourcePath }}
+          </div>
+        </div>
+
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button class="btn btn-success" type="button" {{action 'saveUDf'}}>Add UDF</button>
+      <button class="btn btn-warning" type="button" {{action 'cancelSaveUDf'}}>Cancel</button>
+    </div>
+  </div>
 </form>
+
 
 {{yield}}

@@ -26,4 +26,4 @@ else:
 
 nfsgateway_heapsize = config['configurations']['hadoop-env']['nfsgateway_heapsize']
 retryAble = default("/commandParams/command_retry_enabled", False)
-script_https_protocol = Script.get_force_https_protocol()
+script_https_protocol = Script.get_force_https_protocol_name()

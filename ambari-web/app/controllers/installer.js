@@ -83,7 +83,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'recommendations',
     'recommendationsHostGroups',
     'recommendationsConfigs',
-    'componentsFromConfigs'
+    'componentsFromConfigs',
+    'operatingSystems',
+    'repositories'
   ],
 
   init: function () {
@@ -124,14 +126,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       delete dbHosts[host];
     });
     this.setDBProperty('hosts', dbHosts);
-  },
-
-  /**
-   * Load confirmed hosts.
-   * Will be used at <code>Assign Masters(step5)</code> step
-   */
-  loadConfirmedHosts: function () {
-    this.set('content.hosts', this.getDBProperty('hosts') || {});
   },
 
   /**
@@ -203,24 +197,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
     for (var hostName in rawHosts) {
       var host = rawHosts[hostName];
-      var disksOverallCapacity = 0;
-      var diskFree = 0;
-      host.disk_info.forEach(function (disk) {
-        disksOverallCapacity += parseFloat(disk.size);
-        diskFree += parseFloat(disk.available);
-      });
       hosts.pushObject(Em.Object.create({
           id: host.name,
-          ip: host.ip,
-          osType: host.os_type,
-          osArch: host.os_arch,
           hostName: host.name,
-          publicHostName: host.name,
-          cpu: host.cpu,
-          memory: host.memory,
-          diskInfo: host.disk_info,
-          diskTotal: disksOverallCapacity / (1024 * 1024),
-          diskFree: diskFree / (1024 * 1024),
           hostComponents: host.hostComponents || []
         }
       ))
@@ -310,7 +289,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     var isStacksExistInDb = stacks && stacks.length;
     if (isStacksExistInDb) {
       stacks.forEach(function (_stack) {
-        var stack = data.items.findProperty('VersionDefinition.repository_version', _stack.repository_version);
+        var stack = data.items.findProperty('VersionDefinition.id', _stack.id);
         if (stack) {
           stack.VersionDefinition.is_selected = _stack.is_selected;
         }
@@ -633,7 +612,13 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       var stackInfo = {};
       stackInfo.dfd = dataInfo.dfd;
       stackInfo.response = response;
-      this.getSupportedOSList(data, stackInfo);
+      this.incrementProperty('loadStacksRequestsCounter');
+      this.getSupportedOSListSuccessCallback(data, null, {
+        stackName: data.VersionDefinition.stack_name,
+        stackVersion: data.VersionDefinition.stack_version,
+        versionDefinition: data,
+        stackInfo: stackInfo
+      });
     }
   },
 
@@ -717,22 +702,34 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     response.operating_systems.forEach(function(supportedOS) {
       if(!existedMap[supportedOS.OperatingSystems.os_type]) {
         supportedOS.isSelected = false;
-        supportedOS.repositories.forEach(function(repo) {
-          repo.Repositories.base_url = '';
-        });
         existedOS.push(supportedOS);
-      } else if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
-        existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
-          supportedOS.repositories.forEach(function (supportedRepo) {
-            if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
-              repo.Repositories.base_url = supportedRepo.Repositories.base_url;
-              repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
-              repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
-            }
+      } else {
+        if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.base_url = supportedRepo.Repositories.base_url;
+                repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
+                repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
           });
-        });
+        }
+        else{
+          existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+            supportedOS.repositories.forEach(function (supportedRepo) {
+              if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+                repo.Repositories.components = supportedRepo.Repositories.components;
+                repo.Repositories.distribution = supportedRepo.Repositories.distribution;
+              }
+            });
+          });
+        }
       }
     });
+
     App.stackMapper.map(data.versionDefinition);
 
     if (!this.decrementProperty('loadStacksRequestsCounter')) {
@@ -814,7 +811,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           "Repositories": {
             "base_url": repository.get('baseUrl'),
             "repo_id": repository.get('repoId'),
-            "repo_name": repository.get('repoName')
+            "repo_name": repository.get('repoName'),
+            "components": repository.get('components'),
+            "distribution": repository.get('distribution')
           }
         });
       });

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -96,7 +96,7 @@ public class HostServiceTest extends BaseServiceTest {
     }
 
     @Override
-    ResourceInstance createHostResource(String clusterName, String hostName, UriInfo ui) {
+    protected ResourceInstance createHostResource(String clusterName, String hostName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_hostId, hostName);
       return getTestResource();

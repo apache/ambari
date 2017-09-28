@@ -1,8 +1,0 @@
-{
-  "version": "0.0.1-SNAPSHOT",
-  "viewEnabled": false,
-  "viewErrors": [
-    "Slider applications view requires HDFS service to be started",
-    "Slider applications view requires YARN, HDFS and ZooKeeper services to bestarted."
-  ]
-}

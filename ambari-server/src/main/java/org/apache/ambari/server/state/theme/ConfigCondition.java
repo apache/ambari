@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,14 +20,17 @@ package org.apache.ambari.server.state.theme;
 
 import java.util.List;
 
+import org.apache.ambari.server.controller.ApiModel;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
+
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigCondition {
+public class ConfigCondition implements ApiModel {
   @JsonProperty("configs")
   private List<String> configs;
   @JsonProperty("resource")
@@ -39,6 +42,7 @@ public class ConfigCondition {
   @JsonProperty("else")
   private ConfigConditionResult elseLabel;
 
+  @ApiModelProperty( name = "configs")
   public List<String> getConfigs() {
     return configs;
   }
@@ -47,6 +51,7 @@ public class ConfigCondition {
     this.configs = configs;
   }
 
+  @ApiModelProperty( name = "if")
   public String getIfLabel() {
     return ifLabel;
   }
@@ -55,6 +60,7 @@ public class ConfigCondition {
     this.ifLabel = ifLabel;
   }
 
+  @ApiModelProperty( name = "then")
   public ConfigConditionResult getThen() {
     return then;
   }
@@ -63,6 +69,7 @@ public class ConfigCondition {
     this.then = then;
   }
 
+  @ApiModelProperty( name = "else")
   public ConfigConditionResult getElseLabel() {
     return elseLabel;
   }
@@ -72,6 +79,7 @@ public class ConfigCondition {
   }
 
 
+  @ApiModelProperty( name = "resource")
   public String getResource() {
     return resource;
   }
@@ -82,10 +90,11 @@ public class ConfigCondition {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class ConfigConditionResult {
+  public static class ConfigConditionResult implements ApiModel {
     @JsonProperty("property_value_attributes")
     private ValueAttributesInfo propertyValueAttributes;
 
+    @ApiModelProperty( name = "property_value_attributes")
     public ValueAttributesInfo getPropertyValueAttributes() {
       return propertyValueAttributes;
     }

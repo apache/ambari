@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,12 +32,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 
 import com.google.common.base.Optional;
-
 
 /**
  * Service responsible for view resource requests.
@@ -52,12 +52,11 @@ public class ViewUrlsService extends BaseService {
 
    * @return collections of all view urls and any instances registered against them
    */
-  @GET
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getViewUrls(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(Optional.<String>absent()));
+    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(Optional.absent()));
   }
-
 
   /**
    * Create a new View URL
@@ -68,14 +67,13 @@ public class ViewUrlsService extends BaseService {
    * @return
    * @throws AuthorizationException
      */
-  @POST
+  @POST @ApiIgnore // until documented
   @Path("{urlName}")
   @Produces("text/plain")
   public Response createUrl(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("urlName") String urlName) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.POST, createViewUrlResource(Optional.of(urlName)));
   }
-
 
   /**
    * Update a view URL
@@ -86,7 +84,7 @@ public class ViewUrlsService extends BaseService {
    * @return
    * @throws AuthorizationException
      */
-  @PUT
+  @PUT @ApiIgnore // until documented
   @Path("{urlName}")
   @Produces("text/plain")
   public Response updateUrl(String body, @Context HttpHeaders headers, @Context UriInfo ui,
@@ -103,14 +101,13 @@ public class ViewUrlsService extends BaseService {
    * @return
    * @throws AuthorizationException
      */
-  @DELETE
+  @DELETE @ApiIgnore // until documented
   @Path("{urlName}")
   @Produces("text/plain")
   public Response deleteUrl(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                             @PathParam("urlName") String urlName) throws AuthorizationException {
     return handleRequest(headers, body, ui, Request.Type.DELETE, createViewUrlResource(Optional.of(urlName)));
   }
-
 
   /**
    * Get information about a single view URL
@@ -120,16 +117,13 @@ public class ViewUrlsService extends BaseService {
    * @return
    * @throws AuthorizationException
      */
-  @GET
+  @GET @ApiIgnore // until documented
   @Path("{urlName}")
   @Produces("text/plain")
   public Response getUrl(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("urlName") String urlName) throws AuthorizationException {
     return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(Optional.of(urlName)));
   }
-
-
-
 
   // ----- helper methods ----------------------------------------------------
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,11 +28,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
@@ -43,6 +39,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAM
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.controller.internal.RequestResourceProvider.HAS_RESOURCE_FILTERS;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -71,13 +68,13 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DesiredConfig;
@@ -85,8 +82,8 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -130,7 +127,8 @@ public class AmbariCustomCommandExecutionHelper {
   public final static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
   public final static String DECOM_SLAVE_COMPONENT = "slave_type";
   public final static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
-  public final static String UPDATE_EXCLUDE_FILE_ONLY = "update_exclude_file_only";
+  public final static String UPDATE_FILES_ONLY = "update_files_only";
+  public final static String IS_ADD_OR_DELETE_SLAVE_REQUEST = "is_add_or_delete_slave_request";
 
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
@@ -164,9 +162,6 @@ public class AmbariCustomCommandExecutionHelper {
   private OsFamily os_family;
 
   @Inject
-  private ClusterVersionDAO clusterVersionDAO;
-
-  @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
 
   private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
@@ -188,12 +183,15 @@ public class AmbariCustomCommandExecutionHelper {
       String serviceName, String componentName, String commandName)
       throws AmbariException {
 
-    Cluster cluster = clusters.getCluster(clusterName);
-    StackId stackId = cluster.getDesiredStackVersion();
-
     if (componentName == null) {
       return false;
     }
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service service = cluster.getService(serviceName);
+    ServiceComponent component = service.getServiceComponent(componentName);
+    StackId stackId = component.getDesiredStackId();
+
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
         stackId.getStackName(), stackId.getStackVersion(),
         serviceName, componentName);
@@ -260,8 +258,8 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException
    */
   private void addCustomCommandAction(final ActionExecutionContext actionExecutionContext,
-      final RequestResourceFilter resourceFilter, Stage stage,
-      Map<String, String> additionalCommandParams, String commandDetail) throws AmbariException {
+      final RequestResourceFilter resourceFilter, Stage stage, Map<String, String> additionalCommandParams,
+      String commandDetail, Map<String, String> requestParams) throws AmbariException {
     final String serviceName = resourceFilter.getServiceName();
     final String componentName = resourceFilter.getComponentName();
     final String commandName = actionExecutionContext.getActionName();
@@ -313,10 +311,12 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(message);
     }
 
-    StackId stackId = cluster.getDesiredStackVersion();
+    Service service = cluster.getService(serviceName);
+    StackId stackId = service.getDesiredStackId();
+
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
-    ServiceInfo serviceInfo = ambariMetaInfo.getService(
-        stackId.getStackName(), stackId.getStackVersion(), serviceName);
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -361,6 +361,9 @@ public class AmbariCustomCommandExecutionHelper {
       if (cmd != null) {
         cmd.setCommandDetail(commandDetail);
         cmd.setCustomCommandName(commandName);
+        if (customCommandDefinition != null){
+          cmd.setOpsDisplayName(customCommandDefinition.getOpsDisplayName());
+        }
       }
 
       //set type background
@@ -369,15 +372,20 @@ public class AmbariCustomCommandExecutionHelper {
         execCmd.setCommandType(AgentCommandType.BACKGROUND_EXECUTION_COMMAND);
       }
 
+      execCmd.setComponentVersions(cluster);
+
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
 
-      execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
-
       // Get the value of credential store enabled from the DB
       Service clusterService = cluster.getService(serviceName);
       execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
+
+      ServiceComponent component = null;
+      if (StringUtils.isNotBlank(componentName)) {
+        component = clusterService.getServiceComponent(componentName);
+      }
 
       // Get the map of service config type to password properties for the service
       Map<String, Map<String, String>> configCredentials;
@@ -392,7 +400,7 @@ public class AmbariCustomCommandExecutionHelper {
       Map<String, String> hostLevelParams = new TreeMap<>();
 
       // Set parameters required for re-installing clients on restart
-      hostLevelParams.put(REPO_INFO, ambariMetaInfo.getRepoInfoString(cluster, host));
+      hostLevelParams.put(REPO_INFO, ambariMetaInfo.getRepoInfoString(cluster, component, host));
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
@@ -412,7 +420,8 @@ public class AmbariCustomCommandExecutionHelper {
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
 
-      Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+      Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+      Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
       String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
       hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -427,7 +436,7 @@ public class AmbariCustomCommandExecutionHelper {
       commandParams.put(CUSTOM_COMMAND, commandName);
 
       boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
-      String commandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
+      int commandTimeout = Short.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand)).intValue();
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(),
@@ -441,7 +450,7 @@ public class AmbariCustomCommandExecutionHelper {
           commandParams.put(SCRIPT, script.getScript());
           commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
           if (script.getTimeout() > 0) {
-            commandTimeout = String.valueOf(script.getTimeout());
+            commandTimeout = script.getTimeout();
           }
         } else {
           String message = String.format("Component %s has not command script " +
@@ -452,7 +461,26 @@ public class AmbariCustomCommandExecutionHelper {
         // We don't need package/repo information to perform service check
       }
 
-      commandParams.put(COMMAND_TIMEOUT, commandTimeout);
+      // !!! the action execution context timeout is the final say, but make sure it's at least 60 seconds
+      if (null != actionExecutionContext.getTimeout()) {
+        commandTimeout = actionExecutionContext.getTimeout().intValue();
+        commandTimeout = Math.max(60, commandTimeout);
+      }
+
+      if (requestParams != null && requestParams.containsKey("context")) {
+        String requestContext = requestParams.get("context");
+        if (StringUtils.isNotEmpty(requestContext) && requestContext.toLowerCase().contains("rolling-restart")) {
+          Config clusterEnvConfig = cluster.getDesiredConfigByType("cluster-env");
+          if (clusterEnvConfig != null) {
+            String componentRollingRestartTimeout = clusterEnvConfig.getProperties().get("namenode_rolling_restart_timeout");
+            if (StringUtils.isNotEmpty(componentRollingRestartTimeout)) {
+              commandTimeout = Integer.parseInt(componentRollingRestartTimeout);
+            }
+          }
+        }
+      }
+
+      commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -465,11 +493,13 @@ public class AmbariCustomCommandExecutionHelper {
       if (isUpgradeSuspended) {
         cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
       }
-
+      StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
 
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
+
+      execCmd.setRepositoryFile(ambariMetaInfo.getCommandRepository(cluster, component, host));
 
       // perform any server side command related logic - eg - set desired states on restart
       applyCustomCommandBackendLogic(cluster, serviceName, componentName, commandName, hostName);
@@ -663,7 +693,13 @@ public class AmbariCustomCommandExecutionHelper {
 
     String clusterName = stage.getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
-    StackId stackId = cluster.getDesiredStackVersion();
+    Service service = cluster.getService(serviceName);
+    ServiceComponent component = null;
+    if (null != componentName) {
+      component = service.getServiceComponent(componentName);
+    }
+    StackId stackId = (null != component) ? component.getDesiredStackId() : service.getDesiredStackId();
+
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
@@ -754,6 +790,8 @@ public class AmbariCustomCommandExecutionHelper {
       commandParams.put(COMMAND_TIMEOUT, Integer.toString(actualTimeout));
     }
 
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
+
     execCmd.setCommandParams(commandParams);
 
     if (actionParameters != null) { // If defined
@@ -779,7 +817,7 @@ public class AmbariCustomCommandExecutionHelper {
    * calls into the implementation of a custom command
    */
   private void addDecommissionAction(final ActionExecutionContext actionExecutionContext,
-      final RequestResourceFilter resourceFilter, Stage stage) throws AmbariException {
+      final RequestResourceFilter resourceFilter, Stage stage, ExecuteCommandJson executeCommandJson) throws AmbariException {
 
     String clusterName = actionExecutionContext.getClusterName();
     final Cluster cluster = clusters.getCluster(clusterName);
@@ -798,12 +836,16 @@ public class AmbariCustomCommandExecutionHelper {
     Set<String> includedHosts = getHostList(actionExecutionContext.getParameters(),
                                             DECOM_INCLUDED_HOSTS);
 
+    if (actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST) != null &&
+            actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST).equalsIgnoreCase("true")) {
+      includedHosts = getHostList(actionExecutionContext.getParameters(), masterCompType + "_" + DECOM_INCLUDED_HOSTS);
+    }
 
     Set<String> cloneSet = new HashSet<>(excludedHosts);
     cloneSet.retainAll(includedHosts);
     if (cloneSet.size() > 0) {
       throw new AmbariException("Same host cannot be specified for inclusion " +
-        "as well as exclusion. Hosts: " + cloneSet.toString());
+        "as well as exclusion. Hosts: " + cloneSet);
     }
 
     Service service = cluster.getService(serviceName);
@@ -851,9 +893,9 @@ public class AmbariCustomCommandExecutionHelper {
               @Override
               public boolean shouldHostBeRemoved(final String hostname)
               throws AmbariException {
-                //Get UPDATE_EXCLUDE_FILE_ONLY parameter as string
+                //Get UPDATE_FILES_ONLY parameter as string
                 String upd_excl_file_only_str = actionExecutionContext.getParameters()
-                .get(UPDATE_EXCLUDE_FILE_ONLY);
+                .get(UPDATE_FILES_ONLY);
 
                 String decom_incl_hosts_str = actionExecutionContext.getParameters()
                 .get(DECOM_INCLUDED_HOSTS);
@@ -927,15 +969,17 @@ public class AmbariCustomCommandExecutionHelper {
         listOfExcludedHosts.add(sch.getHostName());
         if (alignMtnState) {
           sch.setMaintenanceState(MaintenanceState.ON);
+          LOG.info("marking Maintenance=ON on " + sch.getHostName());
         }
-        LOG.info("Decommissioning " + slaveCompType + " and marking Maintenance=ON on " + sch.getHostName());
+        LOG.info("Decommissioning " + slaveCompType + " on " + sch.getHostName());
       }
       if (filteredIncludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.INSERVICE);
         if (alignMtnState) {
           sch.setMaintenanceState(MaintenanceState.OFF);
+          LOG.info("marking Maintenance=OFF on " + sch.getHostName());
         }
-        LOG.info("Recommissioning " + slaveCompType + " and marking Maintenance=OFF on " + sch.getHostName());
+        LOG.info("Recommissioning " + slaveCompType + " on " + sch.getHostName());
       }
     }
 
@@ -974,7 +1018,9 @@ public class AmbariCustomCommandExecutionHelper {
           StageUtils.getClusterHostInfo(cluster));
 
       // Reset cluster host info as it has changed
-      stage.setClusterHostInfo(clusterHostInfoJson);
+      if (executeCommandJson != null) {
+        executeCommandJson.setClusterHostInfo(clusterHostInfoJson);
+      }
 
       Map<String, String> commandParams = new HashMap<>();
       if (serviceName.equals(Service.Type.HBASE.name())) {
@@ -987,8 +1033,8 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       if (!serviceName.equals(Service.Type.HBASE.name()) || hostName.equals(primaryCandidate)) {
-        commandParams.put(UPDATE_EXCLUDE_FILE_ONLY, "false");
-        addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString());
+        commandParams.put(UPDATE_FILES_ONLY, "false");
+        addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString(), null);
       }
     }
   }
@@ -999,6 +1045,11 @@ public class AmbariCustomCommandExecutionHelper {
       List<String> listOfExcludedHosts) {
     StringBuilder commandDetail = new StringBuilder();
     commandDetail.append(actionExecutionContext.getActionName());
+    if (actionExecutionContext.getParameters().containsKey(IS_ADD_OR_DELETE_SLAVE_REQUEST) &&
+      actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST).equalsIgnoreCase("true")) {
+      commandDetail.append(", Update Include/Exclude Files");
+      return commandDetail;
+    }
     if (listOfExcludedHosts.size() > 0) {
       commandDetail.append(", Excluded: ").append(StringUtils.join(listOfExcludedHosts, ','));
     }
@@ -1018,6 +1069,13 @@ public class AmbariCustomCommandExecutionHelper {
   public void validateAction(ExecuteActionRequest actionRequest) throws AmbariException {
 
     List<RequestResourceFilter> resourceFilters = actionRequest.getResourceFilters();
+
+    if (resourceFilters != null && resourceFilters.isEmpty() &&
+            actionRequest.getParameters().containsKey(HAS_RESOURCE_FILTERS) &&
+            actionRequest.getParameters().get(HAS_RESOURCE_FILTERS).equalsIgnoreCase("true")) {
+      LOG.warn("Couldn't find any resource that satisfies given resource filters");
+      return;
+    }
 
     if (resourceFilters == null || resourceFilters.isEmpty()) {
       throw new AmbariException("Command execution cannot proceed without a " +
@@ -1051,25 +1109,24 @@ public class AmbariCustomCommandExecutionHelper {
    * @param actionExecutionContext  received request to execute a command
    * @param stage                   the initial stage for task creation
    * @param requestParams           the request params
+   * @param executeCommandJson      set of json arguments passed to the request
    *
    * @throws AmbariException if the commands can not be added
    */
   public void addExecutionCommandsToStage(ActionExecutionContext actionExecutionContext,
-      Stage stage, Map<String, String> requestParams) throws AmbariException {
+      Stage stage, Map<String, String> requestParams, ExecuteCommandJson executeCommandJson) throws AmbariException {
 
     List<RequestResourceFilter> resourceFilters = actionExecutionContext.getResourceFilters();
 
     for (RequestResourceFilter resourceFilter : resourceFilters) {
-      LOG.debug("Received a command execution request"
-        + ", clusterName=" + actionExecutionContext.getClusterName()
-        + ", serviceName=" + resourceFilter.getServiceName()
-        + ", request=" + actionExecutionContext.toString());
+      LOG.debug("Received a command execution request, clusterName={}, serviceName={}, request={}",
+        actionExecutionContext.getClusterName(), resourceFilter.getServiceName(), actionExecutionContext);
 
       String actionName = actionExecutionContext.getActionName();
       if (actionName.contains(SERVICE_CHECK_COMMAND_NAME)) {
         findHostAndAddServiceCheckAction(actionExecutionContext, resourceFilter, stage);
       } else if (actionName.equals(DECOMMISSION_COMMAND_NAME)) {
-        addDecommissionAction(actionExecutionContext, resourceFilter, stage);
+        addDecommissionAction(actionExecutionContext, resourceFilter, stage, executeCommandJson);
       } else if (isValidCustomCommand(actionExecutionContext, resourceFilter)) {
 
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);
@@ -1114,7 +1171,7 @@ public class AmbariCustomCommandExecutionHelper {
           }
         }
 
-        addCustomCommandAction(actionExecutionContext, resourceFilter, stage, extraParams, commandDetail);
+        addCustomCommandAction(actionExecutionContext, resourceFilter, stage, extraParams, commandDetail, requestParams);
       } else {
         throw new AmbariException("Unsupported action " + actionName);
       }
@@ -1130,30 +1187,40 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionExecContext  the context
    * @param cluster            the cluster for the command
-   * @param stackId            the effective stack id to use.
    *
-   * @return a wrapper of the imporant JSON structures to add to a stage
+   * @return a wrapper of the important JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
-      Cluster cluster, StackId stackId) throws AmbariException {
+      Cluster cluster, RepositoryVersionEntity repositoryVersion, String requestContext) throws AmbariException {
 
-    Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext);
+    Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext, requestContext);
     Map<String, String> hostParamsStage = new HashMap<>();
     Map<String, Set<String>> clusterHostInfo;
     String clusterHostInfoJson = "{}";
 
+    StackId stackId = null;
+    if (null != repositoryVersion) {
+      stackId = repositoryVersion.getStackId();
+    }
+
     if (null != cluster) {
-      clusterHostInfo = StageUtils.getClusterHostInfo(
-          cluster);
+      clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
+
       // Important, because this runs during Stack Uprade, it needs to use the effective Stack Id.
-      hostParamsStage = createDefaultHostParams(cluster, stackId);
+      hostParamsStage = createDefaultHostParams(cluster, repositoryVersion);
+
       String componentName = null;
       String serviceName = null;
       if (actionExecContext.getOperationLevel() != null) {
         componentName = actionExecContext.getOperationLevel().getHostComponentName();
         serviceName = actionExecContext.getOperationLevel().getServiceName();
       }
-      if (serviceName != null && componentName != null) {
+
+      if (serviceName != null && componentName != null && null != stackId) {
+        Service service = cluster.getService(serviceName);
+        ServiceComponent component = service.getServiceComponent(componentName);
+        stackId = component.getDesiredStackId();
+
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(
                 stackId.getStackName(), stackId.getStackVersion(),
                 serviceName, componentName);
@@ -1165,17 +1232,22 @@ public class AmbariCustomCommandExecutionHelper {
         String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
         hostParamsStage.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
       }
+
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
 
       //Propogate HCFS service type info to command params
-      Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-      for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-        if (serviceInfoInstance.getServiceType() != null) {
-          LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
-              serviceInfoInstance.getName());
+      if (null != stackId) {
+        Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(),
+            stackId.getStackVersion());
 
-          commandParamsStage.put("dfs_type", serviceInfoInstance.getServiceType());
-          break;
+        for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
+          if (serviceInfoInstance.getServiceType() != null) {
+            LOG.debug("Adding {} to command parameters for {}",
+                serviceInfoInstance.getServiceType(), serviceInfoInstance.getName());
+
+            commandParamsStage.put("dfs_type", serviceInfoInstance.getServiceType());
+            break;
+          }
         }
       }
     }
@@ -1187,18 +1259,15 @@ public class AmbariCustomCommandExecutionHelper {
         hostParamsStageJson);
   }
 
-  Map<String, String> createDefaultHostParams(Cluster cluster) throws AmbariException {
-    StackId stackId = cluster.getDesiredStackVersion();
-    return createDefaultHostParams(cluster, stackId);
+  Map<String, String> createDefaultHostParams(Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
+    return createDefaultHostParams(cluster, repositoryVersion.getStackId());
   }
 
-  Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException{
+  Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException {
+
     TreeMap<String, String> hostLevelParams = new TreeMap<>();
+    StageUtils.useStackJdkIfExists(hostLevelParams, configs);
     hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
-    hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
-    hostLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
-    hostLevelParams.put(JDK_NAME, managementController.getJDKName());
-    hostLevelParams.put(JCE_NAME, managementController.getJCEName());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
     hostLevelParams.put(DB_NAME, managementController.getServerDB());
@@ -1211,28 +1280,19 @@ public class AmbariCustomCommandExecutionHelper {
     hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+    Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
-    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName());
-    if (clusterVersionEntity == null) {
-      List<ClusterVersionEntity> clusterVersionEntityList = clusterVersionDAO
-              .findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLING);
-      if (!clusterVersionEntityList.isEmpty()) {
-        clusterVersionEntity = clusterVersionEntityList.iterator().next();
-      }
-    }
     for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
       hostLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
     }
+
     for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
       hostLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
     }
 
-    if (clusterVersionEntity != null) {
-      hostLevelParams.put("current_version", clusterVersionEntity.getRepositoryVersion().getVersion());
-    }
 
     return hostLevelParams;
   }
@@ -1248,9 +1308,18 @@ public class AmbariCustomCommandExecutionHelper {
    */
   public boolean isTopologyRefreshRequired(String actionName, String clusterName, String serviceName)
       throws AmbariException {
+
     if (actionName.equals(START_COMMAND_NAME) || actionName.equals(RESTART_COMMAND_NAME)) {
       Cluster cluster = clusters.getCluster(clusterName);
-      StackId stackId = cluster.getDesiredStackVersion();
+      StackId stackId = null;
+      try {
+        Service service = cluster.getService(serviceName);
+        stackId = service.getDesiredStackId();
+      } catch (AmbariException e) {
+        LOG.debug("Could not load service {}, skipping topology check", serviceName);
+        stackId = cluster.getDesiredStackVersion();
+      }
+
 
       AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
 
@@ -1280,7 +1349,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       return service.getServiceComponent(resourceFilter.getComponentName());
     } catch (Exception e) {
-      LOG.debug(String.format( "Unknown error appears during getting service component: %s", e.getMessage()));
+      LOG.debug("Unknown error appears during getting service component: {}", e.getMessage());
     }
     return null;
   }

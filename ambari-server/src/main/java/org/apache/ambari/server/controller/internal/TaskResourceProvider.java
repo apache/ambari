@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -75,6 +75,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   public static final String TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "attempt_cnt");
   public static final String TASK_COMMAND_DET_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "command_detail");
   public static final String TASK_CUST_CMD_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "custom_command_name");
+  public static final String TASK_COMMAND_OPS_DISPLAY_NAME  = PropertyHelper.getPropertyId("Tasks", "ops_display_name");
 
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
@@ -107,6 +108,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
     PROPERTY_IDS.add(TASK_ATTEMPT_CNT_PROPERTY_ID);
     PROPERTY_IDS.add(TASK_COMMAND_DET_PROPERTY_ID);
     PROPERTY_IDS.add(TASK_CUST_CMD_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_COMMAND_OPS_DISPLAY_NAME);
   }
 
   /**
@@ -230,6 +232,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
         setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID, hostRoleCommand.getCommandDetail(), requestedIds);
       }
 
+      setResourceProperty(resource, TASK_COMMAND_OPS_DISPLAY_NAME, hostRoleCommand.getOpsDisplayName(), requestedIds);
       results.add(resource);
     }
 

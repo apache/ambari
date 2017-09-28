@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,23 +17,24 @@
  */
 package org.apache.ambari.server.events;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+
+import org.apache.ambari.server.serveraction.kerberos.Component;
+
 /**
  * The {@link ServiceRemovedEvent} class is fired when a service is successfully
  * removed.
  */
 public class ServiceRemovedEvent extends ServiceEvent {
-  /**
-   * Constructor.
-   *
-   * @param clusterId
-   * @param stackName
-   * @param stackVersion
-   * @param serviceName
-   */
+  private final List<Component> components;
+
   public ServiceRemovedEvent(long clusterId, String stackName,
-      String stackVersion, String serviceName) {
+                             String stackVersion, String serviceName, List<Component> components) {
     super(AmbariEventType.SERVICE_REMOVED_SUCCESS, clusterId, stackName,
-        stackVersion, serviceName);
+      stackVersion, serviceName);
+    this.components = components;
   }
 
   /**
@@ -48,5 +49,13 @@ public class ServiceRemovedEvent extends ServiceEvent {
     buffer.append(", serviceName=").append(m_serviceName);
     buffer.append("}");
     return buffer.toString();
+  }
+
+  public List<Component> getComponents() {
+    return components;
+  }
+
+  public List<String> getComponentNames() {
+    return components.stream().map(Component::getServiceComponentName).collect(toList());
   }
 }

@@ -420,9 +420,6 @@ App.AddHostController = App.WizardController.extend({
   finish: function () {
     this.clearAllSteps();
     this.clearStorageData();
-    App.router.get('updateController').updateAll();
-    App.updater.immediateRun('updateHost');
-    App.router.get('clusterController').getAllHostNames();
   },
 
   /**

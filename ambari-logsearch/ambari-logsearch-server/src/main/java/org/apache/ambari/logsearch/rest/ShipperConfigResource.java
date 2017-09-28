@@ -21,7 +21,11 @@ package org.apache.ambari.logsearch.rest;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.validation.Valid;
+import javax.validation.executable.ValidateOnExecution;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -30,12 +34,21 @@ import javax.ws.rs.core.Response;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
 import org.apache.ambari.logsearch.manager.ShipperConfigManager;
+import org.apache.ambari.logsearch.model.common.LSServerInputConfig;
+import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.springframework.context.annotation.Scope;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.*;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_LOG_LEVEL_FILTER_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SERVICE_NAMES_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.SET_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.TEST_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.UPDATE_LOG_LEVEL_FILTER_OD;
 
 @Api(value = "shipper", description = "Shipper config operations")
 @Path("shipper")
@@ -49,25 +62,64 @@ public class ShipperConfigResource {
   @GET
   @Path("/input/{clusterName}/services")
   @Produces({"application/json"})
-  @ApiOperation(GET_SERVICE_NAMES)
+  @ApiOperation(GET_SERVICE_NAMES_OD)
   public List<String> getServices(@PathParam("clusterName") String clusterName) {
     return shipperConfigManager.getServices(clusterName);
   }
 
   @GET
-  @Path("/input/{clusterName}/{serviceName}")
+  @Path("/input/{clusterName}/services/{serviceName}")
   @Produces({"application/json"})
-  @ApiOperation(GET_SHIPPER_CONFIG)
-  public String getShipperConfig(@PathParam("clusterName") String clusterName, @PathParam("serviceName") String serviceName) {
+  @ApiOperation(GET_SHIPPER_CONFIG_OD)
+  public LSServerInputConfig getShipperConfig(@PathParam("clusterName") String clusterName, @PathParam("serviceName")
+    String serviceName) {
     return shipperConfigManager.getInputConfig(clusterName, serviceName);
   }
 
-  @PUT
-  @Path("/input/{clusterName}/{serviceName}")
-  @Produces("text/plain")
-  @ApiOperation(SET_SHIPPER_CONFIG)
-  public Response setShipperConfig(String body, @PathParam("clusterName") String clusterName, @PathParam("serviceName")
-    String serviceName) {
-    return shipperConfigManager.setInputConfig(clusterName, serviceName, body);
+  @POST
+  @Path("/input/{clusterName}/services/{serviceName}")
+  @Produces({"application/json"})
+  @ApiOperation(SET_SHIPPER_CONFIG_OD)
+  @ValidateOnExecution
+  public Response createShipperConfig(@Valid LSServerInputConfig request, @PathParam("clusterName") String clusterName,
+      @PathParam("serviceName") String serviceName) {
+    return shipperConfigManager.createInputConfig(clusterName, serviceName, request);
   }
+
+  @PUT
+  @Path("/input/{clusterName}/services/{serviceName}")
+  @Produces({"application/json"})
+  @ApiOperation(SET_SHIPPER_CONFIG_OD)
+  @ValidateOnExecution
+  public Response setShipperConfig(@Valid LSServerInputConfig request, @PathParam("clusterName") String clusterName,
+      @PathParam("serviceName") String serviceName) {
+    return shipperConfigManager.setInputConfig(clusterName, serviceName, request);
+  }
+
+  @POST
+  @Path("/input/{clusterName}/test")
+  @Produces({"application/json"})
+  @ApiOperation(TEST_SHIPPER_CONFIG_OD)
+  public Map<String, Object> testShipperConfig(@FormParam("shipper_config") String shipperConfig, @FormParam("log_id") String logId,
+      @FormParam("test_entry") String testEntry, @PathParam("clusterName") String clusterName) {
+    return shipperConfigManager.testShipperConfig(shipperConfig, logId, testEntry, clusterName);
+  }
+
+  @GET
+  @Path("/filters/{clusterName}/level")
+  @Produces({"application/json"})
+  @ApiOperation(GET_LOG_LEVEL_FILTER_OD)
+  public LSServerLogLevelFilterMap getLogLevelFilters(@PathParam("clusterName") String clusterName) {
+    return shipperConfigManager.getLogLevelFilters(clusterName);
+  }
+
+  @PUT
+  @Path("/filters/{clusterName}/level")
+  @Produces({"application/json"})
+  @ApiOperation(UPDATE_LOG_LEVEL_FILTER_OD)
+  @ValidateOnExecution
+  public Response setLogLevelFilter(@Valid LSServerLogLevelFilterMap request, @PathParam("clusterName") String clusterName) {
+    return shipperConfigManager.setLogLevelFilters(clusterName, request);
+  }
+
 }

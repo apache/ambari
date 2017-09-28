@@ -25,7 +25,7 @@ set -e
 killtree() {
     local _pid=$1
     local _sig=${2:--TERM}
-    ambari-sudo.sh kill -stop ${_pid} # needed to stop quickly forking parent from producing children between child killing and parent killing
+    ambari-sudo.sh kill -s stop ${_pid} # needed to stop quickly forking parent from producing children between child killing and parent killing
     for _child in $(ps -o pid --no-headers --ppid ${_pid}); do
         killtree ${_child} ${_sig}
     done

@@ -192,6 +192,23 @@ def yarn(name=None, config_dir=None):
          group=params.user_group,
          content=Template("yarn_jaas.conf.j2")
     )
+    if params.has_ats:
+      File(os.path.join(config_dir, 'yarn_ats_jaas.conf'),
+           owner=params.yarn_user,
+           group=params.user_group,
+           content=Template("yarn_ats_jaas.conf.j2")
+      )
+    File(os.path.join(config_dir, 'yarn_nm_jaas.conf'),
+         owner=params.yarn_user,
+         group=params.user_group,
+         content=Template("yarn_nm_jaas.conf.j2")
+    )
+    if params.has_hs:
+      File(os.path.join(config_dir, 'mapred_jaas.conf'),
+           owner=params.mapred_user,
+           group=params.user_group,
+           content=Template("mapred_jaas.conf.j2")
+      )
   else:
     File(os.path.join(config_dir, 'taskcontroller.cfg'),
          owner=params.tc_owner,
@@ -373,10 +390,22 @@ def setup_resourcemanager():
        create_parents=True,
        cd_access='a',
   )
-  File(params.rm_nodes_exclude_path,
+  File(params.exclude_file_path,
+       content=Template("exclude_hosts_list.j2"),
        owner=params.yarn_user,
        group=params.user_group
   )
+  if params.include_hosts:
+    Directory(params.rm_nodes_include_dir,
+      mode=0755,
+      create_parents=True,
+      cd_access='a',
+      )
+    File(params.include_file_path,
+      content=Template("include_hosts_list.j2"),
+      owner=params.yarn_user,
+      group=params.user_group
+    )
   File(params.yarn_job_summary_log,
      owner=params.yarn_user,
      group=params.user_group
@@ -385,7 +414,6 @@ def setup_resourcemanager():
     params.HdfsResource(params.node_labels_dir,
                          type="directory",
                          action="create_on_execute",
-                         change_permissions_for_parents=True,
                          owner=params.yarn_user,
                          group=params.user_group,
                          mode=0700

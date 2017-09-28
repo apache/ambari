@@ -177,6 +177,7 @@
       <excludes>
 	    <exclude>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</exclude>
         <exclude>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
+        <exclude>/3.0/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
 	  </excludes>
     </fileSet>
     <fileSet>
@@ -186,6 +187,7 @@
       <includes>
 	    <include>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
         <include>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</include>
+        <include>/3.0/hooks/before-START/files/fast-hdfs-resource.jar</include>
 	  </includes>
     </fileSet>
     <fileSet>
@@ -334,6 +336,11 @@
     </file>
     <file>
       <fileMode>755</fileMode>
+      <source>target/classes/Ambari-DDL-AzureDB-CREATE.sql</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-SQLServer-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
@@ -418,7 +425,11 @@
       <fileMode>644</fileMode>
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
-      <scope>compile</scope>
+      <scope>runtime</scope>
+      <excludes>
+        <exclude>org.slf4j:slf4j-jdk14</exclude>
+        <exclude>org.slf4j:slf4j-nop</exclude>
+      </excludes>
     </dependencySet>
   </dependencySets>
 </assembly>

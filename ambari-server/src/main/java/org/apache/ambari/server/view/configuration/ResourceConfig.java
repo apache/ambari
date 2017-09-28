@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -128,7 +128,7 @@ public class ResourceConfig {
    * @return the sub-resource names
    */
   public List<String> getSubResourceNames() {
-    return subResourceNames == null ? Collections.<String>emptyList() : subResourceNames;
+    return subResourceNames == null ? Collections.emptyList() : subResourceNames;
   }
 
   /**

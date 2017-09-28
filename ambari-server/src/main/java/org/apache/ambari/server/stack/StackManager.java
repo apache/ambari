@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,11 +19,13 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.xml.XMLConstants;
@@ -33,8 +35,8 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
@@ -55,7 +57,6 @@ import org.xml.sax.SAXException;
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-
 
 /**
  * Manages all stack related behavior including parsing of stacks and providing access to
@@ -109,6 +110,8 @@ public class StackManager {
    */
   private Map<String, ExtensionInfo> extensionMap = new HashMap<>();
 
+  private AmbariManagementHelper helper;
+
   /**
    * Constructor. Initialize stack manager.
    *
@@ -130,6 +133,8 @@ public class StackManager {
    *          extension DAO automatically injected
    * @param linkDao
    *          extension link DAO automatically injected
+   * @param helper
+   *          Ambari management helper automatically injected
    *
    * @throws AmbariException
    *           if an exception occurs while processing the stacks
@@ -140,7 +145,7 @@ public class StackManager {
       @Assisted("extensionRoot") @Nullable File extensionRoot,
       @Assisted OsFamily osFamily, @Assisted boolean validate,
       MetainfoDAO metaInfoDAO, ActionMetadata actionMetadata, StackDAO stackDao,
-      ExtensionDAO extensionDao, ExtensionLinkDAO linkDao)
+      ExtensionDAO extensionDao, ExtensionLinkDAO linkDao, AmbariManagementHelper helper)
       throws AmbariException {
 
     LOG.info("Initializing the stack manager...");
@@ -154,6 +159,7 @@ public class StackManager {
     stackMap = new HashMap<>();
     stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
     extensionMap = new HashMap<>();
+    this.helper = helper;
 
     parseDirectories(stackRoot, commonServicesRoot, extensionRoot);
 
@@ -188,6 +194,7 @@ public class StackManager {
     LOG.info("About to parse extension directories");
     extensionModules = parseExtensionDirectory(extensionRoot);
   }
+
   private void populateDB(StackDAO stackDao, ExtensionDAO extensionDao) throws AmbariException {
     // for every stack read in, ensure that we have a database entry for it;
     // don't put try/catch logic around this since a failure here will
@@ -226,6 +233,51 @@ public class StackManager {
         extensionDao.create(extensionEntity);
       }
     }
+
+    createLinks();
+  }
+
+  /**
+   * Attempts to automatically create links between extension versions and stack versions.
+   * This is limited to 'active' extensions that have the 'autolink' attribute set (in the metainfo.xml).
+   * Stack versions are selected based on the minimum stack versions that the extension supports.
+   * The extension and stack versions are processed in order of most recent to oldest.
+   * In this manner, the newest extension version will be autolinked before older extension versions.
+   * If a different version of the same extension is already linked to a stack version then that stack version
+   * will be skipped.
+   */
+  private void createLinks() {
+    LOG.info("Creating links");
+    Collection<ExtensionInfo> extensions = getExtensions();
+    Set<String> names = new HashSet<>();
+    for(ExtensionInfo extension : extensions){
+      names.add(extension.getName());
+    }
+    for(String name : names) {
+      createLinksForExtension(name);
+    }
+  }
+
+  /**
+   * Attempts to automatically create links between versions of a particular extension and stack versions they support.
+   * This is limited to 'active' extensions that have the 'autolink' attribute set (in the metainfo.xml).
+   * Stack versions are selected based on the minimum stack versions that the extension supports.
+   * The extension and stack versions are processed in order of most recent to oldest.
+   * In this manner, the newest extension version will be autolinked before older extension versions.
+   * If a different version of the same extension is already linked to a stack version then that stack version
+   * will be skipped.
+   */
+  private void createLinksForExtension(String name) {
+    Collection<ExtensionInfo> collection = getExtensions(name);
+    List<ExtensionInfo> extensions = new ArrayList<>(collection.size());
+    extensions.addAll(collection);
+    try {
+      helper.createExtensionLinks(this, extensions);
+    }
+    catch (AmbariException e) {
+      String msg = String.format("Failed to create link for extension: %s with exception: %s", name, e.getMessage());
+      LOG.error(msg);
+    }
   }
 
   /**
@@ -253,6 +305,24 @@ public class StackManager {
       if (stack.getName().equals(name)) {
         stacks.add(stack);
       }
+    }
+    return stacks;
+  }
+
+  /**
+   * Obtain all a map of all stacks by name.
+   *
+   * @return A map of all stacks with the name as the key.
+   */
+  public Map<String, List<StackInfo>> getStacksByName() {
+    Map<String, List<StackInfo>> stacks = new HashMap<>();
+    for (StackInfo stack: stackMap.values()) {
+      List<StackInfo> list = stacks.get(stack.getName());
+      if (list == null) {
+        list = new ArrayList<>();
+        stacks.put(stack.getName(),  list);
+      }
+      list.add(stack);
     }
     return stacks;
   }
@@ -394,8 +464,7 @@ public class StackManager {
 
       String commonServicesRootAbsolutePath = commonServicesRoot.getAbsolutePath();
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Loading common services information"
-            + ", commonServicesRoot = " + commonServicesRootAbsolutePath);
+        LOG.debug("Loading common services information, commonServicesRoot = {}", commonServicesRootAbsolutePath);
       }
 
       if (!commonServicesRoot.isDirectory() && !commonServicesRoot.exists()) {
@@ -417,8 +486,7 @@ public class StackManager {
 
     String stackRootAbsPath = stackRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Loading stack information"
-          + ", stackRoot = " + stackRootAbsPath);
+      LOG.debug("Loading stack information, stackRoot = {}", stackRootAbsPath);
     }
 
     if (!stackRoot.isDirectory() && !stackRoot.exists()) {
@@ -459,8 +527,6 @@ public class StackManager {
     }
   }
 
-
-
   /**
    * Validate that the specified extension root is a valid directory.
    *
@@ -475,8 +541,7 @@ public class StackManager {
 
     String extensionRootAbsPath = extensionRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Loading extension information"
-          + ", extensionRoot = " + extensionRootAbsPath);
+      LOG.debug("Loading extension information, extensionRoot = {}", extensionRootAbsPath);
     }
 
     //For backwards compatibility extension directory may not exist
@@ -498,12 +563,12 @@ public class StackManager {
     Map<String, ServiceModule> commonServiceModules = new HashMap<>();
 
     if(commonServicesRoot != null) {
-      File[] commonServiceFiles = commonServicesRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+      File[] commonServiceFiles = commonServicesRoot.listFiles(StackDirectory.FILENAME_FILTER);
       for (File commonService : commonServiceFiles) {
         if (commonService.isFile()) {
           continue;
         }
-        for (File serviceFolder : commonService.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+        for (File serviceFolder : commonService.listFiles(StackDirectory.FILENAME_FILTER)) {
           String serviceName = serviceFolder.getParentFile().getName();
           String serviceVersion = serviceFolder.getName();
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
@@ -540,12 +605,12 @@ public class StackManager {
   private Map<String, StackModule> parseStackDirectory(File stackRoot) throws AmbariException {
     Map<String, StackModule> stackModules = new HashMap<>();
 
-    File[] stackFiles = stackRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+    File[] stackFiles = stackRoot.listFiles(StackDirectory.FILENAME_FILTER);
     for (File stack : stackFiles) {
       if (stack.isFile()) {
         continue;
       }
-      for (File stackFolder : stack.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+      for (File stackFolder : stack.listFiles(StackDirectory.FILENAME_FILTER)) {
         if (stackFolder.isFile()) {
           continue;
         }
@@ -567,9 +632,11 @@ public class StackManager {
   }
 
   public void linkStackToExtension(StackInfo stack, ExtensionInfo extension) throws AmbariException {
+    stack.addExtension(extension);
   }
 
   public void unlinkStackAndExtension(StackInfo stack, ExtensionInfo extension) throws AmbariException {
+    stack.removeExtension(extension);
   }
 
   /**
@@ -584,12 +651,12 @@ public class StackManager {
     if (extensionRoot == null || !extensionRoot.exists())
       return extensionModules;
 
-    File[] extensionFiles = extensionRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+    File[] extensionFiles = extensionRoot.listFiles(StackDirectory.FILENAME_FILTER);
     for (File extensionNameFolder : extensionFiles) {
       if (extensionNameFolder.isFile()) {
         continue;
       }
-      for (File extensionVersionFolder : extensionNameFolder.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+      for (File extensionVersionFolder : extensionNameFolder.listFiles(StackDirectory.FILENAME_FILTER)) {
         if (extensionVersionFolder.isFile()) {
           continue;
         }

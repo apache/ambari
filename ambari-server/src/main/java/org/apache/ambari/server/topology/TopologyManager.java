@@ -33,8 +33,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -80,6 +78,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
@@ -114,6 +114,9 @@ public class TopologyManager {
   private final Collection<LogicalRequest> outstandingRequests = new ArrayList<>();
   //todo: currently only support a single cluster
   private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<>();
+
+  @Inject
+  private Injector injector;
 
   @Inject
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
@@ -266,12 +269,17 @@ public class TopologyManager {
     final String clusterName = request.getClusterName();
     final Stack stack = topology.getBlueprint().getStack();
     final String repoVersion = request.getRepositoryVersion();
+    final Long repoVersionID = request.getRepositoryVersionId();
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
 
     SecurityType securityType = null;
     Credential credential = null;
+
+    if (null == repoVersion && null == repoVersionID) {
+      throw new AmbariException("Repository should be created and the version passed in the request.");
+    }
 
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
@@ -290,8 +298,9 @@ public class TopologyManager {
 
     topologyValidatorService.validateTopologyConfiguration(topology);
 
+
     // create resources
-    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
+    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);
 
     if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
@@ -323,7 +332,6 @@ public class TopologyManager {
 
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true,
       stackAdvisorBlueprintProcessor, securityType == SecurityType.KERBEROS));
-
 
     // Notify listeners that cluster configuration finished
     executor.submit(new Callable<Boolean>() {
@@ -384,8 +392,8 @@ public class TopologyManager {
     properties.put(CredentialResourceProvider.CREDENTIAL_KEY_PROPERTY_ID, credential.getKey());
     properties.put(CredentialResourceProvider.CREDENTIAL_TYPE_PROPERTY_ID, credential.getType().name());
 
-    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
-        Collections.singleton(properties), Collections.<String, String>emptyMap(), null);
+    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
+        Collections.singleton(properties), Collections.emptyMap(), null);
 
     try {
       RequestStatus status = provider.createResources(request);
@@ -434,9 +442,9 @@ public class TopologyManager {
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+            "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
-    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
+    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.emptySet(),
         Collections.singleton(properties), requestInfoProps, null);
 
     try {
@@ -485,18 +493,81 @@ public class TopologyManager {
 
     final Long requestId = ambariContext.getNextRequestId();
     LogicalRequest logicalRequest = RetryHelper.executeWithRetry(new Callable<LogicalRequest>() {
-        @Override
-        public LogicalRequest call() throws Exception {
-          LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, requestId);
+         @Override
+         public LogicalRequest call() throws Exception {
+           LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, requestId);
 
-          return logicalRequest;
-        }
-      }
+           return logicalRequest;
+         }
+       }
     );
-
     processRequest(request, topology, logicalRequest);
-
     return getRequestStatus(logicalRequest.getRequestId());
+  }
+
+  public void removePendingHostRequests(String clusterName, long requestId) {
+    ensureInitialized();
+    LOG.info("TopologyManager.removePendingHostRequests: Entering");
+
+    long clusterId = 0;
+    try {
+      clusterId = ambariContext.getClusterId(clusterName);
+    } catch (AmbariException e) {
+      LOG.error("Unable to retrieve clusterId", e);
+      throw new IllegalArgumentException("Unable to retrieve clusterId");
+    }
+    ClusterTopology topology = clusterTopologyMap.get(clusterId);
+    if (topology == null) {
+      throw new IllegalArgumentException("Unable to retrieve cluster topology for cluster");
+    }
+
+    LogicalRequest logicalRequest = allRequests.get(requestId);
+    if (logicalRequest == null) {
+      throw new IllegalArgumentException("No Logical Request found for requestId: " + requestId);
+    }
+
+    Collection<HostRequest> pendingHostRequests = logicalRequest.removePendingHostRequests(null);
+
+    if (!logicalRequest.hasPendingHostRequests()) {
+      outstandingRequests.remove(logicalRequest);
+    }
+    if (logicalRequest.getHostRequests().isEmpty()) {
+      allRequests.remove(requestId);
+    }
+
+    persistedState.removeHostRequests(requestId, pendingHostRequests);
+
+    // set current host count to number of currently connected hosts
+    for (HostGroupInfo currentHostGroupInfo : topology.getHostGroupInfo().values()) {
+      currentHostGroupInfo.setRequestedCount(currentHostGroupInfo.getHostNames().size());
+    }
+
+    LOG.info("TopologyManager.removePendingHostRequests: Exit");
+  }
+
+  /**
+   * Removes topology host requests matched to the given host.  If the parent
+   * request has no more child host requests, then it is also removed.
+   * This is used when hosts are deleted from the cluster.
+   *
+   * @param hostName the host name for which requests should be removed
+   */
+  public void removeHostRequests(String hostName) {
+    ensureInitialized();
+
+    for (Iterator<LogicalRequest> iter = allRequests.values().iterator(); iter.hasNext(); ) {
+      LogicalRequest logicalRequest = iter.next();
+      Collection<HostRequest> removed = logicalRequest.removeHostRequestByHostName(hostName);
+      if (!logicalRequest.hasPendingHostRequests()) {
+        outstandingRequests.remove(logicalRequest);
+      }
+      if (logicalRequest.getHostRequests().isEmpty()) {
+        iter.remove();
+      }
+      if (!removed.isEmpty()) {
+        persistedState.removeHostRequests(logicalRequest.getRequestId(), removed);
+      }
+    }
   }
 
   /**
@@ -535,7 +606,7 @@ public class TopologyManager {
     PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
 
     LogicalRequest logicalRequest = createLogicalRequest(persistedRequest, topology, logicalRequestId);
-    
+
     return logicalRequest;
   }
 
@@ -675,7 +746,7 @@ public class TopologyManager {
   public Collection<HostRoleCommand> getTasks(long requestId) {
     ensureInitialized();
     LogicalRequest request = allRequests.get(requestId);
-    return request == null ? Collections.<HostRoleCommand>emptyList() : request.getCommands();
+    return request == null ? Collections.emptyList() : request.getCommands();
   }
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> requestIds) {
@@ -691,7 +762,7 @@ public class TopologyManager {
   public Map<Long, HostRoleCommandStatusSummaryDTO> getStageSummaries(Long requestId) {
     ensureInitialized();
     LogicalRequest request = allRequests.get(requestId);
-    return request == null ? Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap() :
+    return request == null ? Collections.emptyMap() :
         request.getStageSummaries();
   }
 
@@ -858,11 +929,8 @@ public class TopologyManager {
       // update the host with the rack info if applicable
       updateHostWithRackInfo(topology, response, host);
 
-    } catch (InvalidTopologyException e) {
+    } catch (InvalidTopologyException | NoSuchHostGroupException e) {
       // host already registered
-      throw new RuntimeException("An internal error occurred while performing request host registration: " + e, e);
-    } catch (NoSuchHostGroupException e) {
-      // invalid host group
       throw new RuntimeException("An internal error occurred while performing request host registration: " + e, e);
     }
 
@@ -937,7 +1005,7 @@ public class TopologyManager {
 
       for (LogicalRequest logicalRequest : requestEntry.getValue()) {
         allRequests.put(logicalRequest.getRequestId(), logicalRequest);
-        if (!logicalRequest.hasCompleted()) {
+        if (logicalRequest.hasPendingHostRequests()) {
           outstandingRequests.add(logicalRequest);
           for (String reservedHost : logicalRequest.getReservedHosts()) {
             reservedHosts.put(reservedHost, logicalRequest);
@@ -968,6 +1036,7 @@ public class TopologyManager {
         }
       }
     }
+    LOG.info("TopologyManager.replayRequests: Exit");
   }
 
   /**

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,12 +26,12 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ActionImpl implements Action {
 
-  private static final Log LOG = LogFactory.getLog(ActionImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ActionImpl.class);
 
   private final Lock readLock;
   private final Lock writeLock;
@@ -125,10 +125,8 @@ public class ActionImpl implements Action {
       ActionProgressUpdateEvent e = (ActionProgressUpdateEvent) event;
       action.setLastUpdateTime(e.getProgressUpdateTime());
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Progress update for Action"
-            + ", actionId=" + action.getId()
-            + ", startTime=" + action.getStartTime()
-            + ", lastUpdateTime=" + action.getLastUpdateTime());
+        LOG.debug("Progress update for Action, actionId={}, startTime={}, lastUpdateTime={}",
+          action.getId(), action.getStartTime(), action.getLastUpdateTime());
       }
     }
   }
@@ -193,8 +191,7 @@ public class ActionImpl implements Action {
   public void handleEvent(ActionEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Handling Action event, eventType=" + event.getType().name()
-          + ", event=" + event.toString());
+      LOG.debug("Handling Action event, eventType={}, event={}", event.getType().name(), event);
     }
     ActionState oldState = getState();
     try {
@@ -215,12 +212,8 @@ public class ActionImpl implements Action {
     }
     if (oldState != getState()) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Action transitioned to a new state"
-            + ", actionId=" + this.getId()
-            + ", oldState=" + oldState
-            + ", currentState=" + getState()
-            + ", eventType=" + event.getType().name()
-            + ", event=" + event);
+        LOG.debug("Action transitioned to a new state, actionId={}, oldState={}, currentState={}, eventType={}, event={}",
+          getId(), oldState, getState(), event.getType().name(), event);
       }
     }
   }

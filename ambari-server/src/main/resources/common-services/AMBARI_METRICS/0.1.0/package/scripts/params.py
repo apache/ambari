@@ -66,17 +66,22 @@ embedded_mode_multiple_instances = False
 if not is_ams_distributed and len(ams_collector_list) > 1:
   embedded_mode_multiple_instances = True
 
+set_instanceId = "false"
+cluster_name = config["clusterName"]
 if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_vip_host' in config['configurations']['cluster-env']:
-  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_vip_host']
+    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 
 metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 
 random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 
 if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-  metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+    'metrics_collector_external_port' in config['configurations']['cluster-env']:
+  metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
 else:
   metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
   if metric_collector_web_address.find(':') != -1:
@@ -95,10 +100,14 @@ else:
 metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
 metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
 metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
-metric_truststore_alias = default("/configurations/ams-ssl-client/ssl.client.truststore.alias", None)
-if not metric_truststore_alias:
-  metric_truststore_alias = metric_collector_host
 metric_truststore_ca_certs='ca.pem'
+
+metric_truststore_alias_list = []
+for host in ams_collector_hosts.split(","):
+  metric_truststore_alias = default("/configurations/ams-ssl-client/{host}.ssl.client.truststore.alias", None)
+  if not metric_truststore_alias:
+    metric_truststore_alias = host
+  metric_truststore_alias_list.append(metric_truststore_alias)
 
 agent_cache_dir = config['agentLevelParams']['agentCacheDir']
 service_package_folder = config['serviceLevelParams']['service_package_folder']
@@ -198,9 +207,15 @@ security_enabled = False if not is_hbase_distributed else config['configurations
 # this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
+java_home = config['hostLevelParams']['java_home']
+ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
 # not supporting 32 bit jdk.
-java64_home = config['ambariLevelParams']['java_home']
-java_version = expect("/ambariLevelParams/java_version", int)
+java64_home = ambari_java_home if ambari_java_home is not None else java_home
+ambari_java_version = default("/ambariLevelParams/ambari_java_version", None)
+if ambari_java_version:
+  java_version = expect("/ambariLevelParams/ambari_java_version", int)
+else :
+  java_version = expect("/ambariLevelParams/java_version", int)
 
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512")
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
@@ -218,6 +233,11 @@ regionserver_heapsize = config['configurations']['ams-hbase-env']['hbase_regions
 metrics_collector_heapsize = check_append_heap_property(str(metrics_collector_heapsize), "m")
 master_heapsize = check_append_heap_property(str(master_heapsize), "m")
 regionserver_heapsize = check_append_heap_property(str(regionserver_heapsize), "m")
+
+host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+host_in_memory_aggregation_jvm_arguments = default("/configurations/ams-env/timeline.metrics.host.inmemory.aggregation.jvm.arguments",
+                                                   "-Xmx256m -Xms128m -XX:PermSize=68m")
 
 regionserver_xmn_max = default('/configurations/ams-hbase-env/hbase_regionserver_xmn_max', None)
 if regionserver_xmn_max:
@@ -288,12 +308,17 @@ service_check_data = functions.get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 hadoop_user = "hadoop"
 
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 kinit_cmd = ""
+klist_path_local = functions.get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
+klist_cmd = ""
 
 if security_enabled:
   _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
   smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+  smoke_user_princ = config['configurations']['cluster-env']['smokeuser_principal_name']
+  smoke_user = config['configurations']['cluster-env']['smokeuser']
   hbase_user_keytab = config['configurations']['ams-hbase-env']['hbase_user_keytab']
 
   ams_collector_jaas_config_file = format("{hbase_conf_dir}/ams_collector_jaas.conf")
@@ -311,6 +336,9 @@ if security_enabled:
   regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
   regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
   regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
+
+  kinit_cmd = '%s -kt %s %s' % (kinit_path_local, config['configurations']['ams-hbase-security-site']['ams.monitor.keytab'], config['configurations']['ams-hbase-security-site']['ams.monitor.principal'].replace('_HOST',_hostname_lowercase))
+  klist_cmd = '%s' % klist_path_local
 
 #Ambari metrics log4j settings
 ams_hbase_log_maxfilesize = default('configurations/ams-hbase-log4j/ams_hbase_log_maxfilesize',256)
@@ -346,7 +374,6 @@ if hbase_wal_dir and re.search("^file://|/", hbase_wal_dir): #If wal dir is on l
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 
 

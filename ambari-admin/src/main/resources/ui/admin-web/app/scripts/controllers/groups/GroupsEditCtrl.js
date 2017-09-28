@@ -68,6 +68,7 @@ angular.module('ambariAdminConsole')
 
   function loadMembers(){
     $scope.group.getMembers().then(function(members) {
+      $scope.group.groupTypeName = $t(GroupConstants.TYPES[$scope.group.group_type].LABEL_KEY);
       $scope.groupMembers = members;
       $scope.group.editingUsers = angular.copy($scope.groupMembers);
     });
@@ -80,6 +81,8 @@ angular.module('ambariAdminConsole')
     });
     loadMembers();
   });
+
+  $scope.group.getGroupType();
 
   $scope.deleteGroup = function(group) {
     ConfirmationModal.show(
@@ -129,6 +132,20 @@ angular.module('ambariAdminConsole')
     });
   };
 
+
+  $scope.removePrivilege = function(name, privilege) {
+    var privilegeObject = {
+        id: privilege.privilege_id,
+        view_name: privilege.view_name,
+        version: privilege.version,
+        instance_name: name
+    };
+    View.deletePrivilege(privilegeObject).then(function() {
+      loadPrivileges();
+    });
+  };
+
+function loadPrivileges() {
   // Load privileges
   Group.getPrivileges($routeParams.id).then(function(data) {
     var privileges = {
@@ -145,6 +162,7 @@ angular.module('ambariAdminConsole')
         privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
         privileges.views[privilege.instance_name].version = privilege.version;
         privileges.views[privilege.instance_name].view_name = privilege.view_name;
+        privileges.views[privilege.instance_name].privilege_id = privilege.privilege_id;
         privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
       }
     });
@@ -157,6 +175,6 @@ angular.module('ambariAdminConsole')
   }).catch(function(data) {
     Alert.error($t('common.alerts.cannotLoadPrivileges'), data.data.message);
   });
-
-
+}
+loadPrivileges();
 }]);

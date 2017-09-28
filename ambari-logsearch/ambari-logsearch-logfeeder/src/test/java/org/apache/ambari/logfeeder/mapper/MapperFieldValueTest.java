@@ -21,6 +21,7 @@ package org.apache.ambari.logfeeder.mapper;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.MapFieldValueDescriptorImpl;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
@@ -35,12 +36,12 @@ public class MapperFieldValueTest {
   public void testMapperFieldValue_replaceValue() {
     LOG.info("testMapperFieldValue_replaceValue()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("pre_value", "someValue");
-    mapConfigs.put("post_value", "someOtherValue");
+    MapFieldValueDescriptorImpl mapFieldValueDescriptor = new MapFieldValueDescriptorImpl();
+    mapFieldValueDescriptor.setPreValue("someValue");
+    mapFieldValueDescriptor.setPostValue("someOtherValue");
 
     MapperFieldValue mapperFieldValue = new MapperFieldValue();
-    assertTrue("Could not initialize!", mapperFieldValue.init(null, "someField", null, mapConfigs));
+    assertTrue("Could not initialize!", mapperFieldValue.init(null, "someField", null, mapFieldValueDescriptor));
 
     Map<String, Object> jsonObj = new HashMap<>();
 
@@ -52,33 +53,25 @@ public class MapperFieldValueTest {
   }
 
   @Test
-  public void testMapperFieldValue_configNotMap() {
-    LOG.info("testMapperFieldValue_configNotMap()");
-
-    MapperFieldValue mapperFieldValue = new MapperFieldValue();
-    assertFalse("Was able to initialize!", mapperFieldValue.init(null, "someField", null, ""));
-  }
-
-  @Test
   public void testMapperFieldValue_noPostValue() {
     LOG.info("testMapperFieldValue_noPostValue()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
+    MapFieldValueDescriptorImpl mapFieldValueDescriptor = new MapFieldValueDescriptorImpl();
 
     MapperFieldValue mapperFieldValue = new MapperFieldValue();
-    assertFalse("Was able to initialize!", mapperFieldValue.init(null, "someField", null, mapConfigs));
+    assertFalse("Was not able to initialize!", mapperFieldValue.init(null, "someField", null, mapFieldValueDescriptor));
   }
 
   @Test
   public void testMapperFieldValue_noPreValueFound() {
     LOG.info("testMapperFieldValue_noPreValueFound()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("pre_value", "someValue");
-    mapConfigs.put("post_value", "someOtherValue");
+    MapFieldValueDescriptorImpl mapFieldValueDescriptor = new MapFieldValueDescriptorImpl();
+    mapFieldValueDescriptor.setPreValue("someValue");
+    mapFieldValueDescriptor.setPostValue("someOtherValue");
 
     MapperFieldValue mapperFieldValue = new MapperFieldValue();
-    assertTrue("Could not initialize!", mapperFieldValue.init(null, "someField", null, mapConfigs));
+    assertTrue("Could not initialize!", mapperFieldValue.init(null, "someField", null, mapFieldValueDescriptor));
 
     Map<String, Object> jsonObj = new HashMap<>();
 

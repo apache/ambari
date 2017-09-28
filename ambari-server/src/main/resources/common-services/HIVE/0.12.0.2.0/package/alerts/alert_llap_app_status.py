@@ -26,7 +26,7 @@ import subprocess
 
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
-from ambari_commons.os_check import OSConst
+from resource_management.libraries.functions import stack_tools
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core import shell
 from resource_management.core.resources import Execute
@@ -47,10 +47,10 @@ UKNOWN_STATUS_CODE = 'UNKNOWN'
 
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 
-HIVE_PRINCIPAL_KEY = '{{hive-interactive-site/hive.llap.zk.sm.principal}}'
+HIVE_PRINCIPAL_KEY = '{{hive-interactive-site/hive.llap.daemon.service.principal}}'
 HIVE_PRINCIPAL_DEFAULT = 'default.hive.principal'
 
-HIVE_PRINCIPAL_KEYTAB_KEY = '{{hive-interactive-site/hive.llap.zk.sm.keytab.file}}'
+HIVE_PRINCIPAL_KEYTAB_KEY = '{{hive-interactive-site/hive.llap.daemon.keytab.file}}'
 HIVE_PRINCIPAL_KEYTAB_DEFAULT = 'default.hive.keytab'
 
 HIVE_AUTHENTICATION_DEFAULT = 'NOSASL'
@@ -58,6 +58,7 @@ HIVE_AUTHENTICATION_DEFAULT = 'NOSASL'
 HIVE_USER_KEY = '{{hive-env/hive_user}}'
 HIVE_USER_DEFAULT = 'default.smoke.user'
 
+STACK_NAME = '{{cluster-env/stack_name}}'
 STACK_ROOT = '{{cluster-env/stack_root}}'
 STACK_ROOT_DEFAULT = Script.get_stack_root()
 
@@ -88,7 +89,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (SECURITY_ENABLED_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_PRINCIPAL_KEY, HIVE_PRINCIPAL_KEYTAB_KEY,
-          HIVE_USER_KEY, STACK_ROOT, LLAP_APP_NAME_KEY)
+          HIVE_USER_KEY, STACK_NAME, STACK_ROOT, LLAP_APP_NAME_KEY)
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -159,8 +160,11 @@ def execute(configurations={}, parameters={}, host_name=None):
 
 
     start_time = time.time()
-    if STACK_ROOT in configurations:
-      llap_status_cmd = configurations[STACK_ROOT] + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}  --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
+    if STACK_NAME in configurations and STACK_ROOT in configurations:
+      stack_root = stack_tools.get_stack_root(configurations[STACK_NAME],
+        configurations[STACK_ROOT])
+
+      llap_status_cmd = stack_root + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}  --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
     else:
       llap_status_cmd = STACK_ROOT_DEFAULT + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
 

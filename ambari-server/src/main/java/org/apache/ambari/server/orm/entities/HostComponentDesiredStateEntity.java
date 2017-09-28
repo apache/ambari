@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,14 +32,12 @@ import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 
 import com.google.common.base.Objects;
@@ -94,18 +92,6 @@ public class HostComponentDesiredStateEntity {
   @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
   private State desiredState = State.INIT;
-
-  @Basic
-  @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
-  @Enumerated(value = EnumType.STRING)
-  private SecurityState securityState = SecurityState.UNSECURED;
-
-  /**
-   * Unidirectional one-to-one association to {@link StackEntity}
-   */
-  @OneToOne
-  @JoinColumn(name = "desired_stack_id", unique = false, nullable = false)
-  private StackEntity desiredStack;
 
   @Enumerated(value = EnumType.STRING)
   @Column(name = "admin_state", nullable = true, insertable = true, updatable = true)
@@ -168,22 +154,6 @@ public class HostComponentDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
-  public SecurityState getSecurityState() {
-    return securityState;
-  }
-
-  public void setSecurityState(SecurityState securityState) {
-    this.securityState = securityState;
-  }
-
-  public StackEntity getDesiredStack() {
-    return desiredStack;
-  }
-
-  public void setDesiredStack(StackEntity desiredStack) {
-    this.desiredStack = desiredStack;
-  }
-
   public HostComponentAdminState getAdminState() {
     return adminState;
   }
@@ -223,10 +193,6 @@ public class HostComponentDesiredStateEntity {
       return false;
     }
 
-    if (!Objects.equal(desiredStack, that.desiredStack)) {
-      return false;
-    }
-
     if (!Objects.equal(desiredState, that.desiredState)) {
       return false;
     }
@@ -249,7 +215,6 @@ public class HostComponentDesiredStateEntity {
     result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
-    result = 31 * result + (desiredStack != null ? desiredStack.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
   }

@@ -17,7 +17,7 @@
   limitations under the License.
 -->
 <assembly>
-  <id></id>
+  <id>odpi-ambari-mpack</id>
   <formats>
     <format>dir</format>
     <format>tar.gz</format>

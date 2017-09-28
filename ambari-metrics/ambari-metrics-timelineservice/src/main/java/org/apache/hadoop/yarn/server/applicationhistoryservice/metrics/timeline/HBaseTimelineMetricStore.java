@@ -19,14 +19,18 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
+import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricWithAggregatedValues;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.service.AbstractService;
@@ -40,6 +44,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConditionBuilder;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.TopNCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.SeriesAggregateFunction;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunction;
@@ -51,6 +56,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +66,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
@@ -75,6 +82,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
+  private boolean containerMetricsDisabled = false;
 
   /**
    * Construct the service.
@@ -150,10 +158,14 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       scheduleAggregatorThread(dailyClusterAggregator);
 
       // Start the minute host aggregator
-      TimelineMetricAggregator minuteHostAggregator =
-        TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(
-          hBaseAccessor, metricsConf, haController);
-      scheduleAggregatorThread(minuteHostAggregator);
+      if (Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION, "true"))) {
+        LOG.info("timeline.metrics.host.inmemory.aggregation is set to True, disabling host minute aggregation on collector");
+      } else {
+        TimelineMetricAggregator minuteHostAggregator =
+          TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(
+            hBaseAccessor, metricsConf, haController);
+        scheduleAggregatorThread(minuteHostAggregator);
+      }
 
       // Start the hourly host aggregator
       TimelineMetricAggregator hourlyHostAggregator =
@@ -177,7 +189,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         LOG.info("Started watchdog for timeline metrics store with initial " +
           "delay = " + initDelay + ", delay = " + delay);
       }
-
+      containerMetricsDisabled = configuration.isContainerMetricsDisabled();
       isInitialized = true;
     }
 
@@ -300,8 +312,12 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       if (prevTime != null) {
         step = currTime - prevTime;
         diff = currVal - prevVal;
-        Double rate = isDiff ? diff : (diff / TimeUnit.MILLISECONDS.toSeconds(step));
-        timeValueEntry.setValue(rate);
+        if (diff < 0) {
+          it.remove(); //Discard calculating rate when the metric counter has been reset.
+        } else {
+          Double rate = isDiff ? diff : (diff / TimeUnit.MILLISECONDS.toSeconds(step));
+          timeValueEntry.setValue(rate);
+        }
       } else {
         it.remove();
       }
@@ -352,6 +368,12 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   @Override
   public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
       throws SQLException, IOException {
+
+    if (containerMetricsDisabled) {
+      LOG.debug("Ignoring submitted container metrics according to configuration. Values will not be stored.");
+      return new TimelinePutResponse();
+    }
+
     hBaseAccessor.insertContainerMetrics(metrics);
     return new TimelinePutResponse();
   }
@@ -388,8 +410,66 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   }
 
   @Override
-  public Map<String, Set<String>> getInstanceHostsMetadata() throws SQLException, IOException {
-    return metricMetadataManager.getHostedInstanceCache();
+  public TimelinePutResponse putHostAggregatedMetrics(AggregationResult aggregationResult) throws SQLException, IOException {
+    Map<TimelineMetric, MetricHostAggregate> aggregateMap = new HashMap<>();
+    for (TimelineMetricWithAggregatedValues entry : aggregationResult.getResult()) {
+      aggregateMap.put(entry.getTimelineMetric(), entry.getMetricAggregate());
+    }
+    hBaseAccessor.saveHostAggregateRecords(aggregateMap, PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME);
+
+
+    return new TimelinePutResponse();
+  }
+
+  @Override
+  public Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId)
+          throws SQLException, IOException {
+
+    Map<String, Set<String>> hostedApps = metricMetadataManager.getHostedAppsCache();
+    Map<String, Set<String>> instanceHosts = new HashMap<>();
+    if (configuration.getTimelineMetricsMultipleClusterSupport()) {
+      instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    }
+
+    Map<String, Map<String, Set<String>>> instanceAppHosts = new HashMap<>();
+
+    if (MapUtils.isEmpty(instanceHosts)) {
+      Map<String, Set<String>> appHostMap = new HashMap<String, Set<String>>();
+      for (String host : hostedApps.keySet()) {
+        for (String app : hostedApps.get(host)) {
+          if (!appHostMap.containsKey(app)) {
+            appHostMap.put(app, new HashSet<String>());
+          }
+          appHostMap.get(app).add(host);
+        }
+      }
+      instanceAppHosts.put("", appHostMap);
+    } else {
+      for (String instance : instanceHosts.keySet()) {
+
+        if (StringUtils.isNotEmpty(instanceId) && !instance.equals(instanceId)) {
+          continue;
+        }
+        Map<String, Set<String>> appHostMap = new  HashMap<String, Set<String>>();
+        instanceAppHosts.put(instance, appHostMap);
+
+        Set<String> hostsWithInstance = instanceHosts.get(instance);
+        for (String host : hostsWithInstance) {
+          for (String app : hostedApps.get(host)) {
+            if (StringUtils.isNotEmpty(appId) && !app.equals(appId)) {
+              continue;
+            }
+
+            if (!appHostMap.containsKey(app)) {
+              appHostMap.put(app, new HashSet<String>());
+            }
+            appHostMap.get(app).add(host);
+          }
+        }
+      }
+    }
+
+    return instanceAppHosts;
   }
 
   @Override

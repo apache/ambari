@@ -55,9 +55,11 @@ public abstract class AbstractSolrConfigHandler implements SolrZkRequestHandler<
       ZkConfigManager zkConfigManager = new ZkConfigManager(zkClient);
       boolean configExists = zkConfigManager.configExists(solrPropsConfig.getConfigName());
       if (configExists) {
+        uploadMissingConfigFiles(zkClient, zkConfigManager, solrPropsConfig.getConfigName());
         reloadCollectionNeeded = doIfConfigExists(solrPropsConfig, zkClient, separator, downloadFolderLocation, tmpDir);
       } else {
         doIfConfigNotExist(solrPropsConfig, zkConfigManager);
+        uploadMissingConfigFiles(zkClient, zkConfigManager, solrPropsConfig.getConfigName());
       }
     } catch (Exception e) {
       throw new RuntimeException(String.format("Cannot upload configurations to zk. (collection: %s, config set folder: %s)",
@@ -86,9 +88,15 @@ public abstract class AbstractSolrConfigHandler implements SolrZkRequestHandler<
    */
   public abstract String getConfigFileName();
 
+  @SuppressWarnings("unused")
   public void doIfConfigNotExist(SolrPropsConfig solrPropsConfig, ZkConfigManager zkConfigManager) throws IOException {
     // Do nothing
   };
+
+  @SuppressWarnings("unused")
+  public void uploadMissingConfigFiles(SolrZkClient zkClient, ZkConfigManager zkConfigManager, String configName) throws IOException {
+    // do Nothing
+  }
 
   public boolean doIfConfigExists(SolrPropsConfig solrPropsConfig, SolrZkClient zkClient, String separator, String downloadFolderLocation, File tmpDir) throws IOException {
     boolean result = false;

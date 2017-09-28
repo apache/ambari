@@ -1,0 +1,18 @@
+{
+  "ZEPPELIN": {
+    "service": [],
+    "ZEPPELIN_MASTER": [
+      {
+        "name": "zeppelin_server_status",
+        "label": "Zeppelin Server Status",
+        "description": "This host-level alert is triggered if the Zeppelin server cannot be determined to be up and responding to client requests.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "ZEPPELIN/0.6.0/package/scripts/alert_check_zeppelin.py"
+        }
+      }
+    ]
+  }
+}

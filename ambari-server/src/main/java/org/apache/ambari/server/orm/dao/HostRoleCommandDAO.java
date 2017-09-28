@@ -70,6 +70,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -429,7 +430,7 @@ public class HostRoleCommandDAO {
 
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       if (!hostCommands.containsKey(commandEntity.getHostName())) {
-        hostCommands.put(commandEntity.getHostName(), new ArrayList<HostRoleCommandEntity>());
+        hostCommands.put(commandEntity.getHostName(), new ArrayList<>());
       }
 
       hostCommands.get(commandEntity.getHostName()).add(commandEntity);
@@ -737,7 +738,7 @@ public class HostRoleCommandDAO {
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public void remove(HostRoleCommandEntity entity) {
     EntityManager entityManager = entityManagerProvider.get();
-    entityManager.remove(merge(entity));
+    entityManager.remove(entity);
     invalidateHostRoleCommandStatusSummaryCache(entity);
   }
 
@@ -994,9 +995,9 @@ public class HostRoleCommandDAO {
     }
   }
 
-  public List<Long> findTaskIdsByRequestStageIds(List<RequestDAO.StageEntityPK> requestStageIds) {
+  public Set<Long> findTaskIdsByRequestStageIds(List<RequestDAO.StageEntityPK> requestStageIds) {
     EntityManager entityManager = entityManagerProvider.get();
-    List<Long> taskIds = new ArrayList<Long>();
+    List<Long> taskIds = new ArrayList<>();
     for (RequestDAO.StageEntityPK requestIds : requestStageIds) {
       TypedQuery<Long> hostRoleCommandQuery =
               entityManager.createNamedQuery("HostRoleCommandEntity.findTaskIdsByRequestStageIds", Long.class);
@@ -1007,6 +1008,6 @@ public class HostRoleCommandDAO {
       taskIds.addAll(daoUtils.selectList(hostRoleCommandQuery));
     }
 
-    return taskIds;
+    return Sets.newHashSet(taskIds);
   }
 }

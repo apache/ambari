@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -45,7 +46,10 @@ import java.util.Map;
  */
 public class RangerService {
 
+  public static final String RANGER_HIVE_AUTHORIZER_FACTORY_CLASSNAME = "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory";
   private static final String RANGER_CONFIG_URL = "/api/v1/clusters/%s/configurations/service_config_versions?service_name=RANGER&is_current=true";
+  public static final String HIVESERVER2_SITE = "hiveserver2-site";
+  public static final String AUTHORIZATION_MANAGER_KEY = "hive.security.authorization.manager";
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -74,6 +78,12 @@ public class RangerService {
   }
 
   private List<Policy> getPoliciesFromAmbariCluster(String database, String table) {
+
+    if (!isHiveRangerPluginEnabled()) {
+      LOG.error("Ranger authorization is not enabled for Hive");
+      throw new RangerException("Ranger authorization is not enabled for Hive", "CONFIGURATION_ERROR", 500);
+    }
+
     String rangerUrl = null;
     try {
       rangerUrl = getRangerUrlFromAmbari();
@@ -119,7 +129,9 @@ public class RangerService {
     if (parsedResult instanceof JSONObject) {
       JSONObject obj = (JSONObject) parsedResult;
       LOG.error("Bad response from Ranger: {}", rangerResponse);
-      throw new RangerException((String)obj.get("msgDesc"), "RANGER_ERROR", ((Long)obj.get("statusCode")).intValue());
+      int status = ((Long) obj.get("statusCode")).intValue();
+      status = status == Response.Status.UNAUTHORIZED.getStatusCode() ? Response.Status.FORBIDDEN.getStatusCode() : status;
+      throw new RangerException((String) obj.get("msgDesc"), "RANGER_ERROR", status);
     }
     JSONArray jsonArray = (JSONArray) parsedResult;
     if (jsonArray.size() == 0) {
@@ -143,7 +155,7 @@ public class RangerService {
     JSONArray policyItems = (JSONArray) policyJson.get("policyItems");
     Policy policy = new Policy(name);
 
-    for(Object item: policyItems) {
+    for (Object item : policyItems) {
       PolicyCondition condition = new PolicyCondition();
       JSONObject policyItem = (JSONObject) item;
       JSONArray usersJson = (JSONArray) policyItem.get("users");
@@ -239,7 +251,7 @@ public class RangerService {
 
   private RangerCred getRangerCredFromConfig() {
     return new RangerCred(context.getProperties().get("hive.ranger.username"),
-        context.getProperties().get("hive.ranger.password"));
+      context.getProperties().get("hive.ranger.password"));
   }
 
   public String getRangerUrlFromAmbari() throws AmbariHttpException {
@@ -268,6 +280,14 @@ public class RangerService {
 
   public String getRangerUrlFromConfig() {
     return context.getProperties().get("hive.ranger.url");
+  }
+
+  /**
+   * Check if the ranger plugin is enable for hive
+   */
+  private boolean isHiveRangerPluginEnabled() {
+    String authManagerConf = context.getCluster().getConfigurationValue(HIVESERVER2_SITE, AUTHORIZATION_MANAGER_KEY);
+    return !StringUtils.isEmpty(authManagerConf) && authManagerConf.equals(RANGER_HIVE_AUTHORIZER_FACTORY_CLASSNAME);
   }
 
   /**

@@ -83,6 +83,8 @@ AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
 AGENT_TMP_DIR=/var/lib/ambari-agent/tmp
 AGENT_WORKING_DIR=/var/lib/ambari-agent
 AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
+COMMON_DIR=/usr/lib/python2.6/site-packages/ambari_commons
+COMMON_DIR_AGENT=/usr/lib/ambari-agent/lib/ambari_commons
 OK=0
 NOTOK=1
 
@@ -165,6 +167,19 @@ check_python_version ()
   return $OK
 }
 
+check_ambari_common_dir ()
+{
+  echo "Checking ambari-common dir..."
+  # recursively compare all files except 'pyc' and 'pyo' in agent common dir and actual common dir to ensure they are up to date
+  diff -r $COMMON_DIR $COMMON_DIR_AGENT -x '*.py?'
+  OUT=$?
+  if [ $OUT -ne 0 ];then
+    echo "ERROR: ambari_commons folder mismatch. $COMMON_DIR content should be the same as $COMMON_DIR_AGENT. Either ambari-agent is co-hosted with ambari-server and agent was upgraded without server or the link was broken."
+    return $NOTOK
+  fi
+  return $OK
+}
+
 retcode=0
 
 case "${1:-}" in
@@ -188,6 +203,11 @@ case "${1:-}" in
           fi
         fi
         change_files_permissions
+
+        check_ambari_common_dir
+        if [ "$?" -eq "$NOTOK" ]; then
+          exit -1
+        fi
 
         echo "Starting ambari-agent"
 

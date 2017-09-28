@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,9 +26,8 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.eclipse.persistence.config.HintValues;
-import org.eclipse.persistence.config.QueryHints;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -90,10 +89,10 @@ public class UpgradeDAO {
 
   @RequiresSession
   public UpgradeEntity findUpgradeByRequestId(Long requestId) {
-    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createQuery(
-        "SELECT p FROM UpgradeEntity p WHERE p.requestId = :requestId", UpgradeEntity.class);
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findUpgradeByRequestId", UpgradeEntity.class);
+
     query.setParameter("requestId", requestId);
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectSingle(query);
   }
@@ -131,25 +130,9 @@ public class UpgradeDAO {
     TypedQuery<UpgradeGroupEntity> query = entityManagerProvider.get().createQuery(
         "SELECT p FROM UpgradeGroupEntity p WHERE p.upgradeGroupId = :groupId", UpgradeGroupEntity.class);
     query.setParameter("groupId", groupId);
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectSingle(query);
   }
-
-  /**
-   * @param itemId the item id
-   * @return the upgrade item entity, or {@code null} if not found
-   */
-  @RequiresSession
-  public UpgradeItemEntity findUpgradeItem(long itemId) {
-    TypedQuery<UpgradeItemEntity> query = entityManagerProvider.get().createQuery(
-        "SELECT p FROM UpgradeItemEntity p WHERE p.upgradeItemId = :itemId", UpgradeItemEntity.class);
-    query.setParameter("itemId", Long.valueOf(itemId));
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
-
-    return daoUtils.selectSingle(query);
-  }
-
 
   /**
    * @param requestId the request id
@@ -163,8 +146,6 @@ public class UpgradeDAO {
         UpgradeItemEntity.class);
     query.setParameter("requestId", requestId);
     query.setParameter("stageId", stageId);
-
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectSingle(query);
   }
@@ -184,13 +165,12 @@ public class UpgradeDAO {
     query.setParameter("clusterId", clusterId);
     query.setParameter("direction", direction);
 
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
-
     return daoUtils.selectSingle(query);
   }
 
   /**
-   * @param clusterId the cluster id
+   * @param clusterId
+   *          the cluster id
    * @return the upgrade entity, or {@code null} if not found
    */
   @RequiresSession
@@ -200,7 +180,47 @@ public class UpgradeDAO {
     query.setMaxResults(1);
     query.setParameter("clusterId", clusterId);
 
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Gets the only revertable upgrade if one exists. By definition, only the
+   * most recent {@code RepositoryType#PATCH} or {@code RepositoryType#MAINT}
+   * upgrade which doesn't have a downgrade already is revertable.
+   *
+   * @param clusterId
+   *          the cluster id
+   * @return the upgrade which can be reverted, or {@code null} if not found
+   */
+  @RequiresSession
+  public UpgradeEntity findRevertable(long clusterId) {
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findRevertable", UpgradeEntity.class);
+    query.setMaxResults(1);
+    query.setParameter("clusterId", clusterId);
+
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Gets the only revertable upgrade if one exists. By definition, only the
+   * most recent {@code RepositoryType#PATCH} or {@code RepositoryType#MAINT}
+   * upgrade which doesn't have a downgrade already is revertable.
+   * <p>
+   * This method tries to use some fancy SQL to do the work instead of relying
+   * on columns to be set correctly.
+   *
+   * @param clusterId
+   *          the cluster id
+   * @return the upgrade which can be reverted, or {@code null} if not found
+   */
+  @RequiresSession
+  public UpgradeEntity findRevertableUsingJPQL(long clusterId) {
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findRevertableUsingJPQL", UpgradeEntity.class);
+    query.setMaxResults(1);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("revertableTypes", RepositoryType.REVERTABLE);
 
     return daoUtils.selectSingle(query);
   }

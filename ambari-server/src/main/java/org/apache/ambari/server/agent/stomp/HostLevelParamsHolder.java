@@ -57,8 +57,9 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
     for (Cluster cl : clusters.getClustersForHost(hostName)) {
       Host host = clusters.getHost(hostName);
+      //TODO fix repo info host param
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
-          ambariMetaInfo.getRepoInfo(cl, host),
+          null,//ambariMetaInfo.getRepoInfo(cl, host),
           recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), hostName));
 
       hostLevelParamsClusters.put(Long.toString(cl.getClusterId()),

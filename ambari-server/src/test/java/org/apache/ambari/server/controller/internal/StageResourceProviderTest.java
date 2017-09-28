@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -85,7 +85,7 @@ public class StageResourceProviderTest {
     hrcDao = createStrictMock(HostRoleCommandDAO.class);
     topologyManager = EasyMock.createNiceMock(TopologyManager.class);
 
-    expect(topologyManager.getStages()).andReturn(new ArrayList<StageEntity>()).atLeastOnce();
+    expect(topologyManager.getStages()).andReturn(new ArrayList<>()).atLeastOnce();
 
     expect(hrcDao.findAggregateCounts(EasyMock.anyObject(Long.class))).andReturn(
         new HashMap<Long, HostRoleCommandStatusSummaryDTO>() {
@@ -128,7 +128,7 @@ public class StageResourceProviderTest {
     Predicate predicate = createNiceMock(Predicate.class);
 
     expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
-    expect(request.getProperties()).andReturn(Collections.<Map<String,Object>>emptySet());
+    expect(request.getProperties()).andReturn(Collections.emptySet());
 
     replay(clusters, cluster, request, predicate);
 

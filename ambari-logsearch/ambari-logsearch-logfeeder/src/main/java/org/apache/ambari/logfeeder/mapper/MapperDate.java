@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logfeeder.mapper;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -26,6 +27,8 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapDateDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -36,21 +39,14 @@ public class MapperDate extends Mapper {
 
   private SimpleDateFormat targetDateFormatter = null;
   private boolean isEpoch = false;
-  private SimpleDateFormat srcDateFormatter=null;
+  private SimpleDateFormat srcDateFormatter = null;
 
   @Override
-  public boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs) {
+  public boolean init(String inputDesc, String fieldName, String mapClassCode, MapFieldDescriptor mapFieldDescriptor) {
     init(inputDesc, fieldName, mapClassCode);
-    if (!(mapConfigs instanceof Map)) {
-      LOG.fatal("Can't initialize object. mapConfigs class is not of type Map. " + mapConfigs.getClass().getName() +
-        ", map=" + this);
-      return false;
-    }
     
-    @SuppressWarnings("unchecked")
-    Map<String, Object> mapObjects = (Map<String, Object>) mapConfigs;
-    String targetDateFormat = (String) mapObjects.get("target_date_pattern");
-    String srcDateFormat = (String) mapObjects.get("src_date_pattern");
+    String targetDateFormat = ((MapDateDescriptor)mapFieldDescriptor).getTargetDatePattern();
+    String srcDateFormat = ((MapDateDescriptor)mapFieldDescriptor).getSourceDatePattern();
     if (StringUtils.isEmpty(targetDateFormat)) {
       LOG.fatal("Date format for map is empty. " + this);
     } else {
@@ -84,20 +80,7 @@ public class MapperDate extends Mapper {
           jsonObj.put(LogFeederConstants.IN_MEMORY_TIMESTAMP, ((Date) value).getTime());
         } else if (targetDateFormatter != null) {
           if (srcDateFormatter != null) {
-            Date srcDate = srcDateFormatter.parse(value.toString());
-            //set year in src_date when src_date does not have year component
-            if (!srcDateFormatter.toPattern().contains("yy")) {
-              Calendar currentCalendar = Calendar.getInstance();
-              Calendar logDateCalendar = Calendar.getInstance();
-              logDateCalendar.setTimeInMillis(srcDate.getTime());
-              if (logDateCalendar.get(Calendar.MONTH) > currentCalendar.get(Calendar.MONTH)) {
-                // set previous year as a log year  when log month is grater than current month
-                srcDate = DateUtils.setYears(srcDate, currentCalendar.get(Calendar.YEAR) - 1);
-              } else {
-                // set current year as a log year
-                srcDate = DateUtils.setYears(srcDate, currentCalendar.get(Calendar.YEAR));
-              }
-            }
+            Date srcDate = getSourceDate(value);
             value = targetDateFormatter.format(srcDate);
             jsonObj.put(LogFeederConstants.IN_MEMORY_TIMESTAMP, srcDate.getTime());
           } else {
@@ -115,5 +98,31 @@ public class MapperDate extends Mapper {
       }
     }
     return value;
+  }
+
+  private Date getSourceDate(Object value) throws ParseException {
+    Date srcDate = srcDateFormatter.parse(value.toString());
+    
+    Calendar currentCalendar = Calendar.getInstance();
+    
+    if (!srcDateFormatter.toPattern().contains("dd")) {
+      //set year/month/date in src_date when src_date does not have date component
+      srcDate = DateUtils.setYears(srcDate, currentCalendar.get(Calendar.YEAR));
+      srcDate = DateUtils.setMonths(srcDate, currentCalendar.get(Calendar.MONTH));
+      srcDate = DateUtils.setDays(srcDate, currentCalendar.get(Calendar.DAY_OF_MONTH));
+      // if with the current date the time stamp is after the current one, it must be previous day
+      if (srcDate.getTime() > currentCalendar.getTimeInMillis()) {
+        srcDate = DateUtils.addDays(srcDate, -1);
+      }      
+    } else if (!srcDateFormatter.toPattern().contains("yy")) {
+      //set year in src_date when src_date does not have year component
+      srcDate = DateUtils.setYears(srcDate, currentCalendar.get(Calendar.YEAR));
+      // if with the current year the time stamp is after the current one, it must be previous year
+      if (srcDate.getTime() > currentCalendar.getTimeInMillis()) {
+        srcDate = DateUtils.addYears(srcDate, -1);
+      }
+    }
+    
+    return srcDate;
   }
 }

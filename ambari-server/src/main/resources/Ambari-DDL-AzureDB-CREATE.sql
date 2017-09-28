@@ -29,7 +29,7 @@ sqlcmd -S localhost\SQLEXPRESS -i C:\app\ambari-server-1.3.0-SNAPSHOT\resources\
 ------create the database------
 
 ------create tables and grant privileges to db user---------
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.stack') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('stack') AND type = 'U')
 BEGIN
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE stack(
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.extension') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('extension') AND type = 'U')
 BEGIN
 CREATE TABLE extension(
   extension_id BIGINT NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE extension(
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.extensionlink') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('extensionlink') AND type = 'U')
 BEGIN
 CREATE TABLE extensionlink(
   link_id BIGINT NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE extensionlink(
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.adminresourcetype') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('adminresourcetype') AND type = 'U')
 BEGIN
 CREATE TABLE adminresourcetype (
   resource_type_id INTEGER NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE adminresourcetype (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.adminresource') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('adminresource') AND type = 'U')
 BEGIN
 CREATE TABLE adminresource (
   resource_id BIGINT NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE adminresource (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.clusters') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('clusters') AND type = 'U')
 BEGIN
 CREATE TABLE clusters (
   cluster_id BIGINT NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE clusters (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.clusterconfig') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('clusterconfig') AND type = 'U')
 BEGIN
 CREATE TABLE clusterconfig (
   config_id BIGINT NOT NULL,
@@ -111,9 +111,12 @@ CREATE TABLE clusterconfig (
   type_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   stack_id BIGINT NOT NULL,
+  selected SMALLINT NOT NULL DEFAULT 0,
   config_data VARCHAR(MAX) NOT NULL,
   config_attributes VARCHAR(MAX),
   create_timestamp BIGINT NOT NULL,
+  unmapped SMALLINT NOT NULL DEFAULT 0,
+  selected_timestamp BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY CLUSTERED (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
@@ -122,7 +125,7 @@ CREATE TABLE clusterconfig (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.serviceconfig') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('serviceconfig') AND type = 'U')
 BEGIN
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
@@ -140,7 +143,7 @@ CREATE TABLE serviceconfig (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hosts') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hosts') AND type = 'U')
 BEGIN
 CREATE TABLE hosts (
   host_id BIGINT NOT NULL,
@@ -164,7 +167,7 @@ CREATE TABLE hosts (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.serviceconfighosts') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('serviceconfighosts') AND type = 'U')
 BEGIN
 CREATE TABLE serviceconfighosts (
   service_config_id BIGINT NOT NULL,
@@ -175,7 +178,7 @@ CREATE TABLE serviceconfighosts (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.serviceconfigmapping') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('serviceconfigmapping') AND type = 'U')
 BEGIN
 CREATE TABLE serviceconfigmapping (
   service_config_id BIGINT NOT NULL,
@@ -186,21 +189,7 @@ CREATE TABLE serviceconfigmapping (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.clusterconfigmapping') AND type = 'U')
-BEGIN
-CREATE TABLE clusterconfigmapping (
-  cluster_id BIGINT NOT NULL,
-  type_name VARCHAR(255) NOT NULL,
-  version_tag VARCHAR(255) NOT NULL,
-  create_timestamp BIGINT NOT NULL,
-  selected INT NOT NULL DEFAULT 0,
-  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
-  CONSTRAINT PK_clusterconfigmapping PRIMARY KEY CLUSTERED (cluster_id, type_name, create_timestamp ),
-  CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id))
-END
-
-
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.clusterservices') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('clusterservices') AND type = 'U')
 BEGIN
 CREATE TABLE clusterservices (
   service_name VARCHAR(255) NOT NULL,
@@ -211,7 +200,7 @@ CREATE TABLE clusterservices (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.clusterstate') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('clusterstate') AND type = 'U')
 BEGIN
 CREATE TABLE clusterstate (
   cluster_id BIGINT NOT NULL,
@@ -223,7 +212,7 @@ CREATE TABLE clusterstate (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.repo_version') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('repo_version') AND type = 'U')
 BEGIN
 CREATE TABLE repo_version (
   repo_version_id BIGINT NOT NULL,
@@ -232,6 +221,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR(128) NOT NULL,
   repositories VARCHAR(MAX) NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden SMALLINT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml VARCHAR(MAX),
   version_xsd VARCHAR(512),
@@ -243,78 +233,55 @@ CREATE TABLE repo_version (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.cluster_version') AND type = 'U')
-BEGIN
-CREATE TABLE cluster_version (
-  id BIGINT NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  repo_version_id BIGINT NOT NULL,
-  STATE VARCHAR(255) NOT NULL,
-  start_time BIGINT NOT NULL,
-  end_time BIGINT,
-  user_name VARCHAR(255),
-  CONSTRAINT PK_cluster_version PRIMARY KEY CLUSTERED (id),
-  CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_cluster_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id))
-END
-
-
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.servicecomponentdesiredstate') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('servicecomponentdesiredstate') AND type = 'U')
 BEGIN
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
-  desired_stack_id BIGINT NOT NULL,
-  desired_version VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
+  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
+  repo_state VARCHAR(255) NOT NULL DEFAULT 'NOT_REQUIRED',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
-  CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id))
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hostcomponentdesiredstate') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hostcomponentdesiredstate') AND type = 'U')
 BEGIN
 CREATE TABLE hostcomponentdesiredstate (
   id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
-  desired_stack_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   admin_state VARCHAR(32),
   maintenance_state VARCHAR(32) NOT NULL,
-  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required BIT NOT NULL DEFAULT 0,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY CLUSTERED (id),
-  CONSTRAINT UQ_hcdesiredstate_name UNIQUE NONCLUSTERED (component_name, service_name, host_id, cluster_id),
-  CONSTRAINT FK_hcds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id),
-  CONSTRAINT hstcmponentdesiredstatehstid FOREIGN KEY (host_id) REFERENCES hosts (host_id))
+  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
+  CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id))
 END
 
 
-
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hostcomponentstate') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hostcomponentstate') AND type = 'U')
 BEGIN
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
-  current_stack_id BIGINT NOT NULL,
   current_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
-  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   CONSTRAINT PK_hostcomponentstate PRIMARY KEY CLUSTERED (id),
-  CONSTRAINT FK_hcs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id))
 END
@@ -326,7 +293,7 @@ CREATE NONCLUSTERED INDEX idx_host_component_state on hostcomponentstate(host_id
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hoststate') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hoststate') AND type = 'U')
 BEGIN
 CREATE TABLE hoststate (
   agent_version VARCHAR(255) NOT NULL,
@@ -341,24 +308,23 @@ CREATE TABLE hoststate (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.servicedesiredstate') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('servicedesiredstate') AND type = 'U')
 BEGIN
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
   desired_host_role_mapping INTEGER NOT NULL,
-  desired_stack_id BIGINT NOT NULL,
+  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL,
-  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY CLUSTERED (cluster_id,service_name),
-  CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id))
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.adminprincipaltype') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('adminprincipaltype') AND type = 'U')
 BEGIN
 CREATE TABLE adminprincipaltype (
   principal_type_id INTEGER NOT NULL,
@@ -368,7 +334,7 @@ CREATE TABLE adminprincipaltype (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.adminprincipal') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('adminprincipal') AND type = 'U')
 BEGIN
 CREATE TABLE adminprincipal (
   principal_id BIGINT NOT NULL,
@@ -378,7 +344,7 @@ CREATE TABLE adminprincipal (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.users') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('users') AND type = 'U')
 BEGIN
 CREATE TABLE users (
   user_id INTEGER,
@@ -396,7 +362,7 @@ CREATE TABLE users (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.groups') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('groups') AND type = 'U')
 BEGIN
 CREATE TABLE groups (
   group_id INTEGER,
@@ -410,7 +376,7 @@ CREATE TABLE groups (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.members') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('members') AND type = 'U')
 BEGIN
 CREATE TABLE members (
   member_id INTEGER,
@@ -423,7 +389,7 @@ CREATE TABLE members (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.requestschedule') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('requestschedule') AND type = 'U')
 BEGIN
 CREATE TABLE requestschedule (
   schedule_id BIGINT,
@@ -450,7 +416,7 @@ CREATE TABLE requestschedule (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.request') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('request') AND type = 'U')
 BEGIN
 CREATE TABLE request (
   request_id BIGINT NOT NULL,
@@ -464,14 +430,15 @@ CREATE TABLE request (
   request_type VARCHAR(255),
   request_schedule_id BIGINT,
   start_time BIGINT NOT NULL,
-  status VARCHAR(255),
+  status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   cluster_host_info VARBINARY(MAX) NOT NULL,
   CONSTRAINT PK_request PRIMARY KEY CLUSTERED (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id))
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.stage') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('stage') AND type = 'U')
 BEGIN
 CREATE TABLE stage (
   stage_id BIGINT NOT NULL,
@@ -484,12 +451,14 @@ CREATE TABLE stage (
   command_params VARBINARY(MAX),
   host_params VARBINARY(MAX),
   command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
+  status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   CONSTRAINT PK_stage PRIMARY KEY CLUSTERED (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id))
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.host_role_command') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('host_role_command') AND type = 'U')
 BEGIN
 CREATE TABLE host_role_command (
   task_id BIGINT NOT NULL,
@@ -505,7 +474,7 @@ CREATE TABLE host_role_command (
   start_time BIGINT NOT NULL,
   original_start_time BIGINT NOT NULL,
   end_time BIGINT,
-  status VARCHAR(255),
+  status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   auto_skip_on_failure SMALLINT DEFAULT 0 NOT NULL,
   std_error VARBINARY(max),
   std_out VARBINARY(max),
@@ -516,13 +485,14 @@ CREATE TABLE host_role_command (
   command_detail VARCHAR(255),
   custom_command_name VARCHAR(255),
   is_background SMALLINT DEFAULT 0 NOT NULL,
+  ops_display_name VARCHAR(255),
   CONSTRAINT PK_host_role_command PRIMARY KEY CLUSTERED (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_role_command_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id))
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.execution_command') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('execution_command') AND type = 'U')
 BEGIN
 CREATE TABLE execution_command (
   command VARBINARY(MAX),
@@ -532,7 +502,7 @@ CREATE TABLE execution_command (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.role_success_criteria') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('role_success_criteria') AND type = 'U')
 BEGIN
 CREATE TABLE role_success_criteria (
   ROLE VARCHAR(255) NOT NULL,
@@ -544,7 +514,7 @@ CREATE TABLE role_success_criteria (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.requestresourcefilter') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('requestresourcefilter') AND type = 'U')
 BEGIN
 CREATE TABLE requestresourcefilter (
   filter_id BIGINT NOT NULL,
@@ -557,7 +527,7 @@ CREATE TABLE requestresourcefilter (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.requestoperationlevel') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('requestoperationlevel') AND type = 'U')
 BEGIN
 CREATE TABLE requestoperationlevel (
   operation_level_id BIGINT NOT NULL,
@@ -572,7 +542,7 @@ CREATE TABLE requestoperationlevel (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.ClusterHostMapping') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('ClusterHostMapping') AND type = 'U')
 BEGIN
 CREATE TABLE ClusterHostMapping (
   cluster_id BIGINT NOT NULL,
@@ -583,7 +553,7 @@ CREATE TABLE ClusterHostMapping (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.key_value_store') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('key_value_store') AND type = 'U')
 BEGIN
 CREATE TABLE key_value_store (
   [key] VARCHAR(255),
@@ -593,7 +563,7 @@ CREATE TABLE key_value_store (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hostconfigmapping') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hostconfigmapping') AND type = 'U')
 BEGIN
 CREATE TABLE hostconfigmapping (
   cluster_id BIGINT NOT NULL,
@@ -610,7 +580,7 @@ CREATE TABLE hostconfigmapping (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.metainfo') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('metainfo') AND type = 'U')
 BEGIN
 CREATE TABLE metainfo (
   [metainfo_key] VARCHAR(255),
@@ -620,7 +590,7 @@ CREATE TABLE metainfo (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.ambari_sequences') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('ambari_sequences') AND type = 'U')
 BEGIN
 CREATE TABLE ambari_sequences (
   sequence_name VARCHAR(255),
@@ -629,7 +599,7 @@ CREATE TABLE ambari_sequences (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.configgroup') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('configgroup') AND type = 'U')
 BEGIN
 CREATE TABLE configgroup (
   group_id BIGINT,
@@ -644,7 +614,7 @@ CREATE TABLE configgroup (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.confgroupclusterconfigmapping') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('confgroupclusterconfigmapping') AND type = 'U')
 BEGIN
 CREATE TABLE confgroupclusterconfigmapping (
   config_group_id BIGINT NOT NULL,
@@ -659,7 +629,7 @@ CREATE TABLE confgroupclusterconfigmapping (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.configgrouphostmapping') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('configgrouphostmapping') AND type = 'U')
 BEGIN
 CREATE TABLE configgrouphostmapping (
   config_group_id BIGINT NOT NULL,
@@ -670,7 +640,7 @@ CREATE TABLE configgrouphostmapping (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.requestschedulebatchrequest') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('requestschedulebatchrequest') AND type = 'U')
 BEGIN
 CREATE TABLE requestschedulebatchrequest (
   schedule_id BIGINT,
@@ -687,7 +657,7 @@ CREATE TABLE requestschedulebatchrequest (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.blueprint') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('blueprint') AND type = 'U')
 BEGIN
 CREATE TABLE blueprint (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -699,7 +669,7 @@ CREATE TABLE blueprint (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hostgroup') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hostgroup') AND type = 'U')
 BEGIN
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -710,7 +680,7 @@ CREATE TABLE hostgroup (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hostgroup_component') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hostgroup_component') AND type = 'U')
 BEGIN
 CREATE TABLE hostgroup_component (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -722,7 +692,7 @@ CREATE TABLE hostgroup_component (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.blueprint_configuration') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('blueprint_configuration') AND type = 'U')
 BEGIN
 CREATE TABLE blueprint_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -734,7 +704,7 @@ CREATE TABLE blueprint_configuration (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.blueprint_setting') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('blueprint_setting') AND type = 'U')
 BEGIN
 CREATE TABLE blueprint_setting (
   id BIGINT NOT NULL,
@@ -748,7 +718,7 @@ CREATE TABLE blueprint_setting (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.hostgroup_configuration') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('hostgroup_configuration') AND type = 'U')
 BEGIN
 CREATE TABLE hostgroup_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -761,7 +731,7 @@ CREATE TABLE hostgroup_configuration (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewmain') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewmain') AND type = 'U')
 BEGIN
 CREATE TABLE viewmain (
   view_name VARCHAR(255) NOT NULL,
@@ -781,19 +751,19 @@ END
 
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewurl') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewurl') AND type = 'U')
 BEGIN
 CREATE table viewurl(
   url_id BIGINT ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY CLUSTERED (url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY CLUSTERED (url_id)
 )
 END
 
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewinstance') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewinstance') AND type = 'U')
 BEGIN
 CREATE TABLE viewinstance (
   view_instance_id BIGINT,
@@ -819,7 +789,7 @@ CREATE TABLE viewinstance (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewinstancedata') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewinstancedata') AND type = 'U')
 BEGIN
 CREATE TABLE viewinstancedata (
   view_instance_id BIGINT,
@@ -834,7 +804,7 @@ END
 
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewinstanceproperty') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewinstanceproperty') AND type = 'U')
 BEGIN
 CREATE TABLE viewinstanceproperty (
   view_name VARCHAR(255) NOT NULL,
@@ -846,7 +816,7 @@ CREATE TABLE viewinstanceproperty (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewparameter') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewparameter') AND type = 'U')
 BEGIN
 CREATE TABLE viewparameter (
   view_name VARCHAR(255) NOT NULL,
@@ -863,7 +833,7 @@ CREATE TABLE viewparameter (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewresource') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewresource') AND type = 'U')
 BEGIN
 CREATE TABLE viewresource (
   view_name VARCHAR(255) NOT NULL,
@@ -879,7 +849,7 @@ CREATE TABLE viewresource (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.viewentity') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('viewentity') AND type = 'U')
 BEGIN
 CREATE TABLE viewentity (
   id BIGINT NOT NULL,
@@ -892,7 +862,7 @@ CREATE TABLE viewentity (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.adminpermission') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('adminpermission') AND type = 'U')
 BEGIN
 CREATE TABLE adminpermission (
   permission_id BIGINT NOT NULL,
@@ -908,7 +878,7 @@ CREATE TABLE adminpermission (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.roleauthorization') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('roleauthorization') AND type = 'U')
 BEGIN
 CREATE TABLE roleauthorization (
   authorization_id VARCHAR(100) NOT NULL,
@@ -917,7 +887,7 @@ CREATE TABLE roleauthorization (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.permission_roleauthorization') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('permission_roleauthorization') AND type = 'U')
 BEGIN
 CREATE TABLE permission_roleauthorization (
   permission_id BIGINT NOT NULL,
@@ -928,7 +898,7 @@ CREATE TABLE permission_roleauthorization (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.adminprivilege') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('adminprivilege') AND type = 'U')
 BEGIN
 CREATE TABLE adminprivilege (
   privilege_id BIGINT,
@@ -942,7 +912,7 @@ CREATE TABLE adminprivilege (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.host_version') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('host_version') AND type = 'U')
 BEGIN
 CREATE TABLE host_version (
   id BIGINT NOT NULL,
@@ -952,11 +922,11 @@ CREATE TABLE host_version (
   CONSTRAINT PK_host_version PRIMARY KEY CLUSTERED (id),
   CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_host_repo UNIQUE(repo_version_id, host_id))
+  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id))
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.artifact') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('artifact') AND type = 'U')
 BEGIN
 CREATE TABLE artifact (
   artifact_name VARCHAR(255) NOT NULL,
@@ -967,7 +937,7 @@ CREATE TABLE artifact (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.widget') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('widget') AND type = 'U')
 BEGIN
 CREATE TABLE widget (
   id BIGINT NOT NULL,
@@ -987,7 +957,7 @@ CREATE TABLE widget (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.widget_layout') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('widget_layout') AND type = 'U')
 BEGIN
 CREATE TABLE widget_layout (
   id BIGINT NOT NULL,
@@ -1002,7 +972,7 @@ CREATE TABLE widget_layout (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.widget_layout_user_widget') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('widget_layout_user_widget') AND type = 'U')
 BEGIN
 CREATE TABLE widget_layout_user_widget (
   widget_layout_id BIGINT NOT NULL,
@@ -1014,7 +984,7 @@ CREATE TABLE widget_layout_user_widget (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.topology_request') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('topology_request') AND type = 'U')
 BEGIN
 CREATE TABLE topology_request (
   id BIGINT NOT NULL,
@@ -1030,7 +1000,7 @@ CREATE TABLE topology_request (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.topology_hostgroup') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('topology_hostgroup') AND type = 'U')
 BEGIN
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,
@@ -1043,7 +1013,7 @@ CREATE TABLE topology_hostgroup (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.topology_host_info') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('topology_host_info') AND type = 'U')
 BEGIN
 CREATE TABLE topology_host_info (
   id BIGINT NOT NULL,
@@ -1059,7 +1029,7 @@ CREATE TABLE topology_host_info (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.topology_logical_request') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('topology_logical_request') AND type = 'U')
 BEGIN
 CREATE TABLE topology_logical_request (
   id BIGINT NOT NULL,
@@ -1070,7 +1040,7 @@ CREATE TABLE topology_logical_request (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.topology_host_request') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('topology_host_request') AND type = 'U')
 BEGIN
 CREATE TABLE topology_host_request (
   id BIGINT NOT NULL,
@@ -1084,7 +1054,7 @@ CREATE TABLE topology_host_request (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.topology_host_task') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('topology_host_task') AND type = 'U')
 BEGIN
 CREATE TABLE topology_host_task (
   id BIGINT NOT NULL,
@@ -1095,7 +1065,7 @@ CREATE TABLE topology_host_task (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.topology_logical_task') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('topology_logical_task') AND type = 'U')
 BEGIN
 CREATE TABLE topology_logical_task (
   id BIGINT NOT NULL,
@@ -1108,7 +1078,7 @@ CREATE TABLE topology_logical_task (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.setting') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('setting') AND type = 'U')
 BEGIN
 CREATE TABLE setting (
   id BIGINT NOT NULL,
@@ -1124,7 +1094,7 @@ END
 
 -- Remote Cluster table
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.remoteambaricluster') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('remoteambaricluster') AND type = 'U')
 BEGIN
 CREATE TABLE remoteambaricluster(
   cluster_id BIGINT NOT NULL,
@@ -1137,7 +1107,7 @@ CREATE TABLE remoteambaricluster(
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.remoteambariclusterservice') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('remoteambariclusterservice') AND type = 'U')
 BEGIN
 CREATE TABLE remoteambariclusterservice(
   id BIGINT NOT NULL,
@@ -1152,29 +1122,31 @@ END
 -- Remote Cluster table ends
 
 -- upgrade tables
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.upgrade') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('upgrade') AND type = 'U')
 BEGIN
 CREATE TABLE upgrade (
   upgrade_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
-  from_version VARCHAR(255) DEFAULT '' NOT NULL,
-  to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
+  repo_version_id BIGINT NOT NULL,
   skip_failures BIT NOT NULL DEFAULT 0,
   skip_sc_failures BIT NOT NULL DEFAULT 0,
   downgrade_allowed BIT NOT NULL DEFAULT 1,
+  revert_allowed BIT NOT NULL DEFAULT 0,
   suspended BIT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY CLUSTERED (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id)
+  FOREIGN KEY (request_id) REFERENCES request(request_id),
+  FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id)
 )
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.upgrade_group') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('upgrade_group') AND type = 'U')
 BEGIN
 CREATE TABLE upgrade_group (
   upgrade_group_id BIGINT NOT NULL,
@@ -1187,7 +1159,7 @@ CREATE TABLE upgrade_group (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.upgrade_item') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('upgrade_item') AND type = 'U')
 BEGIN
 CREATE TABLE upgrade_item (
   upgrade_item_id BIGINT NOT NULL,
@@ -1203,24 +1175,25 @@ CREATE TABLE upgrade_item (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.servicecomponent_history') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('upgrade_history') AND type = 'U')
 BEGIN
-CREATE TABLE servicecomponent_history(
+CREATE TABLE upgrade_history(
   id BIGINT NOT NULL,
-  component_id BIGINT NOT NULL,
   upgrade_id BIGINT NOT NULL,
-  from_stack_id BIGINT NOT NULL,
-  to_stack_id BIGINT NOT NULL,
-  CONSTRAINT PK_sc_history PRIMARY KEY (id),
-  CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
-  CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id),
-  CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  from_repo_version_id BIGINT NOT NULL,
+  target_repo_version_id BIGINT NOT NULL,
+  CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
+  CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
+  CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT FK_upgrade_hist_target_repo FOREIGN KEY (target_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name)
 )
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.servicecomponent_version') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('servicecomponent_version') AND type = 'U')
 BEGIN
 CREATE TABLE servicecomponent_version(
   id BIGINT NOT NULL,
@@ -1235,7 +1208,7 @@ CREATE TABLE servicecomponent_version(
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.ambari_operation_history') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('ambari_operation_history') AND type = 'U')
 BEGIN
 CREATE TABLE ambari_operation_history(
   id BIGINT NOT NULL,
@@ -1286,7 +1259,7 @@ END
 
 
 -- Kerberos
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.kerberos_principal') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('kerberos_principal') AND type = 'U')
 BEGIN
 CREATE TABLE kerberos_principal (
   principal_name VARCHAR(255) NOT NULL,
@@ -1297,7 +1270,7 @@ CREATE TABLE kerberos_principal (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.kerberos_principal_host') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('kerberos_principal_host') AND type = 'U')
 BEGIN
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
@@ -1308,7 +1281,7 @@ CREATE TABLE kerberos_principal_host (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.kerberos_descriptor') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('kerberos_descriptor') AND type = 'U')
 BEGIN
 CREATE TABLE kerberos_descriptor
 (
@@ -1322,7 +1295,7 @@ END
 -- Kerberos (end)
 
 -- Alerting Framework
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_definition') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_definition') AND type = 'U')
 BEGIN
 CREATE TABLE alert_definition (
   definition_id BIGINT NOT NULL,
@@ -1349,7 +1322,7 @@ CREATE TABLE alert_definition (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_history') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_history') AND type = 'U')
 BEGIN
 CREATE TABLE alert_history (
   alert_id BIGINT NOT NULL,
@@ -1370,7 +1343,7 @@ CREATE TABLE alert_history (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_current') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_current') AND type = 'U')
 BEGIN
 CREATE TABLE alert_current (
   alert_id BIGINT NOT NULL,
@@ -1389,7 +1362,7 @@ CREATE TABLE alert_current (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_group') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_group') AND type = 'U')
 BEGIN
 CREATE TABLE alert_group (
   group_id BIGINT NOT NULL,
@@ -1403,7 +1376,7 @@ CREATE TABLE alert_group (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_target') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_target') AND type = 'U')
 BEGIN
 CREATE TABLE alert_target (
   target_id BIGINT NOT NULL,
@@ -1418,7 +1391,7 @@ CREATE TABLE alert_target (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_target_states') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_target_states') AND type = 'U')
 BEGIN
 CREATE TABLE alert_target_states (
   target_id BIGINT NOT NULL,
@@ -1428,7 +1401,7 @@ CREATE TABLE alert_target_states (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_group_target') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_group_target') AND type = 'U')
 BEGIN
 CREATE TABLE alert_group_target (
   group_id BIGINT NOT NULL,
@@ -1440,7 +1413,7 @@ CREATE TABLE alert_group_target (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_grouping') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_grouping') AND type = 'U')
 BEGIN
 CREATE TABLE alert_grouping (
   definition_id BIGINT NOT NULL,
@@ -1452,7 +1425,7 @@ CREATE TABLE alert_grouping (
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.alert_notice') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('alert_notice') AND type = 'U')
 BEGIN
 CREATE TABLE alert_notice (
   notification_id BIGINT NOT NULL,
@@ -1544,7 +1517,6 @@ BEGIN TRANSACTION
     ('alert_current_id_seq', 0),
     ('config_id_seq', 11),
     ('repo_version_id_seq', 0),
-    ('cluster_version_id_seq', 0),
     ('host_version_id_seq', 0),
     ('service_config_id_seq', 1),
     ('upgrade_id_seq', 0),
@@ -1565,7 +1537,7 @@ BEGIN TRANSACTION
     ('setting_id_seq', 0),
     ('hostcomponentstate_id_seq', 0),
     ('servicecomponentdesiredstate_id_seq', 0),
-    ('servicecomponent_history_id_seq', 0),
+    ('upgrade_history_id_seq', 0),
     ('blueprint_setting_id_seq', 0),
     ('ambari_operation_history_id_seq', 0),
     ('remote_cluster_id_seq', 0),
@@ -1881,7 +1853,7 @@ COMMIT TRANSACTION
 
 -- Quartz tables
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_job_details') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_job_details') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_job_details
   (
@@ -1900,7 +1872,7 @@ CREATE TABLE qrtz_job_details
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_triggers') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_triggers') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_triggers
   (
@@ -1927,7 +1899,7 @@ CREATE TABLE qrtz_triggers
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_simple_triggers') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_simple_triggers') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_simple_triggers
   (
@@ -1944,7 +1916,7 @@ CREATE TABLE qrtz_simple_triggers
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_cron_triggers') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_cron_triggers') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_cron_triggers
   (
@@ -1960,7 +1932,7 @@ CREATE TABLE qrtz_cron_triggers
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_simprop_triggers') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_simprop_triggers') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_simprop_triggers
   (
@@ -1985,7 +1957,7 @@ CREATE TABLE qrtz_simprop_triggers
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_blob_triggers') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_blob_triggers') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_blob_triggers
   (
@@ -2000,7 +1972,7 @@ CREATE TABLE qrtz_blob_triggers
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_calendars') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_calendars') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_calendars
   (
@@ -2013,7 +1985,7 @@ END
 
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_paused_trigger_grps') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_paused_trigger_grps') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_paused_trigger_grps
   (
@@ -2024,7 +1996,7 @@ CREATE TABLE qrtz_paused_trigger_grps
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_fired_triggers') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_fired_triggers') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_fired_triggers
   (
@@ -2046,7 +2018,7 @@ CREATE TABLE qrtz_fired_triggers
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_scheduler_state') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_scheduler_state') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_scheduler_state
   (
@@ -2059,7 +2031,7 @@ CREATE TABLE qrtz_scheduler_state
 END
 
 
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.qrtz_locks') AND type = 'U')
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('qrtz_locks') AND type = 'U')
 BEGIN
 CREATE TABLE qrtz_locks
   (

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -56,7 +56,7 @@ public class AlertHashInvalidationListener {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertHashInvalidationListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertHashInvalidationListener.class);
 
   /**
    * Invalidates hosts so that they can receive updated alert definition

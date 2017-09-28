@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,7 +42,7 @@ public final class JMXMetricHolder {
 
     for (Map<String, Object> map : beans) {
       for (Map.Entry<String, Object> entry : map.entrySet()) {
-        stringBuilder.append("    ").append(entry.toString()).append("\n");
+        stringBuilder.append("    ").append(entry).append("\n");
       }
     }
     return stringBuilder.toString();

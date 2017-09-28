@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.scheduler.BatchSettings;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.apache.ambari.server.utils.DateUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 import org.quartz.CronExpression;
 import org.quartz.JobDetail;
@@ -131,9 +132,7 @@ public class ExecutionScheduleManager {
 
     try {
       buildApiClient();
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    } catch (KeyManagementException e) {
+    } catch (NoSuchAlgorithmException | KeyManagementException e) {
       throw new RuntimeException(e);
     }
   }
@@ -245,7 +244,7 @@ public class ExecutionScheduleManager {
    * @param trigger
    */
   public void scheduleJob(Trigger trigger) {
-    LOG.debug("Scheduling job: " + trigger.getJobKey());
+    LOG.debug("Scheduling job: {}", trigger.getJobKey());
     if (isSchedulerAvailable()) {
       try {
         executionScheduler.scheduleJob(trigger);
@@ -336,7 +335,7 @@ public class ExecutionScheduleManager {
 
       try {
         executionScheduler.scheduleJob(trigger);
-        LOG.debug("Scheduled trigger next fire time: " + trigger.getNextFireTime());
+        LOG.debug("Scheduled trigger next fire time: {}", trigger.getNextFireTime());
       } catch (SchedulerException e) {
         LOG.error("Unable to schedule request execution.", e);
         throw new AmbariException(e.getMessage());
@@ -354,7 +353,7 @@ public class ExecutionScheduleManager {
 
       try {
         executionScheduler.scheduleJob(trigger);
-        LOG.debug("Scheduled trigger next fire time: " + trigger.getNextFireTime());
+        LOG.debug("Scheduled trigger next fire time: {}", trigger.getNextFireTime());
       } catch (SchedulerException e) {
         LOG.error("Unable to schedule request execution.", e);
         throw new AmbariException(e.getMessage());
@@ -414,8 +413,8 @@ public class ExecutionScheduleManager {
   }
 
   protected String getJobName(Long executionId, Long orderId) {
-    return BATCH_REQUEST_JOB_PREFIX + "-" + executionId.toString() + "-" +
-      orderId.toString();
+    return BATCH_REQUEST_JOB_PREFIX + "-" + executionId + "-" +
+      orderId;
   }
 
   /**
@@ -494,7 +493,7 @@ public class ExecutionScheduleManager {
           String jobName = getJobName(requestExecution.getId(),
             batchRequest.getOrderId());
 
-          LOG.debug("Deleting Job, jobName = " + jobName);
+          LOG.debug("Deleting Job, jobName = {}", jobName);
 
           try {
             executionScheduler.deleteJob(JobKey.jobKey(jobName,
@@ -664,7 +663,7 @@ public class ExecutionScheduleManager {
   }
 
   protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
-    WebResource webResource = ambariWebResource.path(relativeUri);
+    WebResource webResource = ambariWebResource.path(completeRelativeUri(relativeUri));
     if (queryAllFields) {
       webResource = webResource.queryParam("fields", "*");
     }
@@ -680,7 +679,7 @@ public class ExecutionScheduleManager {
   protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method, Integer userId) {
     ClientResponse response;
     try {
-      response = ambariWebResource.path(relativeUri).header(USER_ID_HEADER, userId).method(method, ClientResponse.class, body);
+      response = ambariWebResource.path(completeRelativeUri(relativeUri)).header(USER_ID_HEADER, userId).method(method, ClientResponse.class, body);
     } catch (UniformInterfaceException e) {
       response = e.getResponse();
     }
@@ -795,6 +794,17 @@ public class ExecutionScheduleManager {
     if (markCompleted) {
       requestExecution.updateStatus(RequestExecution.Status.COMPLETED);
     }
+  }
+
+  private String completeRelativeUri(String relativeUri){
+    if (StringUtils.isNotEmpty(relativeUri)
+        && !(relativeUri.startsWith("api/v1") || relativeUri.startsWith("/api/v1"))){
+      if (relativeUri.charAt(0) != '/') {
+        relativeUri = '/' + relativeUri;
+      }
+      return "api/v1" + relativeUri;
+    }
+    return relativeUri;
   }
 }
 

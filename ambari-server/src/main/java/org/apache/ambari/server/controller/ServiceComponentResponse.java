@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,46 +21,40 @@ package org.apache.ambari.server.controller;
 
 import java.util.Map;
 
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
+
 public class ServiceComponentResponse {
 
   private Long clusterId; // REF
-
   private String clusterName; // REF
-
   private String serviceName;
-
   private String componentName;
-
   private String displayName;
-
-  private String desiredStackVersion;
-
+  private String desiredStackId;
   private String desiredState;
-
   private String category;
-
-  Map<String, Integer> serviceComponentStateCount;
-
+  private Map<String, Integer> serviceComponentStateCount;
   private boolean recoveryEnabled;
+  private String desiredVersion;
+  private RepositoryVersionState repoState;
 
-  public ServiceComponentResponse(Long clusterId, String clusterName,
-                                  String serviceName,
-                                  String componentName,
-                                  String desiredStackVersion,
-                                  String desiredState,
-                                  Map<String, Integer> serviceComponentStateCount,
-                                  boolean recoveryEnabled,
-                                  String displayName) {
-    super();
+  public ServiceComponentResponse(Long clusterId, String clusterName, String serviceName,
+      String componentName, StackId desiredStackId, String desiredState,
+      Map<String, Integer> serviceComponentStateCount, boolean recoveryEnabled, String displayName,
+      String desiredVersion, RepositoryVersionState repoState) {
+
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     this.displayName = displayName;
-    this.desiredStackVersion = desiredStackVersion;
+    this.desiredStackId = desiredStackId.getStackId();
     this.desiredState = desiredState;
     this.serviceComponentStateCount = serviceComponentStateCount;
     this.recoveryEnabled = recoveryEnabled;
+    this.desiredVersion = desiredVersion;
+    this.repoState = repoState;
   }
 
   /**
@@ -141,17 +135,12 @@ public class ServiceComponentResponse {
   }
 
   /**
+   * Gets the desired stack ID.
+   *
    * @return the desiredStackVersion
    */
-  public String getDesiredStackVersion() {
-    return desiredStackVersion;
-  }
-
-  /**
-   * @param desiredStackVersion the desiredStackVersion to set
-   */
-  public void setDesiredStackVersion(String desiredStackVersion) {
-    this.desiredStackVersion = desiredStackVersion;
+  public String getDesiredStackId() {
+    return desiredStackId;
   }
 
   /**
@@ -196,10 +185,29 @@ public class ServiceComponentResponse {
     this.recoveryEnabled = recoveryEnabled;
   }
 
+  /**
+   * @return the desired version of the component
+   */
+  public String getDesiredVersion() {
+    return desiredVersion;
+  }
+
+  /**
+   * @return the state of the repository against the desired version
+   */
+  public RepositoryVersionState getRepositoryState() {
+    return repoState;
+  }
+
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceComponentResponse that =
         (ServiceComponentResponse) o;

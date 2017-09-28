@@ -106,7 +106,7 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
 
         if (name != null) {
           KerberosDescriptorEntity entity = kerberosDescriptorDAO.findByName(name);
-          results = entity == null ? Collections.<KerberosDescriptorEntity>emptyList() :
+          results = entity == null ? Collections.emptyList() :
               Collections.singletonList(entity);
         }
       }

@@ -75,7 +75,7 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
-      
+
       <service name="ACCUMULO">
         <component>ACCUMULO_TRACER</component>
         <component>ACCUMULO_GC</component>
@@ -277,14 +277,14 @@
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
-    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
+    <group xsi:type="update-stack" name="UPDATE_DESIRED_REPOSITORY_ID" title="Update Target Repositories">
+      <execute-stage title="Update Target Repositories">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction">
         </task>
       </execute-stage>
     </group>
 
-    
+
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
       <direction>UPGRADE</direction> <!--  prevent config changes on downgrade -->
       <skippable>true</skippable> <!-- May fix configuration problems manually -->
@@ -301,6 +301,22 @@
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_urlauth_filesystem_schemes"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating hive atlas application properties">
+        <task xsi:type="configure" id="hdp_2_6_maint_jaas_config_for_hive_hook">
+          <summary>Updating hive atlas application properties</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable">
+          <summary>Update tez.runtime.shuffle.ssl.enable property</summary>
+        </task>
       </execute-stage>
 
       <!-- HBASE -->
@@ -322,9 +338,16 @@
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for Ranger Yarn plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name"/>
       </execute-stage>
-      
+
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for YARN Preemption">
         <task xsi:type="configure" id="hdp_2_6_yarn_preemption"/>
+      </execute-stage>
+
+      <!-- YARN -->
+      <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM">
+        <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem">
+          <summary>Updating YARN NodeManager config for LLAP</summary>
+        </task>
       </execute-stage>
 
       <!-- KAFKA -->
@@ -337,13 +360,46 @@
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_atlas_plugin_cluster_name"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas Env gc-worker configuration">
+        <task xsi:type="configure" id="atlas_env_gc_worker"/>
+      </execute-stage>
+
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas Kafka configurations.">
+        <task xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete"/>
+      </execute-stage>
+
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating logger configurations for Atlas.">
+        <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
+      </execute-stage>
+
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Adding configuration for hbase conf directory">
+        <task xsi:type="configure" id="atlas_hbase_conf_dir"/>
+      </execute-stage>
+
       <!-- KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger Kms plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>
       </execute-stage>
 
+      <!--SPARK-->
+      <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark ThriftServer">
+        <task xsi:type="configure" id="hdp_2_6_0_0_spark_thriftserver"/>
+      </execute-stage>
+
+      <!--SPARK2-->
+      <execute-stage service="SPARK2" component="SPARK2_THRIFTSERVER" title="Apply config changes for Spark2 ThriftServer">
+        <task xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver"/>
+      </execute-stage>
+
+      <!-- RANGER -->
+      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Enabling Nested Group Sync for Ranger">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerUsersyncConfigCalculation">
+          <summary>Enabling Nested Group Sync for Ranger</summary>
+        </task>
+      </execute-stage>
+
     </group>
-    
+
 
     <!--
     After processing this group, the user-specified Kerberos descriptor will be updated to work with
@@ -372,7 +428,7 @@
         </task>
       </execute-stage>
     </group>
-    
+
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
@@ -394,16 +450,6 @@
         <component>RANGER_ADMIN</component>
         <component>RANGER_USERSYNC</component>
         <component>RANGER_TAGSYNC</component>
-      </service>
-    </group>
-
-    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
       </service>
     </group>
 
@@ -443,6 +489,16 @@
           <function>wait_for_safemode_off</function>
         </task>
       </execute-stage>
+    </group>
+
+    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
+      </service>
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">
@@ -736,7 +792,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -779,7 +835,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -859,7 +915,7 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -875,30 +931,6 @@
       </component>
 
       <component name="RANGER_TAGSYNC">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="RANGER_KMS">
-      <component name="RANGER_KMS_SERVER">
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Upgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-upgrade>
-
-        <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Downgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-downgrade>
-
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -943,6 +975,30 @@
       </component>
 
       <component name="NFS_GATEWAY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Downgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

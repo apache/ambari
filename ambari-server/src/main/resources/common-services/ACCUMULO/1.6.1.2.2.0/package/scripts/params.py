@@ -122,12 +122,21 @@ info_num_logs = config['configurations']['accumulo-log4j']['info_num_logs']
 # metrics2 properties
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+
+set_instanceId = "false"
+cluster_name = config["clusterName"]
+
+if 'cluster-env' in config['configurations'] and \
+        'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -144,6 +153,8 @@ if has_metric_collector:
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
 
 # if accumulo is selected accumulo_tserver_hosts should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
@@ -154,6 +165,7 @@ master_hosts = default('/clusterHostInfo/accumulo_master_hosts', [])
 monitor_hosts = default('/clusterHostInfo/accumulo_monitor_hosts', [])
 gc_hosts = default('/clusterHostInfo/accumulo_gc_hosts', [])
 tracer_hosts = default('/clusterHostInfo/accumulo_tracer_hosts', [])
+hostname = status_params.hostname
 
 # security properties
 accumulo_user_keytab = config['configurations']['accumulo-env']['accumulo_user_keytab']
@@ -164,11 +176,13 @@ kinit_path_local = status_params.kinit_path_local
 if security_enabled:
   bare_accumulo_principal = get_bare_principal(config['configurations']['accumulo-site']['general.kerberos.principal'])
   kinit_cmd = format("{kinit_path_local} -kt {accumulo_user_keytab} {accumulo_principal_name};")
+  general_kerberos_keytab = config['configurations']['accumulo-site']['general.kerberos.keytab']
+  general_kerberos_principal = config['configurations']['accumulo-site']['general.kerberos.principal'].replace('_HOST', hostname.lower())
+  accumulo_jaas_file = format("{server_conf_dir}/accumulo_jaas.conf")
 else:
   kinit_cmd = ""
 
 #for create_hdfs_directory
-hostname = status_params.hostname
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

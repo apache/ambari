@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -379,9 +379,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
 
     id = String.format("%s:%s", extensionInfo.getName(), extensionInfo.getVersion());
 
-    LOG.debug("Adding new extension to known extensions"
-        + ", extensionName = " + extensionInfo.getName()
-        + ", extensionVersion = " + extensionInfo.getVersion());
+    LOG.debug("Adding new extension to known extensions, extensionName = {}, extensionVersion = {}", extensionInfo.getName(), extensionInfo.getVersion());
 
 
     //todo: give additional thought on handling missing metainfo.xml
@@ -394,6 +392,8 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
       extensionInfo.setParentExtensionVersion(emx.getExtends());
       extensionInfo.setStacks(emx.getStacks());
       extensionInfo.setExtensions(emx.getExtensions());
+      extensionInfo.setActive(emx.getVersion().isActive());
+      extensionInfo.setAutoLink(emx.isAutoLink());
     }
 
     try {

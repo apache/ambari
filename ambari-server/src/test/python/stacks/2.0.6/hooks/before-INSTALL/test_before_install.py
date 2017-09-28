@@ -41,6 +41,16 @@ class TestHookBeforeInstall(RMFTestCase):
         repo_file_name='HDP',
         repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0'
     )
+
+    self.assertResourceCalled('Repository', 'KIBANA-4.5',
+        action=['create'],
+        base_url='http://packages.elastic.co/kibana/4.5/debian',
+        components=['stable', 'com1 com2'],
+        mirror_list=None,
+        repo_file_name='KIBANA',
+        repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0'
+    )
+
     self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
@@ -57,6 +67,36 @@ class TestHookBeforeInstall(RMFTestCase):
                        classname="BeforeInstallHook",
                        command="hook",
                        config_dict=command_json)
+
+    self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertNoMoreResources()
+
+
+
+  def test_hook_default_repository_file(self):
+    self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
+                       classname="BeforeInstallHook",
+                       command="hook",
+                       config_file="repository_file.json"
+    )
+    self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
+        action=['create'],
+        base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+        components=['HDP', 'main'],
+        mirror_list=None,
+        repo_file_name='ambari-hdp-4',
+        repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+        append_to_file=False)
+
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
+        action=['create'],
+        base_url='http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
+        components=['HDP-UTILS', 'main'],
+        mirror_list=None,
+        repo_file_name='ambari-hdp-4',
+        repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+        append_to_file=True)
 
     self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)

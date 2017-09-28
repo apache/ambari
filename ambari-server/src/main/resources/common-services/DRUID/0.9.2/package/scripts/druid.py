@@ -18,6 +18,7 @@ limitations under the License.
 """
 import json
 import os
+from resource_management import Fail
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import DownloadSource
@@ -113,6 +114,17 @@ def druid(upgrade_type=None, nodeType=None):
            node_jvm_opts=druid_env_config[format('druid.{node_type_lowercase}.jvm.opts')])
          )
     Logger.info(format("Created druid-{node_type_lowercase} jvm.config"))
+    # Handling hadoop Lzo jars if enable and node type is hadoop related eg Overlords and MMs
+    if ['middleManager', 'overlord'].__contains__(node_type_lowercase) and params.lzo_enabled and len(
+            params.lzo_packages) > 0:
+        try:
+            Logger.info(
+                format(
+                    "Copying hadoop lzo jars from {hadoop_lib_home} to {druid_hadoop_dependencies_dir}/hadoop-client/*/"))
+            Execute(
+                format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {druid_hadoop_dependencies_dir}/hadoop-client/*/'))
+        except Fail as ex:
+            Logger.info(format("No Hadoop LZO found at {hadoop_lib_home}/hadoop-lzo*.jar"))
 
   # All druid nodes have dependency on hdfs_client
   ensure_hadoop_directories()
@@ -149,17 +161,25 @@ def ensure_hadoop_directories():
                         type="directory",
                         action="create_on_execute",
                         owner=params.druid_user,
+                        group='hadoop',
                         recursive_chown=True,
                         recursive_chmod=True
                         )
 
-    # create the segment storage dir
-    create_hadoop_directory(storage_dir)
+    # create the segment storage dir, users like hive from group hadoop need to write to this directory
+    create_hadoop_directory(storage_dir, mode=0775)
 
   # Create HadoopIndexTask hadoopWorkingPath
   hadoop_working_path = druid_middlemanager_config['druid.indexer.task.hadoopWorkingPath']
   if hadoop_working_path is not None:
-    create_hadoop_directory(hadoop_working_path)
+    if hadoop_working_path.startswith(params.hdfs_tmp_dir):
+        params.HdfsResource(params.hdfs_tmp_dir,
+                            type="directory",
+                            action="create_on_execute",
+                            owner=params.hdfs_user,
+                            mode=0777,
+                            )
+    create_hadoop_directory(hadoop_working_path, mode=0775)
 
   # If HDFS is used for storing logs, create Index Task log directory
   indexer_logs_type = druid_common_config['druid.indexer.logs.type']
@@ -168,15 +188,16 @@ def ensure_hadoop_directories():
     create_hadoop_directory(indexer_logs_directory)
 
 
-def create_hadoop_directory(hadoop_dir):
+def create_hadoop_directory(hadoop_dir, mode=0755):
   import params
   params.HdfsResource(hadoop_dir,
                       type="directory",
                       action="create_on_execute",
                       owner=params.druid_user,
-                      mode=0755
+                      group='hadoop',
+                      mode=mode
                       )
-  Logger.info(format("Created Hadoop Directory [{hadoop_dir}]"))
+  Logger.info(format("Created Hadoop Directory [{hadoop_dir}], with mode [{mode}]"))
 
 
 def ensure_base_directories():

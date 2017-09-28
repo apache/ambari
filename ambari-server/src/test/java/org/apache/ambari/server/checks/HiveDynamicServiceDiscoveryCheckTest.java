@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -45,11 +46,13 @@ public class HiveDynamicServiceDiscoveryCheckTest {
 
   private final HiveDynamicServiceDiscoveryCheck m_check = new HiveDynamicServiceDiscoveryCheck();
 
+  final RepositoryVersionEntity repositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+
   /**
    *
    */
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     m_check.clustersProvider = new Provider<Clusters>() {
 
       @Override
@@ -90,25 +93,37 @@ public class HiveDynamicServiceDiscoveryCheckTest {
 
     // Check HDP-2.2.x => HDP-2.2.y
     request.setSourceStackId(new StackId("HDP-2.2.4.2"));
-    request.setTargetStackId(new StackId("HDP-2.2.8.4"));
+
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("2.2.8.4");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2.8.4"));
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     m_check.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
 
     // Check HDP-2.2.x => HDP-2.3.y
     request.setSourceStackId(new StackId("HDP-2.2.4.2"));
-    request.setTargetStackId(new StackId("HDP-2.3.8.4"));
+
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("2.3.8.4");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.3.8.4"));
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     m_check.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     // Check HDP-2.3.x => HDP-2.3.y
     request.setSourceStackId(new StackId("HDP-2.3.4.2"));
-    request.setTargetStackId(new StackId("HDP-2.3.8.4"));
+    request.setTargetRepositoryVersion(repositoryVersion);
     m_check.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     // Check HDP-2.3.x => HDP-2.4.y
     request.setSourceStackId(new StackId("HDP-2.3.4.2"));
-    request.setTargetStackId(new StackId("HDP-2.4.8.4"));
+
+    Mockito.when(repositoryVersion.getVersion()).thenReturn("2.4.8.4");
+    Mockito.when(repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.4.8.4"));
+    request.setTargetRepositoryVersion(repositoryVersion);
+
     m_check.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 

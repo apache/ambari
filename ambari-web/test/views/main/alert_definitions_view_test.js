@@ -100,7 +100,7 @@ describe('App.MainAlertDefinitionsView', function () {
           },
           {
             name: "summary",
-            status: "sorting_asc"
+            status: "sorting_desc"
           }
         ])).to.be.true;
     });
@@ -436,4 +436,73 @@ describe('App.MainAlertDefinitionsView', function () {
       expect(view.tooltipsUpdater.calledOnce).to.be.true;
     });
   });
+
+  describe('#contentObsOnce', function () {
+    var toArray = function () {
+        return [{}];
+      },
+      cases = [
+        {
+          controllerContent: null,
+          isAlertsLoaded: false,
+          content: [],
+          title: 'no content in controller, alerts data not loaded'
+        },
+        {
+          controllerContent: null,
+          isAlertsLoaded: true,
+          content: [],
+          title: 'no content in controller, alerts data loaded'
+        },
+        {
+          controllerContent: {
+            toArray: toArray
+          },
+          isAlertsLoaded: false,
+          content: [],
+          title: 'content set in controller, alerts data not loaded'
+        },
+        {
+          controllerContent: {
+            toArray: toArray
+          },
+          isAlertsLoaded: true,
+          content: [{}],
+          title: 'content set in controller, alerts data loaded'
+        }
+      ];
+
+    cases.forEach(function (item) {
+      describe(item.title, function () {
+        beforeEach(function () {
+          var controller = {
+            content: item.controllerContent
+          };
+          sinon.stub(App.AlertDefinition, 'getSortDefinitionsByStatus', function () {
+            return Em.K;
+          });
+          sinon.stub(view, 'contentObs', Em.K);
+          sinon.stub(App, 'get', function (key) {
+            if (key === 'router.clusterController.isAlertsLoaded') {
+              return item.isAlertsLoaded;
+            }
+            return Em.get(App, key);
+          });
+          view.set('controller', controller);
+          view.contentObsOnce();
+        });
+
+        afterEach(function () {
+          view.contentObs.restore();
+          App.get.restore();
+          App.AlertDefinition.getSortDefinitionsByStatus.restore();
+        });
+
+        it('view.content', function () {
+          expect(view.get('content')).to.eql(item.content);
+        });
+      });
+    });
+  });
+
 });

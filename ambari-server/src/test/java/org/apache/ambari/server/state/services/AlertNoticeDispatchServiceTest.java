@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -202,7 +202,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   @Test
   public void testNoDispatch() throws Exception {
     EasyMock.expect(m_dao.findPendingNotices()).andReturn(
-        new ArrayList<AlertNoticeEntity>()).once();
+      new ArrayList<>()).once();
 
     // m_dispatchFactory should not be called at all
     EasyMock.replay(m_dao, m_dispatchFactory);
@@ -250,6 +250,29 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     assertTrue(notification.Subject.contains("OK[1]"));
     assertTrue(notification.Subject.contains("Critical[0]"));
     assertTrue(notification.Body.contains(ALERT_UNIQUE_TEXT));
+  }
+
+  @Test
+  public void testExceptionHandling() throws Exception {
+    List<AlertNoticeEntity> notices = getSingleMockNotice("EMAIL");
+    AlertNoticeEntity notice = notices.get(0);
+
+    EasyMock.expect(m_dao.findPendingNotices()).andReturn(notices).once();
+    EasyMock.expect(m_dispatchFactory.getDispatcher("EMAIL")).andReturn(null).once();
+    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).atLeastOnce();
+
+    EasyMock.replay(m_dao, m_dispatchFactory);
+
+    // "startup" the service so that its initialization is done
+    AlertNoticeDispatchService service = m_injector.getInstance(AlertNoticeDispatchService.class);
+    service.startUp();
+
+    // service trigger with mock executor that blocks
+    service.setExecutor(new MockExecutor());
+    // no exceptions should be thrown
+    service.runOneIteration();
+
+    EasyMock.verify(m_dao, m_dispatchFactory);
   }
 
   /**

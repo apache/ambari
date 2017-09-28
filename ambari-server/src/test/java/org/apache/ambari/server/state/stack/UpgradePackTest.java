@@ -210,10 +210,12 @@ public class UpgradePackTest {
         "SERVICE_CHECK_1",
         "CORE_SLAVES",
         "SERVICE_CHECK_2",
+        "OOZIE",
         "POST_CLUSTER");
 
     List<String> expected_down = Arrays.asList(
         "PRE_CLUSTER",
+        "OOZIE",
         "CORE_SLAVES",
         "SERVICE_CHECK_2",
         "CORE_MASTER",
@@ -272,7 +274,7 @@ public class UpgradePackTest {
       "Stop High-Level Daemons",
       "Backups",
       "Stop Low-Level Daemons",
-      "UPDATE_DESIRED_STACK_ID",
+      "UPDATE_DESIRED_REPOSITORY_ID",
       "ALL_HOST_OPS",
       "ZOOKEEPER",
       "HDFS",
@@ -281,7 +283,7 @@ public class UpgradePackTest {
 
     List<String> expected_down = Arrays.asList(
       "Restore Backups",
-      "UPDATE_DESIRED_STACK_ID",
+      "UPDATE_DESIRED_REPOSITORY_ID",
       "ALL_HOST_OPS",
       "ZOOKEEPER",
       "HDFS",

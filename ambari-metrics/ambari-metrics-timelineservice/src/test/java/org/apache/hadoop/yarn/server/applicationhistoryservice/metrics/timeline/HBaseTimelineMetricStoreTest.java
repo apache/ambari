@@ -95,22 +95,26 @@ public class HBaseTimelineMetricStoreTest {
   @Test
   public void testRateCalculationOnMetricsWithEqualValues() throws Exception {
     Map<Long, Double> metricValues = new TreeMap<>();
-    metricValues.put(1454016368371L, 1011.25);
-    metricValues.put(1454016428371L, 1011.25);
-    metricValues.put(1454016488371L, 1011.25);
-    metricValues.put(1454016548371L, 1011.25);
-    metricValues.put(1454016608371L, 1011.25);
-    metricValues.put(1454016668371L, 1011.25);
-    metricValues.put(1454016728371L, 1011.25);
+    metricValues.put(1454000000000L, 1.0);
+    metricValues.put(1454000001000L, 6.0);
+    metricValues.put(1454000002000L, 0.0);
+    metricValues.put(1454000003000L, 3.0);
+    metricValues.put(1454000004000L, 4.0);
+    metricValues.put(1454000005000L, 7.0);
 
     // Calculate rate
     Map<Long, Double> rates = HBaseTimelineMetricStore.updateValuesAsRate(new TreeMap<>(metricValues), false);
 
     // Make sure rate is zero
-    for (Map.Entry<Long, Double> rateEntry : rates.entrySet()) {
-      Assert.assertEquals("Rate should be zero, key = " + rateEntry.getKey()
-          + ", value = " + rateEntry.getValue(), 0.0, rateEntry.getValue());
-    }
+    Assert.assertTrue(rates.size() == 4);
+
+    Assert.assertFalse(rates.containsKey(1454000000000L));
+    Assert.assertFalse(rates.containsKey(1454000002000L));
+
+    Assert.assertEquals(rates.get(1454000001000L), 5.0);
+    Assert.assertEquals(rates.get(1454000003000L), 3.0);
+    Assert.assertEquals(rates.get(1454000004000L), 1.0);
+    Assert.assertEquals(rates.get(1454000005000L), 3.0);
   }
 
   @Test
@@ -119,14 +123,14 @@ public class HBaseTimelineMetricStoreTest {
     metricValues.put(1454016368371L, 1011.25);
     metricValues.put(1454016428371L, 1010.25);
     metricValues.put(1454016488371L, 1012.25);
-    metricValues.put(1454016548371L, 1010.25);
-    metricValues.put(1454016608371L, 1010.25);
+    metricValues.put(1454016548371L, 1015.25);
+    metricValues.put(1454016608371L, 1020.25);
 
     Map<Long, Double> rates = HBaseTimelineMetricStore.updateValuesAsRate(new TreeMap<>(metricValues), true);
 
-    Assert.assertTrue(rates.size()==4);
-    Assert.assertTrue(rates.containsValue(-1.0));
+    Assert.assertTrue(rates.size() == 3);
     Assert.assertTrue(rates.containsValue(2.0));
-    Assert.assertTrue(rates.containsValue(0.0));
+    Assert.assertTrue(rates.containsValue(3.0));
+    Assert.assertTrue(rates.containsValue(5.0));
   }
 }

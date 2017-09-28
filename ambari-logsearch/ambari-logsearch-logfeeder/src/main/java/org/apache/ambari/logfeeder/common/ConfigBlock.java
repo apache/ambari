@@ -20,52 +20,17 @@
 package org.apache.ambari.logfeeder.common;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
 
 
-public abstract class ConfigBlock {
-  private static final Logger LOG = Logger.getLogger(ConfigBlock.class);
-
-  private boolean drain = false;
-
+public abstract class ConfigBlock extends ConfigItem {
   protected Map<String, Object> configs;
   protected Map<String, String> contextFields = new HashMap<String, String>();
-  public MetricData statMetric = new MetricData(getStatMetricName(), false);
-  protected String getStatMetricName() {
-    return null;
-  }
-  
   public ConfigBlock() {
-  }
-
-  /**
-   * Used while logging. Keep it short and meaningful
-   */
-  public abstract String getShortDescription();
-
-  /**
-   * Every implementor need to give name to the thread they create
-   */
-  public String getNameForThread() {
-    return this.getClass().getSimpleName();
-  }
-
-  public void addMetricsContainers(List<MetricData> metricsList) {
-    metricsList.add(statMetric);
-  }
-
-  /**
-   * This method needs to be overwritten by deriving classes.
-   */
-  public void init() throws Exception {
   }
 
   public void loadConfig(Map<String, Object> map) {
@@ -79,46 +44,6 @@ public abstract class ConfigBlock {
 
   public Map<String, Object> getConfigs() {
     return configs;
-  }
-
-  @SuppressWarnings("unchecked")
-  public boolean isEnabled() {
-    boolean isEnabled = getBooleanValue("is_enabled", true);
-    if (isEnabled) {
-      // Let's check for static conditions
-      Map<String, Object> conditions = (Map<String, Object>) configs.get("conditions");
-      boolean allow = true;
-      if (MapUtils.isNotEmpty(conditions)) {
-        allow = false;
-        for (String conditionType : conditions.keySet()) {
-          if (conditionType.equalsIgnoreCase("fields")) {
-            Map<String, Object> fields = (Map<String, Object>) conditions.get("fields");
-            for (String fieldName : fields.keySet()) {
-              Object values = fields.get(fieldName);
-              if (values instanceof String) {
-                allow = isFieldConditionMatch(fieldName, (String) values);
-              } else {
-                List<String> listValues = (List<String>) values;
-                for (String stringValue : listValues) {
-                  allow = isFieldConditionMatch(fieldName, stringValue);
-                  if (allow) {
-                    break;
-                  }
-                }
-              }
-              if (allow) {
-                break;
-              }
-            }
-          }
-          if (allow) {
-            break;
-          }
-        }
-        isEnabled = allow;
-      }
-    }
-    return isEnabled;
   }
 
   public boolean isFieldConditionMatch(String fieldName, String stringValue) {
@@ -207,40 +132,22 @@ public abstract class ConfigBlock {
     return retValue;
   }
 
+  @Override
+  public boolean isEnabled() {
+    return getBooleanValue("is_enabled", true);
+  }
+
   public Map<String, String> getContextFields() {
     return contextFields;
   }
 
-  public void incrementStat(int count) {
-    statMetric.value += count;
-  }
-
-  public void logStatForMetric(MetricData metric, String prefixStr) {
-    LogFeederUtil.logStatForMetric(metric, prefixStr, ", key=" + getShortDescription());
-  }
-
-  public synchronized void logStat() {
-    logStatForMetric(statMetric, "Stat");
-  }
-
   public boolean logConfigs(Priority level) {
-    if (level.toInt() == Priority.INFO_INT && !LOG.isInfoEnabled()) {
-      return false;
-    }
-    if (level.toInt() == Priority.DEBUG_INT && !LOG.isDebugEnabled()) {
+    if (!super.logConfigs(level)) {
       return false;
     }
     LOG.log(level, "Printing configuration Block=" + getShortDescription());
     LOG.log(level, "configs=" + configs);
     LOG.log(level, "contextFields=" + contextFields);
     return true;
-  }
-
-  public boolean isDrain() {
-    return drain;
-  }
-
-  public void setDrain(boolean drain) {
-    this.drain = drain;
   }
 }

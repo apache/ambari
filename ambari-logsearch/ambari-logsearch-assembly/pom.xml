@@ -141,6 +141,7 @@
                             <exclude>classes/log4j.xml</exclude>
                             <exclude>classes/logfeeder.properties</exclude>
                             <exclude>classes/grok-patterns</exclude>
+                            <exclude>libs/checkstyle*.jar</exclude>
                           </excludes>
                         </source>
                       </sources>
@@ -294,7 +295,7 @@
                         <group>root</group>
                       </mapper>
                       <excludes>
-                        classes/log4j.xml,classes/logfeeder.properties,classes/grok-patterns
+                        classes/log4j.xml,classes/logfeeder.properties,classes/grok-patterns,libs/checkstyle*.jar
                       </excludes>
                     </data>
                     <data>

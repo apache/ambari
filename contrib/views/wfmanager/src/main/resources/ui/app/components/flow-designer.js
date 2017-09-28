@@ -22,7 +22,6 @@ import {WorkflowGenerator} from '../domain/workflow-xml-generator';
 import {WorkflowImporter} from '../domain/workflow-importer';
 import {WorkflowJsonImporter} from '../domain/workflow-json-importer';
 import {WorkflowContext} from '../domain/workflow-context';
-import {JSPlumbRenderer} from '../domain/jsplumb-flow-renderer';
 import {CytoscapeRenderer} from '../domain/cytoscape-flow-renderer';
 import {FindNodeMixin} from '../domain/findnode-mixin';
 import { validator, buildValidations } from 'ember-cp-validations';
@@ -365,6 +364,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     });
   },
   importWorkflowFromString(data){
+    this.showSparkMasterFieldError(data);
+
     var wfObject=this.get("workflowImporter").importWorkflow(data);
     this.set("errors", wfObject.errors);
     if (wfObject.workflow === null) {
@@ -386,6 +387,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }
   },
   importWorkflowFromJSON(data){
+    this.showSparkMasterFieldError(data);
     var workflowImporter=WorkflowJsonImporter.create({});
     var workflow=workflowImporter.importWorkflow(data);
     this.resetDesigner();
@@ -393,6 +395,27 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.initAndRenderWorkflow();
     this.rerender();
     this.doValidation();
+  },
+  migrateActionObjectToCollection(data) {
+    if(Ember.isArray(data)) {
+      return data;
+    } else {
+      let ArrayData = [];
+      ArrayData.push(data);
+      return ArrayData;
+    }
+  },
+  showSparkMasterFieldError(data) {
+    let x2js = new X2JS();
+    let actionSettingsObj = x2js.xml_str2json(data);
+    let sparkActionList, sparkActionArray = [];
+    if(actionSettingsObj["workflow-app"] && actionSettingsObj["workflow-app"].action) {
+      sparkActionList = actionSettingsObj["workflow-app"].action;
+      sparkActionArray = this.migrateActionObjectToCollection(sparkActionList);
+      if(sparkActionArray.findBy('spark') && this.migrateActionObjectToCollection(sparkActionArray.findBy('spark')).find(function(item){return item.spark.master === "yarn-client"})) {
+        this.set('isSparkUnSupportedPropsAvailable', true);
+      }
+    }
   },
   getWorkflowFromHdfs(filePath){
     var url = Ember.ENV.API_URL + "/readWorkflow?workflowPath="+filePath+'&jobType=WORKFLOW';
@@ -1235,6 +1258,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         self.set("data", data);
         self.set("isAssetImporting", false);
       });
+    },
+    closeInfo(flag) {
+      this.set(flag, false);
     }
   }
 });

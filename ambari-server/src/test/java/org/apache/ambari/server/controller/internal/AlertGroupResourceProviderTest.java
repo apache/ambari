@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -543,7 +543,7 @@ public class AlertGroupResourceProviderTest {
     List<AlertTargetEntity> targetEntities = new ArrayList<>();
     targetEntities.addAll(getMockTargets());
 
-    m_dao.createGroups(EasyMock.<List<AlertGroupEntity>>anyObject());
+    m_dao.createGroups(EasyMock.anyObject());
     expectLastCall().times(1);
 
     AlertGroupEntity group = new AlertGroupEntity();

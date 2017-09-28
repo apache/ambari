@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,7 +42,7 @@ import javax.persistence.TableGenerator;
   @NamedQuery(name = "TopologyHostTaskEntity.findByHostRequest",
       query = "SELECT req FROM TopologyHostTaskEntity req WHERE req.topologyHostRequestEntity.id = :hostRequestId"),
   @NamedQuery(name = "TopologyLogicalTaskEntity.findHostRequestIdsByHostTaskIds",
-      query = "SELECT tht.hostRequestId from TopologyHostTaskEntity tht WHERE tht.id IN :hostTaskIds"),
+      query = "SELECT DISTINCT tht.hostRequestId from TopologyHostTaskEntity tht WHERE tht.id IN :hostTaskIds"),
   @NamedQuery(name = "TopologyHostTaskEntity.removeByTaskIds",
       query = "DELETE FROM TopologyHostTaskEntity tht WHERE tht.id IN :hostTaskIds")
 })

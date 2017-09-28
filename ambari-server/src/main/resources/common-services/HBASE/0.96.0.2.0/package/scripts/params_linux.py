@@ -17,6 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from urlparse import urlparse
+
 import status_params
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -42,6 +44,8 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.expect import expect
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
+from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions.version import get_major_version
 
 # server configurations
 config = Script.get_config()
@@ -57,6 +61,7 @@ etc_prefix_dir = "/etc/hbase"
 
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
+major_stack_version = get_major_version(stack_version_formatted)
 stack_root = status_params.stack_root
 
 # get the correct version to use for checking stack features
@@ -126,6 +131,8 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xm
 
 hbase_regionserver_shutdown_timeout = expect('/configurations/hbase-env/hbase_regionserver_shutdown_timeout', int, 30)
 
+regionserver_cms_initiating_occupancy_fraction = expect('/configurations/hbase-env/hbase_regionserver_cms_initiating_occupancy_fraction', int, 50)
+
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
 has_phoenix = len(phoenix_hosts) > 0
@@ -152,12 +159,20 @@ has_ganglia_server = not len(ganglia_server_hosts) == 0
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+set_instanceId = "false"
+cluster_name = config["clusterName"]
+
+if 'cluster-env' in config['configurations'] and \
+    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -176,11 +191,14 @@ if has_metric_collector:
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 
+host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+
 # if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
-  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/datanode_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+  rs_hosts = default('/clusterHostInfo/hbase_regionserver_hosts', '/clusterHostInfo/datanode_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 else:
-  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
+  rs_hosts = default('/clusterHostInfo/hbase_regionserver_hosts', '/clusterHostInfo/all_hosts')
 
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
@@ -226,6 +244,7 @@ else:
 hbase_env_sh_template = config['configurations']['hbase-env']['content']
 
 hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']
+hbase_hdfs_root_dir_protocol = urlparse(hbase_hdfs_root_dir).scheme
 hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
 hostname = config['agentLevelParams']['hostname']

@@ -424,7 +424,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         }
         break;
       case 'CUSTOM_COMMAND':
-        role = App.format.commandDetail(task.command_detail, task.request_input);
+        role = App.format.commandDetail(task.command_detail, task.request_input, task.ops_display_name);
       case 'EXECUTE' :
       case 'SERVICE_CHECK' :
         switch (task.status) {

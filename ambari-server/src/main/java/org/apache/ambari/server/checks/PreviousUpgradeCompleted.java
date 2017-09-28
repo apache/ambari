@@ -46,7 +46,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
   /**
    * The message displayed as part of this pre-upgrade check.
    */
-  public static final String ERROR_MESSAGE = "There is an existing {0} from {1} to {2} which has not completed. This {3} must be completed before a new upgrade or downgrade can begin.";
+  public static final String ERROR_MESSAGE = "There is an existing {0} {1} {2} which has not completed. This {3} must be completed before a new upgrade or downgrade can begin.";
 
   /**
    * Constructor.
@@ -65,9 +65,10 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
     if (null != upgradeInProgress) {
       Direction direction = upgradeInProgress.getDirection();
       String directionText = direction.getText(false);
+      String prepositionText = direction.getPreposition();
 
-      errorMessage = MessageFormat.format(ERROR_MESSAGE, directionText,
-          upgradeInProgress.getFromVersion(), upgradeInProgress.getToVersion(), directionText);
+      errorMessage = MessageFormat.format(ERROR_MESSAGE, directionText, prepositionText,
+          upgradeInProgress.getRepositoryVersion().getVersion(), directionText);
     }
 
     if (null != errorMessage) {

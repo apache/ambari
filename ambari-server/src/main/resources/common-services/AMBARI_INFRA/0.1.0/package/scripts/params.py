@@ -49,17 +49,22 @@ stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
+hostname = config['hostname'].lower()
+
 infra_solr_conf = "/etc/ambari-infra-solr/conf"
 
 infra_solr_port = status_params.infra_solr_port
 infra_solr_piddir = status_params.infra_solr_piddir
 infra_solr_pidfile = status_params.infra_solr_pidfile
+prev_infra_solr_pidfile = status_params.prev_infra_solr_pidfile
 
 user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 # shared configs
-java64_home = config['ambariLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
+ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
+java64_home = ambari_java_home if ambari_java_home is not None else java_home
 java_exec = format("{java64_home}/bin/java")
 zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_server_hosts']
 zookeeper_hosts_list.sort()
@@ -76,6 +81,9 @@ solr_dir = '/usr/lib/ambari-infra-solr'
 solr_client_dir = '/usr/lib/ambari-infra-solr-client'
 solr_bindir = solr_dir + '/bin'
 cloud_scripts = solr_dir + '/server/scripts/cloud-scripts'
+
+logsearch_hosts = default("/clusterHostInfo/logsearch_server_hosts", [])
+has_logsearch = len(logsearch_hosts) > 0
 
 if "infra-solr-env" in config['configurations']:
   infra_solr_hosts = config['clusterHostInfo']['infra_solr_hosts']
@@ -138,6 +146,8 @@ if security_enabled:
 
 infra_solr_ranger_audit_service_users = format(config['configurations']['infra-solr-security-json']['infra_solr_ranger_audit_service_users']).split(',')
 infra_solr_security_json_content = config['configurations']['infra-solr-security-json']['content']
+
+infra_solr_jmx_enabled = str(default('/configurations/infra-solr-env/infra_solr_jmx_enabled', False)).lower()
 
 #Solr log4j
 infra_log_maxfilesize = default('configurations/infra-solr-log4j/infra_log_maxfilesize',10)

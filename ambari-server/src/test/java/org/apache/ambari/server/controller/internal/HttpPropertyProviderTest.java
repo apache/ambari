@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -44,6 +44,7 @@ import org.junit.Test;
 public class HttpPropertyProviderTest {
   private static final String PROPERTY_ID_CLUSTER_NAME = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String PROPERTY_ID_HOST_NAME = PropertyHelper.getPropertyId("HostRoles", "host_name");
+  private static final String PROPERTY_ID_PUBLIC_HOST_NAME = PropertyHelper.getPropertyId("HostRoles", "public_host_name");
   private static final String PROPERTY_ID_COMPONENT_NAME = PropertyHelper.getPropertyId("HostRoles", "component_name");
 
   private static final String PROPERTY_ID_STALE_CONFIGS = PropertyHelper.getPropertyId(
@@ -53,10 +54,10 @@ public class HttpPropertyProviderTest {
 
   static {
     HTTP_PROPERTY_REQUESTS.put("RESOURCEMANAGER",
-        Collections.<HttpPropertyProvider.HttpPropertyRequest>singletonList(new ResourceManagerHttpPropertyRequest()));
+        Collections.singletonList(new ResourceManagerHttpPropertyRequest()));
 
     HTTP_PROPERTY_REQUESTS.put("ATLAS_SERVER",
-        Collections.<HttpPropertyProvider.HttpPropertyRequest>singletonList(new AtlasServerHttpPropertyRequest()));
+        Collections.singletonList(new AtlasServerHttpPropertyRequest()));
   }
 
   @Test
@@ -77,7 +78,7 @@ public class HttpPropertyProviderTest {
     expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(config1).anyTimes();
     expect(cluster.getDesiredConfigByType("core-site")).andReturn(config2).anyTimes();
     expect(config1.getProperties()).andReturn(map).anyTimes();
-    expect(config2.getProperties()).andReturn(new HashMap<String, String>()).anyTimes();
+    expect(config2.getProperties()).andReturn(new HashMap<>()).anyTimes();
 
     replay(clusters, cluster, config1, config2);
 
@@ -85,16 +86,18 @@ public class HttpPropertyProviderTest {
             streamProvider, clusters,
             PROPERTY_ID_CLUSTER_NAME,
             PROPERTY_ID_HOST_NAME,
+            PROPERTY_ID_PUBLIC_HOST_NAME,
             PROPERTY_ID_COMPONENT_NAME,
             HTTP_PROPERTY_REQUESTS);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "RESOURCEMANAGER");
 
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     propProvider.populateResources(Collections.singleton(resource), request, null);
 
@@ -126,7 +129,7 @@ public class HttpPropertyProviderTest {
     expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(config1).anyTimes();
     expect(cluster.getDesiredConfigByType("core-site")).andReturn(config2).anyTimes();
     expect(config1.getProperties()).andReturn(map).anyTimes();
-    expect(config2.getProperties()).andReturn(new HashMap<String, String>()).anyTimes();
+    expect(config2.getProperties()).andReturn(new HashMap<>()).anyTimes();
 
     replay(clusters, cluster, config1, config2);
 
@@ -134,16 +137,18 @@ public class HttpPropertyProviderTest {
         streamProvider, clusters,
         PROPERTY_ID_CLUSTER_NAME,
         PROPERTY_ID_HOST_NAME,
+        PROPERTY_ID_PUBLIC_HOST_NAME,
         PROPERTY_ID_COMPONENT_NAME,
         HTTP_PROPERTY_REQUESTS);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(PROPERTY_ID_HOST_NAME, "lc6402.ambari.apache.org");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "lc6402.ambari.apache.org");
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "RESOURCEMANAGER");
 
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     propProvider.populateResources(Collections.singleton(resource), request, null);
 
@@ -174,6 +179,7 @@ public class HttpPropertyProviderTest {
         streamProvider, clusters,
         PROPERTY_ID_CLUSTER_NAME,
         PROPERTY_ID_HOST_NAME,
+        PROPERTY_ID_PUBLIC_HOST_NAME,
         PROPERTY_ID_COMPONENT_NAME,
         HTTP_PROPERTY_REQUESTS);
 
@@ -181,9 +187,10 @@ public class HttpPropertyProviderTest {
 
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "ATLAS_SERVER");
 
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     propProvider.populateResources(Collections.singleton(resource), request, null);
 
@@ -214,6 +221,7 @@ public class HttpPropertyProviderTest {
         streamProvider, clusters,
         PROPERTY_ID_CLUSTER_NAME,
         PROPERTY_ID_HOST_NAME,
+        PROPERTY_ID_PUBLIC_HOST_NAME,
         PROPERTY_ID_COMPONENT_NAME,
         HTTP_PROPERTY_REQUESTS);
 
@@ -221,9 +229,10 @@ public class HttpPropertyProviderTest {
 
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "ATLAS_SERVER");
 
-    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.emptySet());
 
     propProvider.populateResources(Collections.singleton(resource), request, null);
 
@@ -235,7 +244,7 @@ public class HttpPropertyProviderTest {
   @Test
   public void testReadGangliaServer() throws Exception {
     Resource resource = doPopulate("GANGLIA_SERVER",
-        Collections.<String> emptySet(), new TestStreamProvider(false));
+        Collections.emptySet(), new TestStreamProvider(false));
 
     // !!! GANGLIA_SERVER has no current http lookup
     Assert.assertNull(resource.getPropertyValue(PROPERTY_ID_STALE_CONFIGS));
@@ -249,12 +258,14 @@ public class HttpPropertyProviderTest {
        streamProvider, clusters,
        PROPERTY_ID_CLUSTER_NAME,
        PROPERTY_ID_HOST_NAME,
+       PROPERTY_ID_PUBLIC_HOST_NAME,
        PROPERTY_ID_COMPONENT_NAME,
        HTTP_PROPERTY_REQUESTS);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
+    resource.setProperty(PROPERTY_ID_PUBLIC_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, componentName);
 

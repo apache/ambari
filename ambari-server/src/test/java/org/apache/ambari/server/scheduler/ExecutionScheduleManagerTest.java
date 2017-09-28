@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,6 +31,8 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -615,13 +617,13 @@ public class ExecutionScheduleManagerTest {
     expect(context.getJobDetail()).andReturn(jobDetail).anyTimes();
     expect(context.getMergedJobDataMap()).andReturn(jobDataMap).anyTimes();
     expect(jobDetail.getKey()).andReturn(new JobKey("TestJob"));
-    expect(jobDataMap.getWrappedMap()).andReturn(new HashMap<String,Object>());
+    expect(jobDataMap.getWrappedMap()).andReturn(new HashMap<>());
     expect(scheduleManagerMock.continueOnMisfire(context)).andReturn(true);
 
-    executionJob.doWork(EasyMock.<Map<String, Object>>anyObject());
+    executionJob.doWork(EasyMock.anyObject());
     expectLastCall().andThrow(new AmbariException("Test Exception")).anyTimes();
 
-    executionJob.finalizeExecution(EasyMock.<Map<String, Object>>anyObject());
+    executionJob.finalizeExecution(EasyMock.anyObject());
     expectLastCall().once();
 
     replay(scheduleManagerMock, executionJob, context, jobDataMap, jobDetail);
@@ -635,5 +637,18 @@ public class ExecutionScheduleManagerTest {
     }
 
     verify(scheduleManagerMock, executionJob, context, jobDataMap, jobDetail);
+  }
+
+  @Test
+  public void testCompleteRelativePath() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    ExecutionScheduleManager scheduleManagerMock = createMock(ExecutionScheduleManager.class);
+    Method completeRelativeUri = ExecutionScheduleManager.class.getDeclaredMethod("completeRelativeUri", String.class);
+    completeRelativeUri.setAccessible(true);
+
+    assertEquals("api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "clusters"));
+    assertEquals("api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "/clusters"));
+    assertEquals("/api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "/api/v1/clusters"));
+    assertEquals("api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "api/v1/clusters"));
+    assertEquals("", completeRelativeUri.invoke(scheduleManagerMock, ""));
   }
 }

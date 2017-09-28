@@ -19,10 +19,19 @@
 
 package org.apache.ambari.logsearch.config.api;
 
+import java.util.List;
+
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
+
 /**
- * Monitors input configuration changes. 
+ * Monitors input configuration changes.
  */
 public interface InputConfigMonitor {
+  /**
+   * @return A list of json strings for all the global config jsons.
+   */
+  List<String> getGlobalConfigJsons();
+  
   /**
    * Notification of a new input configuration.
    * 
@@ -30,7 +39,7 @@ public interface InputConfigMonitor {
    * @param inputConfig The input configuration.
    * @throws Exception
    */
-  void loadInputConfigs(String serviceName, String inputConfig) throws Exception;
+  void loadInputConfigs(String serviceName, InputConfig inputConfig) throws Exception;
   
   /**
    * Notification of the removal of an input configuration.

@@ -24,7 +24,7 @@ module.exports = App.WizardRoute.extend({
   route: '/service/add',
 
   enter: function (router) {
-    if (App.isAuthorized('SERVICE.ADD_DELETE_SERVICES')) {
+    if (App.isAuthorized('SERVICE.ADD_DELETE_SERVICES') && App.supports.enableAddDeleteServices) {
       // `getSecurityStatus` call is required to retrieve information related to kerberos type: Manual or automated kerberos
       router.get('mainController').isLoading.call(router.get('clusterController'),'isClusterNameLoaded').done(function () {
         App.router.get('mainAdminKerberosController').getSecurityStatus().always(function () {
@@ -167,6 +167,7 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
           App.logger.logTimerIfMoreThan(consoleMsg.format(2));
+          wizardStep2Controller.set('wizardController', controller);
           controller.connectOutlet('wizardStep5', controller.get('content'));
         });
       });

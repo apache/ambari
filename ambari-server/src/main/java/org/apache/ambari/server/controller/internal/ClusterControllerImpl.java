@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -130,9 +130,7 @@ public class ClusterControllerImpl implements ClusterController {
 
     if (provider != null) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Using resource provider "
-            + provider.getClass().getName()
-            + " for request type " + type.toString());
+        LOG.debug("Using resource provider {} for request type {}", provider.getClass().getName(), type);
       }
       // make sure that the providers can satisfy the request
       checkProperties(type, request, predicate);
@@ -140,7 +138,7 @@ public class ClusterControllerImpl implements ClusterController {
       // get the resources
       queryResponse = provider.queryForResources(request, predicate);
     }
-    return queryResponse == null ? new QueryResponseImpl(Collections.<Resource>emptySet()) : queryResponse;
+    return queryResponse == null ? new QueryResponseImpl(Collections.emptySet()) : queryResponse;
   }
 
   @Override
@@ -450,7 +448,7 @@ public class ClusterControllerImpl implements ClusterController {
    */
   private boolean checkProperties(Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException {
-    Set<String> requestPropertyIds = request == null ? new HashSet<String>() :
+    Set<String> requestPropertyIds = request == null ? new HashSet<>() :
         PropertyHelper.getAssociatedPropertyIds(request);
 
     if (predicate != null) {
@@ -568,7 +566,7 @@ public class ClusterControllerImpl implements ClusterController {
       if (!propertyProviders.containsKey(type)) {
         List<PropertyProvider> providers = providerModule.getPropertyProviders(type);
         propertyProviders.put(type,
-            providers == null ? Collections.<PropertyProvider>emptyList() : providers);
+            providers == null ? Collections.emptyList() : providers);
       }
     }
     return propertyProviders.get(type);

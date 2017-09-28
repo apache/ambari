@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,9 +58,11 @@ import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -203,6 +205,18 @@ public class AutoSkipFailedSummaryActionTest {
     AutoSkipFailedSummaryAction action = new AutoSkipFailedSummaryAction();
     m_injector.injectMembers(action);
 
+    EasyMock.reset(clusterMock);
+
+    Service hdfsService = createNiceMock(Service.class);
+    expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
+    expect(clusterMock.getServiceByComponentName("DATANODE")).andReturn(hdfsService).anyTimes();
+
+    Service zkService = createNiceMock(Service.class);
+    expect(zkService.getName()).andReturn("ZOOKEEPER").anyTimes();
+    expect(clusterMock.getServiceByComponentName("ZOOKEEPER_CLIENT")).andReturn(zkService).anyTimes();
+
+    replay(clusterMock, hdfsService, zkService);
+
     ServiceComponentHostEvent event = createNiceMock(ServiceComponentHostEvent.class);
 
     // Set mock for parent's getHostRoleCommand()
@@ -269,6 +283,7 @@ public class AutoSkipFailedSummaryActionTest {
     assertEquals("There were 3 skipped failure(s) that must be addressed " +
       "before you can proceed. Please resolve each failure before continuing with the upgrade.",
       result.getStdOut());
+
     assertEquals("{\"failures\":" +
         "{\"service_check\":[\"ZOOKEEPER\"]," +
         "\"host_component\":{" +
@@ -362,6 +377,15 @@ public class AutoSkipFailedSummaryActionTest {
   public void testAutoSkipFailedSummaryAction__red__host_components_only() throws Exception {
     AutoSkipFailedSummaryAction action = new AutoSkipFailedSummaryAction();
     m_injector.injectMembers(action);
+
+    EasyMock.reset(clusterMock);
+
+    Service hdfsService = createNiceMock(Service.class);
+    expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
+    expect(clusterMock.getServiceByComponentName("DATANODE")).andReturn(hdfsService).anyTimes();
+
+    replay(clusterMock, hdfsService);
+
 
     ServiceComponentHostEvent event = createNiceMock(ServiceComponentHostEvent.class);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -154,7 +154,7 @@ public abstract class StageWrapperBuilder {
       skippedFailedCheck.messages.add(AUTO_SKIPPED_MESSAGE);
 
       TaskWrapper skippedFailedTaskWrapper = new TaskWrapper(null, null,
-          Collections.<String> emptySet(), skippedFailedCheck);
+          Collections.emptySet(), skippedFailedCheck);
 
       StageWrapper skippedFailedStageWrapper = new StageWrapper(
           StageWrapper.Type.SERVER_SIDE_ACTION, "Verifying Skipped Failures",

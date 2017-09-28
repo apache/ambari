@@ -178,7 +178,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  * Used for injection purposes.
  */
 public class ControllerModule extends AbstractModule {
-  private static Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
   private static final String AMBARI_PACKAGE = "org.apache.ambari.server";
 
   private final Configuration configuration;
@@ -533,8 +533,7 @@ public class ControllerModule extends AbstractModule {
 
       LOG.info("Searching package {} for annotations matching {}", AMBARI_PACKAGE, classes);
 
-      matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE,
-          new ArrayList<Class<?>>(), classes);
+      matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE, new ArrayList<>(), classes);
 
       if (null == matchedClasses || matchedClasses.size() == 0) {
         LOG.warn("No instances of {} found to register", classes);

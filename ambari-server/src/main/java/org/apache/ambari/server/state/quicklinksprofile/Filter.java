@@ -25,8 +25,6 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.google.common.base.Preconditions;
 
-@JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Base class to represent a quicklink filter. A quicklink filter has two important features:
  * <ul>
@@ -34,6 +32,8 @@ import com.google.common.base.Preconditions;
  *   <li>It can specify the visibility of the links it applies to (see {@link #isVisible()} method).</li>
  * </ul>
  */
+@JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Filter {
   static final String VISIBLE = "visible";
 

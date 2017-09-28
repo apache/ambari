@@ -43,7 +43,6 @@ public class StageFactoryImpl implements StageFactory {
    * @param clusterName Cluster name
    * @param clusterId Cluster ID
    * @param requestContext Information about the context of the request
-   * @param clusterHostInfo Information about the host
    * @param commandParamsStage Information about the command parameters
    * @param hostParamsStage Information about the host parameters for the stage
    * @return An instance of a Stage with the provided params.
@@ -54,10 +53,9 @@ public class StageFactoryImpl implements StageFactory {
                          @Assisted("clusterName") String clusterName,
                          @Assisted("clusterId") long clusterId,
                          @Assisted("requestContext") String requestContext,
-                         @Assisted("clusterHostInfo") String clusterHostInfo,
                          @Assisted("commandParamsStage") String commandParamsStage,
                          @Assisted("hostParamsStage") String hostParamsStage) {
-    return new Stage(requestId, logDir, clusterName, clusterId, requestContext, clusterHostInfo, commandParamsStage, hostParamsStage,
+    return new Stage(requestId, logDir, clusterName, clusterId, requestContext, commandParamsStage, hostParamsStage,
         injector.getInstance(HostRoleCommandFactory.class),
         injector.getInstance(ExecutionCommandWrapperFactory.class));
   }

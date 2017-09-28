@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.state;
+
+import java.util.EnumSet;
 
 /**
  * Represents the state of an alert.
@@ -47,6 +49,8 @@ public enum AlertState {
    * timestamps should be updated so that it is not considered stale.
    */
   SKIPPED(4);
+
+  public static EnumSet<AlertState> RECALCULATE_AGGREGATE_ALERT_STATES = EnumSet.of(CRITICAL, WARNING);
 
   private final int intValue;
 

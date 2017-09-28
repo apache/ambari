@@ -109,7 +109,7 @@ App.MainViewsController = Em.Controller.extend({
 
   setView: function (event) {
     if (event.context) {
-      App.router.route(event.context.get('internalAmbariUrl'));
+      window.open(event.context.get('internalAmbariUrl'));
     }
   }
 });

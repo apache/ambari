@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
@@ -59,42 +60,57 @@ public class StackManagerExtensionTest  {
     ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
     ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
     OsFamily osFamily = createNiceMock(OsFamily.class);
-    StackEntity stackEntity = createNiceMock(StackEntity.class);
-    ExtensionEntity extensionEntity = createNiceMock(ExtensionEntity.class);
-    ExtensionLinkEntity linkEntity = createNiceMock(ExtensionLinkEntity.class);
+    StackEntity stack1 = new StackEntity();
+    stack1.setStackName("HDP");
+    stack1.setStackVersion("0.1");
+    StackEntity stack2 = new StackEntity();
+    stack2.setStackName("HDP");
+    stack2.setStackVersion("0.2");
+    StackEntity stack3 = new StackEntity();
+    stack3.setStackName("HDP");
+    stack3.setStackVersion("0.3");
+    ExtensionEntity extension1 = new ExtensionEntity();
+    extension1.setExtensionName("EXT");
+    extension1.setExtensionVersion("0.1");
+    ExtensionEntity extension2 = new ExtensionEntity();
+    extension2.setExtensionName("EXT");
+    extension2.setExtensionVersion("0.2");
+    ExtensionEntity extension3 = new ExtensionEntity();
+    extension3.setExtensionName("EXT");
+    extension3.setExtensionVersion("0.3");
     List<ExtensionLinkEntity> list = new ArrayList<>();
-    list.add(linkEntity);
 
-    expect(
-        stackDao.find(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
+    expect(stackDao.find("HDP", "0.1")).andReturn(stack1).atLeastOnce();
+    expect(stackDao.find("HDP", "0.2")).andReturn(stack2).atLeastOnce();
+    expect(stackDao.find("HDP", "0.3")).andReturn(stack3).atLeastOnce();
+    expect(extensionDao.find("EXT", "0.1")).andReturn(extension1).atLeastOnce();
+    expect(extensionDao.find("EXT", "0.2")).andReturn(extension2).atLeastOnce();
+    expect(extensionDao.find("EXT", "0.3")).andReturn(extension3).atLeastOnce();
 
-    expect(
-        extensionDao.find(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(extensionEntity).atLeastOnce();
-
-    expect(
-        linkDao.findByStack(EasyMock.anyObject(String.class),
+    expect(linkDao.findByStack(EasyMock.anyObject(String.class),
             EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
 
-    expect(
-        linkEntity.getExtension()).andReturn(extensionEntity).atLeastOnce();
+    expect(linkDao.findByStackAndExtension("HDP", "0.2", "EXT", "0.2")).andReturn(null).atLeastOnce();
 
-    expect(
-        extensionEntity.getExtensionName()).andReturn("EXT").atLeastOnce();
-
-    expect(
-        extensionEntity.getExtensionVersion()).andReturn("0.2").atLeastOnce();
-
-    replay(actionMetadata, stackDao, metaInfoDao, osFamily, extensionDao, linkDao, extensionEntity, linkEntity);
+    replay(actionMetadata, stackDao, metaInfoDao, osFamily, extensionDao, linkDao); //linkEntity
 
     String stacks = ClassLoader.getSystemClassLoader().getResource("stacks_with_extensions").getPath();
     String common = ClassLoader.getSystemClassLoader().getResource("common-services").getPath();
     String extensions = ClassLoader.getSystemClassLoader().getResource("extensions").getPath();
 
-    StackManager stackManager = new StackManager(new File(stacks),
+    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
+
+    StackManager stackManager = null;
+    try {
+      stackManager = new StackManager(new File(stacks),
         new File(common), new File(extensions), osFamily, false,
-        metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
+        metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    assertNotNull("Failed to create Stack Manager", stackManager);
 
     ExtensionInfo extension = stackManager.getExtension("EXT", "0.1");
     assertNull("EXT 0.1's parent: " + extension.getParentExtensionVersion(), extension.getParentExtensionVersion());
@@ -116,6 +132,7 @@ public class StackManagerExtensionTest  {
     assertNotNull("EXT 0.2's parent: " + extension.getParentExtensionVersion(), extension.getParentExtensionVersion());
     assertEquals("EXT 0.2's parent: " + extension.getParentExtensionVersion(), "0.1", extension.getParentExtensionVersion());
     assertNotNull(extension.getService("OOZIE2"));
+    assertTrue("Extension is not set to auto link", extension.isAutoLink());
     oozie = extension.getService("OOZIE2");
     assertNotNull("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder());
     assertTrue("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder().contains("extensions/EXT/0.1/services/OOZIE2/package"));
@@ -137,7 +154,13 @@ public class StackManagerExtensionTest  {
     assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
     extension = stack.getExtensions().iterator().next();
     assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");
-    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.2");
+    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.3");
+
+    stack = stackManager.getStack("HDP", "0.3");
+    assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
+    extension = stack.getExtensions().iterator().next();
+    assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");
+    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.3");
   }
 
 }

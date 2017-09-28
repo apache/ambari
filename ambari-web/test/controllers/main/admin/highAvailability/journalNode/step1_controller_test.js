@@ -199,9 +199,9 @@ describe('App.ManageJournalNodeWizardStep1Controller', function () {
       expect(controller.updateComponent.calledWith('C1')).to.be.true;
     });
 
-    it('isLoaded should be true', function() {
+    it('isRecommendationsLoaded should be true', function() {
       controller.loadStepCallback([], controller);
-      expect(controller.get('isLoaded')).to.be.true;
+      expect(controller.get('isRecommendationsLoaded')).to.be.true;
     });
   });
 
