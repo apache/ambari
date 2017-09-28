@@ -23,7 +23,6 @@ import os
 
 from resource_management.core import shell, sudo
 from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate
@@ -320,20 +319,17 @@ class Master(Script):
       and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
 
       if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
-        try:
+        zeppelin_conf_fs = self.getZeppelinConfFS(params)
+        if os.path.exists(zeppelin_conf_fs):
           # copy from hdfs to /etc/zeppelin/conf/interpreter.json
           params.HdfsResource(interpreter_config,
                               type="file",
                               action="download_on_execute",
-                              source=self.getZeppelinConfFS(params),
-                              user=params.zeppelin_user,
+                              source=zeppelin_conf_fs,
                               group=params.zeppelin_group,
                               owner=params.zeppelin_user)
-        except Fail as fail:
-          if "doesn't exist" not in fail.args[0]:
-            print "Error getting interpreter.json from HDFS"
-            print fail.args
-            raise Fail
+        else:
+          Logger.info(format("{zeppelin_conf_fs} does not exist. Skipping upload of DFS."))
 
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
@@ -359,7 +355,6 @@ class Master(Script):
                             source=interpreter_config,
                             group=params.zeppelin_group,
                             owner=params.zeppelin_user,
-                            user=params.zeppelin_user,
                             replace_existing_files=True)
 
   def update_kerberos_properties(self):
