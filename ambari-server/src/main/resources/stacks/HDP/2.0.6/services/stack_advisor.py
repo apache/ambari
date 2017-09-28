@@ -1473,37 +1473,16 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
   def validateAmsEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    collectorHeapsizeDefaultItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "metrics_collector_heapsize")
+    validationItems.extend([{"config-name": "metrics_collector_heapsize", "item": collectorHeapsizeDefaultItem}])
 
     ams_env = getSiteProperties(configurations, "ams-env")
-    mb = 1024 * 1024
-    gb = 1024 * mb
-    validationItems = []
     collector_heapsize = to_number(ams_env.get("metrics_collector_heapsize"))
-    amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
-    for collectorHostName in amsCollectorHosts:
-      for host in hosts["items"]:
-        if host["Hosts"]["host_name"] == collectorHostName:
-          hostComponents = []
-          for service in services["services"]:
-            for component in service["components"]:
-              if component["StackServiceComponents"]["hostnames"] is not None:
-                if collectorHostName in component["StackServiceComponents"]["hostnames"]:
-                  hostComponents.append(component["StackServiceComponents"]["component_name"])
+    if collector_heapsize > 32768:
+      collectorHeapsizeMaxItem = self.getWarnItem("Value is more than the recommended maximum heap size of 32G.")
+      validationItems.extend([{"config-name": "metrics_collector_heapsize", "item": collectorHeapsizeMaxItem}])
 
-          requiredMemory = getMemorySizeRequired(hostComponents, configurations)
-          unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
-          collector_needs_increase = collector_heapsize * mb < 16 * gb
-
-          if unusedMemory > 4*gb and collector_needs_increase:  # warn user, if more than 4GB RAM is unused
-            recommended_collector_heapsize = int((unusedMemory - 4*gb)/5) + collector_heapsize * mb
-            recommended_collector_heapsize = min(16*gb, recommended_collector_heapsize) #Make sure heapsize <= 16GB
-            recommended_collector_heapsize = round_to_n(recommended_collector_heapsize/mb,128) # Round to 128m multiple
-            if collector_heapsize < recommended_collector_heapsize:
-              validation_msg = "Consider allocating {0} MB to metrics_collector_heapsize in ams-env to use up some " \
-                               "unused memory on host"
-              collectorHeapsizeItem = self.getWarnItem(validation_msg.format(recommended_collector_heapsize))
-              validationItems.extend([{"config-name": "metrics_collector_heapsize", "item": collectorHeapsizeItem}])
-    pass
     return self.toConfigurationValidationProblems(validationItems, "ams-env")
 
   def get_yarn_nm_mem_in_mb(self, services, configurations):
