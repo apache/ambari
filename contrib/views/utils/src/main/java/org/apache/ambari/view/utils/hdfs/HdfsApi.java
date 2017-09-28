@@ -500,7 +500,7 @@ public class HdfsApi {
         result = ugi.doAs(action);
         succeeded = true;
       } catch (IOException ex) {
-        if (!ex.getMessage().contains("Cannot obtain block length for")) {
+        if (!Strings.isNullOrEmpty(ex.getMessage()) && !ex.getMessage().contains("Cannot obtain block length for")) {
           throw ex;
         }
         if (tryNumber >= 3) {
