@@ -256,7 +256,7 @@ if has_zeppelin_master:
   user_to_groups_dict[zeppelin_user] = [zeppelin_group, user_group]
 #Append new user-group mapping to the dict
 try:
-  user_group_map = ast.literal_eval(config['hostLevelParams']['user_group'])
+  user_group_map = ast.literal_eval(config['hostLevelParams']['user_groups'])
   for key in user_group_map.iterkeys():
     user_to_groups_dict[key] = user_group_map[key]
 except ValueError:
