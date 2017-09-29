@@ -241,7 +241,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
-  public void testSetUpgradeStateToVersionMismatchWhenUpgradeIsInProgressAndNewVersionIsNotEqualToComponentDesiredVersion() {
+  public void testSetUpgradeStateToVersionMismatchWhenUpgradeIsInProgressAndNewVersionIsNotEqualToComponentDesiredVersion() throws AmbariException {
     expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
     expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
     expect(componentInfo.isVersionAdvertised()).andReturn(true).once();

@@ -49,6 +49,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -2513,8 +2514,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertNotNull(upgrade);
 
     Cluster cluster = makeCluster();
-    cluster.deleteService("HDFS");
-    cluster.deleteService("YARN");
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
+    cluster.deleteService("YARN", new DeleteHostComponentStatusMetaData());
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE,
         UpgradeType.ROLLING, repositoryVersion2110);
@@ -2543,9 +2544,9 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertNotNull(upgrade);
 
     Cluster cluster = makeCluster();
-    cluster.deleteService("HDFS");
-    cluster.deleteService("YARN");
-    cluster.deleteService("ZOOKEEPER");
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
+    cluster.deleteService("YARN", new DeleteHostComponentStatusMetaData());
+    cluster.deleteService("ZOOKEEPER", new DeleteHostComponentStatusMetaData());
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE,
         UpgradeType.ROLLING, repositoryVersion2110);

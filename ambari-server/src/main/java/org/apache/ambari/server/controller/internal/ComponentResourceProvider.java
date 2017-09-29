@@ -64,8 +64,8 @@ import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.google.inject.Inject;
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;

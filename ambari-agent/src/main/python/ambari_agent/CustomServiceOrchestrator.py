@@ -84,8 +84,8 @@ class CustomServiceOrchestrator():
     self.host_level_params_cache = initializer_module.host_level_params_cache
     self.config = initializer_module.config
     self.tmp_dir = self.config.get('agent', 'prefix')
-    self.force_https_protocol = self.config.get_force_https_protocol()
-    self.ca_cert_file_path = config.get_ca_cert_file_path()
+    self.force_https_protocol = self.config.get_force_https_protocol_name()
+    self.ca_cert_file_path = self.config.get_ca_cert_file_path()
     self.exec_tmp_dir = Constants.AGENT_TMP_DIR
     self.file_cache = initializer_module.file_cache
     self.status_commands_stdout = os.path.join(self.tmp_dir,

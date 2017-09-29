@@ -51,7 +51,6 @@ import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
-import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
@@ -296,6 +295,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
     if (null == metricsCollectorHAManager && null != managementController) {
       metricsCollectorHAManager = managementController.getMetricsCollectorHAManager();
+    }
+
+    if (null == clusters && null != managementController) {
+      clusters = managementController.getClusters();
     }
   }
 

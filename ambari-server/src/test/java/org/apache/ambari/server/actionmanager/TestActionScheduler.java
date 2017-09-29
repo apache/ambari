@@ -214,7 +214,7 @@ public class TestActionScheduler {
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
-    Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+    Stage s = StageUtils.getATestStage(1, 977, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     List<Stage> stages = Collections.singletonList(s);
@@ -412,7 +412,7 @@ public class TestActionScheduler {
     hostEntity.setHostName(hostname);
     hostDAO.create(hostEntity);
 
-    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+    final Stage s = StageUtils.getATestStage(1, 977, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand(hostname, Role.SECONDARY_NAMENODE, RoleCommand.INSTALL,
             new ServiceComponentHostInstallEvent("SECONDARY_NAMENODE", hostname, System.currentTimeMillis(), "HDP-1.2.0"),
@@ -502,7 +502,7 @@ public class TestActionScheduler {
     when(host.getState()).thenReturn(HostState.HEARTBEAT_LOST);
     when(host.getHostName()).thenReturn(hostname);
 
-    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+    final Stage s = StageUtils.getATestStage(1, 977, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     List<Stage> stages = Collections.singletonList(s);
