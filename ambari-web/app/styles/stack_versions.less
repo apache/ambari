@@ -124,10 +124,13 @@
 }
 .version-box-popup {
   .modal{
+    overflow: visible;
     .modal-dialog{
       width: 340px;
     }
     .modal-body {
+      padding: 0px 0px;
+      overflow: visible;
       padding: 0;
     }
   }
@@ -189,6 +192,14 @@
       left: -8px;
       color: orange;
       z-index: 3;
+      height: 24px;
+      width: 24px;
+      border-radius: 24px;
+      background-color: #fff;
+      &:before{
+        position: relative;
+        top:-4px;
+      }
     }
     .state {
       margin: 15px 0;
