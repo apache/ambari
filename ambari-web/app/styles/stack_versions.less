@@ -125,8 +125,10 @@
     max-height: 563px;
     max-width: 340px;
     margin: -250px 0 0 -180px;
+    overflow: visible;
     .modal-body {
       padding: 0px 0px;
+      overflow: visible;
     }
   }
   .version-box-in-popup.version-box {
@@ -177,6 +179,14 @@
       left: -8px;
       color: orange;
       z-index: 3;
+      height: 24px;
+      width: 24px;
+      border-radius: 24px;
+      background-color: #fff;
+      &:before{
+        position: relative;
+        top:-4px;
+      }
     }
     .state {
       margin: 15px 0;
