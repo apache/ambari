@@ -23,6 +23,7 @@ import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.se
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {AuditLogField} from '@app/models/audit-log-field.model';
 import {ServiceLogField} from '@app/models/service-log-field.model';
+import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
 
 @Component({
   selector: 'main-container',
@@ -33,8 +34,18 @@ export class MainContainerComponent {
 
   constructor(private httpClient: HttpClientService, private appState: AppStateService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService) {
     this.loadColumnsNames();
-    appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
-    appState.getParameter('isInitialLoading').subscribe(value => this.isInitialLoading = value);
+    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
+    appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value);
+    appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
+    appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => {
+      if (value) {
+        this.activeLogHostName = value.host_name;
+        this.activeLogComponentName = value.component_name;
+      } else {
+        this.activeLogHostName = '';
+        this.activeLogComponentName = '';
+      }
+    });
   }
 
   @ContentChild(TemplateRef)
@@ -43,6 +54,12 @@ export class MainContainerComponent {
   isAuthorized: boolean = false;
 
   isInitialLoading: boolean = false;
+
+  isServiceLogsFileView: boolean = false;
+
+  activeLogHostName: string = '';
+
+  activeLogComponentName: string = '';
 
   private loadColumnsNames(): void {
     this.httpClient.get('serviceLogsFields').subscribe(response => {
@@ -61,6 +78,13 @@ export class MainContainerComponent {
 
   private getColumnsArray(keysObject: any, fieldClass: any): any[] {
     return Object.keys(keysObject).map(key => new fieldClass(key));
+  }
+
+  closeLog(): void {
+    this.appState.setParameters({
+      isServiceLogsFileView: false,
+      activeLog: null
+    });
   }
 
 }

@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-export interface ListItem {
-  id?: string;
-  label?: string;
-  value: any;
-  iconClass?: string;
-  isChecked?: boolean;
-  action?: string;
+export interface ServiceLogContextEntry {
+  id: string;
+  time: number;
+  level: string;
+  message: string;
+  fileName: string | null;
+  lineNumber: number | null;
 }

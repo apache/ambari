@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
+
 export interface AppState {
   isAuthorized: boolean;
   isInitialLoading: boolean;
@@ -23,6 +25,9 @@ export interface AppState {
   isAuditLogsSet: boolean;
   isServiceLogsSet: boolean;
   activeLogsType?: string;
+  isServiceLogsFileView: boolean;
+  isServiceLogContextView: boolean;
+  activeLog: ActiveServiceLogEntry | null;
 }
 
 export const initialState: AppState = {
@@ -31,5 +36,8 @@ export const initialState: AppState = {
   isLoginInProgress: false,
   isAuditLogsSet: false,
   isServiceLogsSet: false,
-  activeLogsType: 'serviceLogs' // TODO implement setting the parameter depending on user's navigation
+  activeLogsType: 'serviceLogs', // TODO implement setting the parameter depending on user's navigation
+  isServiceLogsFileView: false,
+  isServiceLogContextView: false,
+  activeLog: null
 }

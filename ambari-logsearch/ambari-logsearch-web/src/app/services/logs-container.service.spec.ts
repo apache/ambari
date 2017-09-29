@@ -24,9 +24,11 @@ import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/aud
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 
@@ -51,9 +53,11 @@ describe('LogsContainerService', () => {
           serviceLogsFields,
           serviceLogsHistogramData,
           appSettings,
+          appState,
           clusters,
           components,
-          hosts
+          hosts,
+          serviceLogsTruncated
         })
       ],
       providers: [
@@ -63,9 +67,11 @@ describe('LogsContainerService', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         AppSettingsService,
+        AppStateService,
         ClustersService,
         ComponentsService,
         HostsService,
+        ServiceLogsTruncatedService,
         LogsContainerService,
         {
           provide: HttpClientService,

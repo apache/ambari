@@ -26,6 +26,7 @@ export interface Log {
   case_id?: string;
   log_message: string;
   logfile_line_number: number;
+  line_number?: number;
   message_md5: string;
   cluster: string;
   event_count: number;

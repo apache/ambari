@@ -18,14 +18,16 @@
 
 import {Injectable} from '@angular/core';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
 import {CollectionModelService} from '@app/models/store.model';
 import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {ServiceLog} from '@app/models/service-log.model';
 
 @Injectable()
 export class ComponentActionsService {
 
-  constructor(private appSettings: AppSettingsService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
+  constructor(private appSettings: AppSettingsService, private appState: AppStateService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
   }
 
   //TODO implement actions
@@ -42,6 +44,52 @@ export class ComponentActionsService {
   }
 
   openHistory() {
+  }
+
+  copyLog(log: ServiceLog): void {
+    if (document.queryCommandSupported('copy')) {
+      const text = log.log_message,
+        node = document.createElement('textarea');
+      node.value = text;
+      Object.assign(node.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '1px',
+        height: '1px',
+        border: 'none',
+        outline: 'none',
+        boxShadow: 'none',
+        backgroundColor: 'transparent',
+        padding: '0'
+      });
+      document.body.appendChild(node);
+      node.select();
+      if (document.queryCommandEnabled('copy')) {
+        document.execCommand('copy');
+      } else {
+        // TODO open failed alert
+      }
+      // TODO success alert
+      document.body.removeChild(node);
+    } else {
+      // TODO failed alert
+    }
+  }
+
+  openLog(log: ServiceLog): void {
+    this.appState.setParameters({
+      isServiceLogsFileView: true,
+      activeLog: {
+        id: log.id,
+        host_name: log.host,
+        component_name: log.type
+      }
+    });
+  }
+
+  openContext(log: ServiceLog): void {
+    this.logsContainer.loadLogContext(log.id, log.host, log.type);
   }
 
   startCapture(): void {

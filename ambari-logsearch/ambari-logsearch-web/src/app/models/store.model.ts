@@ -32,6 +32,7 @@ import {ServiceLogField} from '@app/models/service-log-field.model';
 
 export const storeActions = {
   'ARRAY.ADD': 'ADD',
+  'ARRAY.ADD.START': 'ADD_TO_START',
   'ARRAY.DELETE.PRIMITIVE': 'DELETE_PRIMITIVE',
   'ARRAY.DELETE.OBJECT': 'DELETE_OBJECT',
   'ARRAY.CLEAR': 'CLEAR',
@@ -46,6 +47,7 @@ export interface AppStore {
   auditLogs: AuditLog[];
   serviceLogs: ServiceLog[];
   serviceLogsHistogramData: BarGraph[];
+  serviceLogsTruncated: ServiceLog[];
   graphs: Graph[];
   hosts: Node[];
   userConfigs: UserConfig[];
@@ -82,6 +84,13 @@ export class CollectionModelService extends ModelService {
   addInstances(instances: any[]): void {
     this.store.dispatch({
       type: `${storeActions['ARRAY.ADD']}_${this.modelName}`,
+      payload: instances
+    });
+  }
+
+  addInstancesToStart(instances: any[]): void {
+    this.store.dispatch({
+      type: `${storeActions['ARRAY.ADD.START']}_${this.modelName}`,
       payload: instances
     });
   }
@@ -143,6 +152,8 @@ export function getCollectionReducer(modelName: string, defaultState: any = []):
     switch (action.type) {
       case `${storeActions['ARRAY.ADD']}_${modelName}`:
         return [...state, ...action.payload];
+      case `${storeActions['ARRAY.ADD.START']}_${modelName}`:
+        return [...action.payload, ...state];
       case `${storeActions['ARRAY.DELETE.OBJECT']}_${modelName}`:
         return state.filter(instance => instance.id !== action.payload.id);
       case `${storeActions['ARRAY.DELETE.PRIMITIVE']}_${modelName}`:

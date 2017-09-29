@@ -4,6 +4,7 @@
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
   "modal.apply": "Apply",
+  "modal.close": "Close",
 
   "authorization.name": "Username",
   "authorization.password": "Password",
@@ -141,5 +142,9 @@
   "logs.versionNote": "Version Note",
   "logs.versionNumber": "Version Number",
   "logs.addToQuery": "Add to Query",
-  "logs.excludeFromQuery": "Exclude from Query"
+  "logs.excludeFromQuery": "Exclude from Query",
+  "logs.copy": "Copy",
+  "logs.open": "Open Log",
+  "logs.context": "Context",
+  "logs.loadMore": "Load more"
 }

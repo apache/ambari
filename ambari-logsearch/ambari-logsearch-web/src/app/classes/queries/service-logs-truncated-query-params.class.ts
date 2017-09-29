@@ -16,11 +16,21 @@
  * limitations under the License.
  */
 
-export interface ListItem {
-  id?: string;
-  label?: string;
-  value: any;
-  iconClass?: string;
-  isChecked?: boolean;
-  action?: string;
+import {QueryParams} from '@app/classes/queries/query-params.class';
+
+export const defaultParams = {
+  numberRows: '10',
+  scrollType: ''
+};
+
+export class ServiceLogsTruncatedQueryParams extends QueryParams {
+  constructor(options: ServiceLogsTruncatedQueryParams) {
+    const finalParams = Object.assign({}, defaultParams, options);
+    super(finalParams);
+  }
+  id: string;
+  host_name: string;
+  component_name: string;
+  numberRows: string;
+  scrollType: 'before' | 'after' | '';
 }

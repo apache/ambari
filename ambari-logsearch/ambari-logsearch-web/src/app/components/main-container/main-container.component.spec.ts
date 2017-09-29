@@ -32,6 +32,14 @@ describe('MainContainerComponent', () => {
   let fixture: ComponentFixture<MainContainerComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [MainContainerComponent],
       imports: [
@@ -47,7 +55,10 @@ describe('MainContainerComponent', () => {
         AppStateService,
         AuditLogsFieldsService,
         ServiceLogsFieldsService,
-        HttpClientService
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        }
       ]
     })
     .compileComponents();

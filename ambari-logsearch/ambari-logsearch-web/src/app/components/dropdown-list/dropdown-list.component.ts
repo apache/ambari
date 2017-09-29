@@ -19,6 +19,7 @@
 import {Component, AfterViewInit, Input, Output, EventEmitter, ViewChildren, ViewContainerRef, QueryList} from '@angular/core';
 import {ListItem} from '@app/classes/list-item.class';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
+import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
   selector: 'ul[data-component="dropdown-list"]',
@@ -27,7 +28,7 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 })
 export class DropdownListComponent implements AfterViewInit {
 
-  constructor(private componentGenerator: ComponentGeneratorService) {
+  constructor(private componentGenerator: ComponentGeneratorService, private actions: ComponentActionsService) {
   }
 
   ngAfterViewInit() {
@@ -49,6 +50,9 @@ export class DropdownListComponent implements AfterViewInit {
   @Input()
   additionalLabelComponentSetter?: string;
 
+  @Input()
+  actionArguments: any[] = [];
+
   @Output()
   selectedItemChange: EventEmitter<ListItem> = new EventEmitter();
 
@@ -58,6 +62,9 @@ export class DropdownListComponent implements AfterViewInit {
   containers: QueryList<ViewContainerRef>;
 
   changeSelectedItem(options: ListItem): void {
+    if (options.action) {
+      this.actions[options.action](...this.actionArguments);
+    }
     this.selectedItemChange.emit(options);
   }
 

@@ -16,11 +16,17 @@
  * limitations under the License.
  */
 
-export interface ListItem {
-  id?: string;
-  label?: string;
-  value: any;
-  iconClass?: string;
-  isChecked?: boolean;
-  action?: string;
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+
+export const modelName = 'serviceLogsTruncated';
+
+@Injectable()
+export class ServiceLogsTruncatedService extends CollectionModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
+  }
 }
+
+export const serviceLogsTruncated = getCollectionReducer(modelName);

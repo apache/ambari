@@ -15,28 +15,32 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Input, ViewChild, ElementRef} from '@angular/core';
+import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import 'rxjs/add/operator/map';
+import {AppStateService} from '@app/services/storage/app-state.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
+import {AuditLog} from '@app/models/audit-log.model';
+import {ServiceLog} from '@app/models/service-log.model';
 
 @Component({
   selector: 'logs-list',
   templateUrl: './logs-list.component.html',
   styleUrls: ['./logs-list.component.less']
 })
-export class LogsListComponent implements OnInit {
+export class LogsListComponent implements AfterViewInit {
 
-  constructor(private filtering: FilteringService, private utils: UtilsService) {
+  constructor(private filtering: FilteringService, private utils: UtilsService, private appState: AppStateService) {
+    appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
   }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.contextMenuElement = this.contextMenu.nativeElement;
   }
 
   @Input()
-  logs: any[] = [];
+  logs: (AuditLog| ServiceLog)[] = [];
 
   @Input()
   totalCount: number = 0;
@@ -70,6 +74,24 @@ export class LogsListComponent implements OnInit {
     }
   ];
 
+  readonly logActions = [
+    {
+      label: 'logs.copy',
+      iconClass: 'fa fa-files-o',
+      action: 'copyLog'
+    },
+    {
+      label: 'logs.open',
+      iconClass: 'fa fa-external-link',
+      action: 'openLog'
+    },
+    {
+      label: 'logs.context',
+      iconClass: 'fa fa-crosshairs',
+      action: 'openContext'
+    }
+  ];
+
   readonly dateFormat: string = 'dddd, MMMM Do';
 
   readonly timeFormat: string = 'h:mm:ss A';
@@ -85,6 +107,8 @@ export class LogsListComponent implements OnInit {
   get filtersForm(): FormGroup {
     return this.filtering.filtersForm;
   }
+
+  isServiceLogsFileView: boolean = false;
 
   isDifferentDates(dateA, dateB): boolean {
     return this.utils.isDifferentDates(dateA, dateB, this.timeZone);

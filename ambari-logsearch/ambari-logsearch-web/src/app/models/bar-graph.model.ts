@@ -19,6 +19,6 @@
 import {CommonEntry} from '@app/models/common-entry.model';
 
 export interface BarGraph {
-  dataCount: CommonEntry[],
+  dataCount: CommonEntry[];
   name: string;
 }

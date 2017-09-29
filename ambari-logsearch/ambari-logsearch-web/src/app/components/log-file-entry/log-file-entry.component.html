@@ -15,17 +15,6 @@
   limitations under the License.
 -->
 
-<ng-template [ngTemplateOutlet]="template"></ng-template>
-<div *ngIf="isInitialLoading" class="text-center">
-  <span class="fa fa-spinner fa-spin"></span>
-</div>
-<login-form *ngIf="!isInitialLoading && !isAuthorized"></login-form>
-
-<!-- TODO implement tabs: Service Logs/Audit Logs/active file -->
-<div *ngIf="isServiceLogsFileView" class="col-md-12 logs-header">
-  {{activeLogHostName}} &gt;&gt; {{activeLogComponentName}}
-  <span class="fa fa-times close-icon" (click)="closeLog()"></span>
-</div>
-
-<filters-panel *ngIf="isAuthorized" class="row"></filters-panel>
-<logs-container *ngIf="isAuthorized" logsType="serviceLogs"></logs-container>
+<div class="log">{{time | amTz: timeZone |amDateFormat: timeFormat}} <span
+  class="{{'log-level ' + level.toLowerCase()}}">{{level}}</span><span *ngIf="fileName"> {{fileName}}<span
+  *ngIf="lineNumber">:{{lineNumber}}</span></span> - {{message}}</div>

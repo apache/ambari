@@ -16,11 +16,8 @@
  * limitations under the License.
  */
 
-export interface ListItem {
-  id?: string;
-  label?: string;
-  value: any;
-  iconClass?: string;
-  isChecked?: boolean;
-  action?: string;
+export interface ActiveServiceLogEntry {
+  id: string;
+  host_name: string;
+  component_name: string;
 }

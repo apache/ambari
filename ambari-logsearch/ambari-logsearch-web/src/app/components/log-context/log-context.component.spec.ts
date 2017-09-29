@@ -1,11 +1,10 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,32 +15,31 @@
  * limitations under the License.
  */
 
-import {NO_ERRORS_SCHEMA} from '@angular/core';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
-import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
-import {ClustersService, clusters} from '@app/services/storage/clusters.service';
-import {ComponentsService, components} from '@app/services/storage/components.service';
-import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
-import {FilteringService} from '@app/services/filtering.service';
-import {HttpClientService} from '@app/services/http-client.service';
-import {UtilsService} from '@app/services/utils.service';
+import {TranslationModules} from '@app/test-config.spec';
+import {ModalComponent} from '@app/components/modal/modal.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
+import {HttpClientService} from '@app/services/http-client.service';
+import {FilteringService} from '@app/services/filtering.service';
 
-import {FiltersPanelComponent} from './filters-panel.component';
+import {LogContextComponent} from './log-context.component';
 
-describe('FiltersPanelComponent', () => {
-  let component: FiltersPanelComponent;
-  let fixture: ComponentFixture<FiltersPanelComponent>;
+describe('LogContextComponent', () => {
+  let component: LogContextComponent;
+  let fixture: ComponentFixture<LogContextComponent>;
 
   beforeEach(async(() => {
     const httpClient = {
@@ -54,53 +52,53 @@ describe('FiltersPanelComponent', () => {
     };
     TestBed.configureTestingModule({
       declarations: [
-        FiltersPanelComponent,
-        TimerSecondsPipe
+        LogContextComponent,
+        ModalComponent
       ],
       imports: [
         StoreModule.provideStore({
-          appSettings,
-          clusters,
-          components,
-          hosts,
           auditLogs,
           serviceLogs,
           auditLogsFields,
           serviceLogsFields,
           serviceLogsHistogramData,
+          appSettings,
           appState,
+          clusters,
+          components,
+          hosts,
           serviceLogsTruncated
         }),
         ...TranslationModules
       ],
       providers: [
-        AppSettingsService,
-        ClustersService,
-        ComponentsService,
-        HostsService,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
+        AppSettingsService,
         AppStateService,
+        ClustersService,
+        ComponentsService,
+        HostsService,
         ServiceLogsTruncatedService,
-        FilteringService,
         LogsContainerService,
         {
           provide: HttpClientService,
           useValue: httpClient
         },
-        UtilsService
+        FilteringService
       ],
-      schemas: [NO_ERRORS_SCHEMA]
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(FiltersPanelComponent);
+    fixture = TestBed.createComponent(LogContextComponent);
     component = fixture.componentInstance;
+    component.scrollToCurrentEntry = () => {};
     fixture.detectChanges();
   });
 

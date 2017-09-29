@@ -35,7 +35,7 @@ export class AuditLogsQueryParams extends QueryParams {
   pageSize: string;
   startIndex: string;
   sortBy?: string;
-  sortType?: string;
+  sortType?: 'asc' | 'desc';
   clusters?: string;
   mustBe?: string;
   mustNot?: string;

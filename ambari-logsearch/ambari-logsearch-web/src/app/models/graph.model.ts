@@ -19,5 +19,5 @@
 export interface Graph {
   name: string;
   count: string;
-  dataList?: Graph[]
+  dataList?: Graph[];
 }

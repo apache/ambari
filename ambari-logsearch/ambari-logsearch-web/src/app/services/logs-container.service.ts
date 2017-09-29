@@ -24,11 +24,24 @@ import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.se
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
+import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
+import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
 
 @Injectable()
 export class LogsContainerService {
 
-  constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private filtering: FilteringService) {
+  constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appState: AppStateService, private filtering: FilteringService) {
+    appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => this.activeLog = value);
+    appState.getParameter('isServiceLogsFileView').subscribe((value: boolean): void => {
+      const activeLog = this.activeLog,
+        filtersForm = this.filtering.filtersForm;
+      if (value && activeLog) {
+        filtersForm.controls.hosts.setValue(activeLog.host_name);
+        filtersForm.controls.components.setValue(activeLog.component_name);
+      }
+      this.isServiceLogsFileView = value;
+    });
   }
 
   readonly colors = {
@@ -77,26 +90,65 @@ export class LogsContainerService {
 
   totalCount: number = 0;
 
+  isServiceLogsFileView: boolean = false;
+
+  activeLog: ActiveServiceLogEntry | null = null;
+
   loadLogs(logsType: string): void {
     this.httpClient.get(logsType, this.getParams('listFilters')).subscribe(response => {
-      const jsonResponse = response.json();
-      this.logsTypeMap[logsType].logsModel.clear();
+      const jsonResponse = response.json(),
+        model = this.logsTypeMap[logsType].logsModel;
+      model.clear();
       if (jsonResponse) {
         const logs = jsonResponse.logList,
           count = jsonResponse.totalCount || 0;
         if (logs) {
-          this.serviceLogsStorage.addInstances(logs);
+          model.addInstances(logs);
         }
         this.totalCount = count;
       }
     });
-    this.httpClient.get('serviceLogsHistogram', this.getParams('histogramFilters')).subscribe(response => {
+    if (logsType === 'serviceLogs') {
+      // TODO rewrite to implement conditional data loading for service logs histogram or audit logs graph
+      this.httpClient.get('serviceLogsHistogram', this.getParams('histogramFilters')).subscribe(response => {
+        const jsonResponse = response.json();
+        this.serviceLogsHistogramStorage.clear();
+        if (jsonResponse) {
+          const histogramData = jsonResponse.graphData;
+          if (histogramData) {
+            this.serviceLogsHistogramStorage.addInstances(histogramData);
+          }
+        }
+      });
+    }
+  }
+
+  loadLogContext(id: string, hostName: string, componentName: string, scrollType: 'before' | 'after' | '' = ''): void {
+    const params = {
+      id: id,
+      host_name: hostName,
+      component_name: componentName,
+      scrollType: scrollType
+    };
+    this.httpClient.get('serviceLogsTruncated', params).subscribe(response => {
       const jsonResponse = response.json();
-      this.serviceLogsHistogramStorage.clear();
+      if (!scrollType) {
+        this.serviceLogsTruncatedStorage.clear();
+      }
       if (jsonResponse) {
-        const histogramData = jsonResponse.graphData;
-        if (histogramData) {
-          this.serviceLogsHistogramStorage.addInstances(histogramData);
+        const logs = jsonResponse.logList;
+        if (logs) {
+          if (scrollType === 'before') {
+            this.serviceLogsTruncatedStorage.addInstancesToStart(logs);
+          } else {
+            this.serviceLogsTruncatedStorage.addInstances(logs);
+          }
+          if (!scrollType) {
+            this.appState.setParameters({
+              isServiceLogContextView: true,
+              activeLog: params
+            });
+          }
         }
       }
     });
