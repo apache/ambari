@@ -186,7 +186,7 @@ class TestPackageResource(TestCase):
               )
     self.assertEquals(shell_mock.call_args[0][0],
                       ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install',
-                       '--disablerepo=',
+                       '--disablerepo=*',
                        '--enablerepo=HDP-UTILS-2.2.0.1-885,HDP-2.2.0.1-885', 'some_package'])
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
