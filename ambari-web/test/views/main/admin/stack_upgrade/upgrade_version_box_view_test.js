@@ -153,6 +153,7 @@ describe('App.UpgradeVersionBoxView', function () {
       jQueryMock;
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'upgrade').returns(1);
+      view.set('content.stackVersion', Em.Object.create({supportsRevert: false}))
       jQueryMock = sinon.stub(window, '$');
     });
     afterEach(function () {
@@ -170,12 +171,15 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(view.get('controller').upgrade.calledWith('content')).to.be.true;
     });
     it("action is taken from stateElement", function () {
+      var content =  Em.Object.create({
+        stackVersion: Em.Object.create({supportsRevert: false}),
+      });
       view.setProperties({
-        'content': 'content',
+        'content': content,
         'stateElement.action': 'upgrade'
       });
       view.runAction();
-      expect(view.get('controller').upgrade.calledWith('content')).to.be.true;
+      expect(view.get('controller').upgrade.calledWith(content)).to.be.true;
     });
     it("link is disabled", function () {
       jQueryMock.returns({
@@ -351,6 +355,9 @@ describe('App.UpgradeVersionBoxView', function () {
   });
 
   describe('#stateElement', function () {
+    beforeEach(function () {
+      view.set('content.stackVersion', Em.Object.create({supportsRevert: false}))
+    });
 
     var cases = [
       {

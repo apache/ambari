@@ -167,9 +167,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
     });
     var isSuspended = App.get('upgradeSuspended');
 
+    element.set('canBeReverted', this.get('content.stackVersion').get('supportsRevert'));
+
     if (status === 'CURRENT' && this.get('content.isPatch') && !this.get('isUpgrading')) {
       element.setProperties(statePropertiesMap['CURRENT_PATCH']);
-      element.set('canBeReverted', this.get('content.stackVersion').get('supportsRevert'));
     }
     else if (['INSTALLING'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
