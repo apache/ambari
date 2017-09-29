@@ -44,7 +44,7 @@ export default Ember.Component.extend({
       tempColumn['label'] = column[0];
 
       let localValuePath = column[0];
-      tempColumn['valuePath'] = localValuePath.substring(localValuePath.lastIndexOf('.') +1 , localValuePath.length);
+      tempColumn['valuePath'] = localValuePath.split(".").join('');
 
       columnArr.push(tempColumn);
     });
