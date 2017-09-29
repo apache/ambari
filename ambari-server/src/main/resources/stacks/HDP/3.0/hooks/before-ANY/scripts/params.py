@@ -107,8 +107,8 @@ mapreduce_libs_path = format("{stack_root}/current/hadoop-mapreduce-client/*")
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
-hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 
 hadoop_conf_empty_dir = None
 hadoop_secure_dn_user = hdfs_user
@@ -210,7 +210,7 @@ if dfs_ha_namenode_ids:
 
 
 if has_namenode or dfs_type == 'HCFS':
-    hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
