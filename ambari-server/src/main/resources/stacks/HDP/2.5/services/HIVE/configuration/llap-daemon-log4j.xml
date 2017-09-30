@@ -74,7 +74,7 @@ name = LlapDaemonLog4j2
 packages = org.apache.hadoop.hive.ql.log
 
 # list of properties
-property.llap.daemon.log.level = {{hive_log_level}}
+property.llap.daemon.log.level = {{llap_log_level}}
 property.llap.daemon.root.logger = console
 property.llap.daemon.log.dir = .
 property.llap.daemon.log.file = llapdaemon.log
