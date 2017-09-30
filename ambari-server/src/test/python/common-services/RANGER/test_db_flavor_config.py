@@ -37,10 +37,15 @@ class TestDbFlavorConfig(RMFTestCase):
                        config_file=os.path.join(self.CONFIG_DIR, "ranger_admin_default.json"))
 
   def test_unsupported_db_flavor_0_4_0(self):
-    with self.assertRaises(Fail):
+    try:
       self.executeScript("RANGER/0.4.0/package/scripts/ranger_admin.py",
                        classname="RangerAdmin",
                        command="configure",
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        stack_version=self.STACK_VERSION,
                        config_file=os.path.join(self.CONFIG_DIR, "ranger_admin_unsupported_db_flavor.json"))
+      self.fail("Expected 'Fail', but call completed without throwing")
+    except Fail as e:
+      pass
+    except Exception as e:
+      self.fail("Expected 'Fail', got {}".format(e))
