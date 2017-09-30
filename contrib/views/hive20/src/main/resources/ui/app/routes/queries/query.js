@@ -405,6 +405,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('controller.model').set('currentJobData', data);
         self.get('controller.model').set('queryFile', data.job.queryFile);
         self.get('controller.model').set('logFile', data.job.logFile);
+        self.get('controller').set('currentJobId', data.job.id);
         self.get('controller.model').set('currentJobId', data.job.id);
         ctrlrModel.set('isJobCreated',true);
         ctrlr.set('isJobCreated',true);
@@ -442,9 +443,15 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     stopQuery(){
-      let jobId = this.get('controller.model').get('currentJobId');
-      this.get('jobs').stopJob(jobId)
-        .then( data => this.get('controller').set('isJobCancelled', true));
+      Ember.run.later(() => {
+        let jobId = this.get('controller').get('currentJobId'), self = this, ctrlr = self.get('controller'), ctrlrModel = self.get('controller.model');
+        this.get('jobs').stopJob(jobId)
+          .then( data => {
+             this.get('controller').set('isJobCancelled', true);
+          }).catch(function (response) {
+             self.get('controller').set('isJobCancelled', true);
+          });
+      }, 1000);
     },
 
     showVisualExplain(payloadTitle){
