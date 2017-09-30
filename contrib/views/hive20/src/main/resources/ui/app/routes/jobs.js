@@ -20,6 +20,7 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
   moment: Ember.inject.service(),
+  query: Ember.inject.service(),
   timeInitializedTo: null,
   queryParams: {
     startTime: {
@@ -63,6 +64,16 @@ export default Ember.Route.extend({
       this.controller.set('startTime', this.get('moment').moment(startTime, 'YYYY-MM-DD').startOf('day').valueOf());
       this.controller.set('endTime', this.get('moment').moment(endTime, 'YYYY-MM-DD').endOf('day').valueOf());
       this.refresh();
+    },
+    openWorksheet(worksheet, isExisitingWorksheet) {
+      if(isExisitingWorksheet) {
+       this.transitionTo('queries.query', worksheet.id);
+       return;
+      }
+      this.get("store").createRecord('worksheet', worksheet );
+      this.controllerFor('queries').set('worksheets', this.store.peekAll('worksheet'));
+      this.transitionTo('queries.query', worksheet.id);
+      this.controllerFor("queries.query").set('previewJobData', {id:worksheet.id, title:worksheet.title.toLowerCase()});
     }
   }
 

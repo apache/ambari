@@ -53,8 +53,10 @@ export default Ember.Route.extend(UILoggerMixin, {
     console.log('lastResultRoute:: ', model.get('lastResultRoute'));
     let lastResultRoute = model.get('lastResultRoute');
 
+
+
     if(Ember.isEmpty(lastResultRoute)){
-      if(model.get('jobData').length > 0){
+      if(model.get('jobData') && model.get('jobData').length > 0){
         this.transitionTo('queries.query.results');
       } else {
         this.transitionTo('queries.query');
@@ -145,6 +147,22 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('worksheetModalSuccess',false);
     controller.set('worksheetModalFail',false);
     controller.set('tabs', tabs);
+    let previewJobData = this.get('controller').get('previewJobData'), ctrlr = this.get('controller'), ctrlrModel = this.get('controller.model');
+
+
+    if(previewJobData) {
+
+      ctrlrModel.set('isJobSuccess', true);
+      ctrlrModel.set('isJobCancelled', false);
+      ctrlrModel.set('isJobCreated', false);
+      ctrlr.set('isJobSuccess', true);
+      ctrlr.set('isJobCancelled', false);
+      ctrlr.set('isJobCreated', false);
+      ctrlrModel.set('currentJobId', previewJobData.id);
+      this.get('controller.model').set('currentJobData', {job: previewJobData});
+
+      this.getJobResult({job: previewJobData}, previewJobData.title, Ember.Object.create({name: 'query'}), ctrlrModel, true);
+    }
   },
   checkIfDeafultDatabaseExists(alldatabases){
     if(this.get('controller.model').get('selectedDb')) {
@@ -172,6 +190,75 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.send('closeWorksheet', tabDataToClose.index, tabDataToClose.id);
     }
   },
+
+  getJobResult(data, payloadTitle, jobDetails, ctrlrModel, isDataPreview){
+    let self = this;
+
+    let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
+
+    let jobId = data.job.id;
+
+    let currentPage = this.get('controller.model').get('currentPage');
+    let previousPage = this.get('controller.model').get('previousPage');
+    let nextPage = this.get('controller.model').get('nextPage');
+
+    this.get('query').getJob(jobId, true).then(function(data) {
+
+      let existingWorksheets = self.get('store').peekAll('worksheet');
+      let myWs = null;
+      if(existingWorksheets.get('length') > 0) {
+        if(isDataPreview) {
+          myWs = existingWorksheets.filterBy('id', jobId).get('firstObject');
+        } else {
+          myWs = existingWorksheets.filterBy('id', payloadTitle).get('firstObject');
+        }
+      }
+      if(!Ember.isBlank(jobDetails.get("dagId"))) {
+        let tezData = self.get("tezViewInfo").getTezViewData();
+        if(tezData && tezData.error) {
+          self.get('controller.model').set('tezError', tezData.errorMsg);
+        } else if(tezData.tezUrl) {
+          self.get('controller.model').set('tezUrl', tezData.tezUrl + jobDetails.get("dagId"));
+        }
+      }
+      myWs.set('queryResult', data);
+      myWs.set('isQueryRunning', false);
+      myWs.set('hasNext', data.hasNext);
+      self.get('controller.model').set('queryResult', data);
+
+
+      let localArr = myWs.get("jobData");
+      localArr.push(data);
+      myWs.set('jobData', localArr);
+      myWs.set('currentPage', currentPage+1);
+      myWs.set('previousPage', previousPage + 1 );
+      myWs.set('nextPage', nextPage + 1);
+
+      if(isVisualExplainQuery){
+        self.send('showVisualExplain', payloadTitle);
+      } else {
+        self.get('controller.model').set('visualExplainJson', null);
+
+        if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() === payloadTitle) || (isDataPreview && self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() === jobId))){
+          self.transitionTo('queries.query.loading');
+
+          Ember.run.later(() => {
+            self.transitionTo('queries.query.results');
+          }, 1 * 100);
+        }
+      }
+
+    }, function(error) {
+      console.log('error' , error);
+      if(!isDataPreview){
+        self.get('logger').danger('Failed to execute query.', self.extractError(error));
+      } else {
+        self.get('logger').danger('Query expired. Please execute the query again.', self.extractError(error));
+      }
+      self.send('resetDefaultWorksheet', ctrlrModel);
+    });
+  },
+
   actions: {
 
     resetDefaultWorksheet(currModel){
@@ -332,7 +419,7 @@ export default Ember.Route.extend(UILoggerMixin, {
             ctrlr.set('isJobCreated', false);
             let jobDetails = self.store.peekRecord('job', data.job.id);
             console.log(jobDetails);
-            self.send('getJobResult', data, payload.id, jobDetails, ctrlrModel);
+            self.getJobResult(data, payload.id, jobDetails, ctrlrModel);
             self.get('logger').success('Query has been submitted.');
 
           }, (error) => {
@@ -358,64 +445,6 @@ export default Ember.Route.extend(UILoggerMixin, {
       let jobId = this.get('controller.model').get('currentJobId');
       this.get('jobs').stopJob(jobId)
         .then( data => this.get('controller').set('isJobCancelled', true));
-    },
-
-    getJobResult(data, payloadTitle, jobDetails, ctrlrModel){
-      let self = this;
-
-      let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
-
-      let jobId = data.job.id;
-
-      let currentPage = this.get('controller.model').get('currentPage');
-      let previousPage = this.get('controller.model').get('previousPage');
-      let nextPage = this.get('controller.model').get('nextPage');
-
-      this.get('query').getJob(jobId, true).then(function(data) {
-
-        let existingWorksheets = self.get('store').peekAll('worksheet');
-        let myWs = null;
-        if(existingWorksheets.get('length') > 0) {
-          myWs = existingWorksheets.filterBy('id', payloadTitle).get('firstObject');
-        }
-        if(!Ember.isBlank(jobDetails.get("dagId"))) {
-          let tezData = self.get("tezViewInfo").getTezViewData();
-          if(tezData && tezData.error) {
-            self.get('controller.model').set('tezError', tezData.errorMsg);
-          } else if(tezData.tezUrl) {
-            self.get('controller.model').set('tezUrl', tezData.tezUrl + jobDetails.get("dagId"));
-          }
-        }
-        myWs.set('queryResult', data);
-        myWs.set('isQueryRunning', false);
-        myWs.set('hasNext', data.hasNext);
-
-        let localArr = myWs.get("jobData");
-        localArr.push(data);
-        myWs.set('jobData', localArr);
-        myWs.set('currentPage', currentPage+1);
-        myWs.set('previousPage', previousPage + 1 );
-        myWs.set('nextPage', nextPage + 1);
-
-        if(isVisualExplainQuery){
-          self.send('showVisualExplain', payloadTitle);
-        } else {
-          self.get('controller.model').set('visualExplainJson', null);
-
-          if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() === payloadTitle)){
-            self.transitionTo('queries.query.loading');
-
-            Ember.run.later(() => {
-              self.transitionTo('queries.query.results');
-            }, 1 * 100);
-          }
-        }
-
-      }, function(error) {
-        console.log('error' , error);
-        self.get('logger').danger('Failed to execute query.', self.extractError(error));
-        self.send('resetDefaultWorksheet', ctrlrModel);
-      });
     },
 
     showVisualExplain(payloadTitle){
@@ -468,7 +497,12 @@ export default Ember.Route.extend(UILoggerMixin, {
       let existingWorksheets = this.get('store').peekAll('worksheet');
       let myWs = null;
       if(existingWorksheets.get('length') > 0) {
-        myWs = existingWorksheets.filterBy('id', payloadTitle.toLowerCase()).get('firstObject');
+        var previewJobData = this.get('controller').get('previewJobData');
+        if(previewJobData) {
+          myWs = existingWorksheets.filterBy('id', previewJobData.id).get('firstObject');
+        } else {
+          myWs = existingWorksheets.filterBy('id', payloadTitle.toLowerCase()).get('firstObject');
+        }
       }
 
       this.transitionTo('queries.query.loading');
@@ -497,7 +531,13 @@ export default Ember.Route.extend(UILoggerMixin, {
       let existingWorksheets = this.get('store').peekAll('worksheet');
       let myWs = null;
       if(existingWorksheets.get('length') > 0) {
-        myWs = existingWorksheets.filterBy('id', payloadTitle.toLowerCase()).get('firstObject');
+        var previewJobData = this.get('controller').get('previewJobData');
+        if(previewJobData) {
+          myWs = existingWorksheets.filterBy('id', previewJobData.id).get('firstObject');
+        } else {
+          myWs = existingWorksheets.filterBy('id', payloadTitle.toLowerCase()).get('firstObject');
+        }
+
       }
 
       this.transitionTo('queries.query.loading');
