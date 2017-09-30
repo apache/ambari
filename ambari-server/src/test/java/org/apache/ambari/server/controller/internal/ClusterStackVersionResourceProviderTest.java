@@ -1373,8 +1373,8 @@ public class ClusterStackVersionResourceProviderTest {
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
-    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(
-        serviceComponentHosts).anyTimes();
+    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(serviceComponentHosts).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId).atLeastOnce();
 
     expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(StackId.class),
         anyObject(String.class))).andReturn(repoVersionEntity);
