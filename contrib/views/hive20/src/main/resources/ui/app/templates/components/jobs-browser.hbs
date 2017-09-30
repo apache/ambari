@@ -94,7 +94,7 @@
       </thead>
       <tbody>
         {{#each filteredJobsSorted as |job| }}
-          {{job-item job=job}}
+          {{job-item model=jobs job=job openWorksheet="openWorksheet"}}
         {{/each}}
       </tbody>
     </table>
