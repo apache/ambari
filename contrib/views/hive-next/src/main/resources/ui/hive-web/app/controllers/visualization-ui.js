@@ -32,8 +32,8 @@ export default Ember.Controller.extend({
 
   polestarUrl: '',
   voyagerUrl: '',
-  polestarPath: 'polestar/#/',
-  voyagerPath: 'voyager/#/',
+  polestarPath: 'polestar/index.html#/',
+  voyagerPath: 'voyager/index.html#/',
 
   showDataExplorer: true,
   showAdvVisulization: false,
@@ -79,8 +79,10 @@ export default Ember.Controller.extend({
           }
           this.set("error", null);
           var id = model.get('id');
-          this.set("polestarUrl", this.get('polestarPath') + "?url=" + url);
-          this.set("voyagerUrl", this.get('voyagerPath') + "?url=" + url);
+          var pstarUrl = this.container.lookup('adapter:application').buildAssetURL("") + "/" + this.get('polestarPath') + "?url=" + url;
+          this.set("polestarUrl", pstarUrl);
+          var vUrl = this.container.lookup('adapter:application').buildAssetURL("") + "/" + this.get('voyagerPath') + "?url=" + url;
+          this.set("voyagerUrl", vUrl);
           Ember.run.scheduleOnce('afterRender', this, function(){
             self.alterIframe();
           });

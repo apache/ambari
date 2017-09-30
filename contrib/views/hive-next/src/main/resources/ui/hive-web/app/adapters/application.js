@@ -50,5 +50,23 @@ export default DS.RESTAdapter.extend({
     var prefix = constants.adapter.apiPrefix + version + constants.adapter.instancePrefix + instanceName;
     var url = this._super.apply(this, arguments);
     return prefix + url;
+  },
+
+  buildAssetURL: function () {
+    var version = constants.adapter.version,
+        instanceName = constants.adapter.instance;
+
+    var params = window.location.pathname.split('/').filter(function (param) {
+      return !!param;
+    });
+
+    if (params[params.length - 3] === 'HIVE') {
+      version = params[params.length - 2];
+      instanceName = params[params.length - 1];
+    }
+    var assetPrefix = constants.adapter.apiPrefix.replace("/" + "api" + "/" + "v1", "").replace("versions/","");
+
+    var url = assetPrefix + version + "/" + instanceName;
+    return url;
   }
 });
