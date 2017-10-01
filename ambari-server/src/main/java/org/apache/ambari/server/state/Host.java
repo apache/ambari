@@ -29,6 +29,7 @@ import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 public interface Host extends Comparable {
@@ -409,4 +410,20 @@ public interface Host extends Comparable {
    * @see ComponentInfo#isVersionAdvertised()
    */
   boolean hasComponentsAdvertisingVersions(StackId stackId) throws AmbariException;
+
+  /**
+   * Gets whether all host components whose desired repository version matches
+   * the repository version specified have reported the correct version and are
+   * no longer upgrading.
+   *
+   * @param repositoryVersion
+   *          the repository version to check for (not {@code null}).
+   * @return {@code true} if all components on this host have checked in with
+   *         the correct version if their desired repository matches the one
+   *         specified.
+   *
+   * @throws AmbariException
+   */
+  boolean isRepositoryVersionCorrect(RepositoryVersionEntity repositoryVersion)
+      throws AmbariException;
 }

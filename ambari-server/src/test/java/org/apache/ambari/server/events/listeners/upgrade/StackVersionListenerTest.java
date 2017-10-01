@@ -62,7 +62,6 @@ public class StackVersionListenerTest extends EasyMockSupport {
   private static final Long CLUSTER_ID = 1L;
   private static final String UNKNOWN_VERSION = "UNKNOWN";
   private static final String VALID_PREVIOUS_VERSION = "2.2.0.0";
-  private static final RepositoryVersionEntity DUMMY_REPOSITORY_VERSION_ENTITY = new RepositoryVersionEntity();
   private static final HostVersionEntity DUMMY_HOST_VERSION_ENTITY = new HostVersionEntity();
   private static final UpgradeEntity DUMMY_UPGRADE_ENTITY = new UpgradeEntity();
   public static final String STACK_NAME = "HDP";

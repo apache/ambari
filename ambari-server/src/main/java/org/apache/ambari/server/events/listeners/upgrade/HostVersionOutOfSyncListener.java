@@ -301,6 +301,10 @@ public class HostVersionOutOfSyncListener {
           missingHostVersion.getRepositoryVersion().getVersion(), missingHostVersion.getRepositoryVersion().getId());
 
         hostVersionDAO.get().create(missingHostVersion);
+        hostDAO.get().merge(hostEntity);
+
+        hostEntity.getHostVersionEntities().add(missingHostVersion);
+        hostEntity = hostDAO.get().merge(hostEntity);
       }
     }
   }

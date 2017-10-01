@@ -674,7 +674,7 @@ public class OrmTestHelper {
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
-        ex.printStackTrace();
+
         Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
             stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
       }

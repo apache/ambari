@@ -1500,8 +1500,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   @Transactional
   public HostVersionEntity recalculateHostVersionState() throws AmbariException {
-    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
     HostEntity hostEntity = host.getHostEntity();
+    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
     HostVersionEntity hostVersionEntity = hostVersionDAO.findHostVersionByHostAndRepository(
         hostEntity, repositoryVersion);
 
@@ -1522,11 +1522,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         hostVersionDAO.create(hostVersionEntity);
       }
 
-      final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(
-          ambariMetaInfo, hostEntity, repositoryVersion);
-
-      if (hostSummary.isVersionCorrectForAllHosts(repositoryVersion)) {
-        if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT) {
+      if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT) {
+        if (host.isRepositoryVersionCorrect(repositoryVersion)) {
           hostVersionEntity.setState(RepositoryVersionState.CURRENT);
           hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
         }

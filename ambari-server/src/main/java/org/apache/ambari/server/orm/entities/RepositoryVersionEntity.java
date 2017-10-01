@@ -313,37 +313,6 @@ public class RepositoryVersionEntity {
     this.type = type;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    RepositoryVersionEntity that = (RepositoryVersionEntity) o;
-
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (stack != null ? !stack.equals(that.stack) : that.stack != null) {
-      return false;
-    }
-    if (version != null ? !version.equals(that.version) : that.version != null) {
-      return false;
-    }
-    if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
-      return false;
-    }
-
-    if (operatingSystems != null ? !operatingSystems.equals(that.operatingSystems) : that.operatingSystems != null) {
-      return false;
-    }
-
-    return true;
-  }
-
   /**
    * @return the XML that is the basis for the version
    */
@@ -404,14 +373,36 @@ public class RepositoryVersionEntity {
     return versionDefinition;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (stack != null ? stack.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
-    result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
-    result = 31 * result + (operatingSystems != null ? operatingSystems.hashCode() : 0);
-    return result;
+    return java.util.Objects.hash(stack, version, displayName, operatingSystems);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (null == object) {
+      return false;
+    }
+
+    if (this == object) {
+      return true;
+    }
+
+    if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    RepositoryVersionEntity that = (RepositoryVersionEntity) object;
+    return Objects.equal(stack, that.stack)
+        && Objects.equal(version, that.version)
+        && Objects.equal(displayName, that.displayName)
+        && Objects.equal(operatingSystems, that.operatingSystems);
   }
 
   /**
