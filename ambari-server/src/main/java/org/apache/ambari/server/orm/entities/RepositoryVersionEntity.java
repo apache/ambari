@@ -52,7 +52,6 @@ import org.apache.ambari.server.state.repository.Release;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -378,26 +377,31 @@ public class RepositoryVersionEntity {
    * {@inheritDoc}
    */
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    RepositoryVersionEntity that = (RepositoryVersionEntity) o;
-    return new EqualsBuilder().append(id, that.id).append(stack, that.stack).append(version,
-        that.version).append(displayName, that.displayName).isEquals();
+  public int hashCode() {
+    return java.util.Objects.hash(stack, version, displayName, operatingSystems);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public int hashCode() {
-    return Objects.hashCode(id, stack, version, displayName);
+  public boolean equals(Object object) {
+    if (null == object) {
+      return false;
+    }
+
+    if (this == object) {
+      return true;
+    }
+
+    if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    RepositoryVersionEntity that = (RepositoryVersionEntity) object;
+    return Objects.equal(stack, that.stack) && Objects.equal(version, that.version)
+        && Objects.equal(displayName, that.displayName)
+        && Objects.equal(operatingSystems, that.operatingSystems);
   }
 
   /**

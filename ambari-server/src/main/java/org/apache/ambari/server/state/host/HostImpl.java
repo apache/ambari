@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,8 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -65,6 +68,7 @@ import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -1167,6 +1171,45 @@ public class HostImpl implements Host {
     }
 
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isRepositoryVersionCorrect(RepositoryVersionEntity repositoryVersion)
+      throws AmbariException {
+    HostEntity hostEntity = getHostEntity();
+    Collection<HostComponentStateEntity> hostComponentStates = hostEntity.getHostComponentStateEntities();
+
+    // for every host component, if it matches the desired repo and has reported
+    // the correct version then we're good
+    for (HostComponentStateEntity hostComponentState : hostComponentStates) {
+      ServiceComponentDesiredStateEntity desiredComponmentState = hostComponentState.getServiceComponentDesiredStateEntity();
+      RepositoryVersionEntity desiredRepositoryVersion = desiredComponmentState.getDesiredRepositoryVersion();
+
+      ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+          desiredRepositoryVersion.getStackName(), desiredRepositoryVersion.getStackVersion(),
+          hostComponentState.getServiceName(), hostComponentState.getComponentName());
+
+      // skip components which don't advertise a version
+      if (!componentInfo.isVersionAdvertised()) {
+        continue;
+      }
+
+      // we only care about checking the specified repo version for this host
+      if (!repositoryVersion.equals(desiredRepositoryVersion)) {
+        continue;
+      }
+
+      String versionAdvertised = hostComponentState.getVersion();
+      if (hostComponentState.getUpgradeState() == UpgradeState.IN_PROGRESS
+          || !StringUtils.equals(versionAdvertised, repositoryVersion.getVersion())) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 
