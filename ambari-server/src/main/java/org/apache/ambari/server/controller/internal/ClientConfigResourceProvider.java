@@ -105,7 +105,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for client config resources.
@@ -162,7 +161,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   }
 
   @Override
-  @Transactional
   public Set<Resource> getResources(Request request, Predicate predicate)
           throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 

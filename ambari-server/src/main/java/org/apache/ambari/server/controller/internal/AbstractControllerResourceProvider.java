@@ -254,6 +254,10 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new ClusterKerberosDescriptorResourceProvider(managementController);
       case LoggingQuery:
         return new LoggingResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case AlertTarget:
+        return resourceProviderFactory.getAlertTargetResourceProvider();
+      case ViewInstance:
+        return resourceProviderFactory.getViewInstanceResourceProvider();
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }
