@@ -38,6 +38,7 @@
         <button class="btn btn-primary"
             {{action runAction target="view"}}
             {{bindAttr disabled="view.stateElement.isDisabled"}}>
+            <i {{bindAttr class="view.stateElement.iconClass"}}></i>
             {{view.stateElement.text}}
         </button>
         <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.stateElement.isDisabled"}}>
@@ -82,6 +83,13 @@
     </button>
     <ul class="dropdown-menu">
         <li><a {{action confirmRevertPatchUpgrade view.content target="controller"}}>{{t common.revert}}</a></li>
+        {{#each button in view.stateElement.buttons}}
+            <li {{bindAttr class="button.isDisabled:disabled"}}>
+                <a {{action runAction button.action target="view"}}>
+                    {{button.text}}
+                </a>
+            </li>
+        {{/each}}
     </ul>
   </div>
 {{/if}}

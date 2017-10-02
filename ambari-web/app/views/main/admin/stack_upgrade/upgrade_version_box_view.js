@@ -134,7 +134,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     },
     'INSTALLED': {
       iconClass: 'icon-ok',
-      isLink: true,
+      isButtonGroup: true,
       text: Em.I18n.t('common.installed'),
       action: null
     },
@@ -254,9 +254,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
         this.get('content.repositoryVersion'),
         Em.get(currentVersion, 'repository_version')
       ) === 1;
-
+    var isDisabled = this.isDisabledOnInstalled();
     if (Em.get(currentVersion, 'stack_name') !== this.get('content.stackVersionType') || isVersionHigherThanCurrent) {
-      var isDisabled = this.isDisabledOnInstalled();
       switch (status){
         case 'OUT_OF_SYNC':
           element.set('isButtonGroup', true);
@@ -290,7 +289,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
             isDisabled: isDisabled
           });
 
-          if (this.get('content.isPatch')) {
+          if (this.get('content.isPatch') || this.get('content.isMaint')) {
             element.get('buttons').pushObject({
               text: Em.I18n.t('common.hide'),
               action: 'confirmDiscardRepoVersion',
@@ -303,6 +302,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }
     else {
       element.setProperties(this.get('statePropertiesMap')['INSTALLED']);
+      if (this.get('content.isPatch') || this.get('content.isMaint')) {
+        element.get('buttons').pushObject({
+          text: Em.I18n.t('common.hide'),
+          action: 'confirmDiscardRepoVersion',
+          isDisabled: isDisabled
+        });
+      }
     }
   },
 
