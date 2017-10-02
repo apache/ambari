@@ -681,7 +681,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         expected: {
           status: 'INSTALLED',
-          isLink: true,
+          isButtonGroup: true,
           iconClass: 'glyphicon glyphicon-ok',
           text: Em.I18n.t('common.installed'),
           action: null
@@ -1377,7 +1377,7 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(element).to.be.eql(Em.Object.create({
         "action": null,
         "iconClass": "glyphicon glyphicon-ok",
-        "isLink": true,
+        "isButtonGroup": true,
         "text": "Installed"
       }));
     });

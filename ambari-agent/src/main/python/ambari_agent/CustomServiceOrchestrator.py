@@ -281,7 +281,11 @@ class CustomServiceOrchestrator():
 
     for config_type, credentials in configtype_credentials.items():
       config = commandJson['configurations'][config_type]
-      file_path = os.path.join(self.getProviderDirectory(serviceName), "{0}.jceks".format(config_type))
+      if 'role' in commandJson and commandJson['role']:
+        roleName = commandJson['role']
+        file_path = os.path.join(self.getProviderDirectory(roleName), "{0}.jceks".format(config_type))
+      else:
+        file_path = os.path.join(self.getProviderDirectory(serviceName), "{0}.jceks".format(config_type))
       if os.path.exists(file_path):
         os.remove(file_path)
       provider_path = 'jceks://file{file_path}'.format(file_path=file_path)
